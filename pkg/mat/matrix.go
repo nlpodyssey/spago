@@ -53,3 +53,18 @@ type Matrix interface {
 	String() string
 	SetData(data []float64)
 }
+
+func ConcatV(vs ...Matrix) Matrix {
+	cup := 0
+	for _, v := range vs {
+		cup += v.Size()
+	}
+	data := make([]float64, 0, cup)
+	for _, v := range vs {
+		if v.Columns() != 1 {
+			panic("mat: required vector, found matrix.")
+		}
+		data = append(data, v.Data()...)
+	}
+	return NewVecDense(data)
+}
