@@ -24,3 +24,7 @@ func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
 	}
 	return out
 }
+
+func ShuffleInPlace(xs []int, source rand.Source) {
+	rand.New(source).Shuffle(len(xs), func(i, j int) { xs[i], xs[j] = xs[j], xs[i] })
+}
