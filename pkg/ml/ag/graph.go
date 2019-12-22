@@ -151,6 +151,66 @@ func (g *Graph) NewWrapNoGrad(value GradValue) *Wrapper {
 	return newNode
 }
 
+func (g *Graph) ForwardAll() {
+	groups := g.groupNodesByDepth()
+	for depth := len(groups) - 1; depth >= 0; depth-- {
+		var wg sync.WaitGroup
+		wg.Add(len(groups[depth]))
+		for _, n := range groups[depth] {
+			go func(x Node) {
+				defer wg.Done()
+				x.ZeroGrad()
+				if x, ok := x.(*Operator); ok {
+					x.value = x.function.Forward()
+				}
+			}(n)
+		}
+		wg.Wait()
+	}
+}
+
+// Backward propagates the gradients from the node all the way back to the leaf descendants i.e. variables.
+// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the final output
+// with respect to the final output itself.
+func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
+	var gx mat.Matrix
+	if len(grad) > 1 {
+		panic("ag: invalid number of arguments. Required zero or one argument.")
+	} else if len(grad) == 0 || grad[0] == nil {
+		gx = node.Value().OnesLike()
+	} else {
+		gx = grad[0]
+	}
+	node.PropagateGrad(gx)
+	minDepth := g.nodes[node.Id()].depth
+	for depth, ns := range g.groupNodesByDepth() {
+		if depth < minDepth {
+			break
+		}
+		var wg sync.WaitGroup
+		wg.Add(len(ns))
+		for _, n := range ns {
+			go func(x Node) {
+				defer wg.Done()
+				if x, ok := x.(*Operator); ok {
+					x.backward()
+				}
+			}(n)
+		}
+		wg.Wait()
+	}
+}
+
+func (g *Graph) BackwardAll() {
+	for _, ns := range g.groupNodesByDepth() {
+		for _, n := range ns {
+			if n, ok := n.(*Operator); ok {
+				n.backward()
+			}
+		}
+	}
+}
+
 // newId generates and returns a new incremental sequential ID.
 func (g *Graph) newId() int64 {
 	return atomic.AddInt64(&g.maxId, 1) - 1
