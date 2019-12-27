@@ -32,3 +32,8 @@ func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
 	}
 	return y
 }
+
+// BiLinear performs a bilinear transformation of the type (x_1 W x_2)
+func BiLinear(g *ag.Graph, w, x1, x2 ag.Node) ag.Node {
+	return g.Mul(g.Mul(g.T(x1), w), x2)
+}
