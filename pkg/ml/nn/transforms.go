@@ -38,6 +38,11 @@ func BiLinear(g *ag.Graph, w, x1, x2 ag.Node) ag.Node {
 	return g.Mul(g.Mul(g.T(x1), w), x2)
 }
 
+// BiAffine performs a biaffine transformation.
+func BiAffine(g *ag.Graph, w, u, v, b, x1, x2 ag.Node) ag.Node {
+	return g.Add(g.Add(g.Add(BiLinear(g, w, x1, x2), g.Mul(g.T(u), x1)), g.Mul(g.T(v), x2)), b)
+}
+
 // Conv2D performs a 2D convolution.
 func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 	var dimx, dimy int
