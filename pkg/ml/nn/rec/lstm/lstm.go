@@ -203,8 +203,50 @@ func (p *Processor) fwdSerial(x ag.Node) (s *State) {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (p *Processor) fwdConcurrent(x ag.Node) (s *State) {
-	// TODO
-	return nil
+	s = new(State)
+	yPrev, cellPrev := p.prev()
+
+	cInG := make(chan ag.Node)
+	go func() {
+		cInG <- p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
+	}()
+
+	cOutG := make(chan ag.Node)
+	go func() {
+		cOutG <- p.g.Sigmoid(nn.Affine(p.g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
+	}()
+
+	cForG := make(chan ag.Node)
+	go func() {
+		cForG <- p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrev))
+	}()
+
+	cCand := make(chan ag.Node)
+	go func() {
+		cCand <- p.g.Tanh(nn.Affine(p.g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
+	}()
+
+	for i := 0; i < 4; i++ {
+		select {
+		case msg := <-cInG:
+			s.InG = msg
+		case msg := <-cOutG:
+			s.OutG = msg
+		case msg := <-cForG:
+			s.ForG = msg
+		case msg := <-cCand:
+			s.Cand = msg
+		}
+	}
+
+	if cellPrev != nil {
+		s.Cell = p.g.Add(p.g.Prod(s.InG, s.Cand), p.g.Prod(s.ForG, cellPrev))
+	} else {
+		s.Cell = p.g.Prod(s.InG, s.Cand)
+	}
+	s.Y = p.g.Prod(s.OutG, p.g.Tanh(s.Cell))
+
+	return
 }
 
 func (p *Processor) prev() (yPrev, cellPrev ag.Node) {
