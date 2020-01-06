@@ -15,17 +15,17 @@ type GradientDescent struct {
 	// the optimization method (SGD, AdaGrad, Adam, ...)
 	method OptimizationMethod
 	// gradient clipper
-	gc clipper.GradClipper
+	gradClipper clipper.GradClipper
 	// set of observed optimizable parameters
 	observed map[Optimizable]bool
 }
 
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method OptimizationMethod, gc clipper.GradClipper) *GradientDescent {
+func NewOptimizer(method OptimizationMethod, gradClipper clipper.GradClipper) *GradientDescent {
 	return &GradientDescent{
-		method:   method,
-		gc:       gc,
-		observed: make(map[Optimizable]bool),
+		method:      method,
+		gradClipper: gradClipper,
+		observed:    make(map[Optimizable]bool),
 	}
 }
 
@@ -78,12 +78,12 @@ func (o *GradientDescent) updateParams() {
 
 // clipGrad applies the gradient clipping to all the observed parameters.
 func (o *GradientDescent) clipGrads() {
-	if o.gc != nil {
+	if o.gradClipper != nil {
 		var gs []mat.Matrix
 		for param := range o.observed {
 			gs = append(gs, param.Grad())
 		}
-		o.gc.Clip(gs)
+		o.gradClipper.Clip(gs)
 	}
 }
 
