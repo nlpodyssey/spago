@@ -14,22 +14,27 @@ import (
 )
 
 type Model struct {
-	K   []*nn.Param  `type:"weights"`
-	B   []*nn.Param  `type:"biases"`
-	Act act.FuncName // output activation
+	K              []*nn.Param  `type:"weights"`
+	B              []*nn.Param  `type:"biases"`
+	Act            act.FuncName // output activation
+	inputChannels  int
+	outputChannels int
 }
 
-func New(kernelSizeX, kernelSizeY, inputChannels int, actFunc act.FuncName) *Model {
-	kernels := make([]*nn.Param, inputChannels, inputChannels)
-	biases := make([]*nn.Param, inputChannels, inputChannels)
-	for i := 0; i < inputChannels; i++ {
+func New(kernelSizeX, kernelSizeY, inputChannels, outputChannels int, actFunc act.FuncName) *Model {
+	paramsSize := inputChannels * outputChannels
+	kernels := make([]*nn.Param, paramsSize, paramsSize)
+	biases := make([]*nn.Param, paramsSize, paramsSize)
+	for i := 0; i < paramsSize; i++ {
 		kernels[i] = nn.NewParam(mat.NewEmptyDense(kernelSizeX, kernelSizeY))
 		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1))
 	}
 	return &Model{
-		K:   kernels,
-		B:   biases,
-		Act: actFunc,
+		K:              kernels,
+		B:              biases,
+		Act:            actFunc,
+		inputChannels:  inputChannels,
+		outputChannels: outputChannels,
 	}
 }
 
@@ -106,15 +111,20 @@ func (p *Processor) init(opt []interface{}) {
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	return []ag.Node{p.forward(xs)}
+	ys := make([]ag.Node, len(xs))
+	for i := 0; i < p.model.outputChannels; i++ {
+		ys[i] = p.forward(xs, i)
+	}
+	return ys
 }
 
-func (p *Processor) forward(xs []ag.Node) ag.Node {
-	out := nn.Conv2D(p.g, p.g.NewWrap(p.model.K[0]), xs[0], p.xStride, p.yStride)
-	out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[0]))
+func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
+	offset := outputChannel * p.model.inputChannels
+	out := nn.Conv2D(p.g, p.g.NewWrap(p.model.K[0+offset]), xs[0], p.xStride, p.yStride)
+	out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[0+offset]))
 	for i := 1; i < len(xs); i++ {
-		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i]), xs[i], p.xStride, p.yStride))
-		out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[i]))
+		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i+offset]), xs[i], p.xStride, p.yStride))
+		out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[i+offset]))
 	}
 	return act.F(p.g, p.model.Act, out)
 }
