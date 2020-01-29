@@ -1,6 +1,6 @@
 # spaGO
 
-<img src="https:///brillion/spago/blob/master/assets/spago.png" width="100">
+<img src="https://github.com/brillion/spago/blob/master/assets/spago.png" width="100" alt="spago-logo">
 
 spaGO is a machine learning lightweight open-source library written in Go designed to support relevant neural network architectures in natural language processing tasks.
 
