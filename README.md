@@ -1,4 +1,7 @@
 # spaGO
+[![Go Report Card](https://goreportcard.com/badge/github.com/brillion/spago)](https://goreportcard.com/report/github.com/brillion/spago)
+
+---
 
 <img src="https://github.com/brillion/spago/blob/master/assets/spago.png" width="100" alt="spago-logo">
 
