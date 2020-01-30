@@ -111,7 +111,7 @@ func (p *Processor) init(opt []interface{}) {
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.Node, p.model.outputChannels)
 	for i := 0; i < p.model.outputChannels; i++ {
 		ys[i] = p.forward(xs, i)
 	}
