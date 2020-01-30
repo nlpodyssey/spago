@@ -89,6 +89,11 @@ func (g *Graph) Reshape(x Node, rows, columns int) Node {
 	return g.NewOperator(fn.NewReshape(x, rows, columns), x)
 }
 
+// MaxPooling
+func (g *Graph) MaxPooling(x Node, rows, columns int) Node {
+	return g.NewOperator(fn.NewMaxPooling(x, rows, columns), x)
+}
+
 // View
 func (g *Graph) View(x Node, row, column, xStride, yStride int) Node {
 	return g.NewOperator(fn.NewView(x, row, column, xStride, yStride), x)
