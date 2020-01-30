@@ -4,7 +4,7 @@
 
 package ag
 
-import "brillion.io/spago/pkg/mat"
+import "saientist.dev/spago/pkg/mat"
 
 type GradValue interface {
 	// Value returns the value of the node.

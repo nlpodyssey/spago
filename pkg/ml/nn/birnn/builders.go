@@ -5,12 +5,12 @@
 package birnn
 
 import (
-	"brillion.io/spago/pkg/ml/nn/rec/cfn"
-	"brillion.io/spago/pkg/ml/nn/rec/gru"
-	"brillion.io/spago/pkg/ml/nn/rec/lstm"
-	"brillion.io/spago/pkg/ml/nn/rec/ltm"
-	"brillion.io/spago/pkg/ml/nn/rec/ran"
-	"brillion.io/spago/pkg/ml/nn/stack"
+	"saientist.dev/spago/pkg/ml/nn/rec/cfn"
+	"saientist.dev/spago/pkg/ml/nn/rec/gru"
+	"saientist.dev/spago/pkg/ml/nn/rec/lstm"
+	"saientist.dev/spago/pkg/ml/nn/rec/ltm"
+	"saientist.dev/spago/pkg/ml/nn/rec/ran"
+	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
 func NewBiLSTM(input, hidden int, merge MergeType) *Model {

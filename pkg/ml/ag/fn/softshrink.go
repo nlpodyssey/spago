@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // SoftShrink(x) = ​x − λ if x > λ; x + λ if x < −λ; 0 otherwise ​

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)

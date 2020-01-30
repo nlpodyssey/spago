@@ -5,7 +5,7 @@
 package act
 
 import (
-	"brillion.io/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/ag"
 )
 
 type FuncName int

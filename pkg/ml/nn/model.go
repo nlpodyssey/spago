@@ -5,12 +5,12 @@
 package nn
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/optimizers/gd"
-	"brillion.io/spago/pkg/utils"
 	"io"
 	"reflect"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/optimizers/gd"
+	"saientist.dev/spago/pkg/utils"
 	"strings"
 )
 

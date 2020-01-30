@@ -5,8 +5,8 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
 	"math"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // Single-input, softmax function.

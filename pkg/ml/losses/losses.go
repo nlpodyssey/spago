@@ -5,7 +5,7 @@
 package losses
 
 import (
-	"brillion.io/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/ag"
 )
 
 // MAE measures the mean absolute error (a.k.a. L1 Loss) between each element in the input x and target y.

@@ -5,8 +5,8 @@
 package clipper
 
 import (
-	"brillion.io/spago/pkg/mat"
 	"math"
+	"saientist.dev/spago/pkg/mat"
 )
 
 type GradClipper interface {

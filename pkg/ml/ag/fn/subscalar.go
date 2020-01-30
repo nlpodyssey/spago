@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // Element-wise subtraction with a scalar value.

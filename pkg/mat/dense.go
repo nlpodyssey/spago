@@ -5,9 +5,9 @@
 package mat
 
 import (
-	"brillion.io/spago/pkg/mat/internal/asm/f64"
 	"fmt"
 	"math"
+	"saientist.dev/spago/pkg/mat/internal/asm/f64"
 )
 
 type Dense struct {

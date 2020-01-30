@@ -4,7 +4,7 @@
 
 package fn
 
-import "brillion.io/spago/pkg/mat"
+import "saientist.dev/spago/pkg/mat"
 
 // variable used in the tests
 type variable struct {

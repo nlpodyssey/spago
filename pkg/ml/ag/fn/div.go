@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // Element-wise division over two values.

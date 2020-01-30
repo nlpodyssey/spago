@@ -1,4 +1,4 @@
-module brillion.io/spago
+module saientist.dev/spago
 
 go 1.13
 

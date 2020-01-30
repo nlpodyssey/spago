@@ -5,7 +5,7 @@
 package fofe
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 	"sort"
 )
 

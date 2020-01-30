@@ -5,9 +5,9 @@
 package sqrdist
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag"
 	"gonum.org/v1/gonum/floats"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag"
 	"testing"
 )
 

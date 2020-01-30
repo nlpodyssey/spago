@@ -5,8 +5,8 @@
 package hyperbolic
 
 import (
-	"brillion.io/spago/pkg/mat/f64utils"
 	"github.com/stretchr/testify/assert"
+	"saientist.dev/spago/pkg/mat/f64utils"
 	"testing"
 )
 

@@ -5,8 +5,8 @@
 package gd
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag"
 )
 
 type MethodName int

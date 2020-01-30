@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // Threshold(x) = x if x > threshold; k otherwise ​

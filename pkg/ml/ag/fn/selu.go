@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // SeLU(x) = scale ∗ (max(0,x) + min(0, α ∗ (exp(x) − 1)))

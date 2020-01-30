@@ -5,7 +5,7 @@
 package nn
 
 import (
-	"brillion.io/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/ag"
 )
 
 // Linear performs a linear transformation of the type Wx.

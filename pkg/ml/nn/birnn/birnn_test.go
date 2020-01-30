@@ -5,11 +5,11 @@
 package birnn
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/nn/rec/srn"
 	"gonum.org/v1/gonum/floats"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/nn/rec/srn"
 	"testing"
 )
 

@@ -4,7 +4,7 @@
 
 package fn
 
-import "brillion.io/spago/pkg/mat"
+import "saientist.dev/spago/pkg/mat"
 
 type Operand interface {
 	// Value returns the value of the operand.

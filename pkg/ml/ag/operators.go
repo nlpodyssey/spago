@@ -5,8 +5,8 @@
 package ag
 
 import (
-	"brillion.io/spago/pkg/ml/ag/fn"
 	"golang.org/x/exp/rand"
+	"saientist.dev/spago/pkg/ml/ag/fn"
 )
 
 // Identity

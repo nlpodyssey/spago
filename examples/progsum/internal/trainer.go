@@ -5,16 +5,16 @@
 package internal
 
 import (
-	"brillion.io/spago/pkg/mat/rnd"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/losses"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/optimizers/gd"
-	"brillion.io/spago/pkg/utils"
 	"fmt"
 	"github.com/gosuri/uiprogress"
 	"golang.org/x/exp/rand"
 	"runtime/debug"
+	"saientist.dev/spago/pkg/mat/rnd"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/losses"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/optimizers/gd"
+	"saientist.dev/spago/pkg/utils"
 	"sync"
 )
 

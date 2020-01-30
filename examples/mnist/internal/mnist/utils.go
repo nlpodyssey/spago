@@ -5,8 +5,8 @@
 package mnist
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/third_party/GoMNIST"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 // Normalize converts the image to a Dense matrix, with values scaled to the range [0, 1]

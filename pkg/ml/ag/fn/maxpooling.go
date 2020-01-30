@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/utils"
 	"math"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/utils"
 )
 
 type MaxPooling struct {

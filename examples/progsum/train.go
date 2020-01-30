@@ -5,20 +5,20 @@
 package main
 
 import (
-	"brillion.io/spago/examples/progsum/internal"
-	"brillion.io/spago/pkg/ml/act"
-	"brillion.io/spago/pkg/ml/initializers"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/nn/perceptron"
-	"brillion.io/spago/pkg/ml/nn/rec/lstm"
-	"brillion.io/spago/pkg/ml/nn/stack"
-	"brillion.io/spago/pkg/ml/optimizers/gd"
-	"brillion.io/spago/pkg/ml/optimizers/gd/adam"
 	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"saientist.dev/spago/examples/progsum/internal"
+	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/initializers"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/nn/perceptron"
+	"saientist.dev/spago/pkg/ml/nn/rec/lstm"
+	"saientist.dev/spago/pkg/ml/nn/stack"
+	"saientist.dev/spago/pkg/ml/optimizers/gd"
+	"saientist.dev/spago/pkg/ml/optimizers/gd/adam"
 )
 
 func main() {

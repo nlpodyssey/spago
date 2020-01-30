@@ -5,11 +5,11 @@
 package gru
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/nn"
 	"io"
 	"log"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn"
 )
 
 type Model struct {

@@ -5,11 +5,6 @@
 package emb
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/mat/f64utils"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/optimizers/gd"
-	"brillion.io/spago/pkg/utils"
 	"bufio"
 	"bytes"
 	"github.com/dgraph-io/badger"
@@ -17,6 +12,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat/f64utils"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/optimizers/gd"
+	"saientist.dev/spago/pkg/utils"
 )
 
 type Map struct {

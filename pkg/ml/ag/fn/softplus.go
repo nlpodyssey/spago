@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat"
 )
 
 // SoftPlus(x) = 1/ β ​∗ log( 1 + exp(β ∗ x))

@@ -5,12 +5,12 @@
 package perceptron
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/act"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/nn"
 	"io"
 	"log"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn"
 	"sync"
 )
 

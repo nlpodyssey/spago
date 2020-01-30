@@ -5,8 +5,8 @@
 package fofe
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/utils"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/utils"
 )
 
 // The Fixed-Size Ordinally-Forgetting Encoding

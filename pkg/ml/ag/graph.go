@@ -5,8 +5,8 @@
 package ag
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/ml/ag/fn"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/ml/ag/fn"
 	"sync"
 	"sync/atomic"
 )

@@ -5,14 +5,14 @@
 package main
 
 import (
-	"brillion.io/spago/examples/mnist/internal/mnist"
-	"brillion.io/spago/pkg/ml/act"
-	"brillion.io/spago/pkg/ml/nn/perceptron"
-	"brillion.io/spago/pkg/ml/nn/stack"
-	"brillion.io/spago/pkg/utils"
-	"brillion.io/spago/third_party/GoMNIST"
 	"fmt"
 	"os"
+	"saientist.dev/spago/examples/mnist/internal/mnist"
+	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/nn/perceptron"
+	"saientist.dev/spago/pkg/ml/nn/stack"
+	"saientist.dev/spago/pkg/utils"
+	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 func main() {

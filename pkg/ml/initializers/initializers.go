@@ -5,12 +5,12 @@
 package initializers
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/mat/rnd/normal"
-	"brillion.io/spago/pkg/mat/rnd/uniform"
-	"brillion.io/spago/pkg/ml/act"
 	"golang.org/x/exp/rand"
 	"math"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat/rnd/normal"
+	"saientist.dev/spago/pkg/mat/rnd/uniform"
+	"saientist.dev/spago/pkg/ml/act"
 )
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.

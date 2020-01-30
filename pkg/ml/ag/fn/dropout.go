@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/mat/rnd"
 	"golang.org/x/exp/rand"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/mat/rnd"
 )
 
 type Dropout struct {

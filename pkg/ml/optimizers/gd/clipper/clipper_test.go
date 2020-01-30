@@ -5,9 +5,9 @@
 package clipper
 
 import (
-	"brillion.io/spago/pkg/mat"
 	"gonum.org/v1/gonum/floats"
 	"math"
+	"saientist.dev/spago/pkg/mat"
 	"testing"
 )
 

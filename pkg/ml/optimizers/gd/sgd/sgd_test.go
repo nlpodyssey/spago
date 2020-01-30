@@ -5,8 +5,8 @@
 package sgd
 
 import (
-	"brillion.io/spago/pkg/mat"
 	"gonum.org/v1/gonum/floats"
+	"saientist.dev/spago/pkg/mat"
 	"testing"
 )
 

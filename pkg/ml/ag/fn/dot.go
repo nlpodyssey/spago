@@ -4,7 +4,7 @@
 
 package fn
 
-import "brillion.io/spago/pkg/mat"
+import "saientist.dev/spago/pkg/mat"
 
 // Dot product over two matrices.
 // y = x1 dot x2

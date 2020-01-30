@@ -5,11 +5,11 @@
 package gd
 
 import (
-	"brillion.io/spago/pkg/mat"
-	"brillion.io/spago/pkg/utils"
 	"bytes"
 	"encoding/binary"
 	"io"
+	"saientist.dev/spago/pkg/mat"
+	"saientist.dev/spago/pkg/utils"
 )
 
 // MarshalBinaryTo returns the number of bytes written into w and an error, if any.

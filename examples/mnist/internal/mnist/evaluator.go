@@ -5,12 +5,12 @@
 package mnist
 
 import (
-	"brillion.io/spago/pkg/mat/f64utils"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/stats"
-	"brillion.io/spago/third_party/GoMNIST"
 	"github.com/gosuri/uiprogress"
+	"saientist.dev/spago/pkg/mat/f64utils"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/stats"
+	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 type Evaluator struct {

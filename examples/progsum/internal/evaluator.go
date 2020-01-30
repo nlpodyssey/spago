@@ -5,11 +5,11 @@
 package internal
 
 import (
-	"brillion.io/spago/pkg/mat/f64utils"
-	"brillion.io/spago/pkg/ml/ag"
-	"brillion.io/spago/pkg/ml/nn"
-	"brillion.io/spago/pkg/ml/stats"
 	"github.com/gosuri/uiprogress"
+	"saientist.dev/spago/pkg/mat/f64utils"
+	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn"
+	"saientist.dev/spago/pkg/ml/stats"
 )
 
 type Evaluator struct {
