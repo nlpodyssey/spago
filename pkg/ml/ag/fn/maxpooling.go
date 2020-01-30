@@ -10,7 +10,7 @@ import (
 	"math"
 )
 
-type MaxPool struct {
+type MaxPooling struct {
 	x    Operand
 	rows int
 	cols int
@@ -20,8 +20,8 @@ type MaxPool struct {
 	argmaxj [][]int
 }
 
-func NewMaxPool(x Operand, r, c int) *MaxPool {
-	return &MaxPool{
+func NewMaxPooling(x Operand, r, c int) *MaxPooling {
+	return &MaxPooling{
 		x:       x,
 		rows:    r,
 		cols:    c,
@@ -32,7 +32,7 @@ func NewMaxPool(x Operand, r, c int) *MaxPool {
 }
 
 // Forward computes the output of the function.
-func (r *MaxPool) Forward() mat.Matrix {
+func (r *MaxPooling) Forward() mat.Matrix {
 	if !(r.x.Value().Rows()%r.rows == 0 && r.x.Value().Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
@@ -61,7 +61,7 @@ func (r *MaxPool) Forward() mat.Matrix {
 	return r.y
 }
 
-func (r *MaxPool) Backward(gy mat.Matrix) {
+func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		for row := 0; row < r.y.Rows(); row++ {

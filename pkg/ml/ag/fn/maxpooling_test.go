@@ -21,7 +21,7 @@ func TestMaxPool_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewMaxPool(x, 2, 2)
+	f := NewMaxPooling(x, 2, 2)
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{
