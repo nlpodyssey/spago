@@ -12,7 +12,6 @@ import (
 	"io"
 )
 
-
 // MarshalBinaryTo returns the number of bytes written into w and an error, if any.
 func MarshalBinaryTo(supp *Support, w io.Writer) (int, error) {
 	h := header{Opt: int64(supp.Name), SuppSize: int64(len(supp.Data))}

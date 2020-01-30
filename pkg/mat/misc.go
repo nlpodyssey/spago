@@ -40,4 +40,3 @@ func Cosine(x, y Matrix) float64 {
 	yNorm := y.Norm(2.0)
 	return d / (xNorm * yNorm)
 }
-

@@ -26,9 +26,9 @@ type Map struct {
 
 type Config struct {
 	// size of each embedding vector
-	Dim      int
+	Dim int
 	// where to store the embedding map
-	Path     string
+	Path string
 	// whether the embedding map is read only
 	ReadOnly bool
 }

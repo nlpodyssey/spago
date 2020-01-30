@@ -97,7 +97,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	return p
 }
 
-
 func (p *Processor) init(opt []interface{}) {
 	for _, t := range opt {
 		switch t := t.(type) {
