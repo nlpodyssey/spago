@@ -50,6 +50,16 @@ func ForEachParam(m Model, callback func(param *Param)) {
 			callback(item)
 		case Model:
 			item.ForEachParam(callback)
+		case []*Param:
+			for _, p := range item {
+				p.name = strings.ToLower(name)
+				p.pType = ToType(tag.Get("type"))
+				callback(p)
+			}
+		case []Model:
+			for _, m := range item {
+				m.ForEachParam(callback)
+			}
 		}
 	})
 }
