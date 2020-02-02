@@ -11,6 +11,7 @@ import (
 	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
+	"sync"
 )
 
 type Model struct {
@@ -19,9 +20,11 @@ type Model struct {
 	Act            act.FuncName // output activation
 	inputChannels  int
 	outputChannels int
+	xStride        int
+	yStride        int
 }
 
-func New(kernelSizeX, kernelSizeY, inputChannels, outputChannels int, actFunc act.FuncName) *Model {
+func New(kernelSizeX, kernelSizeY, xStride, yStride, inputChannels, outputChannels int, actFunc act.FuncName) *Model {
 	paramsSize := inputChannels * outputChannels
 	kernels := make([]*nn.Param, paramsSize, paramsSize)
 	biases := make([]*nn.Param, paramsSize, paramsSize)
@@ -35,6 +38,8 @@ func New(kernelSizeX, kernelSizeY, inputChannels, outputChannels int, actFunc ac
 		Act:            actFunc,
 		inputChannels:  inputChannels,
 		outputChannels: outputChannels,
+		xStride:        xStride,
+		yStride:        yStride,
 	}
 }
 
@@ -58,25 +63,18 @@ func (m *Model) SetActivation(a act.FuncName) act.FuncName {
 }
 
 type Processor struct {
-	opt     []interface{}
-	model   *Model
-	g       *ag.Graph
-	xStride int
-	yStride int
-}
-
-type Strides struct {
-	X int
-	Y int
+	opt                     []interface{}
+	model                   *Model
+	g                       *ag.Graph
+	ConcurrentOutputChannel bool
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:   m,
-		opt:     opt,
-		g:       g,
-		xStride: 1,
-		yStride: 1,
+		model:                   m,
+		opt:                     opt,
+		g:                       g,
+		ConcurrentOutputChannel: true,
 	}
 	p.init(opt)
 	return p
@@ -98,12 +96,15 @@ func (p *Processor) Reset() {
 	p.init(p.opt)
 }
 
+type Concurrency struct {
+	Value bool
+}
+
 func (p *Processor) init(opt []interface{}) {
 	for _, t := range opt {
 		switch t := t.(type) {
-		case Strides:
-			p.xStride = t.X
-			p.yStride = t.Y
+		case Concurrency:
+			p.ConcurrentOutputChannel = t.Value
 		default:
 			log.Fatal("convolution: invalid init options")
 		}
@@ -111,6 +112,14 @@ func (p *Processor) init(opt []interface{}) {
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	if p.ConcurrentOutputChannel && p.model.outputChannels > 1 {
+		return p.fwdConcurrent(xs)
+	} else {
+		return p.fwdSerial(xs)
+	}
+}
+
+func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, p.model.outputChannels)
 	for i := 0; i < p.model.outputChannels; i++ {
 		ys[i] = p.forward(xs, i)
@@ -118,12 +127,26 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
+func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, p.model.outputChannels)
+	var wg sync.WaitGroup
+	wg.Add(p.model.outputChannels)
+	for i := 0; i < p.model.outputChannels; i++ {
+		go func(i int) {
+			defer wg.Done()
+			ys[i] = p.forward(xs, i)
+		}(i)
+	}
+	wg.Wait()
+	return ys
+}
+
 func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
 	offset := outputChannel * p.model.inputChannels
-	out := nn.Conv2D(p.g, p.g.NewWrap(p.model.K[0+offset]), xs[0], p.xStride, p.yStride)
+	out := nn.Conv2D(p.g, p.g.NewWrap(p.model.K[0+offset]), xs[0], p.model.xStride, p.model.yStride)
 	out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[0+offset]))
 	for i := 1; i < len(xs); i++ {
-		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i+offset]), xs[i], p.xStride, p.yStride))
+		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i+offset]), xs[i], p.model.xStride, p.model.yStride))
 		out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[i+offset]))
 	}
 	return act.F(p.g, p.model.Act, out)
