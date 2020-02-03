@@ -11,10 +11,11 @@ import (
 )
 
 type Dense struct {
-	rows int
-	cols int
-	size int // rows*cols
-	data []float64
+	rows   int
+	cols   int
+	size   int // rows*cols
+	data   []float64
+	viewOf *Dense // default nil
 }
 
 // Following 'runtime: memmove sometimes faster than memclrNoHeapPointers (https:///golang/go/issues/23306)',
@@ -44,10 +45,11 @@ func NewVecDense(elements []float64) *Dense {
 func NewScalar(n float64) *Dense {
 	data := []float64{n}
 	return &Dense{
-		rows: 1,
-		cols: 1,
-		size: 1,
-		data: data,
+		rows:   1,
+		cols:   1,
+		size:   1,
+		data:   data,
+		viewOf: nil,
 	}
 }
 
@@ -71,10 +73,11 @@ func OneHotVecDense(size int, oneAt int) *Dense {
 // newDense returns a new rows x cols dense matrix populated with a copy of the elements.
 func newDense(rows, cols int, elements []float64) *Dense {
 	return &Dense{
-		rows: rows,
-		cols: cols,
-		size: rows * cols,
-		data: append([]float64(nil), elements...),
+		rows:   rows,
+		cols:   cols,
+		size:   rows * cols,
+		data:   append([]float64(nil), elements...),
+		viewOf: nil,
 	}
 }
 
@@ -121,6 +124,20 @@ func (d *Dense) Copy(other Matrix) {
 		//panic("mat: incompatible matrix types.")
 	} else {
 		_ = append(d.data[:0], other.data...)
+	}
+}
+
+// View returns a new Matrix sharing the same underlying data.
+func (d *Dense) View(rows, cols int) *Dense {
+	if d.Size() != rows*cols {
+		panic("mat: incompatible sizes.")
+	}
+	return &Dense{
+		rows:   rows,
+		cols:   cols,
+		size:   rows * cols,
+		data:   d.data,
+		viewOf: d,
 	}
 }
 
