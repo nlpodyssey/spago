@@ -13,7 +13,7 @@ import (
 	"saientist.dev/spago/examples/mnist/internal/mnist"
 	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/ml/optimizers/gd/sgd"
+	"saientist.dev/spago/pkg/ml/optimizers/gd/adam"
 	"saientist.dev/spago/third_party/GoMNIST"
 )
 
@@ -22,7 +22,6 @@ func main() {
 	go func() { log.Println(http.ListenAndServe("localhost:6060", nil)) }()
 
 	modelPath := os.Args[1]
-
 	var datasetPath string
 	if len(os.Args) > 2 {
 		datasetPath = os.Args[2]
@@ -56,15 +55,9 @@ func main() {
 	)
 	mnist.InitCNN(model, rand.NewSource(1))
 
-	// new optimizer with an arbitrary update method
-	//updater := sgd.New(sgd.NewConfig(0.1, 0.0, false)) // sgd
-	updater := sgd.New(sgd.NewConfig(0.001, 0.9, true)) // sgd with nesterov momentum
-	//updater := adam.New(adam.NewDefaultConfig())
-	optimizer := gd.NewOptimizer(updater, nil)
-	// ad-hoc trainer
 	trainer := mnist.NewTrainer(
 		model,
-		optimizer,
+		gd.NewOptimizer(adam.New(adam.NewDefaultConfig()), nil),
 		epochs,
 		batchSize,
 		true,
