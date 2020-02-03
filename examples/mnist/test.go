@@ -9,8 +9,6 @@ import (
 	"os"
 	"saientist.dev/spago/examples/mnist/internal/mnist"
 	"saientist.dev/spago/pkg/ml/act"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/stack"
 	"saientist.dev/spago/pkg/utils"
 	"saientist.dev/spago/third_party/GoMNIST"
 )
@@ -32,9 +30,12 @@ func main() {
 	}
 
 	// new model initialized with zeros
-	model := stack.New(
-		perceptron.New(784, 100, act.ReLU),
-		perceptron.New(100, 10, act.SoftMax),
+	model := mnist.NewMLP(
+		784, // input
+		100, // hidden
+		10,  // output
+		act.ReLU,
+		act.SoftMax,
 	)
 
 	err = utils.DeserializeFromFile(modelPath, model)
@@ -42,6 +43,9 @@ func main() {
 		panic("mnist: error during model deserialization.")
 	}
 
-	precision := mnist.NewEvaluator(model).Evaluate(testSet).Precision()
+	precision := mnist.NewEvaluator(model).Evaluate(mnist.Dataset{
+		Set:          testSet,
+		NormalizeVec: true,
+	}).Precision()
 	fmt.Printf("Accuracy: %.2f\n", 100*precision)
 }

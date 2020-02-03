@@ -6,11 +6,11 @@ package mnist
 
 import (
 	"github.com/gosuri/uiprogress"
+	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/f64utils"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/stats"
-	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 type Evaluator struct {
@@ -25,14 +25,14 @@ func NewEvaluator(model nn.Model) *Evaluator {
 }
 
 // Predict performs the forward pass and returns the predict label
-func (t *Evaluator) Predict(image GoMNIST.RawImage) int {
+func (t *Evaluator) Predict(image *mat.Dense) int {
 	g := ag.NewGraph()
-	x := g.NewVariable(normalize(image), false)
+	x := g.NewVariable(image, false)
 	y := t.model.NewProc(g).Forward(x)[0]
 	return f64utils.ArgMax(y.Value().Data())
 }
 
-func (t *Evaluator) Evaluate(dataset *GoMNIST.Set) *stats.ClassMetrics {
+func (t *Evaluator) Evaluate(dataset Dataset) *stats.ClassMetrics {
 	uip := uiprogress.New()
 	bar := newTestBar(uip, dataset)
 	uip.Start()
@@ -40,7 +40,7 @@ func (t *Evaluator) Evaluate(dataset *GoMNIST.Set) *stats.ClassMetrics {
 
 	counter := stats.NewMetricCounter()
 	for i := 0; i < dataset.Count(); i++ {
-		image, label := dataset.Get(i)
+		image, label := dataset.GetNormalized(i)
 		if t.Predict(image) == int(label) {
 			counter.IncTruePos()
 		} else {
@@ -51,7 +51,7 @@ func (t *Evaluator) Evaluate(dataset *GoMNIST.Set) *stats.ClassMetrics {
 	return counter
 }
 
-func newTestBar(p *uiprogress.Progress, dataset *GoMNIST.Set) *uiprogress.Bar {
+func newTestBar(p *uiprogress.Progress, dataset Dataset) *uiprogress.Bar {
 	bar := p.AddBar(dataset.Count())
 	bar.AppendCompleted().PrependElapsed()
 	return bar

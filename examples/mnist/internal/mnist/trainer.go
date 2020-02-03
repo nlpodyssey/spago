@@ -9,6 +9,7 @@ import (
 	"github.com/gosuri/uiprogress"
 	"golang.org/x/exp/rand"
 	"runtime/debug"
+	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/rnd"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/losses"
@@ -25,8 +26,8 @@ type Trainer struct {
 	epochs     int
 	batchSize  int
 	concurrent bool
-	trainSet   *GoMNIST.Set
-	testSet    *GoMNIST.Set
+	trainSet   Dataset
+	testSet    Dataset
 	modelPath  string
 	curLoss    float64
 	curEpoch   int
@@ -34,7 +35,7 @@ type Trainer struct {
 	rndSrc     rand.Source // the random source used to shuffle the examples
 }
 
-func NewTrainer(model nn.Model, optimizer *gd.GradientDescent, epochs, batchSize int, concurrent bool, trainSet, testSet *GoMNIST.Set, modelPath string, rndSrc rand.Source) *Trainer {
+func NewTrainer(model nn.Model, optimizer *gd.GradientDescent, epochs, batchSize int, concurrent bool, trainSet, testSet Dataset, modelPath string, rndSrc rand.Source) *Trainer {
 	return &Trainer{
 		model:      model,
 		optimizer:  optimizer,
@@ -112,11 +113,11 @@ func (t *Trainer) trainBatchConcurrent(indices []int, onExample func()) {
 	wg.Add(len(indices))
 	for _, i := range indices {
 		t.optimizer.IncExample()
-		go func(image GoMNIST.RawImage, label GoMNIST.Label) {
+		go func(image *mat.Dense, label GoMNIST.Label) {
 			defer wg.Done()
 			defer onExample()
 			t.curLoss = t.learn(image, int(label))
-		}(t.trainSet.Get(i))
+		}(t.trainSet.GetNormalized(i))
 	}
 	wg.Wait()
 }
@@ -125,16 +126,16 @@ func (t *Trainer) trainBatchSerial(indices []int, onExample func()) {
 	t.optimizer.IncBatch()
 	for _, i := range indices {
 		t.optimizer.IncExample()
-		image, label := t.trainSet.Get(i)
+		image, label := t.trainSet.GetNormalized(i)
 		t.curLoss = t.learn(image, int(label))
 		onExample()
 	}
 }
 
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
-func (t *Trainer) learn(image GoMNIST.RawImage, label int) float64 {
+func (t *Trainer) learn(image *mat.Dense, label int) float64 {
 	g := ag.NewGraph()
-	x := g.NewVariable(normalize(image), false)
+	x := g.NewVariable(image, false)
 	y := t.model.NewProc(g).Forward(x)[0]
 	loss := g.Div(losses.CrossEntropy(g, y, label), g.NewScalar(float64(t.batchSize)))
 	g.Backward(loss)

@@ -12,10 +12,6 @@ import (
 	"os"
 	"saientist.dev/spago/examples/mnist/internal/mnist"
 	"saientist.dev/spago/pkg/ml/act"
-	"saientist.dev/spago/pkg/ml/initializers"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/stack"
 	"saientist.dev/spago/pkg/ml/optimizers/gd"
 	"saientist.dev/spago/pkg/ml/optimizers/gd/adam"
 	"saientist.dev/spago/third_party/GoMNIST"
@@ -35,7 +31,6 @@ func main() {
 		datasetPath = "third_party/GoMNIST/data"
 	}
 
-	hiddenSize := 100
 	batchSize := 50
 	epochs := 20
 	rndSrc := rand.NewSource(743)
@@ -47,8 +42,14 @@ func main() {
 	}
 
 	// new model initialized with random weights
-	model := newMLP(784, hiddenSize, 10)
-	initMLP(model, rand.NewSource(1))
+	model := mnist.NewMLP(
+		784, // input
+		100, // hidden
+		10,  // output
+		act.ReLU,
+		act.Identity, // The CrossEntropy loss doesn't require explicit Softmax activation
+	)
+	mnist.InitMLP(model, rand.NewSource(1))
 
 	// new optimizer with an arbitrary update method
 	//updater := sgd.New(sgd.NewConfig(0.1, 0.0, false)) // sgd
@@ -56,30 +57,16 @@ func main() {
 	updater := adam.New(adam.NewDefaultConfig())
 	optimizer := gd.NewOptimizer(updater, nil)
 	// ad-hoc trainer
-	trainer := mnist.NewTrainer(model, optimizer, epochs, batchSize, true, trainSet, testSet, modelPath, rndSrc)
-	trainer.Enjoy() // :)
-}
-
-func newMLP(in, hidden, out int) *stack.Model {
-	return stack.New(
-		perceptron.New(in, hidden, act.ReLU),
-		perceptron.New(hidden, out, act.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
+	trainer := mnist.NewTrainer(
+		model,
+		optimizer,
+		epochs,
+		batchSize,
+		true,
+		mnist.Dataset{Set: trainSet, NormalizeVec: true},
+		mnist.Dataset{Set: testSet, NormalizeVec: true},
+		modelPath,
+		rndSrc,
 	)
-}
-
-// initRandom initializes the model using the Xavier (Glorot) method.
-func initMLP(model *stack.Model, source rand.Source) {
-	for i, layer := range model.Layers {
-		var gain float64
-		if i == len(model.Layers)-1 { // last layer
-			gain = initializers.Gain(act.SoftMax)
-		} else {
-			gain = initializers.Gain(act.ReLU)
-		}
-		layer.ForEachParam(func(param *nn.Param) {
-			if param.Type() == nn.Weights {
-				initializers.XavierUniform(param.Value(), gain, source)
-			}
-		})
-	}
+	trainer.Enjoy() // :)
 }

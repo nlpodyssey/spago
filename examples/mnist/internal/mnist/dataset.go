@@ -9,6 +9,22 @@ import (
 	"saientist.dev/spago/third_party/GoMNIST"
 )
 
+type Dataset struct {
+	*GoMNIST.Set
+	NormalizeVec bool
+}
+
+// Get returns the i-th normalized image and its corresponding label
+func (s *Dataset) GetNormalized(i int) (*mat.Dense, GoMNIST.Label) {
+	img := normalize(s.Images[i])
+	label := s.Labels[i]
+	if s.NormalizeVec {
+		return img, label
+	} else {
+		return img.View(28, 28), label
+	}
+}
+
 // Normalize converts the image to a Dense matrix, with values scaled to the range [0, 1]
 func normalize(img GoMNIST.RawImage) *mat.Dense {
 	data := make([]float64, 784)
