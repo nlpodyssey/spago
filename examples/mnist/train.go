@@ -47,7 +47,8 @@ func main() {
 	}
 
 	// new model initialized with random weights
-	model := initRandom(NewMLP(784, hiddenSize, 10), rand.NewSource(1))
+	model := newMLP(784, hiddenSize, 10)
+	initMLP(model, rand.NewSource(1))
 
 	// new optimizer with an arbitrary update method
 	//updater := sgd.New(sgd.NewConfig(0.1, 0.0, false)) // sgd
@@ -59,7 +60,7 @@ func main() {
 	trainer.Enjoy() // :)
 }
 
-func NewMLP(in, hidden, out int) *stack.Model {
+func newMLP(in, hidden, out int) *stack.Model {
 	return stack.New(
 		perceptron.New(in, hidden, act.ReLU),
 		perceptron.New(hidden, out, act.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
@@ -67,7 +68,7 @@ func NewMLP(in, hidden, out int) *stack.Model {
 }
 
 // initRandom initializes the model using the Xavier (Glorot) method.
-func initRandom(model *stack.Model, source rand.Source) *stack.Model {
+func initMLP(model *stack.Model, source rand.Source) {
 	for i, layer := range model.Layers {
 		var gain float64
 		if i == len(model.Layers)-1 { // last layer
@@ -81,5 +82,4 @@ func initRandom(model *stack.Model, source rand.Source) *stack.Model {
 			}
 		})
 	}
-	return model
 }
