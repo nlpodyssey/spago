@@ -50,7 +50,7 @@ func main() {
 		5,   // maxPoolingCols
 		160, // hidden
 		10,  // out
-		act.Tanh,
+		act.ReLU,
 		act.Identity, // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 	mnist.InitCNN(model, rand.NewSource(1))

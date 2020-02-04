@@ -39,7 +39,7 @@ func main() {
 		5,   // maxPoolingCols
 		160, // hidden
 		10,  // out
-		act.Tanh,
+		act.ReLU,
 		act.SoftMax,
 	)
 	err = utils.DeserializeFromFile(modelPath, model)
