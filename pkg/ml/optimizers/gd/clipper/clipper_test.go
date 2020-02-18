@@ -13,7 +13,7 @@ import (
 
 func TestClipValue(t *testing.T) {
 	gs := buildTestGrads()
-	(&ClipValue{value: 0.7}).Clip(gs)
+	(&ClipValue{Value: 0.7}).Clip(gs)
 	if !floats.EqualApprox(gs[0].Data(), []float64{
 		0.5, 0.6, -0.7, -0.6,
 		0.7, -0.4, 0.1, -0.7,

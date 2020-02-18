@@ -14,12 +14,12 @@ type GradClipper interface {
 }
 
 type ClipValue struct {
-	value float64
+	Value float64
 }
 
 func (c *ClipValue) Clip(gs []mat.Matrix) {
 	for _, g := range gs {
-		g.Clip(-c.value, c.value)
+		g.Clip(-c.Value, c.Value)
 	}
 }
 
