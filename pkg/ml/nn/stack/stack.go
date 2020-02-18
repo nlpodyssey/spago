@@ -65,6 +65,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		model:           m,
 		Layers:          ps,
 		opt:             opt,
+		g:               g,
 		requiresFullSeq: requiresFullSeq(ps),
 	}
 	return p
