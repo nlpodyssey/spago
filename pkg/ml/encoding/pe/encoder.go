@@ -11,7 +11,7 @@ import (
 
 // PositionalEncoder uses the sine and cosine functions of different frequencies to compose position embeddings so to
 // incorporate a notion of word order in non-recurrent models (Vaswani et al., 2017).
-// Each dimension of the positional encoding corresponds to a sinusoid no notion of word order.
+// Each dimension of the positional encoding corresponds to a sinusoid.
 type PositionalEncoder struct {
 	// Size is the encoding vector size.
 	Size int
