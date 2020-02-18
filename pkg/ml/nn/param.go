@@ -125,6 +125,13 @@ func (r *Param) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
+func (r *Param) SetRequiresGrad(requiresGrad bool) {
+	r.requiresGrad = requiresGrad
+	if !r.requiresGrad && r.hasGrad {
+		r.ZeroGrad()
+	}
+}
+
 // ZeroGrad clears the gradients.
 func (r *Param) ZeroGrad() {
 	if r.hasGrad {
