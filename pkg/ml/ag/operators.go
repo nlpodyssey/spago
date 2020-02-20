@@ -114,6 +114,11 @@ func (g *Graph) Square(x Node) Node {
 	return g.NewOperator(fn.NewSquare(x), x)
 }
 
+// Sqrt
+func (g *Graph) Sqrt(x Node) Node {
+	return g.NewOperator(fn.NewSqrt(x), x)
+}
+
 // Tan
 func (g *Graph) Tan(x Node) Node {
 	return g.NewOperator(fn.NewTan(x), x)
