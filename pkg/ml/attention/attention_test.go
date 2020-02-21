@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestSelfAttention(t *testing.T) {
+func TestScaledDotProductAttention(t *testing.T) {
 	g := ag.NewGraph()
 	qs := []ag.Node{
 		g.NewVariable(mat.NewVecDense([]float64{1.1, 0.0, 2.3}), true),
@@ -30,18 +30,18 @@ func TestSelfAttention(t *testing.T) {
 		g.NewVariable(mat.NewVecDense([]float64{2.3, 6.5, 3.5}), true),
 	}
 
-	attention := SelfAttention(g, qs, ks, vs, math.Sqrt(3))
+	context, _ := ScaledDotProductAttention(g, qs, ks, vs, math.Sqrt(3))
 
-	if len(attention) != 3 {
+	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
 	}
-	if !floats.EqualApprox(attention[0].Value().Data(), []float64{2.22875441063165, 6.68411289826994, 2.82497984315079}, 1.0e-6) {
+	if !floats.EqualApprox(context[0].Value().Data(), []float64{2.22875441063165, 6.68411289826994, 2.82497984315079}, 1.0e-6) {
 		t.Error("Attention[0] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(attention[1].Value().Data(), []float64{2.20637295180029, 8.15650999969648, 0.539678848469417}, 1.0e-6) {
+	if !floats.EqualApprox(context[1].Value().Data(), []float64{2.20637295180029, 8.15650999969648, 0.539678848469417}, 1.0e-6) {
 		t.Error("Attention[1] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(attention[2].Value().Data(), []float64{2.20423303670527, 8.41210390591632, 0.152898186332002}, 1.0e-6) {
+	if !floats.EqualApprox(context[2].Value().Data(), []float64{2.20423303670527, 8.41210390591632, 0.152898186332002}, 1.0e-6) {
 		t.Error("Attention[2] doesn't match the expected values")
 	}
 }
