@@ -3,13 +3,15 @@
 // license that can be found in the LICENSE file.
 
 /*
-Example on how to build a simple linear regression model.
+Example on how to build a simple linear regression model trained with a very basic linear equation i.e. y=2x+1.
 */
 package main
 
 import (
 	"fmt"
+	"golang.org/x/exp/rand"
 	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/initializers"
 	"saientist.dev/spago/pkg/ml/losses"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/optimizers/gd"
@@ -21,26 +23,35 @@ func main() {
 	outputDim := 1 // takes variable 'y'
 	learningRate := 0.01
 	epochs := 100
+	seed := 734 // seed for random params initialization
 	model := NewLinearRegression(inputDim, outputDim)
-	criterion := losses.MSESeq
+	criterion := losses.MSESeq                                  // mean squared error
 	updater := sgd.New(sgd.NewConfig(learningRate, 0.0, false)) // stochastic gradient descent (no momentum etc.)
 	optimizer := gd.NewOptimizer(updater, nil)                  // no gradient clipping
 	nn.TrackParams(model, optimizer)                            // link the model to the optimizer
+
+	// Random params initialization
+	model.ForEachParam(func(param *nn.Param) {
+		if param.Type() == nn.Weights {
+			initializers.XavierUniform(param.Value(), 1.0, rand.NewSource(uint64(seed)))
+		}
+	})
 
 	// Create dummy data for training with a very basic linear equation i.e., y=2x+1.
 	// Here, ‘x’ is the independent variable and y is the dependent variable.
 	n := 11
 	xValues := make([]float64, n)
 	yValues := make([]float64, n)
-
 	for i := 0; i < n; i++ {
 		xValues[i] = float64(i)
-		yValues[i] = 2.0*float64(i) + 1.0
+		yValues[i] = 2.0*float64(i) + 1.0 // y=2x+1
 	}
 
 	for epoch := 0; epoch < epochs; epoch++ {
+		// you can beats the occurrence of a new epoch e.g. for learning rate annealing
+		optimizer.IncEpoch()
 
-		// get a new computational graph
+		// get a new computational graph (cg)
 		cg := ag.NewGraph()
 
 		// Converting x and y values to graph nodes
@@ -55,7 +66,7 @@ func main() {
 		// Actually it would not be necessary here because at each optimization the gradients are automatically set to zero.
 		optimizer.ZeroGrad()
 
-		// get output from the model, given the inputs
+		// get output (i.e. prediction) from the model, given the inputs
 		outputs := model.NewProc(cg).Forward(inputs...)
 
 		// get loss for the predicted output
