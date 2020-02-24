@@ -66,6 +66,7 @@ type Processor struct {
 	wV    []ag.Node
 	wO    ag.Node
 	g     *ag.Graph
+	Heads []*Head // list of self-attention layers
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -126,16 +127,16 @@ func newHead(context []ag.Node, probs []mat.Matrix) *Head {
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	heads := p.multiHeadAttention(xs)
+	p.Heads = p.multiHeadAttention(xs)
 	for i := 0; i < len(xs); i++ {
-		ys[i] = nn.Linear(p.g, p.wO, p.concatHeadsAt(i, heads))
+		ys[i] = nn.Linear(p.g, p.wO, p.concatHeadsAt(i))
 	}
 	return ys
 }
 
-func (p *Processor) concatHeadsAt(pos int, heads []*Head) ag.Node {
+func (p *Processor) concatHeadsAt(pos int) ag.Node {
 	var buf []ag.Node
-	for _, head := range heads {
+	for _, head := range p.Heads {
 		buf = append(buf, head.context[pos])
 	}
 	return p.g.Concat(buf...)
