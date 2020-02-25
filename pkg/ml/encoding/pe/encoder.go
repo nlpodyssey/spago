@@ -31,7 +31,7 @@ func New(size, length int) *PositionalEncoder {
 	// pre-compute the encoding for each position, calculating it in natural log-space
 	for i := 0; i < length; i++ {
 		data := make([]float64, size, size)
-		for k := 0; k < size; k += 2 {
+		for k := 0; k < size-1; k += 2 {
 			divTerm := math.Exp(float64(k) * -math.Log(10000.0) / float64(size))
 			data[k] = math.Sin(float64(i) * divTerm)
 			data[k+1] = math.Cos(float64(i) * divTerm)
