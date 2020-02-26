@@ -31,15 +31,15 @@ func New(dm, h int) *Model {
 	WV := make([]*nn.Param, h)
 	dk := dm / h
 	for i := 0; i < h; i++ {
-		WQ[i] = nn.NewParam(mat.NewEmptyDense(dm, dk))
-		WK[i] = nn.NewParam(mat.NewEmptyDense(dm, dk))
-		WV[i] = nn.NewParam(mat.NewEmptyDense(dm, dk))
+		WQ[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
+		WK[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
+		WV[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
 	}
 	return &Model{
 		WQ: WQ,
 		WK: WK,
 		WV: WV,
-		WO: nn.NewParam(mat.NewEmptyDense(h*dk, dm)),
+		WO: nn.NewParam(mat.NewEmptyDense(dm, h*dk)),
 		h:  h,
 		dm: dm,
 		dk: dk,
