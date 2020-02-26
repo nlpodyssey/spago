@@ -58,7 +58,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 
 func (p *Processor) init(opt []interface{}) {
 	if len(opt) > 0 {
-		log.Fatal("norm: invalid init options")
+		log.Fatal("batchnorm: invalid init options")
 	}
 }
 
