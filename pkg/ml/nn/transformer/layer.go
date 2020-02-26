@@ -11,7 +11,6 @@ import (
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/nn/multiheadattention"
-	"saientist.dev/spago/pkg/ml/nn/normalization/batchnorm"
 	"saientist.dev/spago/pkg/ml/nn/normalization/layernorm"
 	"saientist.dev/spago/pkg/ml/nn/perceptron"
 	"saientist.dev/spago/pkg/ml/nn/stack"
@@ -60,9 +59,9 @@ type LayerProcessor struct {
 	model              *Layer
 	g                  *ag.Graph
 	MultiHeadAttention *multiheadattention.Processor
-	Norm1              *batchnorm.Processor
+	Norm1              *layernorm.Processor
 	MLP                *stack.Processor
-	Norm2              *batchnorm.Processor
+	Norm2              *layernorm.Processor
 }
 
 func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -71,9 +70,9 @@ func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		opt:                opt,
 		g:                  g,
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		Norm1:              m.LayerNorm1.NewProc(g).(*batchnorm.Processor),
+		Norm1:              m.LayerNorm1.NewProc(g).(*layernorm.Processor),
 		MLP:                m.FFN.NewProc(g).(*stack.Processor),
-		Norm2:              m.LayerNorm2.NewProc(g).(*batchnorm.Processor),
+		Norm2:              m.LayerNorm2.NewProc(g).(*layernorm.Processor),
 	}
 	p.init(opt)
 	return p
@@ -104,7 +103,7 @@ func (p *LayerProcessor) subLayer2(xs []ag.Node) []ag.Node {
 	return addAndNorm(p.g, p.Norm2, xs, p.MLP.Forward(xs...))
 }
 
-func addAndNorm(g *ag.Graph, normalizer *batchnorm.Processor, a, b []ag.Node) []ag.Node {
+func addAndNorm(g *ag.Graph, normalizer *layernorm.Processor, a, b []ag.Node) []ag.Node {
 	return normalizer.Forward(add(g, a, b)...)
 }
 
