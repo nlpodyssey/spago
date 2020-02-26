@@ -16,12 +16,12 @@ func NewStack(xs []Operand) *Stack {
 
 // Forward computes the output of the function.
 func (r *Stack) Forward() mat.Matrix {
-	rows := r.xs[0].Value().Rows()
-	cols := len(r.xs)
+	rows := len(r.xs)
+	cols := r.xs[0].Value().Rows()
 	ms := mat.NewEmptyDense(rows, cols)
-	for i := 0; i < rows; i++ {
+	for i, x := range r.xs {
 		for j := 0; j < cols; j++ {
-			ms.Set(r.xs[i].Value().At(j, 0), i, j)
+			ms.Set(x.Value().At(j, 0), i, j)
 		}
 	}
 	return ms
