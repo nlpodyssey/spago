@@ -29,14 +29,14 @@ func New(size, length int) *PositionalEncoder {
 		cache:  make([]*mat.Dense, length),
 	}
 	// pre-compute the encoding for each position, calculating it in natural log-space
-	for i := 0; i < length; i++ {
+	for pos := 0; pos < length; pos++ {
 		data := make([]float64, size, size)
-		for k := 0; k < size-1; k += 2 {
-			divTerm := math.Exp(float64(k) * -math.Log(10000.0) / float64(size))
-			data[k] = math.Sin(float64(i) * divTerm)
-			data[k+1] = math.Cos(float64(i) * divTerm)
+		for i := 0; i < size-1; i += 2 {
+			divTerm := math.Exp(float64(i) * -math.Log(10000.0) / float64(size))
+			data[i] = math.Sin(float64(pos) * divTerm)
+			data[i+1] = math.Cos(float64(pos) * divTerm)
 		}
-		pe.cache[i] = mat.NewVecDense(data)
+		pe.cache[pos] = mat.NewVecDense(data)
 	}
 	return pe
 }
