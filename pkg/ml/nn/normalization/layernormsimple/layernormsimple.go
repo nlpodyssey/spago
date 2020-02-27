@@ -7,7 +7,6 @@ package layernormsimple
 import (
 	"io"
 	"log"
-
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 )
