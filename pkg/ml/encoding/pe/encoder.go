@@ -11,7 +11,11 @@ import (
 
 // PositionalEncoder uses the sine and cosine functions of different frequencies to compose position embeddings so to
 // incorporate a notion of word order in non-recurrent models (Vaswani et al., 2017).
-// Each dimension of the positional encoding corresponds to a sinusoid.
+// The wavelengths form a geometric progression from 2π to 10000·2π. so to easily learn to attend by relative positions.
+// Each dimension of the positional encoding corresponds to a sinusoid:
+//    PE(pos,2i) = sin(pos/10000**(2i/size))
+//    PE(pos,2i+1) = cos(pos/10000**(2i/size))
+// where pos is the position (up to a maximal length) and i is the dimension (up to size).
 type PositionalEncoder struct {
 	// Size is the encoding vector size.
 	Size int
