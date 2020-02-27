@@ -90,6 +90,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	}
 	return ys
 }
+
 func (p *Processor) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
