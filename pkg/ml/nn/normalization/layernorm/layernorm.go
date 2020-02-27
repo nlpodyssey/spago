@@ -81,5 +81,28 @@ func (p *Processor) Reset() {
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	panic("layernorm: not implemented yet")
+	meanVectors := p.Mean(xs)
+	devVectors := p.StdDev(meanVectors, xs)
+	ys := make([]ag.Node, len(xs))
+	eps := p.g.NewScalar(1e-10)
+	for i, x := range xs {
+		ys[i] = p.g.Add(p.g.ProdScalar(p.g.SubScalar(x, meanVectors[i]), p.g.Div(p.w, p.g.Add(devVectors[i], eps))), p.b)
+	}
+	return ys
+}
+func (p *Processor) Mean(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
+	for i, x := range xs {
+		ys[i] = p.g.ReduceMean(x)
+	}
+	return ys
+}
+
+func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+	devVectors := make([]ag.Node, len(xs))
+	for i, x := range xs {
+		diffVector := p.g.Square(p.g.SubScalar(x, meanVectors[i]))
+		devVectors[i] = p.g.Sqrt(p.g.ReduceMean(diffVector))
+	}
+	return devVectors
 }

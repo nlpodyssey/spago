@@ -17,20 +17,19 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := g.NewVariable(mat.NewVecDense([]float64{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := g.NewVariable(mat.NewVecDense([]float64{1.0, 2.0, 0.0, 4.0, 4.0, 1.0}), true)
+	x2 := g.NewVariable(mat.NewVecDense([]float64{3.0, 2.0, 1.0, 6.0, 2.0, 4.0}), true)
+	x3 := g.NewVariable(mat.NewVecDense([]float64{6.0, 2.0, 5.0, 1.0, 3.0, 1.0}), true)
 
 	y := model.NewProc(g).Forward(x1, x2, x3)
-
 	_ = y
 
 	// TODO: write tests
 }
 
 func newTestModel() *Model {
-	model := New(4)
-	model.W.Value().SetData([]float64{0.4, 0.0, -0.3, 0.8})
-	model.B.Value().SetData([]float64{0.9, 0.2, -0.9, 0.2})
+	model := New(6)
+	model.W.Value().SetData([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0})
+	model.B.Value().SetData([]float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})
 	return model
 }
