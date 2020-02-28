@@ -169,6 +169,11 @@ func (g *Graph) Swish(x Node, beta Node) Node {
 	return g.NewOperator(fn.NewSwish(x, beta), x, beta)
 }
 
+// Mish
+func (g *Graph) Mish(x Node) Node {
+	return g.NewOperator(fn.NewMish(x), x)
+}
+
 // LeakyReLU
 func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)

@@ -120,6 +120,14 @@ func NewAbs(x Operand) *UnaryElementwise {
 	}
 }
 
+func NewMish(x Operand) *UnaryElementwise {
+	return &UnaryElementwise{
+		x:  x,
+		f:  mish,
+		df: mishDeriv,
+	}
+}
+
 func NewSqrt(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -399,4 +407,19 @@ func swishBetaDeriv(v float64, beta float64) float64 {
 	prod := v * beta
 	exp := math.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))
+}
+
+// Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function" by Diganta Misra, 2019.
+// (https://arxiv.org/pdf/1908.08681.pdf)
+func mish(i, j int, v float64) float64 {
+	return v * math.Tanh(math.Log(1+math.Exp(v)))
+}
+
+func mishDeriv(i, j int, v float64) float64 {
+	exp := math.Exp(v)
+	exp2 := math.Exp(2 * v)
+	exp3 := math.Exp(3 * v)
+	omega := 4.0*(v+1.0) + 4.0*exp2 + exp3 + exp*(4.0*v+6.0)
+	delta := 2*exp + exp2 + 2.0
+	return exp * (omega / (delta * delta))
 }
