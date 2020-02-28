@@ -164,6 +164,11 @@ func (g *Graph) ELU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewELU(x, alpha), x, alpha)
 }
 
+// Swish
+func (g *Graph) Swish(x Node, beta Node) Node {
+	return g.NewOperator(fn.NewSwish(x, beta), x, beta)
+}
+
 // LeakyReLU
 func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)

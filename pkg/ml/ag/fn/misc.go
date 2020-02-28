@@ -384,3 +384,19 @@ func thresholdDeriv(i, j int, v float64, alpha ...float64) float64 {
 	}
 	return 0
 }
+
+func swish(i, j int, v float64, beta ...float64) float64 {
+	return v * (1.0 / (1 + math.Exp(beta[0]*-v)))
+}
+
+func swishDeriv(i, j int, v float64, beta ...float64) float64 {
+	prod := v * beta[0]
+	exp := math.Exp(prod)
+	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
+}
+
+func swishBetaDeriv(v float64, beta float64) float64 {
+	prod := v * beta
+	exp := math.Exp(-prod)
+	return (v * v * exp) / ((exp + 1) * (exp + 1))
+}
