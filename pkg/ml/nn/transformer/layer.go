@@ -11,27 +11,27 @@ import (
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/nn/multiheadattention"
-	"saientist.dev/spago/pkg/ml/nn/normalization/layernorm"
+	"saientist.dev/spago/pkg/ml/nn/normalization/scalenorm"
 	"saientist.dev/spago/pkg/ml/nn/perceptron"
 	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
 // Transformer's Layer. Each layer has two sub-layers. The first is a multi-head self-attention mechanism,
 // and the second  a.k.a. intermediate layer is position-wise fully connected feed-forward network.
-// Each of the two sub-layers uses residual connection followed by layer normalization.
+// Each of the two sub-layers uses pre-norm residual connections (Toan Q. Nguyen and Julian Salazar, 2019).
 type Layer struct {
 	MultiHeadAttention *multiheadattention.Model
-	LayerNorm1         *layernorm.Model
+	Norm1              *scalenorm.Model
 	FFN                *stack.Model
-	LayerNorm2         *layernorm.Model
+	Norm2              *scalenorm.Model
 }
 
 func NewLayer(size, numAttentionHeads int, intermediateSize int, intermediateActivation act.FuncName) *Layer {
 	return &Layer{
 		MultiHeadAttention: multiheadattention.New(size, numAttentionHeads),
-		LayerNorm1:         layernorm.New(size),
+		Norm1:              scalenorm.New(size),
 		FFN:                newFFN(size, intermediateSize, size, intermediateActivation),
-		LayerNorm2:         layernorm.New(size),
+		Norm2:              scalenorm.New(size),
 	}
 }
 
@@ -59,9 +59,9 @@ type LayerProcessor struct {
 	model              *Layer
 	g                  *ag.Graph
 	MultiHeadAttention *multiheadattention.Processor
-	Norm1              *layernorm.Processor
+	Norm1              *scalenorm.Processor
 	MLP                *stack.Processor
-	Norm2              *layernorm.Processor
+	Norm2              *scalenorm.Processor
 }
 
 func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -70,9 +70,9 @@ func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		opt:                opt,
 		g:                  g,
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		Norm1:              m.LayerNorm1.NewProc(g).(*layernorm.Processor),
+		Norm1:              m.Norm1.NewProc(g).(*scalenorm.Processor),
 		MLP:                m.FFN.NewProc(g).(*stack.Processor),
-		Norm2:              m.LayerNorm2.NewProc(g).(*layernorm.Processor),
+		Norm2:              m.Norm2.NewProc(g).(*scalenorm.Processor),
 	}
 	p.init(opt)
 	return p
@@ -96,15 +96,11 @@ func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *LayerProcessor) subLayer1(xs []ag.Node) []ag.Node {
-	return addAndNorm(p.g, p.Norm1, xs, p.MultiHeadAttention.Forward(xs...))
+	return add(p.g, xs, p.MultiHeadAttention.Forward(p.Norm1.Forward(xs...)...))
 }
 
 func (p *LayerProcessor) subLayer2(xs []ag.Node) []ag.Node {
-	return addAndNorm(p.g, p.Norm2, xs, p.MLP.Forward(xs...))
-}
-
-func addAndNorm(g *ag.Graph, normalizer *layernorm.Processor, a, b []ag.Node) []ag.Node {
-	return normalizer.Forward(add(g, a, b)...)
+	return add(p.g, xs, p.MLP.Forward(p.Norm2.Forward(xs...)...))
 }
 
 func add(g *ag.Graph, a, b []ag.Node) []ag.Node {
