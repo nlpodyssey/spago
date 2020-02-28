@@ -27,6 +27,8 @@ const (
 	SoftPlus
 	SoftShrink
 	Threshold
+	Swish
+	Mish
 )
 
 func F(g *ag.Graph, f FuncName, args ...ag.Node) ag.Node {
@@ -72,6 +74,11 @@ func F(g *ag.Graph, f FuncName, args ...ag.Node) ag.Node {
 		threshold := args[1]
 		k := args[2]
 		return g.Threshold(x, threshold, k)
+	case Swish:
+		beta := args[1]
+		return g.Swish(x, beta)
+	case Mish:
+		return g.Mish(x)
 	case SoftMax:
 		return g.Softmax(x)
 	default:
