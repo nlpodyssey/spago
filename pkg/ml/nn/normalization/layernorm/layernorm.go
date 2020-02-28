@@ -86,7 +86,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	eps := p.g.NewScalar(1e-10)
 	for i, x := range xs {
-		ys[i] = p.g.Add(p.g.ProdScalar(p.g.SubScalar(x, meanVectors[i]), p.g.Div(p.w, p.g.Add(devVectors[i], eps))), p.b)
+		ys[i] = p.g.Add(p.g.Prod(p.g.SubScalar(x, meanVectors[i]), p.g.DivScalar(p.w, p.g.Add(devVectors[i], eps))), p.b)
 	}
 	return ys
 }
