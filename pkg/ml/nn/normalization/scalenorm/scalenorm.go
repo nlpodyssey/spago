@@ -13,14 +13,12 @@ import (
 )
 
 type Model struct {
-	W *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	Gain *nn.Param `type:"weights"`
 }
 
 func New(size int) *Model {
 	return &Model{
-		W: nn.NewParam(mat.NewEmptyVecDense(size)),
-		B: nn.NewParam(mat.NewEmptyVecDense(size)),
+		Gain: nn.NewParam(mat.NewEmptyVecDense(size)),
 	}
 }
 
@@ -40,8 +38,7 @@ type Processor struct {
 	opt   []interface{}
 	model *Model
 	g     *ag.Graph
-	w     ag.Node
-	b     ag.Node
+	gain  ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -49,8 +46,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		model: m,
 		opt:   opt,
 		g:     g,
-		w:     g.NewWrap(m.W),
-		b:     g.NewWrap(m.B),
+		gain:  g.NewWrap(m.Gain),
 	}
 	p.init(opt)
 	return p
@@ -72,7 +68,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	eps := p.g.NewScalar(1e-10)
 	for i, x := range xs {
 		norm := p.g.Sqrt(p.g.ReduceSum(p.g.Square(x)))
-		ys[i] = p.g.Add(p.g.Prod(p.g.DivScalar(x, p.g.AddScalar(norm, eps)), p.w), p.b)
+		ys[i] = p.g.Prod(p.g.DivScalar(x, p.g.AddScalar(norm, eps)), p.gain)
 	}
 	return ys
 }

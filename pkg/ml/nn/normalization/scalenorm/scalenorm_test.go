@@ -29,7 +29,7 @@ func TestModel_Forward(t *testing.T) {
 
 func newTestModel() *Model {
 	model := New(6)
-	model.W.Value().SetData([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0})
+	model.Gain.Value().SetData([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0})
 	model.B.Value().SetData([]float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0})
 	return model
 }
