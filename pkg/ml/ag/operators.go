@@ -6,8 +6,128 @@ package ag
 
 import (
 	"golang.org/x/exp/rand"
+	"reflect"
 	"saientist.dev/spago/pkg/ml/ag/fn"
 )
+
+type OpName int
+
+const (
+	Identity OpName = iota
+	Dropout
+	AtVec
+	At
+	Add
+	Sub
+	SubScalar
+	AddScalar
+	ReverseSub
+	Prod
+	Div
+	ProdScalar
+	DivScalar
+	Mul
+	Dot
+	Reshape
+	MaxPooling
+	View
+	Vec
+	T
+	Square
+	Sqrt
+	Tan
+	Tanh
+	Sigmoid
+	HardSigmoid
+	HardTanh
+	Softsign
+	ReLU
+	CeLU
+	ELU
+	Swish
+	Mish
+	LeakyReLU
+	SeLU
+	SoftPlus
+	SoftShrink
+	Threshold
+	Softmax
+	Sin
+	Cos
+	Exp
+	Log
+	Abs
+	Neg
+	Reciprocal
+	ReduceSum
+	ReduceMean
+	Concat
+	Stack
+)
+
+var opNameToMethodName = map[OpName]string{
+	Identity:    "Identity",
+	Dropout:     "Dropout",
+	AtVec:       "AtVec",
+	At:          "At",
+	Add:         "Add",
+	Sub:         "Sub",
+	SubScalar:   "SubScalar",
+	AddScalar:   "AddScalar",
+	ReverseSub:  "ReverseSub",
+	Prod:        "Prod",
+	Div:         "Div",
+	ProdScalar:  "ProdScalar",
+	DivScalar:   "DivScalar",
+	Mul:         "Mul",
+	Dot:         "Dot",
+	Reshape:     "Reshape",
+	MaxPooling:  "MaxPooling",
+	View:        "View",
+	Vec:         "Vec",
+	T:           "T",
+	Square:      "Square",
+	Sqrt:        "Sqrt",
+	Tan:         "Tan",
+	Tanh:        "Tanh",
+	Sigmoid:     "Sigmoid",
+	HardSigmoid: "HardSigmoid",
+	HardTanh:    "HardTanh",
+	Softsign:    "Softsign",
+	ReLU:        "ReLU",
+	CeLU:        "CeLU",
+	ELU:         "ELU",
+	Swish:       "Swish",
+	Mish:        "Mish",
+	LeakyReLU:   "LeakyReLU",
+	SeLU:        "SeLU",
+	SoftPlus:    "SoftPlus",
+	SoftShrink:  "SoftShrink",
+	Threshold:   "Threshold",
+	Softmax:     "Softmax",
+	Sin:         "Sin",
+	Cos:         "Cos",
+	Exp:         "Exp",
+	Log:         "Log",
+	Abs:         "Abs",
+	Neg:         "Neg",
+	Reciprocal:  "Reciprocal",
+	ReduceSum:   "ReduceSum",
+	ReduceMean:  "ReduceMean",
+	Concat:      "Concat",
+	Stack:       "Stack",
+}
+
+// Invoke
+func (g *Graph) Invoke(operator OpName, xs ...Node) Node {
+	v := reflect.ValueOf(g).MethodByName(opNameToMethodName[operator])
+	args := make([]reflect.Value, len(xs))
+	for i, x := range xs {
+		args[i] = reflect.ValueOf(x)
+	}
+	ret := v.Call(args)
+	return ret[0].Interface().(Node)
+}
 
 // Identity
 func (g *Graph) Identity(x Node) Node {
