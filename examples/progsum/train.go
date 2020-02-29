@@ -11,7 +11,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"saientist.dev/spago/examples/progsum/internal"
-	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/initializers"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/nn/perceptron"
@@ -49,7 +49,7 @@ func main() {
 	// new model initialized with random weights
 	model := initRandom(stack.New(
 		lstm.New(1, hiddenSize),
-		perceptron.New(hiddenSize, 11, act.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
+		perceptron.New(hiddenSize, 11, ag.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
 	), rand.NewSource(1))
 
 	// new optimizer with an arbitrary update method
@@ -66,9 +66,9 @@ func initRandom(model *stack.Model, source rand.Source) *stack.Model {
 	for i, layer := range model.Layers {
 		var gain float64
 		if i == len(model.Layers)-1 { // last layer
-			gain = initializers.Gain(act.SoftMax)
+			gain = initializers.Gain(ag.Softmax)
 		} else {
-			gain = initializers.Gain(act.Tanh)
+			gain = initializers.Gain(ag.Tanh)
 		}
 
 		layer.ForEachParam(func(param *nn.Param) {

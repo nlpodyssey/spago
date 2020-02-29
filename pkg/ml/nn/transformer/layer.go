@@ -7,7 +7,6 @@ package transformer
 import (
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/nn/multiheadattention"
@@ -26,7 +25,7 @@ type Layer struct {
 	Norm2              *scalenorm.Model
 }
 
-func NewLayer(size, numAttentionHeads int, intermediateSize int, intermediateActivation act.FuncName) *Layer {
+func NewLayer(size, numAttentionHeads int, intermediateSize int, intermediateActivation ag.OpName) *Layer {
 	return &Layer{
 		MultiHeadAttention: multiheadattention.New(size, numAttentionHeads),
 		Norm1:              scalenorm.New(size),
@@ -35,10 +34,10 @@ func NewLayer(size, numAttentionHeads int, intermediateSize int, intermediateAct
 	}
 }
 
-func newFFN(in, hidden, out int, activation act.FuncName) *stack.Model {
+func newFFN(in, hidden, out int, activation ag.OpName) *stack.Model {
 	return stack.New(
 		perceptron.New(in, hidden, activation),
-		perceptron.New(hidden, out, act.Identity),
+		perceptron.New(hidden, out, ag.Identity),
 	)
 }
 

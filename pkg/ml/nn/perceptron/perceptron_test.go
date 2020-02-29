@@ -7,7 +7,6 @@ package perceptron
 import (
 	"gonum.org/v1/gonum/floats"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/losses"
 	"testing"
@@ -56,7 +55,7 @@ func TestModel_Forward(t *testing.T) {
 
 func newTestModel() *Model {
 
-	model := New(4, 5, act.Tanh)
+	model := New(4, 5, ag.Tanh)
 
 	model.W.Value().SetData([]float64{
 		0.5, 0.6, -0.8, -0.6,

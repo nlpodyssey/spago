@@ -8,23 +8,22 @@ import (
 	"io"
 	"log"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"sync"
 )
 
 type Model struct {
-	W   *nn.Param    `type:"weights"`
-	B   *nn.Param    `type:"biases"`
-	Act act.FuncName // output activation
+	W          *nn.Param `type:"weights"`
+	B          *nn.Param `type:"biases"`
+	Activation ag.OpName // output activation
 }
 
-func New(in, out int, actFunc act.FuncName) *Model {
+func New(in, out int, actFunc ag.OpName) *Model {
 	return &Model{
-		W:   nn.NewParam(mat.NewEmptyDense(out, in)),
-		B:   nn.NewParam(mat.NewEmptyVecDense(out)),
-		Act: actFunc,
+		W:          nn.NewParam(mat.NewEmptyDense(out, in)),
+		B:          nn.NewParam(mat.NewEmptyVecDense(out)),
+		Activation: actFunc,
 	}
 }
 
@@ -41,9 +40,9 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 }
 
 // SetActivation sets the new activation and returns the previous one.
-func (m *Model) SetActivation(a act.FuncName) act.FuncName {
-	prev := m.Act
-	m.Act = a
+func (m *Model) SetActivation(a ag.OpName) ag.OpName {
+	prev := m.Activation
+	m.Activation = a
 	return prev
 }
 
@@ -132,5 +131,5 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 
 // y = f(w (dot) x + b)
 func (p *Processor) forward(x ag.Node) ag.Node {
-	return act.F(p.g, p.model.Act, nn.Affine(p.g, p.b, p.w, x))
+	return p.g.Invoke(p.model.Activation, nn.Affine(p.g, p.b, p.w, x))
 }

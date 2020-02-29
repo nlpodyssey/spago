@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 	"saientist.dev/spago/examples/mnist/internal/mnist"
-	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/utils"
 	"saientist.dev/spago/third_party/GoMNIST"
 )
@@ -39,8 +39,8 @@ func main() {
 		5,   // maxPoolingCols
 		160, // hidden
 		10,  // out
-		act.ReLU,
-		act.SoftMax,
+		ag.ReLU,
+		ag.Softmax,
 	)
 	err = utils.DeserializeFromFile(modelPath, model)
 	if err != nil {

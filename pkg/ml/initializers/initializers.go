@@ -10,18 +10,18 @@ import (
 	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/rnd/normal"
 	"saientist.dev/spago/pkg/mat/rnd/uniform"
-	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/ag"
 )
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
 // Use it to find the gain value for Xavier initializations.
-func Gain(f act.FuncName) float64 {
+func Gain(f ag.OpName) float64 {
 	switch f {
-	case act.Sigmoid:
+	case ag.Sigmoid:
 		return 1.0
-	case act.ReLU:
+	case ag.ReLU:
 		return math.Sqrt(2.0)
-	case act.Tanh:
+	case ag.Tanh:
 		return 5.0 / 3
 	default:
 		return 1.0

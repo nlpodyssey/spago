@@ -8,26 +8,25 @@ import (
 	"io"
 	"log"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
 type Model struct {
-	WIn *nn.Param `type:"weights"`
-	BIn *nn.Param `type:"biases"`
-	WT  *nn.Param `type:"weights"`
-	BT  *nn.Param `type:"biases"`
-	Act act.FuncName
+	WIn        *nn.Param `type:"weights"`
+	BIn        *nn.Param `type:"biases"`
+	WT         *nn.Param `type:"weights"`
+	BT         *nn.Param `type:"biases"`
+	Activation ag.OpName
 }
 
-func New(in int, actFunc act.FuncName) *Model {
+func New(in int, activation ag.OpName) *Model {
 	return &Model{
-		WIn: nn.NewParam(mat.NewEmptyDense(in, in)),
-		BIn: nn.NewParam(mat.NewEmptyVecDense(in)),
-		WT:  nn.NewParam(mat.NewEmptyDense(in, in)),
-		BT:  nn.NewParam(mat.NewEmptyVecDense(in)),
-		Act: actFunc,
+		WIn:        nn.NewParam(mat.NewEmptyDense(in, in)),
+		BIn:        nn.NewParam(mat.NewEmptyVecDense(in)),
+		WT:         nn.NewParam(mat.NewEmptyDense(in, in)),
+		BT:         nn.NewParam(mat.NewEmptyVecDense(in)),
+		Activation: activation,
 	}
 }
 
@@ -102,7 +101,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 // y = t * h + (1 - t) * x
 func (p *Processor) forward(x ag.Node) ag.Node {
 	t := p.g.Sigmoid(nn.Affine(p.g, p.bT, p.wT, x))
-	h := act.F(p.g, p.model.Act, nn.Affine(p.g, p.bIn, p.wIn, x))
+	h := p.g.Invoke(p.model.Activation, nn.Affine(p.g, p.bIn, p.wIn, x))
 	y := p.g.Add(p.g.Prod(t, h), p.g.Prod(p.g.ReverseSub(t, p.g.NewScalar(1.0)), x))
 	return y
 }

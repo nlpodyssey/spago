@@ -7,7 +7,6 @@ package convolution
 import (
 	"gonum.org/v1/gonum/floats"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"testing"
 )
@@ -179,7 +178,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func newTestModel() *Model {
-	model := New(2, 2, 1, 1, 3, 2, act.Tanh)
+	model := New(2, 2, 1, 1, 3, 2, ag.Tanh)
 	model.K[0].Value().SetData([]float64{
 		0.5, -0.4,
 		0.3, 0.3,

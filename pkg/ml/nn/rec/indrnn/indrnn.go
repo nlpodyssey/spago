@@ -8,24 +8,23 @@ import (
 	"io"
 	"log"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
 type Model struct {
-	W    *nn.Param    `type:"weights"`
-	WRec *nn.Param    `type:"weights"`
-	B    *nn.Param    `type:"biases"`
-	Act  act.FuncName // output activation
+	W          *nn.Param `type:"weights"`
+	WRec       *nn.Param `type:"weights"`
+	B          *nn.Param `type:"biases"`
+	Activation ag.OpName // output activation
 }
 
-func New(in, out int, actFunc act.FuncName) *Model {
+func New(in, out int, activation ag.OpName) *Model {
 	return &Model{
-		W:    nn.NewParam(mat.NewEmptyDense(out, in)),
-		WRec: nn.NewParam(mat.NewEmptyVecDense(out)),
-		B:    nn.NewParam(mat.NewEmptyVecDense(out)),
-		Act:  actFunc,
+		W:          nn.NewParam(mat.NewEmptyDense(out, in)),
+		WRec:       nn.NewParam(mat.NewEmptyVecDense(out)),
+		B:          nn.NewParam(mat.NewEmptyVecDense(out)),
+		Activation: activation,
 	}
 }
 
@@ -127,7 +126,7 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	if yPrev != nil {
 		h = p.g.Add(h, p.g.Prod(p.wRec, yPrev))
 	}
-	s.Y = act.F(p.g, p.model.Act, h)
+	s.Y = p.g.Invoke(p.model.Activation, h)
 	return
 }
 

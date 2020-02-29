@@ -8,23 +8,22 @@ import (
 	"io"
 	"log"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"sync"
 )
 
 type Model struct {
-	K              []*nn.Param  `type:"weights"`
-	B              []*nn.Param  `type:"biases"`
-	Act            act.FuncName // output activation
+	K              []*nn.Param `type:"weights"`
+	B              []*nn.Param `type:"biases"`
+	Activation     ag.OpName   // output activation
 	inputChannels  int
 	outputChannels int
 	xStride        int
 	yStride        int
 }
 
-func New(kernelSizeX, kernelSizeY, xStride, yStride, inputChannels, outputChannels int, actFunc act.FuncName) *Model {
+func New(kernelSizeX, kernelSizeY, xStride, yStride, inputChannels, outputChannels int, activation ag.OpName) *Model {
 	paramsSize := inputChannels * outputChannels
 	kernels := make([]*nn.Param, paramsSize, paramsSize)
 	biases := make([]*nn.Param, paramsSize, paramsSize)
@@ -35,7 +34,7 @@ func New(kernelSizeX, kernelSizeY, xStride, yStride, inputChannels, outputChanne
 	return &Model{
 		K:              kernels,
 		B:              biases,
-		Act:            actFunc,
+		Activation:     activation,
 		inputChannels:  inputChannels,
 		outputChannels: outputChannels,
 		xStride:        xStride,
@@ -56,9 +55,9 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 }
 
 // SetActivation sets the new activation and returns the previous one.
-func (m *Model) SetActivation(a act.FuncName) act.FuncName {
-	prev := m.Act
-	m.Act = a
+func (m *Model) SetActivation(a ag.OpName) ag.OpName {
+	prev := m.Activation
+	m.Activation = a
 	return prev
 }
 
@@ -149,5 +148,5 @@ func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
 		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i+offset]), xs[i], p.model.xStride, p.model.yStride))
 		out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[i+offset]))
 	}
-	return act.F(p.g, p.model.Act, out)
+	return p.g.Invoke(p.model.Activation, out)
 }

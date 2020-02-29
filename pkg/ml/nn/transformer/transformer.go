@@ -10,7 +10,7 @@ Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin (2017)
 package transformer
 
 import (
-	"saientist.dev/spago/pkg/ml/act"
+	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/nn/stack"
 )
@@ -20,7 +20,7 @@ type Model struct {
 }
 
 // New returns a new transformer model composed of a stack of N identical transformer layers.
-func New(size, numLayers, numAttentionHeads int, intermediateSize int, intermediateActivation act.FuncName) *Model {
+func New(size, numLayers, numAttentionHeads int, intermediateSize int, intermediateActivation ag.OpName) *Model {
 	layers := make([]nn.Model, numLayers)
 	for i := 0; i < numLayers; i++ {
 		layers[i] = NewLayer(size, numAttentionHeads, intermediateSize, intermediateActivation)

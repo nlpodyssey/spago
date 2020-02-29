@@ -7,7 +7,6 @@ package highway
 import (
 	"gonum.org/v1/gonum/floats"
 	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/act"
 	"saientist.dev/spago/pkg/ml/ag"
 	"testing"
 )
@@ -67,7 +66,7 @@ func TestModel_Forward(t *testing.T) {
 
 func newTestModel() *Model {
 
-	model := New(4, act.Tanh)
+	model := New(4, ag.Tanh)
 
 	model.WIn.Value().SetData([]float64{
 		0.5, 0.6, -0.8, -0.6,
