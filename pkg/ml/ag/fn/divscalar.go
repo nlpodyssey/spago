@@ -27,4 +27,13 @@ func (r *DivScalar) Backward(gy mat.Matrix) {
 	if r.x1.RequiresGrad() {
 		r.x1.PropagateGrad(gy.ProdScalar(1.0 / r.x2.Value().Scalar()))
 	}
+	if r.x2.RequiresGrad() {
+		gx := 0.0
+		for i := 0; i < gy.Rows(); i++ {
+			for j := 0; j < gy.Columns(); j++ {
+				gx += gy.At(i, j) * (r.x1.Value().At(i, j) / (-1.0 * (r.x2.Value().Scalar() * r.x2.Value().Scalar())))
+			}
+		}
+		r.x2.PropagateGrad(mat.NewScalar(gx))
+	}
 }
