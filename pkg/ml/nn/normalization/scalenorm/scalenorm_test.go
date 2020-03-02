@@ -35,7 +35,22 @@ func TestModel_Forward(t *testing.T) {
 	}
 
 	// == Backward
-	// TODO: check gradients
+	y[0].PropagateGrad(mat.NewVecDense([]float64{-1.0, -0.2, 0.4, 0.6}))
+	y[1].PropagateGrad(mat.NewVecDense([]float64{-0.3, 0.1, 0.7, 0.9}))
+	y[2].PropagateGrad(mat.NewVecDense([]float64{0.3, -0.4, 0.7, -0.8}))
+	g.BackwardAll()
+
+	if !floats.EqualApprox(x1.Grad().Data(), []float64{-0.1246959373, -0.0224452687, 0.0261861468, 0.0423966187}, 1.0e-06) {
+		t.Error("The x1-gradients don't match the expected values")
+	}
+
+	if !floats.EqualApprox(x2.Grad().Data(), []float64{-0.0554937402, -0.0256821183, 0.0182716392, 0.033262303}, 1.0e-06) {
+		t.Error("The x2-gradients don't match the expected values")
+	}
+
+	if !floats.EqualApprox(x3.Grad().Data(), []float64{0.0020142244, 0.0043641529, 0.0121412971, -0.0815201374}, 1.0e-06) {
+		t.Error("The x3-gradients don't match the expected values")
+	}
 }
 
 func newTestModel() *Model {
