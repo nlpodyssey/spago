@@ -19,7 +19,7 @@ func TestScalarProd_Forward(t *testing.T) {
 	x2 := &variable{
 		value:        mat.NewScalar(2.0),
 		grad:         nil,
-		requiresGrad: false,
+		requiresGrad: true,
 	}
 
 	f := NewProdScalar(x1, x2)
@@ -33,5 +33,9 @@ func TestScalarProd_Forward(t *testing.T) {
 
 	if !floats.EqualApprox(x1.grad.Data(), []float64{-2.0, 1.0, 1.6, 0.0}, 1.0e-6) {
 		t.Error("The x1-gradients don't match the expected values")
+	}
+
+	if !floats.EqualApprox(x2.grad.Data(), []float64{0.24}, 1.0e-6) {
+		t.Error("The x2-gradients don't match the expected values")
 	}
 }
