@@ -23,7 +23,7 @@ type Model struct {
 func New(size, numLayers, numAttentionHeads int, intermediateSize int, intermediateActivation ag.OpName) *Model {
 	layers := make([]nn.Model, numLayers)
 	for i := 0; i < numLayers; i++ {
-		layers[i] = NewLayer(size, numAttentionHeads, intermediateSize, intermediateActivation)
+		layers[i] = NewLayer(size, numAttentionHeads, intermediateSize, intermediateActivation, i)
 	}
 	return &Model{stack.New(layers...)}
 }
