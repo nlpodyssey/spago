@@ -12,32 +12,30 @@ import (
 )
 
 func TestModel_Forward(t *testing.T) {
-
 	model := newTestModel()
 	g := ag.NewGraph()
 
 	// == Forward
+	x := g.NewVariable(mat.NewVecDense([]float64{1.0, 2.0, 0.0, 4.0}), true)
+	y := model.NewProc(g).Forward(x)[0]
 
-	x1 := g.NewVariable(mat.NewVecDense([]float64{1.0, 2.0, 0.0, 4.0}), true)
-	x2 := g.NewVariable(mat.NewVecDense([]float64{3.0, 2.0, 1.0, 6.0}), true)
-	x3 := g.NewVariable(mat.NewVecDense([]float64{6.0, 2.0, 5.0, 1.0}), true)
-
-	y := model.NewProc(g).Forward(x1, x2, x3)
-
-	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.1464537236, 0.2661938298, -0.154964787, 1.3170221268}, 1.0e-06) {
+	if !floats.EqualApprox(y.Value().Data(), []float64{0.1464537236, 0.2661938298, -0.154964787, 1.3170221268}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(y[1].Value().Data(), []float64{0.4, 0.4069044968, -0.1207134903, 1.3828539612}, 1.0e-06) {
-		t.Error("The output at position 1 doesn't match the expected values")
-	}
-
-	if !floats.EqualApprox(y[2].Value().Data(), []float64{1.0063390626, 0.445521375, 0.4182820625, -0.8701425001}, 1.0e-06) {
-		t.Error("The output at position 2 doesn't match the expected values")
-	}
-
 	// == Backward
-	// TODO: check gradients
+	y.PropagateGrad(mat.NewVecDense([]float64{-1.0, -0.2, 0.4, 0.6}))
+	g.BackwardAll()
+
+	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.2889944606, -0.0208632365, 0.2271774637, 0.0826802334}, 1.0e-06) {
+		t.Error("The x1-gradients don't match the expected values")
+	}
+	if !floats.EqualApprox(model.W.Grad().Data(), []float64{0.5070925528, -0.0338061702, -0.4732863826, 0.9127665951}, 1.0e-06) {
+		t.Error("The W-gradients don't match the expected values")
+	}
+	if !floats.EqualApprox(model.B.Grad().Data(), []float64{-1.0, -0.2, 0.4, 0.6}, 1.0e-06) {
+		t.Error("The B-gradients don't match the expected values")
+	}
 }
 
 func newTestModel() *Model {
