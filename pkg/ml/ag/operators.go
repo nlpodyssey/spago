@@ -150,8 +150,14 @@ func (g *Graph) At(x Node, i int, j int) Node {
 }
 
 // Add
+// The first node may be null. This help to keep the code as concise as possible e.g. during accumulation.
 func (g *Graph) Add(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewAdd(x1, x2), x1, x2)
+	if x1 != nil {
+		return g.NewOperator(fn.NewAdd(x1, x2), x1, x2)
+	} else {
+		fake := g.NewVariable(x2.Value().ZerosLike(), false)
+		return g.NewOperator(fn.NewAdd(fake, x2), fake, x2)
+	}
 }
 
 // Sub
