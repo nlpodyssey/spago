@@ -81,3 +81,14 @@ func CrossEntropySeq(g *ag.Graph, predicted []ag.Node, target []int, reduceMean 
 	}
 	return loss
 }
+
+// SPG (Softmax Policy Gradient) is a Gradient Policy used in Reinforcement Learning.
+// logPropActions are the log-probability of the chosen action by the Agent at each time;
+// logProbTargets are results of the reward function i.e. the predicted log-likelihood of the ground truth at each time;
+func SPG(g *ag.Graph, logPropActions []ag.Node, logProbTargets []ag.Node) ag.Node {
+	var loss ag.Node
+	for t := 0; t < len(logPropActions); t++ {
+		loss = g.Add(loss, g.Prod(logPropActions[t], logProbTargets[t]))
+	}
+	return g.Neg(loss)
+}
