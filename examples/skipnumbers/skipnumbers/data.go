@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package internal
+package skipnumbers
 
 import (
 	"bufio"
@@ -10,12 +10,12 @@ import (
 	"os"
 )
 
-type Example struct {
+type example struct {
 	xs []int // input sequence
 	y  int   // target label
 }
 
-func Load(path string) (train []Example, test []Example, err error) {
+func Load(path string) (train []example, test []example, err error) {
 	train, err = load(path + "/train.jsonl")
 	if err != nil {
 		return nil, nil, err
@@ -27,7 +27,7 @@ func Load(path string) (train []Example, test []Example, err error) {
 	return
 }
 
-func load(filename string) (dataset []Example, err error) {
+func load(filename string) (dataset []example, err error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func load(filename string) (dataset []Example, err error) {
 				xs = append(xs, item)
 			}
 		}
-		dataset = append(dataset, Example{
+		dataset = append(dataset, example{
 			xs: xs,
 			y:  y,
 		})
