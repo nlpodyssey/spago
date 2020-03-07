@@ -12,6 +12,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Model{}
+
 // Reference: "Root Mean Square Layer Normalization" by Biao Zhang and Rico Sennrich (2019).
 // (https://arxiv.org/pdf/1910.07467.pdf)
 type Model struct {

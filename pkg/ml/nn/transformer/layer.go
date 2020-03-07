@@ -16,6 +16,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
+var _ nn.Model = &Layer{}
+
 // Transformer's Layer. Each layer has two sub-layers. The first is a multi-head self-attention mechanism,
 // and the second  a.k.a. intermediate layer is position-wise fully connected feed-forward network.
 // Each of the two sub-layers uses pre-norm residual connections (Toan Q. Nguyen and Julian Salazar, 2019).

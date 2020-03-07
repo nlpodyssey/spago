@@ -13,6 +13,8 @@ import (
 	"saientist.dev/spago/pkg/utils"
 )
 
+var _ nn.Model = &Model{}
+
 // This is variant of the Feedforward Sequential Memory Networks (https://arxiv.org/pdf/1512.08301.pdf) where the
 // neurons in the same hidden layer are independent of each other and they are connected across layers as in the IndRNN.
 type Model struct {

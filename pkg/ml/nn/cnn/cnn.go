@@ -13,6 +13,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn/perceptron"
 )
 
+var _ nn.Model = &Model{}
+
 type Model struct {
 	Convolution    *convolution.Model
 	FinalLayer     *perceptron.Model

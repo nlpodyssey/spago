@@ -13,6 +13,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Model{}
+
 // Multi-Head Attention
 type Model struct {
 	WQ []*nn.Param `type:"weights"`

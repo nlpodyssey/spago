@@ -12,6 +12,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Model{}
+
 type Model struct {
 	WIn     *nn.Param `type:"weights"`
 	WInRec  *nn.Param `type:"weights"`

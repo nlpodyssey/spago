@@ -15,6 +15,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
+var _ nn.Model = &Model{}
+
 // LSTM enriched with a PolicyGradient to enable Dynamic Skip Connections.
 type Model struct {
 	PolicyGradient *stack.Model

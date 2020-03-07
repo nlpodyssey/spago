@@ -11,6 +11,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Model{}
+
 // Reference: "Improving Lexical Choice in Neural Machine Translation" by Toan Q. Nguyen and David Chiang (2018)
 // (https://arxiv.org/pdf/1710.01329.pdf)
 type Model struct{}

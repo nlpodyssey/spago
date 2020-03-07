@@ -14,6 +14,8 @@ import (
 	"saientist.dev/spago/pkg/utils"
 )
 
+var _ nn.Model = &Model{}
+
 // Higher Order Recurrent Neural Networks
 type Model struct {
 	W    *nn.Param   `type:"weights"`

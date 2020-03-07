@@ -13,6 +13,8 @@ import (
 	"sync"
 )
 
+var _ nn.Model = &Model{}
+
 type Model struct {
 	K              []*nn.Param `type:"weights"`
 	B              []*nn.Param `type:"biases"`

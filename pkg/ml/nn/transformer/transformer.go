@@ -15,6 +15,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
+var _ nn.Model = &Model{}
+
 type Model struct {
 	*stack.Model
 }

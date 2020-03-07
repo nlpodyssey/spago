@@ -21,6 +21,8 @@ const (
 	Avg                     // The average of the outputs is taken
 )
 
+var _ nn.Model = &Model{}
+
 type Model struct {
 	Positive  nn.Model // positive time direction a.k.a. left-to-right
 	Negative  nn.Model // negative time direction a.k.a. right-to-left

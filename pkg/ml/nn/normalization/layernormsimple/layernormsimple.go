@@ -11,6 +11,8 @@ import (
 	"saientist.dev/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Model{}
+
 // Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
 // (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
 type Model struct{}
