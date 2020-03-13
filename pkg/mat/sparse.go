@@ -12,6 +12,8 @@ import (
 	"math"
 )
 
+var _ Matrix = &Sparse{}
+
 type Sparse struct {
 	delegate *sparse.DOK
 }
