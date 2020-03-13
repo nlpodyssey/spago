@@ -35,6 +35,8 @@ func NewDefaultConfig() Config {
 	}
 }
 
+var _ gd.OptimizationMethod = &Adam{}
+
 type Adam struct {
 	Config
 	Alpha float64

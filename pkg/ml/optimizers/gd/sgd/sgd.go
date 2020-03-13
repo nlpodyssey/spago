@@ -23,6 +23,8 @@ func NewConfig(lr, momentum float64, nesterov bool) Config {
 	}
 }
 
+var _ gd.OptimizationMethod = &SGD{}
+
 type SGD struct {
 	Config
 	Alpha float64

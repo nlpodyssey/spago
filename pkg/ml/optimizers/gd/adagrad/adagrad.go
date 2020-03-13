@@ -28,6 +28,8 @@ func NewDefaultConfig() Config {
 	}
 }
 
+var _ gd.OptimizationMethod = &AdaGrad{}
+
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References
 //     Adaptive Subgradient Methods for Online Learning and Stochastic Optimization
