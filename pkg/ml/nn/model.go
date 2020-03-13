@@ -109,3 +109,21 @@ func Deserialize(model Model, r io.Reader) (n int, err error) {
 	})
 	return n, err
 }
+
+func DumpParamsVector(model Model) *mat.Dense {
+	data := make([]float64, 0)
+	model.ForEachParam(func(param *Param) {
+		data = append(data, param.Value().Data()...)
+	})
+	return mat.NewVecDense(data)
+}
+
+func LoadParamsVector(model Model, vector *mat.Dense) {
+	data := vector.Data()
+	offset := 0
+	model.ForEachParam(func(param *Param) {
+		size := param.Value().Size()
+		param.Value().SetData(data[offset : offset+size])
+		offset += size
+	})
+}
