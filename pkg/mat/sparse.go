@@ -171,22 +171,23 @@ func (s *Sparse) SubScalar(n float64) Matrix {
 	panic("mat: SubScalar not implemented for sparse matrix")
 }
 
-func (s *Sparse) AddScalarInPlace(n float64) {
+func (s *Sparse) AddScalarInPlace(n float64) Matrix {
 	panic("mat: AddScalarInPlace not implemented for sparse matrix")
 }
 
-func (s *Sparse) SubScalarInPlace(n float64) {
+func (s *Sparse) SubScalarInPlace(n float64) Matrix {
 	panic("mat: SubScalarInPlace not implemented for sparse matrix")
 }
 
-func (s *Sparse) ProdScalarInPlace(n float64) {
+func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
 	s.delegate.DoNonZero(func(i, j int, v float64) {
 		s.delegate.Set(i, j, v*n)
 	})
+	return s
 }
 
-func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) {
-	// TODO
+func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
+	panic("mat: ProdMatrixScalarInPlace not implemented for sparse matrix")
 }
 
 func (s *Sparse) ProdScalar(n float64) Matrix {
@@ -199,7 +200,7 @@ func (s *Sparse) Add(other Matrix) Matrix {
 	panic("mat: Add not implemented for sparse matrix")
 }
 
-func (s *Sparse) AddInPlace(other Matrix) {
+func (s *Sparse) AddInPlace(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Sparse:
 		other.delegate.DoNonZero(func(i, j int, v float64) {
@@ -208,14 +209,14 @@ func (s *Sparse) AddInPlace(other Matrix) {
 	default:
 		panic("mat: unsupported matrix")
 	}
+	return s
 }
 
 func (s *Sparse) Sub(other Matrix) Matrix {
 	panic("mat: Sub not implemented for sparse matrix")
 }
 
-func (s *Sparse) SubInPlace(other Matrix) {
-
+func (s *Sparse) SubInPlace(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Sparse:
 		other.delegate.DoNonZero(func(i, j int, v float64) {
@@ -224,13 +225,14 @@ func (s *Sparse) SubInPlace(other Matrix) {
 	default:
 		panic("mat: unsupported matrix")
 	}
+	return s
 }
 
 func (s *Sparse) Prod(other Matrix) Matrix {
 	panic("mat: Prod not implemented for sparse matrix")
 }
 
-func (s *Sparse) ProdInPlace(other Matrix) {
+func (s *Sparse) ProdInPlace(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Sparse:
 		other.delegate.DoNonZero(func(i, j int, v float64) {
@@ -239,13 +241,14 @@ func (s *Sparse) ProdInPlace(other Matrix) {
 	default:
 		panic("mat: unsupported matrix")
 	}
+	return s
 }
 
 func (s *Sparse) Div(other Matrix) Matrix {
 	panic("mat: Div not implemented for sparse matrix")
 }
 
-func (s *Sparse) DivInPlace(other Matrix) {
+func (s *Sparse) DivInPlace(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Sparse:
 		other.delegate.DoNonZero(func(i, j int, v float64) {
@@ -254,6 +257,7 @@ func (s *Sparse) DivInPlace(other Matrix) {
 	default:
 		panic("mat: unsupported matrix")
 	}
+	return s
 }
 
 func (s *Sparse) Mul(other Matrix) Matrix {

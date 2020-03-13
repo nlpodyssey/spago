@@ -26,20 +26,20 @@ type Matrix interface {
 	Apply(fn func(i, j int, v float64) float64, a Matrix)
 	ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64)
 	AddScalar(n float64) Matrix
-	AddScalarInPlace(n float64)
+	AddScalarInPlace(n float64) Matrix
 	SubScalar(n float64) Matrix
-	SubScalarInPlace(n float64)
+	SubScalarInPlace(n float64) Matrix
 	ProdScalar(n float64) Matrix
-	ProdScalarInPlace(n float64)
-	ProdMatrixScalarInPlace(m Matrix, n float64)
+	ProdScalarInPlace(n float64) Matrix
+	ProdMatrixScalarInPlace(m Matrix, n float64) Matrix
 	Add(other Matrix) Matrix
-	AddInPlace(other Matrix)
+	AddInPlace(other Matrix) Matrix
 	Sub(other Matrix) Matrix
-	SubInPlace(other Matrix)
+	SubInPlace(other Matrix) Matrix
 	Prod(other Matrix) Matrix
-	ProdInPlace(other Matrix)
+	ProdInPlace(other Matrix) Matrix
 	Div(other Matrix) Matrix
-	DivInPlace(other Matrix)
+	DivInPlace(other Matrix) Matrix
 	Mul(other Matrix) Matrix
 	DotUnitary(other Matrix) float64
 	Pow(power float64) Matrix

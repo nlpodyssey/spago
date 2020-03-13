@@ -271,24 +271,28 @@ func (d *Dense) SubScalar(n float64) Matrix {
 }
 
 // Add adds the scalar to the receiver.
-func (d *Dense) AddScalarInPlace(n float64) {
+func (d *Dense) AddScalarInPlace(n float64) Matrix {
 	f64.AddConst(n, d.data)
+	return d
 }
 
 // Sub subtracts the scalar to the receiver.
-func (d *Dense) SubScalarInPlace(n float64) {
+func (d *Dense) SubScalarInPlace(n float64) Matrix {
 	for i := 0; i < len(d.data); i++ {
 		d.data[i] -= n
 	}
+	return d
 }
 
-func (d *Dense) ProdScalarInPlace(n float64) {
+func (d *Dense) ProdScalarInPlace(n float64) Matrix {
 	f64.ScalUnitary(n, d.data)
+	return d
 }
 
-func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n float64) {
+func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 	b := m.(*Dense)
 	f64.ScalUnitaryTo(d.data, n, b.data)
+	return d
 }
 
 func (d *Dense) ProdScalar(n float64) Matrix {
@@ -309,7 +313,7 @@ func (d *Dense) Add(other Matrix) Matrix {
 	return out
 }
 
-func (d *Dense) AddInPlace(other Matrix) {
+func (d *Dense) AddInPlace(other Matrix) Matrix {
 	//if !(EqualDims(d, other) ||
 	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
@@ -317,6 +321,7 @@ func (d *Dense) AddInPlace(other Matrix) {
 	//}
 	b := other.(*Dense)
 	f64.AxpyUnitary(1.0, b.data, d.data)
+	return d
 }
 
 func (d *Dense) Sub(other Matrix) Matrix {
@@ -331,7 +336,7 @@ func (d *Dense) Sub(other Matrix) Matrix {
 	return out
 }
 
-func (d *Dense) SubInPlace(other Matrix) {
+func (d *Dense) SubInPlace(other Matrix) Matrix {
 	//if !(EqualDims(d, other) ||
 	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
@@ -345,6 +350,7 @@ func (d *Dense) SubInPlace(other Matrix) {
 			d.Set(d.At(i, j)-k, i, j)
 		})
 	}
+	return d
 }
 
 func (d *Dense) Prod(other Matrix) Matrix {
@@ -361,7 +367,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 	return out
 }
 
-func (d *Dense) ProdInPlace(other Matrix) {
+func (d *Dense) ProdInPlace(other Matrix) Matrix {
 	//if !(EqualDims(d, other) ||
 	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
@@ -371,9 +377,10 @@ func (d *Dense) ProdInPlace(other Matrix) {
 	for i, val := range b.data {
 		d.data[i] *= val
 	}
+	return d
 }
 
-func (d *Dense) DivInPlace(other Matrix) {
+func (d *Dense) DivInPlace(other Matrix) Matrix {
 	//if !(EqualDims(d, other) ||
 	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
@@ -383,6 +390,7 @@ func (d *Dense) DivInPlace(other Matrix) {
 	for i, val := range b.data {
 		d.data[i] *= 1.0 / val
 	}
+	return d
 }
 
 func (d *Dense) Div(other Matrix) Matrix {
