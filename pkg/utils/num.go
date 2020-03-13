@@ -44,6 +44,16 @@ func MakeIntMatrix(rows, cols int) [][]int {
 	return matrix
 }
 
+// ContainsInt returns whether the list contains the x-element, or not.
+func ContainsInt(lst []int, x int) bool {
+	for _, element := range lst {
+		if element == x {
+			return true
+		}
+	}
+	return false
+}
+
 // Abs returns the absolute value of x.
 func Abs(x int) int {
 	if x < 0 {
