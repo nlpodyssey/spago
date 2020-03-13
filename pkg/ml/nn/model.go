@@ -127,3 +127,13 @@ func LoadParamsVector(model Model, vector *mat.Dense) {
 		offset += size
 	})
 }
+
+// MakeNewModels return n new models.
+// The callback is delegated to return a new model for each i-item.
+func MakeNewModels(n int, callback func(i int) Model) []Model {
+	lst := make([]Model, n)
+	for i := 0; i < n; i++ {
+		lst[i] = callback(i)
+	}
+	return lst
+}
