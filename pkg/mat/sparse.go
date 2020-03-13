@@ -285,7 +285,7 @@ func (s *Sparse) Norm(pow float64) float64 {
 	return 0.0 // TODO
 }
 
-func (s *Sparse) Clip(min, max float64) {
+func (s *Sparse) ClipInPlace(min, max float64) Matrix {
 	s.DoNonZero(func(i, j int, v float64) {
 		if s.At(i, j) < min {
 			s.Set(min, i, j)
@@ -293,6 +293,7 @@ func (s *Sparse) Clip(min, max float64) {
 			s.Set(max, i, j)
 		}
 	})
+	return s
 }
 
 func (s *Sparse) Abs() Matrix {

@@ -510,8 +510,8 @@ func (d *Dense) DotUnitary(other Matrix) float64 {
 	return f64.DotUnitary(d.data, other.Data())
 }
 
-// Clip performs the clip in place.
-func (d *Dense) Clip(min, max float64) {
+// ClipInPlace performs the clip in place.
+func (d *Dense) ClipInPlace(min, max float64) Matrix {
 	d.Apply(func(i, j int, v float64) float64 {
 		if v < min {
 			return min
@@ -521,6 +521,7 @@ func (d *Dense) Clip(min, max float64) {
 			return v
 		}
 	}, d)
+	return d
 }
 
 // Abs returns a new matrix applying the abs function to all elements.

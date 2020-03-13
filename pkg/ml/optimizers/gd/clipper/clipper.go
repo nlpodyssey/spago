@@ -19,7 +19,7 @@ type ClipValue struct {
 
 func (c *ClipValue) Clip(gs []mat.Matrix) {
 	for _, g := range gs {
-		g.Clip(-c.Value, c.Value)
+		g.ClipInPlace(-c.Value, c.Value)
 	}
 }
 

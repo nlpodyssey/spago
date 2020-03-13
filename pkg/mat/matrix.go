@@ -45,7 +45,7 @@ type Matrix interface {
 	Pow(power float64) Matrix
 	Norm(pow float64) float64
 	Sqrt() Matrix
-	Clip(min, max float64)
+	ClipInPlace(min, max float64) Matrix
 	Abs() Matrix
 	Sum() float64
 	Max() float64

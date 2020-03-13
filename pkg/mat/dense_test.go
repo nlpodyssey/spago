@@ -598,7 +598,7 @@ func TestDense_Clip(t *testing.T) {
 		-0.5, 0.8, -0.8, -0.1,
 	})
 
-	a.Clip(0.1, 0.3)
+	a.ClipInPlace(0.1, 0.3)
 
 	if !floats.EqualApprox(a.Data(), []float64{
 		0.1, 0.2, 0.3, 0.1,
