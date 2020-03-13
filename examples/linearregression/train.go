@@ -21,7 +21,7 @@ import (
 func main() {
 	inputDim := 1  // takes variable 'x'
 	outputDim := 1 // takes variable 'y'
-	learningRate := 0.01
+	learningRate := 0.0001
 	epochs := 100
 	seed := 734 // seed for random params initialization
 	model := NewLinearRegression(inputDim, outputDim)
@@ -39,12 +39,12 @@ func main() {
 
 	// Create dummy data for training with a very basic linear equation i.e., y=2x+1.
 	// Here, ‘x’ is the independent variable and y is the dependent variable.
-	n := 11
+	n := 110
 	xValues := make([]float64, n)
 	yValues := make([]float64, n)
 	for i := 0; i < n; i++ {
 		xValues[i] = float64(i)
-		yValues[i] = 2.0*float64(i) + 1.0 // y=2x+1
+		yValues[i] =  2*xValues[i]+1
 	}
 
 	for epoch := 0; epoch < epochs; epoch++ {
@@ -59,7 +59,7 @@ func main() {
 		var labels []ag.Node
 		for i := 0; i < n; i++ {
 			inputs = append(inputs, cg.NewScalar(xValues[i]))
-			labels = append(inputs, cg.NewScalar(yValues[i]))
+			labels = append(labels, cg.NewScalar(yValues[i]))
 		}
 
 		// Clear gradient buffers because we don't want any gradient from previous epoch to carry forward.
@@ -80,4 +80,9 @@ func main() {
 
 		fmt.Printf("epoch %d, loss %.6f\n", epoch, loss.ScalarValue())
 	}
+
+	model.ForEachParam(func(param *nn.Param) {
+		fmt.Printf("Learned coeficient: %f",param.ScalarValue())
+	})
+
 }
