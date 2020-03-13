@@ -44,7 +44,7 @@ func main() {
 	yValues := make([]float64, n)
 	for i := 0; i < n; i++ {
 		xValues[i] = float64(i)
-		yValues[i] =  2*xValues[i]+1
+		yValues[i] = 2*xValues[i] + 1
 	}
 
 	for epoch := 0; epoch < epochs; epoch++ {
@@ -82,7 +82,7 @@ func main() {
 	}
 
 	model.ForEachParam(func(param *nn.Param) {
-		fmt.Printf("Learned coeficient: %f",param.ScalarValue())
+		fmt.Printf("Learned coefficient: %f", param.ScalarValue())
 	})
 
 }
