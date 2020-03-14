@@ -28,3 +28,16 @@ func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
 func ShuffleInPlace(xs []int, source rand.Source) {
 	rand.New(source).Shuffle(len(xs), func(i, j int) { xs[i], xs[j] = xs[j], xs[i] })
 }
+
+// WeightedChoice performs a random generation of the indices based of the probability distribution itself.
+func WeightedChoice(dist []float64) int {
+	rnd := rand.Float64()
+	cumulativeProb := 0.0
+	for i, prob := range dist {
+		cumulativeProb += prob
+		if rnd < cumulativeProb {
+			return i
+		}
+	}
+	return 0
+}
