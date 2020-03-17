@@ -62,3 +62,17 @@ func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
 	}
 	return a
 }
+
+// GetUniqueRandomIndices select n mutually exclusive indices, using the default random source.
+// The callback checks whether an extracted index can be accepted, or not.
+func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int {
+	a := make([]int, n)
+	for i := 0; i < len(a); i++ {
+		r := ShuffleInPlace(indices, nil)[0]
+		for !valid(r) || utils.ContainsInt(a, r) {
+			r = ShuffleInPlace(indices, nil)[0]
+		}
+		a[i] = r
+	}
+	return a
+}
