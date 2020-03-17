@@ -9,6 +9,7 @@ import (
 	"math"
 	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/rnd/uniform"
+	"saientist.dev/spago/pkg/utils"
 )
 
 func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
@@ -46,4 +47,18 @@ func WeightedChoice(dist []float64) int {
 		}
 	}
 	return 0
+}
+
+// GetUniqueRandomInt generates n mutually exclusive integers up to max, using the default random source.
+// The callback checks whether a generated number can be accepted, or not.
+func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
+	a := make([]int, n)
+	for i := 0; i < n; i++ {
+		r := rand.Intn(max)
+		for !valid(r) || utils.ContainsInt(a, r) {
+			r = rand.Intn(max)
+		}
+		a[i] = r
+	}
+	return a
 }

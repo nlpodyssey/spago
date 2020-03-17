@@ -4,8 +4,6 @@
 
 package utils
 
-import "golang.org/x/exp/rand"
-
 func MinInt(a, b int) int {
 	if a < b {
 		return a
@@ -54,20 +52,6 @@ func ContainsInt(lst []int, x int) bool {
 		}
 	}
 	return false
-}
-
-// GetUniqueRandomInt generates n mutually exclusive integers up to max, using the default random source.
-// The callback checks whether a generated number can be accepted, or not.
-func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
-	a := make([]int, n)
-	for i := 0; i < n; i++ {
-		r := rand.Intn(max)
-		for !valid(r) || ContainsInt(a, r) {
-			r = rand.Intn(max)
-		}
-		a[i] = r
-	}
-	return a
 }
 
 // Abs returns the absolute value of x.
