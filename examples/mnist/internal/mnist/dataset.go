@@ -14,6 +14,12 @@ type Dataset struct {
 	FeaturesAsVector bool
 }
 
+// The image features and its corresponding label
+type Example struct {
+	Features *mat.Dense
+	Label    int
+}
+
 // Get returns the i-th normalized examples
 func (s *Dataset) GetExample(i int) *Example {
 	img := normalize(s.Images[i])
@@ -31,10 +37,16 @@ func (s *Dataset) GetExample(i int) *Example {
 	}
 }
 
-// The image features and its corresponding label
-type Example struct {
-	Features *mat.Dense
-	Label    int
+func GetAllExamples(dataset *GoMNIST.Set) []*Example {
+	examples := make([]*Example, dataset.Count())
+	for i := 0; i < dataset.Count(); i++ {
+		img, label := dataset.Get(i)
+		examples[i] = &Example{
+			Features: normalize(img),
+			Label:    int(label),
+		}
+	}
+	return examples
 }
 
 // normalize converts the image to a Dense matrix, with values scaled to the range [0, 1]
