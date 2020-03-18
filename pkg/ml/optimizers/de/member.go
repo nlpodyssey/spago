@@ -31,6 +31,8 @@ type MemberHyperParams struct {
 	MutationFactor float64
 	// Crossover probability (default 0.9)
 	CrossoverRate float64
+	// Weight factor used by DEGL mutation (default 0.5)
+	WeightFactor float64
 }
 
 // l = 0.1
@@ -41,6 +43,9 @@ func (a *MemberHyperParams) MutateHyperParams(l, u float64) {
 	}
 	if rand.Float64() < 0.1 {
 		a.CrossoverRate = rand.Float64()
+	}
+	if rand.Float64() < 0.1 {
+		a.WeightFactor = l + rand.Float64()*u
 	}
 }
 

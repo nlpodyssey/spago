@@ -59,6 +59,8 @@ type Config struct {
 	MutationFactor float64
 	// Crossover probability (default 0.9)
 	CrossoverRate float64
+	// Weight factor used by DEGL mutation strategy (default 0.5)
+	WeightFactor float64
 	// The (positive) bound
 	Bound float64
 	// Whether to alter the mutation factor and the crossover rate on the Trial evaluation
@@ -93,6 +95,7 @@ func NewOptimizer(
 			MemberHyperParams{
 				MutationFactor: config.MutationFactor,
 				CrossoverRate:  config.CrossoverRate,
+				WeightFactor:   config.WeightFactor,
 			}),
 		mutation:     mutation,
 		crossover:    crossover,
@@ -207,6 +210,7 @@ func (o *DifferentialEvolution) resetPopulation() {
 		MemberHyperParams{
 			MutationFactor: o.MutationFactor,
 			CrossoverRate:  o.CrossoverRate,
+			WeightFactor:   o.WeightFactor,
 		},
 	)
 	// retain the best solution

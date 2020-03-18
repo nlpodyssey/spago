@@ -6,8 +6,10 @@ package de
 
 import (
 	"golang.org/x/exp/rand"
+	"math"
 	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/ml/initializers"
+	"saientist.dev/spago/pkg/utils"
 )
 
 type Population struct {
@@ -36,6 +38,29 @@ func (p *Population) FindBest(lowIndex, highIndex int, upperBound float64, initA
 			argMin = i
 			minScore = score
 		}
+	}
+	return
+}
+
+func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minScore float64) {
+	size := len(p.Members)
+	if 2*windowSize > size {
+		panic("crossover: K must be less than population size")
+	}
+	argMin = 0
+	minScore = math.Inf(1)
+	lowIndex := index - windowSize
+	highIndex := index + windowSize
+	if lowIndex < 0 {
+		lowIndex = size - utils.Abs(windowSize-index)
+		argMin, minScore = p.FindBest(lowIndex, size-1, minScore, lowIndex)
+		argMin, minScore = p.FindBest(0, highIndex-1, minScore, argMin)
+	} else if highIndex > size {
+		highIndex = utils.Abs(index+windowSize) - size
+		argMin, minScore = p.FindBest(lowIndex, size-1, minScore, lowIndex)
+		argMin, minScore = p.FindBest(0, highIndex-1, minScore, argMin)
+	} else {
+		argMin, minScore = p.FindBest(lowIndex, size-1, minScore, lowIndex)
 	}
 	return
 }
