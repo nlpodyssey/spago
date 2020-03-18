@@ -63,8 +63,8 @@ func main() {
 		epochs,
 		batchSize,
 		true,
-		mnist.Dataset{Set: trainSet, NormalizeVec: true},
-		mnist.Dataset{Set: testSet, NormalizeVec: true},
+		mnist.Dataset{Set: trainSet, FeaturesAsVector: true},
+		mnist.Dataset{Set: testSet, FeaturesAsVector: true},
 		modelPath,
 		rndSrc,
 	)
