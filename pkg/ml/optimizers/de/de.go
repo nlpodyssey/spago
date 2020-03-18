@@ -6,6 +6,7 @@ package de
 
 import (
 	"golang.org/x/exp/rand"
+	"math"
 	"saientist.dev/spago/pkg/mat"
 )
 
@@ -110,5 +111,105 @@ func NewOptimizer(
 
 // Optimize performs the Differential Evolution optimization process.
 func (o *DifferentialEvolution) Optimize() {
-	panic("de: method not implemented") // TODO
+	for g := 0; g < o.MaxGenerations; g++ {
+		o.state.CurGeneration = g
+		for batch := 0; batch < o.BatchSize; batch++ {
+			o.state.CurBatch = batch
+			o.optimizeBatch()
+		}
+	}
+}
+
+// optimizeBatch optimize the current generation against the current batch.
+func (o *DifferentialEvolution) optimizeBatch() {
+	o.evaluateTargets()
+	o.optimizeGeneration()
+	o.validateTargets()
+	o.checkForBetterSolution()
+	if o.ResetAfter > o.state.countBestScoreUnchanged {
+		o.resetPopulation()
+	}
+}
+
+// optimizeGenerations performs n optimization steps on the current generation, as many times as defined in the configuration.
+func (o *DifferentialEvolution) optimizeGeneration() {
+	for i := 0; i < o.OptimizationSteps; i++ {
+		o.state.CurOptimizationStep = i
+		o.optimizationStep()
+	}
+}
+
+// optimizationStep performs the mutation, the crossover and the trial evaluation.
+func (o *DifferentialEvolution) optimizationStep() {
+	o.mutation.Mutate(o.population)
+	o.crossover.Crossover(o.population)
+	o.evaluateTrials()
+}
+
+// evaluateTargets evaluate the fitness of the target vectors against the current batch for each member of the population.
+func (o *DifferentialEvolution) evaluateTargets() {
+	for _, member := range o.population.Members {
+		member.TargetScore = o.fitnessFunc(member.TargetVector, o.state.CurBatch)
+	}
+}
+
+// evaluateTrials evaluate the fitness of the donor vectors against the current batch for each member of the population.
+// If the fitness is better than the current one, assign the value of the donor vector to the target vector.
+func (o *DifferentialEvolution) evaluateTrials() {
+	for _, member := range o.population.Members {
+		member.TrialScore = o.fitnessFunc(member.DonorVector, o.state.CurBatch)
+		if member.TrialScore < member.TargetScore {
+			member.TargetScore = member.TrialScore
+			member.TargetVector = member.DonorVector.Clone().(*mat.Dense)
+			if o.Adaptive {
+				member.MutateHyperParams(0.1, 0.9) // TODO: get arguments from the config
+			}
+		}
+	}
+}
+
+// validateTargets test the entire population against the validation dataset.
+func (o *DifferentialEvolution) validateTargets() {
+	for _, member := range o.population.Members {
+		member.ValidationScore = o.validate(member.TargetVector)
+	}
+}
+
+// checkForBetterSolution compares the overall best solution with all current solutions, updating it if a new best is found.
+func (o *DifferentialEvolution) checkForBetterSolution() {
+	bestIndex := 0
+	bestValidationScore := math.Inf(-1)
+	for i, member := range o.population.Members {
+		if member.ValidationScore > bestValidationScore {
+			bestValidationScore = member.ValidationScore
+			bestIndex = i
+		}
+	}
+	if o.bestSolution == nil || bestValidationScore > o.bestSolution.Score {
+		o.state.countBestScoreUnchanged = 0
+		o.bestSolution = &ScoredVector{
+			Vector: o.population.Members[bestIndex].TargetVector.Clone().(*mat.Dense),
+			Score:  bestValidationScore,
+		}
+		o.onNewBest(o.bestSolution)
+	} else {
+		o.state.countBestScoreUnchanged++
+	}
+}
+
+// resetPopulation resets the population retaining the best solution.
+func (o *DifferentialEvolution) resetPopulation() {
+	o.population = NewRandomPopulation(
+		o.PopulationSize,
+		o.VectorSize,
+		o.Bound,
+		rand.NewSource(o.Seed),
+		MemberHyperParams{
+			MutationFactor: o.MutationFactor,
+			CrossoverRate:  o.CrossoverRate,
+		},
+	)
+	// retain the best solution
+	o.population.Members[0].TargetVector = o.bestSolution.Vector.Clone().(*mat.Dense)
+	o.population.Members[0].TargetScore = o.bestSolution.Score
 }
