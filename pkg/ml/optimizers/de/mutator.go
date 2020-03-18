@@ -50,7 +50,6 @@ var _ Mutator = &DeglMutation{}
 //   "Design of Two-Channel Quadrature Mirror Filter Banks Using Differential Evolution with Global and Local Neighborhoods"
 //   Authors: Pradipta Ghosh, Hamim Zafar, Joydeep Banerjee, Swagatam Das (2011)
 //   (https://www.springerprofessional.de/en/design-of-two-channel-quadrature-mirror-filter-banks-using-diffe/3805398)
-
 type DeglMutation struct {
 	NeighborhoodRadius float64
 	Bound              float64
