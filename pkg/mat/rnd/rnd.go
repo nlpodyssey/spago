@@ -9,6 +9,7 @@ import (
 	"math"
 	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/rnd/uniform"
+	"saientist.dev/spago/pkg/utils"
 )
 
 func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
@@ -25,8 +26,14 @@ func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
 	return out
 }
 
-func ShuffleInPlace(xs []int, source rand.Source) {
-	rand.New(source).Shuffle(len(xs), func(i, j int) { xs[i], xs[j] = xs[j], xs[i] })
+func ShuffleInPlace(xs []int, source rand.Source) []int {
+	swap := func(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
+	if source != nil {
+		rand.New(source).Shuffle(len(xs), swap)
+	} else {
+		rand.Shuffle(len(xs), swap) // use global rand
+	}
+	return xs
 }
 
 // WeightedChoice performs a random generation of the indices based of the probability distribution itself.
@@ -40,4 +47,32 @@ func WeightedChoice(dist []float64) int {
 		}
 	}
 	return 0
+}
+
+// GetUniqueRandomInt generates n mutually exclusive integers up to max, using the default random source.
+// The callback checks whether a generated number can be accepted, or not.
+func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
+	a := make([]int, n)
+	for i := 0; i < n; i++ {
+		r := rand.Intn(max)
+		for !valid(r) || utils.ContainsInt(a, r) {
+			r = rand.Intn(max)
+		}
+		a[i] = r
+	}
+	return a
+}
+
+// GetUniqueRandomIndices select n mutually exclusive indices, using the default random source.
+// The callback checks whether an extracted index can be accepted, or not.
+func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int {
+	a := make([]int, n)
+	for i := 0; i < len(a); i++ {
+		r := ShuffleInPlace(indices, nil)[0]
+		for !valid(r) || utils.ContainsInt(a, r) {
+			r = ShuffleInPlace(indices, nil)[0]
+		}
+		a[i] = r
+	}
+	return a
 }

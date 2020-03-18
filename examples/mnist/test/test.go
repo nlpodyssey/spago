@@ -44,8 +44,8 @@ func main() {
 	}
 
 	precision := mnist.NewEvaluator(model).Evaluate(mnist.Dataset{
-		Set:          testSet,
-		NormalizeVec: true,
+		Set:              testSet,
+		FeaturesAsVector: true,
 	}).Precision()
 	fmt.Printf("Accuracy: %.2f\n", 100*precision)
 }

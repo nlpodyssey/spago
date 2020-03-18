@@ -40,8 +40,8 @@ func (t *Evaluator) Evaluate(dataset Dataset) *stats.ClassMetrics {
 
 	counter := stats.NewMetricCounter()
 	for i := 0; i < dataset.Count(); i++ {
-		image, label := dataset.GetNormalized(i)
-		if t.Predict(image) == int(label) {
+		example := dataset.GetExample(i)
+		if t.Predict(example.Features) == int(example.Label) {
 			counter.IncTruePos()
 		} else {
 			counter.IncFalsePos()

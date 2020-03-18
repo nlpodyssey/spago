@@ -9,14 +9,12 @@ import (
 	"github.com/gosuri/uiprogress"
 	"golang.org/x/exp/rand"
 	"runtime/debug"
-	"saientist.dev/spago/pkg/mat"
 	"saientist.dev/spago/pkg/mat/rnd"
 	"saientist.dev/spago/pkg/ml/ag"
 	"saientist.dev/spago/pkg/ml/losses"
 	"saientist.dev/spago/pkg/ml/nn"
 	"saientist.dev/spago/pkg/ml/optimizers/gd"
 	"saientist.dev/spago/pkg/utils"
-	"saientist.dev/spago/third_party/GoMNIST"
 	"sync"
 )
 
@@ -113,11 +111,11 @@ func (t *Trainer) trainBatchConcurrent(indices []int, onExample func()) {
 	wg.Add(len(indices))
 	for _, i := range indices {
 		t.optimizer.IncExample()
-		go func(image *mat.Dense, label GoMNIST.Label) {
+		go func(example *Example) {
 			defer wg.Done()
 			defer onExample()
-			t.curLoss = t.learn(image, int(label))
-		}(t.trainSet.GetNormalized(i))
+			t.curLoss = t.learn(example)
+		}(t.trainSet.GetExample(i))
 	}
 	wg.Wait()
 }
@@ -126,18 +124,17 @@ func (t *Trainer) trainBatchSerial(indices []int, onExample func()) {
 	t.optimizer.IncBatch()
 	for _, i := range indices {
 		t.optimizer.IncExample()
-		image, label := t.trainSet.GetNormalized(i)
-		t.curLoss = t.learn(image, int(label))
+		t.curLoss = t.learn(t.trainSet.GetExample(i))
 		onExample()
 	}
 }
 
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
-func (t *Trainer) learn(image *mat.Dense, label int) float64 {
+func (t *Trainer) learn(example *Example) float64 {
 	g := ag.NewGraph()
-	x := g.NewVariable(image, false)
+	x := g.NewVariable(example.Features, false)
 	y := t.model.NewProc(g).Forward(x)[0]
-	loss := g.Div(losses.CrossEntropy(g, y, label), g.NewScalar(float64(t.batchSize)))
+	loss := g.Div(losses.CrossEntropy(g, y, example.Label), g.NewScalar(float64(t.batchSize)))
 	g.Backward(loss)
 	return loss.ScalarValue()
 }

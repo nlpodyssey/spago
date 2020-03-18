@@ -1,4 +1,4 @@
-// Copyright 2019 spaGO Authors. All rights reserved.
+// Copyright 2020 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@ import (
 	"os"
 	"saientist.dev/spago/examples/mnist/internal/mnist"
 	"saientist.dev/spago/pkg/ml/ag"
+	"saientist.dev/spago/pkg/ml/nn/perceptron"
 	"saientist.dev/spago/pkg/utils"
 	"saientist.dev/spago/third_party/GoMNIST"
 )
@@ -30,16 +31,9 @@ func main() {
 	}
 
 	// new model initialized with zeros
-	model := mnist.NewCNN(
-		9,   // kernelSizeX
-		9,   // kernelSizeY
-		1,   // inputChannels
-		10,  // outputChannels
-		5,   // maxPoolingRows
-		5,   // maxPoolingCols
-		160, // hidden
-		10,  // out
-		ag.ReLU,
+	model := perceptron.New(
+		784, // input
+		10,  // output
 		ag.Softmax,
 	)
 	err = utils.DeserializeFromFile(modelPath, model)
@@ -49,7 +43,7 @@ func main() {
 
 	precision := mnist.NewEvaluator(model).Evaluate(mnist.Dataset{
 		Set:              testSet,
-		FeaturesAsVector: false, // the CNN input is a 28x28 matrix
+		FeaturesAsVector: true,
 	}).Precision()
 	fmt.Printf("Accuracy: %.2f\n", 100*precision)
 }

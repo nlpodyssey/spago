@@ -11,21 +11,45 @@ import (
 
 type Dataset struct {
 	*GoMNIST.Set
-	NormalizeVec bool
+	FeaturesAsVector bool
 }
 
-// Get returns the i-th normalized image and its corresponding label
-func (s *Dataset) GetNormalized(i int) (*mat.Dense, GoMNIST.Label) {
+// The image features and its corresponding label
+type Example struct {
+	Features *mat.Dense
+	Label    int
+}
+
+// Get returns the i-th normalized examples
+func (s *Dataset) GetExample(i int) *Example {
 	img := normalize(s.Images[i])
 	label := s.Labels[i]
-	if s.NormalizeVec {
-		return img, label
+	if s.FeaturesAsVector {
+		return &Example{
+			Features: img,
+			Label:    int(label),
+		}
 	} else {
-		return img.View(28, 28), label
+		return &Example{
+			Features: img.View(28, 28),
+			Label:    int(label),
+		}
 	}
 }
 
-// Normalize converts the image to a Dense matrix, with values scaled to the range [0, 1]
+func GetAllExamples(dataset *GoMNIST.Set) []*Example {
+	examples := make([]*Example, dataset.Count())
+	for i := 0; i < dataset.Count(); i++ {
+		img, label := dataset.Get(i)
+		examples[i] = &Example{
+			Features: normalize(img),
+			Label:    int(label),
+		}
+	}
+	return examples
+}
+
+// normalize converts the image to a Dense matrix, with values scaled to the range [0, 1]
 func normalize(img GoMNIST.RawImage) *mat.Dense {
 	data := make([]float64, 784)
 	for i := 0; i < len(data); i++ {
