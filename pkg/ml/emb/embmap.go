@@ -9,14 +9,14 @@ import (
 	"bytes"
 	"github.com/dgraph-io/badger"
 	"github.com/gosuri/uiprogress"
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat/f64utils"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/utils"
 	"io"
 	"log"
 	"os"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/mat/f64utils"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/utils"
 )
 
 type Map struct {

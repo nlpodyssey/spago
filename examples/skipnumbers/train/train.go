@@ -5,17 +5,17 @@
 package main
 
 import (
+	"github.com/saientist/spago/examples/skipnumbers/skipnumbers"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/saientist/spago/pkg/ml/nn/rec/lstmsc"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd/adam"
 	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"saientist.dev/spago/examples/skipnumbers/skipnumbers"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/rec/lstmsc"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/ml/optimizers/gd/adam"
 )
 
 func main() {

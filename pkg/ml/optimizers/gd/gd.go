@@ -5,8 +5,8 @@
 package gd
 
 import (
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/optimizers/gd/clipper"
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd/clipper"
 	"sync"
 )
 

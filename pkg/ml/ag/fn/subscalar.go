@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"saientist.dev/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat"
 )
 
 // Element-wise subtraction with a scalar value.

@@ -9,13 +9,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/initializers"
+	"github.com/saientist/spago/pkg/ml/losses"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd/sgd"
 	"golang.org/x/exp/rand"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/initializers"
-	"saientist.dev/spago/pkg/ml/losses"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/ml/optimizers/gd/sgd"
 )
 
 func main() {

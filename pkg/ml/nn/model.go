@@ -5,12 +5,12 @@
 package nn
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/utils"
 	"io"
 	"reflect"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/utils"
 	"strings"
 )
 

@@ -7,9 +7,9 @@ package gd
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/utils"
 	"io"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/utils"
 )
 
 // MarshalBinaryTo returns the number of bytes written into w and an error, if any.

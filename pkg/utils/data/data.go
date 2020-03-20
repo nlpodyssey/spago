@@ -4,7 +4,7 @@
 
 package data
 
-import "saientist.dev/spago/pkg/mat/rnd"
+import "github.com/saientist/spago/pkg/mat/rnd"
 
 // GenerateBatches generates a list of batches so that the classes distribution among them is approximately the same.
 // The class is given by the callback for each i-th element up to size.

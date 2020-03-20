@@ -5,13 +5,13 @@
 package horn
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/utils"
 	"io"
 	"log"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/utils"
 )
 
 var _ nn.Model = &Model{}

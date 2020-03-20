@@ -6,12 +6,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/saientist/spago/examples/mnist/internal/mnist"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/saientist/spago/pkg/utils"
+	"github.com/saientist/spago/third_party/GoMNIST"
 	"os"
-	"saientist.dev/spago/examples/mnist/internal/mnist"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/utils"
-	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 func main() {

@@ -6,14 +6,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/saientist/spago/examples/skipnumbers/skipnumbers"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/saientist/spago/pkg/ml/nn/rec/lstmsc"
+	"github.com/saientist/spago/pkg/utils"
 	"log"
 	_ "net/http/pprof"
 	"os"
-	"saientist.dev/spago/examples/skipnumbers/skipnumbers"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/rec/lstmsc"
-	"saientist.dev/spago/pkg/utils"
 )
 
 func main() {

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"saientist.dev/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat"
 )
 
 // The element-wise product with a scalar value.

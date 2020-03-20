@@ -5,9 +5,9 @@
 package de
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
 )
 
 // A member of the Population.

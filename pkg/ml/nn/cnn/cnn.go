@@ -5,12 +5,12 @@
 package cnn
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/nn/convolution"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/convolution"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
 )
 
 var _ nn.Model = &Model{}

@@ -4,7 +4,7 @@
 
 package fn
 
-import "saientist.dev/spago/pkg/mat"
+import "github.com/saientist/spago/pkg/mat"
 
 // Element-wise sum over two values.
 // y = x1 + x2

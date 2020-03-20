@@ -5,12 +5,12 @@
 package skipnumbers
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/initializers"
+	"github.com/saientist/spago/pkg/ml/nn"
 	"golang.org/x/exp/rand"
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/initializers"
-	"saientist.dev/spago/pkg/ml/nn"
 )
 
 var _ nn.Model = &Model{}

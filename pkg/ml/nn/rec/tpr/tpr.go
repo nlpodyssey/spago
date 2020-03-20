@@ -5,11 +5,11 @@
 package tpr
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
 )
 
 var _ nn.Model = &Model{}

@@ -448,7 +448,7 @@ func TestDivTo(t *testing.T) {
 }
 
 func TestL1Dist(t *testing.T) {
-	var t_gd, s_gd float64 = -inf, inf
+	var t_gd, s_gd = -inf, inf
 	for j, v := range []struct {
 		s, t   []float64
 		expect float64

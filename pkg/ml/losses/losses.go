@@ -5,7 +5,7 @@
 package losses
 
 import (
-	"saientist.dev/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/ag"
 )
 
 // MAE measures the mean absolute error (a.k.a. L1 Loss) between each element in the input x and target y.

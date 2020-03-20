@@ -5,9 +5,9 @@
 package de
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
 )
 
 // Differential Evolution implements a simple and efficient heuristic for global optimization over continuous spaces.

@@ -1,4 +1,4 @@
-module saientist.dev/spago
+module github.com/saientist/spago
 
 go 1.13
 

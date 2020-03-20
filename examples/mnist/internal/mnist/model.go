@@ -5,14 +5,14 @@
 package mnist
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/initializers"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/nn/cnn"
+	"github.com/saientist/spago/pkg/ml/nn/convolution"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/saientist/spago/pkg/ml/nn/stack"
 	"golang.org/x/exp/rand"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/initializers"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/cnn"
-	"saientist.dev/spago/pkg/ml/nn/convolution"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
 // NewMLP returns a new multi-layer perceptron initialized to zeros.

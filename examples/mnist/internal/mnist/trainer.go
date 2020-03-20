@@ -7,14 +7,14 @@ package mnist
 import (
 	"fmt"
 	"github.com/gosuri/uiprogress"
+	"github.com/saientist/spago/pkg/mat/rnd"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/losses"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/utils"
 	"golang.org/x/exp/rand"
 	"runtime/debug"
-	"saientist.dev/spago/pkg/mat/rnd"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/losses"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/utils"
 	"sync"
 )
 

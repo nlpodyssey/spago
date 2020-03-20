@@ -5,8 +5,8 @@
 package fn
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"math"
-	"saientist.dev/spago/pkg/mat"
 )
 
 // Single-input, softmax function.

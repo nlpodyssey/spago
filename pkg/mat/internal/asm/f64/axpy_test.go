@@ -242,7 +242,7 @@ func TestAxpyIncTo(t *testing.T) {
 			if inc.x*inc.y < 0 {
 				want = test.wantRev
 			}
-			var iW, incW int = 0, 1
+			var iW, incW = 0, 1
 			if inc.y*inc.dst < 0 {
 				iW, incW = len(want)-1, -1
 			}

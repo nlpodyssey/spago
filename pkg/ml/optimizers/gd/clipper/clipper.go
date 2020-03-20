@@ -5,8 +5,8 @@
 package clipper
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"math"
-	"saientist.dev/spago/pkg/mat"
 )
 
 type GradClipper interface {

@@ -5,10 +5,10 @@
 package de
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/initializers"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/initializers"
 )
 
 type Crossoverer interface {

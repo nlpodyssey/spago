@@ -6,10 +6,10 @@ package internal
 
 import (
 	"github.com/gosuri/uiprogress"
-	"saientist.dev/spago/pkg/mat/f64utils"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/stats"
+	"github.com/saientist/spago/pkg/mat/f64utils"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/stats"
 )
 
 type Evaluator struct {

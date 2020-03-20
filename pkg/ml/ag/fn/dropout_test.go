@@ -5,9 +5,9 @@
 package fn
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"golang.org/x/exp/rand"
 	"gonum.org/v1/gonum/floats"
-	"saientist.dev/spago/pkg/mat"
 	"testing"
 )
 

@@ -5,12 +5,12 @@
 package initializers
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat/rnd/normal"
+	"github.com/saientist/spago/pkg/mat/rnd/uniform"
+	"github.com/saientist/spago/pkg/ml/ag"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/mat/rnd/normal"
-	"saientist.dev/spago/pkg/mat/rnd/uniform"
-	"saientist.dev/spago/pkg/ml/ag"
 )
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.

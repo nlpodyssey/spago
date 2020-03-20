@@ -5,10 +5,10 @@
 package emb
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
 	"log"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
 )
 
 type Embedding struct {

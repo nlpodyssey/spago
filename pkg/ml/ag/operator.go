@@ -5,8 +5,8 @@
 package ag
 
 import (
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag/fn"
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag/fn"
 	"sync"
 )
 

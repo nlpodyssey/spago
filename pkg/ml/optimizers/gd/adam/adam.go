@@ -5,9 +5,9 @@
 package adam
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
 )
 
 type Config struct {

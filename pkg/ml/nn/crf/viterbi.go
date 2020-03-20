@@ -5,10 +5,10 @@
 package crf
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat/f64utils"
+	"github.com/saientist/spago/pkg/ml/ag"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/mat/f64utils"
-	"saientist.dev/spago/pkg/ml/ag"
 )
 
 type ViterbiStructure struct {

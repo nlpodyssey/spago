@@ -5,10 +5,10 @@
 package birnn
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
 	"sync"
 )
 

@@ -5,9 +5,9 @@
 package ag
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag/fn"
 	"golang.org/x/exp/rand"
 	"reflect"
-	"saientist.dev/spago/pkg/ml/ag/fn"
 )
 
 type OpName int

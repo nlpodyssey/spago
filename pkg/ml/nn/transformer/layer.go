@@ -5,15 +5,15 @@
 package transformer
 
 import (
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/encoding/pe"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/nn/multiheadattention"
+	"github.com/saientist/spago/pkg/ml/nn/normalization/scalenorm"
+	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/saientist/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/encoding/pe"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/multiheadattention"
-	"saientist.dev/spago/pkg/ml/nn/normalization/scalenorm"
-	"saientist.dev/spago/pkg/ml/nn/perceptron"
-	"saientist.dev/spago/pkg/ml/nn/stack"
 )
 
 var _ nn.Model = &Layer{}

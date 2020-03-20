@@ -5,11 +5,11 @@
 package de
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/initializers"
+	"github.com/saientist/spago/pkg/utils"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/initializers"
-	"saientist.dev/spago/pkg/utils"
 )
 
 type Population struct {

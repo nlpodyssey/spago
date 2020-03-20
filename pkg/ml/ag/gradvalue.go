@@ -4,7 +4,7 @@
 
 package ag
 
-import "saientist.dev/spago/pkg/mat"
+import "github.com/saientist/spago/pkg/mat"
 
 type GradValue interface {
 	// Value returns the value of the node.

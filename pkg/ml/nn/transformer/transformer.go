@@ -10,9 +10,9 @@ Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin (2017)
 package transformer
 
 import (
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/stack"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/nn/stack"
 )
 
 var _ nn.Model = &Model{}

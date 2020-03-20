@@ -5,9 +5,9 @@
 package layernormsimple
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag"
 	"gonum.org/v1/gonum/floats"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag"
 	"testing"
 )
 

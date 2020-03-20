@@ -6,8 +6,8 @@ package mat
 
 import (
 	"fmt"
+	"github.com/saientist/spago/pkg/mat/internal/asm/f64"
 	"math"
-	"saientist.dev/spago/pkg/mat/internal/asm/f64"
 )
 
 var _ Matrix = &Dense{}

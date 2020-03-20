@@ -5,11 +5,11 @@
 package rnd
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/mat/rnd/uniform"
+	"github.com/saientist/spago/pkg/utils"
 	"golang.org/x/exp/rand"
 	"math"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/mat/rnd/uniform"
-	"saientist.dev/spago/pkg/utils"
 )
 
 func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {

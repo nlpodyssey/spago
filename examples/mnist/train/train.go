@@ -5,16 +5,16 @@
 package main
 
 import (
+	"github.com/saientist/spago/examples/mnist/internal/mnist"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/saientist/spago/pkg/ml/optimizers/gd/adam"
+	"github.com/saientist/spago/third_party/GoMNIST"
 	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
-	"saientist.dev/spago/examples/mnist/internal/mnist"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/optimizers/gd"
-	"saientist.dev/spago/pkg/ml/optimizers/gd/adam"
-	"saientist.dev/spago/third_party/GoMNIST"
 )
 
 func main() {

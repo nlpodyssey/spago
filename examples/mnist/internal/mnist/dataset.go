@@ -5,8 +5,8 @@
 package mnist
 
 import (
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/third_party/GoMNIST"
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/third_party/GoMNIST"
 )
 
 type Dataset struct {

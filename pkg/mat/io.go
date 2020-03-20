@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/saientist/spago/pkg/utils"
 	"io"
 	"math"
-	"saientist.dev/spago/pkg/utils"
 )
 
 type header struct {

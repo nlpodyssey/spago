@@ -5,11 +5,11 @@
 package birnn
 
 import (
+	"github.com/saientist/spago/pkg/mat"
+	"github.com/saientist/spago/pkg/ml/ag"
+	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/saientist/spago/pkg/ml/nn/rec/srn"
 	"gonum.org/v1/gonum/floats"
-	"saientist.dev/spago/pkg/mat"
-	"saientist.dev/spago/pkg/ml/ag"
-	"saientist.dev/spago/pkg/ml/nn"
-	"saientist.dev/spago/pkg/ml/nn/rec/srn"
 	"testing"
 )
 

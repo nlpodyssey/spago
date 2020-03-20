@@ -5,8 +5,8 @@
 package pe
 
 import (
+	"github.com/saientist/spago/pkg/mat"
 	"math"
-	"saientist.dev/spago/pkg/mat"
 )
 
 // PositionalEncoder uses the sine and cosine functions of different frequencies to compose position embeddings so to
