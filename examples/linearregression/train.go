@@ -81,8 +81,5 @@ func main() {
 		fmt.Printf("epoch %d, loss %.6f\n", epoch, loss.ScalarValue())
 	}
 
-	model.ForEachParam(func(param *nn.Param) {
-		fmt.Printf("Learned coefficient: %f", param.ScalarValue())
-	})
-
+	fmt.Printf("Learned coefficient: %.6f\n", model.W.ScalarValue())
 }
