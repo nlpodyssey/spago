@@ -88,3 +88,23 @@ func XavierNormal(m mat.Matrix, gain float64, source rand.Source) {
 		}
 	}
 }
+
+func Achlioptas(m mat.Matrix, source rand.Source) {
+	dist := uniform.New(0.0, 1.0, source)
+	lower := 1.0 / 6.0
+	upper := 1.0 - lower
+	a := math.Sqrt(3.0)
+	rows, cols := m.Dims()
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
+			r := dist.Next()
+			if r < lower {
+				m.Set(-a, i, j)
+			} else if r > upper {
+				m.Set(a, i, j)
+			} else {
+				m.Set(0.0, i, j)
+			}
+		}
+	}
+}
