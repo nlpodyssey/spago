@@ -249,8 +249,8 @@ func requireGrad(ns []Node) bool {
 	return false
 }
 
-// nodesToGradValues converts a slice of node to a slice of operands.
-func nodesToGradValues(xs []Node) []fn.Operand {
+// operands converts a slice of node to a slice of operands.
+func operands(xs []Node) []fn.Operand {
 	var out = make([]fn.Operand, len(xs))
 	for i, x := range xs {
 		out[i] = x
