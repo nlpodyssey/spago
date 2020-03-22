@@ -108,3 +108,29 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 	wg.Wait()
 	return
 }
+
+// Separate returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
+// The dimensions of the resulting matrix are the same of the input.
+func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
+	rows, cols := x.Value().Dims()
+	ys := make([][]ag.Node, rows)
+	for i := 0; i < rows; i++ {
+		ys[i] = make([]ag.Node, cols)
+		for j := 0; j < cols; j++ {
+			ys[i][j] = g.At(x, i, j)
+		}
+	}
+	return ys
+}
+
+// SeparateVec returns a slice of Node(s) containing the elements extracted from the input.
+// The size of the vector equals the number of input elements.
+// You can think of this method as the inverse of the ag.Concat operator.
+func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
+	size := x.Value().Size()
+	ys := make([]ag.Node, size)
+	for i := 0; i < size; i++ {
+		ys[i] = g.AtVec(x, i)
+	}
+	return ys
+}
