@@ -96,7 +96,7 @@ func (p *Processor) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 func (p *Processor) totalScore(predicted []ag.Node) ag.Node {
 	totalVector := p.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
-		totalVector = p.totalScoreStep(totalVector, predicted[i])
+		totalVector = p.totalScoreStep(totalVector, nn.SeparateVec(p.g, predicted[i]))
 	}
 	totalVector = p.totalScoreEnd(totalVector)
 	return p.g.Log(p.g.ReduceSum(p.g.Concat(totalVector...)))
@@ -122,12 +122,12 @@ func (p *Processor) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	return scores
 }
 
-func (p *Processor) totalScoreStep(totalVec []ag.Node, stepVec ag.Node) []ag.Node {
+func (p *Processor) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
 	size := p.model.TransitionScores.Value().Rows() - 1
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
-			vecSum := p.g.Add(totalVec[i], p.g.AtVec(stepVec, j))
+			vecSum := p.g.Add(totalVec[i], stepVec[j])
 			vecTrans := p.g.Add(vecSum, p.transitionScores[i+1][j+1])
 			scores[j] = p.g.Add(scores[j], p.g.Exp(vecTrans))
 		}
