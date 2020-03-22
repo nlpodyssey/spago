@@ -38,7 +38,7 @@ type Processor struct {
 	opt              []interface{}
 	model            *Model
 	g                *ag.Graph
-	transitionScores ag.Node
+	transitionScores [][]ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -46,7 +46,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		model:            m,
 		opt:              opt,
 		g:                g,
-		transitionScores: g.NewWrap(m.TransitionScores),
+		transitionScores: nn.Separate(g, g.NewWrap(m.TransitionScores)),
 	}
 	p.init(opt)
 	return p
@@ -82,14 +82,14 @@ func (p *Processor) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.N
 
 func (p *Processor) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := p.g.At(emissionScores[0], target[0], 0)
-	goldScore = p.g.Add(goldScore, p.g.At(p.transitionScores, 0, target[0]+1)) // start transition
+	goldScore = p.g.Add(goldScore, p.transitionScores[0][target[0]+1]) // start transition
 	prevIndex := target[0] + 1
 	for i := 1; i < len(target); i++ {
-		goldScore = p.g.Add(goldScore, p.g.At(emissionScores[i], target[i], 0))
-		goldScore = p.g.Add(goldScore, p.g.At(p.transitionScores, prevIndex, target[i]+1))
+		goldScore = p.g.Add(goldScore, p.g.AtVec(emissionScores[i], target[i]))
+		goldScore = p.g.Add(goldScore, p.transitionScores[prevIndex][target[i]+1])
 		prevIndex = target[i] + 1
 	}
-	goldScore = p.g.Add(goldScore, p.g.At(p.transitionScores, prevIndex, 0)) // end transition
+	goldScore = p.g.Add(goldScore, p.transitionScores[prevIndex][0]) // end transition
 	return goldScore
 }
 
@@ -99,41 +99,41 @@ func (p *Processor) totalScore(predicted []ag.Node) ag.Node {
 		totalVector = p.totalScoreStep(totalVector, predicted[i])
 	}
 	totalVector = p.totalScoreEnd(totalVector)
-	return p.g.Log(p.g.ReduceSum(totalVector))
+	return p.g.Log(p.g.ReduceSum(p.g.Concat(totalVector...)))
 
 }
 
-func (p *Processor) totalScoreStart(stepVec ag.Node) ag.Node {
+func (p *Processor) totalScoreStart(stepVec ag.Node) []ag.Node {
 	size := p.model.TransitionScores.Value().Rows() - 1
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
-		scores[i] = p.g.Add(p.g.AtVec(stepVec, i), p.g.At(p.transitionScores, 0, i+1))
+		scores[i] = p.g.Add(p.g.AtVec(stepVec, i), p.transitionScores[0][i+1])
 	}
-	return p.g.Concat(scores...)
+	return scores
 }
 
-func (p *Processor) totalScoreEnd(stepVec ag.Node) ag.Node {
+func (p *Processor) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	size := p.model.TransitionScores.Value().Rows() - 1
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
-		vecTrans := p.g.Add(p.g.AtVec(stepVec, i), p.g.At(p.transitionScores, i+1, 0))
+		vecTrans := p.g.Add(stepVec[i], p.transitionScores[i+1][0])
 		scores[i] = p.g.Add(scores[i], p.g.Exp(vecTrans))
 	}
-	return p.g.Concat(scores...)
+	return scores
 }
 
-func (p *Processor) totalScoreStep(totalVec ag.Node, stepVec ag.Node) ag.Node {
+func (p *Processor) totalScoreStep(totalVec []ag.Node, stepVec ag.Node) []ag.Node {
 	size := p.model.TransitionScores.Value().Rows() - 1
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
 		for j := 0; j < size; j++ {
-			vecSum := p.g.Add(p.g.AtVec(totalVec, i), p.g.AtVec(stepVec, j))
-			vecTrans := p.g.Add(vecSum, p.g.At(p.transitionScores, i+1, j+1))
+			vecSum := p.g.Add(totalVec[i], p.g.AtVec(stepVec, j))
+			vecTrans := p.g.Add(vecSum, p.transitionScores[i+1][j+1])
 			scores[j] = p.g.Add(scores[j], p.g.Exp(vecTrans))
 		}
 	}
 	for i := 0; i < size; i++ {
 		scores[i] = p.g.Log(scores[i])
 	}
-	return p.g.Concat(scores...)
+	return scores
 }
