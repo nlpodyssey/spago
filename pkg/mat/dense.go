@@ -23,7 +23,7 @@ type Dense struct {
 // Following 'runtime: memmove sometimes faster than memclrNoHeapPointers (https:///golang/go/issues/23306)',
 // I opted to preallocate an 'empty' array initialized to zero, preferring append operations rather than make.
 // Other reference: https:///go101/go-benchmarks/tree/master/append-vs-make
-var empty [10000000]float64
+var empty [100000000]float64
 
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
@@ -61,6 +61,7 @@ func NewEmptyVecDense(size int) *Dense {
 }
 
 // NewEmptyVecDense returns a new rows x cols matrix initialized to zeros.
+// TODO: handle the case where the size is larger than the pre-allocated array of zeros
 func NewEmptyDense(rows, cols int) *Dense {
 	return newDense(rows, cols, empty[:rows*cols])
 }
