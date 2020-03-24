@@ -9,6 +9,7 @@ import (
 	"github.com/saientist/spago/pkg/ml/nn/rec/gru"
 	"github.com/saientist/spago/pkg/ml/nn/rec/lstm"
 	"github.com/saientist/spago/pkg/ml/nn/rec/ltm"
+	"github.com/saientist/spago/pkg/ml/nn/rec/mist"
 	"github.com/saientist/spago/pkg/ml/nn/rec/ran"
 	"github.com/saientist/spago/pkg/ml/nn/stack"
 )
@@ -49,6 +50,14 @@ func NewBiLTM(input int, merge MergeType) *Model {
 	return &Model{
 		Positive:  ltm.New(input),
 		Negative:  ltm.New(input),
+		MergeMode: merge,
+	}
+}
+
+func NewBiMIST(input, hidden, numberOfDelays int, merge MergeType) *Model {
+	return &Model{
+		Positive:  mist.New(input, hidden, numberOfDelays),
+		Negative:  mist.New(input, hidden, numberOfDelays),
 		MergeMode: merge,
 	}
 }
