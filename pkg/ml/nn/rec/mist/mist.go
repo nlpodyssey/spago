@@ -146,7 +146,7 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	yPrev := p.yPrev()
 	a := p.g.Softmax(nn.Affine(p.g, p.ba, p.wax, x, p.wah, yPrev))
 	r := p.g.Sigmoid(nn.Affine(p.g, p.br, p.wrx, x, p.wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = p.g.Tanh(nn.Affine(p.g, p.b, p.wx, x, p.wh, p.tryProd(r, p.weighedHistory(a))))
+	s.Y = p.g.Tanh(nn.Affine(p.g, p.b, p.wx, x, p.wh, p.tryProd(r, p.weightHistory(a))))
 	return
 }
 
@@ -159,7 +159,7 @@ func (p *Processor) yPrev() ag.Node {
 	return yPrev
 }
 
-func (p *Processor) weighedHistory(a ag.Node) ag.Node {
+func (p *Processor) weightHistory(a ag.Node) ag.Node {
 	var sum ag.Node
 	n := len(p.States)
 	for i := 0; i < p.model.nd; i++ {
