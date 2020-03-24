@@ -164,8 +164,8 @@ func (p *Processor) weightHistory(a ag.Node) ag.Node {
 	n := len(p.States)
 	for i := 0; i < p.model.nd; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
-		if k < n {
-			sum = p.g.Add(sum, p.g.ProdScalar(p.States[n-1-k].Y, p.g.AtVec(a, i)))
+		if k <= n {
+			sum = p.g.Add(sum, p.g.ProdScalar(p.States[n-k].Y, p.g.AtVec(a, i)))
 		}
 	}
 	return sum
