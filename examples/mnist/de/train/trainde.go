@@ -102,7 +102,7 @@ func main() {
 		onNewBestCallback,
 	)
 
-	fmt.Printf("Let the optimization begin!")
+	fmt.Println("Let the optimization begin!")
 	optimizer.Optimize() // Enjoy :)
 }
 
