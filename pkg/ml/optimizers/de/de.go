@@ -20,7 +20,7 @@ type DifferentialEvolution struct {
 	// The mutation strategy
 	mutation Mutator
 	// The crossover strategy
-	crossover Crossoverer
+	crossover Crossover
 	// The fitness function to minimize
 	fitnessFunc func(solution *mat.Dense, batch int) float64
 	// The validation function to maximize
@@ -80,7 +80,7 @@ type ScoredVector struct {
 func NewOptimizer(
 	config Config,
 	mutation Mutator,
-	crossover Crossoverer,
+	crossover Crossover,
 	score func(solution *mat.Dense, batch int) float64,
 	validate func(solution *mat.Dense) float64,
 	onNewBest func(solution *ScoredVector),

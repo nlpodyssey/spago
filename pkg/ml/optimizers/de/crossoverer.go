@@ -11,11 +11,11 @@ import (
 	"math"
 )
 
-type Crossoverer interface {
+type Crossover interface {
 	Crossover(p *Population)
 }
 
-var _ Crossoverer = &BinomialCrossover{}
+var _ Crossover = &BinomialCrossover{}
 
 type BinomialCrossover struct {
 	source rand.Source
