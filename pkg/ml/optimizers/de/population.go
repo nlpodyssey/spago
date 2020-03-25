@@ -60,7 +60,7 @@ func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minSco
 		argMin, minScore = p.FindBest(lowIndex, size-1, minScore, lowIndex)
 		argMin, minScore = p.FindBest(0, highIndex-1, minScore, argMin)
 	} else {
-		argMin, minScore = p.FindBest(lowIndex, size-1, minScore, lowIndex)
+		argMin, minScore = p.FindBest(lowIndex, highIndex-1, minScore, lowIndex)
 	}
 	return
 }
