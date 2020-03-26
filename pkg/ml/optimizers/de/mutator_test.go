@@ -47,6 +47,43 @@ func TestRandomMutator(t *testing.T) {
 	}
 }
 
+func TestDeglMutator(t *testing.T) {
+	population := newTestMutator()
+	mutation := NewDeglMutation(0.3, 6.0)
+	mutation.Mutate(population)
+
+	if !floats.EqualApprox(population.Members[0].DonorVector.Data(), []float64{-1.35, 0.05, 0.15, 1.075, 1.875}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[1].DonorVector.Data(), []float64{-0.975, -0.7, 0.65, -0.35, 2.3}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[2].DonorVector.Data(), []float64{1.4, -2.025, 1.05, 1.625, 2.2}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[3].DonorVector.Data(), []float64{1, -0.375, 0.575, 1.275, 1.625}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[4].DonorVector.Data(), []float64{-0.9, -1.675, 0.95, -1.4, 2.425}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[5].DonorVector.Data(), []float64{-0.85, -0.05, 0.525, -2.5, -0.4}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[6].DonorVector.Data(), []float64{-1.125, 0.725, 0.75, -3.525, -0.7}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[7].DonorVector.Data(), []float64{1.025, -2.375, 0.15, 3.175, 2.225}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[8].DonorVector.Data(), []float64{1.15, -0.3, 0.05, 0.325, 0.425}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+	if !floats.EqualApprox(population.Members[9].DonorVector.Data(), []float64{-0.275, -0.625, -0.675, 0.075, 0.175}, 0.0001) {
+		t.Error("Donor vector doesn't match expected values")
+	}
+}
+
 func newTestMutator() *Population {
 	hyperParams := MemberHyperParams{
 		MutationFactor: 0.5,
