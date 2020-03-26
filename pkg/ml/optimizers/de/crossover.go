@@ -26,11 +26,12 @@ func NewBinomialCrossover(source rand.Source) *BinomialCrossover {
 }
 
 func (c *BinomialCrossover) Crossover(p *Population) {
-	randomVector := mat.NewEmptyVecDense(p.Members[0].DonorVector.Size())
-	initializers.Uniform(randomVector, -1.0, +1.0, c.source)
+	seed := rand.New(rand.NewSource(0))
 	for _, member := range p.Members {
+		randomVector := mat.NewEmptyVecDense(p.Members[0].DonorVector.Size())
+		initializers.Uniform(randomVector, -1.0, +1.0, c.source)
 		size := member.DonorVector.Size()
-		rn := rand.New(rand.NewSource(0))
+		rn := rand.New(rand.NewSource(seed.Uint64n(100)))
 		k := rn.Intn(size)
 		for i := 0; i < size; i++ {
 			if math.Abs(randomVector.At(i, 0)) > member.CrossoverRate || i == k { // Fixed range trick
