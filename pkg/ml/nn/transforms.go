@@ -7,6 +7,7 @@ package nn
 import (
 	"github.com/saientist/spago/pkg/mat"
 	"github.com/saientist/spago/pkg/ml/ag"
+	"math"
 	"sync"
 )
 
@@ -131,6 +132,27 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 	ys := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
 		ys[i] = g.AtVec(x, i)
+	}
+	return ys
+}
+
+// TODO: optimize, this is extremely inefficient!
+func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
+	size := int(math.Ceil(float64(x.Value().Size()) / float64(chunks)))
+	lastSize := x.Value().Size() % chunks
+	ys := make([]ag.Node, chunks)
+	for c := 0; c < chunks; c++ {
+		length := 0
+		if c == chunks-1 && lastSize > 0 {
+			length = lastSize
+		} else {
+			length = size
+		}
+		tmp := make([]ag.Node, length)
+		for i := 0; i < length; i++ {
+			tmp[i] = g.AtVec(x, i+c*size)
+		}
+		ys[c] = g.Concat(tmp...)
 	}
 	return ys
 }
