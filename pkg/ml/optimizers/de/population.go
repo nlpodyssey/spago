@@ -16,9 +16,9 @@ type Population struct {
 	Members []*Member
 }
 
-func NewRandomPopulation(n int, vectorSize int, bound float64, rndSource rand.Source, initHyperParams MemberHyperParams) *Population {
-	members := make([]*Member, n)
-	for i := 0; i < n; i++ {
+func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndSource rand.Source, initHyperParams MemberHyperParams) *Population {
+	members := make([]*Member, populationSize)
+	for i := 0; i < populationSize; i++ {
 		vector := mat.NewEmptyVecDense(vectorSize)
 		initializers.XavierUniform(vector, 1.0, rndSource)
 		vector.ClipInPlace(-bound, +bound)
