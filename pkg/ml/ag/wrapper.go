@@ -4,7 +4,7 @@
 
 package ag
 
-import "github.com/saientist/spago/pkg/mat"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 type Wrapper struct {
 	GradValue

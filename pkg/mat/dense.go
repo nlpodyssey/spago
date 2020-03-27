@@ -6,7 +6,7 @@ package mat
 
 import (
 	"fmt"
-	"github.com/saientist/spago/pkg/mat/internal/asm/f64"
+	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
 	"math"
 )
 

@@ -7,8 +7,8 @@ package gd
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
 )
 

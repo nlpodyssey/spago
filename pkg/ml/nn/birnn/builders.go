@@ -5,13 +5,13 @@
 package birnn
 
 import (
-	"github.com/saientist/spago/pkg/ml/nn/rec/cfn"
-	"github.com/saientist/spago/pkg/ml/nn/rec/gru"
-	"github.com/saientist/spago/pkg/ml/nn/rec/lstm"
-	"github.com/saientist/spago/pkg/ml/nn/rec/ltm"
-	"github.com/saientist/spago/pkg/ml/nn/rec/mist"
-	"github.com/saientist/spago/pkg/ml/nn/rec/ran"
-	"github.com/saientist/spago/pkg/ml/nn/stack"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/cfn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/gru"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ltm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/mist"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ran"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
 func NewBiLSTM(input, hidden int, merge MergeType) *Model {

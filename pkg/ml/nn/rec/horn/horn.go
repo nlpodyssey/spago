@@ -5,10 +5,10 @@
 package horn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
 	"log"
 	"math"

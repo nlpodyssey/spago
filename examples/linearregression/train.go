@@ -9,12 +9,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/initializers"
-	"github.com/saientist/spago/pkg/ml/losses"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/optimizers/gd"
-	"github.com/saientist/spago/pkg/ml/optimizers/gd/sgd"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/initializers"
+	"github.com/nlpodyssey/spago/pkg/ml/losses"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/sgd"
 	"golang.org/x/exp/rand"
 )
 

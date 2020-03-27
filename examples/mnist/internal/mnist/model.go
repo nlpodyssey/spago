@@ -5,13 +5,13 @@
 package mnist
 
 import (
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/initializers"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/nn/cnn"
-	"github.com/saientist/spago/pkg/ml/nn/convolution"
-	"github.com/saientist/spago/pkg/ml/nn/perceptron"
-	"github.com/saientist/spago/pkg/ml/nn/stack"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/initializers"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/cnn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"golang.org/x/exp/rand"
 )
 

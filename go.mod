@@ -1,4 +1,4 @@
-module github.com/saientist/spago
+module github.com/nlpodyssey/spago
 
 go 1.14
 

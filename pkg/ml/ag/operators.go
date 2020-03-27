@@ -5,7 +5,7 @@
 package ag
 
 import (
-	"github.com/saientist/spago/pkg/ml/ag/fn"
+	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"golang.org/x/exp/rand"
 	"reflect"
 )

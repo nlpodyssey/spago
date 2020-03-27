@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))

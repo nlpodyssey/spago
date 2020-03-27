@@ -5,12 +5,12 @@
 package main
 
 import (
-	"github.com/saientist/spago/examples/skipnumbers/skipnumbers"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/nn/perceptron"
-	"github.com/saientist/spago/pkg/ml/nn/rec/lstmsc"
-	"github.com/saientist/spago/pkg/ml/optimizers/gd"
-	"github.com/saientist/spago/pkg/ml/optimizers/gd/adam"
+	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
 	"golang.org/x/exp/rand"
 	"log"
 	"net/http"

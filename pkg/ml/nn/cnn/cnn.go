@@ -5,10 +5,10 @@
 package cnn
 
 import (
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/nn/convolution"
-	"github.com/saientist/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
 	"io"
 	"log"
 )

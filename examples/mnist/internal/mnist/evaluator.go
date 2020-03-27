@@ -6,11 +6,11 @@ package mnist
 
 import (
 	"github.com/gosuri/uiprogress"
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/mat/f64utils"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/stats"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/stats"
 )
 
 type Evaluator struct {

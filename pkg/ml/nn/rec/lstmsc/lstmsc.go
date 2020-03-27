@@ -5,12 +5,12 @@
 package lstmsc
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/mat/f64utils"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/nn/perceptron"
-	"github.com/saientist/spago/pkg/ml/nn/stack"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
 )

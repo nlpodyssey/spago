@@ -5,8 +5,8 @@
 package fofe
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
 func EncodeDense(alpha float64, size int, seq []int) []*mat.Dense {

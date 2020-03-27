@@ -4,7 +4,7 @@
 
 package fn
 
-import "github.com/saientist/spago/pkg/mat"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // Dot product over two matrices.
 // y = x1 dot x2

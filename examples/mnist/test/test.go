@@ -6,10 +6,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/saientist/spago/examples/mnist/internal/mnist"
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/utils"
-	"github.com/saientist/spago/third_party/GoMNIST"
+	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/third_party/GoMNIST"
 	"os"
 )
 

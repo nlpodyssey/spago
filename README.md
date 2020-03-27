@@ -1,9 +1,9 @@
 # spaGO
-[![Go Report Card](https://goreportcard.com/badge/github.com/saientist/spago)](https://goreportcard.com/report/github.com/saientist/spago)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 
 ---
 
-<img src="https://github.com/saientist/spago/blob/master/assets/spago.png" width="100" alt="spago-logo">
+<img src="https://github.com/nlpodyssey/spago/blob/master/assets/spago.png" width="100" alt="spago-logo">
 
 spaGO is a machine learning lightweight open-source library written in Go designed to support relevant neural network architectures in natural language processing tasks.
 
@@ -28,5 +28,5 @@ It's with this approach that I jumped on Go and created spaGo: a work in progres
 
 ## Disclaimer
 
-**Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/saientist/spago/blob/master/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
+**Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/nlpodyssey/spago/blob/master/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
 If you want spaGo to become something more than just a hobby project of me, I greatly appreciate any bug reports and contributions, which can be made by filing an issue or making a pull request through the github page. Thanks!

@@ -5,7 +5,7 @@
 package ag
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"sync"
 )
 

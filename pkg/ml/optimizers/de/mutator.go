@@ -5,9 +5,9 @@
 package de
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/mat/rnd"
-	"github.com/saientist/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rnd"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"math"
 )
 

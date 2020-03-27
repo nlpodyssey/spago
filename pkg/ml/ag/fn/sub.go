@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Element-wise subtraction over two values.

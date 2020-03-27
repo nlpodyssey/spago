@@ -5,8 +5,8 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/mat/rnd"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rnd"
 	"golang.org/x/exp/rand"
 )
 

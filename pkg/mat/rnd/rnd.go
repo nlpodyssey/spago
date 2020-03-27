@@ -5,9 +5,9 @@
 package rnd
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/mat/rnd/uniform"
-	"github.com/saientist/spago/pkg/utils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rnd/uniform"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"golang.org/x/exp/rand"
 	"math"
 )

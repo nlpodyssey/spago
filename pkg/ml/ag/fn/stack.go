@@ -4,7 +4,7 @@
 
 package fn
 
-import "github.com/saientist/spago/pkg/mat"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 type Stack struct {
 	xs []Operand

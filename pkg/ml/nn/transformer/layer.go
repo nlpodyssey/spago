@@ -5,13 +5,13 @@
 package transformer
 
 import (
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/encoding/pe"
-	"github.com/saientist/spago/pkg/ml/nn"
-	"github.com/saientist/spago/pkg/ml/nn/multiheadattention"
-	"github.com/saientist/spago/pkg/ml/nn/normalization/scalenorm"
-	"github.com/saientist/spago/pkg/ml/nn/perceptron"
-	"github.com/saientist/spago/pkg/ml/nn/stack"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/scalenorm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
 )

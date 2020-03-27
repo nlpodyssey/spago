@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // SoftPlus(x) = 1/ β ​∗ log( 1 + exp(β ∗ x))

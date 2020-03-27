@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Threshold(x) = x if x > threshold; k otherwise ​

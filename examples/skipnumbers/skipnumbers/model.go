@@ -5,9 +5,9 @@
 package skipnumbers
 
 import (
-	"github.com/saientist/spago/pkg/ml/ag"
-	"github.com/saientist/spago/pkg/ml/initializers"
-	"github.com/saientist/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/initializers"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"golang.org/x/exp/rand"
 	"io"
 	"log"

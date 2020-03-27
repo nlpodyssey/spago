@@ -5,7 +5,7 @@
 package de
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"golang.org/x/exp/rand"
 	"math"
 )

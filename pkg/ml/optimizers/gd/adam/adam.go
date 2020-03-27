@@ -5,8 +5,8 @@
 package adam
 
 import (
-	"github.com/saientist/spago/pkg/mat"
-	"github.com/saientist/spago/pkg/ml/optimizers/gd"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"math"
 )
 

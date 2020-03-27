@@ -5,7 +5,7 @@
 package sgd
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )

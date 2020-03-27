@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/saientist/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // SoftShrink(x) = ​x − λ if x > λ; x + λ if x < −λ; 0 otherwise ​
