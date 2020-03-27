@@ -6,6 +6,9 @@
 Implementation of the NRU (Non-Saturating Recurrent Units) recurrent network as described in "Towards Non-Saturating
 Recurrent Units for Modelling Long-Term Dependencies" by Chandar et al., 2019.
 (https://www.aaai.org/ojs/index.php/AAAI/article/view/4200/4078)
+
+Unfortunately this implementation is extremely inefficient due to the lack of functionality in the auto-grad (ag)
+package at the moment.
 */
 package nru
 
@@ -198,8 +201,8 @@ func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 	for j := 0; j < p.model.memorySize; j++ {
 		var sum ag.Node
 		for i := 0; i < p.model.k; i++ {
-			ki := i*p.model.memorySize + j
-			sum = p.g.Add(sum, p.g.Sub(addMemory[ki], forgetMemory[ki]))
+			l := i*p.model.memorySize + j
+			sum = p.g.Add(sum, p.g.Sub(addMemory[l], forgetMemory[l]))
 		}
 		diffMemory[j] = p.g.Div(sum, k)
 	}
@@ -214,14 +217,14 @@ func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
 		vAlpha[i] = p.g.ProdScalar(uAlpha[1], p.g.AtVec(uAlpha[0], i))
 	}
 	vAlpha = p.optReLU2(vAlpha)
-	//vAlpha = normalization(p.g, vAlpha, 5) // TODO: perform normalization on the right dimension
+	vAlpha = normalization(p.g, vAlpha, 5)
 	addMemory := make([]ag.Node, p.model.k*p.model.memorySize)
 	for i := 0; i < p.model.k; i++ {
 		for j := 0; j < p.model.memorySize; j++ {
-			ki := i*p.model.memorySize + j
-			ii := ki / p.model.sqrtMemK
-			jj := ki % p.model.sqrtMemK
-			addMemory[ki] = p.g.Prod(alpha[i], p.g.AtVec(vAlpha[ii], jj))
+			l := i*p.model.memorySize + j
+			ii := l / p.model.sqrtMemK
+			jj := l % p.model.sqrtMemK
+			addMemory[l] = p.g.Prod(alpha[i], p.g.AtVec(vAlpha[ii], jj))
 		}
 	}
 	return addMemory
@@ -235,14 +238,14 @@ func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
 		vBeta[i] = p.g.ProdScalar(uBeta[1], p.g.AtVec(uBeta[0], i))
 	}
 	vBeta = p.optReLU2(vBeta)
-	//vBeta = normalization(p.g, vBeta, 5) // TODO: perform normalization on the right dimension
+	vBeta = normalization(p.g, vBeta, 5)
 	forgetMemory := make([]ag.Node, p.model.k*p.model.memorySize)
 	for i := 0; i < p.model.k; i++ {
 		for j := 0; j < p.model.memorySize; j++ {
-			ki := i*p.model.memorySize + j
-			ii := ki / p.model.sqrtMemK
-			jj := ki % p.model.sqrtMemK
-			forgetMemory[ki] = p.g.Prod(beta[i], p.g.AtVec(vBeta[ii], jj))
+			l := i*p.model.memorySize + j
+			ii := l / p.model.sqrtMemK
+			jj := l % p.model.sqrtMemK
+			forgetMemory[l] = p.g.Prod(beta[i], p.g.AtVec(vBeta[ii], jj))
 		}
 	}
 	return forgetMemory
@@ -288,12 +291,28 @@ func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
 	}
 }
 
+// TODO: improve performance and clean code
 func normalization(g *ag.Graph, xs []ag.Node, p int) []ag.Node {
-	ys := make([]ag.Node, len(xs))
-	norm := pNorm(g, xs, p)
+	dim0 := len(xs)
+	dim1 := xs[0].Value().Size()
+	tmp := make([][]ag.Node, dim0)
+	for i := 0; i < dim0; i++ {
+		tmp[i] = make([]ag.Node, dim1)
+	}
 	eps := g.NewScalar(1e-10)
-	for i, x := range xs {
-		ys[i] = g.Div(x, g.Add(norm, eps))
+	for j := 0; j < dim1; j++ {
+		vec := make([]ag.Node, dim0)
+		for i := 0; i < dim0; i++ {
+			vec[i] = g.AtVec(xs[i], j)
+		}
+		norm := g.Add(pNorm(g, vec, p), eps)
+		for i := 0; i < dim0; i++ {
+			tmp[i][j] = g.DivScalar(vec[i], norm)
+		}
+	}
+	ys := make([]ag.Node, dim0)
+	for i := 0; i < dim0; i++ {
+		ys[i] = g.Concat(tmp[i]...)
 	}
 	return ys
 }
@@ -303,5 +322,5 @@ func pNorm(g *ag.Graph, xs []ag.Node, p int) ag.Node {
 	for _, x := range xs {
 		sum = g.Add(sum, g.Pow(g.Abs(x), float64(p)))
 	}
-	return g.Pow(sum, float64(1/p))
+	return g.Pow(sum, 1.0/float64(p))
 }
