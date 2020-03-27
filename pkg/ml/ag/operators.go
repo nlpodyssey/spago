@@ -31,6 +31,8 @@ const (
 	Reshape
 	MaxPooling
 	View
+	RowView
+	ColView
 	Vec
 	T
 	Square
@@ -85,6 +87,8 @@ var opNameToMethodName = map[OpName]string{
 	Reshape:     "Reshape",
 	MaxPooling:  "MaxPooling",
 	View:        "View",
+	RowView:     "RowView",
+	ColView:     "ColView",
 	Vec:         "Vec",
 	T:           "T",
 	Square:      "Square",
@@ -225,6 +229,16 @@ func (g *Graph) MaxPooling(x Node, rows, columns int) Node {
 // View
 func (g *Graph) View(x Node, row, column, xStride, yStride int) Node {
 	return g.NewOperator(fn.NewView(x, row, column, xStride, yStride), x)
+}
+
+// RowView
+func (g *Graph) RowView(x Node, row int) Node {
+	return g.NewOperator(fn.NewRowView(x, row), x)
+}
+
+// ColView
+func (g *Graph) ColView(x Node, column int) Node {
+	return g.NewOperator(fn.NewColView(x, column), x)
 }
 
 // Vec
