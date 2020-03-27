@@ -34,6 +34,7 @@ const (
 	Vec
 	T
 	Square
+	Pow
 	Sqrt
 	Tan
 	Tanh
@@ -87,6 +88,7 @@ var opNameToMethodName = map[OpName]string{
 	Vec:         "Vec",
 	T:           "T",
 	Square:      "Square",
+	Pow:         "Pow",
 	Sqrt:        "Sqrt",
 	Tan:         "Tan",
 	Tanh:        "Tanh",
@@ -238,6 +240,11 @@ func (g *Graph) T(x Node) Node {
 // Square
 func (g *Graph) Square(x Node) Node {
 	return g.NewOperator(fn.NewSquare(x), x)
+}
+
+// Pow
+func (g *Graph) Pow(x Node, power float64) Node {
+	return g.NewOperator(fn.NewPow(x, power), x)
 }
 
 // Sqrt
