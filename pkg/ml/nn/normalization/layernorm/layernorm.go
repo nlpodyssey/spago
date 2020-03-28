@@ -66,46 +66,26 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
-
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return true
-}
+func (p *Processor) Model() nn.Model       { return p.model }
+func (p *Processor) Graph() *ag.Graph      { return p.g }
+func (p *Processor) RequiresFullSeq() bool { return false }
 
 func (p *Processor) Reset() {
 	p.init(p.opt)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	meanVectors := p.Mean(xs)
-	devVectors := p.StdDev(meanVectors, xs)
 	ys := make([]ag.Node, len(xs))
 	eps := p.g.NewScalar(1e-10)
 	for i, x := range xs {
-		ys[i] = p.g.Add(p.g.Prod(p.g.SubScalar(x, meanVectors[i]), p.g.DivScalar(p.w, p.g.Add(devVectors[i], eps))), p.b)
+		mean := p.g.ReduceMean(x)
+		stdDev := p.stdDev(x, mean)
+		ys[i] = p.g.Add(p.g.Prod(p.g.SubScalar(x, mean), p.g.DivScalar(p.w, p.g.Add(stdDev, eps))), p.b)
 	}
 	return ys
 }
 
-func (p *Processor) Mean(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
-	for i, x := range xs {
-		ys[i] = p.g.ReduceMean(x)
-	}
-	return ys
-}
-
-func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
-	devVectors := make([]ag.Node, len(xs))
-	for i, x := range xs {
-		diffVector := p.g.Square(p.g.SubScalar(x, meanVectors[i]))
-		devVectors[i] = p.g.Sqrt(p.g.ReduceMean(diffVector))
-	}
-	return devVectors
+func (p *Processor) stdDev(x ag.Node, mean ag.Node) ag.Node {
+	diffVector := p.g.Square(p.g.SubScalar(x, mean))
+	return p.g.Sqrt(p.g.ReduceMean(diffVector))
 }

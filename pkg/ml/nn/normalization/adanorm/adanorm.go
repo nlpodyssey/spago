@@ -57,17 +57,9 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
-
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return true
-}
+func (p *Processor) Model() nn.Model       { return p.model }
+func (p *Processor) Graph() *ag.Graph      { return p.g }
+func (p *Processor) RequiresFullSeq() bool { return true }
 
 func (p *Processor) Reset() {
 	p.init(p.opt)
