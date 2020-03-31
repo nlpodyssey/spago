@@ -92,21 +92,38 @@ func (p *DecoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *DecoderProcessor) decodingStep(xs []ag.Node) []ag.Node {
-	stepEncoding := p.g.NewVariable(p.model.StepEncoder.EncodingAt(p.recursions), false)
-	a, b := p.decode(p.g.Add(xs[0], stepEncoding))
-	ys := []ag.Node{a, b}
-	for i := 1; i < len(xs); i++ {
-		a, b := p.decode(p.g.Add(xs[i], stepEncoding))
-		ys[i-1] = p.mean(ys[i-1], a)
-		ys = append(ys, b)
-	}
-
-	return p.ffn2.Forward(ys...)
+	return p.ffn2.Forward(p.decodingPart1(xs)...)
 }
 
-func (p *DecoderProcessor) decode(x ag.Node) (y0, y1 ag.Node) {
-	y := nn.SplitVec(p.g, p.ffn1.Forward(x)[0], 2)
-	return y[0], y[1]
+func (p *DecoderProcessor) decodingPart1(xs []ag.Node) []ag.Node {
+	decoding := p.splitVectors(p.ffn1.Forward(p.addStepEncoding(xs)...))
+	ys := []ag.Node{decoding[0].y0, decoding[0].y1}
+	for i := 1; i < len(xs); i++ {
+		ys[i-1] = p.mean(ys[i-1], decoding[i].y0)
+		ys = append(ys, decoding[i].y1)
+	}
+	return ys
+}
+
+func (p *DecoderProcessor) addStepEncoding(xs []ag.Node) []ag.Node {
+	stepEncoding := p.g.NewVariable(p.model.StepEncoder.EncodingAt(p.recursions), false)
+	ys := make([]ag.Node, len(xs))
+	for i, x := range xs {
+		ys[i] = p.g.Add(x, stepEncoding)
+	}
+	return ys
+}
+
+func (p *DecoderProcessor) splitVectors(xs []ag.Node) []struct{ y0, y1 ag.Node } {
+	ys := make([]struct{ y0, y1 ag.Node }, len(xs))
+	for i, x := range xs {
+		lst := nn.SplitVec(p.g, x, 2)
+		ys[i] = struct{ y0, y1 ag.Node }{
+			y0: lst[0],
+			y1: lst[1],
+		}
+	}
+	return ys
 }
 
 func (p *DecoderProcessor) mean(x1 ag.Node, x2 ag.Node) ag.Node {
