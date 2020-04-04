@@ -140,3 +140,49 @@ func TestScaledDotProductAttention(t *testing.T) {
 		t.Error("Attention[2] doesn't match the expected values")
 	}
 }
+
+func TestScaledDotProductAttention2(t *testing.T) {
+	g := ag.NewGraph()
+	qs := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{0.22, 0.3}), true),
+		g.NewVariable(mat.NewVecDense([]float64{-0.17, 0.24}), true),
+		g.NewVariable(mat.NewVecDense([]float64{-0.15, 0.23}), true),
+	}
+	ks := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{1.66, 0.12}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.88, -0.02}), true),
+		g.NewVariable(mat.NewVecDense([]float64{-0.3, -0.46}), true),
+	}
+	vs := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{0.83, 0.7, -0.25}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.0, 0.2, 0.57}), true),
+		g.NewVariable(mat.NewVecDense([]float64{-0.07, 0.0, 0.29}), true),
+	}
+
+	context, probs := ScaledDotProductAttention(g, qs, ks, vs, math.Sqrt(2))
+
+	if len(context) != 3 {
+		t.Error("The context doesn't have the expected length")
+	}
+	if len(probs) != 3 {
+		t.Error("The probs doesn't have the expected length")
+	}
+	if !floats.EqualApprox(context[0].Value().Data(), []float64{0.312291, 0.347165, 0.170855}, 1.0e-6) {
+		t.Error("Context[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(context[1].Value().Data(), []float64{0.232861, 0.284047, 0.21555}, 1.0e-6) {
+		t.Error("Context[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(context[2].Value().Data(), []float64{0.236194, 0.28672, 0.21373}, 1.0e-6) {
+		t.Error("Context[2] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(probs[0].Data(), []float64{0.398142, 0.342329, 0.259529}, 1.0e-6) {
+		t.Error("Probs[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(probs[1].Data(), []float64{0.310603, 0.333125, 0.356272}, 1.0e-6) {
+		t.Error("Probs[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(probs[2].Data(), []float64{0.314262, 0.333682, 0.352055}, 1.0e-6) {
+		t.Error("Probs[2] doesn't match the expected values")
+	}
+}
