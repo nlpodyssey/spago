@@ -154,11 +154,12 @@ func TestScaledDotProductAttention2(t *testing.T) {
 		g.NewVariable(mat.NewVecDense([]float64{-0.3, -0.46}), true),
 	}
 	vs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.83, 0.7, -0.25}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.0, 0.2, 0.57}), true),
-		g.NewVariable(mat.NewVecDense([]float64{-0.07, 0.0, 0.29}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.83, 0.7, -0.25, -0.58}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.0, 0.2, 0.57, -2.08}), true),
+		g.NewVariable(mat.NewVecDense([]float64{-0.07, 0.0, 0.29, 0.5}), true),
 	}
 
+	// == Forward
 	context, probs := ScaledDotProductAttention(g, qs, ks, vs, math.Sqrt(2))
 
 	if len(context) != 3 {
@@ -167,13 +168,13 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	if len(probs) != 3 {
 		t.Error("The probs doesn't have the expected length")
 	}
-	if !floats.EqualApprox(context[0].Value().Data(), []float64{0.312291, 0.347165, 0.170855}, 1.0e-6) {
+	if !floats.EqualApprox(context[0].Value().Data(), []float64{0.312291, 0.347165, 0.170855, -0.813202}, 1.0e-6) {
 		t.Error("Context[0] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(context[1].Value().Data(), []float64{0.232861, 0.284047, 0.21555}, 1.0e-6) {
+	if !floats.EqualApprox(context[1].Value().Data(), []float64{0.232861, 0.284047, 0.21555, -0.694914}, 1.0e-6) {
 		t.Error("Context[1] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(context[2].Value().Data(), []float64{0.236194, 0.28672, 0.21373}, 1.0e-6) {
+	if !floats.EqualApprox(context[2].Value().Data(), []float64{0.236194, 0.28672, 0.21373, -0.700304}, 1.0e-6) {
 		t.Error("Context[2] doesn't match the expected values")
 	}
 	if !floats.EqualApprox(probs[0].Data(), []float64{0.398142, 0.342329, 0.259529}, 1.0e-6) {
@@ -184,5 +185,41 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	}
 	if !floats.EqualApprox(probs[2].Data(), []float64{0.314262, 0.333682, 0.352055}, 1.0e-6) {
 		t.Error("Probs[2] doesn't match the expected values")
+	}
+
+	// == Backward
+	context[0].PropagateGrad(mat.NewVecDense([]float64{0.7, -0.3, -0.7, -0.5}))
+	context[1].PropagateGrad(mat.NewVecDense([]float64{-0.8, -0.5, -0.5, 0.1}))
+	context[2].PropagateGrad(mat.NewVecDense([]float64{-0.6, -0.5, 0.2, -0.9}))
+	g.BackwardAll()
+
+	if !floats.EqualApprox(qs[0].Grad().Data(), []float64{0.291064, 0.090078}, 1.0e-6) {
+		t.Error("qs[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(qs[1].Grad().Data(), []float64{-0.214319, -0.065291}, 1.0e-6) {
+		t.Error("qs[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(qs[2].Grad().Data(), []float64{0.084357, 0.057063}, 1.0e-6) {
+		t.Error("qs[2] doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(ks[0].Grad().Data(), []float64{0.06886, -0.025612}, 1.0e-6) {
+		t.Error("ks[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(ks[1].Grad().Data(), []float64{-0.039958, 0.089393}, 1.0e-6) {
+		t.Error("ks[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(ks[2].Grad().Data(), []float64{-0.028902, -0.063781}, 1.0e-6) {
+		t.Error("ks[2] doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(vs[0].Grad().Data(), []float64{-0.15834, -0.431875, -0.371149, -0.450847}, 1.0e-6) {
+		t.Error("vs[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(vs[1].Grad().Data(), []float64{-0.22708, -0.436103, -0.339456, -0.438166}, 1.0e-6) {
+		t.Error("vs[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(vs[2].Grad().Data(), []float64{-0.31458, -0.432022, -0.289395, -0.410987}, 1.0e-6) {
+		t.Error("vs[2] doesn't match the expected values")
 	}
 }
