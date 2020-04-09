@@ -42,9 +42,12 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
 
+var _ nn.Processor = &Processor{}
+
 type Processor struct {
 	opt            []interface{}
 	model          *Model
+	mode           nn.ProcessingMode
 	g              *ag.Graph
 	Encoder        *EncoderProcessor
 	Decoder        *DecoderProcessor
@@ -64,6 +67,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 
 	return &Processor{
 		model:          m,
+		mode:           nn.Training,
 		opt:            opt,
 		g:              g,
 		Encoder:        m.Encoder.NewProc(g).(*EncoderProcessor),
@@ -72,10 +76,21 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 }
 
-func (p *Processor) Model() nn.Model       { return p.model }
-func (p *Processor) Graph() *ag.Graph      { return p.g }
-func (p *Processor) RequiresFullSeq() bool { return true }
-func (p *Processor) Reset()                {}
+func (p *Processor) Model() nn.Model         { return p.model }
+func (p *Processor) Graph() *ag.Graph        { return p.g }
+func (p *Processor) RequiresFullSeq() bool   { return true }
+func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
+
+func (p *Processor) SetMode(mode nn.ProcessingMode) {
+	p.mode = mode
+	p.Encoder.SetMode(mode)
+	p.Decoder.SetMode(mode)
+}
+
+func (p *Processor) Reset() {
+	p.Encoder.Reset()
+	p.Decoder.Reset()
+}
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) != p.SequenceLength {

@@ -63,9 +63,12 @@ func (m *Model) SetActivation(a ag.OpName) ag.OpName {
 	return prev
 }
 
+var _ nn.Processor = &Processor{}
+
 type Processor struct {
 	opt                     []interface{}
 	model                   *Model
+	mode                    nn.ProcessingMode
 	g                       *ag.Graph
 	ConcurrentOutputChannel bool
 }
@@ -73,6 +76,7 @@ type Processor struct {
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
 		model:                   m,
+		mode:                    nn.Training,
 		opt:                     opt,
 		g:                       g,
 		ConcurrentOutputChannel: true,
@@ -81,21 +85,12 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	return p
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
-
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return true
-}
-
-func (p *Processor) Reset() {
-	p.init(p.opt)
-}
+func (p *Processor) Model() nn.Model                { return p.model }
+func (p *Processor) Graph() *ag.Graph               { return p.g }
+func (p *Processor) RequiresFullSeq() bool          { return true }
+func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
+func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
+func (p *Processor) Reset()                         { p.init(p.opt) }
 
 type Concurrency struct {
 	Value bool

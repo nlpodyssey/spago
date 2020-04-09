@@ -41,9 +41,12 @@ func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
 
+var _ nn.Processor = &Processor{}
+
 type Processor struct {
 	opt             []interface{}
 	model           *Model
+	mode            nn.ProcessingMode
 	g               *ag.Graph
 	Layers          []nn.Processor
 	requiresFullSeq bool
@@ -65,6 +68,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 	p := &Processor{
 		model:           m,
+		mode:            nn.Training,
 		Layers:          ps,
 		opt:             opt,
 		g:               g,
@@ -73,16 +77,16 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	return p
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
+func (p *Processor) Model() nn.Model         { return p.model }
+func (p *Processor) Graph() *ag.Graph        { return p.g }
+func (p *Processor) RequiresFullSeq() bool   { return p.requiresFullSeq }
+func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
 
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return p.requiresFullSeq
+func (p *Processor) SetMode(mode nn.ProcessingMode) {
+	p.mode = mode
+	for _, layer := range p.Layers {
+		layer.SetMode(mode)
+	}
 }
 
 func requiresFullSeq(ps []nn.Processor) bool {

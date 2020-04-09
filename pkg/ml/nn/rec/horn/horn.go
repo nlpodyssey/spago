@@ -55,9 +55,12 @@ type InitHidden struct {
 	*State
 }
 
+var _ nn.Processor = &Processor{}
+
 type Processor struct {
 	opt    []interface{}
 	model  *Model
+	mode   nn.ProcessingMode
 	g      *ag.Graph
 	w      ag.Node
 	wRec   []ag.Node
@@ -72,6 +75,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 	p := &Processor{
 		model:  m,
+		mode:   nn.Training,
 		States: nil,
 		opt:    opt,
 		g:      g,
@@ -94,17 +98,11 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
-
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return false
-}
+func (p *Processor) Model() nn.Model                { return p.model }
+func (p *Processor) Graph() *ag.Graph               { return p.g }
+func (p *Processor) RequiresFullSeq() bool          { return false }
+func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
+func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Reset() {
 	p.States = nil

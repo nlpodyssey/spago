@@ -60,9 +60,12 @@ func (m *Layer) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
 
+var _ nn.Processor = &LayerProcessor{}
+
 type LayerProcessor struct {
 	opt                []interface{}
 	model              *Layer
+	mode               nn.ProcessingMode
 	g                  *ag.Graph
 	MultiHeadAttention *multiheadattention.Processor
 	Norm1              *scalenorm.Processor
@@ -73,6 +76,7 @@ type LayerProcessor struct {
 func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &LayerProcessor{
 		model:              m,
+		mode:               nn.Training,
 		opt:                opt,
 		g:                  g,
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
@@ -90,10 +94,20 @@ func (p *LayerProcessor) init(opt []interface{}) {
 	}
 }
 
-func (p *LayerProcessor) Model() nn.Model       { return p.model }
-func (p *LayerProcessor) Graph() *ag.Graph      { return p.g }
-func (p *LayerProcessor) RequiresFullSeq() bool { return true }
-func (p *LayerProcessor) Reset()                { p.init(p.opt) }
+func (p *LayerProcessor) Model() nn.Model         { return p.model }
+func (p *LayerProcessor) Graph() *ag.Graph        { return p.g }
+func (p *LayerProcessor) RequiresFullSeq() bool   { return true }
+func (p *LayerProcessor) Mode() nn.ProcessingMode { return p.mode }
+
+func (p *LayerProcessor) SetMode(mode nn.ProcessingMode) {
+	p.mode = mode
+	p.MultiHeadAttention.SetMode(mode)
+	p.Norm1.SetMode(mode)
+	p.MLP.SetMode(mode)
+	p.Norm2.SetMode(mode)
+}
+
+func (p *LayerProcessor) Reset() { p.init(p.opt) }
 
 // addCoordinateEncoding returns the input enriched with positional and depth encoding.
 // The positional and depth encoding are summed to the input vectors.

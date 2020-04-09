@@ -32,9 +32,12 @@ func (m *Encoder) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
 
+var _ nn.Processor = &EncoderProcessor{}
+
 type EncoderProcessor struct {
 	opt        []interface{}
 	model      *Encoder
+	mode       nn.ProcessingMode
 	g          *ag.Graph
 	ffn1       nn.Processor
 	ffn2       nn.Processor
@@ -44,6 +47,7 @@ type EncoderProcessor struct {
 func (m *Encoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &EncoderProcessor{
 		model:      m,
+		mode:       nn.Training,
 		opt:        opt,
 		g:          g,
 		ffn1:       m.ScalingFFN.NewProc(g),
@@ -60,9 +64,16 @@ func (p *EncoderProcessor) init(opt []interface{}) {
 	}
 }
 
-func (p *EncoderProcessor) Model() nn.Model       { return p.model }
-func (p *EncoderProcessor) Graph() *ag.Graph      { return p.g }
-func (p *EncoderProcessor) RequiresFullSeq() bool { return true }
+func (p *EncoderProcessor) Model() nn.Model         { return p.model }
+func (p *EncoderProcessor) Graph() *ag.Graph        { return p.g }
+func (p *EncoderProcessor) RequiresFullSeq() bool   { return true }
+func (p *EncoderProcessor) Mode() nn.ProcessingMode { return p.mode }
+
+func (p *EncoderProcessor) SetMode(mode nn.ProcessingMode) {
+	p.mode = mode
+	p.ffn1.SetMode(mode)
+	p.ffn2.SetMode(mode)
+}
 
 func (p *EncoderProcessor) Reset() {
 	p.init(p.opt)

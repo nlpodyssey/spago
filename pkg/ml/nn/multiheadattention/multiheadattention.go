@@ -60,9 +60,12 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
 
+var _ nn.Processor = &Processor{}
+
 type Processor struct {
 	opt   []interface{}
 	model *Model
+	mode  nn.ProcessingMode
 	wQ    []ag.Node
 	wK    []ag.Node
 	wV    []ag.Node
@@ -82,6 +85,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 	p := &Processor{
 		model: m,
+		mode:  nn.Training,
 		opt:   opt,
 		wQ:    wQ,
 		wK:    wK,
@@ -93,17 +97,11 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	return p
 }
 
-func (p *Processor) Model() nn.Model {
-	return p.model
-}
-
-func (p *Processor) Graph() *ag.Graph {
-	return p.g
-}
-
-func (p *Processor) RequiresFullSeq() bool {
-	return true
-}
+func (p *Processor) Model() nn.Model                { return p.model }
+func (p *Processor) Graph() *ag.Graph               { return p.g }
+func (p *Processor) RequiresFullSeq() bool          { return true }
+func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
+func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Reset() {
 	p.init(p.opt)
