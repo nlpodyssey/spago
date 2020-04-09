@@ -651,6 +651,199 @@ func TestDense_MaxMinSum(t *testing.T) {
 	}
 }
 
+func TestDense_Identity(t *testing.T) {
+	a := I(3)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		1.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+}
+
+func TestDense_Pivoting(t *testing.T) {
+	a := NewDense(4, 4, []float64{
+		11, 9, 24, 2,
+		1, 5, 2, 6,
+		3, 17, 18, 1,
+		2, 5, 7, 1,
+	})
+	n := NewDense(4, 4, []float64{
+		11, 9, 24, 2,
+		1, 5, 2, 6,
+		3, 17, 7, 1,
+		2, 5, 18, 1,
+	})
+
+	b, s := a.Pivoting(0)
+
+	if !floats.EqualApprox(b.Data(), []float64{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+	if s {
+		t.Error("The flag doesn't match the expected values")
+	}
+
+	c, s := n.Pivoting(2)
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0, 0.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+	if !s {
+		t.Error("The flag doesn't match the expected values")
+	}
+
+	d, s := a.Pivoting(1)
+
+	if !floats.EqualApprox(d.Data(), []float64{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+	if !s {
+		t.Error("The flag doesn't match the expected values")
+	}
+}
+
+func TestDense_LU(t *testing.T) {
+	a := NewDense(3, 3, []float64{
+		3, 3, 0,
+		7, -5, -1,
+		2, 8, 3,
+	})
+
+	l, u, p := a.LU()
+
+	if !floats.EqualApprox(l.Data(), []float64{
+		1, 0, 0,
+		0.285714, 1, 0,
+		0.428571, 0.54545, 1,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(u.Data(), []float64{
+		7, -5, -1,
+		0, 9.42857, 3.28571,
+		0, 0, -1.363636,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(p.Data(), []float64{
+		0.0, 1.0, 0.0,
+		0.0, 0.0, 1.0,
+		1.0, 0.0, 0.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	b := NewDense(4, 4, []float64{
+		11, 9, 24, 2,
+		1, 5, 2, 6,
+		3, 17, 18, 1,
+		2, 5, 7, 1,
+	})
+
+	l2, u2, p2 := b.LU()
+
+	if !floats.EqualApprox(l2.Data(), []float64{
+		1.0, 0.0, 0.0, 0.0,
+		0.27273, 1.0, 0.0, 0.0,
+		0.09091, 0.28750, 1.0, 0.0,
+		0.18182, 0.23125, 0.00360, 1.0,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(u2.Data(), []float64{
+		11.0000, 9.0, 24.0, 2.0,
+		0.0, 14.54545, 11.45455, 0.45455,
+		0.0, 0.0, -3.47500, 5.68750,
+		0.0, 0.0, 0.0, 0.51079,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(p2.Data(), []float64{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+}
+
+func TestDense_Inverse(t *testing.T) {
+	a := NewDense(3, 3, []float64{
+		1, 2, 3,
+		0, 1, 4,
+		5, 6, 0,
+	})
+
+	i := a.Inverse()
+
+	if !floats.EqualApprox(i.Data(), []float64{
+		-24, 18, 5,
+		20, -15, -4,
+		-5, 4, 1,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	b := NewDense(4, 4, []float64{
+		0.3, 0.2, 0.6, -23,
+		1, 1, -1, 5,
+		6, -7.5, 3, 0,
+		1, 0, 0, 0,
+	})
+
+	c := b.Inverse()
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		0, 0, 0, 1,
+		-0.19230769, -0.88461538, -0.25641025, 2.48076923,
+		-0.48076923, -2.21153846, -0.30769230, 4.20192307,
+		-0.05769230, -0.06538461, -0.01025641, 0.14423076,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+
+	d := NewDense(4, 4, []float64{
+		1, 1, 1, -1,
+		1, 1, -1, 1,
+		1, -1, 1, 1,
+		-1, 1, 1, 1,
+	})
+
+	e := d.Inverse()
+
+	if !floats.EqualApprox(e.Data(), []float64{
+		0.25, 0.25, 0.25, -0.25,
+		0.25, 0.25, -0.25, 0.25,
+		0.25, -0.25, 0.25, 0.25,
+		-0.25, 0.25, 0.25, 0.25,
+	}, 1.0e-5) {
+		t.Error("The data doesn't match the expected values")
+	}
+}
+
 /*
 TODO:
     Range(start, end int) Matrix

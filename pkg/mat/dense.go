@@ -629,6 +629,100 @@ func (d *Dense) Norm(pow float64) float64 {
 	return math.Pow(s, 1/pow)
 }
 
+// Pivoting returns the partial pivots of a square matrix to reorder rows.
+// Considerate square sub-matrix from element (offset, offset).
+func (d *Dense) Pivoting(row int) (Matrix, bool) {
+	//if d.Columns() != d.Rows() {
+	//	panic("mat: matrix with not compatible size")
+	//}
+	pv := make([]int, d.cols)
+	for i := range pv {
+		pv[i] = i
+	}
+	j := row
+	max := math.Abs(d.data[row*d.cols+j])
+	for i := row; i < d.cols; i++ {
+		if d.data[i*d.cols+j] > max {
+			max = math.Abs(d.data[i*d.cols+j])
+			row = i
+		}
+	}
+	swap := false
+	if j != row {
+		pv[row], pv[j] = pv[j], pv[row]
+		swap = true
+	}
+
+	p := NewEmptyDense(d.cols, d.cols)
+	for r, c := range pv {
+		p.data[r*d.cols+c] = 1
+	}
+	return p, swap
+}
+
+// I a.k.a identity returns square matrix with ones on the diagonal and zeros elsewhere.
+func I(size int) *Dense {
+	out := NewEmptyDense(size, size)
+	for i := 0; i < size; i++ {
+		out.Set(1.0, i, i)
+	}
+	return out
+}
+
+// LU performs lower–upper (LU) decomposition of a square matrix D such as PLU = D, L is lower diagonal and U is upper diagonal, p are pivots.
+func (d *Dense) LU() (l, u, p *Dense) {
+	//if d.Columns() != d.Rows() {
+	//	panic("mat: matrix with not compatible size")
+	//}
+	u = d.Clone().(*Dense)
+	p = I(d.cols)
+	l = NewEmptyDense(d.cols, d.cols)
+	for i := 0; i < d.cols; i++ {
+		permutation, swap := u.Pivoting(i)
+		if swap {
+			u = permutation.Mul(u).(*Dense)
+			p = permutation.Mul(p).(*Dense)
+			l = permutation.Mul(l).(*Dense)
+		}
+		lt := I(d.cols)
+		for k := i + 1; k < d.cols; k++ {
+			lt.Data()[k*d.cols+i] = -u.Data()[k*d.cols+i] / (u.Data()[i*d.cols+i])
+			l.Data()[k*d.cols+i] = u.Data()[k*d.cols+i] / (u.Data()[i*d.cols+i])
+		}
+		u = lt.Mul(u).(*Dense)
+	}
+	for i := 0; i < d.cols; i++ {
+		l.Data()[i*d.cols+i] = 1.0
+	}
+	return
+}
+
+// Inverse returns the inverse of the matrix.
+func (d Dense) Inverse() Matrix {
+	out := NewEmptyDense(d.cols, d.cols)
+	s := NewEmptyDense(d.cols, d.cols)
+	l, u, p := d.LU()
+	for b := 0; b < d.cols; b++ {
+		// find solution of Ly = b
+		for i := 0; i < l.Rows(); i++ {
+			sum := 0.0
+			for j := 0; j < i; j++ {
+				sum += l.Data()[i*d.cols+j] * s.data[j*d.cols+b]
+			}
+			s.data[i*d.cols+b] = p.Data()[i*d.cols+b] - sum
+		}
+		// find solution of Ux = y
+		for i := d.cols - 1; i >= 0; i-- {
+			sum := 0.0
+			for j := i + 1; j < d.cols; j++ {
+				sum += u.Data()[i*d.cols+j] * out.data[j*d.cols+b]
+			}
+			out.data[i*d.cols+b] = (1.0 / u.Data()[i*d.cols+i]) * (s.data[i*d.cols+b] - sum)
+		}
+	}
+	return out
+}
+
 // String returns the string representation of the data.
 func (d *Dense) String() string {
 	return fmt.Sprintf("%v", d.data)
