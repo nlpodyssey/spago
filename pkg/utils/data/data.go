@@ -4,7 +4,9 @@
 
 package data
 
-import "github.com/nlpodyssey/spago/pkg/mat/rnd"
+import (
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
+)
 
 // GenerateBatches generates a list of batches so that the classes distribution among them is approximately the same.
 // The class is given by the callback for each i-th element up to size.
@@ -30,7 +32,7 @@ func GenerateBatches(size, batchFactor int, class func(i int) int) [][]int {
 	}
 	k := 0
 	for k < size {
-		class := rnd.WeightedChoice(distribution)
+		class := rand.WeightedChoice(distribution) // this uses the global random
 		if len(groupsByClass[class]) > 0 {
 			var exampleIndex int
 			exampleIndex, groupsByClass[class] = groupsByClass[class][0], groupsByClass[class][1:] // pop
