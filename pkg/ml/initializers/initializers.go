@@ -6,10 +6,10 @@ package initializers
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd/normal"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd/uniform"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand/normal"
+	"github.com/nlpodyssey/spago/pkg/mat/rand/uniform"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"golang.org/x/exp/rand"
 	"math"
 )
 
@@ -29,8 +29,8 @@ func Gain(f ag.OpName) float64 {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Uniform(m mat.Matrix, min, max float64, source rand.Source) {
-	dist := uniform.New(min, max, source)
+func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
+	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(dist.Next(), i, j)
@@ -39,8 +39,8 @@ func Uniform(m mat.Matrix, min, max float64, source rand.Source) {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Normal(m mat.Matrix, mean, std float64, source rand.Source) {
-	dist := normal.New(0, std, source)
+func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
+	dist := normal.New(0, std, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(dist.Next(), i, j)
@@ -69,28 +69,30 @@ func Zeros(m mat.Matrix) {
 
 // Fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
-func XavierUniform(m mat.Matrix, gain float64, source rand.Source) {
-	a := gain * math.Sqrt(6.0/float64(m.Rows()+m.Columns()))
-	dist := uniform.New(-a, a, source)
-	for i := 0; i < m.Rows(); i++ {
-		for j := 0; j < m.Columns(); j++ {
+func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
+	rows, cols := m.Dims()
+	a := gain * math.Sqrt(6.0/float64(rows+cols))
+	dist := uniform.New(-a, a, generator)
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
 			m.Set(dist.Next(), i, j)
 		}
 	}
 }
 
-func XavierNormal(m mat.Matrix, gain float64, source rand.Source) {
-	std := gain * math.Sqrt(2.0/float64(m.Rows()+m.Columns()))
-	dist := normal.New(std, 0, source)
-	for i := 0; i < m.Rows(); i++ {
-		for j := 0; j < m.Columns(); j++ {
+func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
+	rows, cols := m.Dims()
+	std := gain * math.Sqrt(2.0/float64(rows+cols))
+	dist := normal.New(std, 0, generator)
+	for i := 0; i < rows; i++ {
+		for j := 0; j < cols; j++ {
 			m.Set(dist.Next(), i, j)
 		}
 	}
 }
 
-func Achlioptas(m mat.Matrix, source rand.Source) {
-	dist := uniform.New(0.0, 1.0, source)
+func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
+	dist := uniform.New(0.0, 1.0, generator)
 	lower := 1.0 / 6.0
 	upper := 1.0 - lower
 	a := math.Sqrt(3.0)

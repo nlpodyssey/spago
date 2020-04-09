@@ -5,7 +5,7 @@
 package de
 
 import (
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"testing"
 )
 
@@ -86,7 +86,7 @@ func TestFindBestNeighbor(t *testing.T) {
 }
 
 func newTestPopulation() *Population {
-	population := NewRandomPopulation(20, 50, 6.0, rand.NewSource(42), MemberHyperParams{
+	population := NewRandomPopulation(20, 50, 6.0, rand.NewLockedRand(42), MemberHyperParams{
 		MutationFactor: 0.5,
 		CrossoverRate:  0.9,
 		WeightFactor:   0.5,

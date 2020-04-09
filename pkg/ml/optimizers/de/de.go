@@ -6,7 +6,7 @@ package de
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"math"
 )
 
@@ -91,7 +91,7 @@ func NewOptimizer(
 			config.PopulationSize,
 			config.VectorSize,
 			config.Bound,
-			rand.NewSource(config.Seed),
+			rand.NewLockedRand(config.Seed),
 			MemberHyperParams{
 				MutationFactor: config.MutationFactor,
 				CrossoverRate:  config.CrossoverRate,
@@ -206,7 +206,7 @@ func (o *DifferentialEvolution) resetPopulation() {
 		o.PopulationSize,
 		o.VectorSize,
 		o.Bound,
-		rand.NewSource(o.Seed),
+		rand.NewLockedRand(o.Seed),
 		MemberHyperParams{
 			MutationFactor: o.MutationFactor,
 			CrossoverRate:  o.CrossoverRate,

@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -18,7 +18,7 @@ func TestDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.25, rand.NewSource(1))
+	f := NewDropout(x, 0.25, rand.NewLockedRand(1))
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{
@@ -37,7 +37,7 @@ func TestZeroDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.0, rand.NewSource(1))
+	f := NewDropout(x, 0.0, rand.NewLockedRand(1))
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{
@@ -56,7 +56,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 1.0, rand.NewSource(1))
+	f := NewDropout(x, 1.0, rand.NewLockedRand(1))
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{

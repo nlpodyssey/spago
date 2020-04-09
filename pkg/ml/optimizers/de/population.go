@@ -6,9 +6,9 @@ package de
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"golang.org/x/exp/rand"
 	"math"
 )
 
@@ -16,11 +16,11 @@ type Population struct {
 	Members []*Member
 }
 
-func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndSource rand.Source, initHyperParams MemberHyperParams) *Population {
+func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndGen *rand.LockedRand, initHyperParams MemberHyperParams) *Population {
 	members := make([]*Member, populationSize)
 	for i := 0; i < populationSize; i++ {
 		vector := mat.NewEmptyVecDense(vectorSize)
-		initializers.XavierUniform(vector, 1.0, rndSource)
+		initializers.XavierUniform(vector, 1.0, rndGen)
 		vector.ClipInPlace(-bound, +bound)
 		members[i] = NewMember(vector, initHyperParams)
 	}

@@ -2,43 +2,27 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package rnd
+package rand
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd/uniform"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"golang.org/x/exp/rand"
-	"math"
 )
 
-func Bernoulli(r, c int, prob float64, source rand.Source) mat.Matrix {
-	out := mat.NewEmptyDense(r, c)
-	dist := uniform.New(0.0, 1.0, source)
-	for i := 0; i < out.Size(); i++ {
-		val := dist.Next()
-		if val < prob {
-			out.Set(math.Floor(val), i)
-		} else {
-			out.Set(math.Floor(val)+1.0, i)
-		}
-	}
-	return out
-}
-
-func ShuffleInPlace(xs []int, source rand.Source) []int {
+func ShuffleInPlace(xs []int, generator *LockedRand) []int {
 	swap := func(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
-	if source != nil {
-		rand.New(source).Shuffle(len(xs), swap)
+	if generator != nil {
+		generator.Shuffle(len(xs), swap)
 	} else {
-		rand.Shuffle(len(xs), swap) // use global rand
+		rand.Shuffle(len(xs), swap) // Warning: use global rand
 	}
 	return xs
 }
 
 // WeightedChoice performs a random generation of the indices based of the probability distribution itself.
+// Please note that it uses the global random.
 func WeightedChoice(dist []float64) int {
-	rnd := rand.Float64()
+	rnd := rand.Float64() // // Warning: use global rand
 	cumulativeProb := 0.0
 	for i, prob := range dist {
 		cumulativeProb += prob
@@ -54,23 +38,23 @@ func WeightedChoice(dist []float64) int {
 func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
-		r := rand.Intn(max)
+		r := rand.Intn(max) // Warning: use global rand
 		for !valid(r) || utils.ContainsInt(a, r) {
-			r = rand.Intn(max)
+			r = rand.Intn(max) // Warning: use global rand
 		}
 		a[i] = r
 	}
 	return a
 }
 
-// GetUniqueRandomIndices select n mutually exclusive indices, using the default random source.
+// GetUniqueRandomIndices select n mutually exclusive indices, using the global random.
 // The callback checks whether an extracted index can be accepted, or not.
 func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int {
 	a := make([]int, n)
 	for i := 0; i < len(a); i++ {
-		r := ShuffleInPlace(indices, nil)[0]
+		r := ShuffleInPlace(indices, nil)[0] // Warning: use global rand
 		for !valid(r) || utils.ContainsInt(a, r) {
-			r = ShuffleInPlace(indices, nil)[0]
+			r = ShuffleInPlace(indices, nil)[0] // Warning: use global rand
 		}
 		a[i] = r
 	}

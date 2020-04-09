@@ -4,30 +4,26 @@
 
 package uniform
 
-import "golang.org/x/exp/rand"
+import (
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
+)
 
 // Uniform represents a continuous uniform distribution (https://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29).
 type Uniform struct {
-	Min float64
-	Max float64
-	rnd *rand.Rand
+	Min       float64
+	Max       float64
+	generator *rand.LockedRand
 }
 
-func New(min, max float64, source rand.Source) *Uniform {
-	u := &Uniform{
-		Min: min,
-		Max: max,
-		rnd: nil,
+func New(min, max float64, generator *rand.LockedRand) *Uniform {
+	return &Uniform{
+		Min:       min,
+		Max:       max,
+		generator: generator,
 	}
-	if source == nil {
-		u.rnd = rand.New(rand.NewSource(1))
-	} else {
-		u.rnd = rand.New(source)
-	}
-	return u
 }
 
 // Next returns a random sample drawn from the distribution.
 func (u Uniform) Next() float64 {
-	return u.rnd.Float64()*(u.Max-u.Min) + u.Min
+	return u.generator.Float64()*(u.Max-u.Min) + u.Min
 }

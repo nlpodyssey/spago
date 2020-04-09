@@ -5,14 +5,14 @@
 package de
 
 import (
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
 
 func TestCrossover(t *testing.T) {
 	population := newTestCrossover()
-	crossover := NewBinomialCrossover(rand.NewSource(0))
+	crossover := NewBinomialCrossover(rand.NewLockedRand(0))
 	crossover.Crossover(population)
 
 	if !floats.EqualApprox(population.Members[0].DonorVector.Data(),
@@ -33,7 +33,7 @@ func TestCrossover(t *testing.T) {
 
 func newTestCrossover() *Population {
 	hyperParams := MemberHyperParams{MutationFactor: 0.5, CrossoverRate: 0.9, WeightFactor: 0.5}
-	population := NewRandomPopulation(3, 8, 6.0, rand.NewSource(42), hyperParams)
+	population := NewRandomPopulation(3, 8, 6.0, rand.NewLockedRand(42), hyperParams)
 	population.Members[0].TargetVector.SetData([]float64{0.0, 0.6, 0.8, 1.2, 1.6, 2.5, -2.6, -0.5})
 	population.Members[1].TargetVector.SetData([]float64{-0.4, 0.9, 1.8, -1.5, 2.6, -3.5, -2.0, 0.0})
 	population.Members[2].TargetVector.SetData([]float64{3.0, -0.8, 0.9, 2.2, 0.6, 0.3, 0.2, 0.1})

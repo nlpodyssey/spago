@@ -6,7 +6,7 @@ package de
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"math"
 )
@@ -33,7 +33,7 @@ func NewRandomMutation(bound float64) *RandomMutation {
 //   yi = clip(xa + MutationFactor * (xb − xc))
 func (m *RandomMutation) Mutate(p *Population) {
 	for i, member := range p.Members {
-		extracted := rnd.GetUniqueRandomInt(3, len(p.Members), func(r int) bool { return r != i })
+		extracted := rand.GetUniqueRandomInt(3, len(p.Members), func(r int) bool { return r != i })
 		xa := p.Members[extracted[0]].TargetVector
 		xb := p.Members[extracted[1]].TargetVector
 		xc := p.Members[extracted[2]].TargetVector
@@ -71,9 +71,9 @@ func (m *DeglMutation) Mutate(p *Population) {
 	bestIndex, _ := p.FindBest(0, len(p.Members)-1, math.Inf(+1), 0)
 	for i, member := range p.Members {
 		except := func(r int) bool { return r != i }
-		extracted := rnd.GetUniqueRandomInt(2, len(p.Members), except)
+		extracted := rand.GetUniqueRandomInt(2, len(p.Members), except)
 		neighbors := utils.GetNeighborsIndices(len(p.Members), i, windowSize)
-		extractedNeighbors := rnd.GetUniqueRandomIndices(2, neighbors, except)
+		extractedNeighbors := rand.GetUniqueRandomIndices(2, neighbors, except)
 		bestNeighborIndex, _ := p.FindBestNeighbor(i, windowSize)
 		bestNeighbor := p.Members[bestNeighborIndex].TargetVector
 		best := p.Members[bestIndex].TargetVector

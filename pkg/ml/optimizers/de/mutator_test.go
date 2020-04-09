@@ -5,7 +5,7 @@
 package de
 
 import (
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -91,7 +91,7 @@ func newTestMutator() *Population {
 		WeightFactor:   0.5,
 	}
 
-	population := NewRandomPopulation(10, 5, 6.0, rand.NewSource(42), hyperParams)
+	population := NewRandomPopulation(10, 5, 6.0, rand.NewLockedRand(42), hyperParams)
 
 	population.Members[0].TargetVector.SetData([]float64{0.0, 0.6, 0.8, 1.2, 1.6})
 	population.Members[0].TrialScore = 0.3
