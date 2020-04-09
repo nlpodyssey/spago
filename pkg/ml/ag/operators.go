@@ -6,7 +6,6 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"golang.org/x/exp/rand"
 	"reflect"
 )
 
@@ -141,8 +140,8 @@ func (g *Graph) Identity(x Node) Node {
 }
 
 // Dropout
-func (g *Graph) Dropout(x Node, p float64, source rand.Source) Node {
-	return g.NewOperator(fn.NewDropout(x, p, source), x)
+func (g *Graph) Dropout(x Node, p float64) Node {
+	return g.NewOperator(fn.NewDropout(x, p, g.randGen), x)
 }
 
 // AtVec

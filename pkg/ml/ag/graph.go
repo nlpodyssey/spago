@@ -6,7 +6,9 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"log"
 	"sync"
 	"sync/atomic"
 )
@@ -20,6 +22,8 @@ type Graph struct {
 	maxDepth int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []*nodeInfo
+	// randGen is the generator of random numbers
+	randGen *rand.LockedRand
 }
 
 type nodeInfo struct {
@@ -31,12 +35,27 @@ type nodeInfo struct {
 }
 
 // NewGraph returns a new initialized graph.
-func NewGraph() *Graph {
-	return &Graph{
+// It can take an optional random generator of type rand.Rand.
+func NewGraph(opt ...interface{}) *Graph {
+	g := &Graph{
 		maxId:    0,
 		maxDepth: 0,
 		nodes:    make([]*nodeInfo, 0),
 	}
+
+	for _, t := range opt {
+		switch t := t.(type) {
+		case *rand.LockedRand:
+			g.randGen = t
+		default:
+			log.Fatal("graph: invalid init options")
+		}
+	}
+
+	if g.randGen == nil {
+		g.randGen = rand.NewLockedRand(1) // set default random generator
+	}
+	return g
 }
 
 func (g *Graph) Reset() {
