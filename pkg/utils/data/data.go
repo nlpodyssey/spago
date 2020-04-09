@@ -6,6 +6,7 @@ package data
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
 // GenerateBatches generates a list of batches so that the classes distribution among them is approximately the same.
@@ -42,4 +43,13 @@ func GenerateBatches(size, batchFactor int, class func(i int) int) [][]int {
 		}
 	}
 	return batchList
+}
+
+// ForEachBatch divides the dataset into batches, returning the start-end of each batch with a callback.
+// This function assumes that the dataset has already been shuffled.
+func ForEachBatch(datasetSize, batchSize int, callback func(start, end int)) {
+	for start := 0; start < datasetSize; start += batchSize {
+		end := utils.MinInt(start+batchSize, datasetSize-1)
+		callback(start, end)
+	}
 }
