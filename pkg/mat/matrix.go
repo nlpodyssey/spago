@@ -68,3 +68,15 @@ func ConcatV(vs ...Matrix) Matrix {
 	}
 	return NewVecDense(data)
 }
+
+func ConcatH(ms ...Matrix) *Dense {
+	rows := len(ms)
+	cols := ms[0].Rows()
+	out := NewEmptyDense(rows, cols)
+	for i, x := range ms {
+		for j := 0; j < cols; j++ {
+			out.Set(x.At(j, 0), i, j)
+		}
+	}
+	return out
+}
