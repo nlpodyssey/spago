@@ -7,6 +7,7 @@ package mat
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"math"
 )
 
@@ -23,7 +24,9 @@ type Dense struct {
 // Following 'runtime: memmove sometimes faster than memclrNoHeapPointers (https:///golang/go/issues/23306)',
 // I opted to preallocate an 'empty' array initialized to zero, preferring append operations rather than make.
 // Other reference: https:///go101/go-benchmarks/tree/master/append-vs-make
-var empty [100000000]float64
+const emptySize = 100000000
+
+var empty [emptySize]float64
 
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
@@ -61,9 +64,12 @@ func NewEmptyVecDense(size int) *Dense {
 }
 
 // NewEmptyVecDense returns a new rows x cols matrix initialized to zeros.
-// TODO: handle the case where the size is larger than the pre-allocated array of zeros
 func NewEmptyDense(rows, cols int) *Dense {
-	return newDense(rows, cols, empty[:rows*cols])
+	size := rows * cols
+	if size > emptySize {
+		return newDense(rows, cols, make([]float64, size))
+	}
+	return newDense(rows, cols, empty[:size]) // optimized
 }
 
 // NewEmptyVecDense returns a new one-hot vector of the given size.
@@ -146,7 +152,15 @@ func (d *Dense) View(rows, cols int) *Dense {
 
 // Zeros set all the values to zeros.
 func (d *Dense) Zeros() {
-	_ = append(d.data[:0], empty[:d.size]...)
+	size := len(d.data)
+	if size > emptySize {
+		for start := 0; start < size; start += emptySize {
+			last := utils.MinInt(start+emptySize, size)
+			copy(d.data[start:last], empty[0:last-start])
+		}
+	} else {
+		_ = append(d.data[:0], empty[:d.size]...) // optimized
+	}
 }
 
 // Dims returns the number of rows and columns.
