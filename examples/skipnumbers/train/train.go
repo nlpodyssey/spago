@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
-	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -35,7 +34,6 @@ func main() {
 	hiddenSize := 200
 	batchSize := 1
 	epochs := 10
-	rndSrc := rand.NewSource(743)
 
 	// read dataset
 	trainSet, testSet, err := skipnumbers.Load(datasetPath)
@@ -63,6 +61,6 @@ func main() {
 	//updater := sgd.New(sgd.NewConfig(0.001, 0.9, true))
 	optimizer := gd.NewOptimizer(updater, nil)
 	// ad-hoc trainer
-	trainer := skipnumbers.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, rndSrc)
+	trainer := skipnumbers.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, 42)
 	trainer.Enjoy() // :)
 }

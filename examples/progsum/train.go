@@ -6,6 +6,7 @@ package main
 
 import (
 	"github.com/nlpodyssey/spago/examples/progsum/internal"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -14,7 +15,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
-	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -38,7 +38,7 @@ func main() {
 	hiddenSize := 100
 	batchSize := 1
 	epochs := 4
-	rndSrc := rand.NewSource(743)
+	rndGen := rand.NewLockedRand(743)
 
 	// read dataset
 	trainSet, testSet, err := internal.Load(datasetPath)
@@ -46,23 +46,25 @@ func main() {
 		log.Fatal("error reading 'progressive sum' data")
 	}
 
-	// new model initialized with random weights
-	model := initRandom(stack.New(
+	model := stack.New(
 		lstm.New(1, hiddenSize),
 		perceptron.New(hiddenSize, 11, ag.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
-	), rand.NewSource(1))
+	)
+
+	// initialized the new model with random weights
+	initRandom(model, rndGen)
 
 	// new optimizer with an arbitrary update method
 	updater := adam.New(adam.NewDefaultConfig())
 	//updater := sgd.New(sgd.NewConfig(0.001, 0.9, true))
 	optimizer := gd.NewOptimizer(updater, nil)
 	// ad-hoc trainer
-	trainer := internal.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, rndSrc)
+	trainer := internal.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, rndGen)
 	trainer.Enjoy() // :)
 }
 
 // initRandom initializes the model using the Xavier (Glorot) method.
-func initRandom(model *stack.Model, source rand.Source) *stack.Model {
+func initRandom(model *stack.Model, rndGen *rand.LockedRand) {
 	for i, layer := range model.Layers {
 		var gain float64
 		if i == len(model.Layers)-1 { // last layer
@@ -70,12 +72,10 @@ func initRandom(model *stack.Model, source rand.Source) *stack.Model {
 		} else {
 			gain = initializers.Gain(ag.Tanh)
 		}
-
 		layer.ForEachParam(func(param *nn.Param) {
 			if param.Type() == nn.Weights {
-				initializers.XavierUniform(param.Value(), gain, source)
+				initializers.XavierUniform(param.Value(), gain, rndGen)
 			}
 		})
 	}
-	return model
 }

@@ -8,14 +8,13 @@ import (
 	"fmt"
 	"github.com/gosuri/uiprogress"
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"golang.org/x/exp/rand"
 	"runtime/debug"
 	"sync"
 )
@@ -31,11 +30,19 @@ type Trainer struct {
 	modelPath  string
 	curLoss    float64
 	curEpoch   int
-	indices    []int       // the indices of the train-set; used to shuffle the examples each epoch
-	rndSrc     rand.Source // the random source used to shuffle the examples
+	indices    []int            // the indices of the train-set; used to shuffle the examples each epoch
+	rndGen     *rand.LockedRand // the random source used to shuffle the examples
 }
 
-func NewTrainer(model *Model, optimizer *gd.GradientDescent, epochs, batchSize int, concurrent bool, trainSet, testSet []example, modelPath string, rndSrc rand.Source) *Trainer {
+func NewTrainer(
+	model *Model,
+	optimizer *gd.GradientDescent,
+	epochs, batchSize int,
+	concurrent bool,
+	trainSet, testSet []example,
+	modelPath string,
+	seed uint64,
+) *Trainer {
 	return &Trainer{
 		model:      model,
 		optimizer:  optimizer,
@@ -48,7 +55,7 @@ func NewTrainer(model *Model, optimizer *gd.GradientDescent, epochs, batchSize i
 		curLoss:    0,
 		curEpoch:   0,
 		indices:    utils.MakeIndices(len(trainSet)),
-		rndSrc:     rndSrc,
+		rndGen:     rand.NewLockedRand(seed),
 	}
 }
 
@@ -87,7 +94,7 @@ func (t *Trainer) trainEpoch() {
 	uip.Start() // start bar rendering
 	defer uip.Stop()
 
-	rnd.ShuffleInPlace(t.indices, t.rndSrc)
+	rand.ShuffleInPlace(t.indices, t.rndGen)
 	for start := 0; start < len(t.indices); start += t.batchSize {
 		end := utils.MinInt(start+t.batchSize, len(t.indices)-1)
 		t.trainBatch(t.indices[start:end], func() { bar.Incr() })

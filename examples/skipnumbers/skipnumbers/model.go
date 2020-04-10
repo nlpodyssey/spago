@@ -5,10 +5,10 @@
 package skipnumbers
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"golang.org/x/exp/rand"
 	"io"
 	"log"
 )
@@ -29,16 +29,16 @@ func NewModel(rnn, predictor nn.Model) *Model {
 }
 
 func (m *Model) Init() {
-	src := rand.NewSource(1)
+	rndGen := rand.NewLockedRand(42)
 	m.RNN.ForEachParam(func(param *nn.Param) {
 		if param.Type() == nn.Weights {
 			// TODO: how to know the right gain for each param? Should the gain be a property of the param itself?
-			initializers.XavierUniform(param.Value(), 1, src)
+			initializers.XavierUniform(param.Value(), 1, rndGen)
 		}
 	})
 	m.Predictor.ForEachParam(func(param *nn.Param) {
 		if param.Type() == nn.Weights {
-			initializers.XavierUniform(param.Value(), initializers.Gain(ag.Softmax), src)
+			initializers.XavierUniform(param.Value(), initializers.Gain(ag.Softmax), rndGen)
 		}
 	})
 }
@@ -58,6 +58,7 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 type Processor struct {
 	opt       []interface{}
 	model     *Model
+	mode      nn.ProcessingMode
 	g         *ag.Graph
 	RNN       nn.Processor
 	Predictor nn.Processor
@@ -66,6 +67,7 @@ type Processor struct {
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
 		model:     m,
+		mode:      nn.Training,
 		opt:       opt,
 		g:         g,
 		RNN:       m.RNN.NewProc(g),
@@ -81,13 +83,12 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model       { return p.model }
-func (p *Processor) Graph() *ag.Graph      { return p.g }
-func (p *Processor) RequiresFullSeq() bool { return true }
-
-func (p *Processor) Reset() {
-	p.init(p.opt)
-}
+func (p *Processor) Model() nn.Model                { return p.model }
+func (p *Processor) Graph() *ag.Graph               { return p.g }
+func (p *Processor) RequiresFullSeq() bool          { return true }
+func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
+func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
+func (p *Processor) Reset()                         { p.init(p.opt) }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return p.Predictor.Forward(p.RNN.Forward(xs...)[len(xs)-1])

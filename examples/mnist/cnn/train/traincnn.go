@@ -6,11 +6,11 @@ package main
 
 import (
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
 	"github.com/nlpodyssey/spago/third_party/GoMNIST"
-	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -32,7 +32,6 @@ func main() {
 
 	batchSize := 50
 	epochs := 20
-	rndSrc := rand.NewSource(743)
 
 	// read dataset
 	trainSet, testSet, err := GoMNIST.Load(datasetPath)
@@ -53,7 +52,9 @@ func main() {
 		ag.ReLU,
 		ag.Identity, // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
-	mnist.InitCNN(model, rand.NewSource(1))
+
+	rndGen := rand.NewLockedRand(uint64(42))
+	mnist.InitCNN(model, rndGen)
 
 	trainer := mnist.NewTrainer(
 		model,
@@ -64,7 +65,7 @@ func main() {
 		mnist.Dataset{Set: trainSet, FeaturesAsVector: false},
 		mnist.Dataset{Set: testSet, FeaturesAsVector: false},
 		modelPath,
-		rndSrc,
+		42,
 	)
 	trainer.Enjoy() // :)
 }

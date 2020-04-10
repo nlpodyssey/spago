@@ -28,7 +28,9 @@ func NewEvaluator(model nn.Model) *Evaluator {
 func (t *Evaluator) Predict(image *mat.Dense) int {
 	g := ag.NewGraph()
 	x := g.NewVariable(image, false)
-	y := t.model.NewProc(g).Forward(x)[0]
+	proc := t.model.NewProc(g)
+	proc.SetMode(nn.Inference) // Important!
+	y := proc.Forward(x)[0]
 	return f64utils.ArgMax(y.Value().Data())
 }
 
@@ -41,7 +43,7 @@ func (t *Evaluator) Evaluate(dataset Dataset) *stats.ClassMetrics {
 	counter := stats.NewMetricCounter()
 	for i := 0; i < dataset.Count(); i++ {
 		example := dataset.GetExample(i)
-		if t.Predict(example.Features) == int(example.Label) {
+		if t.Predict(example.Features) == example.Label {
 			counter.IncTruePos()
 		} else {
 			counter.IncFalsePos()

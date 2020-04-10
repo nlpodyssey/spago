@@ -9,13 +9,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/examples/linearregression"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/sgd"
-	"golang.org/x/exp/rand"
 )
 
 func main() {
@@ -24,16 +25,17 @@ func main() {
 	learningRate := 0.0001
 	epochs := 100
 	seed := 734 // seed for random params initialization
-	model := NewLinearRegression(inputDim, outputDim)
+	model := linearregression.NewLinearRegression(inputDim, outputDim)
 	criterion := losses.MSESeq                                  // mean squared error
 	updater := sgd.New(sgd.NewConfig(learningRate, 0.0, false)) // stochastic gradient descent (no momentum etc.)
 	optimizer := gd.NewOptimizer(updater, nil)                  // no gradient clipping
 	nn.TrackParams(model, optimizer)                            // link the model to the optimizer
 
 	// Random params initialization
+	rndGen := rand.NewLockedRand(uint64(seed))
 	model.ForEachParam(func(param *nn.Param) {
 		if param.Type() == nn.Weights {
-			initializers.XavierUniform(param.Value(), 1.0, rand.NewSource(uint64(seed)))
+			initializers.XavierUniform(param.Value(), 1.0, rndGen)
 		}
 	})
 

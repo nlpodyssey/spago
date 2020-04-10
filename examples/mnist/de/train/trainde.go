@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -18,7 +19,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/data"
 	"github.com/nlpodyssey/spago/third_party/GoMNIST"
-	"golang.org/x/exp/rand"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -78,7 +78,7 @@ func main() {
 
 	//mutationStrategy := de.NewRandomMutation(6.0) // this is the base mutation strategy
 	mutationStrategy := de.NewDeglMutation(0.1, 6.0) // this is a more advanced mutation strategy
-	crossoverStrategy := de.NewBinomialCrossover(rand.NewSource(42))
+	crossoverStrategy := de.NewBinomialCrossover(rand.NewLockedRand(uint64(42)))
 
 	optimizer := de.NewOptimizer(
 		de.Config{

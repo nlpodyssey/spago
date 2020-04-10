@@ -7,46 +7,58 @@ package mnist
 import (
 	"fmt"
 	"github.com/gosuri/uiprogress"
-	"github.com/nlpodyssey/spago/pkg/mat/rnd"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/pkg/utils/data"
 	"runtime/debug"
 	"sync"
 )
 
 type Trainer struct {
-	model      nn.Model
-	optimizer  *gd.GradientDescent
-	epochs     int
-	batchSize  int
-	concurrent bool
-	trainSet   Dataset
-	testSet    Dataset
-	modelPath  string
-	curLoss    float64
-	curEpoch   int
-	indices    []int       // the indices of the train-set; used to shuffle the examples each epoch
-	rndSrc     rand.Source // the random source used to shuffle the examples
+	model       nn.Model
+	optimizer   *gd.GradientDescent
+	epochs      int
+	batchSize   int
+	concurrent  bool
+	trainSet    Dataset
+	testSet     Dataset
+	modelPath   string
+	curLoss     float64
+	curEpoch    int
+	indices     []int            // the indices of the train-set; used to shuffle the examples each epoch
+	rndShuffler *rand.LockedRand // the random generator used to shuffle the examples
+	rndSeed     uint64
 }
 
-func NewTrainer(model nn.Model, optimizer *gd.GradientDescent, epochs, batchSize int, concurrent bool, trainSet, testSet Dataset, modelPath string, rndSrc rand.Source) *Trainer {
+func NewTrainer(
+	model nn.Model,
+	optimizer *gd.GradientDescent,
+	epochs int,
+	batchSize int,
+	concurrent bool,
+	trainSet Dataset,
+	testSet Dataset,
+	modelPath string,
+	seed uint64,
+) *Trainer {
 	return &Trainer{
-		model:      model,
-		optimizer:  optimizer,
-		epochs:     epochs,
-		batchSize:  batchSize,
-		concurrent: concurrent,
-		trainSet:   trainSet,
-		testSet:    testSet,
-		modelPath:  modelPath,
-		curLoss:    0,
-		curEpoch:   0,
-		indices:    utils.MakeIndices(trainSet.Count()),
-		rndSrc:     rndSrc,
+		model:       model,
+		optimizer:   optimizer,
+		epochs:      epochs,
+		batchSize:   batchSize,
+		concurrent:  concurrent,
+		trainSet:    trainSet,
+		testSet:     testSet,
+		modelPath:   modelPath,
+		curLoss:     0,
+		curEpoch:    0,
+		indices:     utils.MakeIndices(trainSet.Count()),
+		rndShuffler: rand.NewLockedRand(seed),
+		rndSeed:     seed,
 	}
 }
 
@@ -88,24 +100,24 @@ func (t *Trainer) trainEpoch() {
 	bar := t.newTrainBar(uip)
 	uip.Start() // start bar rendering
 	defer uip.Stop()
-
-	rnd.ShuffleInPlace(t.indices, t.rndSrc)
-	for start := 0; start < len(t.indices); start += t.batchSize {
-		end := utils.MinInt(start+t.batchSize, len(t.indices)-1)
-		t.trainBatch(t.indices[start:end], func() { bar.Incr() })
+	rand.ShuffleInPlace(t.indices, t.rndShuffler)
+	batchId := 0
+	data.ForEachBatch(len(t.indices), t.batchSize, func(start, end int) {
+		batchId++
+		t.trainBatch(batchId, t.indices[start:end], func() { bar.Incr() })
 		t.optimizer.Optimize()
-	}
+	})
 }
 
-func (t *Trainer) trainBatch(indices []int, onExample func()) {
+func (t *Trainer) trainBatch(batchId int, indices []int, onExample func()) {
 	if t.concurrent {
-		t.trainBatchConcurrent(indices, onExample)
+		t.trainBatchConcurrent(batchId, indices, onExample)
 	} else {
-		t.trainBatchSerial(indices, onExample)
+		t.trainBatchSerial(batchId, indices, onExample)
 	}
 }
 
-func (t *Trainer) trainBatchConcurrent(indices []int, onExample func()) {
+func (t *Trainer) trainBatchConcurrent(batchId int, indices []int, onExample func()) {
 	t.optimizer.IncBatch()
 	var wg sync.WaitGroup
 	wg.Add(len(indices))
@@ -114,24 +126,24 @@ func (t *Trainer) trainBatchConcurrent(indices []int, onExample func()) {
 		go func(example *Example) {
 			defer wg.Done()
 			defer onExample()
-			t.curLoss = t.learn(example)
+			t.curLoss = t.learn(batchId, example)
 		}(t.trainSet.GetExample(i))
 	}
 	wg.Wait()
 }
 
-func (t *Trainer) trainBatchSerial(indices []int, onExample func()) {
+func (t *Trainer) trainBatchSerial(batchId int, indices []int, onExample func()) {
 	t.optimizer.IncBatch()
 	for _, i := range indices {
 		t.optimizer.IncExample()
-		t.curLoss = t.learn(t.trainSet.GetExample(i))
+		t.curLoss = t.learn(batchId, t.trainSet.GetExample(i))
 		onExample()
 	}
 }
 
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
-func (t *Trainer) learn(example *Example) float64 {
-	g := ag.NewGraph()
+func (t *Trainer) learn(batchId int, example *Example) float64 {
+	g := ag.NewGraph(rand.NewLockedRand(t.rndSeed))
 	x := g.NewVariable(example.Features, false)
 	y := t.model.NewProc(g).Forward(x)[0]
 	loss := g.Div(losses.CrossEntropy(g, y, example.Label), g.NewScalar(float64(t.batchSize)))
