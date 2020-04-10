@@ -7,11 +7,12 @@ Implementation of the Broad Learning System (BLS) described in "Broad Learning S
 Incremental Learning System Without the Need for Deep Architecture" by C. L. Philip Chen and Zhulin Liu, 2017.
 (https://ieeexplore.ieee.org/document/7987745)
 
-This package contains only the inference part. The ridge regression approximation training will be part of the optimizers.
+The "Model" contains only the inference part of the Broad Learning System.
+The ridge regression approximation training is performed by the "BroadLearningAlgorithm".
 
 Since the forward pass is built using the computational graph ("ag" a.k.a. auto-grad package), you can train the BLS
 through the gradient-descent learning method, like other neural models, updating all the parameters and not just the
-output weights as in the original implementation.
+output weights as in the original implementation. Cool, isn't it? ;)
 */
 package bls
 
