@@ -81,7 +81,7 @@ func OneHotVecDense(size int, oneAt int) *Dense {
 		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
 	}
 	vec := NewEmptyVecDense(size)
-	vec.Set(1.0, oneAt)
+	vec.SetVec(oneAt, 1.0)
 	return vec
 }
 
@@ -220,26 +220,50 @@ func (d *Dense) Scalar() float64 {
 	return d.data[0]
 }
 
-func (d *Dense) Set(v float64, i int, j ...int) {
-	//if len(j) > 1 {
-	//	panic("mat: invalid 'j' argument.")
-	//}
-	if len(j) > 0 {
-		d.data[i*d.cols+j[0]] = v
-	} else {
-		d.data[i] = v
+// Set sets the value v at row i and column j.
+func (d *Dense) Set(i int, j int, v float64) {
+	if i >= d.rows {
+		panic("mat: 'i' argument out of range.")
 	}
+	if j >= d.cols {
+		panic("mat: 'j' argument out of range")
+	}
+	d.data[i*d.cols+j] = v
 }
 
-func (d *Dense) At(i int, j ...int) float64 {
-	//if len(j) > 1 {
-	//	panic("mat: invalid 'j' argument.")
-	//}
-	if len(j) > 0 {
-		return d.data[i*d.cols+j[0]]
-	} else {
-		return d.data[i]
+// At returns the value at row i and column j.
+func (d *Dense) At(i int, j int) float64 {
+	if i >= d.rows {
+		panic("mat: 'i' argument out of range.")
 	}
+	if j >= d.cols {
+		panic("mat: 'j' argument out of range")
+	}
+	return d.data[i*d.cols+j]
+}
+
+// SetVec sets the value v at position i of a vector.
+// It panics if not IsVector().
+func (d *Dense) SetVec(i int, v float64) {
+	if !(d.IsVector()) {
+		panic("mat: expected vector")
+	}
+	if i >= d.rows {
+		panic("mat: 'i' argument out of range.")
+	}
+	d.data[i] = v
+}
+
+// AtVec returns the value at position i of a vector
+// It panics if not IsVector().
+func (d *Dense) AtVec(i int) float64 {
+	if !(d.IsVector()) {
+		panic("mat: expected vector")
+	}
+	if i >= d.rows {
+		panic("mat: 'i' argument out of range.")
+	}
+	return d.data[i]
 }
 
 // T returns the transpose of the matrix.
@@ -383,7 +407,7 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 		f64.AxpyUnitary(-1.0, other.data, d.data)
 	case *Sparse:
 		other.DoNonZero(func(i, j int, k float64) {
-			d.Set(d.At(i, j)-k, i, j)
+			d.Set(i, j, d.At(i, j)-k)
 		})
 	}
 	return d
@@ -510,7 +534,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	case *Sparse:
 		b.DoNonZero(func(k, j int, v float64) {
 			for i := 0; i < d.Rows(); i++ {
-				out.Set(out.At(i, j)+d.At(i, k)*v, i, j)
+				out.Set(i, j, out.At(i, j)+d.At(i, k)*v)
 			}
 		})
 	}
@@ -725,7 +749,7 @@ func (d *Dense) Pivoting(row int) (Matrix, bool) {
 func I(size int) *Dense {
 	out := NewEmptyDense(size, size)
 	for i := 0; i < size; i++ {
-		out.Set(1.0, i, i)
+		out.Set(i, i, 1.0)
 	}
 	return out
 }

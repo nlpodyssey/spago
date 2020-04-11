@@ -26,7 +26,7 @@ func (r *At) Forward() mat.Matrix {
 func (r *At) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x.Value().Dims())
-		dx.Set(gy.Scalar(), r.i, r.j)
+		dx.Set(r.i, r.j, gy.Scalar())
 		r.x.PropagateGrad(dx)
 	}
 }

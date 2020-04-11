@@ -19,8 +19,10 @@ type Matrix interface {
 	IsVector() bool
 	IsScalar() bool
 	Scalar() float64
-	Set(v float64, i int, j ...int)
-	At(i int, j ...int) float64
+	Set(i int, j int, v float64)
+	At(i int, j int) float64
+	SetVec(i int, v float64)
+	AtVec(i int) float64
 	T() Matrix
 	Reshape(r, c int) Matrix
 	Apply(fn func(i, j int, v float64) float64, a Matrix)
@@ -75,7 +77,7 @@ func ConcatH(ms ...Matrix) *Dense {
 	out := NewEmptyDense(rows, cols)
 	for i, x := range ms {
 		for j := 0; j < cols; j++ {
-			out.Set(x.At(j, 0), i, j)
+			out.Set(i, j, x.At(j, 0))
 		}
 	}
 	return out

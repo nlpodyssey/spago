@@ -14,12 +14,14 @@ import (
 func Distribution(r, c int, prob float64, generator *rand.LockedRand) mat.Matrix {
 	out := mat.NewEmptyDense(r, c)
 	dist := uniform.New(0.0, 1.0, generator)
-	for i := 0; i < out.Size(); i++ {
-		val := dist.Next()
-		if val < prob {
-			out.Set(math.Floor(val), i)
-		} else {
-			out.Set(math.Floor(val)+1.0, i)
+	for i := 0; i < r; i++ {
+		for j := 0; j < c; j++ {
+			val := dist.Next()
+			if val < prob {
+				out.Set(i, j, math.Floor(val))
+			} else {
+				out.Set(i, j, math.Floor(val)+1.0)
+			}
 		}
 	}
 	return out

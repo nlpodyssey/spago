@@ -37,7 +37,7 @@ func (r *Dot) Backward(gy mat.Matrix) {
 		dx := mat.NewEmptyDense(r.x1.Value().Dims())
 		for i := 0; i < r.x1.Value().Rows(); i++ {
 			for j := 0; j < r.x1.Value().Columns(); j++ {
-				dx.Set(gy.Scalar()*r.x2.Value().At(i, j), i, j)
+				dx.Set(i, j, gy.Scalar()*r.x2.Value().At(i, j))
 			}
 		}
 		r.x1.PropagateGrad(dx)
@@ -46,7 +46,7 @@ func (r *Dot) Backward(gy mat.Matrix) {
 		dx := mat.NewEmptyDense(r.x2.Value().Dims())
 		for i := 0; i < r.x2.Value().Rows(); i++ {
 			for j := 0; j < r.x2.Value().Columns(); j++ {
-				dx.Set(gy.Scalar()*r.x1.Value().At(i, j), i, j)
+				dx.Set(i, j, gy.Scalar()*r.x1.Value().At(i, j))
 			}
 		}
 		r.x2.PropagateGrad(dx)

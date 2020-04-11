@@ -32,9 +32,9 @@ func (r *Softmax) Backward(gy mat.Matrix) {
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {
 				if i == j {
-					jb.Set(r.y.At(i)*(1.0-r.y.At(j)), i, j)
+					jb.Set(i, j, r.y.AtVec(i)*(1.0-r.y.AtVec(j)))
 				} else {
-					jb.Set(-r.y.At(i)*r.y.At(j), i, j)
+					jb.Set(i, j, -r.y.AtVec(i)*r.y.AtVec(j))
 				}
 			}
 		}

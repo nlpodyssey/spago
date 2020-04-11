@@ -21,7 +21,7 @@ func (r *Stack) Forward() mat.Matrix {
 	ms := mat.NewEmptyDense(rows, cols)
 	for i, x := range r.xs {
 		for j := 0; j < cols; j++ {
-			ms.Set(x.Value().At(j, 0), i, j)
+			ms.Set(i, j, x.Value().At(j, 0))
 		}
 	}
 	return ms

@@ -25,7 +25,7 @@ func (r *View) Forward() mat.Matrix {
 	y := mat.NewEmptyDense(r.lx, r.ly)
 	for i := 0; i < r.lx; i++ {
 		for j := 0; j < r.ly; j++ {
-			y.Set(r.x.Value().At(i+r.sx, j+r.sy), i, j)
+			y.Set(i, j, r.x.Value().At(i+r.sx, j+r.sy))
 		}
 	}
 	return y
@@ -36,7 +36,7 @@ func (r *View) Backward(gy mat.Matrix) {
 		gx := mat.NewEmptyDense(r.x.Value().Dims())
 		for i := 0; i < r.lx; i++ {
 			for j := 0; j < r.ly; j++ {
-				gx.Set(gy.At(i, j), i+r.sx, j+r.sy)
+				gx.Set(i+r.sx, j+r.sy, gy.At(i, j))
 			}
 		}
 		r.x.PropagateGrad(gx)

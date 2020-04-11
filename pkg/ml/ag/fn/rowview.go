@@ -20,7 +20,7 @@ func NewRowView(x Operand, i int) *RowView {
 func (r *RowView) Forward() mat.Matrix {
 	y := mat.NewEmptyDense(1, r.x.Value().Columns())
 	for j := 0; j < r.x.Value().Columns(); j++ {
-		y.Set(r.x.Value().At(r.i, j), 0, j)
+		y.Set(0, j, r.x.Value().At(r.i, j))
 	}
 	return y
 }
@@ -29,7 +29,7 @@ func (r *RowView) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewEmptyDense(r.x.Value().Dims())
 		for j := 0; j < r.x.Value().Columns(); j++ {
-			gx.Set(gy.At(0, j), r.i, j)
+			gx.Set(r.i, j, gy.At(0, j))
 		}
 		r.x.PropagateGrad(gx)
 	}

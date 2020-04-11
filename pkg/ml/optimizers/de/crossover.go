@@ -31,11 +31,11 @@ func (c *BinomialCrossover) Crossover(p *Population) {
 		randomVector := mat.NewEmptyVecDense(p.Members[0].DonorVector.Size())
 		initializers.Uniform(randomVector, -1.0, +1.0, c.rndGen)
 		size := member.DonorVector.Size()
-		rn := rand.NewLockedRand(uint64(seed.Uint64n(100)))
+		rn := rand.NewLockedRand(seed.Uint64n(100))
 		k := rn.Intn(size)
 		for i := 0; i < size; i++ {
 			if math.Abs(randomVector.At(i, 0)) > member.CrossoverRate || i == k { // Fixed range trick
-				member.DonorVector.Set(member.TargetVector.At(i, 0), i, 0)
+				member.DonorVector.SetVec(i, member.TargetVector.AtVec(i))
 			}
 		}
 	}

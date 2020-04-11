@@ -19,13 +19,13 @@ func NewAtVec(x Operand, i int) *AtVec {
 
 // Forward computes the output of the function.
 func (r *AtVec) Forward() mat.Matrix {
-	return mat.NewScalar(r.x.Value().At(r.i))
+	return mat.NewScalar(r.x.Value().AtVec(r.i))
 }
 
 func (r *AtVec) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x.Value().Dims())
-		dx.Set(gy.Scalar(), r.i)
+		dx.SetVec(r.i, gy.Scalar())
 		r.x.PropagateGrad(dx)
 	}
 }

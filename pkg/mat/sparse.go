@@ -28,7 +28,7 @@ func NewSparse(r, c int) *Sparse {
 
 func OneHotSparse(size int, oneAt int) *Sparse {
 	vec := NewVecSparse(size)
-	vec.Set(1.0, oneAt)
+	vec.SetVec(oneAt, 1.0)
 	return vec
 }
 
@@ -113,29 +113,23 @@ func (s *Sparse) Scalar() float64 {
 	if !s.IsScalar() {
 		panic("mat: expected scalar but the matrix contains more elements.")
 	}
-	return s.At(0)
+	return s.At(0, 0)
 }
 
-func (s *Sparse) Set(v float64, i int, j ...int) {
-	if len(j) > 1 {
-		panic("mat: invalid 'j' argument.")
-	}
-	if len(j) > 0 {
-		s.delegate.Set(i, j[0], v)
-	} else {
-		s.delegate.Set(i, 0, v)
-	}
+func (s *Sparse) Set(i int, j int, v float64) {
+	s.delegate.Set(i, j, v)
 }
 
-func (s *Sparse) At(i int, j ...int) float64 {
-	if len(j) > 1 {
-		panic("mat: invalid 'j' argument.")
-	}
-	if len(j) > 0 {
-		return s.delegate.At(i, j[0])
-	} else {
-		return s.delegate.At(i, 0)
-	}
+func (s *Sparse) At(i int, j int) float64 {
+	return s.delegate.At(i, j)
+}
+
+func (s *Sparse) SetVec(i int, v float64) {
+	s.delegate.Set(i, 0, v)
+}
+
+func (s *Sparse) AtVec(i int) float64 {
+	return s.delegate.At(i, 0)
 }
 
 func (s *Sparse) DoNonZero(fn func(i, j int, v float64)) {
@@ -148,7 +142,7 @@ func (s *Sparse) T() Matrix {
 	r, c := s.Dims()
 	m := NewSparse(c, r)
 	s.DoNonZero(func(i, j int, v float64) {
-		m.Set(s.At(i, j), j, i)
+		m.Set(j, i, s.At(i, j))
 	})
 	return m
 }
@@ -274,7 +268,7 @@ func (s *Sparse) Pow(power float64) Matrix {
 	r, c := s.Dims()
 	m := NewSparse(c, r)
 	s.DoNonZero(func(i, j int, v float64) {
-		m.Set(math.Pow(s.At(i, j), power), i, j)
+		m.Set(i, j, math.Pow(s.At(i, j), power))
 	})
 	return m
 }
@@ -290,9 +284,9 @@ func (s *Sparse) Norm(pow float64) float64 {
 func (s *Sparse) ClipInPlace(min, max float64) Matrix {
 	s.DoNonZero(func(i, j int, v float64) {
 		if s.At(i, j) < min {
-			s.Set(min, i, j)
+			s.Set(i, j, min)
 		} else if s.At(i, j) > max {
-			s.Set(max, i, j)
+			s.Set(i, j, max)
 		}
 	})
 	return s
@@ -302,7 +296,7 @@ func (s *Sparse) Abs() Matrix {
 	r, c := s.Dims()
 	m := NewSparse(c, r)
 	s.DoNonZero(func(i, j int, v float64) {
-		m.Set(math.Abs(s.At(i, j)), i, j)
+		m.Set(i, j, math.Abs(s.At(i, j)))
 	})
 	return m
 }

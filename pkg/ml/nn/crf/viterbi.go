@@ -45,7 +45,7 @@ func ViterbiStepStart(transitionMatrix mat.Matrix, maxVec mat.Matrix) *ViterbiSt
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		score := maxVec.At(i, 0) + transitionMatrix.At(0, i+1)
 		if score > y.scores.At(i, 0) {
-			y.scores.Set(score, i, 0)
+			y.scores.SetVec(i, score)
 			y.backpointers[i] = i
 		}
 	}
@@ -57,7 +57,7 @@ func ViterbiStepEnd(transitionMatrix mat.Matrix, maxVec mat.Matrix) *ViterbiStru
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		score := maxVec.At(i, 0) + transitionMatrix.At(i+1, 0)
 		if score > y.scores.At(i, 0) {
-			y.scores.Set(score, i, 0)
+			y.scores.SetVec(i, score)
 			y.backpointers[i] = i
 		}
 	}
@@ -70,7 +70,7 @@ func ViterbiStep(transitionMatrix mat.Matrix, maxVec mat.Matrix, stepVec mat.Mat
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
 			score := maxVec.At(i, 0) + stepVec.At(j, 0) + transitionMatrix.At(i+1, j+1)
 			if score > y.scores.At(j, 0) {
-				y.scores.Set(score, j, 0)
+				y.scores.SetVec(j, score)
 				y.backpointers[j] = i
 			}
 		}
