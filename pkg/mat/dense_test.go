@@ -896,13 +896,49 @@ func TestDense_Maximum(t *testing.T) {
 	}
 }
 
+func TestDense_ExtractRow(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+
+	c := a.ExtractRow(2)
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		-0.5, 0.8, -0.8,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_ExtractColumn(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+
+	c := a.ExtractColumn(2)
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		0.3, -0.6, -0.8, -0.4,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
 /*
 TODO:
     Range(start, end int) Matrix
     SplitV(sizes ...int) []Matrix
     SumInt(v []int) (s int)
-    Set(v float64, i int, j ...int)
-    At(i int, j ...int) float64
+    Set(i int, j int, v float64)
+    At(i int, j int) float64
+	SetVec(i int, v float64)
+    AtVec(i int) float64
     Apply(fn func(i, j int, v float64) float64, a Matrix)
     ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64)
     Sqrt() Matrix

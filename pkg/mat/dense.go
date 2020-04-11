@@ -266,6 +266,27 @@ func (d *Dense) AtVec(i int) float64 {
 	return d.data[i]
 }
 
+// ExtractRow returns a copy of the i-th row of the matrix.
+func (d *Dense) ExtractRow(i int) Matrix {
+	if i >= d.Rows() {
+		panic("mat: index out of range")
+	}
+	out := NewVecDense(d.data[i*d.cols : i*d.cols+d.cols])
+	return out
+}
+
+// ExtractRow returns a copy of the i-th column of the matrix.
+func (d *Dense) ExtractColumn(i int) Matrix {
+	if i >= d.Columns() {
+		panic("mat: index out of range")
+	}
+	out := NewEmptyVecDense(d.rows)
+	for k := 0; k < d.rows; k++ {
+		out.data[k] = d.data[k*d.cols+i]
+	}
+	return out
+}
+
 // T returns the transpose of the matrix.
 func (d *Dense) T() Matrix {
 	r, c := d.Dims()
