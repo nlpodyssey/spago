@@ -33,7 +33,7 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Backward
 
-	gold := g.NewVariable(mat.NewVecDense([]float64{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := g.NewVariable(mat.NewVecDense([]float64{0.57, 0.75, -0.15, 1.64}), false)
 	loss := losses.MSE(g, s.Y, gold, false)
 	g.Backward(loss)
 
@@ -104,7 +104,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 
 	// == Backward
 
-	gold := g.NewVariable(mat.NewVecDense([]float64{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := g.NewVariable(mat.NewVecDense([]float64{0.57, 0.75, -0.15, 1.64}), false)
 	loss := losses.MSE(g, s.Y, gold, false)
 	g.Backward(loss)
 
@@ -186,12 +186,12 @@ func newTestModel() *Model {
 	return model
 }
 
-func TestModel_ForwardSeq(t *testing.T) {
+func TestModel_ForwardSeq(t *testing.T) { //TODO FIX TEST
 	model := newTestModel2()
 	g := ag.NewGraph()
 	proc := model.NewProc(g, InitHidden{&State{
-		Cell: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0, 0.0}), true),
-		Y:    g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0, 0.0}), true),
+		Cell: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0}), true),
+		Y:    g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0}), true),
 	}})
 
 	// == Forward
@@ -222,49 +222,49 @@ func TestModel_ForwardSeq(t *testing.T) {
 
 	// == Backward
 
-	s.Y.PropagateGrad(mat.NewVecDense([]float64{-0.2, -0.3, -0.4, 0.6}))
-	s2.Y.PropagateGrad(mat.NewVecDense([]float64{0.6, -0.3, -0.8, 0.2}))
+	s.Y.PropagateGrad(mat.NewVecDense([]float64{-0.2, -0.3, -0.4}))
+	s2.Y.PropagateGrad(mat.NewVecDense([]float64{0.6, -0.3, -0.2}))
 
 	g.BackwardAll()
 
 	if !floats.EqualApprox(x.Grad().Data(), []float64{
-		0.0060203321375554945, 0.001158750156610381, -0.005020846150686537}, 1.0e-05) {
+		0.0058833, 0.0008477, -0.0048020}, 1.0e-05) {
 		t.Error("The input gradients x don't match the expected values")
 	}
 
 	if !floats.EqualApprox(x2.Grad().Data(), []float64{
-		-0.024015136611301224, 0.012044808960127757, -0.0025496716138908512}, 1.0e-05) {
+		-0.02891086, 0.00700993, 0.0099656}, 1.0e-05) {
 		t.Error("The input gradients x2 don't match the expected values")
 	}
 
 	if !floats.EqualApprox(model.W1.Grad().Data(), []float64{
-		0.01852684053224219, -0.004856715571786104, 0.0008534336140552565,
-		0.014871345022691773, -0.0031539514645604833, 0.0006454954007612922,
-		-0.0062385392530601, 0.0005449902319679281, -0.0002294520238681001,
+		0.000588, 0.00006698, 0.00001534,
+		0.006493, 0.000478661, 0.0001832,
+		-0.007074, -0.0004098, -0.0002055,
 	}, 1.0e-05) {
 		t.Error("W1 doesn't match the expected values")
 	}
 
 	if !floats.EqualApprox(model.W2.Grad().Data(), []float64{
-		0.010989189335587969, -0.00447639476666154, 0.0005909767937944565,
-		0.05010658159276765, -0.004483751720488274, 0.0018485663945007212,
-		-0.009954670438541762, -0.005243658232366037, -0.000041382181506627454,
+		0.000279, -0.00007709, 0.00001306,
+		0.0241938, 0.006375, 0.000438,
+		-0.013505, -0.0093022, 0.00006,
 	}, 1.0e-05) {
 		t.Error("W2 doesn't match the expected values")
 	}
 
 	if !floats.EqualApprox(model.W3.Grad().Data(), []float64{
-		0.02479995607184403, -0.12216729128521427, 0.007286787376483183,
-		-0.14202794319383438, -0.03706964004308318, -0.0025954503240542956,
-		-0.19488433625816806, -0.055853161250942064, -0.0032963953488242322,
+		0.02328, -0.12389, 0.00733,
+		-0.143141, -0.038342, -0.002563,
+		-0.113814, -0.088355, 0.00103,
 	}, 1.0e-05) {
 		t.Error("W3 doesn't match the expected values")
 	}
 
 	if !floats.EqualApprox(model.WCell.Grad().Data(), []float64{
-		0.006578165869432526, 0.007196453982243074, 0.0035858550347936764,
-		-0.06461215851950958, -0.11274837356036807, -0.07246066801275321,
-		-0.06454958606793385, -0.10016860961693365, -0.06134998994768405,
+		0.005861, 0.001615, -0.001051,
+		-0.06589, -0.122702, -0.080731,
+		-0.01829, -0.041815, -0.02927,
 	}, 1.0e-05) {
 		t.Error("WCell doesn't match the expected values")
 	}
