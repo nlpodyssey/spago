@@ -34,6 +34,9 @@ func NewDense(rows, cols int, elements []float64) *Dense {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyDense() instead.")
 	}
+	if len(elements) != rows*cols {
+		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
+	}
 	return newDense(rows, cols, elements)
 }
 
@@ -74,6 +77,9 @@ func NewEmptyDense(rows, cols int) *Dense {
 
 // NewEmptyVecDense returns a new one-hot vector of the given size.
 func OneHotVecDense(size int, oneAt int) *Dense {
+	if oneAt >= size {
+		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
+	}
 	vec := NewEmptyVecDense(size)
 	vec.Set(1.0, oneAt)
 	return vec
@@ -104,6 +110,9 @@ func NewInitVecDense(size int, val float64) *Dense {
 
 // SetData sets the data
 func (d *Dense) SetData(data []float64) {
+	if len(data) != d.size {
+		panic(fmt.Sprintf("mat: data size must be: %d", d.size))
+	}
 	_ = append(d.data[:0], data...)
 }
 
@@ -126,11 +135,11 @@ func (d *Dense) Clone() Matrix {
 
 // Copy copies the data to the receiver.
 func (d *Dense) Copy(other Matrix) {
-	//if !EqualDims(d, other) {
-	//	panic("mat: incompatible matrix dimensions.")
-	//}
+	if !EqualDims(d, other) {
+		panic("mat: incompatible matrix dimensions.")
+	}
 	if other, ok := other.(*Dense); !ok {
-		//panic("mat: incompatible matrix types.")
+		panic("mat: incompatible matrix types.")
 	} else {
 		_ = append(d.data[:0], other.data...)
 	}
@@ -205,9 +214,9 @@ func (d *Dense) IsScalar() bool {
 
 // Scalar returns the scalar. It panics if the matrix contains more elements.
 func (d *Dense) Scalar() float64 {
-	//if !d.IsScalar() {
-	//	panic("mat: expected scalar but the matrix contains more elements.")
-	//}
+	if !d.IsScalar() {
+		panic("mat: expected scalar but the matrix contains more elements.")
+	}
 	return d.data[0]
 }
 
@@ -253,10 +262,11 @@ func (d *Dense) Reshape(r, c int) Matrix {
 	return NewDense(r, c, d.data)
 }
 
+// ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
 func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64) {
-	//if !EqualDims(d, a) {
-	//	panic("mat: incompatible matrix dimensions.")
-	//}
+	if !EqualDims(d, a) {
+		panic("mat: incompatible matrix dimensions.")
+	}
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
 			d.data[i*d.cols+j] = fn(i, j, a.At(i, j), alpha...)
@@ -264,10 +274,11 @@ func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) fl
 	}
 }
 
+// Apply execute the unary function fn.
 func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
-	//if !EqualDims(d, a) {
-	//	panic("mat: incompatible matrix dimensions.")
-	//}
+	if !EqualDims(d, a) {
+		panic("mat: incompatible matrix dimensions.")
+	}
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
 			d.data[i*d.cols+j] = fn(i, j, a.At(i, j))
@@ -275,25 +286,27 @@ func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	}
 }
 
+// AddScalar performs an addition between the Matrix and a float.
 func (d *Dense) AddScalar(n float64) Matrix {
 	out := d.Clone().(*Dense)
 	f64.AddConst(n, out.data)
 	return out
 }
 
+// SubScalar performs a subtraction between the Matrix and a float.
 func (d *Dense) SubScalar(n float64) Matrix {
 	out := d.Clone().(*Dense)
 	f64.AddConst(-n, out.data)
 	return out
 }
 
-// Add adds the scalar to the receiver.
+// AddScalarInPlace adds the scalar to the receiver.
 func (d *Dense) AddScalarInPlace(n float64) Matrix {
 	f64.AddConst(n, d.data)
 	return d
 }
 
-// Sub subtracts the scalar to the receiver.
+// SubScalarInPlace subtracts the scalar to the receiver.
 func (d *Dense) SubScalarInPlace(n float64) Matrix {
 	for i := 0; i < len(d.data); i++ {
 		d.data[i] -= n
@@ -301,64 +314,70 @@ func (d *Dense) SubScalarInPlace(n float64) Matrix {
 	return d
 }
 
+// ProdScalarInPlace multiply a float with the receiver in place.
 func (d *Dense) ProdScalarInPlace(n float64) Matrix {
 	f64.ScalUnitary(n, d.data)
 	return d
 }
 
+// ProdMatrixScalarInPlace multiply a matrix with a float, storing the result in the receiver.
 func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
-	b := m.(*Dense)
-	f64.ScalUnitaryTo(d.data, n, b.data)
+	f64.ScalUnitaryTo(d.data, n, m.(*Dense).data)
 	return d
 }
 
+// ProdScalar returns the multiplication of the float with the receiver.
 func (d *Dense) ProdScalar(n float64) Matrix {
 	out := d.ZerosLike().(*Dense)
 	f64.ScalUnitaryTo(out.data, n, d.data)
 	return out
 }
 
+// Add returns the addition with a matrix with the receiver.
 func (d *Dense) Add(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	b := other.(*Dense)
 	out := d.ZerosLike().(*Dense)
 	f64.AxpyUnitaryTo(out.data, 1.0, b.data, d.data)
 	return out
 }
 
+// AddInPlace performs the addition with the other matrix in place.
 func (d *Dense) AddInPlace(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	b := other.(*Dense)
 	f64.AxpyUnitary(1.0, b.data, d.data)
 	return d
 }
 
+// Sub returns the subtraction with a matrix with the receiver.
 func (d *Dense) Sub(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	out := d.ZerosLike().(*Dense)
 	b := other.(*Dense)
 	f64.AxpyUnitaryTo(out.data, -1.0, b.data, d.data)
 	return out
 }
 
+// SubInPlace performs the subtraction with the other matrix in place.
 func (d *Dense) SubInPlace(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	switch other := other.(type) {
 	case *Dense:
 		f64.AxpyUnitary(-1.0, other.data, d.data)
@@ -370,12 +389,13 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 	return d
 }
 
+// Prod performs the element-wise product with the receiver.
 func (d *Dense) Prod(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	out := d.ZerosLike().(*Dense)
 	b := other.(*Dense)
 	for i, val := range d.data {
@@ -384,12 +404,13 @@ func (d *Dense) Prod(other Matrix) Matrix {
 	return out
 }
 
+// ProdInPlace performs the element-wise product with the receiver in place.
 func (d *Dense) ProdInPlace(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	b := other.(*Dense)
 	for i, val := range b.data {
 		d.data[i] *= val
@@ -397,12 +418,25 @@ func (d *Dense) ProdInPlace(other Matrix) Matrix {
 	return d
 }
 
+// Div returns the result of the element-wise division.
+func (d *Dense) Div(other Matrix) Matrix {
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
+	out := d.ZerosLike().(*Dense)
+	f64.DivTo(out.data, d.data, other.(*Dense).data)
+	return out
+}
+
+// Div performs the result of the element-wise division in place.
 func (d *Dense) DivInPlace(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if !(EqualDims(d, other) ||
+		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
+		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
+		panic("mat: matrices with not compatible size")
+	}
 	b := other.(*Dense)
 	for i, val := range b.data {
 		d.data[i] *= 1.0 / val
@@ -410,17 +444,8 @@ func (d *Dense) DivInPlace(other Matrix) Matrix {
 	return d
 }
 
-func (d *Dense) Div(other Matrix) Matrix {
-	//if !(EqualDims(d, other) ||
-	//	(other.Columns() == 1 && other.Rows() == d.Rows()) ||
-	//	(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-	//	panic("mat: matrices with not compatible size")
-	//}
-	out := d.ZerosLike().(*Dense)
-	f64.DivTo(out.data, d.data, other.(*Dense).data)
-	return out
-}
-
+// Mul performs the multiplication row by column. AB = C
+// if A is an r x c Matrix, and B is j X k, c = j the resulting Matrix C will be r x k
 func (d *Dense) Mul(other Matrix) Matrix {
 	if d.Columns() != other.Rows() {
 		panic("mat: matrices with not compatible size")
@@ -492,10 +517,12 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	return out
 }
 
+// MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
+// if A is an r x c Matrix, and B is j x k, r = j the resulting Matrix C will be c x k
 func (d *Dense) MulT(other Matrix) Matrix {
-	//if d.Columns() != other.Rows() {
-	//	panic("mat: matrices with not compatible size")
-	//}
+	if d.Rows() != other.Rows() {
+		panic("mat: matrices with not compatible size")
+	}
 	out := NewEmptyDense(d.Columns(), other.Columns())
 
 	switch b := other.(type) {
@@ -523,11 +550,16 @@ func (d *Dense) MulT(other Matrix) Matrix {
 	return out
 }
 
+// DotUnitary returns the dot product of two vectors.
 func (d *Dense) DotUnitary(other Matrix) float64 {
+	if d.Size() != other.Size() {
+		panic("mat: incompatible sizes.")
+	}
 	return f64.DotUnitary(d.data, other.Data())
 }
 
 // ClipInPlace performs the clip in place.
+// If element k of Matrix if k > max, k = max and if k < min, k = min
 func (d *Dense) ClipInPlace(min, max float64) Matrix {
 	d.Apply(func(i, j int, v float64) float64 {
 		if v < min {
@@ -550,7 +582,7 @@ func (d *Dense) Abs() Matrix {
 	return out
 }
 
-// Pow returns a new matrix applying the pow function to all elements.
+// Pow returns a new matrix applying the power v (applying the pow function) to all elements.
 func (d *Dense) Pow(power float64) Matrix {
 	out := d.Clone().(*Dense)
 	out.Apply(func(i, j int, v float64) float64 {
@@ -607,23 +639,18 @@ func (d *Dense) Min() float64 {
 	return min
 }
 
-// start (inclusive) end (exclusive)
-// TODO
+// Range extracts data from the the Matrix from elements start (inclusive) and end (exclusive).
 func (d *Dense) Range(start, end int) Matrix {
 	data := make([]float64, end-start)
 	for k := 0; k < end-start; k++ {
-		data[k] = d.At(start + k)
+		data[k] = d.data[start+k]
 	}
 	return NewVecDense(data)
 }
 
+// SplitV extract N vectors from the matrix d.
+// N[i] has size sizes[i].
 func (d *Dense) SplitV(sizes ...int) []Matrix {
-	//if d.Columns() != 1 {
-	//	panic("mat: required vector, found matrix.")
-	//}
-	//if d.Size() != SumInt(sizes) {
-	//	panic("mat: incompatible split sizes.")
-	//}
 	out := make([]Matrix, len(sizes))
 	offset := 0
 	for i := 0; i < len(sizes); i++ {
@@ -643,11 +670,11 @@ func (d *Dense) Norm(pow float64) float64 {
 	return math.Pow(s, 1/pow)
 }
 
-// Maximum returns a new matrix containing the element-wise max values.
+// Maximum returns a new matrix containing the element-wise maxima.
 func (d *Dense) Maximum(other Matrix) *Dense {
-	//if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
-	//	panic("mat: matrix with not compatible size")
-	//}
+	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
+		panic("mat: matrix with not compatible size")
+	}
 	out := NewEmptyDense(d.rows, d.cols)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
@@ -663,12 +690,12 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 	return out
 }
 
-// Pivoting returns the partial pivots of a square matrix to reorder rows.
-// Considerate square sub-matrix from element (offset, offset).
+// Return the partial pivots of a square matrix to reorder rows.
+//Considerate square sub-matrix from element (offset, offset)
 func (d *Dense) Pivoting(row int) (Matrix, bool) {
-	//if d.Columns() != d.Rows() {
-	//	panic("mat: matrix with not compatible size")
-	//}
+	if d.Columns() != d.Rows() {
+		panic("mat: matrix must be square")
+	}
 	pv := make([]int, d.cols)
 	for i := range pv {
 		pv[i] = i
@@ -705,9 +732,9 @@ func I(size int) *Dense {
 
 // LU performs lower–upper (LU) decomposition of a square matrix D such as PLU = D, L is lower diagonal and U is upper diagonal, p are pivots.
 func (d *Dense) LU() (l, u, p *Dense) {
-	//if d.Columns() != d.Rows() {
-	//	panic("mat: matrix with not compatible size")
-	//}
+	if d.Columns() != d.Rows() {
+		panic("mat: matrix must be square")
+	}
 	u = d.Clone().(*Dense)
 	p = I(d.cols)
 	l = NewEmptyDense(d.cols, d.cols)
@@ -733,6 +760,9 @@ func (d *Dense) LU() (l, u, p *Dense) {
 
 // Inverse returns the inverse of the matrix.
 func (d Dense) Inverse() Matrix {
+	if d.Columns() != d.Rows() {
+		panic("mat: matrix must be square")
+	}
 	out := NewEmptyDense(d.cols, d.cols)
 	s := NewEmptyDense(d.cols, d.cols)
 	l, u, p := d.LU()
