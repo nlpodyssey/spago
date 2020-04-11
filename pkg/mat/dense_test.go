@@ -853,6 +853,24 @@ func TestDense_Inverse(t *testing.T) {
 	}
 }
 
+func TestDense_Augment(t *testing.T) {
+	a := NewDense(3, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+	})
+
+	b := a.Augment()
+
+	if !floats.EqualApprox(b.Data(), []float64{
+		0.1, 0.2, 0.3, 1.0, 0.0, 0.0,
+		0.4, 0.5, -0.6, 0.0, 1.0, 0.0,
+		-0.5, 0.8, -0.8, 0.0, 0.0, 1.0,
+	}, 1.0e-6) {
+		t.Error("The data doesn't match the expected values")
+	}
+}
+
 func TestDense_Maximum(t *testing.T) {
 	a := NewDense(4, 3, []float64{
 		0.1, 0.2, 0.3,

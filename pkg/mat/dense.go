@@ -714,6 +714,21 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 	return out
 }
 
+// Augment places the identity matrix at the end of the original matrix
+func (d *Dense) Augment() Matrix {
+	if d.Columns() != d.Rows() {
+		panic("mat: matrix must be square")
+	}
+	out := NewEmptyDense(d.rows, d.rows+d.cols)
+	for i := 0; i < d.rows; i++ {
+		for j := 0; j < d.cols; j++ {
+			out.Set(i, j, d.At(i, j))
+		}
+		out.Set(i, i+d.rows, 1.0)
+	}
+	return out
+}
+
 // Return the partial pivots of a square matrix to reorder rows.
 //Considerate square sub-matrix from element (offset, offset)
 func (d *Dense) Pivoting(row int) (Matrix, bool) {
