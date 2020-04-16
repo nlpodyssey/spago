@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-type Variable struct {
+type variable struct {
 	graph        *Graph
 	id           int64
 	value        mat.Matrix // store the results of a forward evaluation.
@@ -20,38 +20,38 @@ type Variable struct {
 }
 
 // Id returns the id of the node in the graph.
-func (r *Variable) Id() int64 {
+func (r *variable) Id() int64 {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Variable) Graph() *Graph {
+func (r *variable) Graph() *Graph {
 	return r.graph
 }
 
 // Value returns the value of the variable itself.
-func (r *Variable) Value() mat.Matrix {
+func (r *variable) Value() mat.Matrix {
 	return r.value
 }
 
-func (r *Variable) ChangeValue(value mat.Matrix) {
+func (r *variable) ChangeValue(value mat.Matrix) {
 	r.value = value
 }
 
 // ScalarValue() returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Variable) ScalarValue() float64 {
+func (r *variable) ScalarValue() float64 {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Variable) Grad() mat.Matrix {
+func (r *variable) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *Variable) PropagateGrad(grad mat.Matrix) {
+func (r *variable) PropagateGrad(grad mat.Matrix) {
 	if r.requiresGrad {
 		r.mu.Lock()
 		defer r.mu.Unlock()
@@ -64,17 +64,17 @@ func (r *Variable) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Variable) HasGrad() bool {
+func (r *variable) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Variable) RequiresGrad() bool {
+func (r *variable) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *Variable) ZeroGrad() {
+func (r *variable) ZeroGrad() {
 	if r.hasGrad {
 		r.grad.Zeros()
 		r.hasGrad = false

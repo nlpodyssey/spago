@@ -6,7 +6,7 @@ package ag
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
-type Wrapper struct {
+type wrapper struct {
 	GradValue
 	graph    *Graph
 	id       int64
@@ -14,17 +14,17 @@ type Wrapper struct {
 }
 
 // Id returns the id of the node in the graph.
-func (r *Wrapper) Id() int64 {
+func (r *wrapper) Id() int64 {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Wrapper) Graph() *Graph {
+func (r *wrapper) Graph() *Graph {
 	return r.graph
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Wrapper) Grad() mat.Matrix {
+func (r *wrapper) Grad() mat.Matrix {
 	if r.wrapGrad {
 		return r.GradValue.Grad()
 	} else {
@@ -33,14 +33,14 @@ func (r *Wrapper) Grad() mat.Matrix {
 }
 
 // PropagateGrad propagates the gradients to the node.
-func (r *Wrapper) PropagateGrad(gx mat.Matrix) {
+func (r *wrapper) PropagateGrad(gx mat.Matrix) {
 	if r.wrapGrad {
 		r.GradValue.PropagateGrad(gx)
 	}
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Wrapper) HasGrad() bool {
+func (r *wrapper) HasGrad() bool {
 	if r.wrapGrad {
 		return r.GradValue.HasGrad()
 	} else {
@@ -49,7 +49,7 @@ func (r *Wrapper) HasGrad() bool {
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Wrapper) RequiresGrad() bool {
+func (r *wrapper) RequiresGrad() bool {
 	if r.wrapGrad {
 		return r.GradValue.RequiresGrad()
 	} else {
@@ -58,7 +58,7 @@ func (r *Wrapper) RequiresGrad() bool {
 }
 
 // ZeroGrad set the gradients to zeros.
-func (r *Wrapper) ZeroGrad() {
+func (r *wrapper) ZeroGrad() {
 	if r.wrapGrad {
 		r.GradValue.ZeroGrad()
 	}

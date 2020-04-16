@@ -67,11 +67,11 @@ func (g *Graph) Reset() {
 }
 
 // NewVariable creates e returns a new node.
-func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) *Variable {
+func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newId := g.newId()
-	newNode := &Variable{
+	newNode := &variable{
 		graph:        g,
 		id:           newId,
 		value:        value,
@@ -89,13 +89,13 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) *Variable {
 }
 
 // NewScalar creates a variable node that doesn't require gradients
-func (g *Graph) NewScalar(value float64) *Variable {
+func (g *Graph) NewScalar(value float64) Node {
 	return g.NewVariable(mat.NewScalar(value), false)
 }
 
 // NewOperator creates a new operator along with its forward pass.
 // Please note that operations must be performed among nodes belonging to the same graph; it panics otherwise.
-func (g *Graph) NewOperator(f fn.Function, operands ...Node) *Operator {
+func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	for _, o := range operands {
 		if o.Graph() != g {
 			panic("ag: operations cannot be executed among nodes of different graphs. " +
@@ -106,7 +106,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) *Operator {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newId := g.newId()
-	newNode := &Operator{
+	newNode := &operator{
 		graph:        g,
 		id:           newId,
 		function:     f,
@@ -139,11 +139,11 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) *Operator {
 	return newNode
 }
 
-func (g *Graph) NewWrap(value GradValue) *Wrapper {
+func (g *Graph) NewWrap(value GradValue) *wrapper {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newId := g.newId()
-	newNode := &Wrapper{
+	newNode := &wrapper{
 		GradValue: value,
 		graph:     g,
 		id:        newId,
@@ -158,11 +158,11 @@ func (g *Graph) NewWrap(value GradValue) *Wrapper {
 	return newNode
 }
 
-func (g *Graph) NewWrapNoGrad(value GradValue) *Wrapper {
+func (g *Graph) NewWrapNoGrad(value GradValue) *wrapper {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newId := g.newId()
-	newNode := &Wrapper{
+	newNode := &wrapper{
 		GradValue: value,
 		graph:     g,
 		id:        newId,
@@ -186,7 +186,7 @@ func (g *Graph) ForwardAll() {
 			go func(x Node) {
 				defer wg.Done()
 				x.ZeroGrad()
-				if x, ok := x.(*Operator); ok {
+				if x, ok := x.(*operator); ok {
 					x.value = x.function.Forward()
 				}
 			}(n)
@@ -218,7 +218,7 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		for _, n := range ns {
 			go func(x Node) {
 				defer wg.Done()
-				if x, ok := x.(*Operator); ok {
+				if x, ok := x.(*operator); ok {
 					x.backward()
 				}
 			}(n)
@@ -230,7 +230,7 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 func (g *Graph) BackwardAll() {
 	for _, ns := range g.groupNodesByDepth() {
 		for _, n := range ns {
-			if n, ok := n.(*Operator); ok {
+			if n, ok := n.(*operator); ok {
 				n.backward()
 			}
 		}

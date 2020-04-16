@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-type Operator struct {
+type operator struct {
 	graph        *Graph
 	id           int64
 	function     fn.Function
@@ -22,34 +22,34 @@ type Operator struct {
 }
 
 // Id returns the id of the node in the graph.
-func (r *Operator) Id() int64 {
+func (r *operator) Id() int64 {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Operator) Graph() *Graph {
+func (r *operator) Graph() *Graph {
 	return r.graph
 }
 
 // Value returns the cached result of the function.
-func (r *Operator) Value() mat.Matrix {
+func (r *operator) Value() mat.Matrix {
 	return r.value
 }
 
 // ScalarValue() returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Operator) ScalarValue() float64 {
+func (r *operator) ScalarValue() float64 {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Operator) Grad() mat.Matrix {
+func (r *operator) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *Operator) PropagateGrad(grad mat.Matrix) {
+func (r *operator) PropagateGrad(grad mat.Matrix) {
 	if r.requiresGrad {
 		r.mu.Lock()
 		defer r.mu.Unlock()
@@ -62,17 +62,17 @@ func (r *Operator) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Operator) HasGrad() bool {
+func (r *operator) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Operator) RequiresGrad() bool {
+func (r *operator) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *Operator) ZeroGrad() {
+func (r *operator) ZeroGrad() {
 	if r.hasGrad {
 		r.grad.Zeros()
 		r.hasGrad = false
@@ -81,7 +81,7 @@ func (r *Operator) ZeroGrad() {
 	}
 }
 
-func (r *Operator) backward() {
+func (r *operator) backward() {
 	if r.HasGrad() {
 		r.function.Backward(r.grad)
 	}
