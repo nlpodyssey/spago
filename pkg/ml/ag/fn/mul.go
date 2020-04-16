@@ -19,11 +19,17 @@ func NewMul(x1, x2 Operand) *Mul {
 
 // Forward computes the output of the function.
 func (r *Mul) Forward() mat.Matrix {
+	if r.x1.Value().Columns() != r.x2.Value().Rows() {
+		panic("fn: matrices with not compatible size")
+	}
 	return r.x1.Value().Mul(r.x2.Value())
 }
 
 // TODO: backward of sparse gradients
 func (r *Mul) Backward(gy mat.Matrix) {
+	if r.x1.Value().Rows() != gy.Rows() && r.x2.Value().Columns() != gy.Columns() {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x1.RequiresGrad() {
 		r.x1.PropagateGrad(gy.Mul(r.x2.Value().T()))
 	}

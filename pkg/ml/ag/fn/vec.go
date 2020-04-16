@@ -22,6 +22,9 @@ func (r *Vec) Forward() mat.Matrix {
 }
 
 func (r *Vec) Backward(gy mat.Matrix) {
+	if !(gy.IsVector() && mat.SameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		r.x.PropagateGrad(gy.Reshape(r.x.Value().Dims()))
 	}

@@ -26,6 +26,9 @@ func (r *Softmax) Forward() mat.Matrix {
 }
 
 func (r *Softmax) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		n := r.y.Size()
 		jb := mat.NewEmptyDense(n, n)

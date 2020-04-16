@@ -25,6 +25,9 @@ func (r *AddScalar) Forward() mat.Matrix {
 }
 
 func (r *AddScalar) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x1.RequiresGrad() {
 		r.x1.PropagateGrad(gy)
 	}

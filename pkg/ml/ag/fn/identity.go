@@ -22,5 +22,8 @@ func (r *Identity) Forward() mat.Matrix {
 }
 
 func (r *Identity) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	r.x.PropagateGrad(gy)
 }

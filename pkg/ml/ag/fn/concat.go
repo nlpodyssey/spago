@@ -9,23 +9,33 @@ import (
 )
 
 type Concat struct {
-	xs []Operand
+	xs    []Operand
+	ySize int
 }
 
 func NewConcat(xs []Operand) *Concat {
-	return &Concat{xs: xs}
+	return &Concat{
+		xs:    xs,
+		ySize: 0, // assigned during the Forward()
+	}
 }
 
 // Forward computes the output of the function.
 func (r *Concat) Forward() mat.Matrix {
+	r.ySize = 0 // reset output size
 	ms := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
-		ms[i] = x.Value()
+		value := x.Value()
+		ms[i] = value
+		r.ySize += value.Size()
 	}
 	return mat.ConcatV(ms...)
 }
 
 func (r *Concat) Backward(gy mat.Matrix) {
+	if r.ySize != gy.Size() {
+		panic("fn: vectors with not compatible size")
+	}
 	sizes := make([]int, len(r.xs))
 	for i, x := range r.xs {
 		sizes[i] = x.Value().Size()

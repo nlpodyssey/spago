@@ -13,19 +13,30 @@ type ColView struct {
 
 // Extract the i-th column from the input matrix
 func NewColView(x Operand, i int) *ColView {
+	if i < 0 {
+		panic("fn: invalid column index")
+	}
 	return &ColView{x: x, i: i}
 }
 
 // Forward computes the output of the function.
 func (r *ColView) Forward() mat.Matrix {
-	y := mat.NewEmptyDense(1, r.x.Value().Rows())
-	for i := 0; i < r.x.Value().Rows(); i++ {
-		y.Set(0, i, r.x.Value().At(i, r.i))
+	xv := r.x.Value()
+	rows, cols := xv.Dims()
+	if r.i >= cols {
+		panic("fn: matrix with not compatible size")
+	}
+	y := mat.NewEmptyDense(1, rows)
+	for i := 0; i < rows; i++ {
+		y.Set(0, i, xv.At(i, r.i))
 	}
 	return y
 }
 
 func (r *ColView) Backward(gy mat.Matrix) {
+	if !(r.x.Value().Rows() == gy.Size()) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		gx := mat.NewEmptyDense(r.x.Value().Dims())
 		for i := 0; i < r.x.Value().Rows(); i++ {

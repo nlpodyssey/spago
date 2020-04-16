@@ -19,6 +19,11 @@ func NewDot(x1, x2 Operand) *Dot {
 
 // Forward computes the output of the function.
 func (r *Dot) Forward() mat.Matrix {
+	x1v := r.x1.Value()
+	x2v := r.x2.Value()
+	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+		panic("fn: matrices with not compatible size")
+	}
 	y := 0.0
 	if r.x1.Value().IsVector() && r.x2.Value().IsVector() {
 		y = r.x1.Value().DotUnitary(r.x2.Value())
@@ -33,6 +38,9 @@ func (r *Dot) Forward() mat.Matrix {
 }
 
 func (r *Dot) Backward(gy mat.Matrix) {
+	if !gy.IsScalar() {
+		panic("fn: the gradient had to be a scalar")
+	}
 	if r.x1.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x1.Value().Dims())
 		for i := 0; i < r.x1.Value().Rows(); i++ {

@@ -23,6 +23,9 @@ func (r *ReduceSum) Forward() mat.Matrix {
 }
 
 func (r *ReduceSum) Backward(gy mat.Matrix) {
+	if !gy.IsScalar() {
+		panic("fn: the gradient had to be a scalar")
+	}
 	if r.x.RequiresGrad() {
 		r.x.PropagateGrad(mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()))
 	}

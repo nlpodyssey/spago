@@ -40,6 +40,9 @@ func (r *Dropout) Forward() mat.Matrix {
 }
 
 func (r *Dropout) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		r.x.PropagateGrad(gy.Prod(r.mask))
 	}

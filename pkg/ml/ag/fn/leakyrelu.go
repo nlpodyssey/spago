@@ -26,6 +26,9 @@ func (r *LeakyReLU) Forward() mat.Matrix {
 }
 
 func (r *LeakyReLU) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		gx.ApplyWithAlpha(leakyReLUDeriv, r.x.Value(), r.alpha.Value().Scalar())

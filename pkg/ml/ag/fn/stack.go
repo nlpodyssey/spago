@@ -28,9 +28,15 @@ func (r *Stack) Forward() mat.Matrix {
 }
 
 func (r *Stack) Backward(gy mat.Matrix) {
+	if gy.Rows() != len(r.xs) {
+		panic("fn: matrices with not compatible size")
+	}
 	sizes := make([]int, len(r.xs))
 	for i, x := range r.xs {
 		sizes[i] = x.Value().Size()
+		if !(sizes[i] == gy.Columns()) {
+			panic("fn: matrices with not compatible size")
+		}
 	}
 	for i, gx := range gy.(*mat.Dense).SplitV(sizes...) {
 		if r.xs[i].RequiresGrad() {

@@ -22,6 +22,9 @@ func (r *Transpose) Forward() mat.Matrix {
 }
 
 func (r *Transpose) Backward(gy mat.Matrix) {
+	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		r.x.PropagateGrad(gy.T())
 	}

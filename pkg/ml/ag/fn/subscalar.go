@@ -24,6 +24,9 @@ func (r *SubScalar) Forward() mat.Matrix {
 }
 
 func (r *SubScalar) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x1.RequiresGrad() {
 		r.x1.PropagateGrad(gy) // equals to gy.ProdScalar(1.0)
 	}

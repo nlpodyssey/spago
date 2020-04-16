@@ -24,10 +24,21 @@ func NewSquare(x Operand) *Prod {
 
 // Forward computes the output of the node.
 func (r *Prod) Forward() mat.Matrix {
-	return r.x1.Value().Prod(r.x2.Value())
+	x1v := r.x1.Value()
+	x2v := r.x2.Value()
+	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+		panic("fn: matrices with not compatible size")
+	}
+	return x1v.Prod(x2v)
 }
 
 func (r *Prod) Backward(gy mat.Matrix) {
+	x1v := r.x1.Value()
+	x2v := r.x2.Value()
+	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&
+		!(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x1.RequiresGrad() {
 		r.x1.PropagateGrad(r.x2.Value().Prod(gy))
 	}

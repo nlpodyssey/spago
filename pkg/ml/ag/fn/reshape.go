@@ -20,10 +20,16 @@ func NewReshape(x Operand, r, c int) *Reshape {
 
 // Forward computes the output of the node.
 func (r *Reshape) Forward() mat.Matrix {
+	if r.x.Value().Size() != r.rows*r.cols {
+		panic("fn: incompatible sizes")
+	}
 	return r.x.Value().Reshape(r.rows, r.cols)
 }
 
 func (r *Reshape) Backward(gy mat.Matrix) {
+	if gy.Columns() != r.cols && gy.Rows() != r.rows {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		r.x.PropagateGrad(gy.Reshape(r.x.Value().Dims()))
 	}

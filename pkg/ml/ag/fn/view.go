@@ -32,6 +32,9 @@ func (r *View) Forward() mat.Matrix {
 }
 
 func (r *View) Backward(gy mat.Matrix) {
+	if !(gy.Rows() == r.lx && gy.Columns() == r.ly) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		gx := mat.NewEmptyDense(r.x.Value().Dims())
 		for i := 0; i < r.lx; i++ {

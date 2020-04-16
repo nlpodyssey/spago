@@ -26,6 +26,9 @@ func (r *SoftShrink) Forward() mat.Matrix {
 }
 
 func (r *SoftShrink) Backward(gy mat.Matrix) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+		panic("fn: matrices with not compatible size")
+	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		gx.ApplyWithAlpha(softShrinkDeriv, r.x.Value(), r.lambda.Value().Scalar())

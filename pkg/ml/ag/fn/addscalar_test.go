@@ -62,7 +62,7 @@ func TestAddScalar_Forward2(t *testing.T) {
 		t.Error("The output doesn't match the expected values")
 	}
 
-	f.Backward(mat.NewVecDense([]float64{
+	f.Backward(mat.NewDense(3, 4, []float64{
 		-1.0, 0.5, 0.8, 0.0,
 		1.0, 0.3, 0.6, 0.0,
 		1.0, -0.5, -0.3, 0.0,
