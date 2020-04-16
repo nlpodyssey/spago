@@ -135,7 +135,7 @@ func (d *Dense) Clone() Matrix {
 
 // Copy copies the data to the receiver.
 func (d *Dense) Copy(other Matrix) {
-	if !EqualDims(d, other) {
+	if !SameDims(d, other) {
 		panic("mat: incompatible matrix dimensions.")
 	}
 	if other, ok := other.(*Dense); !ok {
@@ -309,7 +309,7 @@ func (d *Dense) Reshape(r, c int) Matrix {
 
 // ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
 func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64) {
-	if !EqualDims(d, a) {
+	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
 	}
 	for i := 0; i < d.rows; i++ {
@@ -321,7 +321,7 @@ func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) fl
 
 // Apply execute the unary function fn.
 func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
-	if !EqualDims(d, a) {
+	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
 	}
 	for i := 0; i < d.rows; i++ {
@@ -380,7 +380,7 @@ func (d *Dense) ProdScalar(n float64) Matrix {
 
 // Add returns the addition with a matrix with the receiver.
 func (d *Dense) Add(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -393,7 +393,7 @@ func (d *Dense) Add(other Matrix) Matrix {
 
 // AddInPlace performs the addition with the other matrix in place.
 func (d *Dense) AddInPlace(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -405,7 +405,7 @@ func (d *Dense) AddInPlace(other Matrix) Matrix {
 
 // Sub returns the subtraction with a matrix with the receiver.
 func (d *Dense) Sub(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -418,7 +418,7 @@ func (d *Dense) Sub(other Matrix) Matrix {
 
 // SubInPlace performs the subtraction with the other matrix in place.
 func (d *Dense) SubInPlace(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -436,7 +436,7 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 
 // Prod performs the element-wise product with the receiver.
 func (d *Dense) Prod(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -451,7 +451,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 
 // ProdInPlace performs the element-wise product with the receiver in place.
 func (d *Dense) ProdInPlace(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -465,7 +465,7 @@ func (d *Dense) ProdInPlace(other Matrix) Matrix {
 
 // Div returns the result of the element-wise division.
 func (d *Dense) Div(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
@@ -477,7 +477,7 @@ func (d *Dense) Div(other Matrix) Matrix {
 
 // Div performs the result of the element-wise division in place.
 func (d *Dense) DivInPlace(other Matrix) Matrix {
-	if !(EqualDims(d, other) ||
+	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")

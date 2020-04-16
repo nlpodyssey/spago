@@ -9,7 +9,7 @@ import (
 	"math"
 )
 
-func EqualDims(a, b Matrix) bool {
+func SameDims(a, b Matrix) bool {
 	r, c := a.Dims()
 	r2, c2 := b.Dims()
 	return r == r2 && c == c2
