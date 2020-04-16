@@ -19,6 +19,10 @@ func SameSize(a, b Matrix) bool {
 	return a.Size() == b.Size()
 }
 
+func VectorsOfSameSize(a, b Matrix) bool {
+	return SameSize(a, b) && a.IsVector() && b.IsVector()
+}
+
 func Sqrt(m Matrix) Matrix {
 	buf := m.ZerosLike()
 	buf.Apply(func(i, j int, v float64) float64 {
