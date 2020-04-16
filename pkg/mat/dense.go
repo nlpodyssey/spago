@@ -750,8 +750,25 @@ func (d *Dense) Augment() Matrix {
 	return out
 }
 
+// SwapInPlace swaps two rows of the matrix in place
+func (d Dense) SwapInPlace(r1, r2 int) {
+	if d.IsVector() {
+		panic("mat: input must be a matrix")
+	}
+	if r1 >= d.rows || r2 >= d.rows {
+		panic("mat: index out of range")
+	}
+	temp := NewVecDense(d.ExtractRow(r1).Data())
+	for j := 0; j < d.cols; j++ {
+		d.data[r1*d.cols+j] = d.data[r2*d.cols+j]
+	}
+	for j := 0; j < d.cols; j++ {
+		d.data[r2*d.cols+j] = temp.data[j]
+	}
+}
+
 // Return the partial pivots of a square matrix to reorder rows.
-//Considerate square sub-matrix from element (offset, offset)
+// Considerate square sub-matrix from element (offset, offset).
 func (d *Dense) Pivoting(row int) (Matrix, bool) {
 	if d.Columns() != d.Rows() {
 		panic("mat: matrix must be square")

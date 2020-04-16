@@ -871,6 +871,25 @@ func TestDense_Augment(t *testing.T) {
 	}
 }
 
+func TestDense_SwapInPlace(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+	a.SwapInPlace(3, 2)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-3, -0.3, -0.4,
+		-0.5, 0.8, -0.8,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
 func TestDense_Maximum(t *testing.T) {
 	a := NewDense(4, 3, []float64{
 		0.1, 0.2, 0.3,
