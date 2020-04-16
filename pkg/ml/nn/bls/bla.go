@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"log"
 )
 
 // BroadLearningAlgorithm performs the ridge regression approximation to optimize the output params (Wo).
@@ -19,21 +20,25 @@ type BroadLearningAlgorithm struct {
 	Input                  []mat.Matrix
 	DesiredOutput          []mat.Matrix
 	Penalty                float64
-	OptimizeFeaturesWeight bool
+	OptimizeFeaturesWeight bool // skip optimization if you don't want to
+	Verbose                bool
 }
 
 func (l *BroadLearningAlgorithm) Do() {
-	l.optimizeFeaturesWeight()
+	if l.OptimizeFeaturesWeight {
+		l.log("Optimizing features weights...")
+		l.optimizeFeaturesWeight()
+	}
+	l.log("Collecting features and enhanced nodes...")
 	zh := mat.ConcatH(l.zhs()...)
 	y := mat.ConcatH(l.DesiredOutput...)
+	l.log("Performing ridge regression. It will take a while...")
 	w := ridgeRegression(zh, y, l.Penalty)
 	l.updateOutputWeights(w)
+	l.log("All right, the model is served.")
 }
 
 func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
-	if !l.OptimizeFeaturesWeight {
-		return // skip optimization if you don't want to
-	}
 	featuresMap := make([][]mat.Matrix, l.Model.NumOfFeatures)
 	for _, x := range l.Input {
 		g := ag.NewGraph()
@@ -64,6 +69,12 @@ func (l *BroadLearningAlgorithm) zhs() []mat.Matrix {
 
 func (l *BroadLearningAlgorithm) updateOutputWeights(w mat.Matrix) {
 	l.Model.W.Value().SetData(w.T().Data())
+}
+
+func (l *BroadLearningAlgorithm) log(message string) {
+	if l.Verbose {
+		log.Println(message)
+	}
 }
 
 func singleZH(p *Processor, x ag.Node) *mat.Dense {
