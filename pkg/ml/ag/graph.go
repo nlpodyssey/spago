@@ -94,7 +94,14 @@ func (g *Graph) NewScalar(value float64) *Variable {
 }
 
 // NewOperator creates a new operator along with its forward pass.
+// Please note that operations must be performed among nodes belonging to the same graph; it panics otherwise.
 func (g *Graph) NewOperator(f fn.Function, operands ...Node) *Operator {
+	for _, o := range operands {
+		if o.Graph() != g {
+			panic("ag: operations cannot be executed among nodes of different graphs. " +
+				"You may consider wrapping the nodes you need with NewWrap().")
+		}
+	}
 	value := f.Forward() // the calculation can be concurrent
 	g.mu.Lock()
 	defer g.mu.Unlock()
