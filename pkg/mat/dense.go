@@ -769,11 +769,12 @@ func (d Dense) SwapInPlace(r1, r2 int) {
 
 // Return the partial pivots of a square matrix to reorder rows.
 // Considerate square sub-matrix from element (offset, offset).
-func (d *Dense) Pivoting(row int) (Matrix, bool) {
+func (d *Dense) Pivoting(row int) (Matrix, bool, []int) {
 	if d.Columns() != d.Rows() {
 		panic("mat: matrix must be square")
 	}
 	pv := make([]int, d.cols)
+	positions := make([]int, 2)
 	for i := range pv {
 		pv[i] = i
 	}
@@ -789,13 +790,15 @@ func (d *Dense) Pivoting(row int) (Matrix, bool) {
 	if j != row {
 		pv[row], pv[j] = pv[j], pv[row]
 		swap = true
+		positions[0] = row
+		positions[1] = j
 	}
 
 	p := NewEmptyDense(d.cols, d.cols)
 	for r, c := range pv {
 		p.data[r*d.cols+c] = 1
 	}
-	return p, swap
+	return p, swap, positions
 }
 
 // I a.k.a identity returns square matrix with ones on the diagonal and zeros elsewhere.
@@ -816,11 +819,11 @@ func (d *Dense) LU() (l, u, p *Dense) {
 	p = I(d.cols)
 	l = NewEmptyDense(d.cols, d.cols)
 	for i := 0; i < d.cols; i++ {
-		permutation, swap := u.Pivoting(i)
+		_, swap, positions := u.Pivoting(i)
 		if swap {
-			u = permutation.Mul(u).(*Dense)
-			p = permutation.Mul(p).(*Dense)
-			l = permutation.Mul(l).(*Dense)
+			u.SwapInPlace(positions[0], positions[1])
+			p.SwapInPlace(positions[0], positions[1])
+			l.SwapInPlace(positions[0], positions[1])
 		}
 		lt := I(d.cols)
 		for k := i + 1; k < d.cols; k++ {

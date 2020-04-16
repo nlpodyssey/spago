@@ -6,6 +6,7 @@ package mat
 
 import (
 	"gonum.org/v1/gonum/floats"
+	"reflect"
 	"testing"
 )
 
@@ -686,7 +687,7 @@ func TestDense_Pivoting(t *testing.T) {
 		2, 5, 18, 1,
 	})
 
-	b, s := a.Pivoting(0)
+	b, s, positions := a.Pivoting(0)
 
 	if !floats.EqualApprox(b.Data(), []float64{
 		1.0, 0.0, 0.0, 0.0,
@@ -699,8 +700,11 @@ func TestDense_Pivoting(t *testing.T) {
 	if s {
 		t.Error("The flag doesn't match the expected values")
 	}
+	if !(reflect.DeepEqual(positions, []int{0, 0})) {
+		t.Error("The data doesn't match the expected values")
+	}
 
-	c, s := n.Pivoting(2)
+	c, s, positions := n.Pivoting(2)
 
 	if !floats.EqualApprox(c.Data(), []float64{
 		1.0, 0.0, 0.0, 0.0,
@@ -713,8 +717,11 @@ func TestDense_Pivoting(t *testing.T) {
 	if !s {
 		t.Error("The flag doesn't match the expected values")
 	}
+	if !(reflect.DeepEqual(positions, []int{3, 2})) {
+		t.Error("The data doesn't match the expected values")
+	}
 
-	d, s := a.Pivoting(1)
+	d, s, positions := a.Pivoting(1)
 
 	if !floats.EqualApprox(d.Data(), []float64{
 		1.0, 0.0, 0.0, 0.0,
@@ -726,6 +733,9 @@ func TestDense_Pivoting(t *testing.T) {
 	}
 	if !s {
 		t.Error("The flag doesn't match the expected values")
+	}
+	if !(reflect.DeepEqual(positions, []int{2, 1})) {
+		t.Error("The data doesn't match the expected values")
 	}
 }
 
