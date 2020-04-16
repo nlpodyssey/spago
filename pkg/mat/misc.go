@@ -15,6 +15,10 @@ func SameDims(a, b Matrix) bool {
 	return r == r2 && c == c2
 }
 
+func SameSize(a, b Matrix) bool {
+	return a.Size() == b.Size()
+}
+
 func Sqrt(m Matrix) Matrix {
 	buf := m.ZerosLike()
 	buf.Apply(func(i, j int, v float64) float64 {
