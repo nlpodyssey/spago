@@ -4,10 +4,10 @@ spaGO
 
 spaGO is a machine learning lightweight open-source library written in Go designed to support relevant neural network architectures in natural language processing tasks.
 
-Are you looking for a highly optimized, scalable, battle-tested production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
+Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
 
 If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
-The idea is that you could have written spaGO. Most of it, from the computational graph to the LSTM is straightforward Go code :)
+The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
 
 ### Note
 
