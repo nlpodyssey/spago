@@ -930,16 +930,135 @@ func TestDense_ExtractColumn(t *testing.T) {
 	}
 }
 
-/*
-TODO:
-    Range(start, end int) Matrix
-    SplitV(sizes ...int) []Matrix
-    SumInt(v []int) (s int)
-    Set(i int, j int, v float64)
-    At(i int, j int) float64
-	SetVec(i int, v float64)
-    AtVec(i int) float64
-    Apply(fn func(i, j int, v float64) float64, a Matrix)
-    ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64)
-    Sqrt() Matrix
-*/
+func TestDense_Range(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+
+	c := a.Range(3, 6)
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		0.4, 0.5, -0.6,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_SplitV(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+	c := a.SplitV(3, 3, 3)
+
+	if !floats.EqualApprox(c[0].Data(), []float64{
+		0.1, 0.2, 0.3,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+	if !floats.EqualApprox(c[1].Data(), []float64{
+		0.4, 0.5, -0.6,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+	if !floats.EqualApprox(c[2].Data(), []float64{
+		-0.5, 0.8, -0.8,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_At(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+	v := a.At(3, 2)
+
+	if !(v == -0.4) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_Set(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+	a.Set(3, 2, 3.0)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, 3.0,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_AtVec(t *testing.T) {
+	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+	v := a.AtVec(2)
+
+	if !(v == 0.3) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_SetVec(t *testing.T) {
+	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+	a.SetVec(3, 3.0)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		0.1, 0.2, 0.3, 3.0,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_Sqrt(t *testing.T) {
+	a := NewVecDense([]float64{1.0, 2.0, 4.0, 0.0})
+	c := a.Sqrt()
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		1.0, 1.414213, 2.0, 0.0,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_Apply(t *testing.T) {
+	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+	a.Apply(func(i, j int, v float64) float64 {
+		return -3.0 * (v / 2.0) // the equation is completely arbitrary
+	}, a)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		-0.15, -0.3, -0.45, 0.0,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
+func TestDense_ApplyWithAlpha(t *testing.T) {
+	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+	a.ApplyWithAlpha(func(i, j int, v float64, alpha ...float64) float64 {
+		return -3.0*(v/2.0) + alpha[0] // the equation is completely arbitrary
+	}, a, 2.0)
+
+	if !floats.EqualApprox(a.Data(), []float64{
+		1.85, 1.7, 1.55, 2.0,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
