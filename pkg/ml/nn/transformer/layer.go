@@ -5,11 +5,11 @@
 package transformer
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/scalenorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
@@ -22,22 +22,32 @@ var _ nn.Model = &Layer{}
 // and the second  a.k.a. intermediate layer is position-wise fully connected feed-forward network.
 // Each of the two sub-layers uses pre-norm residual connections (Toan Q. Nguyen and Julian Salazar, 2019).
 type Layer struct {
-	MultiHeadAttention *multiheadattention.Model
-	Norm1              *scalenorm.Model
-	FFN                *stack.Model
-	Norm2              *scalenorm.Model
-	positionalEncoder  *pe.PositionalEncoder
-	depth              int
+	MultiHeadAttention    *multiheadattention.Model
+	FFN                   *stack.Model
+	ResidualWeight        *nn.Param `type:"weights"`
+	positionalEncoder     *pe.PositionalEncoder
+	depth                 int
+	useDepthEncoding      bool
+	usePositionalEncoding bool
 }
 
-func NewLayer(size, numAttentionHeads int, intermediateSize int, intermediateActivation ag.OpName, depth int) *Layer {
+func NewLayer(
+	size int,
+	numAttentionHeads,
+	intermediateSize int,
+	intermediateActivation ag.OpName,
+	depth int,
+	useDepthEncoding bool,
+	usePositionalEncoding bool,
+) *Layer {
 	return &Layer{
-		MultiHeadAttention: multiheadattention.New(size, numAttentionHeads),
-		Norm1:              scalenorm.New(size),
-		FFN:                newFFN(size, intermediateSize, size, intermediateActivation),
-		Norm2:              scalenorm.New(size),
-		positionalEncoder:  pe.New(size, 5000), // TODO: move from here, it doesn't make sense to init the PE on each layer!
-		depth:              depth,
+		MultiHeadAttention:    multiheadattention.New(size, numAttentionHeads),
+		FFN:                   newFFN(size, intermediateSize, size, intermediateActivation),
+		ResidualWeight:        nn.NewParam(mat.NewScalar(0.0)),
+		positionalEncoder:     pe.New(size, 5000), // TODO: move from here, it doesn't make sense to init the PE on each layer!
+		depth:                 depth,
+		useDepthEncoding:      useDepthEncoding,
+		usePositionalEncoding: usePositionalEncoding,
 	}
 }
 
@@ -68,9 +78,9 @@ type LayerProcessor struct {
 	mode               nn.ProcessingMode
 	g                  *ag.Graph
 	MultiHeadAttention *multiheadattention.Processor
-	Norm1              *scalenorm.Processor
-	MLP                *stack.Processor
-	Norm2              *scalenorm.Processor
+	FFN                *stack.Processor
+	ResidualWeight     ag.Node
+	depthEncoding      ag.Node
 }
 
 func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -80,9 +90,9 @@ func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		opt:                opt,
 		g:                  g,
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		Norm1:              m.Norm1.NewProc(g).(*scalenorm.Processor),
-		MLP:                m.FFN.NewProc(g).(*stack.Processor),
-		Norm2:              m.Norm2.NewProc(g).(*scalenorm.Processor),
+		FFN:                m.FFN.NewProc(g).(*stack.Processor),
+		ResidualWeight:     g.NewWrap(m.ResidualWeight),
+		depthEncoding:      g.NewVariable(m.positionalEncoder.EncodingAt(m.depth), false),
 	}
 	p.init(opt)
 	return p
@@ -102,46 +112,67 @@ func (p *LayerProcessor) Mode() nn.ProcessingMode { return p.mode }
 func (p *LayerProcessor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.MultiHeadAttention.SetMode(mode)
-	p.Norm1.SetMode(mode)
-	p.MLP.SetMode(mode)
-	p.Norm2.SetMode(mode)
+	p.FFN.SetMode(mode)
 }
 
 func (p *LayerProcessor) Reset() { p.init(p.opt) }
 
-// addCoordinateEncoding returns the input enriched with positional and depth encoding.
-// The positional and depth encoding are summed to the input vectors.
-// The depth (a.k.a step) encoding has been introduced in the "Universal Transformers" (https://arxiv.org/pdf/1807.03819.pdf).
-// From there also the idea of including positional encoding in every layer of the transformer.
-func (p *LayerProcessor) addCoordinateEncoding(xs []ag.Node) []ag.Node {
+// addPositionalEncoding returns the input enriched with positional encoding.
+// The positional encoding is summed to the input vectors.
+func (p *LayerProcessor) addPositionalEncoding(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	depthEncoding := p.g.NewVariable(p.model.positionalEncoder.EncodingAt(p.model.depth), false)
 	for pos, x := range xs {
 		ys[pos] = p.g.Add(x, p.g.NewVariable(p.model.positionalEncoder.EncodingAt(pos), false))
-		ys[pos] = p.g.Add(ys[pos], depthEncoding)
+	}
+	return ys
+}
+
+// addDepthEncoding returns the input enriched with depth encoding.
+// The depth encoding is summed to the input vectors.
+// The depth (a.k.a step) encoding has been introduced in the "Universal Transformers" (https://arxiv.org/pdf/1807.03819.pdf).
+func (p *LayerProcessor) addDepthEncoding(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
+	for pos, x := range xs {
+		ys[pos] = p.g.Add(x, p.depthEncoding)
 	}
 	return ys
 }
 
 func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
-	ce := p.addCoordinateEncoding(xs)
-	l1 := p.subLayer1(ce)
-	l2 := p.subLayer2(l1)
-	return l2
+	enhancedInput := p.enhanceInputWithCoordinates(xs)
+	subLayer1 := p.residualConnection(enhancedInput, p.MultiHeadAttention.Forward(enhancedInput...))
+	subLayer2 := p.residualConnection(subLayer1, p.FFN.Forward(subLayer1...))
+	return subLayer2
 }
 
-func (p *LayerProcessor) subLayer1(xs []ag.Node) []ag.Node {
-	return add(p.g, xs, p.MultiHeadAttention.Forward(p.Norm1.Forward(xs...)...))
-}
-
-func (p *LayerProcessor) subLayer2(xs []ag.Node) []ag.Node {
-	return add(p.g, xs, p.MLP.Forward(p.Norm2.Forward(xs...)...))
-}
-
-func add(g *ag.Graph, a, b []ag.Node) []ag.Node {
+// residualConnection follows the strategy describe in "ReZero is All You Need: Fast Convergence at Large Depth" by Bachlechner et al., 2020
+func (p *LayerProcessor) residualConnection(a, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = g.Add(a[i], b[i])
+		c[i] = p.g.Add(a[i], p.g.ProdScalar(b[i], p.ResidualWeight))
 	}
 	return c
+}
+
+// enhanceInputWithCoordinates returns the input nodes optionally enriched with positional and depth encodings.
+func (p *LayerProcessor) enhanceInputWithCoordinates(xs []ag.Node) []ag.Node {
+	return p.useDepthEncoding(p.usePositionalEncoding(xs))
+}
+
+// useDepthEncoding returns the input enriched with depth encoding if required, or the input itself.
+func (p *LayerProcessor) useDepthEncoding(xs []ag.Node) []ag.Node {
+	if p.model.useDepthEncoding {
+		return p.addDepthEncoding(xs)
+	} else {
+		return xs
+	}
+}
+
+// usePositionalEncoding returns the input enriched with positional encoding if required, or the input itself.
+func (p *LayerProcessor) usePositionalEncoding(xs []ag.Node) []ag.Node {
+	if p.model.usePositionalEncoding {
+		return p.addPositionalEncoding(xs)
+	} else {
+		return xs
+	}
 }

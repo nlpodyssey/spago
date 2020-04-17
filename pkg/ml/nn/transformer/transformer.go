@@ -18,16 +18,38 @@ import (
 var _ nn.Model = &Model{}
 
 type Model struct {
+	Config
 	*stack.Model
 }
 
+type Config struct {
+	size                   int
+	numOfAttentionHeads    int
+	intermediateSize       int
+	intermediateActivation ag.OpName
+	numOfLayers            int
+	usePositionalEncoding  bool
+	useDepthEncoding       bool
+}
+
 // New returns a new transformer model composed of a stack of N identical transformer layers.
-func New(size, numLayers, numAttentionHeads int, intermediateSize int, intermediateActivation ag.OpName) *Model {
-	layers := make([]nn.Model, numLayers)
-	for i := 0; i < numLayers; i++ {
-		layers[i] = NewLayer(size, numAttentionHeads, intermediateSize, intermediateActivation, i)
+func New(config Config) *Model {
+	layers := make([]nn.Model, config.numOfLayers)
+	for layerIndex := 0; layerIndex < config.numOfLayers; layerIndex++ {
+		layers[layerIndex] = NewLayer(
+			config.size,
+			config.numOfAttentionHeads,
+			config.intermediateSize,
+			config.intermediateActivation,
+			layerIndex,
+			config.useDepthEncoding,
+			config.usePositionalEncoding,
+		)
 	}
-	return &Model{stack.New(layers...)}
+	return &Model{
+		Config: config,
+		Model:  stack.New(layers...),
+	}
 }
 
 // LayerAt returns the layer model at the given index casted to the specific transformer layer model.
