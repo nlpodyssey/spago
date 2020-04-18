@@ -700,11 +700,7 @@ func (d *Dense) Min() float64 {
 
 // Range extracts data from the the Matrix from elements start (inclusive) and end (exclusive).
 func (d *Dense) Range(start, end int) Matrix {
-	data := make([]float64, end-start)
-	for k := 0; k < end-start; k++ {
-		data[k] = d.data[start+k]
-	}
-	return NewVecDense(data)
+	return NewVecDense(d.data[start:end])
 }
 
 // SplitV extract N vectors from the matrix d.
