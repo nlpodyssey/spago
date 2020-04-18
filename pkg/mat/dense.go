@@ -444,11 +444,22 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
 	}
-	out := d.ZerosLike().(*Dense)
+	out := d.Clone().(*Dense)
 	b := other.(*Dense)
-	for i, val := range d.data {
-		out.data[i] = val * b.data[i]
+
+	// Avoid bounds checks in loop
+	bData := b.data
+	outData := out.data
+	lastIndex := len(bData) - 1
+	if lastIndex < 0 {
+		return out
 	}
+	_ = outData[lastIndex]
+
+	for i := lastIndex; i >= 0; i-- {
+		outData[i] *= bData[i]
+	}
+
 	return out
 }
 
