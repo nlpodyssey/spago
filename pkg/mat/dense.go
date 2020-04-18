@@ -768,12 +768,10 @@ func (d Dense) SwapInPlace(r1, r2 int) {
 	if r1 >= d.rows || r2 >= d.rows {
 		panic("mat: index out of range")
 	}
-	temp := NewVecDense(d.ExtractRow(r1).Data())
+
 	for j := 0; j < d.cols; j++ {
-		d.data[r1*d.cols+j] = d.data[r2*d.cols+j]
-	}
-	for j := 0; j < d.cols; j++ {
-		d.data[r2*d.cols+j] = temp.data[j]
+		a, b := r1*d.cols+j, r2*d.cols+j
+		d.data[a], d.data[b] = d.data[b], d.data[a]
 	}
 }
 
