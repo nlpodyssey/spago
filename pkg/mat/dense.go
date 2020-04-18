@@ -7,7 +7,6 @@ package mat
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
-	"github.com/nlpodyssey/spago/pkg/utils"
 	"math"
 )
 
@@ -21,13 +20,6 @@ type Dense struct {
 	viewOf *Dense // default nil
 }
 
-// Following 'runtime: memmove sometimes faster than memclrNoHeapPointers (https:///golang/go/issues/23306)',
-// I opted to preallocate an 'empty' array initialized to zero, preferring append operations rather than make.
-// Other reference: https:///go101/go-benchmarks/tree/master/append-vs-make
-const emptySize = 100000000
-
-var empty [emptySize]float64
-
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
 func NewDense(rows, cols int, elements []float64) *Dense {
@@ -37,16 +29,29 @@ func NewDense(rows, cols int, elements []float64) *Dense {
 	if len(elements) != rows*cols {
 		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
-	return newDense(rows, cols, elements)
+	return &Dense{
+		rows:   rows,
+		cols:   cols,
+		size:   rows * cols,
+		data:   append([]float64(nil), elements...),
+		viewOf: nil,
+	}
 }
 
-// NewVecDense returns a new column vector populated with the elements.
+// NewVecDense returns a new column vector populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyVecDense to initialize an empty matrix.
 func NewVecDense(elements []float64) *Dense {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
-	return newDense(len(elements), 1, elements)
+	size := len(elements)
+	return &Dense{
+		rows:   size,
+		cols:   1,
+		size:   size,
+		data:   append([]float64(nil), elements...),
+		viewOf: nil,
+	}
 }
 
 // NewScalar returns a new 1x1 matrix containing the input value.
@@ -63,16 +68,25 @@ func NewScalar(n float64) *Dense {
 
 // NewEmptyVecDense returns a new vector of the given size, initialized to zeros.
 func NewEmptyVecDense(size int) *Dense {
-	return NewEmptyDense(size, 1)
+	return &Dense{
+		rows:   size,
+		cols:   1,
+		size:   size,
+		data:   make([]float64, size),
+		viewOf: nil,
+	}
 }
 
 // NewEmptyVecDense returns a new rows x cols matrix initialized to zeros.
 func NewEmptyDense(rows, cols int) *Dense {
 	size := rows * cols
-	if size > emptySize {
-		return newDense(rows, cols, make([]float64, size))
+	return &Dense{
+		rows:   rows,
+		cols:   cols,
+		size:   size,
+		data:   make([]float64, size),
+		viewOf: nil,
 	}
-	return newDense(rows, cols, empty[:size]) // optimized
 }
 
 // NewEmptyVecDense returns a new one-hot vector of the given size.
@@ -83,17 +97,6 @@ func OneHotVecDense(size int, oneAt int) *Dense {
 	vec := NewEmptyVecDense(size)
 	vec.SetVec(oneAt, 1.0)
 	return vec
-}
-
-// newDense returns a new rows x cols dense matrix populated with a copy of the elements.
-func newDense(rows, cols int, elements []float64) *Dense {
-	return &Dense{
-		rows:   rows,
-		cols:   cols,
-		size:   rows * cols,
-		data:   append([]float64(nil), elements...),
-		viewOf: nil,
-	}
 }
 
 // NewInitDense returns a new rows x cols dense matrix initialized with a constant value.
@@ -161,14 +164,9 @@ func (d *Dense) View(rows, cols int) *Dense {
 
 // Zeros set all the values to zeros.
 func (d *Dense) Zeros() {
-	size := len(d.data)
-	if size > emptySize {
-		for start := 0; start < size; start += emptySize {
-			last := utils.MinInt(start+emptySize, size)
-			copy(d.data[start:last], empty[0:last-start])
-		}
-	} else {
-		_ = append(d.data[:0], empty[:d.size]...) // optimized
+	data := d.data // avoid bounds check
+	for i := range data {
+		data[i] = 0.0
 	}
 }
 
