@@ -290,9 +290,13 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 func (d *Dense) T() Matrix {
 	r, c := d.Dims()
 	m := NewEmptyDense(c, r)
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
-			m.data[j*d.rows+i] = d.data[i*d.cols+j]
+	length := len(m.data)
+	index := 0
+	for _, value := range d.data {
+		m.data[index] = value
+		index += r
+		if index >= length {
+			index -= length - 1
 		}
 	}
 	return m
