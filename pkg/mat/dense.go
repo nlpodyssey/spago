@@ -279,8 +279,9 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 		panic("mat: index out of range")
 	}
 	out := NewEmptyVecDense(d.rows)
-	for k := 0; k < d.rows; k++ {
-		out.data[k] = d.data[k*d.cols+i]
+	data := out.data
+	for k := range data {
+		data[k] = d.data[k*d.cols+i]
 	}
 	return out
 }
