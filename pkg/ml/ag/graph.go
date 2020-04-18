@@ -28,8 +28,10 @@ type Graph struct {
 
 type nodeInfo struct {
 	node Node
-	// depth is the maximum depth reached by the node/.
+	// depth is the maximum depth reached by the node.
 	depth int
+	// the id of the last operator visiting this node for depth calculation.
+	lastVisitorId int64
 	// descendants contains the ids of all descendants including the node itself.
 	descendants []int64
 }
@@ -81,9 +83,10 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	}
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
-		node:        newNode,
-		depth:       0,
-		descendants: []int64{newId},
+		node:          newNode,
+		depth:         0,
+		descendants:   []int64{newId},
+		lastVisitorId: -1,
 	})
 	return newNode
 }
@@ -117,24 +120,26 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	}
 
 	descendants := make([]int64, 0, g.sumDescendants(operands)+1) // + itself
-	mark := make([]bool, len(g.nodes), len(g.nodes))
 	for _, o := range operands {
 		for _, descendantId := range g.nodes[o.Id()].descendants {
-			if !mark[descendantId] {
-				mark[descendantId] = true
-				g.nodes[descendantId].depth++
-				g.maxDepth = maxDepth(g.nodes[descendantId].depth, g.maxDepth)
-				descendants = append(descendants, descendantId)
+			descendantNode := g.nodes[descendantId]
+			if descendantNode.lastVisitorId == newId {
+				continue
 			}
+			descendantNode.lastVisitorId = newId
+			descendantNode.depth++
+			g.maxDepth = max(descendantNode.depth, g.maxDepth)
+			descendants = append(descendants, descendantId)
 		}
 	}
 	descendants = append(descendants, newId)
 
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
-		node:        newNode,
-		depth:       0,
-		descendants: descendants,
+		node:          newNode,
+		depth:         0,
+		descendants:   descendants,
+		lastVisitorId: -1,
 	})
 	return newNode
 }
@@ -151,9 +156,10 @@ func (g *Graph) NewWrap(value GradValue) *wrapper {
 	}
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
-		node:        newNode,
-		depth:       0,
-		descendants: []int64{newId},
+		node:          newNode,
+		depth:         0,
+		descendants:   []int64{newId},
+		lastVisitorId: -1,
 	})
 	return newNode
 }
@@ -170,9 +176,10 @@ func (g *Graph) NewWrapNoGrad(value GradValue) *wrapper {
 	}
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
-		node:        newNode,
-		depth:       0,
-		descendants: []int64{newId},
+		node:          newNode,
+		depth:         0,
+		descendants:   []int64{newId},
+		lastVisitorId: -1,
 	})
 	return newNode
 }
@@ -259,7 +266,7 @@ func (g *Graph) groupNodesByDepth() [][]Node {
 	return out
 }
 
-func maxDepth(a, b int) int {
+func max(a, b int) int {
 	if a > b {
 		return a
 	}
