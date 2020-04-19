@@ -108,9 +108,10 @@ func (p *Processor) totalScore(predicted []ag.Node) ag.Node {
 
 func (p *Processor) totalScoreStart(stepVec ag.Node) []ag.Node {
 	size := p.model.TransitionScores.Value().Rows() - 1
+	firstTransitionScores := p.transitionScores[0]
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
-		scores[i] = p.g.Add(p.g.AtVec(stepVec, i), p.transitionScores[0][i+1])
+		scores[i] = p.g.Add(p.g.AtVec(stepVec, i), firstTransitionScores[i+1])
 	}
 	return scores
 }
