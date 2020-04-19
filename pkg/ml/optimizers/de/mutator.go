@@ -34,9 +34,9 @@ func NewRandomMutation(bound float64) *RandomMutation {
 func (m *RandomMutation) Mutate(p *Population) {
 	for i, member := range p.Members {
 		extracted := rand.GetUniqueRandomInt(3, len(p.Members), func(r int) bool { return r != i })
-		xa := p.Members[extracted[0]].TargetVector
-		xb := p.Members[extracted[1]].TargetVector
 		xc := p.Members[extracted[2]].TargetVector
+		xb := p.Members[extracted[1]].TargetVector
+		xa := p.Members[extracted[0]].TargetVector
 		donor := xa.Add(xb.Sub(xc).ProdScalarInPlace(member.MutationFactor))
 		donor.ClipInPlace(-m.Bound, +m.Bound)
 		member.DonorVector = donor.(*mat.Dense)
