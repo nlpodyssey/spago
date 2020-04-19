@@ -130,9 +130,11 @@ func (p *Processor) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.N
 	size := p.model.TransitionScores.Value().Rows() - 1
 	scores := make([]ag.Node, size)
 	for i := 0; i < size; i++ {
+		nodei := totalVec[i]
+		transitionScores := p.transitionScores[i+1]
 		for j := 0; j < size; j++ {
-			vecSum := p.g.Add(totalVec[i], stepVec[j])
-			vecTrans := p.g.Add(vecSum, p.transitionScores[i+1][j+1])
+			vecSum := p.g.Add(nodei, stepVec[j])
+			vecTrans := p.g.Add(vecSum, transitionScores[j+1])
 			scores[j] = p.g.Add(scores[j], p.g.Exp(vecTrans))
 		}
 	}
