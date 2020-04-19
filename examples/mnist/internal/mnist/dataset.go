@@ -39,7 +39,7 @@ func (s *Dataset) GetExample(i int) *Example {
 
 func GetAllExamples(dataset *GoMNIST.Set) []*Example {
 	examples := make([]*Example, dataset.Count())
-	for i := 0; i < dataset.Count(); i++ {
+	for i := range examples {
 		img, label := dataset.Get(i)
 		examples[i] = &Example{
 			Features: normalize(img),
