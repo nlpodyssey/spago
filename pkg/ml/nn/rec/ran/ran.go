@@ -182,11 +182,12 @@ func (p *Processor) Importance() [][]float64 {
 // importance computes the importance score of the previous states respect to the i-state.
 // The output contains the importance score for each k-previous states.
 func (p *Processor) scores(i int) []float64 {
-	scores := make([]float64, len(p.States))
-	incForgetProd := p.States[i].ForG.Value().Clone()
+	states := p.States
+	scores := make([]float64, len(states))
+	incForgetProd := states[i].ForG.Value().Clone()
 	for k := i; k >= 0; k-- {
-		inG := p.States[k].InG.Value()
-		forG := p.States[k].ForG.Value()
+		inG := states[k].InG.Value()
+		forG := states[k].ForG.Value()
 		scores[k] = inG.Prod(incForgetProd).Max()
 		if k > 0 {
 			incForgetProd.ProdInPlace(forG)
