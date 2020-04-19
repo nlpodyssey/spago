@@ -331,8 +331,8 @@ func seluDeriv(i, j int, v float64, alpha ...float64) float64 {
 }
 
 func softPlus(i, j int, v float64, alpha ...float64) float64 {
-	beta := alpha[0]
 	threshold := alpha[1]
+	beta := alpha[0]
 	if v <= threshold {
 		return (1 / beta) * math.Log(1+math.Exp(beta*v))
 	} else if v > threshold {
