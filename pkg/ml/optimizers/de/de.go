@@ -214,6 +214,7 @@ func (o *DifferentialEvolution) resetPopulation() {
 		},
 	)
 	// retain the best solution
-	o.population.Members[0].TargetVector = o.bestSolution.Vector.Clone().(*mat.Dense)
-	o.population.Members[0].TargetScore = o.bestSolution.Score
+	members := o.population.Members
+	members[0].TargetVector = o.bestSolution.Vector.Clone().(*mat.Dense)
+	members[0].TargetScore = o.bestSolution.Score
 }
