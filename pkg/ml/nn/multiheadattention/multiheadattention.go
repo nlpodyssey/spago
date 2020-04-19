@@ -158,7 +158,7 @@ func (p *Processor) concatHeadsAt(pos int) ag.Node {
 
 func (p *Processor) multiHeadAttention(xs []ag.Node) []*Head {
 	heads := make([]*Head, p.model.h)
-	for i := 0; i < p.model.h; i++ {
+	for i := range heads {
 		heads[i] = newHead(p.selfAttention(xs, i))
 	}
 	return heads
