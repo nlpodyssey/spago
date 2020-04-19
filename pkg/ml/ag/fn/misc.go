@@ -342,8 +342,8 @@ func softPlus(i, j int, v float64, alpha ...float64) float64 {
 }
 
 func softPlusDeriv(i, j int, v float64, alpha ...float64) float64 {
-	beta := alpha[0]
 	threshold := alpha[1]
+	beta := alpha[0]
 	if v <= threshold {
 		return math.Exp(v*beta) / (math.Exp(v*beta) + 1)
 	} else if v > threshold {
