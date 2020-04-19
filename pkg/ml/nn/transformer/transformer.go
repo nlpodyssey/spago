@@ -35,7 +35,7 @@ type Config struct {
 // New returns a new transformer model composed of a stack of N identical transformer layers.
 func New(config Config) *Model {
 	layers := make([]nn.Model, config.numOfLayers)
-	for layerIndex := 0; layerIndex < config.numOfLayers; layerIndex++ {
+	for layerIndex := range layers {
 		layers[layerIndex] = NewLayer(
 			config.size,
 			config.numOfAttentionHeads,
