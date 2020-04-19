@@ -77,11 +77,11 @@ func (m *DeglMutation) Mutate(p *Population) {
 		bestNeighborIndex, _ := p.FindBestNeighbor(i, windowSize)
 		bestNeighbor := p.Members[bestNeighborIndex].TargetVector
 		best := p.Members[bestIndex].TargetVector
-		xi := p.Members[i].TargetVector
-		xa := p.Members[extracted[0]].TargetVector
+		xi := member.TargetVector
 		xb := p.Members[extracted[1]].TargetVector
-		xc := p.Members[extractedNeighbors[0]].TargetVector
+		xa := p.Members[extracted[0]].TargetVector
 		xd := p.Members[extractedNeighbors[1]].TargetVector
+		xc := p.Members[extractedNeighbors[0]].TargetVector
 		f := member.MutationFactor
 		w := member.WeightFactor
 		diff1 := xa.Sub(xb).ProdScalarInPlace(f)
@@ -92,6 +92,6 @@ func (m *DeglMutation) Mutate(p *Population) {
 		g := xi.Add(diff3).AddInPlace(diff1).ProdScalarInPlace(w)
 		donor := g.Add(l)
 		donor.ClipInPlace(-m.Bound, +m.Bound)
-		p.Members[i].DonorVector = donor.(*mat.Dense)
+		member.DonorVector = donor.(*mat.Dense)
 	}
 }
