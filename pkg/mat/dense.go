@@ -279,8 +279,9 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 		panic("mat: index out of range")
 	}
 	out := NewEmptyVecDense(d.rows)
-	for k := 0; k < d.rows; k++ {
-		out.data[k] = d.data[k*d.cols+i]
+	data := out.data
+	for k := range data {
+		data[k] = d.data[k*d.cols+i]
 	}
 	return out
 }
@@ -289,9 +290,13 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 func (d *Dense) T() Matrix {
 	r, c := d.Dims()
 	m := NewEmptyDense(c, r)
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
-			m.data[j*d.rows+i] = d.data[i*d.cols+j]
+	length := len(m.data)
+	index := 0
+	for _, value := range d.data {
+		m.data[index] = value
+		index += r
+		if index >= length {
+			index -= length - 1
 		}
 	}
 	return m
@@ -439,11 +444,22 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
 	}
-	out := d.ZerosLike().(*Dense)
+	out := d.Clone().(*Dense)
 	b := other.(*Dense)
-	for i, val := range d.data {
-		out.data[i] = val * b.data[i]
+
+	// Avoid bounds checks in loop
+	bData := b.data
+	outData := out.data
+	lastIndex := len(bData) - 1
+	if lastIndex < 0 {
+		return out
 	}
+	_ = outData[lastIndex]
+
+	for i := lastIndex; i >= 0; i-- {
+		outData[i] *= bData[i]
+	}
+
 	return out
 }
 
@@ -684,11 +700,7 @@ func (d *Dense) Min() float64 {
 
 // Range extracts data from the the Matrix from elements start (inclusive) and end (exclusive).
 func (d *Dense) Range(start, end int) Matrix {
-	data := make([]float64, end-start)
-	for k := 0; k < end-start; k++ {
-		data[k] = d.data[start+k]
-	}
-	return NewVecDense(data)
+	return NewVecDense(d.data[start:end])
 }
 
 // SplitV extract N vectors from the matrix d.
@@ -756,12 +768,10 @@ func (d Dense) SwapInPlace(r1, r2 int) {
 	if r1 >= d.rows || r2 >= d.rows {
 		panic("mat: index out of range")
 	}
-	temp := NewVecDense(d.ExtractRow(r1).Data())
+
 	for j := 0; j < d.cols; j++ {
-		d.data[r1*d.cols+j] = d.data[r2*d.cols+j]
-	}
-	for j := 0; j < d.cols; j++ {
-		d.data[r2*d.cols+j] = temp.data[j]
+		a, b := r1*d.cols+j, r2*d.cols+j
+		d.data[a], d.data[b] = d.data[b], d.data[a]
 	}
 }
 

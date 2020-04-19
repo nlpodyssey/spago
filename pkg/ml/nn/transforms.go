@@ -25,7 +25,12 @@ func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
 	if len(xs)%2 == 0 {
 		panic("nn: the number of arguments of the affine transformation should be odd")
 	}
-	y := g.Add(xs[0], Linear(g, xs[1], xs[2])) // b + Wx
+
+	// Optimize bounds checks
+	x := xs[2]
+	w := xs[1]
+	y := g.Add(xs[0], Linear(g, w, x)) // b + Wx
+
 	for i := 3; i < len(xs)-1; i += 2 {
 		w := xs[i]
 		x := xs[i+1]
@@ -115,11 +120,12 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
 	rows, cols := x.Value().Dims()
 	ys := make([][]ag.Node, rows)
-	for i := 0; i < rows; i++ {
-		ys[i] = make([]ag.Node, cols)
-		for j := 0; j < cols; j++ {
-			ys[i][j] = g.At(x, i, j)
+	for i := range ys {
+		row := make([]ag.Node, cols)
+		for j := range row {
+			row[j] = g.At(x, i, j)
 		}
+		ys[i] = row
 	}
 	return ys
 }

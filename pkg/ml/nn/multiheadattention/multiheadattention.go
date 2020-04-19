@@ -75,14 +75,28 @@ type Processor struct {
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	wQ := make([]ag.Node, m.h)
-	wK := make([]ag.Node, m.h)
-	wV := make([]ag.Node, m.h)
-	for i := 0; i < m.h; i++ {
-		wQ[i] = g.NewWrap(m.WQ[i])
-		wK[i] = g.NewWrap(m.WK[i])
-		wV[i] = g.NewWrap(m.WV[i])
+	length := m.h
+	wQ := make([]ag.Node, length)
+	wK := make([]ag.Node, length)
+	wV := make([]ag.Node, length)
+
+	if length > 0 {
+		// Avoid bounds checks in loop
+		mwQ := m.WQ
+		mwK := m.WK
+		mwV := m.WV
+		lastIndex := length - 1
+		_ = mwQ[lastIndex]
+		_ = mwK[lastIndex]
+		_ = mwV[lastIndex]
+
+		for i := 0; i < length; i++ {
+			wQ[i] = g.NewWrap(mwQ[i])
+			wK[i] = g.NewWrap(mwK[i])
+			wV[i] = g.NewWrap(mwV[i])
+		}
 	}
+
 	p := &Processor{
 		model: m,
 		mode:  nn.Training,
@@ -144,7 +158,7 @@ func (p *Processor) concatHeadsAt(pos int) ag.Node {
 
 func (p *Processor) multiHeadAttention(xs []ag.Node) []*Head {
 	heads := make([]*Head, p.model.h)
-	for i := 0; i < p.model.h; i++ {
+	for i := range heads {
 		heads[i] = newHead(p.selfAttention(xs, i))
 	}
 	return heads
@@ -156,13 +170,19 @@ func (p *Processor) selfAttention(xs []ag.Node, hi int) (context []ag.Node, prob
 }
 
 func (p *Processor) linearProjection(xs []ag.Node, hi int) (qs, ks, vs []ag.Node) {
+	wQhi := p.wQ[hi]
+	wKhi := p.wK[hi]
+	wVhi := p.wV[hi]
+
 	qs = make([]ag.Node, len(xs))
 	ks = make([]ag.Node, len(xs))
 	vs = make([]ag.Node, len(xs))
+
 	for i, x := range xs {
-		qs[i] = nn.Linear(p.g, p.wQ[hi], x)
-		ks[i] = nn.Linear(p.g, p.wK[hi], x)
-		vs[i] = nn.Linear(p.g, p.wV[hi], x)
+		qs[i] = nn.Linear(p.g, wQhi, x)
+		ks[i] = nn.Linear(p.g, wKhi, x)
+		vs[i] = nn.Linear(p.g, wVhi, x)
 	}
+
 	return
 }

@@ -112,21 +112,22 @@ type fitnessFunc struct {
 	batches      [][]int
 }
 
-func (r *fitnessFunc) callback(solution *mat.Dense, batch int) float64 {
+func (r *fitnessFunc) callback(solution *mat.Dense, batchIndex int) float64 {
+	batch := r.batches[batchIndex]
+	batchSize := len(batch)
 	model := r.modelFactory()
 	nn.LoadParamsVector(model, solution)
-	batchSize := len(r.batches[batch])
 	batchLosses := make([]float64, batchSize)
 	var wg sync.WaitGroup
 	wg.Add(batchSize)
-	for i := 0; i < batchSize; i++ {
+	for i, exampleIndex := range batch {
 		go func(i int, example *mnist.Example) {
 			defer wg.Done()
 			g := ag.NewGraph()
 			x := g.NewVariable(example.Features, false)
 			y := model.NewProc(g).Forward(x)[0]
 			batchLosses[i] = losses.CrossEntropy(g, y, example.Label).ScalarValue()
-		}(i, r.examples[r.batches[batch][i]])
+		}(i, r.examples[exampleIndex])
 	}
 	wg.Wait()
 	return mat.NewVecDense(batchLosses).Sum() / float64(batchSize)

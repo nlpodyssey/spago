@@ -117,7 +117,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, p.model.outputChannels)
-	for i := 0; i < p.model.outputChannels; i++ {
+	for i := range ys {
 		ys[i] = p.forward(xs, i)
 	}
 	return ys
