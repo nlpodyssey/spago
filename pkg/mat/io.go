@@ -135,7 +135,8 @@ func UnmarshalBinaryFrom(m Matrix, r io.Reader) (int, error) {
 		return n, errBadSize
 	}
 	var b [8]byte
-	for i := range m.Data() {
+	data := m.Data()
+	for i := range data {
 		nn, err := utils.ReadFull(r, b[:])
 		n += nn
 		if err != nil {
@@ -144,7 +145,7 @@ func UnmarshalBinaryFrom(m Matrix, r io.Reader) (int, error) {
 			}
 			return n, err
 		}
-		m.Data()[i] = math.Float64frombits(binary.LittleEndian.Uint64(b[:]))
+		data[i] = math.Float64frombits(binary.LittleEndian.Uint64(b[:]))
 	}
 	return n, nil
 }
