@@ -173,7 +173,7 @@ func (p *Processor) prev() (yPrev, cPrev ag.Node) {
 
 func (p *Processor) Importance() [][]float64 {
 	importance := make([][]float64, len(p.States))
-	for i := 0; i < len(p.States); i++ {
+	for i := range importance {
 		importance[i] = p.scores(i)
 	}
 	return importance
