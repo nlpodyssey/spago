@@ -191,7 +191,7 @@ func (p *Processor) LastState() *State {
 
 func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
 	logPropActions := make([]ag.Node, len(p.States)-1)
-	for i := 0; i < len(p.States)-1; i++ {
+	for i := range logPropActions {
 		st := p.States[i+1] // skip the first state
 		logPropActions[i] = p.g.Log(p.g.AtVec(st.Actions, st.SkipIndex))
 	}
