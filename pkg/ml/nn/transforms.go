@@ -115,11 +115,12 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
 	rows, cols := x.Value().Dims()
 	ys := make([][]ag.Node, rows)
-	for i := 0; i < rows; i++ {
-		ys[i] = make([]ag.Node, cols)
-		for j := 0; j < cols; j++ {
-			ys[i][j] = g.At(x, i, j)
+	for i := range ys {
+		row := make([]ag.Node, cols)
+		for j := range row {
+			row[j] = g.At(x, i, j)
 		}
+		ys[i] = row
 	}
 	return ys
 }
