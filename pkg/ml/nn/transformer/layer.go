@@ -147,8 +147,13 @@ func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
 
 // residualConnection follows the strategy describe in "ReZero is All You Need: Fast Convergence at Large Depth" by Bachlechner et al., 2020
 func (p *LayerProcessor) residualConnection(a, b []ag.Node) []ag.Node {
-	c := make([]ag.Node, len(a))
-	for i := 0; i < len(a); i++ {
+	length := len(a)
+	c := make([]ag.Node, length)
+	if length == 0 {
+		return c
+	}
+	_ = b[length-1] // Avoid bounds checks in loop
+	for i := range c {
 		c[i] = p.g.Add(a[i], p.g.ProdScalar(b[i], p.ResidualWeight))
 	}
 	return c
