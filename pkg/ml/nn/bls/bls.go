@@ -52,9 +52,10 @@ type Model struct {
 }
 
 func New(c Config) *Model {
-	wz := make([]*nn.Param, c.NumOfFeatures)
-	bz := make([]*nn.Param, c.NumOfFeatures)
-	for i := 0; i < c.NumOfFeatures; i++ {
+	length := c.NumOfFeatures
+	wz := make([]*nn.Param, length)
+	bz := make([]*nn.Param, length)
+	for i := 0; i < length; i++ {
 		wz[i] = nn.NewParam(mat.NewEmptyDense(c.FeaturesSize, c.InputSize))
 		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize))
 	}
