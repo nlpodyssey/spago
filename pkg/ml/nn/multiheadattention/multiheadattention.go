@@ -170,13 +170,19 @@ func (p *Processor) selfAttention(xs []ag.Node, hi int) (context []ag.Node, prob
 }
 
 func (p *Processor) linearProjection(xs []ag.Node, hi int) (qs, ks, vs []ag.Node) {
+	wQhi := p.wQ[hi]
+	wKhi := p.wK[hi]
+	wVhi := p.wV[hi]
+
 	qs = make([]ag.Node, len(xs))
 	ks = make([]ag.Node, len(xs))
 	vs = make([]ag.Node, len(xs))
+
 	for i, x := range xs {
-		qs[i] = nn.Linear(p.g, p.wQ[hi], x)
-		ks[i] = nn.Linear(p.g, p.wK[hi], x)
-		vs[i] = nn.Linear(p.g, p.wV[hi], x)
+		qs[i] = nn.Linear(p.g, wQhi, x)
+		ks[i] = nn.Linear(p.g, wKhi, x)
+		vs[i] = nn.Linear(p.g, wVhi, x)
 	}
+
 	return
 }
