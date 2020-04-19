@@ -221,13 +221,18 @@ func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 
 func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
 	alpha := nn.SeparateVec(p.g, p.optReLU(nn.Affine(p.g, p.bhm2alpha, p.whm2alpha, hm)))
+
 	uAlpha := nn.SplitVec(p.g, nn.Affine(p.g, p.bhm2alphaVec, p.whm2alphaVec, hm), 2)
-	vAlpha := make([]ag.Node, uAlpha[0].Value().Size())
+	uAlphaSecond := uAlpha[1]
+	uAlphaFirst := uAlpha[0]
+
+	vAlpha := make([]ag.Node, uAlphaFirst.Value().Size())
 	for i := 0; i < p.model.sqrtMemK; i++ {
-		vAlpha[i] = p.g.ProdScalar(uAlpha[1], p.g.AtVec(uAlpha[0], i))
+		vAlpha[i] = p.g.ProdScalar(uAlphaSecond, p.g.AtVec(uAlphaFirst, i))
 	}
 	vAlpha = p.optReLU2(vAlpha)
 	vAlpha = normalization(p.g, vAlpha, 5)
+
 	addMemory := make([]ag.Node, p.model.k*p.model.memorySize)
 	for i := 0; i < p.model.k; i++ {
 		for j := 0; j < p.model.memorySize; j++ {
@@ -237,6 +242,7 @@ func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
 			addMemory[l] = p.g.Prod(alpha[i], p.g.AtVec(vAlpha[ii], jj))
 		}
 	}
+
 	return addMemory
 }
 
