@@ -25,7 +25,12 @@ func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
 	if len(xs)%2 == 0 {
 		panic("nn: the number of arguments of the affine transformation should be odd")
 	}
-	y := g.Add(xs[0], Linear(g, xs[1], xs[2])) // b + Wx
+
+	// Optimize bounds checks
+	x := xs[2]
+	w := xs[1]
+	y := g.Add(xs[0], Linear(g, w, x)) // b + Wx
+
 	for i := 3; i < len(xs)-1; i += 2 {
 		w := xs[i]
 		x := xs[i+1]
