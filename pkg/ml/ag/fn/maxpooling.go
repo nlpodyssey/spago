@@ -65,8 +65,11 @@ func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		for row := 0; row < r.y.Rows(); row++ {
+			rowi := r.argmaxi[row]
+			rowj := r.argmaxj[row]
+
 			for col := 0; col < r.y.Columns(); col++ {
-				gx.Set(r.argmaxi[row][col], r.argmaxj[row][col], gy.At(row, col))
+				gx.Set(rowi[col], rowj[col], gy.At(row, col))
 			}
 		}
 		r.x.PropagateGrad(gx)
