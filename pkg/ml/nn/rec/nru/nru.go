@@ -248,13 +248,18 @@ func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
 
 func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
 	beta := nn.SeparateVec(p.g, p.optReLU(nn.Affine(p.g, p.bhm2beta, p.whm2beta, hm)))
+
 	uBeta := nn.SplitVec(p.g, nn.Affine(p.g, p.bhm2betaVec, p.whm2betaVec, hm), 2)
-	vBeta := make([]ag.Node, uBeta[0].Value().Size())
+	uBetaSecond := uBeta[1]
+	uBetaFirst := uBeta[0]
+
+	vBeta := make([]ag.Node, uBetaFirst.Value().Size())
 	for i := 0; i < p.model.sqrtMemK; i++ {
-		vBeta[i] = p.g.ProdScalar(uBeta[1], p.g.AtVec(uBeta[0], i))
+		vBeta[i] = p.g.ProdScalar(uBetaSecond, p.g.AtVec(uBetaFirst, i))
 	}
 	vBeta = p.optReLU2(vBeta)
 	vBeta = normalization(p.g, vBeta, 5)
+
 	forgetMemory := make([]ag.Node, p.model.k*p.model.memorySize)
 	for i := 0; i < p.model.k; i++ {
 		for j := 0; j < p.model.memorySize; j++ {
@@ -264,6 +269,7 @@ func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
 			forgetMemory[l] = p.g.Prod(beta[i], p.g.AtVec(vBeta[ii], jj))
 		}
 	}
+
 	return forgetMemory
 }
 
