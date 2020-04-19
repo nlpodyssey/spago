@@ -23,6 +23,141 @@ go get -u https://github.com/nlpodyssey/spago
 
 spaGO is compatible with [go modules](https://blog.golang.org/using-go-modules).
 
+What's inside?
+=====
+
+I haven't found the time yet to write a proper documentation or at least a clear description of what spaGO contains.
+
+To start with, I thought that a tree-like view of the core contents of the library (*pkg* folder) might help you to understand its current status, and - more important - how I decided to structure spaGO in the first place.
+
+The names I have adopted for the various sub-packages and files should be self-explanatory enough. Well, at least that was my intention during development :)
+
+```bash
+pkg
+├── mat
+│   ├── matrix.go
+│   ├── dense.go
+│   ├── sparse.go
+│   └── rand
+│       ├── bernulli
+│       ├── normal
+│       └── uniform
+└── ml (machine learning)
+    ├── ag (auto-grad)
+    │   ├── fn (functions with automatic differentiation)
+    │   │   ├── add.go
+    │   │   ├── at.go
+    │   │   ├── concat.go
+    │   │   ├── div.go
+    │   │   ├── dot.go
+    │   │   ├── dropout.go
+    │   │   ├── elu.go
+    │   │   ├── fn.go
+    │   │   ├── identity.go
+    │   │   ├── leakyrelu.go
+    │   │   ├── maxpooling.go
+    │   │   ├── misc.go
+    │   │   ├── mul.go
+    │   │   ├── pow.go
+    │   │   ├── prod.go
+    │   │   ├── reducemean.go
+    │   │   ├── reducesum.go
+    │   │   ├── reshape.go
+    │   │   ├── softmax.go
+    │   │   ├── stack.go
+    │   │   ├── sub.go
+    │   │   ├── subscalar.go
+    │   │   ├── swish.go
+    │   │   ├── swish_test.go
+    │   │   ├── threshold.go
+    │   │   ├── transpose.go
+    │   │   ├── unaryelementwise.go
+    │   │   ├── ...
+    │   ├── gradvalue.go
+    │   ├── graph.go (computational graph)
+    │   ├── node.go
+    │   ├── operator.go
+    │   ├── operators.go
+    │   ├── variable.go
+    │   └── wrapper.go
+    ├── emb
+    │   ├── embedding.go
+    │   └── embmap.go
+    ├── encoding
+    │   ├── fofe
+    │   │   ├── decoder.go
+    │   │   ├── encoder.go
+    │   └── pe (positional encoding)
+    │       └── encoder.go
+    ├── initializers
+    ├── losses
+    │   ├── MAE
+    │   ├── MSE
+    │   ├── NLL
+    │   ├── CrossEntropy
+    ├── nn
+    │   ├── model.go (neural model and neural processor interfaces)
+    │   ├── transforms.go (e.g. Linear, Affine, Conv2D, Self-Attention)
+    │   ├── param.go (weights, biases)
+    │   ├── activation
+    │   ├── birnn (bi-directional recurrent neural network)
+    │   ├── bls (broad learning system)
+    │   ├── cnn
+    │   ├── convolution
+    │   ├── crf
+    │   ├── highway
+    │   ├── multiheadattention
+    │   ├── normalization
+    │   │   ├── adanorm
+    │   │   ├── batchnorm
+    │   │   ├── fixnorm
+    │   │   ├── layernorm
+    │   │   ├── layernormsimple
+    │   │   ├── rmsnorm
+    │   │   └── scalenorm
+    │   ├── perceptron
+    │   ├── rae (recursive auto-encoder)
+    │   ├── rec (recurrent models)
+    │   │   ├── cfn
+    │   │   ├── deltarnn
+    │   │   ├── fsmn
+    │   │   ├── gru
+    │   │   ├── horn
+    │   │   ├── indrnn
+    │   │   ├── lstm
+    │   │   ├── lstmsc
+    │   │   ├── ltm
+    │   │   ├── mist
+    │   │   ├── nru
+    │   │   ├── ran
+    │   │   ├── srn
+    │   │   └── tpr
+    │   ├── sqrdist
+    │   ├── stack
+    │   ├── transformer (BERT-like model)
+    └── optimizers
+        ├── de (differential evolution)
+        │   ├── de.go
+        │   ├── crossover.go
+        │   ├── member.go
+        │   ├── mutator.go
+        │   └── population.go
+        ├── gd (gradient descent)
+        │   ├── sgd
+        │   ├── rmsprop
+        │   ├── adagrad
+        │   ├── adam
+        │   ├── clipper
+        │   ├── decay
+        │   │   ├── exponential
+        │   │   └── hyperbolic
+        │   ├── gd.go
+        │   └── scheduler.go
+        └── optimizer.go (interface implemented by all optimizers)
+```
+
+Please note that the structure above does not reflect the original folder structure (although it is very close). I added comments and deleted files to keep the visualization compact.
+
 Why spaGO?
 =====
 
