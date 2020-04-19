@@ -96,13 +96,16 @@ type Processor struct {
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	wx := make([]ag.Node, len(m.Wz))
-	bx := make([]ag.Node, len(m.Bz))
-	for i := 0; i < m.NumOfFeatures; i++ {
-		if m.KeepFeaturesParamsFixed {
+	length := m.NumOfFeatures
+	wx := make([]ag.Node, length)
+	bx := make([]ag.Node, length)
+	if m.KeepFeaturesParamsFixed {
+		for i := 0; i < length; i++ {
 			wx[i] = g.NewWrapNoGrad(m.Wz[i])
 			bx[i] = g.NewWrapNoGrad(m.Bz[i])
-		} else {
+		}
+	} else {
+		for i := 0; i < length; i++ {
 			wx[i] = g.NewWrap(m.Wz[i])
 			bx[i] = g.NewWrap(m.Bz[i])
 		}
