@@ -164,7 +164,7 @@ func (p *Processor) forward(x ag.Node) ag.Node {
 
 func (p *Processor) featuresMapping(x ag.Node) ag.Node {
 	z := make([]ag.Node, p.model.NumOfFeatures)
-	for i := 0; i < p.model.NumOfFeatures; i++ {
+	for i := range z {
 		z[i] = nn.Affine(p.g, p.bz[i], p.wz[i], x)
 	}
 	return p.g.Invoke(p.model.FeaturesActivation, p.g.Concat(z...))
