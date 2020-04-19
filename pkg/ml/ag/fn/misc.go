@@ -373,8 +373,8 @@ func softShrinkDeriv(i, j int, v float64, alpha ...float64) float64 {
 }
 
 func threshold(i, j int, v float64, alpha ...float64) float64 {
-	threshold := alpha[0]
 	value := alpha[1]
+	threshold := alpha[0]
 	if v <= threshold {
 		return value
 	} else if v > threshold {
