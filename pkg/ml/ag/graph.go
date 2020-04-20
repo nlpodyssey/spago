@@ -225,6 +225,36 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		if depth < minDepth {
 			break
 		}
+		for _, node := range ns {
+			if node, ok := node.(*operator); ok {
+				node.backward()
+			}
+		}
+	}
+	if !g.retainGradAfterBackward {
+		g.ZeroGrad()
+	}
+}
+
+// Backward propagates the gradients from the node all the way back to the leaf descendants i.e. variables.
+// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the final output
+// with respect to the final output itself.
+func (g *Graph) BackwardConcurrent(node Node, grad ...mat.Matrix) {
+	var gx mat.Matrix
+	if len(grad) > 1 {
+		panic("ag: invalid number of arguments. Required zero or one argument.")
+	} else if len(grad) == 0 || grad[0] == nil {
+		gx = node.Value().OnesLike()
+	} else {
+		gx = grad[0]
+	}
+	node.PropagateGrad(gx)
+	minDepth := g.nodes[node.Id()].depth
+	nodesPerDepth := g.groupNodesByDepth()
+	for depth, ns := range nodesPerDepth {
+		if depth < minDepth {
+			break
+		}
 		var wg sync.WaitGroup
 		wg.Add(len(ns))
 		for _, node := range ns {
