@@ -83,7 +83,8 @@ func (r *operator) ZeroGrad() {
 }
 
 func (r *operator) backward() {
-	if r.HasGrad() {
-		r.function.Backward(r.grad)
+	if !r.hasGrad {
+		return
 	}
+	r.function.Backward(r.grad)
 }

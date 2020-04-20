@@ -25,41 +25,40 @@ func (r *wrapper) Graph() *Graph {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (r *wrapper) Grad() mat.Matrix {
-	if r.wrapGrad {
-		return r.GradValue.Grad()
-	} else {
+	if !r.wrapGrad {
 		return nil
 	}
+	return r.GradValue.Grad()
 }
 
 // PropagateGrad propagates the gradients to the node.
 func (r *wrapper) PropagateGrad(gx mat.Matrix) {
-	if r.wrapGrad {
-		r.GradValue.PropagateGrad(gx)
+	if !r.wrapGrad {
+		return
 	}
+	r.GradValue.PropagateGrad(gx)
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (r *wrapper) HasGrad() bool {
-	if r.wrapGrad {
-		return r.GradValue.HasGrad()
-	} else {
+	if !r.wrapGrad {
 		return false
 	}
+	return r.GradValue.HasGrad()
 }
 
 // RequiresGrad returns true if the node requires gradients.
 func (r *wrapper) RequiresGrad() bool {
-	if r.wrapGrad {
-		return r.GradValue.RequiresGrad()
-	} else {
+	if !r.wrapGrad {
 		return false
 	}
+	return r.GradValue.RequiresGrad()
 }
 
 // ZeroGrad set the gradients to zeros.
 func (r *wrapper) ZeroGrad() {
-	if r.wrapGrad {
-		r.GradValue.ZeroGrad()
+	if !r.wrapGrad {
+		return
 	}
+	r.GradValue.ZeroGrad()
 }
