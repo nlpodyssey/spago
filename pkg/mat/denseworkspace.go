@@ -26,9 +26,9 @@ func init() {
 			// Return a pointer type, since it can be put into
 			// the return interface value without an allocation.
 			return &Dense{
-				rows:   0,
-				cols:   0,
-				size:   0,
+				rows:   -1,
+				cols:   -1,
+				size:   -1,
 				data:   make([]float64, length),
 				viewOf: nil,
 			}
@@ -51,8 +51,16 @@ func GetDenseWorkspace(r, c int) *Dense {
 // GetDenseWorkspace returns a *Dense of size r×c and a data slice with a cap that is less than 2*r*c.
 // The returned matrix is ready-to-use (with all the values set to zeros).
 func GetEmptyDenseWorkspace(r, c int) *Dense {
-	w := GetDenseWorkspace(r, c)
-	zero(w.data)
+	size := r * c
+	w := pool[bits(uint64(size))].Get().(*Dense)
+	isNew := w.size == -1 // only a new matrix has size -1
+	w.data = w.data[:size]
+	w.rows = r
+	w.cols = c
+	w.size = size
+	if !isNew {
+		zero(w.data)
+	}
 	return w
 }
 
