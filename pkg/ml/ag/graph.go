@@ -24,6 +24,9 @@ type Graph struct {
 	nodes []*nodeInfo
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
+	// whether to retain the gradients after backward, or not. If false, the memory occupied by gradients
+	// of the operator nodes is released just after the backward, improving performance.
+	retainGradAfterBackward bool
 }
 
 type nodeInfo struct {
@@ -40,9 +43,10 @@ type nodeInfo struct {
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opt ...interface{}) *Graph {
 	g := &Graph{
-		maxId:    0,
-		maxDepth: 0,
-		nodes:    make([]*nodeInfo, 0),
+		maxId:                   0,
+		maxDepth:                0,
+		nodes:                   make([]*nodeInfo, 0),
+		retainGradAfterBackward: false, // TODO: set using options
 	}
 
 	for _, t := range opt {
@@ -216,21 +220,25 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 	}
 	node.PropagateGrad(gx)
 	minDepth := g.nodes[node.Id()].depth
-	for depth, ns := range g.groupNodesByDepth() {
+	nodesPerDepth := g.groupNodesByDepth()
+	for depth, ns := range nodesPerDepth {
 		if depth < minDepth {
 			break
 		}
 		var wg sync.WaitGroup
 		wg.Add(len(ns))
-		for _, n := range ns {
+		for _, node := range ns {
 			go func(x Node) {
 				defer wg.Done()
 				if x, ok := x.(*operator); ok {
 					x.backward()
 				}
-			}(n)
+			}(node)
 		}
 		wg.Wait()
+	}
+	if !g.retainGradAfterBackward {
+		g.ZeroGrad()
 	}
 }
 
@@ -240,6 +248,19 @@ func (g *Graph) BackwardAll() {
 			if n, ok := n.(*operator); ok {
 				n.backward()
 			}
+		}
+	}
+	if !g.retainGradAfterBackward {
+		g.ZeroGrad()
+	}
+}
+
+// ZeroGrad clears the gradients of the operator nodes. Since the gradients within the nodes are handled through a pool,
+// setting them to zero means releasing them, improving performance.
+func (g *Graph) ZeroGrad() {
+	for _, item := range g.nodes {
+		if node, ok := item.node.(*operator); ok {
+			node.ZeroGrad()
 		}
 	}
 }
