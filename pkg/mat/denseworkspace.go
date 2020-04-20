@@ -60,7 +60,7 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 // workspace pool. PutDenseWorkspace must not be called with a matrix
 // where references to the underlying data slice have been kept.
 func PutDenseWorkspace(w *Dense) {
-	pool[bits(uint64(cap(w.data)))].Put(&w)
+	pool[bits(uint64(cap(w.data)))].Put(w)
 }
 
 var tab64 = [64]byte{
