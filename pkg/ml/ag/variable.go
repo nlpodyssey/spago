@@ -14,7 +14,7 @@ type variable struct {
 	id           int64
 	value        mat.Matrix // store the results of a forward evaluation.
 	mu           sync.Mutex // to avoid data race during gradients accumulation
-	grad         mat.Matrix // lazy initialization
+	grad         mat.Matrix // TODO: support of sparse gradients
 	hasGrad      bool
 	requiresGrad bool
 }
@@ -52,15 +52,16 @@ func (r *variable) Grad() mat.Matrix {
 
 // PropagateGrad accumulates the gradients to the node itself.
 func (r *variable) PropagateGrad(grad mat.Matrix) {
-	if r.requiresGrad {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		if r.grad == nil {
-			r.grad = r.value.ZerosLike()
-		}
-		r.grad.AddInPlace(grad)
-		r.hasGrad = true
+	if !r.requiresGrad {
+		return
 	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.grad == nil {
+		r.grad = mat.GetEmptyDenseWorkspace(r.value.Dims()) // this could reduce the number of allocations
+	}
+	r.grad.AddInPlace(grad)
+	r.hasGrad = true
 }
 
 // HasGrad returns true if there are accumulated gradients.
@@ -75,10 +76,10 @@ func (r *variable) RequiresGrad() bool {
 
 // ZeroGrad clears the gradients.
 func (r *variable) ZeroGrad() {
-	if r.hasGrad {
-		r.grad.Zeros()
-		r.hasGrad = false
-	} else if r.grad == nil && r.requiresGrad {
-		r.grad = r.value.ZerosLike()
+	if r.grad == nil {
+		return
 	}
+	defer mat.PutDenseWorkspace(r.grad.(*mat.Dense)) // release memory
+	r.grad = nil
+	r.hasGrad = false
 }

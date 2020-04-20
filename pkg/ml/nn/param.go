@@ -40,7 +40,7 @@ type Param struct {
 	pType        ParamsType  // lazy initialization
 	mu           sync.Mutex  // to avoid data race
 	value        mat.Matrix  // store the results of a forward evaluation.
-	grad         mat.Matrix  // lazy initialization
+	grad         mat.Matrix  // TODO: support of sparse gradients
 	support      *gd.Support // additional data used by the gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
@@ -52,9 +52,9 @@ func NewParam(value mat.Matrix) *Param {
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
-		grad:         nil,
+		grad:         nil, // lazy initialization
 		hasGrad:      false,
-		requiresGrad: true, // TODO
+		requiresGrad: true, // TODO: might not always have to be true?
 		support:      nil,  // lazy initialization
 	}
 }
@@ -104,15 +104,16 @@ func (r *Param) Grad() mat.Matrix {
 
 // PropagateGrad accumulate the gradients
 func (r *Param) PropagateGrad(grad mat.Matrix) {
-	if r.requiresGrad {
-		r.mu.Lock()
-		defer r.mu.Unlock()
-		if r.grad == nil {
-			r.grad = r.value.ZerosLike()
-		}
-		r.grad.AddInPlace(grad)
-		r.hasGrad = true
+	if !r.requiresGrad {
+		return
 	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.grad == nil {
+		r.grad = mat.GetEmptyDenseWorkspace(r.value.Dims()) // this could reduce the number of allocations
+	}
+	r.grad.AddInPlace(grad)
+	r.hasGrad = true
 }
 
 // HasGrad returns true if there are accumulated gradients.
@@ -134,12 +135,12 @@ func (r *Param) SetRequiresGrad(requiresGrad bool) {
 
 // ZeroGrad clears the gradients.
 func (r *Param) ZeroGrad() {
-	if r.hasGrad {
-		r.grad.Zeros()
-		r.hasGrad = false
-	} else if r.grad == nil && r.requiresGrad {
-		r.grad = r.value.ZerosLike()
+	if r.grad == nil {
+		return
 	}
+	defer mat.PutDenseWorkspace(r.grad.(*mat.Dense)) // release memory
+	r.grad = nil
+	r.hasGrad = false
 }
 
 // ApplyDelta updates the value of the underlying storage applying the delta.
