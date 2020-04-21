@@ -5,6 +5,7 @@
 package fn
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"math"
 )
 
@@ -180,11 +181,11 @@ func square(i, j int, v float64) float64 {
 }
 
 func tanh(i, j int, v float64) float64 {
-	return math.Tanh(v)
+	return f64utils.Tanh(v)
 }
 
 func tanhDeriv(i, j int, v float64) float64 {
-	return 1.0 - math.Pow(math.Tanh(v), 2.0)
+	return 1.0 - math.Pow(f64utils.Tanh(v), 2.0)
 }
 
 func sigmoid(i, j int, v float64) float64 {
