@@ -20,9 +20,9 @@ const defaultMathOptimizationLevel = 0
 var ballast []byte
 
 func init() {
-	// Create a large virtual heap allocation of 10 GiB to reduce GC activity.
+	// Create a virtual heap allocation of 2 GiB to reduce GC activity.
 	// https://blog.twitch.tv/go-memory-ballast-how-i-learnt-to-stop-worrying-and-love-the-heap-26c2462549a2
-	ballast = make([]byte, 10<<30)
+	ballast = make([]byte, 2<<30)
 
 	strOptLevel := os.Getenv("OPTIMIZATION_LEVEL")
 	if strOptLevel == "" {
