@@ -45,7 +45,7 @@ func NewGraph(opt ...interface{}) *Graph {
 	g := &Graph{
 		maxId:                   0,
 		maxDepth:                0,
-		nodes:                   make([]*nodeInfo, 0),
+		nodes:                   nil,
 		retainGradAfterBackward: false, // TODO: set using options
 	}
 
@@ -64,12 +64,45 @@ func NewGraph(opt ...interface{}) *Graph {
 	return g
 }
 
+// TODO: experimental features
+func (g *Graph) Close() {
+	g.Reset()
+}
+
 func (g *Graph) Reset() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.maxId = 0
 	g.maxDepth = 0
-	g.nodes = make([]*nodeInfo, 0)
+	g.releaseMemory()
+	g.nodes = nil
+}
+
+// TODO: experimental features
+func (g *Graph) releaseMemory() {
+	for _, item := range g.nodes {
+		if node, ok := item.node.(*operator); ok {
+			g.releaseValue(node)
+			g.releaseGrad(node)
+		}
+	}
+}
+
+// TODO: experimental features
+func (g *Graph) releaseValue(node *operator) {
+	if node.value == nil {
+		return
+	}
+	mat.PutDenseWorkspace(node.value.(*mat.Dense))
+	node.value = nil
+}
+
+// TODO: experimental features
+func (g *Graph) releaseGrad(node *operator) {
+	if node.grad == nil {
+		return
+	}
+	node.ZeroGrad()
 }
 
 // NewVariable creates e returns a new node.
