@@ -62,6 +62,17 @@ func (o *GradientDescent) Optimize() {
 
 // updateParams applies the optimization method to all the observed parameters.
 func (o *GradientDescent) updateParams() {
+	for param := range o.observed {
+		if param.HasGrad() {
+			delta := o.method.Delta(param)
+			param.ApplyDelta(delta)
+		}
+	}
+}
+
+// updateParamsConcurrent applies the optimization method to all the observed parameters concurrently.
+// TODO: distribute the workload proportionately to the number of available CPUs
+func (o *GradientDescent) updateParamsConcurrent() {
 	var wg sync.WaitGroup
 	for key := range o.observed {
 		if key.HasGrad() {
