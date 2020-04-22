@@ -28,6 +28,7 @@ func (r *UnaryElementwise) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 		gx.Apply(r.df, r.x.Value())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

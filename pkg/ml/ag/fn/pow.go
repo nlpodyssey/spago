@@ -27,6 +27,9 @@ func (r *Pow) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		r.x.PropagateGrad(r.x.Value().Pow(r.power - 1).ProdScalar(r.power).Prod(gy))
+		gx := r.x.Value().Pow(r.power - 1)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		gx.ProdScalarInPlace(r.power).ProdInPlace(gy)
+		r.x.PropagateGrad(gx)
 	}
 }

@@ -32,6 +32,7 @@ func (r *SeLU) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 		gx.ApplyWithAlpha(seluDeriv, r.x.Value(), r.alpha.Value().Scalar(), r.scale.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

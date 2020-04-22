@@ -45,5 +45,6 @@ func (r *Concat) Backward(gy mat.Matrix) {
 		if xs[i].RequiresGrad() {
 			xs[i].PropagateGrad(gx)
 		}
+		mat.ReleaseDense(gx.(*mat.Dense))
 	}
 }

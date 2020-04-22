@@ -39,6 +39,7 @@ func (r *RowView) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := mat.NewEmptyDense(r.x.Value().Dims())
+		defer mat.ReleaseDense(gx)
 		for j := 0; j < r.x.Value().Columns(); j++ {
 			gx.Set(r.i, j, gy.At(0, j))
 		}

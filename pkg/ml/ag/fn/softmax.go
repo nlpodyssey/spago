@@ -32,6 +32,7 @@ func (r *Softmax) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		n := r.y.Size()
 		jb := mat.NewEmptyDense(n, n)
+		defer mat.ReleaseDense(jb)
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {
 				if i == j {
@@ -41,7 +42,9 @@ func (r *Softmax) Backward(gy mat.Matrix) {
 				}
 			}
 		}
-		r.x.PropagateGrad(jb.Mul(gy))
+		gx := jb.Mul(gy)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x.PropagateGrad(gx)
 	}
 }
 

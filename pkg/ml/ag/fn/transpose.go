@@ -26,6 +26,8 @@ func (r *Transpose) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		r.x.PropagateGrad(gy.T())
+		gx := gy.T()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x.PropagateGrad(gx)
 	}
 }

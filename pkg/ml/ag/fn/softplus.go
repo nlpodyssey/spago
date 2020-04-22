@@ -32,6 +32,7 @@ func (r *SoftPlus) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 		gx.ApplyWithAlpha(softPlusDeriv, r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

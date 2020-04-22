@@ -25,6 +25,7 @@ func (r *AtVec) Forward() mat.Matrix {
 func (r *AtVec) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x.Value().Dims())
+		defer mat.ReleaseDense(dx)
 		dx.SetVec(r.i, gy.Scalar())
 		r.x.PropagateGrad(dx)
 	}

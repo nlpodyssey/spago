@@ -14,5 +14,5 @@ type variable struct {
 }
 
 func (v *variable) Value() mat.Matrix           { return v.value }
-func (v *variable) PropagateGrad(gx mat.Matrix) { v.grad = gx }
+func (v *variable) PropagateGrad(gx mat.Matrix) { v.grad = gx.Clone() }
 func (v *variable) RequiresGrad() bool          { return v.requiresGrad }

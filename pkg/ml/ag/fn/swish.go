@@ -39,6 +39,7 @@ func (r *Swish) Backward(gy mat.Matrix) {
 	}
 	if r.beta.RequiresGrad() {
 		gb := r.beta.Value().ZerosLike()
+		defer mat.ReleaseDense(gb.(*mat.Dense))
 		for i, x := range r.x.Value().Data() {
 			gb.AddScalarInPlace(swishBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])
 		}

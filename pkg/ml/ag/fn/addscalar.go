@@ -32,12 +32,8 @@ func (r *AddScalar) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
-		gx := mat.NewEmptyDense(r.x2.Value().Dims())
-		for i := 0; i < gy.Rows(); i++ {
-			for j := 0; j < gy.Columns(); j++ {
-				gx.Set(0, 0, gx.Scalar()+gy.At(i, j))
-			}
-		}
+		gx := mat.NewScalar(gy.Sum())
+		defer mat.ReleaseDense(gx)
 		r.x2.PropagateGrad(gx)
 	}
 }

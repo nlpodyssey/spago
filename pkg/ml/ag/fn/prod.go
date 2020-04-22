@@ -40,9 +40,13 @@ func (r *Prod) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(r.x2.Value().Prod(gy))
+		gx := r.x2.Value().Prod(gy)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
-		r.x2.PropagateGrad(r.x1.Value().Prod(gy))
+		gx := r.x1.Value().Prod(gy)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x2.PropagateGrad(gx)
 	}
 }

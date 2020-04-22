@@ -32,6 +32,7 @@ func (r *Threshold) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 		gx.ApplyWithAlpha(thresholdDeriv, r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

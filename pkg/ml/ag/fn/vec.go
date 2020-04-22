@@ -26,6 +26,8 @@ func (r *Vec) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		r.x.PropagateGrad(gy.Reshape(r.x.Value().Dims()))
+		gx := gy.Reshape(r.x.Value().Dims())
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x.PropagateGrad(gx)
 	}
 }

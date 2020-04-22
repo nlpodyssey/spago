@@ -37,6 +37,8 @@ func (r *DivScalar) Backward(gy mat.Matrix) {
 				gx += gy.At(i, j) * (r.x1.Value().At(i, j) / (-1.0 * (r.x2.Value().Scalar() * r.x2.Value().Scalar())))
 			}
 		}
-		r.x2.PropagateGrad(mat.NewScalar(gx))
+		scalar := mat.NewScalar(gx)
+		defer mat.ReleaseDense(scalar)
+		r.x2.PropagateGrad(scalar)
 	}
 }

@@ -64,10 +64,10 @@ func (r *MaxPooling) Forward() mat.Matrix {
 func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 		for row := 0; row < r.y.Rows(); row++ {
 			rowi := r.argmaxi[row]
 			rowj := r.argmaxj[row]
-
 			for col := 0; col < r.y.Columns(); col++ {
 				gx.Set(rowi[col], rowj[col], gy.At(row, col))
 			}

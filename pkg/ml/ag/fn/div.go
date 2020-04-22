@@ -36,9 +36,17 @@ func (r *Div) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy.Div(r.x2.Value()))
+		gx := gy.Div(r.x2.Value())
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
-		r.x2.PropagateGrad(r.x1.Value().Prod(gy).ProdScalar(-1).Div(r.x2.Value().Prod(r.x2.Value())))
+		x2sq := r.x2.Value().Prod(r.x2.Value())
+		defer mat.ReleaseDense(x2sq.(*mat.Dense))
+		gx := r.x1.Value().Prod(gy)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		gx.ProdScalarInPlace(-1)
+		gx.DivInPlace(x2sq)
+		r.x2.PropagateGrad(gx)
 	}
 }

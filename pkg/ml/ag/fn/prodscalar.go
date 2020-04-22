@@ -28,7 +28,9 @@ func (r *ProdScalar) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy.ProdScalar(r.x2.Value().Scalar()))
+		gx := gy.ProdScalar(r.x2.Value().Scalar())
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := 0.0
@@ -37,6 +39,8 @@ func (r *ProdScalar) Backward(gy mat.Matrix) {
 				gx += gy.At(i, j) * r.x1.Value().At(i, j)
 			}
 		}
-		r.x2.PropagateGrad(mat.NewScalar(gx))
+		scalar := mat.NewScalar(gx)
+		defer mat.ReleaseDense(scalar)
+		r.x2.PropagateGrad(scalar)
 	}
 }

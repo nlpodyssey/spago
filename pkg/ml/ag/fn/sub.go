@@ -39,6 +39,8 @@ func (r *Sub) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
-		r.x2.PropagateGrad(gy.ProdScalar(-1.0))
+		gx := gy.ProdScalar(-1.0)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x2.PropagateGrad(gx)
 	}
 }

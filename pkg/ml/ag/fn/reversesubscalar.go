@@ -35,6 +35,8 @@ func (r *ReverseSubScalar) Backward(gy mat.Matrix) {
 				gx += gy.At(i, j)
 			}
 		}
-		r.x2.PropagateGrad(mat.NewScalar(gx))
+		scalar := mat.NewScalar(gx)
+		defer mat.ReleaseDense(scalar)
+		r.x2.PropagateGrad(scalar)
 	}
 }

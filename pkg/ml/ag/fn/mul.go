@@ -32,15 +32,23 @@ func (r *Mul) Backward(gy mat.Matrix) {
 	}
 	if r.x1.RequiresGrad() {
 		x2t := r.x2.Value().T()
-		defer mat.PutDenseWorkspace(x2t.(*mat.Dense))
-		r.x1.PropagateGrad(gy.Mul(x2t))
+		defer mat.ReleaseDense(x2t.(*mat.Dense))
+		gx := gy.Mul(x2t)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
 		if gy.Columns() == 1 {
-			r.x2.PropagateGrad(r.x1.Value().(*mat.Dense).MulT(gy))
+			gx := r.x1.Value().(*mat.Dense).MulT(gy)
+			defer mat.ReleaseDense(gx.(*mat.Dense))
+			r.x2.PropagateGrad(gx)
 		} else {
-			r.x2.PropagateGrad(r.x1.Value().T().Mul(gy))
+			x1t := r.x1.Value().T()
+			defer mat.ReleaseDense(x1t.(*mat.Dense))
+			gx := x1t.Mul(gy)
+			defer mat.ReleaseDense(gx.(*mat.Dense))
+			r.x2.PropagateGrad(gx)
 		}
 	}
 }

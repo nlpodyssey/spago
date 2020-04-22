@@ -27,6 +27,8 @@ func (r *ReduceMean) Backward(gy mat.Matrix) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		r.x.PropagateGrad(mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/float64(r.x.Value().Size())))
+		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/float64(r.x.Value().Size()))
+		defer mat.ReleaseDense(gx)
+		r.x.PropagateGrad(gx)
 	}
 }
