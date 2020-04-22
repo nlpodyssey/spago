@@ -9,7 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
-	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
+	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/sgd"
 	"github.com/nlpodyssey/spago/third_party/GoMNIST"
 	"log"
 	"net/http"
@@ -31,7 +31,7 @@ func main() {
 		datasetPath = "third_party/GoMNIST/data"
 	}
 
-	batchSize := 50
+	batchSize := 1
 	epochs := 20
 
 	// read dataset
@@ -53,9 +53,9 @@ func main() {
 	mnist.InitMLP(model, rndGen)
 
 	// new optimizer with an arbitrary update method
-	//updater := sgd.New(sgd.NewConfig(0.1, 0.0, false)) // sgd
+	updater := sgd.New(sgd.NewConfig(0.01, 0.0, false)) // sgd
 	//updater := sgd.New(sgd.NewConfig(0.1, 0.9, true))  // sgd with nesterov momentum
-	updater := adam.New(adam.NewDefaultConfig())
+	//updater := adam.New(adam.NewDefaultConfig())
 	optimizer := gd.NewOptimizer(updater, nil)
 	// ad-hoc trainer
 	trainer := mnist.NewTrainer(
@@ -63,7 +63,7 @@ func main() {
 		optimizer,
 		epochs,
 		batchSize,
-		true,
+		false,
 		mnist.Dataset{Set: trainSet, FeaturesAsVector: true},
 		mnist.Dataset{Set: testSet, FeaturesAsVector: true},
 		modelPath,

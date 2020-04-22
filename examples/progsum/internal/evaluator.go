@@ -25,6 +25,7 @@ func NewEvaluator(model nn.Model) *Evaluator {
 // Predict performs the forward pass
 func (t *Evaluator) Predict(example Sequence) int {
 	g := ag.NewGraph()
+	defer g.Close()
 	xs := make([]ag.Node, len(example))
 	for i, x := range example {
 		xs[i] = g.NewScalar(x.Input)
