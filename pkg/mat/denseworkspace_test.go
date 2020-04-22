@@ -27,7 +27,7 @@ func TestGet(t *testing.T) {
 	run(1000, 1024)
 }
 
-func TestGetAndSet(t *testing.T) {
+func TestGetAndRelease(t *testing.T) {
 	a1 := GetDenseWorkspace(5, 1)
 	b1 := GetDenseWorkspace(10, 1)
 
@@ -37,8 +37,8 @@ func TestGetAndSet(t *testing.T) {
 	a1.data[0] = 42
 	b1.data[0] = 24
 
-	PutDenseWorkspace(a1)
-	PutDenseWorkspace(b1)
+	ReleaseDense(a1)
+	ReleaseDense(b1)
 
 	a2 := GetDenseWorkspace(6, 1)
 	b2 := GetDenseWorkspace(9, 1)

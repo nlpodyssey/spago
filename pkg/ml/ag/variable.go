@@ -79,7 +79,7 @@ func (r *variable) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
-	defer mat.PutDenseWorkspace(r.grad.(*mat.Dense)) // release memory
+	defer mat.ReleaseDense(r.grad.(*mat.Dense)) // release memory
 	r.grad = nil
 	r.hasGrad = false
 }

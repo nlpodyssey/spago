@@ -14,29 +14,27 @@
 package mat
 
 import (
-	"github.com/nlpodyssey/spago/pkg/utils"
+	"sync"
 )
 
 // Each pool element i returns slices capped at 1<<i.
 // 63 (and not 64) because MaxInt64  = 1<<63 - 1
-// var densePool [63]sync.Pool
-var densePool [63]*utils.Pool // alternative to sync.Pool
+var densePool [63]sync.Pool
 
-// var empty [1000000]float64 // uncomment if you want to use the alternative method to make (debug)
+//var densePool [63]*utils.Pool // alternative to sync.Pool
 
 func init() {
 	for i := range densePool {
 		length := 1 << uint(i)
-		densePool[i] = utils.NewPool(10000)
+		//densePool[i] = utils.NewPool(10000) // enable if you're using utils.Pool
 		densePool[i].New = func() interface{} {
 			// Return a pointer type, since it can be put into
 			// the return interface value without an allocation.
 			return &Dense{
-				rows: -1,
-				cols: -1,
-				size: -1,
-				data: make([]float64, length),
-				// data:     append([]float64(nil), empty[:length]...), // alternative to make (debug)
+				rows:     -1,
+				cols:     -1,
+				size:     -1,
+				data:     make([]float64, length),
 				viewOf:   nil,
 				fromPool: true,
 			}
@@ -73,10 +71,10 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 	return w
 }
 
-// PutDenseWorkspace replaces a used *Dense into the appropriate size
-// workspace pool. PutDenseWorkspace must not be called with a matrix
+// ReleaseDense replaces a used *Dense into the appropriate size
+// workspace pool. ReleaseDense must not be called with a matrix
 // where references to the underlying data slice have been kept.
-func PutDenseWorkspace(w *Dense) {
+func ReleaseDense(w *Dense) {
 	if !w.fromPool {
 		panic("mat: only matrices originated from the workspace can return to it")
 	}
