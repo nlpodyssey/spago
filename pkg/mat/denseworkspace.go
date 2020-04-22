@@ -13,24 +13,32 @@
 
 package mat
 
-import "sync"
+import (
+	"github.com/nlpodyssey/spago/pkg/utils"
+)
 
 // Each pool element i returns slices capped at 1<<i.
 // 63 (and not 64) because MaxInt64  = 1<<63 - 1
-var pool [63]sync.Pool
+// var densePool [63]sync.Pool
+var densePool [63]*utils.Pool // alternative to sync.Pool
+
+// var empty [1000000]float64 // uncomment if you want to use the alternative method to make (debug)
 
 func init() {
-	for i := range pool {
+	for i := range densePool {
 		length := 1 << uint(i)
-		pool[i].New = func() interface{} {
+		densePool[i] = utils.NewPool(10000)
+		densePool[i].New = func() interface{} {
 			// Return a pointer type, since it can be put into
 			// the return interface value without an allocation.
 			return &Dense{
-				rows:   -1,
-				cols:   -1,
-				size:   -1,
-				data:   make([]float64, length),
-				viewOf: nil,
+				rows: -1,
+				cols: -1,
+				size: -1,
+				data: make([]float64, length),
+				// data:     append([]float64(nil), empty[:length]...), // alternative to make (debug)
+				viewOf:   nil,
+				fromPool: true,
 			}
 		}
 	}
@@ -40,7 +48,7 @@ func init() {
 // Warning, the values may not be at zero. If you need a ready-to-use matrix you can call GetEmptyDenseWorkspace().
 func GetDenseWorkspace(r, c int) *Dense {
 	size := r * c
-	w := pool[bits(uint64(size))].Get().(*Dense)
+	w := densePool[bits(uint64(size))].Get().(*Dense)
 	w.data = w.data[:size]
 	w.rows = r
 	w.cols = c
@@ -52,12 +60,13 @@ func GetDenseWorkspace(r, c int) *Dense {
 // The returned matrix is ready-to-use (with all the values set to zeros).
 func GetEmptyDenseWorkspace(r, c int) *Dense {
 	size := r * c
-	w := pool[bits(uint64(size))].Get().(*Dense)
-	isNew := w.size == -1 // only a new matrix has size -1
+	i := bits(uint64(size))
+	w := densePool[i].Get().(*Dense)
 	w.data = w.data[:size]
 	w.rows = r
 	w.cols = c
 	w.size = size
+	isNew := w.size == -1 // only a new matrix has size -1
 	if !isNew {
 		zero(w.data)
 	}
@@ -68,7 +77,10 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 // workspace pool. PutDenseWorkspace must not be called with a matrix
 // where references to the underlying data slice have been kept.
 func PutDenseWorkspace(w *Dense) {
-	pool[bits(uint64(cap(w.data)))].Put(w)
+	if !w.fromPool {
+		panic("mat: only matrices originated from the workspace can return to it")
+	}
+	densePool[bits(uint64(cap(w.data)))].Put(w)
 }
 
 var tab64 = [64]byte{
