@@ -101,9 +101,12 @@ func (d *Dense) ZerosLike() Matrix {
 
 // ZerosLike returns a new Dense with of the same dimensions of the receiver, initialized to ones.
 func (d *Dense) OnesLike() Matrix {
-	buf := d.ZerosLike()
-	f64.AddConst(1.0, buf.(*Dense).data)
-	return buf
+	out := GetDenseWorkspace(d.Dims())
+	data := out.data // avoid bounds check
+	for i := range data {
+		data[i] = 1.0
+	}
+	return out
 }
 
 // Clone returns a new matrix copying the values of the receiver.
@@ -255,7 +258,7 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 		panic("mat: index out of range")
 	}
 	//out := NewEmptyVecDense(d.rows)
-	out := GetEmptyDenseWorkspace(d.rows, 1)
+	out := GetDenseWorkspace(d.rows, 1)
 	data := out.data
 	for k := range data {
 		data[k] = d.data[k*d.cols+i]
@@ -266,8 +269,7 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 // T returns the transpose of the matrix.
 func (d *Dense) T() Matrix {
 	r, c := d.Dims()
-	//m := NewEmptyDense(c, r)
-	m := GetEmptyDenseWorkspace(c, r)
+	m := GetDenseWorkspace(c, r)
 	length := len(m.data)
 	index := 0
 	for _, value := range d.data {
@@ -334,9 +336,7 @@ func (d *Dense) AddScalarInPlace(n float64) Matrix {
 
 // SubScalarInPlace subtracts the scalar to the receiver.
 func (d *Dense) SubScalarInPlace(n float64) Matrix {
-	for i := 0; i < len(d.data); i++ {
-		d.data[i] -= n
-	}
+	f64.AddConst(-n, d.data)
 	return d
 }
 
@@ -435,11 +435,9 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		return out
 	}
 	_ = outData[lastIndex]
-
 	for i := lastIndex; i >= 0; i-- {
 		outData[i] = dData[i] * bData[i]
 	}
-
 	return out
 }
 
@@ -489,7 +487,6 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	if d.Columns() != other.Rows() {
 		panic("mat: matrices with not compatible size")
 	}
-	//out := NewEmptyDense(d.Rows(), other.Columns())
 	out := GetEmptyDenseWorkspace(d.Rows(), other.Columns())
 
 	switch b := other.(type) {
@@ -540,9 +537,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 					out.data, // c
 					out.cols, // ldc
 				)
-
 			*/
-
 		}
 
 		return out
@@ -563,7 +558,6 @@ func (d *Dense) MulT(other Matrix) Matrix {
 	if d.Rows() != other.Rows() {
 		panic("mat: matrices with not compatible size")
 	}
-	//out := NewEmptyDense(d.Columns(), other.Columns())
 	out := GetEmptyDenseWorkspace(d.Columns(), other.Columns())
 
 	switch b := other.(type) {
@@ -602,33 +596,34 @@ func (d *Dense) DotUnitary(other Matrix) float64 {
 // ClipInPlace performs the clip in place.
 // If element k of Matrix if k > max, k = max and if k < min, k = min
 func (d *Dense) ClipInPlace(min, max float64) Matrix {
-	d.Apply(func(i, j int, v float64) float64 {
+	data := d.data
+	for i, v := range data {
 		if v < min {
-			return min
+			data[i] = min
 		} else if v > max {
-			return max
+			data[i] = max
 		} else {
-			return v
+			data[i] = v
 		}
-	}, d)
+	}
 	return d
 }
 
 // Abs returns a new matrix applying the abs function to all elements.
 func (d *Dense) Abs() Matrix {
-	out := d.ZerosLike()
-	out.Apply(func(i, j int, v float64) float64 {
-		return math.Abs(v)
-	}, d)
+	out := GetDenseWorkspace(d.Dims())
+	for i, val := range d.data {
+		out.data[i] = math.Abs(val)
+	}
 	return out
 }
 
 // Pow returns a new matrix applying the power v (applying the pow function) to all elements.
 func (d *Dense) Pow(power float64) Matrix {
-	out := d.Clone().(*Dense)
-	out.Apply(func(i, j int, v float64) float64 {
-		return math.Pow(v, power)
-	}, d)
+	out := GetDenseWorkspace(d.Dims())
+	for i, val := range d.data {
+		out.data[i] = math.Pow(val, power)
+	}
 	return out
 }
 
@@ -643,23 +638,15 @@ func (d *Dense) Sqrt() Matrix {
 
 // Sum returns the sum of all values of the matrix.
 func (d *Dense) Sum() float64 {
-	sum := 0.0
-	for _, elem := range d.data {
-		sum += elem
-	}
-	return sum
+	return f64.Sum(d.data)
 }
 
 // Max returns the max value of the matrix.
 func (d *Dense) Max() float64 {
-	r, c := d.Dims()
 	max := math.Inf(-1)
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
-			v := d.At(i, j)
-			if v > max {
-				max = v
-			}
+	for _, v := range d.data {
+		if v > max {
+			max = v
 		}
 	}
 	return max
@@ -667,14 +654,10 @@ func (d *Dense) Max() float64 {
 
 // Min returns the min value of the matrix.
 func (d *Dense) Min() float64 {
-	r, c := d.Dims()
 	min := math.Inf(1)
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
-			v := d.At(i, j)
-			if v < min {
-				min = v
-			}
+	for _, v := range d.data {
+		if v < min {
+			min = v
 		}
 	}
 	return min
@@ -817,13 +800,13 @@ func (d *Dense) LU() (l, u, p *Dense) {
 		}
 		lt := I(d.cols)
 		for k := i + 1; k < d.cols; k++ {
-			lt.Data()[k*d.cols+i] = -u.Data()[k*d.cols+i] / (u.Data()[i*d.cols+i])
-			l.Data()[k*d.cols+i] = u.Data()[k*d.cols+i] / (u.Data()[i*d.cols+i])
+			lt.data[k*d.cols+i] = -u.data[k*d.cols+i] / (u.data[i*d.cols+i])
+			l.data[k*d.cols+i] = u.data[k*d.cols+i] / (u.data[i*d.cols+i])
 		}
 		u = lt.Mul(u).(*Dense)
 	}
 	for i := 0; i < d.cols; i++ {
-		l.Data()[i*d.cols+i] = 1.0
+		l.data[i*d.cols+i] = 1.0
 	}
 	return
 }

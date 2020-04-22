@@ -392,15 +392,6 @@ func TestDense_Zeros(t *testing.T) {
 	}
 }
 
-func TestDense_ZerosLarge(t *testing.T) {
-	a := NewEmptyVecDense(200000000)
-	b := a.OnesLike()
-	b.Zeros()
-	if !floats.EqualApprox(a.Data(), b.Data(), 1.0e-6) {
-		t.Error("The data doesn't match the expected values")
-	}
-}
-
 func TestOneHotVecDense(t *testing.T) {
 	a := OneHotVecDense(10, 8)
 
