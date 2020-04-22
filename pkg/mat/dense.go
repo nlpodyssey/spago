@@ -6,6 +6,7 @@ package mat
 
 import (
 	"fmt"
+	_ "github.com/nlpodyssey/spago/pkg/global"
 	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
 	"math"
 )
@@ -13,11 +14,12 @@ import (
 var _ Matrix = &Dense{}
 
 type Dense struct {
-	rows   int
-	cols   int
-	size   int // rows*cols
-	data   []float64
-	viewOf *Dense // default nil
+	rows     int
+	cols     int
+	size     int // rows*cols
+	data     []float64
+	viewOf   *Dense // default nil
+	fromPool bool
 }
 
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
@@ -29,13 +31,9 @@ func NewDense(rows, cols int, elements []float64) *Dense {
 	if len(elements) != rows*cols {
 		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
-	return &Dense{
-		rows:   rows,
-		cols:   cols,
-		size:   rows * cols,
-		data:   append([]float64(nil), elements...),
-		viewOf: nil,
-	}
+	d := GetDenseWorkspace(rows, cols)
+	_ = append(d.data[:0], elements...)
+	return d
 }
 
 // NewVecDense returns a new column vector populated with a copy of the elements.
@@ -44,49 +42,26 @@ func NewVecDense(elements []float64) *Dense {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
-	size := len(elements)
-	return &Dense{
-		rows:   size,
-		cols:   1,
-		size:   size,
-		data:   append([]float64(nil), elements...),
-		viewOf: nil,
-	}
+	d := GetDenseWorkspace(len(elements), 1)
+	_ = append(d.data[:0], elements...)
+	return d
 }
 
 // NewScalar returns a new 1x1 matrix containing the input value.
 func NewScalar(n float64) *Dense {
-	data := []float64{n}
-	return &Dense{
-		rows:   1,
-		cols:   1,
-		size:   1,
-		data:   data,
-		viewOf: nil,
-	}
+	d := GetDenseWorkspace(1, 1)
+	d.data[0] = n
+	return d
 }
 
 // NewEmptyVecDense returns a new vector of the given size, initialized to zeros.
 func NewEmptyVecDense(size int) *Dense {
-	return &Dense{
-		rows:   size,
-		cols:   1,
-		size:   size,
-		data:   make([]float64, size),
-		viewOf: nil,
-	}
+	return GetEmptyDenseWorkspace(size, 1)
 }
 
 // NewEmptyVecDense returns a new rows x cols matrix initialized to zeros.
 func NewEmptyDense(rows, cols int) *Dense {
-	size := rows * cols
-	return &Dense{
-		rows:   rows,
-		cols:   cols,
-		size:   size,
-		data:   make([]float64, size),
-		viewOf: nil,
-	}
+	return GetEmptyDenseWorkspace(rows, cols)
 }
 
 // NewEmptyVecDense returns a new one-hot vector of the given size.
@@ -154,11 +129,12 @@ func (d *Dense) View(rows, cols int) *Dense {
 		panic("mat: incompatible sizes.")
 	}
 	return &Dense{
-		rows:   rows,
-		cols:   cols,
-		size:   rows * cols,
-		data:   d.data,
-		viewOf: d,
+		rows:     rows,
+		cols:     cols,
+		size:     rows * cols,
+		data:     d.data,
+		viewOf:   d,
+		fromPool: false,
 	}
 }
 
@@ -278,7 +254,8 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 	if i >= d.Columns() {
 		panic("mat: index out of range")
 	}
-	out := NewEmptyVecDense(d.rows)
+	//out := NewEmptyVecDense(d.rows)
+	out := GetEmptyDenseWorkspace(d.rows, 1)
 	data := out.data
 	for k := range data {
 		data[k] = d.data[k*d.cols+i]
@@ -289,7 +266,8 @@ func (d *Dense) ExtractColumn(i int) Matrix {
 // T returns the transpose of the matrix.
 func (d *Dense) T() Matrix {
 	r, c := d.Dims()
-	m := NewEmptyDense(c, r)
+	//m := NewEmptyDense(c, r)
+	m := GetEmptyDenseWorkspace(c, r)
 	length := len(m.data)
 	index := 0
 	for _, value := range d.data {
@@ -444,10 +422,12 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
 	}
-	out := d.Clone().(*Dense)
+	//out := d.Clone().(*Dense)
+	out := GetDenseWorkspace(d.Dims())
 	b := other.(*Dense)
 
 	// Avoid bounds checks in loop
+	dData := d.data
 	bData := b.data
 	outData := out.data
 	lastIndex := len(bData) - 1
@@ -457,7 +437,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 	_ = outData[lastIndex]
 
 	for i := lastIndex; i >= 0; i-- {
-		outData[i] *= bData[i]
+		outData[i] = dData[i] * bData[i]
 	}
 
 	return out
@@ -509,7 +489,8 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	if d.Columns() != other.Rows() {
 		panic("mat: matrices with not compatible size")
 	}
-	out := NewEmptyDense(d.Rows(), other.Columns())
+	//out := NewEmptyDense(d.Rows(), other.Columns())
+	out := GetEmptyDenseWorkspace(d.Rows(), other.Columns())
 
 	switch b := other.(type) {
 	case *Dense:
@@ -582,7 +563,8 @@ func (d *Dense) MulT(other Matrix) Matrix {
 	if d.Rows() != other.Rows() {
 		panic("mat: matrices with not compatible size")
 	}
-	out := NewEmptyDense(d.Columns(), other.Columns())
+	//out := NewEmptyDense(d.Columns(), other.Columns())
+	out := GetEmptyDenseWorkspace(d.Columns(), other.Columns())
 
 	switch b := other.(type) {
 	case *Dense:
@@ -652,7 +634,7 @@ func (d *Dense) Pow(power float64) Matrix {
 
 // Sqrt returns a new matrix applying the sqrt function to all elements.
 func (d *Dense) Sqrt() Matrix {
-	out := d.ZerosLike().(*Dense)
+	out := GetDenseWorkspace(d.Dims())
 	for i, val := range d.data {
 		out.data[i] = math.Sqrt(val)
 	}
