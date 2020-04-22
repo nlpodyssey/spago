@@ -27,7 +27,7 @@ func NewEvaluator(model nn.Model) *Evaluator {
 // Predict performs the forward pass and returns the predict label
 func (t *Evaluator) Predict(image *mat.Dense) int {
 	g := ag.NewGraph()
-	defer g.Close()
+	defer g.Clear()
 	x := g.NewVariable(image, false)
 	proc := t.model.NewProc(g)
 	proc.SetMode(nn.Inference) // Important!
