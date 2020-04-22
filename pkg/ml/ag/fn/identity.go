@@ -18,7 +18,7 @@ func NewIdentity(x Operand) *Identity {
 
 // Forward computes the output of the function.
 func (r *Identity) Forward() mat.Matrix {
-	return r.x.Value()
+	return r.x.Value().Clone()
 }
 
 func (r *Identity) Backward(gy mat.Matrix) {
