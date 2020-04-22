@@ -31,7 +31,9 @@ func (r *Mul) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy.Mul(r.x2.Value().T()))
+		x2t := r.x2.Value().T()
+		defer mat.PutDenseWorkspace(x2t.(*mat.Dense))
+		r.x1.PropagateGrad(gy.Mul(x2t))
 	}
 	if r.x2.RequiresGrad() {
 		//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
