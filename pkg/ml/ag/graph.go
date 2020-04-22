@@ -24,9 +24,6 @@ type Graph struct {
 	nodes []*nodeInfo
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
-	// whether to retain the gradients after backward, or not. If false, the memory occupied by gradients
-	// of the operator nodes is released just after the backward, improving performance.
-	retainGradAfterBackward bool
 }
 
 type nodeInfo struct {
@@ -43,10 +40,9 @@ type nodeInfo struct {
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opt ...interface{}) *Graph {
 	g := &Graph{
-		maxId:                   0,
-		maxDepth:                0,
-		nodes:                   nil,
-		retainGradAfterBackward: false, // TODO: set using options
+		maxId:    0,
+		maxDepth: 0,
+		nodes:    nil,
 	}
 
 	for _, t := range opt {
@@ -64,12 +60,13 @@ func NewGraph(opt ...interface{}) *Graph {
 	return g
 }
 
-// TODO: experimental features
-func (g *Graph) Close() {
-	g.Reset()
-}
-
-func (g *Graph) Reset() {
+// Clear cleans the graph. This is a destructive operation.
+// It releases the matrices underlying the nodes so to reduce the need of future new time-consuming allocations.
+// It is important to stress that calling g.Clean(), the "value" and "grad" matrices of the operators nodes are freed (set to nil).
+// Whoever is using the Value() or Grad() properties of a node, does so at his own risk. It is therefore recommended
+// to make always a copy of the return value of Value() or Grad().
+// Alternatively, you can use the convenient graph's methods g.GetCopiedValue(node) and g.GetCopiedGrad(node).
+func (g *Graph) Clear() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.maxId = 0
@@ -78,7 +75,9 @@ func (g *Graph) Reset() {
 	g.nodes = nil
 }
 
-// TODO: experimental features
+// releaseMemory clears the values and the gradients of operator nodes.
+// Since the values and the gradients within the nodes are handled through a pool of dense matrices,
+// releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph) releaseMemory() {
 	for _, item := range g.nodes {
 		if node, ok := item.node.(*operator); ok {
@@ -88,16 +87,14 @@ func (g *Graph) releaseMemory() {
 	}
 }
 
-// TODO: experimental features
 func (g *Graph) releaseValue(node *operator) {
 	if node.value == nil {
 		return
 	}
-	mat.PutDenseWorkspace(node.value.(*mat.Dense))
+	mat.ReleaseDense(node.value.(*mat.Dense))
 	node.value = nil
 }
 
-// TODO: experimental features
 func (g *Graph) releaseGrad(node *operator) {
 	if node.grad == nil {
 		return
@@ -248,6 +245,7 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		panic("ag: invalid number of arguments. Required zero or one argument.")
 	} else if len(grad) == 0 || grad[0] == nil {
 		gx = node.Value().OnesLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
 	} else {
 		gx = grad[0]
 	}
@@ -263,9 +261,6 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 				node.backward()
 			}
 		}
-	}
-	if !g.retainGradAfterBackward {
-		g.ZeroGrad()
 	}
 }
 
@@ -300,9 +295,6 @@ func (g *Graph) BackwardConcurrent(node Node, grad ...mat.Matrix) {
 		}
 		wg.Wait()
 	}
-	if !g.retainGradAfterBackward {
-		g.ZeroGrad()
-	}
 }
 
 func (g *Graph) BackwardAll() {
@@ -313,19 +305,28 @@ func (g *Graph) BackwardAll() {
 			}
 		}
 	}
-	if !g.retainGradAfterBackward {
-		g.ZeroGrad()
-	}
 }
 
-// ZeroGrad clears the gradients of the operator nodes. Since the gradients within the nodes are handled through a pool,
-// setting them to zero means releasing them, improving performance.
-func (g *Graph) ZeroGrad() {
-	for _, item := range g.nodes {
-		if node, ok := item.node.(*operator); ok {
-			node.ZeroGrad()
-		}
+// GetValues returns a copy of the value of a node. If the value is nil, GetCopiedValue returns nil.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
+// graph's operations can be freed.
+func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
+	if node.Value() == nil {
+		return nil
 	}
+	return node.Value().Clone()
+}
+
+// GetValues returns a copy of the gradients of a node. If the gradients are nil, GetCopiedGrad returns nil.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
+// graph's operations can be freed.
+func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
+	if node.Grad() == nil {
+		return nil
+	}
+	return node.Grad().Clone()
 }
 
 // newId generates and returns a new incremental sequential ID.
