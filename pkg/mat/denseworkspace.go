@@ -60,11 +60,11 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 	size := r * c
 	i := bits(uint64(size))
 	w := densePool[i].Get().(*Dense)
+	isNew := w.size == -1 // only a new matrix has size -1
 	w.data = w.data[:size]
 	w.rows = r
 	w.cols = c
 	w.size = size
-	isNew := w.size == -1 // only a new matrix has size -1
 	if !isNew {
 		zero(w.data)
 	}
@@ -109,9 +109,13 @@ func bits(v uint64) byte {
 	return tab64[((v-(v>>1))*0x07EDD5E59A4E28C2)>>58] - 1
 }
 
+const emptySize = 100000000
+
+var empty [emptySize]float64
+
 // zero zeros the given slice's elements.
 func zero(f []float64) {
 	for i := range f {
-		f[i] = 0
+		f[i] = 0.0
 	}
 }
