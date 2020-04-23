@@ -83,6 +83,7 @@ func (g *Graph) releaseMemory() {
 		if node, ok := item.node.(*operator); ok {
 			g.releaseValue(node)
 			g.releaseGrad(node)
+			g.releaseDescendants(item)
 		}
 	}
 }
@@ -96,10 +97,12 @@ func (g *Graph) releaseValue(node *operator) {
 }
 
 func (g *Graph) releaseGrad(node *operator) {
-	if node.grad == nil {
-		return
-	}
 	node.ZeroGrad()
+}
+
+func (g *Graph) releaseDescendants(node *nodeInfo) {
+	releaseInt64Slice(node.descendants)
+	node.descendants = nil
 }
 
 // NewVariable creates e returns a new node.
@@ -153,7 +156,8 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		requiresGrad: requireGrad(operands),
 	}
 
-	descendants := make([]int64, 0, g.sumDescendants(operands)+1) // + itself
+	descendants := getInt64Slice(g.sumDescendants(operands) + 1)
+	descendantIndex := 0
 	for _, o := range operands {
 		for _, descendantId := range g.nodes[o.Id()].descendants {
 			descendantNode := g.nodes[descendantId]
@@ -163,16 +167,17 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 			descendantNode.lastVisitorId = newId
 			descendantNode.depth++
 			g.maxDepth = max(descendantNode.depth, g.maxDepth)
-			descendants = append(descendants, descendantId)
+			descendants[descendantIndex] = descendantId
+			descendantIndex++
 		}
 	}
-	descendants = append(descendants, newId)
+	descendants[descendantIndex] = newId
 
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
 		node:          newNode,
 		depth:         0,
-		descendants:   descendants,
+		descendants:   descendants[:descendantIndex+1],
 		lastVisitorId: -1,
 	})
 	return newNode
