@@ -22,7 +22,7 @@ func NewSwish(x, beta Operand) *Swish {
 
 // Forward computes the output of the function.
 func (r *Swish) Forward() mat.Matrix {
-	y := r.x.Value().ZerosLike()
+	y := mat.GetDenseWorkspace(r.x.Value().Dims())
 	y.ApplyWithAlpha(swish, r.x.Value(), r.beta.Value().Scalar())
 	return y
 }
@@ -32,14 +32,14 @@ func (r *Swish) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ZerosLike()
+		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
 		gx.ApplyWithAlpha(swishDeriv, r.x.Value(), r.beta.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
 	if r.beta.RequiresGrad() {
-		gb := r.beta.Value().ZerosLike()
-		defer mat.ReleaseDense(gb.(*mat.Dense))
+		gb := mat.GetDenseWorkspace(r.beta.Value().Dims())
+		defer mat.ReleaseDense(gb)
 		for i, x := range r.x.Value().Data() {
 			gb.AddScalarInPlace(swishBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])
 		}

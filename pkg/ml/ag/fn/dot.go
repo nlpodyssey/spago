@@ -42,7 +42,7 @@ func (r *Dot) Backward(gy mat.Matrix) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x1.RequiresGrad() {
-		dx := mat.NewEmptyDense(r.x1.Value().Dims())
+		dx := mat.GetDenseWorkspace(r.x1.Value().Dims())
 		defer mat.ReleaseDense(dx)
 		for i := 0; i < r.x1.Value().Rows(); i++ {
 			for j := 0; j < r.x1.Value().Columns(); j++ {
@@ -52,7 +52,7 @@ func (r *Dot) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(dx)
 	}
 	if r.x2.RequiresGrad() {
-		dx := mat.NewEmptyDense(r.x2.Value().Dims())
+		dx := mat.GetDenseWorkspace(r.x2.Value().Dims())
 		defer mat.ReleaseDense(dx)
 		for i := 0; i < r.x2.Value().Rows(); i++ {
 			for j := 0; j < r.x2.Value().Columns(); j++ {

@@ -21,7 +21,7 @@ func NewThreshold(x, threshold, k Operand) *Threshold {
 
 // Forward computes the output of the function.
 func (r *Threshold) Forward() mat.Matrix {
-	y := r.x.Value().ZerosLike()
+	y := mat.GetDenseWorkspace(r.x.Value().Dims())
 	y.ApplyWithAlpha(threshold, r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
 	return y
 }
@@ -31,8 +31,8 @@ func (r *Threshold) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
+		defer mat.ReleaseDense(gx)
 		gx.ApplyWithAlpha(thresholdDeriv, r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

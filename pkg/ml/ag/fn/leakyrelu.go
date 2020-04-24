@@ -20,7 +20,7 @@ func NewLeakyReLU(x, alpha Operand) *LeakyReLU {
 
 // Forward computes the output of the function.
 func (r *LeakyReLU) Forward() mat.Matrix {
-	y := r.x.Value().ZerosLike()
+	y := mat.GetDenseWorkspace(r.x.Value().Dims())
 	y.ApplyWithAlpha(leakyReLU, r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
@@ -30,8 +30,8 @@ func (r *LeakyReLU) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
+		defer mat.ReleaseDense(gx)
 		gx.ApplyWithAlpha(leakyReLUDeriv, r.x.Value(), r.alpha.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

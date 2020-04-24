@@ -17,7 +17,7 @@ type UnaryElementwise struct {
 
 // Forward computes the output of this node.
 func (r *UnaryElementwise) Forward() mat.Matrix {
-	y := r.x.Value().ZerosLike()
+	y := mat.GetDenseWorkspace(r.x.Value().Dims())
 	y.Apply(r.f, r.x.Value())
 	return y
 }
@@ -27,8 +27,8 @@ func (r *UnaryElementwise) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
+		defer mat.ReleaseDense(gx)
 		gx.Apply(r.df, r.x.Value())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)

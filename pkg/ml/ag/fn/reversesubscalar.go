@@ -26,7 +26,9 @@ func (r *ReverseSubScalar) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy.ProdScalar(-1.0))
+		gx := gy.ProdScalar(-1.0)
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := 0.0

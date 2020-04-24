@@ -31,7 +31,7 @@ func (r *Softmax) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		n := r.y.Size()
-		jb := mat.NewEmptyDense(n, n)
+		jb := mat.GetDenseWorkspace(n, n)
 		defer mat.ReleaseDense(jb)
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {

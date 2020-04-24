@@ -26,7 +26,7 @@ func (r *ColView) Forward() mat.Matrix {
 	if r.i >= cols {
 		panic("fn: matrix with not compatible size")
 	}
-	y := mat.NewEmptyDense(1, rows)
+	y := mat.GetDenseWorkspace(1, rows)
 	for i := 0; i < rows; i++ {
 		y.Set(0, i, xv.At(i, r.i))
 	}
