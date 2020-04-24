@@ -27,7 +27,7 @@ func (r *Mul) Forward() mat.Matrix {
 
 // TODO: backward of sparse gradients
 func (r *Mul) Backward(gy mat.Matrix) {
-	if r.x1.Value().Rows() != gy.Rows() && r.x2.Value().Columns() != gy.Columns() {
+	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
