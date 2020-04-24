@@ -190,9 +190,9 @@ func (g *Graph) ForwardAll() {
 	}
 }
 
-// Backward propagates the gradients from the node all the way back to the leaf descendants i.e. variables.
-// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the final output
-// with respect to the final output itself.
+// Backward visit each node in reverse topological order, to propagate the gradients from the given node all the way
+// back to the leaf. If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
+// node with respect to the node itself (dy/dy = 1).
 func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 	var gx mat.Matrix
 	if len(grad) > 1 {
