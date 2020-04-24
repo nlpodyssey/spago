@@ -6,6 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"sync"
 )
 
 type Mul struct {
@@ -30,25 +31,35 @@ func (r *Mul) Backward(gy mat.Matrix) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}
+	var wg sync.WaitGroup
 	if r.x1.RequiresGrad() {
-		x2t := r.x2.Value().T()
-		defer mat.ReleaseDense(x2t.(*mat.Dense))
-		gx := gy.Mul(x2t)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
-		r.x1.PropagateGrad(gx)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			x2t := r.x2.Value().T()
+			defer mat.ReleaseDense(x2t.(*mat.Dense))
+			gx := gy.Mul(x2t)
+			defer mat.ReleaseDense(gx.(*mat.Dense))
+			r.x1.PropagateGrad(gx)
+		}()
 	}
 	if r.x2.RequiresGrad() {
-		//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
-		if gy.Columns() == 1 {
-			gx := r.x1.Value().(*mat.Dense).MulT(gy)
-			defer mat.ReleaseDense(gx.(*mat.Dense))
-			r.x2.PropagateGrad(gx)
-		} else {
-			x1t := r.x1.Value().T()
-			defer mat.ReleaseDense(x1t.(*mat.Dense))
-			gx := x1t.Mul(gy)
-			defer mat.ReleaseDense(gx.(*mat.Dense))
-			r.x2.PropagateGrad(gx)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
+			if gy.Columns() == 1 {
+				gx := r.x1.Value().(*mat.Dense).MulT(gy)
+				defer mat.ReleaseDense(gx.(*mat.Dense))
+				r.x2.PropagateGrad(gx)
+			} else {
+				x1t := r.x1.Value().T()
+				defer mat.ReleaseDense(x1t.(*mat.Dense))
+				gx := x1t.Mul(gy)
+				defer mat.ReleaseDense(gx.(*mat.Dense))
+				r.x2.PropagateGrad(gx)
+			}
+		}()
 	}
+	wg.Wait()
 }
