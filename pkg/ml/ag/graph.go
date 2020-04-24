@@ -69,21 +69,26 @@ func NewGraph(opt ...interface{}) *Graph {
 func (g *Graph) Clear() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
+	if g.nodes == nil {
+		return
+	}
 	g.maxId = 0
 	g.maxDepth = 0
-	g.releaseMemory()
+	g.releaseMemory(true)
 	g.nodes = nil
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
-func (g *Graph) releaseMemory() {
+func (g *Graph) releaseMemory(releaseDescendants bool) {
 	for _, item := range g.nodes {
 		if node, ok := item.node.(*operator); ok {
 			g.releaseValue(node)
 			g.releaseGrad(node)
-			g.releaseDescendants(item)
+			if releaseDescendants {
+				g.releaseDescendants(item)
+			}
 		}
 	}
 }
@@ -157,7 +162,8 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	}
 
 	descendants := getInt64Slice(g.sumDescendants(operands) + 1)
-	descendantIndex := 0
+	descendants[0] = newId
+	offset := 1
 	for _, o := range operands {
 		for _, descendantId := range g.nodes[o.Id()].descendants {
 			descendantNode := g.nodes[descendantId]
@@ -166,18 +172,19 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 			}
 			descendantNode.lastVisitorId = newId
 			descendantNode.depth++
-			g.maxDepth = max(descendantNode.depth, g.maxDepth)
-			descendants[descendantIndex] = descendantId
-			descendantIndex++
+			if descendantNode.depth > g.maxDepth {
+				g.maxDepth = descendantNode.depth
+			}
+			descendants[offset] = descendantId
+			offset++
 		}
 	}
-	descendants[descendantIndex] = newId
 
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, &nodeInfo{
 		node:          newNode,
 		depth:         0,
-		descendants:   descendants[:descendantIndex+1],
+		descendants:   descendants[:offset],
 		lastVisitorId: -1,
 	})
 	return newNode
@@ -354,13 +361,6 @@ func (g *Graph) groupNodesByDepth() [][]Node {
 		out[n.depth] = append(out[n.depth], n.node)
 	}
 	return out
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 func requireGrad(ns []Node) bool {
