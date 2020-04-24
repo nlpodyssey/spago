@@ -76,8 +76,11 @@ func OneHotVecDense(size int, oneAt int) *Dense {
 
 // NewInitDense returns a new rows x cols dense matrix initialized with a constant value.
 func NewInitDense(rows, cols int, val float64) *Dense {
-	out := NewEmptyDense(rows, cols)
-	f64.AddConst(val, out.data)
+	out := GetDenseWorkspace(rows, cols)
+	data := out.data // avoid bounds check
+	for i := range data {
+		data[i] = val
+	}
 	return out
 }
 
@@ -307,9 +310,33 @@ func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
 	}
-	for i := 0; i < d.rows; i++ {
-		for j := 0; j < d.cols; j++ {
-			d.data[i*d.cols+j] = fn(i, j, a.At(i, j))
+	dData := d.data
+	r := 0
+	c := 0
+	switch aa := a.(type) {
+	case *Dense:
+		aData := aa.data
+		lastIndex := len(aData) - 1
+		if lastIndex < 0 {
+			return
+		}
+		_ = dData[lastIndex]
+		for i, val := range aData {
+			dData[i] = fn(r, c, val)
+			c++
+			if c == d.cols {
+				r++
+				c = 0
+			}
+		}
+	default:
+		for i := range dData {
+			dData[i] = fn(r, c, a.At(r, c))
+			c++
+			if c == d.cols {
+				r++
+				c = 0
+			}
 		}
 	}
 }
@@ -422,7 +449,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
 		panic("mat: matrices with not compatible size")
 	}
-	//out := d.Clone().(*Dense)
+
 	out := GetDenseWorkspace(d.Dims())
 	b := other.(*Dense)
 
@@ -435,6 +462,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 		return out
 	}
 	_ = outData[lastIndex]
+	_ = dData[lastIndex]
 	for i := lastIndex; i >= 0; i-- {
 		outData[i] = dData[i] * bData[i]
 	}
@@ -449,8 +477,10 @@ func (d *Dense) ProdInPlace(other Matrix) Matrix {
 		panic("mat: matrices with not compatible size")
 	}
 	b := other.(*Dense)
-	for i, val := range b.data {
-		d.data[i] *= val
+	bData := b.data
+	dData := d.data
+	for i, val := range bData {
+		dData[i] *= val
 	}
 	return d
 }
@@ -632,8 +662,14 @@ func (d *Dense) Pow(power float64) Matrix {
 // Sqrt returns a new matrix applying the sqrt function to all elements.
 func (d *Dense) Sqrt() Matrix {
 	out := GetDenseWorkspace(d.Dims())
+	inData := d.data
+	lastIndex := len(inData) - 1
+	if lastIndex < 0 {
+		return out
+	}
 	outData := out.data
-	for i, val := range d.data {
+	_ = outData[lastIndex]
+	for i, val := range inData {
 		outData[i] = math.Sqrt(val)
 	}
 	return out
