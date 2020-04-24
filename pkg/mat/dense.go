@@ -612,8 +612,9 @@ func (d *Dense) ClipInPlace(min, max float64) Matrix {
 // Abs returns a new matrix applying the abs function to all elements.
 func (d *Dense) Abs() Matrix {
 	out := GetDenseWorkspace(d.Dims())
+	outData := out.data
 	for i, val := range d.data {
-		out.data[i] = math.Abs(val)
+		outData[i] = math.Abs(val)
 	}
 	return out
 }
@@ -621,8 +622,9 @@ func (d *Dense) Abs() Matrix {
 // Pow returns a new matrix applying the power v (applying the pow function) to all elements.
 func (d *Dense) Pow(power float64) Matrix {
 	out := GetDenseWorkspace(d.Dims())
+	outData := out.data
 	for i, val := range d.data {
-		out.data[i] = math.Pow(val, power)
+		outData[i] = math.Pow(val, power)
 	}
 	return out
 }
@@ -630,8 +632,9 @@ func (d *Dense) Pow(power float64) Matrix {
 // Sqrt returns a new matrix applying the sqrt function to all elements.
 func (d *Dense) Sqrt() Matrix {
 	out := GetDenseWorkspace(d.Dims())
+	outData := out.data
 	for i, val := range d.data {
-		out.data[i] = math.Sqrt(val)
+		outData[i] = math.Sqrt(val)
 	}
 	return out
 }
