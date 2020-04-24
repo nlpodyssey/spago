@@ -93,9 +93,11 @@ func (o *Adam) Delta(param gd.Optimizable) mat.Matrix {
 func (o *Adam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt()
-	buf.AddScalarInPlace(o.Epsilon)
-	supp[buf3].ProdMatrixScalarInPlace(supp[v].Div(buf), o.Alpha)
+	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
+	defer mat.ReleaseDense(buf.(*mat.Dense))
+	suppDiv := supp[v].Div(buf)
+	defer mat.ReleaseDense(suppDiv.(*mat.Dense))
+	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
 	return supp[buf3]
 }
 
@@ -109,6 +111,8 @@ func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
-	supp[buf2].ProdMatrixScalarInPlace(grads.Prod(grads), 1.0-beta2)
+	sqGrad := grads.Prod(grads)
+	defer mat.ReleaseDense(sqGrad.(*mat.Dense))
+	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
 	supp[m].AddInPlace(supp[buf2])
 }
