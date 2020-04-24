@@ -61,10 +61,12 @@ func NewGraph(opt ...interface{}) *Graph {
 }
 
 // Clear cleans the graph. This is a destructive operation.
-// It releases the matrices underlying the nodes so to reduce the need of future new time-consuming allocations.
-// It is important to stress that calling g.Clean(), the "value" and "grad" matrices of the operators nodes are freed (set to nil).
-// Whoever is using the Value() or Grad() properties of a node, does so at his own risk. It is therefore recommended
-// to make always a copy of the return value of Value() or Grad().
+// It is not mandatory to call this method, but it is strongly recommended to do so when you finish using the graph.
+// The cleaning of the graph improves the memory management and therefore the efficiency of execution.
+// Clear releases the matrices underlying the nodes so to reduce the need of future new time-consuming allocations.
+// It is important to stress that calling g.Clean(), the "value" and "grad" of the operators nodes are freed (set to nil).
+// Whoever is using the Value() or Grad() properties of a node, does so at his own risk. It is therefore recommended to
+// make always a copy of the return value of Value() or Grad().
 // Alternatively, you can use the convenient graph's methods g.GetCopiedValue(node) and g.GetCopiedGrad(node).
 func (g *Graph) Clear() {
 	g.mu.Lock()
@@ -76,6 +78,18 @@ func (g *Graph) Clear() {
 	g.maxDepth = 0
 	g.releaseMemory(true)
 	g.nodes = nil
+}
+
+// ClearForReuse() does the same thing as Clear(), with the difference that the graph structure i.e. how nodes are
+// connected to each other, is maintained.
+// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll() method for this usage).
+func (g *Graph) ClearForReuse() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.nodes == nil {
+		return
+	}
+	g.releaseMemory(false)
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
