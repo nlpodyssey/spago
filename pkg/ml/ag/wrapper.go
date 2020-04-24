@@ -6,6 +6,8 @@ package ag
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Node = &wrapper{}
+
 type wrapper struct {
 	GradValue
 	graph    *Graph

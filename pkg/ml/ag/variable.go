@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+var _ Node = &variable{}
+
 type variable struct {
 	graph        *Graph
 	id           int64

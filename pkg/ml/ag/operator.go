@@ -10,6 +10,8 @@ import (
 	"sync"
 )
 
+var _ Node = &operator{}
+
 type operator struct {
 	graph        *Graph
 	id           int64
