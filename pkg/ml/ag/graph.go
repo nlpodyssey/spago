@@ -21,19 +21,9 @@ type Graph struct {
 	// the maximum depth reached by a node of the graph
 	maxDepth int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
-	nodes []*nodeInfo
+	nodes []Node
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
-}
-
-type nodeInfo struct {
-	node Node
-	// depth is the maximum depth reached by the node.
-	depth int
-	// the id of the last operator visiting this node for depth calculation.
-	lastVisitorId int64
-	// descendants contains the ids of all descendants including the node itself.
-	descendants []int64
 }
 
 // NewGraph returns a new initialized graph.
@@ -76,7 +66,7 @@ func (g *Graph) Clear() {
 	}
 	g.maxId = 0
 	g.maxDepth = 0
-	g.releaseMemory(true)
+	g.releaseMemory()
 	g.nodes = nil
 }
 
@@ -89,20 +79,17 @@ func (g *Graph) ClearForReuse() {
 	if g.nodes == nil {
 		return
 	}
-	g.releaseMemory(false)
+	g.releaseMemory()
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
-func (g *Graph) releaseMemory(releaseDescendants bool) {
-	for _, item := range g.nodes {
-		if node, ok := item.node.(*operator); ok {
+func (g *Graph) releaseMemory() {
+	for _, node := range g.nodes {
+		if node, ok := node.(*operator); ok {
 			g.releaseValue(node)
 			g.releaseGrad(node)
-			if releaseDescendants {
-				g.releaseDescendants(item)
-			}
 		}
 	}
 }
@@ -119,31 +106,20 @@ func (g *Graph) releaseGrad(node *operator) {
 	node.ZeroGrad()
 }
 
-func (g *Graph) releaseDescendants(node *nodeInfo) {
-	releaseInt64Slice(node.descendants)
-	node.descendants = nil
-}
-
 // NewVariable creates e returns a new node.
 func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newId := g.newId()
 	newNode := &variable{
 		graph:        g,
-		id:           newId,
+		id:           g.newId(),
 		value:        value,
 		grad:         nil,
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
 	// the new id is sequential so this the append is fine
-	g.nodes = append(g.nodes, &nodeInfo{
-		node:          newNode,
-		depth:         0,
-		descendants:   []int64{newId},
-		lastVisitorId: -1,
-	})
+	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
@@ -164,101 +140,53 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	value := f.Forward() // the calculation can be concurrent
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newId := g.newId()
 	newNode := &operator{
 		graph:        g,
-		id:           newId,
+		id:           g.newId(),
 		function:     f,
 		value:        value,
 		grad:         nil,
 		hasGrad:      false,
 		requiresGrad: requireGrad(operands),
 	}
-
-	descendants := getInt64Slice(g.sumDescendants(operands) + 1)
-	descendants[0] = newId
-	offset := 1
-	for _, o := range operands {
-		for _, descendantId := range g.nodes[o.Id()].descendants {
-			descendantNode := g.nodes[descendantId]
-			if descendantNode.lastVisitorId == newId {
-				continue
-			}
-			descendantNode.lastVisitorId = newId
-			descendantNode.depth++
-			if descendantNode.depth > g.maxDepth {
-				g.maxDepth = descendantNode.depth
-			}
-			descendants[offset] = descendantId
-			offset++
-		}
-	}
-
 	// the new id is sequential so this the append is fine
-	g.nodes = append(g.nodes, &nodeInfo{
-		node:          newNode,
-		depth:         0,
-		descendants:   descendants[:offset],
-		lastVisitorId: -1,
-	})
+	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
 func (g *Graph) NewWrap(value GradValue) *wrapper {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newId := g.newId()
 	newNode := &wrapper{
 		GradValue: value,
 		graph:     g,
-		id:        newId,
+		id:        g.newId(),
 		wrapGrad:  true,
 	}
 	// the new id is sequential so this the append is fine
-	g.nodes = append(g.nodes, &nodeInfo{
-		node:          newNode,
-		depth:         0,
-		descendants:   []int64{newId},
-		lastVisitorId: -1,
-	})
+	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
 func (g *Graph) NewWrapNoGrad(value GradValue) *wrapper {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newId := g.newId()
 	newNode := &wrapper{
 		GradValue: value,
 		graph:     g,
-		id:        newId,
+		id:        g.newId(),
 		wrapGrad:  false,
 	}
 	// the new id is sequential so this the append is fine
-	g.nodes = append(g.nodes, &nodeInfo{
-		node:          newNode,
-		depth:         0,
-		descendants:   []int64{newId},
-		lastVisitorId: -1,
-	})
+	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
 func (g *Graph) ForwardAll() {
-	groups := g.groupNodesByDepth()
-	for depth := len(groups) - 1; depth >= 0; depth-- {
-		var wg sync.WaitGroup
-		wg.Add(len(groups[depth]))
-		for _, n := range groups[depth] {
-			go func(x Node) {
-				defer wg.Done()
-				x.ZeroGrad()
-				if x, ok := x.(*operator); ok {
-					x.value = x.function.Forward()
-				}
-			}(n)
+	for _, node := range g.nodes {
+		if node, ok := node.(*operator); ok {
+			node.value = node.function.Forward()
 		}
-		wg.Wait()
 	}
 }
 
@@ -276,59 +204,23 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		gx = grad[0]
 	}
 	node.PropagateGrad(gx)
-	minDepth := g.nodes[node.Id()].depth
-	nodesPerDepth := g.groupNodesByDepth()
-	for depth, ns := range nodesPerDepth {
-		if depth < minDepth {
-			break
+	nodes := g.nodes
+	lastIndex := node.Id()
+	_ = nodes[lastIndex] // avoid bounds check
+	for i := lastIndex; i >= 0; i-- {
+		if node, ok := nodes[i].(*operator); ok {
+			node.backward()
 		}
-		for _, node := range ns {
-			if node, ok := node.(*operator); ok {
-				node.backward()
-			}
-		}
-	}
-}
-
-// Backward propagates the gradients from the node all the way back to the leaf descendants i.e. variables.
-// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the final output
-// with respect to the final output itself.
-func (g *Graph) BackwardConcurrent(node Node, grad ...mat.Matrix) {
-	var gx mat.Matrix
-	if len(grad) > 1 {
-		panic("ag: invalid number of arguments. Required zero or one argument.")
-	} else if len(grad) == 0 || grad[0] == nil {
-		gx = node.Value().OnesLike()
-	} else {
-		gx = grad[0]
-	}
-	node.PropagateGrad(gx)
-	minDepth := g.nodes[node.Id()].depth
-	nodesPerDepth := g.groupNodesByDepth()
-	for depth, ns := range nodesPerDepth {
-		if depth < minDepth {
-			break
-		}
-		var wg sync.WaitGroup
-		wg.Add(len(ns))
-		for _, node := range ns {
-			go func(x Node) {
-				defer wg.Done()
-				if x, ok := x.(*operator); ok {
-					x.backward()
-				}
-			}(node)
-		}
-		wg.Wait()
 	}
 }
 
 func (g *Graph) BackwardAll() {
-	for _, ns := range g.groupNodesByDepth() {
-		for _, n := range ns {
-			if n, ok := n.(*operator); ok {
-				n.backward()
-			}
+	nodes := g.nodes
+	lastIndex := len(nodes) - 1
+	_ = nodes[lastIndex]
+	for i := lastIndex; i >= 0; i-- {
+		if node, ok := nodes[i].(*operator); ok {
+			node.backward()
 		}
 	}
 }
@@ -358,23 +250,6 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 // newId generates and returns a new incremental sequential ID.
 func (g *Graph) newId() int64 {
 	return atomic.AddInt64(&g.maxId, 1) - 1
-}
-
-func (g *Graph) sumDescendants(ns []Node) int {
-	sum := 0
-	for _, n := range ns {
-		sum += len(g.nodes[n.Id()].descendants)
-	}
-	return sum
-}
-
-// groupNodesByDepth returns the nodes of the graph grouped by depth.
-func (g *Graph) groupNodesByDepth() [][]Node {
-	out := make([][]Node, g.maxDepth+1)
-	for _, n := range g.nodes {
-		out[n.depth] = append(out[n.depth], n.node)
-	}
-	return out
 }
 
 func requireGrad(ns []Node) bool {
