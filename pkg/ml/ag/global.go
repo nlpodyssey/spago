@@ -32,8 +32,8 @@ func ClearGlobalGraphForReuse() {
 	globalGraph.ClearForReuse()
 }
 
-func NewVariable(value mat.Matrix, requiresGrad bool) {
-	globalGraph.NewVariable(value, requiresGrad)
+func NewVariable(value mat.Matrix, requiresGrad bool) Node {
+	return globalGraph.NewVariable(value, requiresGrad)
 }
 
 func NewScalar(value float64) Node {
