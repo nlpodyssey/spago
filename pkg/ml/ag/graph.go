@@ -18,8 +18,6 @@ type Graph struct {
 	mu sync.Mutex
 	// maxId is the id of the last inserted node (corresponds of len(nodes)-1)
 	maxId int64
-	// the maximum depth reached by a node of the graph
-	maxDepth int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// randGen is the generator of random numbers
@@ -29,11 +27,7 @@ type Graph struct {
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opt ...interface{}) *Graph {
-	g := &Graph{
-		maxId:    0,
-		maxDepth: 0,
-		nodes:    nil,
-	}
+	g := &Graph{maxId: 0, nodes: nil}
 
 	for _, t := range opt {
 		switch t := t.(type) {
@@ -65,7 +59,6 @@ func (g *Graph) Clear() {
 		return
 	}
 	g.maxId = 0
-	g.maxDepth = 0
 	g.releaseMemory()
 	g.nodes = nil
 }
