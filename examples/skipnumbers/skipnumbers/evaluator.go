@@ -25,6 +25,7 @@ func NewEvaluator(model *Model) *Evaluator {
 // Predict performs the forward pass
 func (t *Evaluator) Predict(example example) int {
 	g := ag.NewGraph()
+	defer g.Clear()
 	xs := make([]ag.Node, len(example.xs))
 	for i, x := range example.xs {
 		xs[i] = g.NewVariable(mat.OneHotVecDense(10, x), false)

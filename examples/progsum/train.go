@@ -48,7 +48,7 @@ func main() {
 
 	model := stack.New(
 		lstm.New(1, hiddenSize),
-		perceptron.New(hiddenSize, 11, ag.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
+		perceptron.New(hiddenSize, 11, ag.OpIdentity), // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 
 	// initialized the new model with random weights
@@ -68,9 +68,9 @@ func initRandom(model *stack.Model, rndGen *rand.LockedRand) {
 	for i, layer := range model.Layers {
 		var gain float64
 		if i == len(model.Layers)-1 { // last layer
-			gain = initializers.Gain(ag.Softmax)
+			gain = initializers.Gain(ag.OpSoftmax)
 		} else {
-			gain = initializers.Gain(ag.Tanh)
+			gain = initializers.Gain(ag.OpTanh)
 		}
 		layer.ForEachParam(func(param *nn.Param) {
 			if param.Type() == nn.Weights {

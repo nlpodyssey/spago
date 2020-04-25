@@ -39,8 +39,8 @@ func main() {
 		5,   // maxPoolingCols
 		160, // hidden
 		10,  // out
-		ag.ReLU,
-		ag.Softmax,
+		ag.OpReLU,
+		ag.OpSoftmax,
 	)
 	err = utils.DeserializeFromFile(modelPath, model)
 	if err != nil {

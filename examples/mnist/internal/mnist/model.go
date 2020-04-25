@@ -28,7 +28,7 @@ func InitMLP(model *stack.Model, rndGen *rand.LockedRand) {
 	for i, layer := range model.Layers {
 		var gain float64
 		if i == len(model.Layers)-1 { // last layer
-			gain = initializers.Gain(ag.Softmax)
+			gain = initializers.Gain(ag.OpSoftmax)
 		} else {
 			gain = initializers.Gain(layer.(*perceptron.Model).Activation)
 		}
@@ -63,7 +63,7 @@ func InitCNN(model *cnn.Model, rndGen *rand.LockedRand) {
 	}
 	model.FinalLayer.ForEachParam(func(param *nn.Param) {
 		if param.Type() == nn.Weights {
-			initializers.XavierUniform(param.Value(), initializers.Gain(ag.Softmax), rndGen)
+			initializers.XavierUniform(param.Value(), initializers.Gain(ag.OpSoftmax), rndGen)
 		}
 	})
 }

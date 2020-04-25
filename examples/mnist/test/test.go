@@ -34,8 +34,8 @@ func main() {
 		784, // input
 		100, // hidden
 		10,  // output
-		ag.ReLU,
-		ag.Softmax,
+		ag.OpReLU,
+		ag.OpSoftmax,
 	)
 
 	err = utils.DeserializeFromFile(modelPath, model)

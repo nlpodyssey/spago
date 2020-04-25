@@ -50,7 +50,7 @@ func main() {
 			0.5,        // lambda,
 			50,         // intermediate layer
 		),
-		perceptron.New(hiddenSize, 10, ag.Identity), // The CrossEntropy loss doesn't require explicit Softmax activation
+		perceptron.New(hiddenSize, 10, ag.OpIdentity), // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 
 	// initialize model with random weights

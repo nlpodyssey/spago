@@ -34,7 +34,7 @@ func main() {
 	model := perceptron.New(
 		784, // input
 		10,  // output
-		ag.Softmax,
+		ag.OpSoftmax,
 	)
 	err = utils.DeserializeFromFile(modelPath, model)
 	if err != nil {

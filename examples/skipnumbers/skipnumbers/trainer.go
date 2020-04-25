@@ -137,6 +137,8 @@ func (t *Trainer) trainBatchSerial(indices []int, onExample func()) {
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
 func (t *Trainer) learn(example example) float64 {
 	g := ag.NewGraph()
+	defer g.Clear()
+
 	xs, target := extract(g, example)
 	proc := t.model.NewProc(g).(*Processor)
 	y := proc.Forward(xs...)[0]

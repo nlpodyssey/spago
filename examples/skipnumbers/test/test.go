@@ -38,7 +38,7 @@ func main() {
 	hiddenSize := 200
 	model := skipnumbers.NewModel(
 		lstmsc.New(10, hiddenSize, 10, 0.5, 50),
-		perceptron.New(hiddenSize, 10, ag.Softmax),
+		perceptron.New(hiddenSize, 10, ag.OpSoftmax),
 	)
 
 	err = utils.DeserializeFromFile(modelPath, model)

@@ -49,8 +49,8 @@ func main() {
 		5,   // maxPoolingCols
 		160, // hidden
 		10,  // out
-		ag.ReLU,
-		ag.Identity, // The CrossEntropy loss doesn't require explicit Softmax activation
+		ag.OpReLU,
+		ag.OpIdentity, // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 
 	rndGen := rand.NewLockedRand(uint64(42))

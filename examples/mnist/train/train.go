@@ -45,8 +45,8 @@ func main() {
 		784, // input
 		100, // hidden
 		10,  // output
-		ag.ReLU,
-		ag.Identity, // The CrossEntropy loss doesn't require explicit Softmax activation
+		ag.OpReLU,
+		ag.OpIdentity, // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 
 	rndGen := rand.NewLockedRand(743)

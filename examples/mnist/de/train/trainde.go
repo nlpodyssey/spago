@@ -53,9 +53,9 @@ func main() {
 	// new template model initialized with zeros
 	modelFactory := func() nn.Model {
 		return perceptron.New(
-			784,         // features
-			10,          // output
-			ag.Identity, // output activation
+			784,           // features
+			10,            // output
+			ag.OpIdentity, // output activation
 		)
 	}
 
