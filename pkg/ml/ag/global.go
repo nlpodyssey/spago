@@ -44,6 +44,18 @@ func NewOperator(f fn.Function, operands ...Node) Node {
 	return globalGraph.NewOperator(f, operands...)
 }
 
+func ForwardAll() {
+	globalGraph.ForwardAll()
+}
+
+func Backward(node Node, grad ...mat.Matrix) {
+	globalGraph.Backward(node, grad...)
+}
+
+func BackwardAll() {
+	globalGraph.BackwardAll()
+}
+
 // Invoke
 func Invoke(operator OpName, xs ...Node) Node {
 	return globalGraph.Invoke(operator, xs...)
