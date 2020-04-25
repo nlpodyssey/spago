@@ -176,6 +176,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 }
 
 func (g *Graph) ForwardAll() {
+	g.ClearForReuse() // make sure you don't waste memory
 	for _, node := range g.nodes {
 		if node, ok := node.(*operator); ok {
 			node.value = node.function.Forward()
