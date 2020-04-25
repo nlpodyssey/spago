@@ -54,7 +54,7 @@ func NewLayer(
 func newFFN(in, hidden, out int, activation ag.OpName) *stack.Model {
 	return stack.New(
 		perceptron.New(in, hidden, activation),
-		perceptron.New(hidden, out, ag.Identity),
+		perceptron.New(hidden, out, ag.OpIdentity),
 	)
 }
 

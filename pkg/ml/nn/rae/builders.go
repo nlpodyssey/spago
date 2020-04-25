@@ -20,15 +20,15 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 
 	return &Encoder{
 		ScalingFFN: stack.New(
-			perceptron.New(inputSize, scalingHidden, ag.Mish),
-			perceptron.New(scalingHidden, embeddingSize, ag.Mish)),
+			perceptron.New(inputSize, scalingHidden, ag.OpMish),
+			perceptron.New(scalingHidden, embeddingSize, ag.OpMish)),
 		EncodingFFN: stack.New(
-			perceptron.New(2*embeddingSize, hiddenSize, ag.Identity),
+			perceptron.New(2*embeddingSize, hiddenSize, ag.OpIdentity),
 			layernorm.New(hiddenSize),
-			activation.New(ag.Mish),
-			perceptron.New(hiddenSize, embeddingSize, ag.Identity),
+			activation.New(ag.OpMish),
+			perceptron.New(hiddenSize, embeddingSize, ag.OpIdentity),
 			layernorm.New(embeddingSize),
-			activation.New(ag.Mish)),
+			activation.New(ag.OpMish)),
 		StepEncoder: pe.New(2*embeddingSize, maxSequenceLength),
 	}
 }
@@ -39,16 +39,16 @@ func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decode
 
 	return &Decoder{
 		DecodingFNN1: stack.New(
-			perceptron.New(embeddingSize, hiddenSize, ag.Identity),
+			perceptron.New(embeddingSize, hiddenSize, ag.OpIdentity),
 			layernorm.New(hiddenSize),
-			activation.New(ag.Mish),
-			perceptron.New(hiddenSize, 2*embeddingSize, ag.Identity)),
+			activation.New(ag.OpMish),
+			perceptron.New(hiddenSize, 2*embeddingSize, ag.OpIdentity)),
 		DecodingFFN2: stack.New(
 			layernorm.New(embeddingSize),
-			activation.New(ag.Mish)),
+			activation.New(ag.OpMish)),
 		DescalingFFN: stack.New(
-			perceptron.New(embeddingSize, descalingHidden, ag.Mish),
-			perceptron.New(descalingHidden, outputSize, ag.Identity)),
+			perceptron.New(embeddingSize, descalingHidden, ag.OpMish),
+			perceptron.New(descalingHidden, outputSize, ag.OpIdentity)),
 		StepEncoder: pe.New(embeddingSize, maxSequenceLength),
 	}
 }

@@ -99,7 +99,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 }
 
 func newTestModel() *Model {
-	params := New(4, 5, ag.Tanh)
+	params := New(4, 5, ag.OpTanh)
 	params.W.Value().SetData([]float64{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
@@ -173,7 +173,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 }
 
 func newTestModel2() *Model {
-	model := New(3, 2, ag.Tanh)
+	model := New(3, 2, ag.OpTanh)
 	model.W.Value().SetData([]float64{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,

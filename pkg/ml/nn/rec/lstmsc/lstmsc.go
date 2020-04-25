@@ -40,8 +40,8 @@ type Model struct {
 func New(in, out, k int, lambda float64, intermediate int) *Model {
 	var m Model
 	m.PolicyGradient = stack.New(
-		perceptron.New(in+out, intermediate, ag.Tanh),
-		perceptron.New(intermediate, k, ag.Softmax),
+		perceptron.New(in+out, intermediate, ag.OpTanh),
+		perceptron.New(intermediate, k, ag.OpSoftmax),
 	)
 	m.Lambda = lambda
 	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)

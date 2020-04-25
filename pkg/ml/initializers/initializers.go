@@ -17,11 +17,11 @@ import (
 // Use it to find the gain value for Xavier initializations.
 func Gain(f ag.OpName) float64 {
 	switch f {
-	case ag.Sigmoid:
+	case ag.OpSigmoid:
 		return 1.0
-	case ag.ReLU:
+	case ag.OpReLU:
 		return math.Sqrt(2.0)
-	case ag.Tanh:
+	case ag.OpTanh:
 		return 5.0 / 3
 	default:
 		return 1.0

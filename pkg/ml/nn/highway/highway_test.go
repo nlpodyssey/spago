@@ -66,7 +66,7 @@ func TestModel_Forward(t *testing.T) {
 
 func newTestModel() *Model {
 
-	model := New(4, ag.Tanh)
+	model := New(4, ag.OpTanh)
 
 	model.WIn.Value().SetData([]float64{
 		0.5, 0.6, -0.8, -0.6,

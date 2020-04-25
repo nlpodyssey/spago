@@ -147,7 +147,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	return newNode
 }
 
-func (g *Graph) NewWrap(value GradValue) *wrapper {
+func (g *Graph) NewWrap(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newNode := &wrapper{
@@ -161,7 +161,7 @@ func (g *Graph) NewWrap(value GradValue) *wrapper {
 	return newNode
 }
 
-func (g *Graph) NewWrapNoGrad(value GradValue) *wrapper {
+func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newNode := &wrapper{

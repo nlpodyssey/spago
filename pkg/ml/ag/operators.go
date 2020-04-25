@@ -12,115 +12,115 @@ import (
 type OpName int
 
 const (
-	Identity OpName = iota
-	Dropout
-	AtVec
-	At
-	Add
-	Sub
-	SubScalar
-	AddScalar
-	ReverseSub
-	Prod
-	Div
-	ProdScalar
-	DivScalar
-	Mul
-	Dot
-	Reshape
-	MaxPooling
-	View
-	RowView
-	ColView
-	Vec
-	T
-	Square
-	Pow
-	Sqrt
-	Tan
-	Tanh
-	Sigmoid
-	HardSigmoid
-	HardTanh
-	Softsign
-	ReLU
-	CeLU
-	ELU
-	Swish
-	Mish
-	LeakyReLU
-	SeLU
-	SoftPlus
-	SoftShrink
-	Threshold
-	Softmax
-	Sin
-	Cos
-	Exp
-	Log
-	Abs
-	Neg
-	Reciprocal
-	ReduceSum
-	ReduceMean
-	Concat
-	Stack
+	OpIdentity OpName = iota
+	OpDropout
+	OpAtVec
+	OpAt
+	OpAdd
+	OpSub
+	OpSubScalar
+	OpAddScalar
+	OpReverseSub
+	OpProd
+	OpDiv
+	OpProdScalar
+	OpDivScalar
+	OpMul
+	OpDot
+	OpReshape
+	OpMaxPooling
+	OpView
+	OpRowView
+	OpColView
+	OpVec
+	OpT
+	OpSquare
+	OpPow
+	OpSqrt
+	OpTan
+	OpTanh
+	OpSigmoid
+	OpHardSigmoid
+	OpHardTanh
+	OpSoftsign
+	OpReLU
+	OpCeLU
+	OpELU
+	OpSwish
+	OpMish
+	OpLeakyReLU
+	OpSeLU
+	OpSoftPlus
+	OpSoftShrink
+	OpThreshold
+	OpSoftmax
+	OpSin
+	OpCos
+	OpExp
+	OpLog
+	OpAbs
+	OpNeg
+	OpReciprocal
+	OpReduceSum
+	OpReduceMean
+	OpConcat
+	OpStack
 )
 
 var opNameToMethodName = map[OpName]string{
-	Identity:    "Identity",
-	Dropout:     "Dropout",
-	AtVec:       "AtVec",
-	At:          "At",
-	Add:         "Add",
-	Sub:         "Sub",
-	SubScalar:   "SubScalar",
-	AddScalar:   "AddScalar",
-	ReverseSub:  "ReverseSub",
-	Prod:        "Prod",
-	Div:         "Div",
-	ProdScalar:  "ProdScalar",
-	DivScalar:   "DivScalar",
-	Mul:         "Mul",
-	Dot:         "Dot",
-	Reshape:     "Reshape",
-	MaxPooling:  "MaxPooling",
-	View:        "View",
-	RowView:     "RowView",
-	ColView:     "ColView",
-	Vec:         "Vec",
-	T:           "T",
-	Square:      "Square",
-	Pow:         "Pow",
-	Sqrt:        "Sqrt",
-	Tan:         "Tan",
-	Tanh:        "Tanh",
-	Sigmoid:     "Sigmoid",
-	HardSigmoid: "HardSigmoid",
-	HardTanh:    "HardTanh",
-	Softsign:    "Softsign",
-	ReLU:        "ReLU",
-	CeLU:        "CeLU",
-	ELU:         "ELU",
-	Swish:       "Swish",
-	Mish:        "Mish",
-	LeakyReLU:   "LeakyReLU",
-	SeLU:        "SeLU",
-	SoftPlus:    "SoftPlus",
-	SoftShrink:  "SoftShrink",
-	Threshold:   "Threshold",
-	Softmax:     "Softmax",
-	Sin:         "Sin",
-	Cos:         "Cos",
-	Exp:         "Exp",
-	Log:         "Log",
-	Abs:         "Abs",
-	Neg:         "Neg",
-	Reciprocal:  "Reciprocal",
-	ReduceSum:   "ReduceSum",
-	ReduceMean:  "ReduceMean",
-	Concat:      "Concat",
-	Stack:       "Stack",
+	OpIdentity:    "Identity",
+	OpDropout:     "Dropout",
+	OpAtVec:       "AtVec",
+	OpAt:          "At",
+	OpAdd:         "Add",
+	OpSub:         "Sub",
+	OpSubScalar:   "SubScalar",
+	OpAddScalar:   "AddScalar",
+	OpReverseSub:  "ReverseSub",
+	OpProd:        "Prod",
+	OpDiv:         "Div",
+	OpProdScalar:  "ProdScalar",
+	OpDivScalar:   "DivScalar",
+	OpMul:         "Mul",
+	OpDot:         "Dot",
+	OpReshape:     "Reshape",
+	OpMaxPooling:  "MaxPooling",
+	OpView:        "View",
+	OpRowView:     "RowView",
+	OpColView:     "ColView",
+	OpVec:         "Vec",
+	OpT:           "T",
+	OpSquare:      "Square",
+	OpPow:         "Pow",
+	OpSqrt:        "Sqrt",
+	OpTan:         "Tan",
+	OpTanh:        "Tanh",
+	OpSigmoid:     "Sigmoid",
+	OpHardSigmoid: "HardSigmoid",
+	OpHardTanh:    "HardTanh",
+	OpSoftsign:    "Softsign",
+	OpReLU:        "ReLU",
+	OpCeLU:        "CeLU",
+	OpELU:         "ELU",
+	OpSwish:       "Swish",
+	OpMish:        "Mish",
+	OpLeakyReLU:   "LeakyReLU",
+	OpSeLU:        "SeLU",
+	OpSoftPlus:    "SoftPlus",
+	OpSoftShrink:  "SoftShrink",
+	OpThreshold:   "Threshold",
+	OpSoftmax:     "Softmax",
+	OpSin:         "Sin",
+	OpCos:         "Cos",
+	OpExp:         "Exp",
+	OpLog:         "Log",
+	OpAbs:         "Abs",
+	OpNeg:         "Neg",
+	OpReciprocal:  "Reciprocal",
+	OpReduceSum:   "ReduceSum",
+	OpReduceMean:  "ReduceMean",
+	OpConcat:      "Concat",
+	OpStack:       "Stack",
 }
 
 // Invoke
