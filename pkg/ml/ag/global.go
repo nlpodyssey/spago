@@ -44,6 +44,14 @@ func NewOperator(f fn.Function, operands ...Node) Node {
 	return globalGraph.NewOperator(f, operands...)
 }
 
+func NewWrap(value GradValue) Node {
+	return globalGraph.NewWrap(value)
+}
+
+func NewWrapNoGrad(value GradValue) Node {
+	return globalGraph.NewWrapNoGrad(value)
+}
+
 func ForwardAll() {
 	globalGraph.ForwardAll()
 }
