@@ -38,7 +38,7 @@ func (m *Model) Init() {
 	})
 	m.Predictor.ForEachParam(func(param *nn.Param) {
 		if param.Type() == nn.Weights {
-			initializers.XavierUniform(param.Value(), initializers.Gain(ag.Softmax), rndGen)
+			initializers.XavierUniform(param.Value(), initializers.Gain(ag.OpSoftmax), rndGen)
 		}
 	})
 }
