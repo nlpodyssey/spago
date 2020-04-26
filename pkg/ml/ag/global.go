@@ -52,6 +52,10 @@ func NewWrapNoGrad(value GradValue) Node {
 	return globalGraph.NewWrapNoGrad(value)
 }
 
+func ReplaceValue(node Node, value mat.Matrix) {
+	globalGraph.ReplaceValue(node, value)
+}
+
 func ForwardAll() {
 	globalGraph.ForwardAll()
 }

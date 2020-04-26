@@ -241,6 +241,15 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 	return node.Grad().Clone()
 }
 
+// ReplaceValue
+func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
+	if node, ok := node.(*variable); !ok {
+		panic("ag: invalid node. Only variables are allowed to change their value.")
+	} else {
+		node.value = value
+	}
+}
+
 // newId generates and returns a new incremental sequential ID.
 func (g *Graph) newId() int64 {
 	return atomic.AddInt64(&g.maxId, 1) - 1

@@ -36,10 +36,6 @@ func (r *variable) Value() mat.Matrix {
 	return r.value
 }
 
-func (r *variable) ChangeValue(value mat.Matrix) {
-	r.value = value
-}
-
 // ScalarValue() returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
