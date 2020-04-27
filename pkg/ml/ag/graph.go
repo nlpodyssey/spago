@@ -99,6 +99,12 @@ func (g *Graph) releaseGrad(node *operator) {
 	node.ZeroGrad()
 }
 
+func (g *Graph) ZeroGrad() {
+	for _, node := range g.nodes {
+		node.ZeroGrad()
+	}
+}
+
 // NewVariable creates e returns a new node.
 func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	g.mu.Lock()

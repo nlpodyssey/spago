@@ -32,6 +32,10 @@ func ClearGlobalGraphForReuse() {
 	globalGraph.ClearForReuse()
 }
 
+func ZeroGrad() {
+	globalGraph.ZeroGrad()
+}
+
 func NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	return globalGraph.NewVariable(value, requiresGrad)
 }
