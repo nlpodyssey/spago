@@ -23,35 +23,6 @@ type Model interface {
 	NewProc(g *ag.Graph, opt ...interface{}) Processor
 }
 
-// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.) inside a Processor,
-// depending on whether you're doing training or inference. Failing to do set the right mode will yield inconsistent inference results.
-type ProcessingMode int
-
-const (
-	Training ProcessingMode = iota
-	Inference
-)
-
-// Processor performs the operations on the computational graphs using the model's parameters.
-type Processor interface {
-	// Model returns the model the processor belongs to.
-	Model() Model
-	// Mode returns whether the processor is being used for training or inference.
-	Mode() ProcessingMode
-	// SetMode tells the processor to operate in training or inference mode.
-	SetMode(mode ProcessingMode)
-	// Graph returns the computational graph on which the processor operates.
-	Graph() *ag.Graph
-	// Reset the processor to the initial configuration (e.g. clear all the states of recurrent networks), with the init options.
-	Reset()
-	// Whether the processor needs the complete sequence to start processing (as in the case of BiRNN and other bidirectional models), or not.
-	RequiresFullSeq() bool
-	// Forward performs the the forward step for each input and returns the result.
-	// Recurrent networks treats the input nodes as a sequence.
-	// Differently, feed-forward networks are stateless so every computation is independent.
-	Forward(xs ...ag.Node) []ag.Node
-}
-
 // ForEachParam iterate all the parameters also exploring the sub-parameters recursively.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead.
 func ForEachParam(m Model, callback func(param *Param)) {
