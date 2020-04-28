@@ -10,7 +10,11 @@ import (
 	"sync"
 )
 
-var _ Node = &operator{}
+var (
+	_ fn.Operand = &operator{}
+	_ GradValue  = &operator{}
+	_ Node       = &operator{}
+)
 
 type operator struct {
 	graph        *Graph

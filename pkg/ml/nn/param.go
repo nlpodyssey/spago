@@ -6,6 +6,8 @@ package nn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"strings"
 	"sync"
@@ -34,6 +36,11 @@ func ToType(s string) ParamsType {
 	}
 	return Undefined
 }
+
+var (
+	_ fn.Operand   = &Param{}
+	_ ag.GradValue = &Param{}
+)
 
 type Param struct {
 	name         string

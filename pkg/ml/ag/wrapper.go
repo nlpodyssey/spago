@@ -4,9 +4,16 @@
 
 package ag
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import (
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+)
 
-var _ Node = &wrapper{}
+var (
+	_ fn.Operand = &wrapper{}
+	_ GradValue  = &wrapper{}
+	_ Node       = &wrapper{}
+)
 
 type wrapper struct {
 	GradValue

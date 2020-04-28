@@ -6,10 +6,15 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"sync"
 )
 
-var _ Node = &variable{}
+var (
+	_ fn.Operand = &variable{}
+	_ GradValue  = &variable{}
+	_ Node       = &variable{}
+)
 
 type variable struct {
 	graph        *Graph
