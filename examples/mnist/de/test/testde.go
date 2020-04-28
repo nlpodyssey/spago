@@ -22,7 +22,7 @@ func main() {
 		datasetPath = os.Args[2]
 	} else {
 		// assuming default path
-		datasetPath = "third_party/GoMNIST/data"
+		datasetPath = "examples/mnist/third_party/GoMNIST/data"
 	}
 
 	_, testSet, err := GoMNIST.Load(datasetPath)
