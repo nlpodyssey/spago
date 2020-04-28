@@ -28,8 +28,8 @@ func main() {
 	model := linearregression.NewLinearRegression(inputDim, outputDim)
 	criterion := losses.MSESeq                                  // mean squared error
 	updater := sgd.New(sgd.NewConfig(learningRate, 0.0, false)) // stochastic gradient descent (no momentum etc.)
-	optimizer := gd.NewOptimizer(updater, nil)                  // no gradient clipping
-	nn.TrackParams(model, optimizer)                            // link the model to the optimizer
+	optimizer := gd.NewOptimizer(updater)
+	nn.TrackParams(model, optimizer) // link the model to the optimizer
 
 	// Random params initialization
 	rndGen := rand.NewLockedRand(uint64(seed))

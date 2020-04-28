@@ -20,13 +20,33 @@ type GradientDescent struct {
 	observed map[Optimizable]bool
 }
 
-// NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method OptimizationMethod, gradClipper clipper.GradClipper) *GradientDescent {
-	return &GradientDescent{
-		method:      method,
-		gradClipper: gradClipper,
-		observed:    make(map[Optimizable]bool),
+type Option func(*GradientDescent)
+
+func ClipGradByValue(value float64) Option {
+	return func(f *GradientDescent) {
+		f.gradClipper = &clipper.ClipValue{Value: value}
 	}
+}
+
+func ClipGradByNorm(min, max float64) Option {
+	return func(f *GradientDescent) {
+		f.gradClipper = &clipper.ClipNorm{
+			MaxNorm:  min,
+			NormType: max,
+		}
+	}
+}
+
+// NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
+func NewOptimizer(method OptimizationMethod, opts ...Option) *GradientDescent {
+	optimizer := &GradientDescent{
+		method:   method,
+		observed: make(map[Optimizable]bool),
+	}
+	for _, opt := range opts {
+		opt(optimizer)
+	}
+	return optimizer
 }
 
 // Track tracks the parameters to optimize.
@@ -89,13 +109,16 @@ func (o *GradientDescent) updateParams() {
 
 // clipGrad applies the gradient clipping to all the observed parameters.
 func (o *GradientDescent) clipGrads() {
-	if o.gradClipper != nil {
-		var gs []mat.Matrix
-		for param := range o.observed {
+	if o.gradClipper == nil {
+		return
+	}
+	var gs []mat.Matrix
+	for param := range o.observed {
+		if param.HasGrad() { // don't consider grad at zero
 			gs = append(gs, param.Grad())
 		}
-		o.gradClipper.Clip(gs)
 	}
+	o.gradClipper.Clip(gs)
 }
 
 // ZeroGrad set the gradients of the observed variables to zeros

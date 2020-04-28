@@ -58,7 +58,7 @@ func main() {
 
 	trainer := mnist.NewTrainer(
 		model,
-		gd.NewOptimizer(adam.New(adam.NewDefaultConfig()), nil),
+		gd.NewOptimizer(adam.New(adam.NewDefaultConfig())),
 		epochs,
 		batchSize,
 		true,

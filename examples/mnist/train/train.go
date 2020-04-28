@@ -56,7 +56,7 @@ func main() {
 	//updater := sgd.New(sgd.NewConfig(0.01, 0.0, false)) // sgd
 	//updater := sgd.New(sgd.NewConfig(0.1, 0.9, true))  // sgd with nesterov momentum
 	updater := adam.New(adam.NewDefaultConfig())
-	optimizer := gd.NewOptimizer(updater, nil)
+	optimizer := gd.NewOptimizer(updater)
 	// ad-hoc trainer
 	trainer := mnist.NewTrainer(
 		model,

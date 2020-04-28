@@ -57,7 +57,8 @@ func main() {
 	// new optimizer with an arbitrary update method
 	updater := adam.New(adam.NewDefaultConfig())
 	//updater := sgd.New(sgd.NewConfig(0.001, 0.9, true))
-	optimizer := gd.NewOptimizer(updater, nil)
+	optimizer := gd.NewOptimizer(updater)
+	//optimizer.(*gd.GradientDescent).
 	// ad-hoc trainer
 	trainer := internal.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, rndGen)
 	trainer.Enjoy() // :)
