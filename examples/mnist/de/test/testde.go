@@ -7,10 +7,10 @@ package main
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
+	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"github.com/nlpodyssey/spago/third_party/GoMNIST"
 	"os"
 )
 

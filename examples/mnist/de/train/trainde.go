@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
+	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
@@ -18,7 +19,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/stats"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/data"
-	"github.com/nlpodyssey/spago/third_party/GoMNIST"
 	"log"
 	"net/http"
 	_ "net/http/pprof"

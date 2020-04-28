@@ -6,11 +6,11 @@ package main
 
 import (
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
+	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
-	"github.com/nlpodyssey/spago/third_party/GoMNIST"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
