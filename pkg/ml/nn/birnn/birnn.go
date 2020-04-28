@@ -21,7 +21,10 @@ const (
 	Avg                     // The average of the outputs is taken
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	Positive  nn.Model // positive time direction a.k.a. left-to-right
@@ -85,12 +88,6 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.Positive.SetMode(mode)
 	p.Negative.SetMode(mode)
-}
-
-func (p *Processor) Reset() {
-	p.Positive.Reset()
-	p.Positive.Reset()
-	p.init(p.opt)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

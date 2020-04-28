@@ -12,7 +12,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Encoder{}
+var (
+	_ nn.Model     = &Encoder{}
+	_ nn.Processor = &EncoderProcessor{}
+)
 
 type Encoder struct {
 	ScalingFFN  nn.Model
@@ -31,8 +34,6 @@ func (m *Encoder) Serialize(w io.Writer) (int, error) {
 func (m *Encoder) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &EncoderProcessor{}
 
 type EncoderProcessor struct {
 	opt        []interface{}
@@ -73,11 +74,6 @@ func (p *EncoderProcessor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.ffn1.SetMode(mode)
 	p.ffn2.SetMode(mode)
-}
-
-func (p *EncoderProcessor) Reset() {
-	p.init(p.opt)
-	p.recursions = 0
 }
 
 func (p *EncoderProcessor) Recursions() int {

@@ -16,7 +16,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Encoder{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	Encoder *Encoder
@@ -41,8 +44,6 @@ func (m *Model) Serialize(w io.Writer) (int, error) {
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt            []interface{}
@@ -85,11 +86,6 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.Encoder.SetMode(mode)
 	p.Decoder.SetMode(mode)
-}
-
-func (p *Processor) Reset() {
-	p.Encoder.Reset()
-	p.Decoder.Reset()
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

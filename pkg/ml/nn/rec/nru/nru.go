@@ -22,7 +22,10 @@ import (
 	"math"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	Wx              *nn.Param `type:"weights"`
@@ -100,8 +103,6 @@ type InitHidden struct {
 	*State
 }
 
-var _ nn.Processor = &Processor{}
-
 type Processor struct {
 	opt             []interface{}
 	model           *Model
@@ -167,11 +168,6 @@ func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.hiddenLayerNorm.SetMode(mode)
-}
-
-func (p *Processor) Reset() {
-	p.States = nil
-	p.init(p.opt)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

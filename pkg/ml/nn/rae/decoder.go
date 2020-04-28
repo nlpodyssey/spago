@@ -12,7 +12,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Decoder{}
+var (
+	_ nn.Model     = &Decoder{}
+	_ nn.Processor = &DecoderProcessor{}
+)
 
 type Decoder struct {
 	DecodingFNN1 nn.Model // decoding part 1
@@ -32,8 +35,6 @@ func (m *Decoder) Serialize(w io.Writer) (int, error) {
 func (m *Decoder) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &DecoderProcessor{}
 
 type DecoderProcessor struct {
 	opt            []interface{}
@@ -82,7 +83,6 @@ func (p *DecoderProcessor) Model() nn.Model         { return p.model }
 func (p *DecoderProcessor) Graph() *ag.Graph        { return p.g }
 func (p *DecoderProcessor) RequiresFullSeq() bool   { return true }
 func (p *DecoderProcessor) Mode() nn.ProcessingMode { return p.mode }
-func (p *DecoderProcessor) Reset()                  {}
 
 func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode

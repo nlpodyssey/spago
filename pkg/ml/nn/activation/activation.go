@@ -11,7 +11,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	Activation ag.OpName
@@ -37,8 +40,6 @@ func (m *Model) Serialize(w io.Writer) (int, error) {
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt    []interface{}
@@ -75,7 +76,6 @@ func (p *Processor) Graph() *ag.Graph               { return p.g }
 func (p *Processor) RequiresFullSeq() bool          { return false }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-func (p *Processor) Reset()                         { p.init(p.opt) }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))

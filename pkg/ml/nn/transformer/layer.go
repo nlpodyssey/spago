@@ -16,7 +16,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Layer{}
+var (
+	_ nn.Model     = &Layer{}
+	_ nn.Processor = &LayerProcessor{}
+)
 
 // Transformer's Layer. Each layer has two sub-layers. The first is a multi-head self-attention mechanism,
 // and the second  a.k.a. intermediate layer is position-wise fully connected feed-forward network.
@@ -70,8 +73,6 @@ func (m *Layer) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
 
-var _ nn.Processor = &LayerProcessor{}
-
 type LayerProcessor struct {
 	opt                []interface{}
 	model              *Layer
@@ -114,8 +115,6 @@ func (p *LayerProcessor) SetMode(mode nn.ProcessingMode) {
 	p.MultiHeadAttention.SetMode(mode)
 	p.FFN.SetMode(mode)
 }
-
-func (p *LayerProcessor) Reset() { p.init(p.opt) }
 
 // addPositionalEncoding returns the input enriched with positional encoding.
 // The positional encoding is summed to the input vectors.

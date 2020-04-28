@@ -13,7 +13,10 @@ import (
 	"sync"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	W          *nn.Param `type:"weights"`
@@ -51,8 +54,6 @@ func (m *Model) SetActivation(a ag.OpName) ag.OpName {
 type Concurrency struct {
 	Value bool
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt         []interface{}
@@ -94,7 +95,6 @@ func (p *Processor) Graph() *ag.Graph               { return p.g }
 func (p *Processor) RequiresFullSeq() bool          { return false }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-func (p *Processor) Reset()                         { p.init(p.opt) }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.Concurrency && len(xs) > 1 {

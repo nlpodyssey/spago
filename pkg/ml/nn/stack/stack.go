@@ -11,7 +11,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	Layers []nn.Model
@@ -40,8 +43,6 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt             []interface{}
@@ -96,12 +97,6 @@ func requiresFullSeq(ps []nn.Processor) bool {
 		}
 	}
 	return false
-}
-
-func (p *Processor) Reset() {
-	for _, layer := range p.Layers {
-		layer.Reset()
-	}
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

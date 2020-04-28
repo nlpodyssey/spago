@@ -12,7 +12,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 type Model struct {
 	WIn      *nn.Param `type:"weights"`
@@ -73,8 +76,6 @@ type InitHidden struct {
 type GateConcurrency struct {
 	Value bool
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt             []interface{}
@@ -140,11 +141,6 @@ func (p *Processor) Graph() *ag.Graph               { return p.g }
 func (p *Processor) RequiresFullSeq() bool          { return false }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
-func (p *Processor) Reset() {
-	p.States = nil
-	p.init(p.opt)
-}
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))

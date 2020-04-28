@@ -15,7 +15,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 // LSTM enriched with a PolicyGradient to enable Dynamic Skip Connections.
 type Model struct {
@@ -88,8 +91,6 @@ type InitHidden struct {
 type GateConcurrency struct {
 	Value bool
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt             []interface{}
@@ -164,11 +165,6 @@ func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.PolicyGradient.SetMode(mode)
-}
-
-func (p *Processor) Reset() {
-	p.States = nil
-	p.init(p.opt)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

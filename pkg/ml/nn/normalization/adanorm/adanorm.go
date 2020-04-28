@@ -11,7 +11,10 @@ import (
 	"log"
 )
 
-var _ nn.Model = &Model{}
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
 
 // Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
 // (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
@@ -34,8 +37,6 @@ func (m *Model) Serialize(w io.Writer) (int, error) {
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt   []interface{}
@@ -66,10 +67,6 @@ func (p *Processor) Graph() *ag.Graph               { return p.g }
 func (p *Processor) RequiresFullSeq() bool          { return true }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
-func (p *Processor) Reset() {
-	p.init(p.opt)
-}
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	meanVectors := p.Mean(xs)

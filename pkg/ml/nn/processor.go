@@ -26,8 +26,6 @@ type Processor interface {
 	SetMode(mode ProcessingMode)
 	// Graph returns the computational graph on which the processor operates.
 	Graph() *ag.Graph
-	// Reset the processor to the initial configuration (e.g. clear all the states of recurrent networks), with the init options.
-	Reset()
 	// Whether the processor needs the complete sequence to start processing (as in the case of BiRNN and other bidirectional models), or not.
 	RequiresFullSeq() bool
 	// Forward performs the the forward step for each input and returns the result.

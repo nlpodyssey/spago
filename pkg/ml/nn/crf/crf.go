@@ -12,6 +12,11 @@ import (
 	"log"
 )
 
+var (
+	_ nn.Model     = &Model{}
+	_ nn.Processor = &Processor{}
+)
+
 type Model struct {
 	TransitionScores *nn.Param `type:"weights"`
 }
@@ -33,8 +38,6 @@ func (m *Model) Serialize(w io.Writer) (int, error) {
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }
-
-var _ nn.Processor = &Processor{}
 
 type Processor struct {
 	opt              []interface{}
@@ -67,7 +70,6 @@ func (p *Processor) Graph() *ag.Graph               { return p.g }
 func (p *Processor) RequiresFullSeq() bool          { return true }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-func (p *Processor) Reset()                         { p.init(p.opt) }
 
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("crf: Forward() not available. Use Predict() instead.")
