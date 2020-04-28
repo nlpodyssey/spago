@@ -140,7 +140,7 @@ func (t *Trainer) trainBatchSerial(batchId int, indices []int, onExample func())
 
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
 func (t *Trainer) learn(batchId int, example *Example) float64 {
-	g := ag.NewGraph(rand.NewLockedRand(t.rndSeed))
+	g := ag.NewGraph(ag.Rand(rand.NewLockedRand(t.rndSeed)))
 	defer g.Clear()
 	x := g.NewVariable(example.Features, false)
 	y := t.model.NewProc(g).Forward(x)[0]

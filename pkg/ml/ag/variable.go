@@ -18,6 +18,7 @@ var (
 
 type variable struct {
 	graph        *Graph
+	timeStep     int64
 	id           int64
 	value        mat.Matrix // store the results of a forward evaluation.
 	mu           sync.Mutex // to avoid data race during gradients accumulation
@@ -85,4 +86,8 @@ func (r *variable) ZeroGrad() {
 	defer mat.ReleaseDense(r.grad.(*mat.Dense)) // release memory
 	r.grad = nil
 	r.hasGrad = false
+}
+
+func (r *variable) getTimeStep() int64 {
+	return r.timeStep
 }

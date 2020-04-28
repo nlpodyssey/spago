@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"log"
 	"sync"
 	"sync/atomic"
 )
@@ -18,26 +17,43 @@ type Graph struct {
 	mu sync.Mutex
 	// maxId is the id of the last inserted node (corresponds of len(nodes)-1)
 	maxId int64
+	//
+	curTimeStep int64
+	//
+	backSteps int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
 }
 
+type GraphOption func(*Graph)
+
+func Rand(rand *rand.LockedRand) GraphOption {
+	return func(g *Graph) {
+		g.randGen = rand
+	}
+}
+
+// BackwardSteps sets the number of back steps (aka k2) for the truncated back-propagation.
+func BackwardSteps(k2 int) GraphOption {
+	return func(g *Graph) {
+		g.backSteps = int64(k2)
+	}
+}
+
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.Rand.
-func NewGraph(opt ...interface{}) *Graph {
-	g := &Graph{maxId: 0, nodes: nil}
-
-	for _, t := range opt {
-		switch t := t.(type) {
-		case *rand.LockedRand:
-			g.randGen = t
-		default:
-			log.Fatal("graph: invalid init options")
-		}
+func NewGraph(opts ...GraphOption) *Graph {
+	g := &Graph{
+		maxId:       -1,
+		curTimeStep: 0,
+		backSteps:   -1,
+		nodes:       nil,
 	}
-
+	for _, opt := range opts {
+		opt(g)
+	}
 	if g.randGen == nil {
 		g.randGen = rand.NewLockedRand(1) // set default random generator
 	}
@@ -58,7 +74,9 @@ func (g *Graph) Clear() {
 	if g.nodes == nil {
 		return
 	}
-	g.maxId = 0
+	g.maxId = -1
+	g.curTimeStep = 0
+	g.backSteps = -1
 	g.releaseMemory()
 	g.nodes = nil
 }
@@ -111,6 +129,7 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	defer g.mu.Unlock()
 	newNode := &variable{
 		graph:        g,
+		timeStep:     g.curTimeStep,
 		id:           g.newId(),
 		value:        value,
 		grad:         nil,
@@ -141,6 +160,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	defer g.mu.Unlock()
 	newNode := &operator{
 		graph:        g,
+		timeStep:     g.curTimeStep,
 		id:           g.newId(),
 		function:     f,
 		value:        value,
@@ -158,6 +178,7 @@ func (g *Graph) NewWrap(value GradValue) Node {
 	defer g.mu.Unlock()
 	newNode := &wrapper{
 		GradValue: value,
+		timeStep:  g.curTimeStep,
 		graph:     g,
 		id:        g.newId(),
 		wrapGrad:  true,
@@ -173,6 +194,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	newNode := &wrapper{
 		GradValue: value,
 		graph:     g,
+		timeStep:  g.curTimeStep,
 		id:        g.newId(),
 		wrapGrad:  false,
 	}
@@ -204,6 +226,20 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		gx = grad[0]
 	}
 	node.PropagateGrad(gx)
+	if g.backSteps == -1 {
+		g.fullBackPropagation(node)
+	} else {
+		g.truncatedBackPropagation(node)
+	}
+}
+
+// BackwardAll performs full back-propagation from the last node of the graph.
+// This method doesn't use the number of steps for the truncated back-propagation, regardless of whether it is set.
+func (g *Graph) BackwardAll() {
+	g.fullBackPropagation(g.nodes[g.maxId]) // backward from the last node
+}
+
+func (g *Graph) fullBackPropagation(node Node) {
 	nodes := g.nodes
 	lastIndex := node.Id()
 	_ = nodes[lastIndex] // avoid bounds check
@@ -214,11 +250,18 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 	}
 }
 
-func (g *Graph) BackwardAll() {
+func (g *Graph) truncatedBackPropagation(node Node) {
+	if node.getTimeStep() != g.curTimeStep {
+		panic("ag: the truncated back-propagation must start from a node whose time-step is equal to the current step")
+	}
 	nodes := g.nodes
-	lastIndex := len(nodes) - 1
-	_ = nodes[lastIndex]
+	lastIndex := node.Id()
+	stopAtTimeStep := g.curTimeStep - g.backSteps
+	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
+		if nodes[i].getTimeStep() <= stopAtTimeStep {
+			break
+		}
 		if node, ok := nodes[i].(*operator); ok {
 			node.backward()
 		}
@@ -256,9 +299,15 @@ func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	}
 }
 
+func (g *Graph) Step() int64 {
+	prevStep := g.curTimeStep
+	atomic.AddInt64(&g.curTimeStep, 1)
+	return prevStep
+}
+
 // newId generates and returns a new incremental sequential ID.
 func (g *Graph) newId() int64 {
-	return atomic.AddInt64(&g.maxId, 1) - 1
+	return atomic.AddInt64(&g.maxId, 1)
 }
 
 func requireGrad(ns []Node) bool {

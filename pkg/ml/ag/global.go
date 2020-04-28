@@ -14,7 +14,7 @@ import (
  * Top-level convenience functions
  */
 
-var globalGraph = NewGraph(rand.NewLockedRand(42))
+var globalGraph = NewGraph(Rand(rand.NewLockedRand(42)))
 
 // GetGlobalGraph returns the global graph.
 // Although technically you could reassign the returned graph, please do not do so; imagine that its reference is immutable.
@@ -58,6 +58,10 @@ func NewWrapNoGrad(value GradValue) Node {
 
 func ReplaceValue(node Node, value mat.Matrix) {
 	globalGraph.ReplaceValue(node, value)
+}
+
+func Step() int64 {
+	return globalGraph.Step()
 }
 
 func ForwardAll() {

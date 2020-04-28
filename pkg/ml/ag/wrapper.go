@@ -18,6 +18,7 @@ var (
 type wrapper struct {
 	GradValue
 	graph    *Graph
+	timeStep int64
 	id       int64
 	wrapGrad bool
 }
@@ -70,4 +71,8 @@ func (r *wrapper) ZeroGrad() {
 		return
 	}
 	r.GradValue.ZeroGrad()
+}
+
+func (r *wrapper) getTimeStep() int64 {
+	return r.timeStep
 }

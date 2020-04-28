@@ -10,4 +10,6 @@ type Node interface {
 	Graph() *Graph
 	// Id returns the id of the node in the graph.
 	Id() int64
+	//
+	getTimeStep() int64
 }

@@ -18,6 +18,7 @@ var (
 
 type operator struct {
 	graph        *Graph
+	timeStep     int64
 	id           int64
 	function     fn.Function
 	value        mat.Matrix // store the results of a forward evaluation
@@ -86,6 +87,10 @@ func (r *operator) ZeroGrad() {
 	defer mat.ReleaseDense(r.grad.(*mat.Dense)) // release memory
 	r.grad = nil
 	r.hasGrad = false
+}
+
+func (r *operator) getTimeStep() int64 {
+	return r.timeStep
 }
 
 func (r *operator) backward() {
