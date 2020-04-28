@@ -53,17 +53,29 @@ type Param struct {
 	requiresGrad bool
 }
 
+type ParamOption func(*Param)
+
+func RequiresGrad(value bool) ParamOption {
+	return func(p *Param) {
+		p.requiresGrad = value
+	}
+}
+
 // NewParam returns a new param.
-func NewParam(value mat.Matrix) *Param {
-	return &Param{
+func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
+	p := &Param{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
 		grad:         nil, // lazy initialization
 		hasGrad:      false,
-		requiresGrad: true, // TODO: might not always have to be true?
+		requiresGrad: true, // true by default, can be modified with the options
 		support:      nil,  // lazy initialization
 	}
+	for _, opt := range opts {
+		opt(p)
+	}
+	return p
 }
 
 // SetName set the params name (can be empty string).
@@ -131,13 +143,6 @@ func (r *Param) HasGrad() bool {
 // RequiresGrad returns true if the param requires gradients.
 func (r *Param) RequiresGrad() bool {
 	return r.requiresGrad
-}
-
-func (r *Param) SetRequiresGrad(requiresGrad bool) {
-	r.requiresGrad = requiresGrad
-	if !r.requiresGrad && r.hasGrad {
-		r.ZeroGrad()
-	}
 }
 
 // ZeroGrad clears the gradients.
