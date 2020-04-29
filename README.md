@@ -158,6 +158,35 @@ pkg
 
 Please note that the structure above does not reflect the original folder structure (although it is very close). I added comments and deleted files to keep the visualization compact.
 
+Design choices
+=====
+
+I'm trying to write efficient, beautiful, and maintainable code. I'm sure you know the feeling of being happy merely looking at the lines of code you just wrote. Well, I'm trying to develop spaGO in a way that makes me always feel this way. I said try, not that I can do it ;)
+
+I'm trying to keep the code self-documenting and straightforward, starting with the organization of the packages. By that, I don't mean that I don't have to improve the documentation tremendously. It's my very next step.
+
+I started spaGO to deepen first-hand the mechanisms underlying a machine learning framework. In doing this, I thought it was an excellent opportunity to set up the library so to enable the use and understanding of such algorithms to non-experts as well. 
+
+I tried to eliminate what is, in my experience, the first barrier to deep learning for developers who do not enjoy mathematics (at least not too much). What's that? Tensors. Well, there are no tensors in spaGO, only well-known 2D Matrices, by which we can represent vectors and scalars too. That's all we need (performance aside). You won't lose sleep anymore by watching tensor axes to figure out how to do math operations. 
+
+Since it's a counter-trend decision, let me argue some more. It happened a few times that friends and colleagues, who are super cool full-stack developers, tried to understand the NLP algorithms I was programming in PyTorch. Sometimes they gave up just because "the forward() method doesn't look like the usual code" to them. 
+
+Honestly, I don't find it hard to believe that by combining Python's dynamism with the versatility of tensors, the flow of a program can become hard to digest. It is undoubtedly essential to devote a good time reading the documentation, which may not be immediately available. Hence, you find yourself forced to inspect the content of the variables at runtime with your favorite IDE (PyCharm, of course). It happens in general, but I believe in machine learning in particular.
+
+In other words, I wanted to limit as much as possible the use of tensors larger than two dimensions, preferring the use of built-in types such as slices and maps. For example, batches are explicit as slices of nodes, not part of the same forward() computation. Too much detail here, right? To summarize, I guess we do gain static code analysis this way, by shifting the focus from the tensor operations back to traditional control-flows. Of course, the type checker still can't verify the correct shapes matrices and the like. That still requires runtime panics etc. I agree that it is hard to see where to draw the line, but so far, I'm pretty happy.
+
+### Caveat
+
+Sadly, not using tensors, spaGO is not GPU or TPU friendly by design. You bet, I'm going to do some experiments integrating CUDA, but I can already tell you that I will not reach satisfactory levels.
+
+Let me explain to you why.
+
+Mainstream machine-learning frameworks such as PyTorch and TensorFlow, the first thing they want to do, is to convert whatever you're doing into a matrix multiplication problem, which is where the GPU does its best. Yeah, that's an overstatement, but not so far from reality. Storing all data in tensors and applying batched operations to them is the way to go for hardware acceleration. On GPU, it's a must, and even on CPU, that could give a 10x speedup or more with cache-aware BLAS libraries.
+
+In spaGO, using slices of matrices, we have to "loop" often to do mathematical operations, whereas they are performed in one go using tensors. Any time your code has a loop that is not GPU or TPU friendly.  
+
+Beyond that, I think there's a lot of basic design improvements that would be necessary before spaGO could fit for mainstream use. Many boilerplates could go away using reflection, or more simply by careful engineering. It's perfectly normal; the more I program in Go, the more I would like to have time to review some choices ...but not that of avoiding tensors, at least for now :)
+
 Why spaGO?
 =====
 
