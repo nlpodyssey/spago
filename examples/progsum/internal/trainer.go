@@ -66,7 +66,7 @@ func (t *Trainer) newTrainBar(progress *uiprogress.Progress) *uiprogress.Bar {
 }
 
 func (t *Trainer) Enjoy() {
-	nn.TrackParams(t.model, t.optimizer)
+	nn.TrackParamsForOptimization(t.model, t.optimizer)
 	for epoch := 0; epoch < t.epochs; epoch++ {
 		t.curEpoch = epoch
 		t.optimizer.IncEpoch()

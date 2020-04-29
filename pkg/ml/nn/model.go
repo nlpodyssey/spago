@@ -7,7 +7,6 @@ package nn
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
 	"reflect"
@@ -45,14 +44,6 @@ func ForEachParam(m Model, callback func(param *Param)) {
 				m.ForEachParam(callback)
 			}
 		}
-	})
-}
-
-// TrackParams tells the optimizer to track all model parameters.
-// TODO: move away from here
-func TrackParams(m Model, o *gd.GradientDescent) {
-	m.ForEachParam(func(param *Param) {
-		o.Track(param)
 	})
 }
 
