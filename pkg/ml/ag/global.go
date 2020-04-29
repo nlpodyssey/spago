@@ -60,8 +60,12 @@ func ReplaceValue(node Node, value mat.Matrix) {
 	globalGraph.ReplaceValue(node, value)
 }
 
-func Step() int64 {
-	return globalGraph.Step()
+func IncTimeStep() {
+	globalGraph.IncTimeStep()
+}
+
+func TimeStep() int {
+	return globalGraph.TimeStep()
 }
 
 func ForwardAll() {
@@ -70,6 +74,10 @@ func ForwardAll() {
 
 func Backward(node Node, grad ...mat.Matrix) {
 	globalGraph.Backward(node, grad...)
+}
+
+func TBackward(node Node, backSteps int, grad ...mat.Matrix) {
+	globalGraph.TBackward(node, backSteps, grad...)
 }
 
 func BackwardAll() {

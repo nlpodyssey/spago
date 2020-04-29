@@ -17,10 +17,8 @@ type Graph struct {
 	mu sync.Mutex
 	// maxId is the id of the last inserted node (corresponds of len(nodes)-1)
 	maxId int64
-	//
+	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int64
-	//
-	backSteps int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// randGen is the generator of random numbers
@@ -35,20 +33,12 @@ func Rand(rand *rand.LockedRand) GraphOption {
 	}
 }
 
-// BackwardSteps sets the number of back steps (aka k2) for the truncated back-propagation.
-func BackwardSteps(k2 int) GraphOption {
-	return func(g *Graph) {
-		g.backSteps = int64(k2)
-	}
-}
-
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opts ...GraphOption) *Graph {
 	g := &Graph{
 		maxId:       -1,
 		curTimeStep: 0,
-		backSteps:   -1,
 		nodes:       nil,
 	}
 	for _, opt := range opts {
@@ -76,7 +66,6 @@ func (g *Graph) Clear() {
 	}
 	g.maxId = -1
 	g.curTimeStep = 0
-	g.backSteps = -1
 	g.releaseMemory()
 	g.nodes = nil
 }
@@ -212,7 +201,8 @@ func (g *Graph) ForwardAll() {
 	}
 }
 
-// Backward visit each node in reverse topological order, to propagate the gradients from the given node all the way
+// Backward performs the back-propagation.
+// It visits each node in reverse topological order, to propagate the gradients from the given node all the way
 // back to the leaf. If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
 // node with respect to the node itself (dy/dy = 1).
 func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
@@ -226,15 +216,34 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 		gx = grad[0]
 	}
 	node.PropagateGrad(gx)
-	if g.backSteps == -1 {
+	g.fullBackPropagation(node)
+}
+
+// TBackward performs the truncated back-propagation.
+// It visits each node in reverse topological order, to propagate the gradients from the given node all the way
+// back to the leaf. The visit ends as soon as it is encountered a node having the time-step less or equal to the
+// number of back steps (aka k2).
+// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
+// node with respect to the node itself (dy/dy = 1).
+func (g *Graph) TBackward(node Node, backSteps int, grad ...mat.Matrix) {
+	var gx mat.Matrix
+	if len(grad) > 1 {
+		panic("ag: invalid number of arguments. Required zero or one argument.")
+	} else if len(grad) == 0 || grad[0] == nil {
+		gx = node.Value().OnesLike()
+		defer mat.ReleaseDense(gx.(*mat.Dense))
+	} else {
+		gx = grad[0]
+	}
+	node.PropagateGrad(gx)
+	if backSteps == -1 { // no limits
 		g.fullBackPropagation(node)
 	} else {
-		g.truncatedBackPropagation(node)
+		g.truncatedBackPropagation(node, backSteps)
 	}
 }
 
 // BackwardAll performs full back-propagation from the last node of the graph.
-// This method doesn't use the number of steps for the truncated back-propagation, regardless of whether it is set.
 func (g *Graph) BackwardAll() {
 	g.fullBackPropagation(g.nodes[g.maxId]) // backward from the last node
 }
@@ -250,13 +259,13 @@ func (g *Graph) fullBackPropagation(node Node) {
 	}
 }
 
-func (g *Graph) truncatedBackPropagation(node Node) {
+func (g *Graph) truncatedBackPropagation(node Node, backSteps int) {
 	if node.getTimeStep() != g.curTimeStep {
 		panic("ag: the truncated back-propagation must start from a node whose time-step is equal to the current step")
 	}
 	nodes := g.nodes
 	lastIndex := node.Id()
-	stopAtTimeStep := g.curTimeStep - g.backSteps
+	stopAtTimeStep := g.curTimeStep - int64(backSteps)
 	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
 		if nodes[i].getTimeStep() <= stopAtTimeStep {
@@ -299,10 +308,12 @@ func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	}
 }
 
-func (g *Graph) Step() int64 {
-	prevStep := g.curTimeStep
+func (g *Graph) IncTimeStep() {
 	atomic.AddInt64(&g.curTimeStep, 1)
-	return prevStep
+}
+
+func (g *Graph) TimeStep() int {
+	return int(g.curTimeStep)
 }
 
 // newId generates and returns a new incremental sequential ID.
