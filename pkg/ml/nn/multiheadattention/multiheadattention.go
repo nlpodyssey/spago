@@ -76,35 +76,13 @@ type Processor struct {
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	length := m.h
-	wQ := make([]ag.Node, length)
-	wK := make([]ag.Node, length)
-	wV := make([]ag.Node, length)
-
-	if length > 0 {
-		// Avoid bounds checks in loop
-		mwQ := m.WQ
-		mwK := m.WK
-		mwV := m.WV
-		lastIndex := length - 1
-		_ = mwQ[lastIndex]
-		_ = mwK[lastIndex]
-		_ = mwV[lastIndex]
-
-		for i := 0; i < length; i++ {
-			wQ[i] = g.NewWrap(mwQ[i])
-			wK[i] = g.NewWrap(mwK[i])
-			wV[i] = g.NewWrap(mwV[i])
-		}
-	}
-
 	p := &Processor{
 		model: m,
 		mode:  nn.Training,
 		opt:   opt,
-		wQ:    wQ,
-		wK:    wK,
-		wV:    wV,
+		wQ:    nn.AttachParamsToGraph(g, m.WQ...),
+		wK:    nn.AttachParamsToGraph(g, m.WK...),
+		wV:    nn.AttachParamsToGraph(g, m.WV...),
 		wO:    g.NewWrap(m.WO),
 		g:     g,
 	}

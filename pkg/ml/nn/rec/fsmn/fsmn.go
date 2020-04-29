@@ -75,10 +75,6 @@ type Processor struct {
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	wS := make([]ag.Node, m.order)
-	for i, param := range m.WS {
-		wS[i] = g.NewWrap(param)
-	}
 	p := &Processor{
 		model:  m,
 		mode:   nn.Training,
@@ -87,7 +83,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		g:      g,
 		w:      g.NewWrap(m.W),
 		wRec:   g.NewWrap(m.WRec),
-		wS:     wS,
+		wS:     nn.AttachParamsToGraph(g, m.WS...),
 		b:      g.NewWrap(m.B),
 	}
 	p.init(opt)

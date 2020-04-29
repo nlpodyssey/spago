@@ -71,6 +71,8 @@ type Processor struct {
 	model                   *Model
 	mode                    nn.ProcessingMode
 	g                       *ag.Graph
+	k                       []ag.Node
+	b                       []ag.Node
 	ConcurrentOutputChannel bool
 }
 
@@ -80,6 +82,8 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		mode:                    nn.Training,
 		opt:                     opt,
 		g:                       g,
+		k:                       nn.AttachParamsToGraph(g, m.K...),
+		b:                       nn.AttachParamsToGraph(g, m.B...),
 		ConcurrentOutputChannel: true,
 	}
 	p.init(opt)
@@ -139,11 +143,11 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 
 func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
 	offset := outputChannel * p.model.inputChannels
-	out := nn.Conv2D(p.g, p.g.NewWrap(p.model.K[0+offset]), xs[0], p.model.xStride, p.model.yStride)
-	out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[0+offset]))
+	out := nn.Conv2D(p.g, p.k[0+offset], xs[0], p.model.xStride, p.model.yStride)
+	out = p.g.AddScalar(out, p.b[0+offset])
 	for i := 1; i < len(xs); i++ {
-		out = p.g.Add(out, nn.Conv2D(p.g, p.g.NewWrap(p.model.K[i+offset]), xs[i], p.model.xStride, p.model.yStride))
-		out = p.g.AddScalar(out, p.g.NewWrap(p.model.B[i+offset]))
+		out = p.g.Add(out, nn.Conv2D(p.g, p.k[i+offset], xs[i], p.model.xStride, p.model.yStride))
+		out = p.g.AddScalar(out, p.b[i+offset])
 	}
 	return p.g.Invoke(p.model.Activation, out)
 }
