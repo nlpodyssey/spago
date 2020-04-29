@@ -225,6 +225,9 @@ func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
 // number of back steps (aka k2).
 // If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
 // node with respect to the node itself (dy/dy = 1).
+// Note. Following Williams and Peng (1990), since the gradients used to update the parameters are an approximation
+// anyway, this implementation of truncated back-propagation can perform without the need to recalculate the
+// node's values previous to the last back steps, although the parameters may have been optimized in the meantime.
 func (g *Graph) TBackward(node Node, backSteps int, grad ...mat.Matrix) {
 	var gx mat.Matrix
 	if len(grad) > 1 {
