@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Transpose{}
+
 type Transpose struct {
 	x Operand
 }

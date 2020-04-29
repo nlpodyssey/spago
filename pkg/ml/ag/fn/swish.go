@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Swish{}
+
 // Swish(x) = ​x * sigmoid
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)

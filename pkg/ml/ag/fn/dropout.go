@@ -10,6 +10,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand/bernulli"
 )
 
+var _ Function = &Dropout{}
+
 type Dropout struct {
 	x       Operand
 	prob    float64

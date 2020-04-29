@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &SubScalar{}
+
 // Element-wise subtraction with a scalar value.
 type SubScalar struct {
 	x1 Operand

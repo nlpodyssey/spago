@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &LeakyReLU{}
+
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
 type LeakyReLU struct {
 	x     Operand

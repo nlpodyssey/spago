@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &AddScalar{}
+
 // Element-wise addition over two values.
 type AddScalar struct {
 	x1 Operand

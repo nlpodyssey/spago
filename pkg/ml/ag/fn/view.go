@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &View{}
+
 type View struct {
 	x  Operand
 	sx int

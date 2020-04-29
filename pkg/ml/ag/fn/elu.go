@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &ELU{}
+
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))
 type ELU struct {
 	x     Operand

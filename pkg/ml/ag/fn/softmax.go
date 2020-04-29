@@ -9,6 +9,8 @@ import (
 	"math"
 )
 
+var _ Function = &Softmax{}
+
 // Single-input, softmax function.
 type Softmax struct {
 	x Operand

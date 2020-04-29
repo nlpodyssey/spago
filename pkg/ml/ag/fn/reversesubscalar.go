@@ -6,6 +6,8 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Function = &ReverseSubScalar{}
+
 // Element-wise subtraction over two values.
 type ReverseSubScalar struct {
 	x1 Operand

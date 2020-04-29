@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Pow{}
+
 type Pow struct {
 	x     Operand
 	power float64

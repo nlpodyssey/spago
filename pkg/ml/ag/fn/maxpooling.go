@@ -10,6 +10,8 @@ import (
 	"math"
 )
 
+var _ Function = &MaxPooling{}
+
 type MaxPooling struct {
 	x    Operand
 	rows int

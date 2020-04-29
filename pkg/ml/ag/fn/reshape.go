@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Reshape{}
+
 type Reshape struct {
 	x    Operand
 	rows int

@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &ReduceSum{}
+
 // Single-input, reduce sum function.
 type ReduceSum struct {
 	x Operand

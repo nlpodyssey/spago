@@ -6,6 +6,8 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Function = &Dot{}
+
 // Dot product over two matrices.
 // y = x1 dot x2
 type Dot struct {

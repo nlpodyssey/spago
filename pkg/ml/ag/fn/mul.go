@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+var _ Function = &Mul{}
+
 type Mul struct {
 	x1 Operand // matrix
 	x2 Operand // vector

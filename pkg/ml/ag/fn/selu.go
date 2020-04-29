@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &SeLU{}
+
 // SeLU(x) = scale ∗ (max(0,x) + min(0, α ∗ (exp(x) − 1)))
 type SeLU struct {
 	x     Operand

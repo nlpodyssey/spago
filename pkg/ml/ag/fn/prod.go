@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Prod{}
+
 // Element-wise product over two values.
 type Prod struct {
 	x1 Operand

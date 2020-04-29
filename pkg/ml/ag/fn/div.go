@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Div{}
+
 // Element-wise division over two values.
 type Div struct {
 	x1 Operand

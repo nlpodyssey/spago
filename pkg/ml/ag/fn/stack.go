@@ -6,6 +6,8 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Function = &Stack{}
+
 type Stack struct {
 	xs []Operand
 }

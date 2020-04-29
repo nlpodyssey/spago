@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Threshold{}
+
 // Threshold(x) = x if x > threshold; k otherwise ​
 type Threshold struct {
 	x         Operand

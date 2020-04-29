@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Sub{}
+
 // Element-wise subtraction over two values.
 type Sub struct {
 	x1 Operand

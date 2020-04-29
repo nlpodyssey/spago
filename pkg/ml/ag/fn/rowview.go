@@ -6,6 +6,8 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Function = &RowView{}
+
 type RowView struct {
 	x Operand
 	i int

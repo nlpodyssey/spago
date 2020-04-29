@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &ProdScalar{}
+
 // The element-wise product with a scalar value.
 type ProdScalar struct {
 	x1 Operand

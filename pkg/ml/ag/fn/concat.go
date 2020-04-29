@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &Concat{}
+
 type Concat struct {
 	xs    []Operand
 	ySize int

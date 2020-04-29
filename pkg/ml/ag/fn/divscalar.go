@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &DivScalar{}
+
 // The element-wise division with a scalar value.
 type DivScalar struct {
 	x1 Operand

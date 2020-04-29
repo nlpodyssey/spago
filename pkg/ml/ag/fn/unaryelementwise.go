@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &UnaryElementwise{}
+
 // Single-input, element-wise function.
 type UnaryElementwise struct {
 	x  Operand

@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &ReduceMean{}
+
 // Single-input, reduce mean function.
 type ReduceMean struct {
 	x Operand

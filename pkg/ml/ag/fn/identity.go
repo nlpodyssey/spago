@@ -6,6 +6,8 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+var _ Function = &Identity{}
+
 // Identity function.
 // y = x
 type Identity struct {

@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
+var _ Function = &CeLU{}
+
 // CeLU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
 type CeLU struct {
 	x     Operand
