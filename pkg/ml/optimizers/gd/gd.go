@@ -28,11 +28,11 @@ func ClipGradByValue(value float64) Option {
 	}
 }
 
-func ClipGradByNorm(min, max float64) Option {
+func ClipGradByNorm(max, normType float64) Option {
 	return func(f *GradientDescent) {
 		f.gradClipper = &clipper.ClipNorm{
-			MaxNorm:  min,
-			NormType: max,
+			MaxNorm:  max,
+			NormType: normType,
 		}
 	}
 }
