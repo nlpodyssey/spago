@@ -736,12 +736,32 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
 		panic("mat: matrix with not compatible size")
 	}
-	out := NewEmptyDense(d.rows, d.cols)
+	out := GetDenseWorkspace(d.rows, d.cols)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
 			a := d.At(i, j)
 			b := other.At(i, j)
 			if a > b {
+				out.data[i*d.cols+j] = a
+			} else {
+				out.data[i*d.cols+j] = b
+			}
+		}
+	}
+	return out
+}
+
+// Minimum returns a new matrix containing the element-wise minima.
+func (d *Dense) Minimum(other Matrix) Matrix {
+	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
+		panic("mat: matrix with not compatible size")
+	}
+	out := GetDenseWorkspace(d.rows, d.cols)
+	for i := 0; i < d.rows; i++ {
+		for j := 0; j < d.cols; j++ {
+			a := d.At(i, j)
+			b := other.At(i, j)
+			if a < b {
 				out.data[i*d.cols+j] = a
 			} else {
 				out.data[i*d.cols+j] = b

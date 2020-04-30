@@ -918,6 +918,31 @@ func TestDense_Maximum(t *testing.T) {
 	}
 }
 
+func TestDense_Minimum(t *testing.T) {
+	a := NewDense(4, 3, []float64{
+		0.1, 0.2, 0.3,
+		0.4, 0.5, -0.6,
+		-0.5, 0.8, -0.8,
+		-3, -0.3, -0.4,
+	})
+	b := NewDense(4, 3, []float64{
+		0.2, 0.7, 0.5,
+		0.0, 0.4, 0.5,
+		-0.8, 0.7, -0.3,
+		0.2, -0.0, -0.9,
+	})
+	c := a.Minimum(b)
+
+	if !floats.EqualApprox(c.Data(), []float64{
+		0.1, 0.2, 0.3,
+		0.0, 0.4, -0.6,
+		-0.8, 0.7, -0.8,
+		-3, -0.3, -0.9,
+	}, 1.0e-6) {
+		t.Error("The result doesn't match the expected values")
+	}
+}
+
 func TestDense_ExtractRow(t *testing.T) {
 	a := NewDense(4, 3, []float64{
 		0.1, 0.2, 0.3,
