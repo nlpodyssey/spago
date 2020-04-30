@@ -9,7 +9,10 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
+var _ gd.MethodConfig = &Config{}
+
 type Config struct {
+	gd.MethodConfig
 	LR       float64
 	Mu       float64
 	Nesterov bool

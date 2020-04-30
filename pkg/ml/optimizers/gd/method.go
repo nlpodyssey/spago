@@ -18,6 +18,9 @@ const (
 	RMSProp
 )
 
+// Empty interface implemented by the configuration structures of AdaGrad, Adam, RMSProp and SGD.
+type MethodConfig interface{}
+
 // Optimization Method
 type Method interface {
 	Name() MethodName

@@ -10,7 +10,10 @@ import (
 	"math"
 )
 
+var _ gd.MethodConfig = &Config{}
+
 type Config struct {
+	gd.MethodConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
