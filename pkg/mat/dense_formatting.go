@@ -47,30 +47,51 @@ func (d *Dense) Format(f fmt.State, c rune) {
 
 // format formats a non-empty Dense matrix
 func (d *Dense) format(f fmt.State, c rune, precision int) {
-	columnWidths, maxWidth := d.formattingMaxColumnsWidth(f, c, precision)
+	maxWidths, maxWidth := d.formattingMaxColumnsWidth(f, c, precision)
+	spaceBuf := makeSpaceBuffer(maxWidth)
+	buf := make([]byte, 0, maxWidth)
 
-	spaceBuf := make([]byte, maxWidth+1)
-	for i := range spaceBuf {
-		spaceBuf[i] = ' '
-	}
-
-	buf := make([]byte, 0)
 	for row, index := 0, 0; row < d.rows; row++ {
 		rowPrefix, rowSuffix := d.formattingRowPrefixAndSuffix(row)
 		fmt.Fprintf(f, rowPrefix)
 
 		for col := 0; col < d.cols; col, index = col+1, index+1 {
-			buf = strconv.AppendFloat(buf[:0], d.data[index], byte(c), precision, 64)
-			paddingSize := columnWidths[col] - len(buf)
 			if col > 0 {
-				paddingSize++
+				fmt.Fprintf(f, " ")
 			}
-			f.Write(spaceBuf[:paddingSize])
-			f.Write(buf)
+			buf = formatValue(buf, d.data[index], c, precision)
+			writeFormattedValue(f, buf, spaceBuf, maxWidths[col])
 		}
 
 		fmt.Fprintf(f, rowSuffix)
 	}
+}
+
+func writeFormattedValue(f fmt.State, buf, spaceBuf []byte, maxW lrWidth) {
+	var leftPadding, rightPadding int
+
+	if pi, ok := indexOfPoint(buf); ok {
+		leftPadding = maxW.left - pi
+		rightPadding = maxW.right - (len(buf) - pi - 1)
+	} else {
+		leftPadding = maxW.left - len(buf)
+		rightPadding = maxW.right
+		if rightPadding > 0 {
+			rightPadding += 1
+		}
+	}
+
+	f.Write(spaceBuf[:leftPadding])
+	f.Write(buf)
+	f.Write(spaceBuf[:rightPadding])
+}
+
+func makeSpaceBuffer(length int) []byte {
+	buf := make([]byte, length)
+	for i := range buf {
+		buf[i] = ' '
+	}
+	return buf
 }
 
 func (d *Dense) formattingRowPrefixAndSuffix(rowIndex int) (string, string) {
@@ -86,30 +107,54 @@ func (d *Dense) formattingRowPrefixAndSuffix(rowIndex int) (string, string) {
 	return "⎢", "⎥\n"
 }
 
+type lrWidth struct{ left, right int }
+
 func (d *Dense) formattingMaxColumnsWidth(
 	f fmt.State,
 	c rune,
 	precision int,
-) ([]int, int) {
+) ([]lrWidth, int) {
 	minWidth := 0
 	if fw, ok := f.Width(); ok {
 		minWidth = fw
 	}
 
-	widths := make([]int, d.cols)
 	maxWidth := 0
+	widths := make([]lrWidth, d.cols)
 
-	buf := make([]byte, 0)
+	buf := make([]byte, 0, 16)
 	for row, index := 0, 0; row < d.rows; row++ {
 		for col := 0; col < d.cols; col, index = col+1, index+1 {
-			buf = strconv.AppendFloat(buf[:0], d.data[index], byte(c), precision, 64)
-			w := maxInt(len(buf), minWidth)
-			widths[col] = maxInt(widths[col], w)
+			buf = formatValue(buf, d.data[index], c, precision)
+			w := len(buf)
 			maxWidth = maxInt(maxWidth, w)
+			if pi, ok := indexOfPoint(buf); ok {
+				leftSize := pi
+				if minWidth > w {
+					leftSize += minWidth - w
+				}
+				widths[col].left = maxInt(widths[col].left, leftSize)
+				widths[col].right = maxInt(widths[col].right, w-pi-1)
+			} else {
+				widths[col].left = maxInt(widths[col].left, w)
+			}
 		}
 	}
 
 	return widths, maxWidth
+}
+
+func formatValue(buf []byte, val float64, c rune, precision int) []byte {
+	return strconv.AppendFloat(buf[:0], val, byte(c), precision, 64)
+}
+
+func indexOfPoint(buf []byte) (int, bool) {
+	for i, b := range buf {
+		if b == byte('.') {
+			return i, true
+		}
+	}
+	return 0, false
 }
 
 func maxInt(a, b int) int {
