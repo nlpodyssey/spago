@@ -164,6 +164,16 @@ func Dot(x1 Node, x2 Node) Node {
 	return globalGraph.Dot(x1, x2)
 }
 
+// Max
+func Max(x1 Node, x2 Node) Node {
+	return globalGraph.Max(x1, x2)
+}
+
+// Min
+func Min(x1 Node, x2 Node) Node {
+	return globalGraph.Min(x1, x2)
+}
+
 // Reshape
 func Reshape(x Node, rows, columns int) Node {
 	return globalGraph.Reshape(x, rows, columns)

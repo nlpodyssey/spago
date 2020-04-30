@@ -61,6 +61,8 @@ const (
 	OpAbs
 	OpNeg
 	OpReciprocal
+	OpMax
+	OpMin
 	OpReduceSum
 	OpReduceMean
 	OpConcat
@@ -117,6 +119,8 @@ var opNameToMethodName = map[OpName]string{
 	OpAbs:         "Abs",
 	OpNeg:         "Neg",
 	OpReciprocal:  "Reciprocal",
+	OpMax:         "Max",
+	OpMin:         "Min",
 	OpReduceSum:   "ReduceSum",
 	OpReduceMean:  "ReduceMean",
 	OpConcat:      "Concat",
@@ -213,6 +217,16 @@ func (g *Graph) Mul(x1 Node, x2 Node) Node {
 // Dot
 func (g *Graph) Dot(x1 Node, x2 Node) Node {
 	return g.NewOperator(fn.NewDot(x1, x2), x1, x2)
+}
+
+// Max
+func (g *Graph) Max(x1 Node, x2 Node) Node {
+	return g.NewOperator(fn.NewMax(x1, x2), x1, x2)
+}
+
+// Min
+func (g *Graph) Min(x1 Node, x2 Node) Node {
+	return g.NewOperator(fn.NewMin(x1, x2), x1, x2)
 }
 
 // Reshape
