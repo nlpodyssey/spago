@@ -28,7 +28,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.OptimizationMethod = &AdaGrad{}
+var _ gd.Method = &AdaGrad{}
 
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References

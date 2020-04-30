@@ -6,7 +6,6 @@ package gd
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
 type MethodName int
@@ -19,36 +18,8 @@ const (
 	RMSProp
 )
 
-// Support contains the support data for the optimization method
-type Support struct {
-	Name MethodName
-	Data []mat.Matrix
-}
-
-// NewEmptySupport returns an empty support structure, not connected to any optimization method.
-func NewEmptySupport() *Support {
-	return &Support{
-		Name: None,
-		Data: make([]mat.Matrix, 0),
-	}
-}
-
-type Optimizable interface {
-	ag.GradValue
-	// ApplyDelta updates the value of the underlying storage applying the delta.
-	ApplyDelta(delta mat.Matrix)
-	// Support returns the optimizer support structure (can be nil).
-	Support() *Support
-	// SetSupport sets the optimizer support structure. Use ClearSupport() to set a nil support.
-	SetSupport(supp *Support)
-	// GetOrSetSupport gets the current support structure or set a new one.
-	GetOrSetSupport(m OptimizationMethod) *Support
-	// ClearSupport clears the support structure.
-	ClearSupport()
-}
-
-// Optimization OptimizationMethod
-type OptimizationMethod interface {
+// Optimization Method
+type Method interface {
 	Name() MethodName
 	// Delta returns the difference between the current params and where the method wants it to be.
 	Delta(param Optimizable) mat.Matrix

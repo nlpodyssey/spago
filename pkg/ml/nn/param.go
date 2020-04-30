@@ -38,8 +38,9 @@ func ToType(s string) ParamsType {
 }
 
 var (
-	_ fn.Operand   = &Param{}
-	_ ag.GradValue = &Param{}
+	_ fn.Operand     = &Param{}
+	_ ag.GradValue   = &Param{}
+	_ gd.Optimizable = &Param{}
 )
 
 type Param struct {
@@ -177,7 +178,7 @@ func (r *Param) SetSupport(supp *gd.Support) {
 	r.support = supp
 }
 
-func (r *Param) GetOrSetSupport(m gd.OptimizationMethod) *gd.Support {
+func (r *Param) GetOrSetSupport(m gd.Method) *gd.Support {
 	if r.Support() == nil || r.Support().Name == gd.None {
 		r.SetSupport(m.NewSupport(r.Value().Dims()))
 	} else if r.Support().Name != m.Name() {

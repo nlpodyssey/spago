@@ -13,7 +13,7 @@ import (
 // Gradients Descent (GD) Optimizer
 type GradientDescent struct {
 	// the optimization method (SGD, AdaGrad, Adam, ...)
-	method OptimizationMethod
+	method Method
 	// gradient clipper
 	gradClipper clipper.GradClipper
 	// set of observed optimizable parameters
@@ -38,7 +38,7 @@ func ClipGradByNorm(max, normType float64) Option {
 }
 
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method OptimizationMethod, opts ...Option) *GradientDescent {
+func NewOptimizer(method Method, opts ...Option) *GradientDescent {
 	optimizer := &GradientDescent{
 		method:   method,
 		observed: make(map[Optimizable]bool),

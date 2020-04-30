@@ -35,7 +35,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.OptimizationMethod = &Adam{}
+var _ gd.Method = &Adam{}
 
 type Adam struct {
 	Config

@@ -31,7 +31,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.OptimizationMethod = &RMSProp{}
+var _ gd.Method = &RMSProp{}
 
 // The RMSProp method is a variant of AdaGrad where the squared sum of previous gradients is replaced with a moving average.
 // References:

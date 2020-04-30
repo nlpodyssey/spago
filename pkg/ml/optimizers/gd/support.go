@@ -12,6 +12,20 @@ import (
 	"io"
 )
 
+// Support contains the support data for the optimization method
+type Support struct {
+	Name MethodName
+	Data []mat.Matrix
+}
+
+// NewEmptySupport returns an empty support structure, not connected to any optimization method.
+func NewEmptySupport() *Support {
+	return &Support{
+		Name: None,
+		Data: make([]mat.Matrix, 0),
+	}
+}
+
 // MarshalBinaryTo returns the number of bytes written into w and an error, if any.
 func MarshalBinaryTo(supp *Support, w io.Writer) (int, error) {
 	h := header{Opt: int64(supp.Name), SuppSize: int64(len(supp.Data))}
