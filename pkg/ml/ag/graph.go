@@ -263,12 +263,9 @@ func (g *Graph) fullBackPropagation(node Node) {
 }
 
 func (g *Graph) truncatedBackPropagation(node Node, backSteps int) {
-	if node.getTimeStep() != g.curTimeStep {
-		panic("ag: the truncated back-propagation must start from a node whose time-step is equal to the current step")
-	}
 	nodes := g.nodes
 	lastIndex := node.Id()
-	stopAtTimeStep := g.curTimeStep - int64(backSteps)
+	stopAtTimeStep := node.getTimeStep() - int64(backSteps)
 	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
 		if nodes[i].getTimeStep() <= stopAtTimeStep {
