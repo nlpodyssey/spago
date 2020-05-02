@@ -21,6 +21,7 @@ type operator struct {
 	timeStep     int64
 	id           int64
 	function     fn.Function
+	operands     []Node
 	value        mat.Matrix // store the results of a forward evaluation
 	mu           sync.Mutex // to avoid data race during gradients accumulation
 	grad         mat.Matrix // TODO: support of sparse gradients

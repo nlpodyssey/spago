@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"math"
+	"runtime"
 	"sync"
 	"sync/atomic"
 )
@@ -21,6 +23,17 @@ type Graph struct {
 	curTimeStep int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
+	// cache of the support structures created during the last groupNodesByHeight() computation.
+	// Before using it you have to check if the maxId of the graph matches the maxId of the cache.
+	// Otherwise the cache must be invalidated and the values recalculated.
+	cache struct {
+		// the maxId when this cache was created.
+		maxId int64
+		// nodes grouped by height
+		nodesByHeight [][]Node
+		// the nodes height. The index corresponds to the node Id.
+		height []int
+	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
 }
@@ -66,8 +79,15 @@ func (g *Graph) Clear() {
 	}
 	g.maxId = -1
 	g.curTimeStep = 0
+	g.clearCache()
 	g.releaseMemory()
 	g.nodes = nil
+}
+
+func (g *Graph) clearCache() {
+	g.cache.maxId = -1
+	g.cache.nodesByHeight = nil
+	g.cache.height = nil
 }
 
 // ClearForReuse() does the same thing as Clear(), with the difference that the graph structure i.e. how nodes are
@@ -152,6 +172,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		timeStep:     g.curTimeStep,
 		id:           g.newId(),
 		function:     f,
+		operands:     operands,
 		value:        value,
 		grad:         nil,
 		hasGrad:      false,
@@ -199,6 +220,64 @@ func (g *Graph) ForwardAll() {
 			node.value = node.function.Forward()
 		}
 	}
+}
+
+func (g *Graph) ForwardAllConcurrent() {
+	g.ClearForReuse() // make sure you don't waste memory
+	groups := g.groupNodesByHeight()
+	numCpu := runtime.NumCPU()
+	for _, group := range groups {
+		groupLen := len(group)
+		size := int(math.Ceil(float64(groupLen) / float64(numCpu)))
+		var wg sync.WaitGroup
+		for i, j := 0, size; i < groupLen; i, j = j, j+size {
+			if j > groupLen {
+				j = groupLen
+			}
+			wg.Add(1)
+			go func(nodes []Node) {
+				defer wg.Done()
+				for _, node := range nodes {
+					if op, ok := node.(*operator); ok {
+						op.value = op.function.Forward()
+					}
+				}
+			}(group[i:j])
+		}
+		wg.Wait()
+	}
+}
+
+func (g *Graph) groupNodesByHeight() [][]Node {
+	if g.cache.maxId == g.maxId {
+		return g.cache.nodesByHeight
+	}
+	groups := make([][]Node, 0, 1)
+	height := make([]int, len(g.nodes))
+
+	for _, node := range g.nodes {
+		h := 0
+		if node, ok := node.(*operator); ok {
+			for _, operand := range node.operands {
+				if operand, ok := operand.(*operator); ok {
+					if height[operand.id] >= h {
+						h = height[operand.id] + 1
+					}
+				}
+			}
+		}
+		height[node.Id()] = h
+		if h == len(groups) {
+			groups = append(groups, make([]Node, 0, 1))
+		}
+		groups[h] = append(groups[h], node)
+	}
+
+	// update cache and return
+	g.cache.maxId = g.maxId
+	g.cache.nodesByHeight = groups
+	g.cache.height = height
+	return groups
 }
 
 // Backward performs the back-propagation.
