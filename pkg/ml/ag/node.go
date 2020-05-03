@@ -4,6 +4,8 @@
 
 package ag
 
+import "github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+
 type Node interface {
 	GradValue
 	// Graph returns the graph this node belongs to.
@@ -12,4 +14,13 @@ type Node interface {
 	Id() int64
 	//
 	getTimeStep() int64
+}
+
+// Operands cast a slice of nodes into a slice of operands.
+func Operands(xs []Node) []fn.Operand {
+	var out = make([]fn.Operand, len(xs))
+	for i, x := range xs {
+		out[i] = x
+	}
+	return out
 }
