@@ -164,7 +164,7 @@ func (g *Graph) Add(x1 Node, x2 Node) Node {
 	if x1 != nil {
 		return g.NewOperator(fn.NewAdd(x1, x2), x1, x2)
 	} else {
-		fake := g.NewVariable(x2.Value().ZerosLike(), false)
+		fake := g.NewVariable(nil, false)
 		return g.NewOperator(fn.NewAdd(fake, x2), fake, x2)
 	}
 }
