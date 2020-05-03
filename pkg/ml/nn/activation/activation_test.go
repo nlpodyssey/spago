@@ -24,7 +24,7 @@ func TestModelReLU_Forward(t *testing.T) {
 	}
 
 	// == Backward
-	g.Backward(y, mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	g.Backward(y, ag.OutputGrad(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0})))
 
 	if !floats.EqualApprox(x.Grad().Data(), []float64{-1.0, 0.0, 0.8, 0.0}, 1.0e-6) {
 		t.Error("The x-gradients don't match the expected values")
@@ -46,7 +46,7 @@ func TestModelSwish_Forward(t *testing.T) {
 	}
 
 	// == Backward
-	g.Backward(y, mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	g.Backward(y, ag.OutputGrad(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0})))
 
 	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.5993373119, 0.1526040208, 0.6263414804, 0.0}, 1.0e-6) {
 		t.Error("The x-gradients don't match the expected values")

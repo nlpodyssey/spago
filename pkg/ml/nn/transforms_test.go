@@ -37,11 +37,11 @@ func TestConv2D(t *testing.T) {
 		t.Error("out value doesn't match the expected values")
 	}
 
-	g.Backward(out, mat.NewDense(3, 3, []float64{
+	g.Backward(out, ag.OutputGrad(mat.NewDense(3, 3, []float64{
 		1.0, -0.5, -1.0,
 		0.5, 0.3, 0.5,
 		0.2, 0.5, -0.5,
-	}))
+	})))
 
 	if !floats.EqualApprox(w.Grad().Data(), []float64{
 		-0.34, -1.93,
@@ -85,10 +85,10 @@ func TestConv2DStride2(t *testing.T) {
 		t.Error("out value doesn't match the expected values")
 	}
 
-	g.Backward(out, mat.NewDense(2, 2, []float64{
+	g.Backward(out, ag.OutputGrad(mat.NewDense(2, 2, []float64{
 		1.0, -0.5,
 		0.5, 0.3,
-	}))
+	})))
 
 	if !floats.EqualApprox(w.Grad().Data(), []float64{
 		0.08, -0.42,

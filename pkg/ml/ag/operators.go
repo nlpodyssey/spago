@@ -411,10 +411,10 @@ func (g *Graph) ReduceMean(x Node) Node {
 
 // Concat
 func (g *Graph) Concat(xs ...Node) Node {
-	return g.NewOperator(fn.NewConcat(operands(xs)), xs...)
+	return g.NewOperator(fn.NewConcat(Operands(xs)), xs...)
 }
 
 // Stack
 func (g *Graph) Stack(xs ...Node) Node {
-	return g.NewOperator(fn.NewStack(operands(xs)), xs...)
+	return g.NewOperator(fn.NewStack(Operands(xs)), xs...)
 }

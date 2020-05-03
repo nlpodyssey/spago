@@ -68,16 +68,12 @@ func TimeStep() int {
 	return globalGraph.TimeStep()
 }
 
-func ForwardAll() {
-	globalGraph.ForwardAll()
+func Forward(opts ...ForwardOption) {
+	globalGraph.Forward(opts...)
 }
 
-func Backward(node Node, grad ...mat.Matrix) {
-	globalGraph.Backward(node, grad...)
-}
-
-func TBackward(node Node, backSteps int, grad ...mat.Matrix) {
-	globalGraph.TBackward(node, backSteps, grad...)
+func Backward(node Node, opts ...BackwardOption) {
+	globalGraph.Backward(node, opts...)
 }
 
 func BackwardAll() {

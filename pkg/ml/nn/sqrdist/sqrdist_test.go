@@ -26,7 +26,7 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Backward
 
-	g.Backward(y, mat.NewScalar(-0.8))
+	g.Backward(y, ag.OutputGrad(mat.NewScalar(-0.8)))
 
 	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.9568, -0.848, 0.5936}, 1.0e-05) {
 		t.Error("The input gradients don't match the expected values")

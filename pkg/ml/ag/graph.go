@@ -8,8 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"math"
-	"runtime"
+	"log"
 	"sync"
 	"sync/atomic"
 )
@@ -23,6 +22,10 @@ type Graph struct {
 	curTimeStep int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
+	//
+	incrementalForward bool
+	// whether to run the forward or backward computations distributing the workload over the available CPUs.
+	concurrentComputations bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxId of the graph matches the maxId of the cache.
 	// Otherwise the cache must be invalidated and the values recalculated.
@@ -46,13 +49,30 @@ func Rand(rand *rand.LockedRand) GraphOption {
 	}
 }
 
+func IncrementalForward(value bool) GraphOption {
+	return func(g *Graph) {
+		g.incrementalForward = value
+	}
+}
+
+// ConcurrentComputations sets whether to perform the forward and backward computations in concurrent or sequential mode.
+// In the case of concurrent computation all available CPUs are exploited.
+// By default, the forward is executed sequentially.
+func ConcurrentComputations(value bool) GraphOption {
+	return func(g *Graph) {
+		g.concurrentComputations = value
+	}
+}
+
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opts ...GraphOption) *Graph {
 	g := &Graph{
-		maxId:       -1,
-		curTimeStep: 0,
-		nodes:       nil,
+		maxId:                  -1,
+		curTimeStep:            0,
+		nodes:                  nil,
+		incrementalForward:     true,
+		concurrentComputations: false,
 	}
 	for _, opt := range opts {
 		opt(g)
@@ -164,7 +184,17 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 				"You may consider wrapping the nodes you need with NewWrap().")
 		}
 	}
-	value := f.Forward() // the calculation can be concurrent
+	var value mat.Matrix = nil
+	if g.incrementalForward {
+		value = f.Forward() // the calculation is out of the lock so it can run concurrently with other operators
+	}
+	requiresGrad := false
+	for _, operand := range operands {
+		if operand.RequiresGrad() {
+			requiresGrad = true
+			break
+		}
+	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newNode := &operator{
@@ -176,7 +206,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		value:        value,
 		grad:         nil,
 		hasGrad:      false,
-		requiresGrad: requireGrad(operands),
+		requiresGrad: requiresGrad,
 	}
 	// the new id is sequential so this the append is fine
 	g.nodes = append(g.nodes, newNode)
@@ -213,146 +243,99 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	return newNode
 }
 
-func (g *Graph) ForwardAll() {
-	g.ClearForReuse() // make sure you don't waste memory
-	for _, node := range g.nodes {
-		if node, ok := node.(*operator); ok {
-			node.value = node.function.Forward()
-		}
+type ForwardOption func(*forwardHandler)
+
+// Range allows you to limit the forward computation within a time-step range.
+// By default, the forward computes from the first node at time-step 0 to the last node at the current time-step.
+func Range(fromTimeStep, toTimeStep int) ForwardOption {
+	if fromTimeStep < 0 {
+		log.Fatalf("ag: expected fromTimeStep equal to or greater than zero. Found %d.", fromTimeStep)
+	}
+	if toTimeStep > -1 && toTimeStep < fromTimeStep {
+		log.Fatalf("ag: expected toTimeStep equal to or greater than fromTimeStep (%d). Found %d.",
+			fromTimeStep, toTimeStep)
+	}
+	return func(f *forwardHandler) {
+		f.fromTimeStep = int64(fromTimeStep)
+		f.toTimeStep = int64(toTimeStep)
 	}
 }
 
-func (g *Graph) ForwardAllConcurrent() {
+func (g *Graph) Forward(opts ...ForwardOption) {
 	g.ClearForReuse() // make sure you don't waste memory
-	groups := g.groupNodesByHeight()
-	numCpu := runtime.NumCPU()
-	for _, group := range groups {
-		groupLen := len(group)
-		size := int(math.Ceil(float64(groupLen) / float64(numCpu)))
-		var wg sync.WaitGroup
-		for i, j := 0, size; i < groupLen; i, j = j, j+size {
-			if j > groupLen {
-				j = groupLen
-			}
-			wg.Add(1)
-			go func(nodes []Node) {
-				defer wg.Done()
-				for _, node := range nodes {
-					if op, ok := node.(*operator); ok {
-						op.value = op.function.Forward()
-					}
-				}
-			}(group[i:j])
-		}
-		wg.Wait()
+	handler := &forwardHandler{
+		g:            g,
+		fromTimeStep: 0,
+		toTimeStep:   -1, // unlimited
+	}
+	for _, opt := range opts {
+		opt(handler)
+	}
+	if g.concurrentComputations {
+		handler.runConcurrent()
+	} else {
+		handler.runSerial()
 	}
 }
 
-func (g *Graph) groupNodesByHeight() [][]Node {
-	if g.cache.maxId == g.maxId {
-		return g.cache.nodesByHeight
-	}
-	groups := make([][]Node, 0, 1)
-	height := make([]int, len(g.nodes))
+type BackwardOption func(*backwardHandler)
 
-	for _, node := range g.nodes {
-		h := 0
-		if node, ok := node.(*operator); ok {
-			for _, operand := range node.operands {
-				if operand, ok := operand.(*operator); ok {
-					if height[operand.id] >= h {
-						h = height[operand.id] + 1
-					}
-				}
-			}
-		}
-		height[node.Id()] = h
-		if h == len(groups) {
-			groups = append(groups, make([]Node, 0, 1))
-		}
-		groups[h] = append(groups[h], node)
+func Truncate(backSteps int) BackwardOption {
+	return func(f *backwardHandler) {
+		f.stopAtTimeStep = f.node.getTimeStep() - int64(backSteps)
 	}
+}
 
-	// update cache and return
-	g.cache.maxId = g.maxId
-	g.cache.nodesByHeight = groups
-	g.cache.height = height
-	return groups
+func OutputGrad(grad mat.Matrix) BackwardOption {
+	return func(f *backwardHandler) {
+		f.outputGrad = grad
+	}
 }
 
 // Backward performs the back-propagation.
 // It visits each node in reverse topological order, to propagate the gradients from the given node all the way
-// back to the leaf. If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
-// node with respect to the node itself (dy/dy = 1).
-func (g *Graph) Backward(node Node, grad ...mat.Matrix) {
-	var gx mat.Matrix
-	if len(grad) > 1 {
-		panic("ag: invalid number of arguments. Required zero or one argument.")
-	} else if len(grad) == 0 || grad[0] == nil {
-		gx = node.Value().OnesLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
-	} else {
-		gx = grad[0]
+// back to the leaf.
+// The back-propagation starts from the node's output gradients, following these mutually exclusive rules:
+//   a) the node has gradients (probably assigned externally via node.PropagateGrads()), use those;
+//   b) the output gradients are passed through the backward options, use those;
+//   c) the output gradients are automatically assigned by finding the derivative of the node with respect
+//      to the node itself (dy/dy = 1).
+// If the optional back steps are set, a Truncated Back-Propagation Through Time is carried out, that is:
+// the visit ends as soon as it is encountered a node with time-step less or equal to the number of back steps.
+// The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
+func (g *Graph) Backward(node Node, opts ...BackwardOption) {
+	handler := &backwardHandler{
+		g:              g,
+		node:           node,
+		outputGrad:     nil,
+		stopAtTimeStep: -1, // no stop
 	}
-	node.PropagateGrad(gx)
-	g.fullBackPropagation(node)
-}
-
-// TBackward performs the truncated back-propagation.
-// It visits each node in reverse topological order, to propagate the gradients from the given node all the way
-// back to the leaf. The visit ends as soon as it is encountered a node having the time-step less or equal to the
-// number of back steps (aka k2).
-// If there are no input gradients (i.e. grad is nil), it starts by finding the derivative of the
-// node with respect to the node itself (dy/dy = 1).
-// Note. Following Williams and Peng (1990), since the gradients used to update the parameters are an approximation
-// anyway, this implementation of truncated back-propagation can perform without the need to recalculate the
-// node's values previous to the last back steps, although the parameters may have been optimized in the meantime.
-func (g *Graph) TBackward(node Node, backSteps int, grad ...mat.Matrix) {
-	var gx mat.Matrix
-	if len(grad) > 1 {
-		panic("ag: invalid number of arguments. Required zero or one argument.")
-	} else if len(grad) == 0 || grad[0] == nil {
-		gx = node.Value().OnesLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
-	} else {
-		gx = grad[0]
+	for _, opt := range opts {
+		opt(handler)
 	}
-	node.PropagateGrad(gx)
-	if backSteps == -1 { // no limits
-		g.fullBackPropagation(node)
+	if !node.HasGrad() {
+		handler.propagateOutputGrad()
+	}
+	if g.concurrentComputations {
+		handler.runConcurrent()
 	} else {
-		g.truncatedBackPropagation(node, backSteps)
+		handler.runSerial()
 	}
 }
 
 // BackwardAll performs full back-propagation from the last node of the graph.
+// It requires the root nodes to have assigned gradients already.
 func (g *Graph) BackwardAll() {
-	g.fullBackPropagation(g.nodes[g.maxId]) // backward from the last node
-}
-
-func (g *Graph) fullBackPropagation(node Node) {
-	nodes := g.nodes
-	lastIndex := node.Id()
-	_ = nodes[lastIndex] // avoid bounds check
-	for i := lastIndex; i >= 0; i-- {
-		if node, ok := nodes[i].(*operator); ok {
-			node.backward()
-		}
+	handler := &backwardHandler{
+		g:              g,
+		node:           g.nodes[g.maxId],
+		outputGrad:     nil,
+		stopAtTimeStep: -1, // no stop
 	}
-}
-
-func (g *Graph) truncatedBackPropagation(node Node, backSteps int) {
-	nodes := g.nodes
-	lastIndex := node.Id()
-	stopAtTimeStep := node.getTimeStep() - int64(backSteps)
-	_ = nodes[lastIndex] // avoid bounds check
-	for i := lastIndex; i >= 0; i-- {
-		if nodes[i].getTimeStep() <= stopAtTimeStep {
-			break
-		}
-		if node, ok := nodes[i].(*operator); ok {
-			node.backward()
-		}
+	if g.concurrentComputations {
+		handler.runConcurrent()
+	} else {
+		handler.runSerial()
 	}
 }
 
@@ -400,20 +383,34 @@ func (g *Graph) newId() int64 {
 	return atomic.AddInt64(&g.maxId, 1)
 }
 
-func requireGrad(ns []Node) bool {
-	for _, n := range ns {
-		if n.RequiresGrad() {
-			return true
-		}
+func (g *Graph) groupNodesByHeight() [][]Node {
+	if g.cache.maxId == g.maxId {
+		return g.cache.nodesByHeight
 	}
-	return false
-}
+	groups := make([][]Node, 0, 1)
+	height := make([]int, len(g.nodes))
 
-// operands converts a slice of node to a slice of operands.
-func operands(xs []Node) []fn.Operand {
-	var out = make([]fn.Operand, len(xs))
-	for i, x := range xs {
-		out[i] = x
+	for _, node := range g.nodes {
+		h := 0
+		if node, ok := node.(*operator); ok {
+			for _, operand := range node.operands {
+				if operand, ok := operand.(*operator); ok {
+					if height[operand.id] >= h {
+						h = height[operand.id] + 1
+					}
+				}
+			}
+		}
+		height[node.Id()] = h
+		if h == len(groups) {
+			groups = append(groups, make([]Node, 0, 1))
+		}
+		groups[h] = append(groups[h], node)
 	}
-	return out
+
+	// update cache and return
+	g.cache.maxId = g.maxId
+	g.cache.nodesByHeight = groups
+	g.cache.height = height
+	return groups
 }
