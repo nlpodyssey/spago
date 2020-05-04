@@ -260,6 +260,11 @@ func CeLU(x Node, alpha Node) Node {
 	return globalGraph.CeLU(x, alpha)
 }
 
+// GeLU
+func GeLU(x Node) Node {
+	return globalGraph.GeLU(x)
+}
+
 // ELU
 func ELU(x Node, alpha Node) Node {
 	return globalGraph.ELU(x, alpha)

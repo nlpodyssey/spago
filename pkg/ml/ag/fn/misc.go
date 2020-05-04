@@ -129,6 +129,14 @@ func NewMish(x Operand) *UnaryElementwise {
 	}
 }
 
+func NewGeLU(x Operand) *UnaryElementwise {
+	return &UnaryElementwise{
+		x:  x,
+		f:  gelu,
+		df: geluDeriv,
+	}
+}
+
 func NewSqrt(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -423,4 +431,18 @@ func mishDeriv(i, j int, v float64) float64 {
 	omega := 4.0*(v+1.0) + 4.0*exp2 + exp3 + exp*(4.0*v+6.0)
 	delta := 2*exp + exp2 + 2.0
 	return exp * (omega / (delta * delta))
+}
+
+func gelu(i, j int, v float64) float64 {
+	return 0.5 * v * (1.0 + f64utils.Tanh(math.Sqrt(2/math.Pi)*(v+0.044715*math.Pow(v, 3.0))))
+}
+
+func geluDeriv(i, j int, v float64) float64 {
+	vvv := math.Pow(v, 3)
+	return 0.5*f64utils.Tanh(0.0356774*vvv+0.797885*v) + (0.0535161*vvv+0.398942*v)*
+		math.Pow(sech(0.0356774*vvv+0.797885*vvv), 2) + 0.5
+}
+
+func sech(x float64) float64 {
+	return 2.0 / (math.Exp(x) + math.Exp(-x))
 }
