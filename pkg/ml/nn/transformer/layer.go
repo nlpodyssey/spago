@@ -9,8 +9,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
@@ -54,10 +55,11 @@ func NewLayer(
 	}
 }
 
-func newFFN(in, hidden, out int, activation ag.OpName) *stack.Model {
+func newFFN(in, hidden, out int, hiddenActivation ag.OpName) *stack.Model {
 	return stack.New(
-		perceptron.New(in, hidden, activation),
-		perceptron.New(hidden, out, ag.OpIdentity),
+		linear.New(in, hidden),
+		activation.New(hiddenActivation),
+		linear.New(hidden, out),
 	)
 }
 

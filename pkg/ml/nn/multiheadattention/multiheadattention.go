@@ -5,9 +5,10 @@
 package multiheadattention
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/selfattention"
 	"io"
 	"log"
 	"math"
@@ -20,34 +21,33 @@ var (
 
 // Multi-Head Attention
 type Model struct {
-	WQ []*nn.Param `type:"weights"`
-	WK []*nn.Param `type:"weights"`
-	WV []*nn.Param `type:"weights"`
-	WO *nn.Param   `type:"weights"`
-	h  int         // number of heads
-	dm int         // input/output vectors dimension
-	dk int         // hidden vectors dimension (dm/h)
+	Attention   []*selfattention.Model
+	OutputMerge *linear.Model
+	h           int // number of heads
+	dm          int // input and output vectors dimension
+	dk          int // hidden vectors dimension (dm/h)
 }
 
-// 'dm' is the input/output dimension and 'h' is the number of heads.
-func New(dm, h int) *Model {
-	WQ := make([]*nn.Param, h)
-	WK := make([]*nn.Param, h)
-	WV := make([]*nn.Param, h)
-	dk := dm / h
-	for i := 0; i < h; i++ {
-		WQ[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
-		WK[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
-		WV[i] = nn.NewParam(mat.NewEmptyDense(dk, dm))
+func New(size, numOfHeads int) *Model {
+	dm := size
+	dk := size / numOfHeads
+	attention := make([]*selfattention.Model, numOfHeads)
+	attentionConfig := selfattention.Config{
+		InputSize:   dm,
+		QuerySize:   dk,
+		KeySize:     dk,
+		ValueSize:   dk,
+		ScaleFactor: math.Sqrt(float64(dk)),
+	}
+	for i := 0; i < numOfHeads; i++ {
+		attention[i] = selfattention.New(attentionConfig)
 	}
 	return &Model{
-		WQ: WQ,
-		WK: WK,
-		WV: WV,
-		WO: nn.NewParam(mat.NewEmptyDense(dm, h*dk)),
-		h:  h,
-		dm: dm,
-		dk: dk,
+		Attention:   attention,
+		OutputMerge: linear.New(dm, dm),
+		h:           numOfHeads,
+		dm:          dm,
+		dk:          dk,
 	}
 }
 
@@ -64,27 +64,26 @@ func (m *Model) Deserialize(r io.Reader) (int, error) {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	wQ    []ag.Node
-	wK    []ag.Node
-	wV    []ag.Node
-	wO    ag.Node
-	g     *ag.Graph
-	Heads []*Head // list of self-attention layers
+	opt               []interface{}
+	model             *Model
+	g                 *ag.Graph
+	mode              nn.ProcessingMode
+	HeadAttentionProc []*selfattention.Processor
+	outputMerge       nn.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+	headAttentionProc := make([]*selfattention.Processor, m.h)
+	for i := 0; i < m.h; i++ {
+		headAttentionProc[i] = m.Attention[i].NewProc(g).(*selfattention.Processor)
+	}
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		wQ:    nn.AttachParamsToGraph(g, m.WQ...),
-		wK:    nn.AttachParamsToGraph(g, m.WK...),
-		wV:    nn.AttachParamsToGraph(g, m.WV...),
-		wO:    g.NewWrap(m.WO),
-		g:     g,
+		model:             m,
+		g:                 g,
+		mode:              nn.Training,
+		opt:               opt,
+		HeadAttentionProc: headAttentionProc,
+		outputMerge:       m.OutputMerge.NewProc(g),
 	}
 	p.init(opt)
 	return p
@@ -102,62 +101,18 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-type Head struct {
-	context []ag.Node
-	probs   []mat.Matrix
-}
-
-func newHead(context []ag.Node, probs []mat.Matrix) *Head {
-	return &Head{
-		context: context,
-		probs:   probs,
-	}
-}
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
-	p.Heads = p.multiHeadAttention(xs)
+	headsAttention := make([][]ag.Node, p.model.h)
+	for h, proc := range p.HeadAttentionProc {
+		headsAttention[h] = proc.Forward(xs...)
+	}
+	concatHeads := make([]ag.Node, len(xs))
 	for i := 0; i < len(xs); i++ {
-		ys[i] = nn.Linear(p.g, p.wO, p.concatHeadsAt(i))
+		buf := make([]ag.Node, p.model.h)
+		for j := 0; j < p.model.h; j++ {
+			buf[j] = headsAttention[j][i]
+		}
+		concatHeads[i] = p.g.Concat(buf...)
 	}
-	return ys
-}
-
-func (p *Processor) concatHeadsAt(pos int) ag.Node {
-	var buf []ag.Node
-	for _, head := range p.Heads {
-		buf = append(buf, head.context[pos])
-	}
-	return p.g.Concat(buf...)
-}
-
-func (p *Processor) multiHeadAttention(xs []ag.Node) []*Head {
-	heads := make([]*Head, p.model.h)
-	for i := range heads {
-		heads[i] = newHead(p.selfAttention(xs, i))
-	}
-	return heads
-}
-
-func (p *Processor) selfAttention(xs []ag.Node, hi int) (context []ag.Node, probs []mat.Matrix) {
-	qs, ks, vs := p.linearProjection(xs, hi)
-	return nn.ScaledDotProductAttention(p.g, qs, ks, vs, math.Sqrt(float64(p.model.dk)))
-}
-
-func (p *Processor) linearProjection(xs []ag.Node, hi int) (qs, ks, vs []ag.Node) {
-	wQhi := p.wQ[hi]
-	wKhi := p.wK[hi]
-	wVhi := p.wV[hi]
-
-	qs = make([]ag.Node, len(xs))
-	ks = make([]ag.Node, len(xs))
-	vs = make([]ag.Node, len(xs))
-
-	for i, x := range xs {
-		qs[i] = nn.Linear(p.g, wQhi, x)
-		ks[i] = nn.Linear(p.g, wKhi, x)
-		vs[i] = nn.Linear(p.g, wVhi, x)
-	}
-
-	return
+	return p.outputMerge.Forward(concatHeads...)
 }
