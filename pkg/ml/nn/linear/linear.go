@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package perceptron
+package linear
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
@@ -19,16 +19,14 @@ var (
 )
 
 type Model struct {
-	W          *nn.Param `type:"weights"`
-	B          *nn.Param `type:"biases"`
-	Activation ag.OpName // output activation
+	W *nn.Param `type:"weights"`
+	B *nn.Param `type:"biases"`
 }
 
-func New(in, out int, actFunc ag.OpName) *Model {
+func New(in, out int) *Model {
 	return &Model{
-		W:          nn.NewParam(mat.NewEmptyDense(out, in)),
-		B:          nn.NewParam(mat.NewEmptyVecDense(out)),
-		Activation: actFunc,
+		W: nn.NewParam(mat.NewEmptyDense(out, in)),
+		B: nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
 }
 
@@ -42,13 +40,6 @@ func (m *Model) Serialize(w io.Writer) (int, error) {
 
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
-}
-
-// SetActivation sets the new activation and returns the previous one.
-func (m *Model) SetActivation(a ag.OpName) ag.OpName {
-	prev := m.Activation
-	m.Activation = a
-	return prev
 }
 
 type Concurrency struct {
@@ -126,7 +117,7 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 	return ys
 }
 
-// y = f(w (dot) x + b)
+// y = w (dot) x + b
 func (p *Processor) forward(x ag.Node) ag.Node {
-	return p.g.Invoke(p.model.Activation, nn.Affine(p.g, p.b, p.w, x))
+	return nn.Affine(p.g, p.b, p.w, x)
 }

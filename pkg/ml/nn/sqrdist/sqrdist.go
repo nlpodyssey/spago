@@ -80,6 +80,6 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) ag.Node {
-	bh := nn.Linear(p.g, p.b, x)
-	return nn.Linear(p.g, p.g.T(bh), bh)
+	bh := p.g.Mul(p.b, x)
+	return p.g.Mul(p.g.T(bh), bh)
 }

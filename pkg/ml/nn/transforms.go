@@ -11,11 +11,6 @@ import (
 	"sync"
 )
 
-// Linear performs a linear transformation of the type Wx.
-func Linear(g *ag.Graph, w, x ag.Node) ag.Node {
-	return g.Mul(w, x)
-}
-
 // Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
 // The first node is the “bias”, which is added to the output as-is.
 // The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
@@ -29,13 +24,13 @@ func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
 	// Optimize bounds checks
 	x := xs[2]
 	w := xs[1]
-	y := g.Add(xs[0], Linear(g, w, x)) // b + Wx
+	y := g.Add(xs[0], g.Mul(w, x)) // b + Wx
 
 	for i := 3; i < len(xs)-1; i += 2 {
 		w := xs[i]
 		x := xs[i+1]
 		if x != nil {
-			y = g.Add(y, Linear(g, w, x))
+			y = g.Add(y, g.Mul(w, x))
 		}
 	}
 	return y

@@ -143,7 +143,7 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	yPrev := p.prev()
 	s.InG = p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
 	s.ForG = p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = p.g.Tanh(nn.Linear(p.g, p.wCand, x))
+	s.Cand = p.g.Tanh(p.g.Mul(p.wCand, x))
 	s.Y = p.g.Prod(s.InG, s.Cand)
 	if yPrev != nil {
 		s.Y = p.g.Add(s.Y, p.g.Prod(p.g.Tanh(yPrev), s.ForG))

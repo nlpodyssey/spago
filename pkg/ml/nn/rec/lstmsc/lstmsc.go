@@ -9,7 +9,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
@@ -43,8 +44,10 @@ type Model struct {
 func New(in, out, k int, lambda float64, intermediate int) *Model {
 	var m Model
 	m.PolicyGradient = stack.New(
-		perceptron.New(in+out, intermediate, ag.OpTanh),
-		perceptron.New(intermediate, k, ag.OpSoftmax),
+		linear.New(in+out, intermediate),
+		activation.New(ag.OpTanh),
+		linear.New(intermediate, k),
+		activation.New(ag.OpSoftmax),
 	)
 	m.Lambda = lambda
 	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)

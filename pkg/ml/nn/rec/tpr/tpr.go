@@ -151,9 +151,9 @@ func (p *Processor) forward(x ag.Node) (st *State) {
 	st = new(State)
 	st.AR = p.g.Sigmoid(nn.Affine(p.g, p.bR, p.wInR, x, p.wRecR, yPrev))
 	st.AS = p.g.Sigmoid(nn.Affine(p.g, p.bS, p.wInS, x, p.wRecS, yPrev))
-	st.R = nn.Linear(p.g, p.r, st.AR)
-	st.S = nn.Linear(p.g, p.s, st.AS)
-	b := nn.Linear(p.g, st.S, p.g.T(st.R))
+	st.R = p.g.Mul(p.r, st.AR)
+	st.S = p.g.Mul(p.s, st.AS)
+	b := p.g.Mul(st.S, p.g.T(st.R))
 	st.Y = p.g.Vec(b)
 	return
 }

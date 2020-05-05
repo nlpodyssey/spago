@@ -134,14 +134,14 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	if yPrev != nil {
 		h = p.g.Add(h, yPrev)
 	}
-	s.L1 = p.g.Sigmoid(nn.Linear(p.g, p.w1, h))
-	s.L2 = p.g.Sigmoid(nn.Linear(p.g, p.w2, h))
-	s.L3 = p.g.Sigmoid(nn.Linear(p.g, p.w3, h))
+	s.L1 = p.g.Sigmoid(p.g.Mul(p.w1, h))
+	s.L2 = p.g.Sigmoid(p.g.Mul(p.w2, h))
+	s.L3 = p.g.Sigmoid(p.g.Mul(p.w3, h))
 	s.Cand = p.g.Prod(s.L1, s.L2)
 	if cellPrev != nil {
 		s.Cand = p.g.Add(s.Cand, cellPrev)
 	}
-	s.Cell = p.g.Sigmoid(nn.Linear(p.g, p.wCell, s.Cand))
+	s.Cell = p.g.Sigmoid(p.g.Mul(p.wCell, s.Cand))
 	s.Y = p.g.Prod(s.Cell, s.L3)
 	return
 }

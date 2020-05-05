@@ -8,7 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"io"
 	"log"
 )
@@ -20,12 +20,12 @@ var (
 
 type Model struct {
 	Convolution    *convolution.Model
-	FinalLayer     *perceptron.Model
+	FinalLayer     *linear.Model
 	maxPoolingRows int
 	maxPoolingCols int
 }
 
-func NewModel(convolution *convolution.Model, maxPoolingRows, maxPoolingCols int, finalLayer *perceptron.Model) *Model {
+func NewModel(convolution *convolution.Model, maxPoolingRows, maxPoolingCols int, finalLayer *linear.Model) *Model {
 	return &Model{
 		Convolution:    convolution,
 		FinalLayer:     finalLayer,
@@ -52,7 +52,7 @@ type Processor struct {
 	mode        nn.ProcessingMode
 	g           *ag.Graph
 	Convolution nn.Processor
-	Perceptron  nn.Processor
+	FinalLayer  nn.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -60,7 +60,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		model:       m,
 		mode:        nn.Training,
 		Convolution: m.Convolution.NewProc(g),
-		Perceptron:  m.FinalLayer.NewProc(g),
+		FinalLayer:  m.FinalLayer.NewProc(g),
 		g:           g,
 	}
 	p.init(opt)
@@ -81,14 +81,14 @@ func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.mode = mode
 	p.Convolution.SetMode(mode)
-	p.Perceptron.SetMode(mode)
+	p.FinalLayer.SetMode(mode)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	filters := p.Convolution.Forward(xs...)
 	poolingFilters := p.maxPooling(filters...)
 	concatFilters := p.g.Concat(p.vectorize(poolingFilters...)...)
-	return p.Perceptron.Forward(concatFilters)
+	return p.FinalLayer.Forward(concatFilters)
 }
 
 func (p *Processor) maxPooling(xs ...ag.Node) []ag.Node {

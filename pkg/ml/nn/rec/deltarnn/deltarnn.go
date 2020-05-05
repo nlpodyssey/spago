@@ -142,14 +142,14 @@ func (p *Processor) LastState() *State {
 func (p *Processor) forward(x ag.Node) (s *State) {
 	s = new(State)
 	yPrev := p.prev()
-	wx := nn.Linear(p.g, p.w, x)
+	wx := p.g.Mul(p.w, x)
 	if yPrev == nil {
 		s.D1 = p.g.Prod(p.beta1, wx)
 		s.C = p.g.Tanh(p.g.Add(s.D1, p.b))
 		s.P = p.g.Sigmoid(p.g.Add(wx, p.bPart))
 		s.Y = p.g.Tanh(p.g.Prod(s.P, s.C))
 	} else {
-		wyRec := nn.Linear(p.g, p.wRec, yPrev)
+		wyRec := p.g.Mul(p.wRec, yPrev)
 		s.D1 = p.g.Add(p.g.Prod(p.beta1, wx), p.g.Prod(p.beta2, wyRec))
 		s.D2 = p.g.Prod(p.g.Prod(p.alpha, wx), wyRec)
 		s.C = p.g.Tanh(p.g.Add(p.g.Add(s.D1, s.D2), p.b))
