@@ -37,7 +37,7 @@ func New(size, numOfHeads int) *Model {
 		QuerySize:   dk,
 		KeySize:     dk,
 		ValueSize:   dk,
-		ScaleFactor: math.Sqrt(float64(dk)),
+		ScaleFactor: 1.0 / math.Sqrt(float64(dk)),
 	}
 	for i := 0; i < numOfHeads; i++ {
 		attention[i] = selfattention.New(attentionConfig)

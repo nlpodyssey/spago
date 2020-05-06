@@ -73,37 +73,37 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 // ScaledDotProductAttention is a self-attention mechanism relating different positions of a single sequence in order to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained from the input sequence.
 // The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaledFactor float64) (context []ag.Node, probs []mat.Matrix) {
+func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
 	context = make([]ag.Node, len(qs))
-	probs = make([]mat.Matrix, len(qs))
+	prob = make([]mat.Matrix, len(qs))
 	keys := g.Stack(ks...)
 	values := g.T(g.Stack(vs...))
-	divTerm := g.NewScalar(scaledFactor)
+	factor := g.NewScalar(scaleFactor)
 	for i, q := range qs {
-		attScores := g.DivScalar(g.Mul(keys, q), divTerm)
-		attProbs := g.Softmax(attScores)
-		context[i] = g.Mul(values, attProbs)
-		probs[i] = attProbs.Value()
+		attScores := g.ProdScalar(g.Mul(keys, q), factor)
+		attProb := g.Softmax(attScores)
+		context[i] = g.Mul(values, attProb)
+		prob[i] = attProb.Value()
 	}
 	return
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scaledFactor float64) (context []ag.Node, probs []mat.Matrix) {
+func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
 	context = make([]ag.Node, len(qs))
-	probs = make([]mat.Matrix, len(qs))
+	prob = make([]mat.Matrix, len(qs))
 	keys := g.Stack(ks...)
 	values := g.T(g.Stack(vs...))
-	divTerm := g.NewScalar(scaledFactor)
+	factor := g.NewScalar(scaleFactor)
 	var wg sync.WaitGroup
 	wg.Add(len(qs))
 	for i, q := range qs {
 		go func(i int, q ag.Node) {
 			defer wg.Done()
-			attScores := g.DivScalar(g.Mul(keys, q), divTerm)
-			attProbs := g.Softmax(attScores)
-			context[i] = g.Mul(values, attProbs)
-			probs[i] = attProbs.Value()
+			attScores := g.ProdScalar(g.Mul(keys, q), factor)
+			attProb := g.Softmax(attScores)
+			context[i] = g.Mul(values, attProb)
+			prob[i] = attProb.Value()
 		}(i, q)
 	}
 	wg.Wait()

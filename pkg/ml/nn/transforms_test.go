@@ -125,7 +125,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 		g.NewVariable(mat.NewVecDense([]float64{2.3, 6.5, 3.5}), true),
 	}
 
-	context, _ := ScaledDotProductAttention(g, qs, ks, vs, math.Sqrt(3))
+	context, _ := ScaledDotProductAttention(g, qs, ks, vs, 1.0/math.Sqrt(3))
 
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -160,7 +160,7 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	}
 
 	// == Forward
-	context, probs := ScaledDotProductAttention(g, qs, ks, vs, math.Sqrt(2))
+	context, probs := ScaledDotProductAttention(g, qs, ks, vs, 1.0/math.Sqrt(2))
 
 	if len(context) != 3 {
 		t.Error("The context doesn't have the expected length")
