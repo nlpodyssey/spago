@@ -60,15 +60,17 @@ func max(v []float64) (m float64) {
 	return
 }
 
-func softmax(v []float64) (sm []float64) {
-	c := max(v)
-	var sum float64 = 0
-	for _, e := range v {
-		sum += math.Exp(e - c)
+func softmax(v []float64) []float64 {
+	maximum := max(v)
+	sum := 0.0
+	out := make([]float64, len(v))
+	for i, x := range v {
+		e := math.Exp(x - maximum)
+		out[i] = e
+		sum += e
 	}
-	sm = make([]float64, len(v))
-	for i, v := range v {
-		sm[i] = math.Exp(v-c) / sum
+	for i := range v {
+		out[i] /= sum
 	}
-	return sm
+	return out
 }
