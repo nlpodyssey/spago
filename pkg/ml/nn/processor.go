@@ -33,3 +33,10 @@ type Processor interface {
 	// Differently, feed-forward networks are stateless so every computation is independent.
 	Forward(xs ...ag.Node) []ag.Node
 }
+
+// SetProcessingMode sets the processing mode to a group of processors.
+func SetProcessingMode(mode ProcessingMode, ps ...Processor) {
+	for _, proc := range ps {
+		proc.SetMode(mode)
+	}
+}
