@@ -50,6 +50,7 @@ type Processor struct {
 	g     *ag.Graph
 	w     ag.Node
 	b     ag.Node
+	eps   ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -60,6 +61,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		g:     g,
 		w:     g.NewWrap(m.W),
 		b:     g.NewWrap(m.B),
+		eps:   g.NewScalar(1e-5), // avoid underflow errors
 	}
 	p.init(opt)
 	return p
@@ -77,18 +79,14 @@ func (p *Processor) RequiresFullSeq() bool          { return false }
 func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
 func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
+// y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	eps := p.g.NewScalar(1e-10)
 	for i, x := range xs {
 		mean := p.g.ReduceMean(x)
-		stdDev := p.stdDev(x, mean)
-		ys[i] = p.g.Add(p.g.Prod(p.g.SubScalar(x, mean), p.g.DivScalar(p.w, p.g.Add(stdDev, eps))), p.b)
+		dev := p.g.SubScalar(x, mean)
+		stdDev := p.g.Sqrt(p.g.Add(p.g.ReduceMean(p.g.Square(dev)), p.eps))
+		ys[i] = p.g.Add(p.g.Prod(p.g.DivScalar(dev, stdDev), p.w), p.b)
 	}
 	return ys
-}
-
-func (p *Processor) stdDev(x ag.Node, mean ag.Node) ag.Node {
-	diffVector := p.g.Square(p.g.SubScalar(x, mean))
-	return p.g.Sqrt(p.g.ReduceMean(diffVector))
 }

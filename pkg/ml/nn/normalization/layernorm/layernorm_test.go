@@ -16,10 +16,10 @@ func TestModel_Forward(t *testing.T) {
 	g := ag.NewGraph()
 
 	// == Forward
-	x := g.NewVariable(mat.NewVecDense([]float64{1.0, 2.0, 0.0, 4.0}), true)
+	x := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.8, -0.7, -0.5}), true)
 	y := model.NewProc(g).Forward(x)[0]
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{0.1464537236, 0.2661938298, -0.154964787, 1.3170221268}, 1.0e-06) {
+	if !floats.EqualApprox(y.Value().Data(), []float64{1.15786, 0.2, -0.561559, -0.44465}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")
 	}
 
@@ -27,10 +27,10 @@ func TestModel_Forward(t *testing.T) {
 	y.PropagateGrad(mat.NewVecDense([]float64{-1.0, -0.2, 0.4, 0.6}))
 	g.BackwardAll()
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.2889944606, -0.0208632365, 0.2271774637, 0.0826802334}, 1.0e-06) {
+	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.496258, 0.280667, -0.40876, 0.624352}, 1.0e-06) {
 		t.Error("The x1-gradients don't match the expected values")
 	}
-	if !floats.EqualApprox(model.W.Grad().Data(), []float64{0.5070925528, -0.0338061702, -0.4732863826, 0.9127665951}, 1.0e-06) {
+	if !floats.EqualApprox(model.W.Grad().Data(), []float64{-0.64465, -0.25786, -0.451255, -0.483487}, 1.0e-06) {
 		t.Error("The W-gradients don't match the expected values")
 	}
 	if !floats.EqualApprox(model.B.Grad().Data(), []float64{-1.0, -0.2, 0.4, 0.6}, 1.0e-06) {
@@ -40,7 +40,7 @@ func TestModel_Forward(t *testing.T) {
 
 func newTestModel() *Model {
 	model := New(4)
-	model.W.Value().SetData([]float64{0.5, -0.2, 0.3, 0.8})
-	model.B.Value().SetData([]float64{0.4, 0.3, 0.2, 0.1})
+	model.W.Value().SetData([]float64{0.4, 0.0, -0.3, 0.8})
+	model.B.Value().SetData([]float64{0.9, 0.2, -0.9, 0.2})
 	return model
 }
