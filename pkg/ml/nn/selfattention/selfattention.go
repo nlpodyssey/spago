@@ -36,9 +36,10 @@ type Config struct {
 
 func New(config Config) *Model {
 	return &Model{
-		Query: linear.New(config.InputSize, config.QuerySize),
-		Key:   linear.New(config.InputSize, config.KeySize),
-		Value: linear.New(config.InputSize, config.ValueSize),
+		Config: config,
+		Query:  linear.New(config.InputSize, config.QuerySize),
+		Key:    linear.New(config.InputSize, config.KeySize),
+		Value:  linear.New(config.InputSize, config.ValueSize),
 	}
 }
 
