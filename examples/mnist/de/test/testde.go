@@ -8,8 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/examples/mnist/internal/mnist"
 	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"os"
 )
@@ -31,11 +30,8 @@ func main() {
 	}
 
 	// new model initialized with zeros
-	model := perceptron.New(
-		784, // input
-		10,  // output
-		ag.OpSoftmax,
-	)
+	model := linear.New(784, 10) // softmax activation not necessary
+
 	err = utils.DeserializeFromFile(modelPath, model)
 	if err != nil {
 		panic("mnist: error during model deserialization.")

@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/de"
 	"github.com/nlpodyssey/spago/pkg/ml/stats"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -52,10 +52,9 @@ func main() {
 
 	// new template model initialized with zeros
 	modelFactory := func() nn.Model {
-		return perceptron.New(
-			784,           // features
-			10,            // output
-			ag.OpIdentity, // output activation
+		return linear.New(
+			784, // features
+			10,  // output
 		)
 	}
 

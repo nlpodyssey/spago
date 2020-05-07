@@ -6,8 +6,7 @@ package main
 
 import (
 	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
@@ -50,7 +49,7 @@ func main() {
 			0.5,        // lambda,
 			50,         // intermediate layer
 		),
-		perceptron.New(hiddenSize, 10, ag.OpIdentity), // The CrossEntropy loss doesn't require explicit Softmax activation
+		linear.New(hiddenSize, 10), // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 
 	// initialize model with random weights

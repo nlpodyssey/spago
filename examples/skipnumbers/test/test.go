@@ -7,8 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
@@ -38,7 +37,7 @@ func main() {
 	hiddenSize := 200
 	model := skipnumbers.NewModel(
 		lstmsc.New(10, hiddenSize, 10, 0.5, 50),
-		perceptron.New(hiddenSize, 10, ag.OpSoftmax),
+		linear.New(hiddenSize, 10),
 	)
 
 	err = utils.DeserializeFromFile(modelPath, model)

@@ -9,28 +9,31 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/cnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/perceptron"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
 // NewMLP returns a new multi-layer perceptron initialized to zeros.
 func NewMLP(in, hidden, out int, hiddenAct, outputAct ag.OpName) *stack.Model {
 	return stack.New(
-		perceptron.New(in, hidden, hiddenAct),
-		perceptron.New(hidden, out, outputAct),
+		linear.New(in, hidden),
+		activation.New(hiddenAct),
+		linear.New(hidden, out),
+		activation.New(outputAct),
 	)
 }
 
 // InitRandom initializes the model using the Xavier (Glorot) method.
 func InitMLP(model *stack.Model, rndGen *rand.LockedRand) {
-	for i, layer := range model.Layers {
-		var gain float64
-		if i == len(model.Layers)-1 { // last layer
-			gain = initializers.Gain(ag.OpSoftmax)
-		} else {
-			gain = initializers.Gain(layer.(*perceptron.Model).Activation)
+	for i := 0; i < len(model.Layers)-1; i += 2 {
+		layer := model.Layers[i]
+		nextLayer := model.Layers[i+1]
+		gain := 1.0
+		if nextLayer, ok := nextLayer.(*activation.Model); ok {
+			gain = initializers.Gain(nextLayer.Activation)
 		}
 		layer.ForEachParam(func(param *nn.Param) {
 			if param.Type() == nn.Weights {
@@ -41,17 +44,20 @@ func InitMLP(model *stack.Model, rndGen *rand.LockedRand) {
 }
 
 // NewCNN returns a new CNN initialized to zeros.
+// TODO: output activation after the cnn Final Layer
 func NewCNN(
 	kernelSizeX, kernelSizeY int,
 	inputChannels, outputChannels int,
 	maxPoolingRows, maxPoolingCols int,
 	hidden, out int,
-	hiddenAct, outputActivation ag.OpName,
+	hiddenAct ag.OpName,
+	outputAct ag.OpName,
 ) *cnn.Model {
+	// TODO: pass the outputAct to the CNN
 	return cnn.NewModel(
 		convolution.New(kernelSizeX, kernelSizeY, 1, 1, inputChannels, outputChannels, hiddenAct),
 		maxPoolingRows, maxPoolingCols,
-		perceptron.New(hidden, out, outputActivation),
+		linear.New(hidden, out),
 	)
 }
 
