@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rc"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"io"
 	"log"
@@ -141,23 +142,9 @@ func (p *LayerProcessor) addDepthEncoding(xs []ag.Node) []ag.Node {
 
 func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
 	enhancedInput := p.enhanceInputWithCoordinates(xs)
-	subLayer1 := p.residualConnection(enhancedInput, p.MultiHeadAttention.Forward(enhancedInput...))
-	subLayer2 := p.residualConnection(subLayer1, p.FFN.Forward(subLayer1...))
+	subLayer1 := rc.ReZero(p.g, p.MultiHeadAttention.Forward, p.ResidualWeight, enhancedInput...)
+	subLayer2 := rc.ReZero(p.g, p.FFN.Forward, p.ResidualWeight, subLayer1...)
 	return subLayer2
-}
-
-// residualConnection follows the strategy describe in "ReZero is All You Need: Fast Convergence at Large Depth" by Bachlechner et al., 2020
-func (p *LayerProcessor) residualConnection(a, b []ag.Node) []ag.Node {
-	length := len(a)
-	c := make([]ag.Node, length)
-	if length == 0 {
-		return c
-	}
-	_ = b[length-1] // Avoid bounds checks in loop
-	for i := range c {
-		c[i] = p.g.Add(a[i], p.g.ProdScalar(b[i], p.ResidualWeight))
-	}
-	return c
 }
 
 // enhanceInputWithCoordinates returns the input nodes optionally enriched with positional and depth encodings.
