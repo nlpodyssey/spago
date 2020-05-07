@@ -72,7 +72,7 @@ func (p *Processor) Reset()                         { p.init(p.opt) }
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = nn.Linear(p.g, p.w, x)
+		ys[i] = p.g.Mul(p.w, x)
 	}
 	return ys
 }
