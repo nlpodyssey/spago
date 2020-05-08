@@ -444,5 +444,5 @@ func geluDeriv(i, j int, v float64) float64 {
 }
 
 func sech(x float64) float64 {
-	return 2.0 / (math.Exp(x) + math.Exp(-x))
+	return 1.0 / math.Cosh(x)
 }
