@@ -44,7 +44,7 @@ func New(size, numOfHeads int) *Model {
 	}
 	return &Model{
 		Attention:   attention,
-		OutputMerge: linear.New(dm, dm),
+		OutputMerge: linear.New(dk*numOfHeads, dm),
 		h:           numOfHeads,
 		dm:          dm,
 		dk:          dk,
