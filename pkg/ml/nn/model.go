@@ -16,14 +16,12 @@ import (
 // Model contains the serializable parameters.
 type Model interface {
 	utils.SerializerDeserializer
-	// ForEachParam iterates all the parameters exploring the sub-parameters recursively.
-	ForEachParam(callback func(param *Param))
 	// NewProc returns a new processor to execute the forward step.
 	NewProc(g *ag.Graph, opt ...interface{}) Processor
 }
 
-// ForEachParam iterate all the parameters also exploring the sub-parameters recursively.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead.
+// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
+// TODO: don't loop the field every time, use a lazy initialized "params list" instead
 func ForEachParam(m Model, callback func(param *Param)) {
 	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
 		switch item := field.(type) {
@@ -32,7 +30,7 @@ func ForEachParam(m Model, callback func(param *Param)) {
 			item.pType = ToType(tag.Get("type"))
 			callback(item)
 		case Model:
-			item.ForEachParam(callback)
+			ForEachParam(item, callback)
 		case []*Param:
 			for _, p := range item {
 				p.name = strings.ToLower(name)
@@ -41,7 +39,7 @@ func ForEachParam(m Model, callback func(param *Param)) {
 			}
 		case []Model:
 			for _, m := range item {
-				m.ForEachParam(callback)
+				ForEachParam(m, callback)
 			}
 		default:
 			v := reflect.ValueOf(item)
@@ -54,7 +52,7 @@ func ForEachParam(m Model, callback func(param *Param)) {
 				if !ok {
 					return
 				}
-				m.ForEachParam(callback)
+				ForEachParam(m, callback)
 			}
 		}
 	})
@@ -62,7 +60,7 @@ func ForEachParam(m Model, callback func(param *Param)) {
 
 func ParamsList(m Model) []*Param {
 	params := make([]*Param, 0)
-	m.ForEachParam(func(param *Param) {
+	ForEachParam(m, func(param *Param) {
 		params = append(params, param)
 	})
 	return params
@@ -70,21 +68,21 @@ func ParamsList(m Model) []*Param {
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
 func ZeroGrad(m Model) {
-	m.ForEachParam(func(param *Param) {
+	ForEachParam(m, func(param *Param) {
 		param.ZeroGrad()
 	})
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 func ClearSupport(m Model) {
-	m.ForEachParam(func(param *Param) {
+	ForEachParam(m, func(param *Param) {
 		param.ClearSupport()
 	})
 }
 
 // Serialize dumps the model to the writer.
 func Serialize(model Model, w io.Writer) (n int, err error) {
-	model.ForEachParam(func(param *Param) {
+	ForEachParam(model, func(param *Param) {
 		cnt, err := mat.MarshalBinaryTo(param.Value(), w)
 		n += cnt
 		if err != nil {
@@ -96,7 +94,7 @@ func Serialize(model Model, w io.Writer) (n int, err error) {
 
 // Deserialize loads the model from the reader.
 func Deserialize(model Model, r io.Reader) (n int, err error) {
-	model.ForEachParam(func(param *Param) {
+	ForEachParam(model, func(param *Param) {
 		cnt, err := mat.UnmarshalBinaryFrom(param.Value(), r)
 		n += cnt
 		if err != nil {
@@ -108,7 +106,7 @@ func Deserialize(model Model, r io.Reader) (n int, err error) {
 
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
-	model.ForEachParam(func(param *Param) {
+	ForEachParam(model, func(param *Param) {
 		data = append(data, param.Value().Data()...)
 	})
 	return mat.NewVecDense(data)
@@ -117,7 +115,7 @@ func DumpParamsVector(model Model) *mat.Dense {
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()
 	offset := 0
-	model.ForEachParam(func(param *Param) {
+	ForEachParam(model, func(param *Param) {
 		size := param.Value().Size()
 		param.Value().SetData(data[offset : offset+size])
 		offset += size

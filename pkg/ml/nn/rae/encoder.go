@@ -23,10 +23,6 @@ type Encoder struct {
 	StepEncoder *pe.PositionalEncoder
 }
 
-func (m *Encoder) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
 func (m *Encoder) Serialize(w io.Writer) (int, error) {
 	return nn.Serialize(m, w)
 }

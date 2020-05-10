@@ -50,10 +50,6 @@ func New(in, out, numberOfDelays int) *Model {
 	}
 }
 
-func (m *Model) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
 func (m *Model) Deserialize(r io.Reader) (int, error) {
 	return nn.Deserialize(m, r)
 }

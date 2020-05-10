@@ -30,10 +30,6 @@ func New(in, out int) *Model {
 	}
 }
 
-func (m *Model) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
 func (m *Model) Serialize(w io.Writer) (int, error) {
 	return nn.Serialize(m, w)
 }

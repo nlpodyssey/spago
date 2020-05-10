@@ -24,10 +24,6 @@ type Decoder struct {
 	StepEncoder  *pe.PositionalEncoder
 }
 
-func (m *Decoder) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
 func (m *Decoder) Serialize(w io.Writer) (int, error) {
 	return nn.Serialize(m, w)
 }
