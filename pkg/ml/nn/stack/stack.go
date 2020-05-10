@@ -27,9 +27,7 @@ func New(layers ...nn.Model) *Model {
 }
 
 func (m *Model) ForEachParam(callback func(param *nn.Param)) {
-	for _, l := range m.Layers {
-		nn.ForEachParam(l, callback)
-	}
+	nn.ForEachParam(m, callback)
 }
 
 func (m *Model) Serialize(w io.Writer) (int, error) {

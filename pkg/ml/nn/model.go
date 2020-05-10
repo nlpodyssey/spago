@@ -43,8 +43,29 @@ func ForEachParam(m Model, callback func(param *Param)) {
 			for _, m := range item {
 				m.ForEachParam(callback)
 			}
+		default:
+			v := reflect.ValueOf(item)
+			if v.Kind() != reflect.Slice {
+				return
+			}
+			length := v.Len()
+			for i := 0; i < length; i++ {
+				m, ok := v.Index(i).Interface().(Model)
+				if !ok {
+					return
+				}
+				m.ForEachParam(callback)
+			}
 		}
 	})
+}
+
+func ParamsList(m Model) []*Param {
+	params := make([]*Param, 0)
+	m.ForEachParam(func(param *Param) {
+		params = append(params, param)
+	})
+	return params
 }
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
