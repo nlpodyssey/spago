@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"io"
 	"log"
 )
 
@@ -32,14 +31,6 @@ func NewModel(convolution *convolution.Model, maxPoolingRows, maxPoolingCols int
 		maxPoolingRows: maxPoolingRows,
 		maxPoolingCols: maxPoolingCols,
 	}
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type Processor struct {

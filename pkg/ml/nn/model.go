@@ -15,7 +15,6 @@ import (
 
 // Model contains the serializable parameters.
 type Model interface {
-	utils.SerializerDeserializer
 	// NewProc returns a new processor to execute the forward step.
 	NewProc(g *ag.Graph, opt ...interface{}) Processor
 }
@@ -80,30 +79,6 @@ func ClearSupport(m Model) {
 	})
 }
 
-// Serialize dumps the model to the writer.
-func Serialize(model Model, w io.Writer) (n int, err error) {
-	ForEachParam(model, func(param *Param) {
-		cnt, err := mat.MarshalBinaryTo(param.Value(), w)
-		n += cnt
-		if err != nil {
-			return
-		}
-	})
-	return n, err
-}
-
-// Deserialize loads the model from the reader.
-func Deserialize(model Model, r io.Reader) (n int, err error) {
-	ForEachParam(model, func(param *Param) {
-		cnt, err := mat.UnmarshalBinaryFrom(param.Value(), r)
-		n += cnt
-		if err != nil {
-			return
-		}
-	})
-	return n, err
-}
-
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
 	ForEachParam(model, func(param *Param) {
@@ -130,4 +105,39 @@ func MakeNewModels(n int, callback func(i int) Model) []Model {
 		lst[i] = callback(i)
 	}
 	return lst
+}
+
+var _ utils.Serializer = &ParamsSerializer{}
+var _ utils.Deserializer = &ParamsSerializer{}
+
+type ParamsSerializer struct {
+	Model
+}
+
+func NewParamsSerializer(m Model) *ParamsSerializer {
+	return &ParamsSerializer{Model: m}
+}
+
+// Serialize dumps the params values to the writer.
+func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
+	ForEachParam(m, func(param *Param) {
+		cnt, err := mat.MarshalBinaryTo(param.Value(), w)
+		n += cnt
+		if err != nil {
+			return
+		}
+	})
+	return n, err
+}
+
+// Deserialize assigns the params with the values obtained from the reader.
+func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
+	ForEachParam(m, func(param *Param) {
+		cnt, err := mat.UnmarshalBinaryFrom(param.Value(), r)
+		n += cnt
+		if err != nil {
+			return
+		}
+	})
+	return n, err
 }

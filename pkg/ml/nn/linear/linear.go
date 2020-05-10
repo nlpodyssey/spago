@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 	"sync"
 )
@@ -28,14 +27,6 @@ func New(in, out int) *Model {
 		W: nn.NewParam(mat.NewEmptyDense(out, in)),
 		B: nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type Concurrency struct {

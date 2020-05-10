@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/selfattention"
-	"io"
 	"log"
 	"math"
 )
@@ -49,14 +48,6 @@ func New(size, numOfHeads int) *Model {
 		dm:          dm,
 		dk:          dk,
 	}
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type Processor struct {

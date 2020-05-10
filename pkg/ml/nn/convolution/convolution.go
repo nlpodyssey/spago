@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 	"sync"
 )
@@ -45,14 +44,6 @@ func New(kernelSizeX, kernelSizeY, xStride, yStride, inputChannels, outputChanne
 		xStride:        xStride,
 		yStride:        yStride,
 	}
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 // SetActivation sets the new activation and returns the previous one.

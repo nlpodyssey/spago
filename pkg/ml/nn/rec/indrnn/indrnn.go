@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 )
 
@@ -31,14 +30,6 @@ func New(in, out int, activation ag.OpName) *Model {
 		B:          nn.NewParam(mat.NewEmptyVecDense(out)),
 		Activation: activation,
 	}
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
 }
 
 type State struct {

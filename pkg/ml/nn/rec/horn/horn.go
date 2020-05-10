@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"io"
 	"log"
 	"math"
 )
@@ -36,14 +35,6 @@ func New(in, out, order int) *Model {
 		WRec: wRec,
 		B:    nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
 }
 
 type State struct {

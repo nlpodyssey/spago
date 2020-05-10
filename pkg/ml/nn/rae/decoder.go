@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 )
 
@@ -22,14 +21,6 @@ type Decoder struct {
 	DecodingFFN2 nn.Model // decoding part 2
 	DescalingFFN nn.Model
 	StepEncoder  *pe.PositionalEncoder
-}
-
-func (m *Decoder) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Decoder) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type DecoderProcessor struct {

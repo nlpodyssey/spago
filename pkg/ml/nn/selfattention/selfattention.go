@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"io"
 	"log"
 )
 
@@ -41,14 +40,6 @@ func New(config Config) *Model {
 		Key:    linear.New(config.InputSize, config.KeySize),
 		Value:  linear.New(config.InputSize, config.ValueSize),
 	}
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type ContextProb struct {
