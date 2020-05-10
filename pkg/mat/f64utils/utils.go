@@ -29,6 +29,16 @@ func FillFloatSlice(slice []float64, value float64) {
 	}
 }
 
+func Sign(a float64) int {
+	switch {
+	case a < 0:
+		return -1
+	case a > 0:
+		return +1
+	}
+	return 0
+}
+
 func Max(v []float64) (m float64) {
 	m = v[len(v)-1]
 	for _, e := range v {
