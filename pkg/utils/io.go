@@ -12,11 +12,6 @@ import (
 	"os"
 )
 
-type SerializerDeserializer interface {
-	Serializer
-	Deserializer
-}
-
 type Serializer interface {
 	Serialize(w io.Writer) (int, error)
 }
