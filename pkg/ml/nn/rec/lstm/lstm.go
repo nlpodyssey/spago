@@ -60,51 +60,45 @@ type InitHidden struct {
 	*State
 }
 
-type GateConcurrency struct {
-	Value bool
-}
-
 type Processor struct {
-	opt             []interface{}
-	model           *Model
-	mode            nn.ProcessingMode
-	g               *ag.Graph
-	wIn             ag.Node
-	wInRec          ag.Node
-	bIn             ag.Node
-	wOut            ag.Node
-	wOutRec         ag.Node
-	bOut            ag.Node
-	wFor            ag.Node
-	wForRec         ag.Node
-	bFor            ag.Node
-	wCand           ag.Node
-	wCandRec        ag.Node
-	bCand           ag.Node
-	States          []*State
-	GateConcurrency bool
+	opt      []interface{}
+	model    *Model
+	mode     nn.ProcessingMode
+	g        *ag.Graph
+	wIn      ag.Node
+	wInRec   ag.Node
+	bIn      ag.Node
+	wOut     ag.Node
+	wOutRec  ag.Node
+	bOut     ag.Node
+	wFor     ag.Node
+	wForRec  ag.Node
+	bFor     ag.Node
+	wCand    ag.Node
+	wCandRec ag.Node
+	bCand    ag.Node
+	States   []*State
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:           m,
-		mode:            nn.Training,
-		States:          nil,
-		GateConcurrency: false,
-		opt:             opt,
-		g:               g,
-		wIn:             g.NewWrap(m.WIn),
-		wInRec:          g.NewWrap(m.WInRec),
-		bIn:             g.NewWrap(m.BIn),
-		wOut:            g.NewWrap(m.WOut),
-		wOutRec:         g.NewWrap(m.WOutRec),
-		bOut:            g.NewWrap(m.BOut),
-		wFor:            g.NewWrap(m.WFor),
-		wForRec:         g.NewWrap(m.WForRec),
-		bFor:            g.NewWrap(m.BFor),
-		wCand:           g.NewWrap(m.WCand),
-		wCandRec:        g.NewWrap(m.WCandRec),
-		bCand:           g.NewWrap(m.BCand),
+		model:    m,
+		mode:     nn.Training,
+		States:   nil,
+		opt:      opt,
+		g:        g,
+		wIn:      g.NewWrap(m.WIn),
+		wInRec:   g.NewWrap(m.WInRec),
+		bIn:      g.NewWrap(m.BIn),
+		wOut:     g.NewWrap(m.WOut),
+		wOutRec:  g.NewWrap(m.WOutRec),
+		bOut:     g.NewWrap(m.BOut),
+		wFor:     g.NewWrap(m.WFor),
+		wForRec:  g.NewWrap(m.WForRec),
+		bFor:     g.NewWrap(m.BFor),
+		wCand:    g.NewWrap(m.WCand),
+		wCandRec: g.NewWrap(m.WCandRec),
+		bCand:    g.NewWrap(m.BCand),
 	}
 	p.init(opt)
 	return p
@@ -115,8 +109,6 @@ func (p *Processor) init(opt []interface{}) {
 		switch t := t.(type) {
 		case InitHidden:
 			p.States = append(p.States, t.State)
-		case GateConcurrency:
-			p.GateConcurrency = t.Value
 		default:
 			log.Fatal("lstm: invalid init option")
 		}
@@ -147,14 +139,6 @@ func (p *Processor) LastState() *State {
 	return p.States[n-1]
 }
 
-func (p *Processor) forward(x ag.Node) *State {
-	if p.GateConcurrency {
-		return p.fwdConcurrent(x)
-	} else {
-		return p.fwdSerial(x)
-	}
-}
-
 // forward computes the results with the following equations:
 // inG = sigmoid(wIn (dot) x + bIn + wInRec (dot) yPrev)
 // outG = sigmoid(wOut (dot) x + bOut + wOutRec (dot) yPrev)
@@ -162,7 +146,7 @@ func (p *Processor) forward(x ag.Node) *State {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (p *Processor) fwdSerial(x ag.Node) (s *State) {
+func (p *Processor) forward(x ag.Node) (s *State) {
 	s = new(State)
 	yPrev, cellPrev := p.prev()
 	s.InG = p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
@@ -175,60 +159,6 @@ func (p *Processor) fwdSerial(x ag.Node) (s *State) {
 		s.Cell = p.g.Prod(s.InG, s.Cand)
 	}
 	s.Y = p.g.Prod(s.OutG, p.g.Tanh(s.Cell))
-	return
-}
-
-// forward forwards computes the results with the following equations, using concurrent calculation of the gates.
-// inG = sigmoid(wIn (dot) x + bIn + wInRec (dot) yPrev)
-// outG = sigmoid(wOut (dot) x + bOut + wOutRec (dot) yPrev)
-// forG = sigmoid(wFor (dot) x + bFor + wForRec (dot) yPrev)
-// cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
-// cell = inG * cand + forG * cellPrev
-// y = outG * f(cell)
-func (p *Processor) fwdConcurrent(x ag.Node) (s *State) {
-	s = new(State)
-	yPrev, cellPrev := p.prev()
-
-	cInG := make(chan ag.Node)
-	go func() {
-		cInG <- p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	}()
-
-	cOutG := make(chan ag.Node)
-	go func() {
-		cOutG <- p.g.Sigmoid(nn.Affine(p.g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
-	}()
-
-	cForG := make(chan ag.Node)
-	go func() {
-		cForG <- p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	}()
-
-	cCand := make(chan ag.Node)
-	go func() {
-		cCand <- p.g.Tanh(nn.Affine(p.g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
-	}()
-
-	for i := 0; i < 4; i++ {
-		select {
-		case msg := <-cInG:
-			s.InG = msg
-		case msg := <-cOutG:
-			s.OutG = msg
-		case msg := <-cForG:
-			s.ForG = msg
-		case msg := <-cCand:
-			s.Cand = msg
-		}
-	}
-
-	if cellPrev != nil {
-		s.Cell = p.g.Add(p.g.Prod(s.InG, s.Cand), p.g.Prod(s.ForG, cellPrev))
-	} else {
-		s.Cell = p.g.Prod(s.InG, s.Cand)
-	}
-	s.Y = p.g.Prod(s.OutG, p.g.Tanh(s.Cell))
-
 	return
 }
 
