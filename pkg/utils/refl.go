@@ -17,9 +17,12 @@ func ReverseInPlace(s interface{}) {
 func ForEachField(i interface{}, callback func(field interface{}, name string, tag reflect.StructTag)) {
 	v := reflect.ValueOf(i).Elem()
 	t := reflect.TypeOf(i).Elem()
-	for i := 0; i < v.NumField(); i++ {
-		if v.Field(i).CanInterface() {
-			callback(v.Field(i).Interface(), t.Field(i).Name, t.Field(i).Tag)
+	length := v.NumField()
+	for i := 0; i < length; i++ {
+		vField := v.Field(i)
+		tField := t.Field(i)
+		if vField.CanInterface() {
+			callback(vField.Interface(), tField.Name, tField.Tag)
 		}
 	}
 }
