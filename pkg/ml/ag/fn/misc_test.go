@@ -309,3 +309,23 @@ func TestNewMishForward(t *testing.T) {
 		t.Error("The x-gradients don't match the expected values")
 	}
 }
+
+func TestNewGeLUForward(t *testing.T) {
+	x := &variable{
+		value:        mat.NewVecDense([]float64{0.0, 0.1, 0.01, -0.1, -0.01, 1.0, 10.0, -1.0, -10.0}),
+		grad:         nil,
+		requiresGrad: true,
+	}
+	f := NewGeLU(x)
+	y := f.Forward()
+
+	if !floats.EqualApprox(y.Data(), []float64{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, 1.0e-6) {
+		t.Error("The output doesn't match the expected values")
+	}
+
+	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+
+	if !floats.EqualApprox(x.grad.Data(), []float64{0.5, 0.579522, 0.507979, 0.420478, 0.492021, 1.082964, 1.0, -0.082964, 0.0}, 1.0e-6) {
+		t.Error("The x-gradients don't match the expected values")
+	}
+}
