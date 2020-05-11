@@ -179,12 +179,20 @@ func (r *Param) SetSupport(supp *gd.Support) {
 }
 
 func (r *Param) GetOrSetSupport(m gd.Method) *gd.Support {
-	if r.Support() == nil || r.Support().Name == gd.None {
-		r.SetSupport(m.NewSupport(r.Value().Dims()))
-	} else if r.Support().Name != m.Name() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	switch {
+	case r.support == nil:
+		r.support = m.NewSupport(r.Value().Dims())
+		return r.support
+	case r.support.Name == gd.None:
+		r.support = m.NewSupport(r.Value().Dims())
+		return r.support
+	case r.support.Name == m.Name():
+		return r.support
+	default:
 		panic("gd: support structure non compatible with the optimization method")
 	}
-	return r.Support()
 }
 
 // ClearSupport clears the support structure.
