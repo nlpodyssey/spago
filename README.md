@@ -26,9 +26,17 @@ spaGO is compatible with [go modules](https://blog.golang.org/using-go-modules).
 What's inside?
 =====
 
-I haven't found the time yet to write a proper documentation or at least a clear description of what spaGO contains.
+spaGO ships with a ton of built-in features, including:
+- Automatic differentiation (you write the *forward()*, it does all *backward()* derivatives for you):
+    -   Define-by-Run (default)
+    -   Define-and-Run
+- Feed-forward neural networks
+- Recurrent neural networks
+- Transformer neural networks
 
-To start with, I thought that a tree-like view of the core contents of the library (*pkg* folder) might help you to understand its current status, and - more important - how I decided to structure spaGO in the first place.
+I haven't found the time yet to write a proper documentation, or at least a clear description of what spaGO contains.
+
+To start with, I thought that a tree-like view of the core contents of the library (*pkg* folder) might help you to understand the current supported features, and - more important - how I decided to structure spaGO in the first place.
 
 The names I have adopted for the various sub-packages and files should be self-explanatory enough. Well, at least that was my intention during development :)
 
@@ -90,6 +98,10 @@ pkg
     │   └── pe (positional encoding)
     │       └── encoder.go
     ├── initializers
+    │   ├── Constant
+    │   ├── Uniform
+    │   ├── Normal
+    │   ├── Xavier (Glorot)
     ├── losses
     │   ├── MAE
     │   ├── MSE
@@ -97,7 +109,7 @@ pkg
     │   ├── CrossEntropy
     ├── nn
     │   ├── model.go (neural model and neural processor interfaces)
-    │   ├── transforms.go (e.g. Linear, Affine, Conv2D, Self-Attention)
+    │   ├── transforms.go (e.g. Affine, Conv2D, Self-Attention)
     │   ├── param.go (weights, biases)
     │   ├── activation
     │   ├── birnn (bi-directional recurrent neural network)
@@ -106,6 +118,7 @@ pkg
     │   ├── convolution
     │   ├── crf
     │   ├── highway
+    │   ├── selfattention
     │   ├── multiheadattention
     │   ├── normalization
     │   │   ├── adanorm
@@ -115,7 +128,7 @@ pkg
     │   │   ├── layernormsimple
     │   │   ├── rmsnorm
     │   │   └── scalenorm
-    │   ├── perceptron
+    │   ├── linear
     │   ├── rae (recursive auto-encoder)
     │   ├── rec (recurrent models)
     │   │   ├── cfn
@@ -157,6 +170,17 @@ pkg
 ```
 
 Please note that the structure above does not reflect the original folder structure (although it is very close). I added comments and deleted files to keep the visualization compact.
+
+### Note
+
+The inclusion of neural models in the **nn** sub-package is mostly arbitrary. Not all neural models are useful. I might decide - based on your suggestions - to delete some of them to lighten the core package of the library. For instance, I wanted to implement many recurrent networks for the sake of curiosity, but in the end, the LSTM and GRU almost always gave me the best performance in natural language processing tasks (from language modelling to syntactic parsing).
+
+Current status
+=====
+We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
+It's pretty easy to get your hands on, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
+
+> If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
 
 Design choices
 =====
