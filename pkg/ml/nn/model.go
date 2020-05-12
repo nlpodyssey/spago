@@ -5,6 +5,7 @@
 package nn
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -42,16 +43,36 @@ func ForEachParam(m Model, callback func(param *Param)) {
 			}
 		default:
 			v := reflect.ValueOf(item)
-			if v.Kind() != reflect.Slice {
-				return
-			}
-			length := v.Len()
-			for i := 0; i < length; i++ {
-				m, ok := v.Index(i).Interface().(Model)
-				if !ok {
-					return
+			switch v.Kind() {
+			case reflect.Slice:
+				length := v.Len()
+				for i := 0; i < length; i++ {
+					m, ok := v.Index(i).Interface().(Model)
+					if !ok {
+						return
+					}
+					ForEachParam(m, callback)
 				}
-				ForEachParam(m, callback)
+			case reflect.Map:
+				mapRange := v.MapRange()
+				for mapRange.Next() {
+					key := ""
+					switch k := mapRange.Key().Interface().(type) {
+					case string:
+						key = k
+					case int:
+						key = fmt.Sprintf("%d", k)
+					default:
+						return // skip map if the key is not a string or an int
+					}
+					p, ok := mapRange.Value().Interface().(*Param)
+					if !ok {
+						return // skip the map if the value is not a *Param
+					}
+					p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+					p.pType = ToType(tag.Get("type"))
+					callback(p)
+				}
 			}
 		}
 	})
