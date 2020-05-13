@@ -323,7 +323,7 @@ func TestNewGeLUForward(t *testing.T) {
 		t.Error("The output doesn't match the expected values")
 	}
 
-	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}))
 
 	if !floats.EqualApprox(x.grad.Data(), []float64{0.5, 0.579522, 0.507979, 0.420478, 0.492021, 1.082964, 1.0, -0.082964, 0.0}, 1.0e-6) {
 		t.Error("The x-gradients don't match the expected values")

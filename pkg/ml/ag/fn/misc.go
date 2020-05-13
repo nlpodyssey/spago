@@ -437,12 +437,9 @@ func gelu(i, j int, v float64) float64 {
 	return 0.5 * v * (1.0 + f64utils.Tanh(math.Sqrt(2/math.Pi)*(v+0.044715*math.Pow(v, 3.0))))
 }
 
-func geluDeriv(i, j int, v float64) float64 {
-	vvv := math.Pow(v, 3)
-	return 0.5*f64utils.Tanh(0.0356774*vvv+0.797885*v) + (0.0535161*vvv+0.398942*v)*
-		math.Pow(sech(0.0356774*vvv+0.797885*vvv), 2) + 0.5
-}
-
-func sech(x float64) float64 {
-	return 1.0 / math.Cosh(x)
+func geluDeriv(i, j int, x float64) float64 {
+	x3 := math.Pow(x, 3)
+	return 0.5*f64utils.Tanh(0.0356774*x3+0.797885*x) +
+		(0.0535161*x3+0.398942*x)*
+			math.Pow(1.0/math.Cosh(0.0356774*x3+0.797885*x), 2) + 0.5
 }
