@@ -5,10 +5,14 @@
 package nn
 
 import (
+	"bytes"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
+	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
+	"io"
+	"log"
 	"strings"
 	"sync"
 )
@@ -52,6 +56,7 @@ type Param struct {
 	support      *gd.Support // additional data used by the gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
+	storage      kvdb.KeyValueDB // default nil
 }
 
 type ParamOption func(*Param)
@@ -59,6 +64,12 @@ type ParamOption func(*Param)
 func RequiresGrad(value bool) ParamOption {
 	return func(p *Param) {
 		p.requiresGrad = value
+	}
+}
+
+func SetStorage(storage kvdb.KeyValueDB) ParamOption {
+	return func(p *Param) {
+		p.storage = storage
 	}
 }
 
@@ -72,6 +83,7 @@ func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
 		hasGrad:      false,
 		requiresGrad: true, // true by default, can be modified with the options
 		support:      nil,  // lazy initialization
+		storage:      nil,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -106,8 +118,13 @@ func (r *Param) Value() mat.Matrix {
 
 // ReplaceValue replaces the value of the parameter and clears the support structure.
 func (r *Param) ReplaceValue(value mat.Matrix) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.value = value
-	r.ClearSupport()
+	r.support = nil
+	if r.storage != nil {
+		r.updateStorage()
+	}
 }
 
 // ScalarValue() returns the the scalar value of the node.
@@ -151,7 +168,9 @@ func (r *Param) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
-	defer mat.ReleaseDense(r.grad.(*mat.Dense)) // release memory
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	defer mat.ReleaseDense(r.grad.(*mat.Dense)) //  release memory
 	r.grad = nil
 	r.hasGrad = false
 }
@@ -161,6 +180,9 @@ func (r *Param) ApplyDelta(delta mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.Value().SubInPlace(delta)
+	if r.storage != nil {
+		r.updateStorage()
+	}
 }
 
 // Support returns the optimizer support structure (can be nil).
@@ -170,12 +192,13 @@ func (r *Param) Support() *gd.Support {
 	return r.support
 }
 
-// SetSupport sets the optimizer support structure.
-// Use ClearSupport() to set a nil support.
 func (r *Param) SetSupport(supp *gd.Support) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.support = supp
+	if r.storage != nil {
+		r.updateStorage()
+	}
 }
 
 func (r *Param) GetOrSetSupport(m gd.Method) *gd.Support {
@@ -184,9 +207,11 @@ func (r *Param) GetOrSetSupport(m gd.Method) *gd.Support {
 	switch {
 	case r.support == nil:
 		r.support = m.NewSupport(r.Value().Dims())
+		r.updateStorage()
 		return r.support
 	case r.support.Name == gd.None:
 		r.support = m.NewSupport(r.Value().Dims())
+		r.updateStorage()
 		return r.support
 	case r.support.Name == m.Name():
 		return r.support
@@ -200,4 +225,73 @@ func (r *Param) ClearSupport() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.support = nil
+	if r.storage != nil {
+		r.updateStorage()
+	}
+}
+
+func (r *Param) updateStorage() {
+	if r.storage == nil {
+		return
+	}
+	var buf bytes.Buffer
+	if _, err := (&ParamSerializer{Param: r}).Serialize(&buf); err != nil {
+		log.Fatal(err)
+	}
+	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+type ParamSerializer struct {
+	*Param
+}
+
+func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
+	return paramDataMarshalBinaryTo(&paramData{
+		Value:   s.value.(*mat.Dense),
+		Support: s.support,
+	}, w)
+}
+
+func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
+	var data *paramData
+	data, n, err = paramDataUnmarshalBinaryFrom(r)
+	if err != nil {
+		return
+	}
+	s.Param.value = data.Value
+	s.Param.support = data.Support
+	return
+}
+
+type paramData struct {
+	Value   *mat.Dense
+	Support *gd.Support
+}
+
+func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
+	n, err := mat.MarshalBinaryTo(data.Value, w)
+	if err != nil {
+		return n, err
+	}
+	n2, err := gd.MarshalBinaryTo(data.Support, w)
+	n += n2
+	if err != nil {
+		return n, err
+	}
+	return n, err
+}
+
+func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, int, error) {
+	value, n, err := mat.NewUnmarshalBinaryFrom(r)
+	if err != nil {
+		return nil, n, err
+	}
+	supp, n2, err := gd.NewUnmarshalBinaryFrom(r)
+	n += n2
+	if err != nil {
+		return nil, n, err
+	}
+	return &paramData{Value: value, Support: supp}, n, err
 }
