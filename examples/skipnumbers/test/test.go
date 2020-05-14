@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -40,7 +41,7 @@ func main() {
 		linear.New(hiddenSize, 10),
 	)
 
-	err = utils.DeserializeFromFile(modelPath, model)
+	err = utils.DeserializeFromFile(modelPath, nn.NewParamsSerializer(model))
 	if err != nil {
 		panic("skipnumbers: error during model deserialization.")
 	}
