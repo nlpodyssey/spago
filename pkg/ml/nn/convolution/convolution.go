@@ -64,13 +64,19 @@ type Processor struct {
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+	k := make([]ag.Node, len(m.K))
+	b := make([]ag.Node, len(m.B))
+	for i := range m.K {
+		k[i] = g.NewWrap(m.K[i])
+		b[i] = g.NewWrap(m.B[i])
+	}
 	p := &Processor{
 		model:                   m,
 		mode:                    nn.Training,
 		opt:                     opt,
 		g:                       g,
-		k:                       nn.AttachParamsToGraph(g, m.K...),
-		b:                       nn.AttachParamsToGraph(g, m.B...),
+		k:                       k,
+		b:                       b,
 		ConcurrentOutputChannel: true,
 	}
 	p.init(opt)
