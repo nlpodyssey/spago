@@ -6,6 +6,7 @@ package adam
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"math"
 )
@@ -55,7 +56,7 @@ func New(c Config) *Adam {
 	return adam
 }
 
-func (o *Adam) Name() gd.MethodName {
+func (o *Adam) Label() int {
 	return gd.Adam
 }
 
@@ -67,14 +68,17 @@ const (
 	buf3 int = 4
 )
 
-func (o *Adam) NewSupport(r, c int) *gd.Support {
+func (o *Adam) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense(r, c)
 	supp[m] = mat.NewEmptyDense(r, c)
 	supp[buf1] = mat.NewEmptyDense(r, c)
 	supp[buf2] = mat.NewEmptyDense(r, c)
 	supp[buf3] = mat.NewEmptyDense(r, c)
-	return &gd.Support{Name: o.Name(), Data: supp}
+	return &nn.Payload{
+		Label: o.Label(),
+		Data:  supp,
+	}
 }
 
 func (o *Adam) IncExample() {
@@ -86,8 +90,8 @@ func (o *Adam) updateAlpha() {
 	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, float64(o.Count))) / (1.0 - math.Pow(o.Beta1, float64(o.Count)))
 }
 
-func (o *Adam) Delta(param gd.Optimizable) mat.Matrix {
-	return o.calcDelta(param.Grad(), param.GetOrSetSupport(o).Data)
+func (o *Adam) Delta(param *nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 // v = v*beta1 + grads*(1.0-beta1)

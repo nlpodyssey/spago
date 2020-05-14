@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"log"
 	"os"
+	"sync"
 )
 
 var (
@@ -29,8 +29,9 @@ var allModels []*Model
 // TODO: add dedicated embeddings for out-of-vocabulary (OOV) words and other special words
 type Model struct {
 	Config
-	storage         kvdb.KeyValueDB
-	EmbeddingsCache map[string]*nn.Param
+	storage        kvdb.KeyValueDB
+	mu             sync.Mutex
+	UsedEmbeddings map[string]*nn.Param `type:"weights"`
 }
 
 // TODO: add Dropout
@@ -54,7 +55,7 @@ func New(config Config) *Model {
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		EmbeddingsCache: map[string]*nn.Param{},
+		UsedEmbeddings: map[string]*nn.Param{},
 	}
 	allModels = append(allModels, m)
 	return m
@@ -64,13 +65,15 @@ func New(config Config) *Model {
 // It automatically clears the cache.
 func (m *Model) Close() {
 	_ = m.storage.Close() // explicitly ignore errors here
-	m.ClearCache()
+	m.ClearUsedEmbeddings()
 }
 
-// ClearCache clears the cache of the used embeddings.
-// Beware of any external references to the values of m.EmbeddingsCache. These are weak references!
-func (m *Model) ClearCache() {
-	m.EmbeddingsCache = map[string]*nn.Param{}
+// ClearUsedEmbeddings clears the cache of the used embeddings.
+// Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
+func (m *Model) ClearUsedEmbeddings() {
+	m.mu.Lock()
+	m.UsedEmbeddings = map[string]*nn.Param{}
+	m.mu.Unlock()
 }
 
 // Close closes the DBs underlying all instantiated embeddings models.
@@ -81,11 +84,11 @@ func Close() {
 	}
 }
 
-// ClearCache clears the cache of the used embeddings of all instantiated embeddings models.
-// Beware of any external references to the values of m.EmbeddingsCache. These are weak references!
-func ClearCache() {
+// ClearUsedEmbeddings clears the cache of the used embeddings of all instantiated embeddings models.
+// Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
+func ClearUsedEmbeddings() {
 	for _, model := range allModels {
-		model.ClearCache()
+		model.ClearUsedEmbeddings()
 	}
 }
 
@@ -96,7 +99,7 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}
 	embedding := nn.NewParam(value)
-	embedding.SetSupport(gd.NewEmptySupport())
+	embedding.SetPayload(nn.NewEmptySupport())
 	var buf bytes.Buffer
 	if _, err := (&nn.ParamSerializer{Param: embedding}).Serialize(&buf); err != nil {
 		log.Fatal(err)
@@ -107,13 +110,13 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 }
 
 // GetEmbedding returns the parameter (the word embedding) associated with the given word.
-// The returned embedding is also cached in m.EmbeddingsCache for two reasons:
+// The returned embedding is also cached in m.UsedEmbeddings for two reasons:
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
 // If no embedding is found, nil is returned.
 // It panics in case of storage errors.
 func (m *Model) GetEmbedding(word string) *nn.Param {
-	if embedding, ok := m.EmbeddingsCache[word]; ok {
+	if embedding, ok := m.UsedEmbeddings[word]; ok {
 		return embedding
 	}
 	data, ok, err := m.storage.Get([]byte(word))
@@ -131,7 +134,9 @@ func (m *Model) GetEmbedding(word string) *nn.Param {
 		nn.RequiresGrad(false)(embedding)
 	}
 	embedding.SetName(word)
-	m.EmbeddingsCache[word] = embedding // important
+	m.mu.Lock()
+	m.UsedEmbeddings[word] = embedding // important
+	m.mu.Unlock()
 	return embedding
 }
 

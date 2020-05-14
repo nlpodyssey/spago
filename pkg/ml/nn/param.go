@@ -6,10 +6,11 @@ package nn
 
 import (
 	"bytes"
+	"encoding/binary"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"io"
 	"log"
@@ -42,18 +43,31 @@ func ToType(s string) ParamsType {
 }
 
 var (
-	_ fn.Operand     = &Param{}
-	_ ag.GradValue   = &Param{}
-	_ gd.Optimizable = &Param{}
+	_ fn.Operand   = &Param{}
+	_ ag.GradValue = &Param{}
 )
+
+// Payload contains the support data used for example by the optimization methods
+type Payload struct {
+	Label int
+	Data  []mat.Matrix
+}
+
+// NewEmptySupport returns an empty support structure, not connected to any optimization method.
+func NewEmptySupport() *Payload {
+	return &Payload{
+		Label: 0, // important set the label to zero
+		Data:  make([]mat.Matrix, 0),
+	}
+}
 
 type Param struct {
 	name         string
-	pType        ParamsType  // lazy initialization
-	mu           sync.Mutex  // to avoid data race
-	value        mat.Matrix  // store the results of a forward evaluation.
-	grad         mat.Matrix  // TODO: support of sparse gradients
-	support      *gd.Support // additional data used by the gradient-descend optimization methods
+	pType        ParamsType // lazy initialization
+	mu           sync.Mutex // to avoid data race
+	value        mat.Matrix // store the results of a forward evaluation.
+	grad         mat.Matrix // TODO: support of sparse gradients
+	payload      *Payload   // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
 	storage      kvdb.KeyValueDB // default nil
@@ -82,7 +96,7 @@ func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
 		grad:         nil, // lazy initialization
 		hasGrad:      false,
 		requiresGrad: true, // true by default, can be modified with the options
-		support:      nil,  // lazy initialization
+		payload:      nil,  // lazy initialization
 		storage:      nil,
 	}
 	for _, opt := range opts {
@@ -121,7 +135,7 @@ func (r *Param) ReplaceValue(value mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.value = value
-	r.support = nil
+	r.payload = nil
 	if r.storage != nil {
 		r.updateStorage()
 	}
@@ -185,46 +199,27 @@ func (r *Param) ApplyDelta(delta mat.Matrix) {
 	}
 }
 
-// Support returns the optimizer support structure (can be nil).
-func (r *Param) Support() *gd.Support {
+// Payload returns the optimizer support structure (can be nil).
+func (r *Param) Payload() *Payload {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	return r.support
+	return r.payload
 }
 
-func (r *Param) SetSupport(supp *gd.Support) {
+func (r *Param) SetPayload(payload *Payload) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.support = supp
+	r.payload = payload
 	if r.storage != nil {
 		r.updateStorage()
 	}
 }
 
-func (r *Param) GetOrSetSupport(m gd.Method) *gd.Support {
+// ClearPayload clears the support structure.
+func (r *Param) ClearPayload() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	switch {
-	case r.support == nil:
-		r.support = m.NewSupport(r.Value().Dims())
-		r.updateStorage()
-		return r.support
-	case r.support.Name == gd.None:
-		r.support = m.NewSupport(r.Value().Dims())
-		r.updateStorage()
-		return r.support
-	case r.support.Name == m.Name():
-		return r.support
-	default:
-		panic("gd: support structure non compatible with the optimization method")
-	}
-}
-
-// ClearSupport clears the support structure.
-func (r *Param) ClearSupport() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.support = nil
+	r.payload = nil
 	if r.storage != nil {
 		r.updateStorage()
 	}
@@ -250,7 +245,7 @@ type ParamSerializer struct {
 func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 	return paramDataMarshalBinaryTo(&paramData{
 		Value:   s.value.(*mat.Dense),
-		Support: s.support,
+		Payload: s.payload,
 	}, w)
 }
 
@@ -261,13 +256,13 @@ func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
 		return
 	}
 	s.Param.value = data.Value
-	s.Param.support = data.Support
+	s.Param.payload = data.Payload
 	return
 }
 
 type paramData struct {
 	Value   *mat.Dense
-	Support *gd.Support
+	Payload *Payload
 }
 
 func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
@@ -275,7 +270,7 @@ func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	n2, err := gd.MarshalBinaryTo(data.Support, w)
+	n2, err := PayloadMarshalBinaryTo(data.Payload, w)
 	n += n2
 	if err != nil {
 		return n, err
@@ -288,10 +283,75 @@ func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, int, error) {
 	if err != nil {
 		return nil, n, err
 	}
-	supp, n2, err := gd.NewUnmarshalBinaryFrom(r)
+	supp, n2, err := NewPayloadUnmarshalBinaryFrom(r)
 	n += n2
 	if err != nil {
 		return nil, n, err
 	}
-	return &paramData{Value: value, Support: supp}, n, err
+	return &paramData{Value: value, Payload: supp}, n, err
+}
+
+// PayloadMarshalBinaryTo returns the number of bytes written into w and an error, if any.
+func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
+	h := header{Label: int64(supp.Label), Size: int64(len(supp.Data))}
+	n, err := h.marshalBinaryTo(w)
+	if err != nil {
+		return n, err
+	}
+	nn, err := mat.MarshalBinarySlice(supp.Data, w)
+	n += nn
+	return n, err
+}
+
+//
+func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
+	var h header
+	n, err := h.unmarshalBinaryFrom(r)
+	if err != nil {
+		return nil, n, err
+	}
+	data := make([]mat.Matrix, h.Size)
+	nn, err := mat.NewUnmarshalBinarySlice(data, r)
+	n = +nn
+	if err != nil {
+		return nil, n, err
+	}
+	supp := &Payload{
+		Label: int(h.Label),
+		Data:  data,
+	}
+	return supp, n, err
+}
+
+type header struct {
+	Label int64
+	Size  int64
+}
+
+var headerSize = binary.Size(header{})
+
+func (s header) marshalBinaryTo(w io.Writer) (int, error) {
+	buf := bytes.NewBuffer(make([]byte, 0, headerSize))
+	err := binary.Write(buf, binary.LittleEndian, s)
+	if err != nil {
+		return 0, err
+	}
+	return w.Write(buf.Bytes())
+}
+
+func (s *header) unmarshalBinary(buf []byte) error {
+	err := binary.Read(bytes.NewReader(buf), binary.LittleEndian, s)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *header) unmarshalBinaryFrom(r io.Reader) (int, error) {
+	buf := make([]byte, headerSize)
+	n, err := utils.ReadFull(r, buf)
+	if err != nil {
+		return n, err
+	}
+	return n, s.unmarshalBinary(buf[:n])
 }

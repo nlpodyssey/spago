@@ -6,12 +6,11 @@ package gd
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
-type MethodName int
-
 const (
-	None MethodName = iota
+	None int = iota
 	SGD
 	AdaGrad
 	Adam
@@ -23,9 +22,28 @@ type MethodConfig interface{}
 
 // Optimization Method
 type Method interface {
-	Name() MethodName
+	// Label can be None, SGD, AdaGrad, Adam, RMSProp
+	Label() int
 	// Delta returns the difference between the current params and where the method wants it to be.
-	Delta(param Optimizable) mat.Matrix
+	Delta(param *nn.Param) mat.Matrix
 	// NewSupport returns a new support structure with the given dimensions
-	NewSupport(r, c int) *Support
+	NewSupport(r, c int) *nn.Payload
+}
+
+func GetOrSetPayload(param *nn.Param, m Method) *nn.Payload {
+	payload := param.Payload()
+	switch {
+	case payload == nil:
+		payload := m.NewSupport(param.Value().Dims())
+		param.SetPayload(payload)
+		return payload
+	case payload.Label == None:
+		payload := m.NewSupport(param.Value().Dims())
+		param.SetPayload(payload)
+		return payload
+	case payload.Label == m.Label():
+		return payload
+	default:
+		panic("gd: support structure non compatible with the optimization method")
+	}
 }

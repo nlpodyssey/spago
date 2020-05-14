@@ -6,6 +6,7 @@ package rmsprop
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
@@ -48,18 +49,21 @@ func New(c Config) *RMSProp {
 	return &RMSProp{Config: c}
 }
 
-func (o *RMSProp) Name() gd.MethodName {
+func (o *RMSProp) Label() int {
 	return gd.RMSProp
 }
 
 const v = 0
 
-func (o *RMSProp) NewSupport(r, c int) *gd.Support {
-	return &gd.Support{Name: gd.RMSProp, Data: []mat.Matrix{mat.NewEmptyDense(r, c)}} // v at index 0
+func (o *RMSProp) NewSupport(r, c int) *nn.Payload {
+	return &nn.Payload{
+		Label: gd.RMSProp,
+		Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // v at index 0
+	}
 }
 
-func (o *RMSProp) Delta(param gd.Optimizable) mat.Matrix {
-	return o.calcDelta(param.Grad(), param.GetOrSetSupport(o).Data)
+func (o *RMSProp) Delta(param *nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 func (o *RMSProp) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

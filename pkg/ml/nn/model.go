@@ -26,14 +26,18 @@ func ForEachParam(m Model, callback func(param *Param)) {
 	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
 		switch item := field.(type) {
 		case *Param:
-			item.name = strings.ToLower(name)
+			if item.name == "" {
+				item.name = strings.ToLower(name)
+			}
 			item.pType = ToType(tag.Get("type"))
 			callback(item)
 		case Model:
 			ForEachParam(item, callback)
 		case []*Param:
 			for _, p := range item {
-				p.name = strings.ToLower(name)
+				if p.name == "" {
+					p.name = strings.ToLower(name)
+				}
 				p.pType = ToType(tag.Get("type"))
 				callback(p)
 			}
@@ -69,7 +73,9 @@ func ForEachParam(m Model, callback func(param *Param)) {
 					if !ok {
 						return // skip the map if the value is not a *Param
 					}
-					p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+					if p.name == "" {
+						p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+					}
 					p.pType = ToType(tag.Get("type"))
 					callback(p)
 				}
@@ -78,28 +84,47 @@ func ForEachParam(m Model, callback func(param *Param)) {
 	})
 }
 
-func ParamsList(m Model) []*Param {
+type ParamsIterator interface {
+	ParamsList() []*Param
+}
+
+var _ ParamsIterator = &DefaultParamsIterator{}
+
+type DefaultParamsIterator struct {
+	models []Model
+}
+
+func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
+	return &DefaultParamsIterator{models: models}
+}
+
+func (i *DefaultParamsIterator) ParamsList() []*Param {
 	params := make([]*Param, 0)
-	ForEachParam(m, func(param *Param) {
-		params = append(params, param)
-	})
+	for _, model := range i.models {
+		ForEachParam(model, func(param *Param) {
+			params = append(params, param)
+		})
+	}
 	return params
 }
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
+// TODO: use ParamsIterator?
 func ZeroGrad(m Model) {
 	ForEachParam(m, func(param *Param) {
 		param.ZeroGrad()
 	})
 }
 
-// ClearSupport clears the support structure of all model's parameters (including sub-params).
+// ClearPayload clears the support structure of all model's parameters (including sub-params).
+// TODO: use ParamsIterator?
 func ClearSupport(m Model) {
 	ForEachParam(m, func(param *Param) {
-		param.ClearSupport()
+		param.ClearPayload()
 	})
 }
 
+// TODO: use ParamsIterator?
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
 	ForEachParam(model, func(param *Param) {
@@ -108,6 +133,7 @@ func DumpParamsVector(model Model) *mat.Dense {
 	return mat.NewVecDense(data)
 }
 
+// TODO: use ParamsIterator?
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()
 	offset := 0
@@ -140,6 +166,7 @@ func NewParamsSerializer(m Model) *ParamsSerializer {
 }
 
 // Serialize dumps the params values to the writer.
+// TODO: use ParamsIterator?
 func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
 	ForEachParam(m, func(param *Param) {
 		cnt, err := mat.MarshalBinaryTo(param.Value(), w)
@@ -152,6 +179,7 @@ func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
 }
 
 // Deserialize assigns the params with the values obtained from the reader.
+// TODO: use ParamsIterator?
 func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
 	ForEachParam(m, func(param *Param) {
 		cnt, err := mat.UnmarshalBinaryFrom(param.Value(), r)

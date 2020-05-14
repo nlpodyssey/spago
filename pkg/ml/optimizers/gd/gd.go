@@ -6,18 +6,17 @@ package gd
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/clipper"
 	"sync"
 )
 
 // Gradients Descent (GD) Optimizer
 type GradientDescent struct {
-	// the optimization method (SGD, AdaGrad, Adam, ...)
-	method Method
-	// gradient clipper
-	gradClipper clipper.GradClipper
-	// set of observed optimizable parameters
-	observed map[Optimizable]bool
+	method           Method // optimization method (SGD, AdaGrad, Adam, ...)
+	gradClipper      clipper.GradClipper
+	paramsIterator   nn.ParamsIterator
+	paramsToOptimize []*nn.Param
 }
 
 type Option func(*GradientDescent)
@@ -38,10 +37,11 @@ func ClipGradByNorm(max, normType float64) Option {
 }
 
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method Method, opts ...Option) *GradientDescent {
+func NewOptimizer(method Method, paramsIterator nn.ParamsIterator, opts ...Option) *GradientDescent {
 	optimizer := &GradientDescent{
-		method:   method,
-		observed: make(map[Optimizable]bool),
+		method:           method,
+		paramsIterator:   paramsIterator,
+		paramsToOptimize: make([]*nn.Param, 0),
 	}
 	for _, opt := range opts {
 		opt(optimizer)
@@ -49,43 +49,25 @@ func NewOptimizer(method Method, opts ...Option) *GradientDescent {
 	return optimizer
 }
 
-// Track tracks the parameters to optimize.
-func (o *GradientDescent) Track(vs ...Optimizable) {
-	for _, v := range vs {
-		if v.RequiresGrad() {
-			o.observed[v] = true
-		}
-	}
-}
-
-// Untrack avoid the given parameters to be optimized.
-func (o *GradientDescent) Untrack(vs ...Optimizable) {
-	for _, v := range vs {
-		delete(o.observed, v)
-	}
-}
-
-// UntrackAll remove all the tracked parameters.
-func (o *GradientDescent) UntrackAll() {
-	for v := range o.observed {
-		delete(o.observed, v)
-	}
-}
-
 // Optimize optimize the params, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
 func (o *GradientDescent) Optimize() {
+	o.paramsToOptimize = o.paramsIterator.ParamsList()
+	if o.paramsToOptimize == nil {
+		return
+	}
 	o.clipGrads()
 	o.updateParams()
-	o.ZeroGrad()
+	o.paramsToOptimize = nil
 }
 
 // updateParamsSerial applies the optimization method to all the observed parameters.
 func (o *GradientDescent) updateParamsSerial() {
-	for param := range o.observed {
+	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() {
 			delta := o.method.Delta(param) // important: don't release delta here
 			param.ApplyDelta(delta)
+			param.ZeroGrad()
 		}
 	}
 }
@@ -94,14 +76,15 @@ func (o *GradientDescent) updateParamsSerial() {
 // TODO: distribute the workload proportionately to the number of available CPUs?
 func (o *GradientDescent) updateParams() {
 	var wg sync.WaitGroup
-	for key := range o.observed {
-		if key.HasGrad() {
+	for _, param := range o.paramsToOptimize {
+		if param.HasGrad() {
 			wg.Add(1)
-			go func(param Optimizable) {
+			go func(param *nn.Param) {
 				defer wg.Done()
 				delta := o.method.Delta(param)
 				param.ApplyDelta(delta)
-			}(key)
+				param.ZeroGrad()
+			}(param)
 		}
 	}
 	wg.Wait()
@@ -113,19 +96,12 @@ func (o *GradientDescent) clipGrads() {
 		return
 	}
 	var gs []mat.Matrix
-	for param := range o.observed {
+	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() { // don't consider grad at zero
 			gs = append(gs, param.Grad())
 		}
 	}
 	o.gradClipper.Clip(gs)
-}
-
-// ZeroGrad set the gradients of the observed variables to zeros
-func (o *GradientDescent) ZeroGrad() {
-	for variable := range o.observed {
-		variable.ZeroGrad()
-	}
 }
 
 // IncExample beats the occurrence of a new example.

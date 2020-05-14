@@ -3,7 +3,7 @@ module github.com/nlpodyssey/spago
 go 1.14
 
 require (
-	github.com/dgraph-io/badger v1.6.0
+	github.com/dgraph-io/badger/v2 v2.0.3
 	github.com/gonum/floats v0.0.0-20181209220543-c233463c7e82 // indirect
 	github.com/gonum/internal v0.0.0-20181124074243-f884aa714029 // indirect
 	github.com/gosuri/uilive v0.0.4 // indirect

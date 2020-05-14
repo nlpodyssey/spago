@@ -6,6 +6,7 @@ package sgd
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
@@ -37,7 +38,7 @@ func New(c Config) *SGD {
 	return &SGD{Config: c, Alpha: c.LR}
 }
 
-func (o *SGD) Name() gd.MethodName {
+func (o *SGD) Label() int {
 	return gd.SGD
 }
 
@@ -48,29 +49,38 @@ const (
 	vTmp  int = 3
 )
 
-func (o *SGD) NewSupport(r, c int) *gd.Support {
+func (o *SGD) NewSupport(r, c int) *nn.Payload {
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
-		return &gd.Support{Name: o.Name(), Data: []mat.Matrix{mat.NewEmptyDense(r, c)}} // v at index 0
+		return &nn.Payload{
+			Label: o.Label(),
+			Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // v at index 0
+		}
 	} else {
 		if !o.Nesterov {
 			supp := make([]mat.Matrix, 2, 2)
 			supp[v] = mat.NewEmptyDense(r, c)
 			supp[buf] = mat.NewEmptyDense(r, c)
-			return &gd.Support{Name: o.Name(), Data: supp}
+			return &nn.Payload{
+				Label: o.Label(),
+				Data:  supp,
+			}
 		} else {
 			supp := make([]mat.Matrix, 4, 4)
 			supp[v] = mat.NewEmptyDense(r, c)
 			supp[buf] = mat.NewEmptyDense(r, c)
 			supp[vPrev] = mat.NewEmptyDense(r, c)
 			supp[vTmp] = mat.NewEmptyDense(r, c)
-			return &gd.Support{Name: o.Name(), Data: supp}
+			return &nn.Payload{
+				Label: o.Label(),
+				Data:  supp,
+			}
 		}
 	}
 }
 
-func (o *SGD) Delta(param gd.Optimizable) mat.Matrix {
-	return o.calcDelta(param.Grad(), param.GetOrSetSupport(o).Data)
+func (o *SGD) Delta(param *nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 func (o *SGD) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

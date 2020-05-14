@@ -6,6 +6,7 @@ package adagrad
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
@@ -47,16 +48,19 @@ func New(c Config) *AdaGrad {
 
 const m = 0
 
-func (o *AdaGrad) Name() gd.MethodName {
+func (o *AdaGrad) Label() int {
 	return gd.AdaGrad
 }
 
-func (o *AdaGrad) NewSupport(r, c int) *gd.Support {
-	return &gd.Support{Name: o.Name(), Data: []mat.Matrix{mat.NewEmptyDense(r, c)}} // m at index 0
+func (o *AdaGrad) NewSupport(r, c int) *nn.Payload {
+	return &nn.Payload{
+		Label: o.Label(),
+		Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // m at index 0
+	}
 }
 
-func (o *AdaGrad) Delta(param gd.Optimizable) mat.Matrix {
-	return o.calcDelta(param.Grad(), param.GetOrSetSupport(o).Data)
+func (o *AdaGrad) Delta(param *nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 // m = m + grads*grads
