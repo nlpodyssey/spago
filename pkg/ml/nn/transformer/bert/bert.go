@@ -18,7 +18,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rc"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"io"
 	"log"
 )
 
@@ -84,18 +83,6 @@ type Layer struct {
 	NormAttention      *layernorm.Model
 	FFN                *stack.Model
 	NormFFN            *layernorm.Model
-}
-
-func (m *Layer) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
-func (m *Layer) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Layer) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type LayerProcessor struct {
