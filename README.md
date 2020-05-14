@@ -2,16 +2,15 @@ spaGO
 =====
 [![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 
-spaGO is a machine learning lightweight open-source library written in Go designed to support relevant neural network architectures in natural language processing tasks.
+spaGO is a beautiful and maintainable machine learning library written in Go designed to support relevant neural network architectures in natural language processing tasks.
 
-Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
-
-If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
-The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
-
-### Note
-
-**This README is under construction, you might consider coming back here in a few days, or go straight to the code if you're curious!**
+spaGO ships with a ton of built-in features, including:
+- Automatic differentiation. You write the *forward()*, it does all *backward()* derivatives for you:
+    -   Define-by-Run (default, just like PyTorch does)
+    -   Define-and-Run (similar to the static graph of TensorFlow)
+- Feed-forward neural networks
+- Recurrent neural networks
+- Transformer neural networks
 
 Installation
 =====
@@ -26,17 +25,9 @@ spaGO is compatible with [go modules](https://blog.golang.org/using-go-modules).
 What's inside?
 =====
 
-spaGO ships with a ton of built-in features, including:
-- Automatic differentiation (you write the *forward()*, it does all *backward()* derivatives for you):
-    -   Define-by-Run (default)
-    -   Define-and-Run
-- Feed-forward neural networks
-- Recurrent neural networks
-- Transformer neural networks
+I haven't found the time yet to write a proper documentation, or at least a clear description of what spaGO contains. I'm trying to keep the code self-documenting and straightforward through. By that, I don't mean that I don't have to improve the documentation tremendously. It's my very next step.
 
-I haven't found the time yet to write a proper documentation, or at least a clear description of what spaGO contains.
-
-To start with, I thought that a tree-like view of the core contents of the library (*pkg* folder) might help you to understand the current supported features, and - more important - how I decided to structure spaGO in the first place.
+For the time being, I hope that a tree-like view of the library (*pkg* folder) can help you to understand the current supported features, and - more important - how I decided to structure spaGO in the first place.
 
 The names I have adopted for the various sub-packages and files should be self-explanatory enough. Well, at least that was my intention during development :)
 
@@ -147,7 +138,7 @@ pkg
     │   │   └── tpr
     │   ├── sqrdist
     │   ├── stack
-    │   ├── transformer (BERT-like model)
+    │   ├── transformer (BERT-like models)
     └── optimizers
         ├── de (differential evolution)
         │   ├── de.go
@@ -171,27 +162,44 @@ pkg
 
 Please note that the structure above does not reflect the original folder structure (although it is very close). I added comments and deleted files to keep the visualization compact.
 
-### Note
-
-The inclusion of neural models in the **nn** sub-package is mostly arbitrary. Not all neural models are useful. I might decide - based on your suggestions - to delete some of them to lighten the core package of the library. For instance, I wanted to implement many recurrent networks for the sake of curiosity, but in the end, the LSTM and GRU almost always gave me the best performance in natural language processing tasks (from language modelling to syntactic parsing).
+The inclusion of neural models in the **nn** sub-package is mostly arbitrary. Not all neural models are useful. For instance, I wanted to implement many recurrent networks for the sake of curiosity, but in the end, the LSTM and GRU almost always gave me the best performance in natural language processing tasks (from language modelling to syntactic parsing). I might decide - based on your suggestions - to delete some of them to lighten the core package. 
 
 Current status
 =====
 We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
-It's pretty easy to get your hands on, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
+It's pretty easy to get your hands on through, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
 
-> If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
+If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
 
-Design choices
+Blah, blah, blah
 =====
 
-I'm trying to write efficient, beautiful, and maintainable code. I said try, not that I can do it ;) I'm sure you know the feeling of being happy merely looking at the lines of code you just wrote. Well, I'm doing my best to develop spaGO in a way that makes me always feel this way. 
+### Why spaGO?
 
-I want to keep the code self-documenting and straightforward, starting with the organization of the packages. By that, I don't mean that I don't have to improve the documentation tremendously. It's my very next step.
+I've been writing more or less the same software for almost 20 years. I guess it's my way of learning a new language. Now it's Go's turn, and spaGO is the result of a few days of pure fun!
+
+Let me explain a little further. It's not precisely the very same software I've been writing now for 20 years: I've been working in the NLP for this long, experimenting with different approaches and techniques, and therefore software of the same field. 
+I've always felt satisfied to limit the use of third-party dependencies, writing firsthand the algorithms that interest me most. 
+So, I took the opportunity to speed up my understanding of the deep learning techniques and methodologies underlying cutting-edge NLP results, implementing them almost from scratch in straightforward Go code.
+I'm aware that [reinventing the wheel](https://en.wikipedia.org/wiki/Reinventing_the_wheel#Related_phrases) is an anti-pattern; nevertheless, I wanted to build something with my own concepts in my own (italian) style: that's the way I learn best, and it could be your best chance to understand what's going on under the hood of the artificial intelligence :)
+
+When I begin programming in a new language, I know almost anything about it. I often combine the techniques I have acquired by writing in other languages and other paradigms, so some choices may not be the most idiomatic... but who cares, right? 
+
+It's with this approach that I jumped on Go and created spaGo: a work in progress, (hopefully) understandable, easy to use library for machine learning and natural language processing.
+
+### Is spaGO right for me?
+
+Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
+
+If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
+
+The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
+
+### What direction did you take for the development of spaGO?
 
 I started spaGO to deepen first-hand the mechanisms underlying a machine learning framework. In doing this, I thought it was an excellent opportunity to set up the library so to enable the use and understanding of such algorithms to non-experts as well. 
 
-In my experience, the first barrier to (deep) machine learning for developers who do not enjoy mathematics, at least not too much, is getting familiar with the use of tensors rather than understanding neural architecture. Well, there are no tensors in spaGO, only well-known 2D Matrices, by which we can represent vectors and scalars too. That's all we need (performance aside). You won't lose sleep anymore by watching tensor axes to figure out how to do math operations. 
+In my experience, the first barrier to (deep) machine learning for developers who do not enjoy mathematics, at least not too much, is getting familiar with the use of tensors rather than understanding neural architecture. Well, in spaGO, we only use well-known 2D Matrices, by which we can represent vectors and scalars too. That's all we need (performance aside). You won't lose sleep anymore by watching tensor axes to figure out how to do math operations. 
 
 Since it's a counter-trend decision, let me argue some more. It happened a few times that friends and colleagues, who are super cool full-stack developers, tried to understand the NLP algorithms I was programming in PyTorch. Sometimes they gave up just because "the forward() method doesn't look like the usual code" to them. 
 
@@ -207,21 +215,7 @@ In spaGO, using slices of (slices of) matrices, we have to "loop" often to do ma
 
 Mainstream machine-learning tensor-based frameworks such as PyTorch and TensorFlow, the first thing they want to do, is to convert whatever you're doing into a big matrix multiplication problem, which is where the GPU does its best. Yeah, that's an overstatement, but not so far from reality. Storing all data in tensors and applying batched operations to them is the way to go for hardware acceleration. On GPU, it's a must, and even on CPU, that could give a 10x speedup or more with cache-aware BLAS libraries.
 
-Beyond that, I think there's a lot of basic design improvements that would be necessary before spaGO could fit for mainstream use. Many boilerplates could go away using reflection, or more simply by careful engineering. It's perfectly normal; the more I program in Go, the more I would like to have time to review some choices ...but not that of avoiding tensors, at least for now :)
-
-Why spaGO?
-=====
-
-I've been writing more or less the same software for almost 20 years. I guess it's my way of learning a new language. Now it's Go's turn, and spaGO is the result of a few days of pure fun!
-
-Let me explain a little further. It's not precisely the very same software I've been writing now for 20 years: I've been working in the NLP for this long, experimenting with different approaches and techniques, and therefore software of the same field. 
-I've always felt satisfied to limit the use of third-party dependencies, trying to implement firsthand the features that interest me most. 
-For instance, nowadays, you're nobody if you don't master machine learning. Seriously, NLP's state-of-the-art results have all been achieved with this approach! So, I took the opportunity to speed up my understanding of the underlying deep learning algorithms implementing them almost from scratch in straightforward Go code.
-I'm aware that [reinventing the wheel](https://en.wikipedia.org/wiki/Reinventing_the_wheel#Related_phrases) is an anti-pattern; nevertheless, I wanted to build something with my own concepts in my own (italian) style: that's the way I learn best, and it could be your best chance to understand what's going on under the hood of the artificial intelligence :)
-
-When I begin programming in a new language, I know almost anything about it. I often combine the techniques I have acquired by writing in other languages and other paradigms, so some choices may not be the most idiomatic... but who cares, right? 
-
-It's with this approach that I jumped on Go and created spaGo: a work in progress, (hopefully) understandable, easy to use library for machine learning and natural language processing.
+Beyond that, I think there's a lot of basic design improvements that would be necessary before spaGO could fit for mainstream use. Many boilerplates could go away using reflection, or more simply by careful engineering. It's perfectly normal; the more I program in Go, the more I would review some choices.
 
 Disclaimer
 =====
