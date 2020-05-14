@@ -7,7 +7,8 @@ package rc
 
 import "github.com/nlpodyssey/spago/pkg/ml/ag"
 
-// PreNorm performs pre-norm residual connections i.e. y = x + F(Norm(x))
+// PreNorm performs pre-norm residual connections:
+//     y = x + F(Norm(x))
 func PreNorm(
 	g *ag.Graph,
 	f func(...ag.Node) []ag.Node,
@@ -17,7 +18,8 @@ func PreNorm(
 	return add(g, xs, norm(f(xs...)...))
 }
 
-// PostNorm performs post-norm residual connections i.e. y = Norm(x + F(x))
+// PostNorm performs post-norm residual connections:
+//    y = Norm(x + F(x))
 func PostNorm(
 	g *ag.Graph,
 	f func(...ag.Node) []ag.Node,
@@ -28,7 +30,8 @@ func PostNorm(
 }
 
 // ReZero performs residual connections by rescaling the function with an alpha
-// learnable parameter (Bachlechner et al., 2020) i.e. y = x + alpha * F(x)
+// learnable parameter (Bachlechner et al., 2020):
+//     y = x + alpha * F(x)
 func ReZero(
 	g *ag.Graph,
 	f func(...ag.Node) []ag.Node,

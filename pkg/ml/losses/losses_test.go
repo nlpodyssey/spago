@@ -126,7 +126,6 @@ func TestMSESeqLoss(t *testing.T) {
 	if !floats.EqualApprox(x1.Grad().Data(), []float64{-0.15, -0.05, 0.05, 0.15}, 1.0e-6) {
 		t.Error("The x1-gradients don't match the expected values")
 	}
-
 	if !floats.EqualApprox(x2.Grad().Data(), []float64{-0.15, -0.05, 0.05, 0.15}, 1.0e-6) {
 		t.Error("The x2-gradients don't match the expected values")
 	}
