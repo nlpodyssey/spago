@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bert
+package transformer
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -20,12 +20,18 @@ type PredictorConfig struct {
 	OutputActivation ag.OpName
 }
 
-func NewPredictor(config PredictorConfig) *stack.Model {
-	return stack.New(
-		linear.New(config.InputSize, config.HiddenSize),
-		activation.New(config.HiddenActivation),
-		layernorm.New(config.HiddenSize),
-		linear.New(config.HiddenSize, config.OutputSize),
-		activation.New(config.OutputActivation),
-	)
+type Predictor struct {
+	*stack.Model
+}
+
+func NewPredictor(config PredictorConfig) *Predictor {
+	return &Predictor{
+		stack.New(
+			linear.New(config.InputSize, config.HiddenSize),
+			activation.New(config.HiddenActivation),
+			layernorm.New(config.HiddenSize),
+			linear.New(config.HiddenSize, config.OutputSize),
+			activation.New(config.OutputActivation),
+		),
+	}
 }
