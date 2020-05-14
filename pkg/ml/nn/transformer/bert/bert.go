@@ -62,6 +62,28 @@ func New(config Config) *Model {
 	}
 }
 
+// NewALBERT returns a new BERT model composed of a stack of N identical BERT layers, sharing the same parameters.
+func NewALBERT(config Config) *Model {
+	sharedLayer := &Layer{
+		MultiHeadAttention: multiheadattention.New(config.Size, config.NumOfAttentionHeads),
+		NormAttention:      layernorm.New(config.Size),
+		FFN: stack.New(
+			linear.New(config.Size, config.IntermediateSize),
+			activation.New(config.IntermediateActivation),
+			linear.New(config.IntermediateSize, config.Size),
+		),
+		NormFFN: layernorm.New(config.Size),
+	}
+	layers := make([]nn.Model, config.NumOfLayers)
+	for layerIndex := range layers {
+		layers[layerIndex] = sharedLayer
+	}
+	return &Model{
+		Config: config,
+		Model:  stack.New(layers...),
+	}
+}
+
 // LayerAt returns the i-layer model.
 func (m *Model) LayerAt(i int) *Layer {
 	return m.Layers[i].(*Layer)
