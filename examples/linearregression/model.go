@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 )
 
@@ -20,18 +19,6 @@ func NewLinearRegression(in, out int) *LinearRegression {
 	return &LinearRegression{
 		W: nn.NewParam(mat.NewEmptyDense(out, in)),
 	}
-}
-
-func (m *LinearRegression) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
-func (m *LinearRegression) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *LinearRegression) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 var _ nn.Processor = &Processor{}

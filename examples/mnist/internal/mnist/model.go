@@ -35,7 +35,7 @@ func InitMLP(model *stack.Model, rndGen *rand.LockedRand) {
 		if nextLayer, ok := nextLayer.(*activation.Model); ok {
 			gain = initializers.Gain(nextLayer.Activation)
 		}
-		layer.ForEachParam(func(param *nn.Param) {
+		nn.ForEachParam(layer, func(param *nn.Param) {
 			if param.Type() == nn.Weights {
 				initializers.XavierUniform(param.Value(), gain, rndGen)
 			}
@@ -67,7 +67,7 @@ func InitCNN(model *cnn.Model, rndGen *rand.LockedRand) {
 		initializers.XavierUniform(model.Convolution.K[i].Value(), initializers.Gain(model.Convolution.Activation), rndGen)
 		initializers.XavierUniform(model.Convolution.B[i].Value(), initializers.Gain(model.Convolution.Activation), rndGen)
 	}
-	model.FinalLayer.ForEachParam(func(param *nn.Param) {
+	nn.ForEachParam(model.FinalLayer, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), initializers.Gain(ag.OpSoftmax), rndGen)
 		}

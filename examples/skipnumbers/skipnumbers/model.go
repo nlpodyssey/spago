@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"io"
 	"log"
 )
 
@@ -30,29 +29,17 @@ func NewModel(rnn, predictor nn.Model) *Model {
 
 func (m *Model) Init() {
 	rndGen := rand.NewLockedRand(42)
-	m.RNN.ForEachParam(func(param *nn.Param) {
+	nn.ForEachParam(m.RNN, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
 			// TODO: how to know the right gain for each param? Should the gain be a property of the param itself?
 			initializers.XavierUniform(param.Value(), 1, rndGen)
 		}
 	})
-	m.Predictor.ForEachParam(func(param *nn.Param) {
+	nn.ForEachParam(m.Predictor, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), initializers.Gain(ag.OpSoftmax), rndGen)
 		}
 	})
-}
-
-func (m *Model) ForEachParam(callback func(param *nn.Param)) {
-	nn.ForEachParam(m, callback)
-}
-
-func (m *Model) Serialize(w io.Writer) (int, error) {
-	return nn.Serialize(m, w)
-}
-
-func (m *Model) Deserialize(r io.Reader) (int, error) {
-	return nn.Deserialize(m, r)
 }
 
 type Processor struct {

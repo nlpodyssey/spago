@@ -26,14 +26,13 @@ func main() {
 	epochs := 100
 	seed := 734 // seed for random params initialization
 	model := linearregression.NewLinearRegression(inputDim, outputDim)
-	criterion := losses.MSESeq                                  // mean squared error
-	updater := sgd.New(sgd.NewConfig(learningRate, 0.0, false)) // stochastic gradient descent (no momentum etc.)
-	optimizer := gd.NewOptimizer(updater)
-	nn.TrackParamsForOptimization(model, optimizer) // link the model to the optimizer
+	criterion := losses.MSESeq                                                // mean squared error
+	updater := sgd.New(sgd.NewConfig(learningRate, 0.0, false))               // stochastic gradient descent (no momentum etc.)
+	optimizer := gd.NewOptimizer(updater, nn.NewDefaultParamsIterator(model)) // link the model to the optimizer
 
 	// Random params initialization
 	rndGen := rand.NewLockedRand(uint64(seed))
-	model.ForEachParam(func(param *nn.Param) {
+	nn.ForEachParam(model, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1.0, rndGen)
 		}
@@ -65,8 +64,8 @@ func main() {
 		}
 
 		// Clear gradient buffers because we don't want any gradient from previous epoch to carry forward.
-		// Actually it would not be necessary here because at each optimization the gradients are automatically set to zero.
-		optimizer.ZeroGrad()
+		// Actually it would not be necessary here because at each optimization step the gradients are automatically set to zero.
+		nn.ZeroGrad(model)
 
 		// get output (i.e. prediction) from the model, given the inputs
 		outputs := model.NewProc(cg).Forward(inputs...)

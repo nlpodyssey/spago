@@ -69,8 +69,6 @@ func (t *Trainer) newTrainBar(progress *uiprogress.Progress) *uiprogress.Bar {
 }
 
 func (t *Trainer) Enjoy() {
-	nn.TrackParamsForOptimization(t.model.RNN, t.optimizer)
-	nn.TrackParamsForOptimization(t.model.Predictor, t.optimizer)
 	for epoch := 0; epoch < t.epochs; epoch++ {
 		t.curEpoch = epoch
 		t.optimizer.IncEpoch()
@@ -80,7 +78,7 @@ func (t *Trainer) Enjoy() {
 		precision := NewEvaluator(t.model).Evaluate(t.testSet).Precision()
 		fmt.Printf("Accuracy: %.2f\n", 100*precision)
 		// model serialization
-		err := utils.SerializeToFile(t.modelPath, t.model)
+		err := utils.SerializeToFile(t.modelPath, nn.NewParamsSerializer(t.model))
 		if err != nil {
 			panic("skipnumbers: error during model serialization.")
 		}

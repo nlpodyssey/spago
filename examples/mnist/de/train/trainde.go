@@ -178,7 +178,7 @@ func (r *onNewBest) callback(solution *de.ScoredVector) {
 	}
 	fmt.Printf("Accuracy: %.2f\n", 100*counter.Precision())
 	fmt.Printf("Saving model to \"%s\"... ", r.modelPath)
-	err := utils.SerializeToFile(r.modelPath, model)
+	err := utils.SerializeToFile(r.modelPath, nn.NewParamsSerializer(model))
 	if err != nil {
 		panic("mnist: error during model serialization.")
 	}

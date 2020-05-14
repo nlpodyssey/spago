@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
 	"log"
@@ -58,7 +59,7 @@ func main() {
 
 	trainer := mnist.NewTrainer(
 		model,
-		gd.NewOptimizer(adam.New(adam.NewDefaultConfig())),
+		gd.NewOptimizer(adam.New(adam.NewDefaultConfig()), nn.NewDefaultParamsIterator(model)),
 		epochs,
 		batchSize,
 		true,

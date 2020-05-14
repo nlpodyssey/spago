@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/examples/mnist/third_party/GoMNIST"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
 	"log"
@@ -56,7 +57,8 @@ func main() {
 	//updater := sgd.New(sgd.NewConfig(0.01, 0.0, false)) // sgd
 	//updater := sgd.New(sgd.NewConfig(0.1, 0.9, true))  // sgd with nesterov momentum
 	updater := adam.New(adam.NewDefaultConfig())
-	optimizer := gd.NewOptimizer(updater)
+	optimizer := gd.NewOptimizer(updater, nn.NewDefaultParamsIterator(model))
+
 	// ad-hoc trainer
 	trainer := mnist.NewTrainer(
 		model,

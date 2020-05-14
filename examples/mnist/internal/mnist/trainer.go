@@ -71,8 +71,6 @@ func (t *Trainer) newTrainBar(progress *uiprogress.Progress) *uiprogress.Bar {
 }
 
 func (t *Trainer) Enjoy() {
-	nn.TrackParamsForOptimization(t.model, t.optimizer)
-
 	for epoch := 0; epoch < t.epochs; epoch++ {
 		t.curEpoch = epoch
 		t.optimizer.IncEpoch()
@@ -85,7 +83,7 @@ func (t *Trainer) Enjoy() {
 		fmt.Printf("Accuracy: %.2f\n", 100*precision)
 
 		// model serialization
-		err := utils.SerializeToFile(t.modelPath, t.model)
+		err := utils.SerializeToFile(t.modelPath, nn.NewParamsSerializer(t.model))
 		if err != nil {
 			panic("mnist: error during model serialization.")
 		}
@@ -139,7 +137,7 @@ func (t *Trainer) trainBatchSerial(batchId int, indices []int, onExample func())
 }
 
 // learn performs the backward respect to the cross-entropy loss, returned as scalar value
-func (t *Trainer) learn(batchId int, example *Example) float64 {
+func (t *Trainer) learn(_ int, example *Example) float64 {
 	g := ag.NewGraph(ag.Rand(rand.NewLockedRand(t.rndSeed)))
 	defer g.Clear()
 	x := g.NewVariable(example.Features, false)

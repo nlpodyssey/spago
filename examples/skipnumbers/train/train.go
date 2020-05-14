@@ -6,6 +6,7 @@ package main
 
 import (
 	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
@@ -58,7 +59,7 @@ func main() {
 	// new optimizer with an arbitrary update method
 	updater := adam.New(adam.NewDefaultConfig())
 	//updater := sgd.New(sgd.NewConfig(0.001, 0.9, true))
-	optimizer := gd.NewOptimizer(updater)
+	optimizer := gd.NewOptimizer(updater, nn.NewDefaultParamsIterator(model))
 	// ad-hoc trainer
 	trainer := skipnumbers.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, 42)
 	trainer.Enjoy() // :)

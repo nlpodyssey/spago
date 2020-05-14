@@ -57,8 +57,8 @@ func main() {
 	// new optimizer with an arbitrary update method
 	updater := adam.New(adam.NewDefaultConfig())
 	//updater := sgd.New(sgd.NewConfig(0.001, 0.9, true))
-	optimizer := gd.NewOptimizer(updater)
-	//optimizer.(*gd.GradientDescent).
+	optimizer := gd.NewOptimizer(updater, nn.NewDefaultParamsIterator(model))
+
 	// ad-hoc trainer
 	trainer := internal.NewTrainer(model, optimizer, epochs, batchSize, false, trainSet, testSet, modelPath, rndGen)
 	trainer.Enjoy() // :)
@@ -73,7 +73,7 @@ func initRandom(model *stack.Model, rndGen *rand.LockedRand) {
 		} else {
 			gain = initializers.Gain(ag.OpTanh)
 		}
-		layer.ForEachParam(func(param *nn.Param) {
+		nn.ForEachParam(layer, func(param *nn.Param) {
 			if param.Type() == nn.Weights {
 				initializers.XavierUniform(param.Value(), gain, rndGen)
 			}
