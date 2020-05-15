@@ -8,9 +8,10 @@ spaGO ships with a ton of built-in features, including:
 - Automatic differentiation. You write the *forward()*, it does all *backward()* derivatives for you:
     -   Define-by-Run (default, just like PyTorch does)
     -   Define-and-Run (similar to the static graph of TensorFlow)
-- Feed-forward neural networks
-- Recurrent neural networks
-- Transformer neural networks
+- Neural networks:
+    -   Feed-forward models (Linear, Highway, Convolution, ...)
+    -   Recurrent models (LSTM, GRU, ...)
+    -   Transformer models (BERT-like)
 
 Installation
 =====
@@ -79,9 +80,6 @@ pkg
     │   ├── operators.go
     │   ├── variable.go
     │   └── wrapper.go
-    ├── emb
-    │   ├── embedding.go
-    │   └── embmap.go
     ├── encoding
     │   ├── fofe
     │   │   ├── decoder.go
@@ -109,6 +107,7 @@ pkg
     │   ├── convolution
     │   ├── crf
     │   ├── highway
+    │   ├── embeddings
     │   ├── selfattention
     │   ├── multiheadattention
     │   ├── normalization
