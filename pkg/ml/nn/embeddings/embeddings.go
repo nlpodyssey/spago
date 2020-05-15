@@ -72,6 +72,9 @@ func (m *Model) Close() {
 // Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
 func (m *Model) ClearUsedEmbeddings() {
 	m.mu.Lock()
+	for _, embedding := range m.UsedEmbeddings {
+		mat.ReleaseDense(embedding.Value().(*mat.Dense))
+	}
 	m.UsedEmbeddings = map[string]*nn.Param{}
 	m.mu.Unlock()
 }
@@ -172,7 +175,9 @@ func (m *Model) Load(filename string) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			m.SetEmbedding(key, mat.NewVecDense(data))
+			vector := mat.NewVecDense(data)
+			m.SetEmbedding(key, vector)
+			mat.ReleaseDense(vector)
 		}
 	}
 	if err := scanner.Err(); err != nil {
