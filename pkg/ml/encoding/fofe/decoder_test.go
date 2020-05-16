@@ -11,11 +11,13 @@ import (
 
 func TestDecode(t *testing.T) {
 	reverseVocabulary := map[int]string{0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
-	z := mat.NewVecSparse(len(reverseVocabulary))
-	z.SetVec(0, 1.00781250)
-	z.SetVec(2, 0.51562500)
-	z.SetVec(3, 0.28125000)
-	z.SetVec(4, 0.18750000)
+
+	z := mat.NewSparseFromMap(len(reverseVocabulary), 1, map[mat.Coordinate]float64{
+		mat.Coordinate{I: 0, J: 0}: 1.00781250,
+		mat.Coordinate{I: 2, J: 0}: 0.51562500,
+		mat.Coordinate{I: 3, J: 0}: 0.28125000,
+		mat.Coordinate{I: 4, J: 0}: 0.18750000,
+	})
 
 	decoding := Decode(0.5, z)
 

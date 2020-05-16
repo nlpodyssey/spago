@@ -21,14 +21,12 @@ func EncodeDense(alpha float64, size int, seq []int) []*mat.Dense {
 //    zt = α * zt−1 + et (1 ≤ t ≤ T)
 func Encode(alpha float64, size int, seq []int) []*mat.Sparse {
 	var z []*mat.Sparse
-	for _, i := range seq {
+	for t, i := range seq {
+		x := mat.OneHotSparse(size, i)
 		if len(z) > 0 {
-			t := z[len(z)-1].Clone().(*mat.Sparse)
-			t.ProdScalarInPlace(alpha)
-			t.AddInPlace(mat.OneHotSparse(size, i))
-			z = append(z, t)
+			z = append(z, z[t-1].ProdScalar(alpha).Add(x).(*mat.Sparse))
 		} else {
-			z = append(z, mat.OneHotSparse(size, i))
+			z = append(z, x)
 		}
 	}
 	return z
