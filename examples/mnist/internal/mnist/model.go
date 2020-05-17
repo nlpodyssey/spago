@@ -55,7 +55,15 @@ func NewCNN(
 ) *cnn.Model {
 	// TODO: pass the outputAct to the CNN
 	return cnn.NewModel(
-		convolution.New(kernelSizeX, kernelSizeY, 1, 1, inputChannels, outputChannels, hiddenAct),
+		convolution.New(convolution.Config{
+			KernelSizeX:    kernelSizeX,
+			KernelSizeY:    kernelSizeY,
+			XStride:        1,
+			YStride:        1,
+			InputChannels:  inputChannels,
+			OutputChannels: outputChannels,
+			Activation:     hiddenAct,
+		}),
 		maxPoolingRows, maxPoolingCols,
 		linear.New(hidden, out),
 	)

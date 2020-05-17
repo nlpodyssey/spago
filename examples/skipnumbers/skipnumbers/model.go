@@ -43,20 +43,19 @@ func (m *Model) Init() {
 }
 
 type Processor struct {
-	opt       []interface{}
-	model     *Model
-	mode      nn.ProcessingMode
-	g         *ag.Graph
+	nn.BaseProcessor
 	RNN       nn.Processor
 	Predictor nn.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:     m,
-		mode:      nn.Training,
-		opt:       opt,
-		g:         g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		RNN:       m.RNN.NewProc(g),
 		Predictor: m.Predictor.NewProc(g),
 	}
@@ -70,12 +69,10 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return true }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-func (p *Processor) Reset()                         { p.init(p.opt) }
+func (p *Processor) SetMode(mode nn.ProcessingMode) {
+	p.Mode = mode
+	nn.SetProcessingMode(mode, p.RNN, p.Predictor)
+}
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return p.Predictor.Forward(p.RNN.Forward(xs...)[len(xs)-1])

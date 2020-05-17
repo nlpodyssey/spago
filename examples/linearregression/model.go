@@ -24,20 +24,19 @@ func NewLinearRegression(in, out int) *LinearRegression {
 var _ nn.Processor = &Processor{}
 
 type Processor struct {
-	opt   []interface{}
-	model *LinearRegression
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	w     ag.Node
+	nn.BaseProcessor
+	w ag.Node
 }
 
 func (m *LinearRegression) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		w:     g.NewWrap(m.W),
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		w: g.NewWrap(m.W),
 	}
 	p.init(opt)
 	return p
@@ -49,17 +48,10 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-func (p *Processor) Reset()                         { p.init(p.opt) }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.g.Mul(p.w, x)
+		ys[i] = p.Graph.Mul(p.w, x)
 	}
 	return ys
 }
