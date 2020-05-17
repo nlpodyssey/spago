@@ -5,6 +5,7 @@
 package rae
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -33,22 +34,17 @@ type DecoderProcessor struct {
 	recursions     int
 }
 
-func (m *Decoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	if len(opt) != 1 {
-		log.Fatal("rae: missing sequence length argument")
-	}
-	sequenceLength := 0
-	if t, ok := opt[0].(int); ok {
-		sequenceLength = t
-	} else {
-		log.Fatal("rae: invalid init options; sequence length was expected")
-	}
-
+func (p *DecoderProcessor) SetSequenceLength(length int) {
 	maxRecursions := 0
-	for i := 0; i < sequenceLength-1; i++ {
+	for i := 0; i < length-1; i++ {
 		maxRecursions += i
 	}
+	p.sequenceLength = length
+	p.maxRecursions = maxRecursions
+	p.recursions = maxRecursions
+}
 
+func (m *Decoder) NewProc(g *ag.Graph) nn.Processor {
 	return &DecoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
@@ -59,9 +55,9 @@ func (m *Decoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		ffn1:           m.DecodingFNN1.NewProc(g),
 		ffn2:           m.DecodingFFN2.NewProc(g),
 		ffn3:           m.DescalingFFN.NewProc(g),
-		sequenceLength: sequenceLength,
-		maxRecursions:  maxRecursions,
-		recursions:     maxRecursions,
+		sequenceLength: 0, // late init
+		maxRecursions:  0, // late init
+		recursions:     0, // late init
 	}
 }
 
@@ -75,6 +71,12 @@ func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
 func (p *DecoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) != 1 {
 		panic("rae: the input must be a single node")
+	}
+	if p.sequenceLength == 0 {
+		log.Fatal("rae: sequence length must be > 0. Use p.SetSequenceLength().")
+	}
+	if len(xs) != p.sequenceLength {
+		panic(fmt.Sprintf("rae: input sequence length is expected to be %d, but got %d", p.sequenceLength, len(xs)))
 	}
 	ys := []ag.Node{xs[0]}
 	for len(ys) != p.sequenceLength {
@@ -100,7 +102,7 @@ func (p *DecoderProcessor) decodingPart1(xs []ag.Node) []ag.Node {
 
 func (p *DecoderProcessor) addStepEncoding(xs []ag.Node) []ag.Node {
 	g := p.Graph
-	stepEncoder := p.Model.(*Model).Decoder.StepEncoder
+	stepEncoder := p.Model.(*Decoder).StepEncoder
 	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.recursions), false)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {

@@ -8,7 +8,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
+)
+
+var (
+	_ nn.Model     = &LinearRegression{}
+	_ nn.Processor = &Processor{}
 )
 
 type LinearRegression struct {
@@ -21,15 +25,13 @@ func NewLinearRegression(in, out int) *LinearRegression {
 	}
 }
 
-var _ nn.Processor = &Processor{}
-
 type Processor struct {
 	nn.BaseProcessor
 	w ag.Node
 }
 
-func (m *LinearRegression) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *LinearRegression) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -37,14 +39,6 @@ func (m *LinearRegression) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor
 			FullSeqProcessing: false,
 		},
 		w: g.NewWrap(m.W),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("linearregression: invalid init options")
 	}
 }
 

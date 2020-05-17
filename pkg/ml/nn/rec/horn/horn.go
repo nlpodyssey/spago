@@ -53,12 +53,12 @@ type Processor struct {
 	States []*State
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	wRec := make([]ag.Node, len(m.WRec))
 	for i, p := range m.WRec {
 		wRec[i] = g.NewWrap(p)
 	}
-	p := &Processor{
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -70,19 +70,13 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		wRec:   wRec,
 		b:      g.NewWrap(m.B),
 	}
-	p.init(opt)
-	return p
 }
 
-func (p *Processor) init(opt []interface{}) {
-	for _, t := range opt {
-		switch t := t.(type) {
-		case InitHidden:
-			p.States = append(p.States, t.State)
-		default:
-			log.Fatal("horn: invalid init option")
-		}
+func (p *Processor) SetInitialState(state *State) {
+	if len(p.States) > 0 {
+		log.Fatal("horn: the initial state must be set before any input")
 	}
+	p.States = append(p.States, state)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

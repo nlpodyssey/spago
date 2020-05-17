@@ -7,7 +7,6 @@ package fixnorm
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -27,22 +26,14 @@ type Processor struct {
 	nn.BaseProcessor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("fixnorm: invalid init options")
 	}
 }
 

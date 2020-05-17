@@ -46,12 +46,6 @@ type State struct {
 	Y  ag.Node
 }
 
-type InitHidden struct {
-	*State
-}
-
-var _ nn.Processor = &Processor{}
-
 type Processor struct {
 	nn.BaseProcessor
 	w      ag.Node
@@ -64,8 +58,8 @@ type Processor struct {
 	States []*State
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -81,19 +75,13 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		beta1:  g.NewWrap(m.Beta1),
 		beta2:  g.NewWrap(m.Beta2),
 	}
-	p.init(opt)
-	return p
 }
 
-func (p *Processor) init(opt []interface{}) {
-	for _, t := range opt {
-		switch t := t.(type) {
-		case InitHidden:
-			p.States = append(p.States, t.State)
-		default:
-			log.Fatal("srn: invalid init option")
-		}
+func (p *Processor) SetInitialState(state *State) {
+	if len(p.States) > 0 {
+		log.Fatal("deltarnn: the initial state must be set before any input")
 	}
+	p.States = append(p.States, state)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

@@ -66,13 +66,14 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	g := ag.NewGraph()
 
 	yPrev := g.NewVariable(mat.NewVecDense([]float64{0.211, -0.451, 0.499, -1.333, -0.11645, 0.366}), true)
-	proc := model.NewProc(g, InitHidden{&State{Y: yPrev}})
+	proc := model.NewProc(g).(*Processor)
+	proc.SetInitialState(&State{Y: yPrev})
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, 0.9, 0.1}), true)
 	_ = proc.Forward(x)
-	st := proc.(*Processor).LastState()
+	st := proc.LastState()
 
 	if !floats.EqualApprox(st.Y.Value().Data(), []float64{0.05472795, 0.0308627,
 		0.2054040, 0.1158336,
@@ -117,15 +118,16 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g, InitHidden{&State{
+	proc := model.NewProc(g).(*Processor)
+	proc.SetInitialState(&State{
 		Y: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}), true),
-	}})
+	})
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, 0.9, 0.1}), true)
 	_ = proc.Forward(x)
-	s := proc.(*Processor).LastState()
+	s := proc.LastState()
 
 	if !floats.EqualApprox(s.Y.Value().Data(), []float64{0.05029859664638596, 0.02928963193170334,
 		0.3217195687341599, 0.18734216025343006,
@@ -152,7 +154,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 
 	x2 := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, 0.9, 0.1}), true)
 	_ = proc.Forward(x2)
-	s2 := proc.(*Processor).LastState()
+	s2 := proc.LastState()
 
 	if !floats.EqualApprox(s2.Y.Value().Data(), []float64{0.03398428524859144, 0.019818448417970973,
 		0.38891858550151426, 0.22680373793859504,

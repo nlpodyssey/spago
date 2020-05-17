@@ -59,12 +59,12 @@ type Processor struct {
 	outputMerge       nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	headAttentionProc := make([]*selfattention.Processor, m.h)
 	for i := 0; i < m.h; i++ {
 		headAttentionProc[i] = m.Attention[i].NewProc(g).(*selfattention.Processor)
 	}
-	p := &Processor{
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -74,8 +74,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		HeadAttentionProc: headAttentionProc,
 		outputMerge:       m.OutputMerge.NewProc(g),
 	}
-	p.init(opt)
-	return p
 }
 
 func (p *Processor) SetMode(mode nn.ProcessingMode) {

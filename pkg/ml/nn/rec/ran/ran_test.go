@@ -91,16 +91,17 @@ func TestModel_Forward(t *testing.T) {
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g, InitHidden{&State{
+	proc := model.NewProc(g).(*Processor)
+	proc.SetInitialState(&State{
 		C: g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
 		Y: g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
-	}})
+	})
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
 	_ = proc.Forward(x)
-	s := proc.(*Processor).LastState()
+	s := proc.LastState()
 
 	if !floats.EqualApprox(s.InG.Value().Data(), []float64{0.72312, 0.24974, 0.54983, 0.82054, 0.53494}, 1.0e-05) {
 		t.Error("The inG doesn't match the expected values")
@@ -233,15 +234,16 @@ func newTestModel() *Model {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
-	proc := model.NewProc(g, InitHidden{&State{
+	proc := model.NewProc(g).(*Processor)
+	proc.SetInitialState(&State{
 		Y: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0}), true),
-	}})
+	})
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{3.5, 4.0, -0.1}), true)
 	_ = proc.Forward(x)
-	s := proc.(*Processor).LastState()
+	s := proc.LastState()
 
 	if !floats.EqualApprox(s.Y.Value().Data(), []float64{-0.109472457893732, 0.998622353363888}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")
@@ -249,7 +251,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 
 	x2 := g.NewVariable(mat.NewVecDense([]float64{3.3, -2.0, 0.1}), true)
 	_ = proc.Forward(x2)
-	s2 := proc.(*Processor).LastState()
+	s2 := proc.LastState()
 
 	if !floats.EqualApprox(s2.Y.Value().Data(), []float64{0.331268038964841, 0.573215090496922}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")

@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var _ nn.Model = &Model{}
@@ -48,8 +47,8 @@ type Processor struct {
 	Predictor nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -58,14 +57,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		},
 		RNN:       m.RNN.NewProc(g),
 		Predictor: m.Predictor.NewProc(g),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("skipnumbers: invalid init options")
 	}
 }
 

@@ -18,7 +18,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/rc"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"log"
 )
 
 var (
@@ -115,8 +114,8 @@ type LayerProcessor struct {
 	NormFFN            nn.Processor
 }
 
-func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &LayerProcessor{
+func (m *Layer) NewProc(g *ag.Graph) nn.Processor {
+	return &LayerProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -127,14 +126,6 @@ func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		NormAttention:      m.NormAttention.NewProc(g),
 		FFN:                m.FFN.NewProc(g),
 		NormFFN:            m.NormFFN.NewProc(g),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *LayerProcessor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("bert: invalid init layer options")
 	}
 }
 

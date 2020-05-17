@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"log"
 )
 
 var (
@@ -41,8 +40,8 @@ type Processor struct {
 	FinalLayer     nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -53,14 +52,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		maxPoolingCols: m.maxPoolingCols,
 		Convolution:    m.Convolution.NewProc(g),
 		FinalLayer:     m.FinalLayer.NewProc(g),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("convolution: invalid init options")
 	}
 }
 

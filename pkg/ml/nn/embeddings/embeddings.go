@@ -191,8 +191,8 @@ type Processor struct {
 	getEmbedding   func(word string) *nn.Param
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -201,8 +201,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		},
 		getEmbedding: m.GetEmbedding,
 	}
-	p.init(opt)
-	return p
 }
 
 func (p *Processor) init(opt []interface{}) {

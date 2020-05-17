@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 	"sync"
 )
 
@@ -51,51 +50,39 @@ func New(config Config) *Model {
 type Processor struct {
 	nn.BaseProcessor
 	Config
-	k                       []ag.Node
-	b                       []ag.Node
-	ConcurrentOutputChannel bool
+	k []ag.Node
+	b []ag.Node
+	// whether to enable the concurrent forward computation on the output channel
+	concurrent bool
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	k := make([]ag.Node, len(m.K))
 	b := make([]ag.Node, len(m.B))
 	for i := range m.K {
 		k[i] = g.NewWrap(m.K[i])
 		b[i] = g.NewWrap(m.B[i])
 	}
-	p := &Processor{
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
 			FullSeqProcessing: true,
 		},
-		Config:                  m.Config,
-		k:                       k,
-		b:                       b,
-		ConcurrentOutputChannel: true,
+		Config:     m.Config,
+		k:          k,
+		b:          b,
+		concurrent: true,
 	}
-	p.init(opt)
-	return p
 }
 
-type Concurrency struct {
-	Value bool
-}
-
-func (p *Processor) init(opt []interface{}) {
-	for _, t := range opt {
-		switch t := t.(type) {
-		case Concurrency:
-			p.ConcurrentOutputChannel = t.Value
-		default:
-			log.Fatal("convolution: invalid init options")
-		}
-	}
+func (p *Processor) SetConcurrentComputations(value bool) {
+	p.concurrent = value
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	if p.ConcurrentOutputChannel && p.OutputChannels > 1 {
+	if p.concurrent && p.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)
 	} else {
 		return p.fwdSerial(xs)

@@ -74,76 +74,58 @@ type State struct {
 	SkipIndex int
 }
 
-type InitHidden struct {
-	*State
-}
-
-type GateConcurrency struct {
-	Value bool
-}
-
 type Processor struct {
 	nn.BaseProcessor
-	wIn             ag.Node
-	wInRec          ag.Node
-	bIn             ag.Node
-	wOut            ag.Node
-	wOutRec         ag.Node
-	bOut            ag.Node
-	wFor            ag.Node
-	wForRec         ag.Node
-	bFor            ag.Node
-	wCand           ag.Node
-	wCandRec        ag.Node
-	bCand           ag.Node
-	PolicyGradient  *stack.Processor
-	lambda          ag.Node
-	negLambda       ag.Node
-	States          []*State
-	GateConcurrency bool
+	wIn            ag.Node
+	wInRec         ag.Node
+	bIn            ag.Node
+	wOut           ag.Node
+	wOutRec        ag.Node
+	bOut           ag.Node
+	wFor           ag.Node
+	wForRec        ag.Node
+	bFor           ag.Node
+	wCand          ag.Node
+	wCandRec       ag.Node
+	bCand          ag.Node
+	PolicyGradient *stack.Processor
+	lambda         ag.Node
+	negLambda      ag.Node
+	States         []*State
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		States:          nil,
-		GateConcurrency: false,
-		wIn:             g.NewWrap(m.WIn),
-		wInRec:          g.NewWrap(m.WInRec),
-		bIn:             g.NewWrap(m.BIn),
-		wOut:            g.NewWrap(m.WOut),
-		wOutRec:         g.NewWrap(m.WOutRec),
-		bOut:            g.NewWrap(m.BOut),
-		wFor:            g.NewWrap(m.WFor),
-		wForRec:         g.NewWrap(m.WForRec),
-		bFor:            g.NewWrap(m.BFor),
-		wCand:           g.NewWrap(m.WCand),
-		wCandRec:        g.NewWrap(m.WCandRec),
-		bCand:           g.NewWrap(m.BCand),
-		lambda:          g.NewScalar(m.Lambda),
-		negLambda:       g.NewScalar(1.0 - m.Lambda),
-		PolicyGradient:  m.PolicyGradient.NewProc(g).(*stack.Processor),
+		States:         nil,
+		wIn:            g.NewWrap(m.WIn),
+		wInRec:         g.NewWrap(m.WInRec),
+		bIn:            g.NewWrap(m.BIn),
+		wOut:           g.NewWrap(m.WOut),
+		wOutRec:        g.NewWrap(m.WOutRec),
+		bOut:           g.NewWrap(m.BOut),
+		wFor:           g.NewWrap(m.WFor),
+		wForRec:        g.NewWrap(m.WForRec),
+		bFor:           g.NewWrap(m.BFor),
+		wCand:          g.NewWrap(m.WCand),
+		wCandRec:       g.NewWrap(m.WCandRec),
+		bCand:          g.NewWrap(m.BCand),
+		lambda:         g.NewScalar(m.Lambda),
+		negLambda:      g.NewScalar(1.0 - m.Lambda),
+		PolicyGradient: m.PolicyGradient.NewProc(g).(*stack.Processor),
 	}
-	p.init(opt)
-	return p
 }
 
-func (p *Processor) init(opt []interface{}) {
-	for _, t := range opt {
-		switch t := t.(type) {
-		case InitHidden:
-			p.States = append(p.States, t.State)
-		case GateConcurrency:
-			p.GateConcurrency = t.Value
-		default:
-			log.Fatal("lstmrl: invalid init option")
-		}
+func (p *Processor) SetInitialState(state *State) {
+	if len(p.States) > 0 {
+		log.Fatal("lstmsc: the initial state must be set before any input")
 	}
+	p.States = append(p.States, state)
 }
 
 func (p *Processor) SetMode(mode nn.ProcessingMode) {

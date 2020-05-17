@@ -17,7 +17,7 @@ import (
 // Model contains the serializable parameters.
 type Model interface {
 	// NewProc returns a new processor to execute the forward step.
-	NewProc(g *ag.Graph, opt ...interface{}) Processor
+	NewProc(g *ag.Graph) Processor
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.

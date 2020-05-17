@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -29,8 +28,8 @@ type EncoderProcessor struct {
 	recursions int
 }
 
-func (m *Encoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &EncoderProcessor{
+func (m *Encoder) NewProc(g *ag.Graph) nn.Processor {
+	return &EncoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -40,14 +39,6 @@ func (m *Encoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		ffn1:       m.ScalingFFN.NewProc(g),
 		ffn2:       m.EncodingFFN.NewProc(g),
 		recursions: 0,
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *EncoderProcessor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("rae: invalid init options")
 	}
 }
 
@@ -73,7 +64,7 @@ func (p *EncoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 
 func (p *EncoderProcessor) encodingStep(xs []ag.Node) []ag.Node {
 	g := p.Graph
-	stepEncoder := p.Model.(*Model).Decoder.StepEncoder
+	stepEncoder := p.Model.(*Encoder).StepEncoder
 	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.recursions), false)
 	size := len(xs)
 	ys := make([]ag.Node, size-1)

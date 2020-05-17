@@ -7,7 +7,6 @@ package birnn
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 	"sync"
 )
 
@@ -46,8 +45,8 @@ type Processor struct {
 	Negative  nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -57,14 +56,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		MergeMode: m.MergeMode,
 		Positive:  m.Positive.NewProc(g),
 		Negative:  m.Negative.NewProc(g),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("birnn: invalid init options")
 	}
 }
 

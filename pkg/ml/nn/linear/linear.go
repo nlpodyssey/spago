@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 	"sync"
 )
 
@@ -29,48 +28,36 @@ func New(in, out int) *Model {
 	}
 }
 
-type Concurrency struct {
-	Value bool
-}
-
 const defaultConcurrency = true
 
 type Processor struct {
 	nn.BaseProcessor
-	w           ag.Node
-	b           ag.Node
-	Concurrency bool
+	w ag.Node
+	b ag.Node
+	// whether to enable the concurrent forward computation
+	concurrent bool
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		w:           g.NewWrap(m.W),
-		b:           g.NewWrap(m.B),
-		Concurrency: defaultConcurrency,
+		w:          g.NewWrap(m.W),
+		b:          g.NewWrap(m.B),
+		concurrent: defaultConcurrency,
 	}
-	p.init(opt)
-	return p
 }
 
-func (p *Processor) init(opt []interface{}) {
-	for _, t := range opt {
-		switch t := t.(type) {
-		case Concurrency:
-			p.Concurrency = t.Value
-		default:
-			log.Fatal("perceptron: invalid init options")
-		}
-	}
+func (p *Processor) SetConcurrentComputations(value bool) {
+	p.concurrent = value
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	if p.Concurrency && len(xs) > 1 {
+	if p.concurrent && len(xs) > 1 {
 		return p.fwdConcurrent(xs)
 	} else {
 		return p.fwdSerial(xs)

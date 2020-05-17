@@ -20,7 +20,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -83,7 +82,7 @@ type Processor struct {
 	b  ag.Node
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	length := m.NumOfFeatures
 	wx := make([]ag.Node, length)
 	bx := make([]ag.Node, length)
@@ -106,7 +105,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		wh = g.NewWrap(m.Wh)
 		bh = g.NewWrap(m.Bh)
 	}
-	p := &Processor{
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -120,14 +119,6 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		bh:     bh,
 		w:      g.NewWrap(m.W),
 		b:      g.NewWrap(m.B),
-	}
-	p.init(opt)
-	return p
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("bls: invalid init options")
 	}
 }
 

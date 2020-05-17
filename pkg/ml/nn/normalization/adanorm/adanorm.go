@@ -7,7 +7,6 @@ package adanorm
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -33,8 +32,8 @@ type Processor struct {
 	c   ag.Node
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	p := &Processor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
@@ -46,14 +45,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		k:   g.NewScalar(0.1),
 		c:   g.NewScalar(m.scale),
 	}
-	p.init(opt)
-	return p
-}
 
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("layernormsimple: invalid init options")
-	}
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

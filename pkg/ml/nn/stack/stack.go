@@ -7,7 +7,6 @@ package stack
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -34,30 +33,20 @@ type Processor struct {
 	Layers []nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
-	if opt != nil && len(opt) > 0 {
-		if len(opt) != len(m.Layers) {
-			log.Fatal("stack: the options must be grouped in lists of options parallel to the layers")
-		}
-	}
-	ps := make([]nn.Processor, len(m.Layers))
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	procLayers := make([]nn.Processor, len(m.Layers))
 	for i, layer := range m.Layers {
-		var layerOpt []interface{}
-		if opt != nil {
-			layerOpt = opt[i].([]interface{})
-		}
-		ps[i] = layer.NewProc(g, layerOpt...)
+		procLayers[i] = layer.NewProc(g)
 	}
-	p := &Processor{
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
-			FullSeqProcessing: requiresFullSeq(ps),
+			FullSeqProcessing: requiresFullSeq(procLayers),
 		},
-		Layers: ps,
+		Layers: procLayers,
 	}
-	return p
 }
 
 func requiresFullSeq(ps []nn.Processor) bool {
