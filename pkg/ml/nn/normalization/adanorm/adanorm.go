@@ -26,18 +26,25 @@ func New(scale float64) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
+	nn.BaseProcessor
+	eps ag.Node
+	one ag.Node
+	k   ag.Node
+	c   ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		eps: g.NewScalar(1e-10),
+		one: g.NewScalar(1.0),
+		k:   g.NewScalar(0.1),
+		c:   g.NewScalar(m.scale),
 	}
 	p.init(opt)
 	return p
@@ -49,23 +56,16 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return true }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	g := p.Graph
 	meanVectors := p.Mean(xs)
 	devVectors := p.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))
-	eps := p.g.NewScalar(1e-10)
-	k := p.g.NewScalar(0.1)
-	c := p.g.NewScalar(p.model.scale)
+
 	for i, x := range xs {
-		y := p.g.DivScalar(p.g.SubScalar(x, meanVectors[i]), p.g.Add(devVectors[i], eps))
-		fi := p.g.ProdScalar(p.g.ReverseSub(p.g.ProdScalar(y, k), p.g.NewScalar(1.0)), c)
-		zs[i] = p.g.Prod(y, p.g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], p.eps))
+		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, p.k), p.one), p.c)
+		zs[i] = g.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }
@@ -73,16 +73,17 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 func (p *Processor) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.g.ReduceMean(x)
+		ys[i] = p.Graph.ReduceMean(x)
 	}
 	return ys
 }
 
 func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+	g := p.Graph
 	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		diffVector := p.g.Square(p.g.SubScalar(x, meanVectors[i]))
-		devVectors[i] = p.g.Sqrt(p.g.ReduceMean(diffVector))
+		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))
+		devVectors[i] = g.Sqrt(g.ReduceMean(diffVector))
 	}
 	return devVectors
 }

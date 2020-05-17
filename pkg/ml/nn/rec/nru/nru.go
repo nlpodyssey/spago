@@ -27,6 +27,8 @@ var (
 )
 
 type Model struct {
+	Config
+	SqrtMemK        int
 	Wx              *nn.Param `type:"weights"`
 	Wh              *nn.Param `type:"weights"`
 	Wm              *nn.Param `type:"weights"`
@@ -40,40 +42,38 @@ type Model struct {
 	Whm2betaVec     *nn.Param `type:"weights"`
 	Bhm2betaVec     *nn.Param `type:"biases"`
 	HiddenLayerNorm *layernorm.Model
-	memorySize      int
-	hiddenSize      int
-	sqrtMemK        int
-	k               int
-	useReLU         bool
-	useLayerNorm    bool
 }
 
-func New(inputSize, hiddenSize, memorySize, k int, useReLU bool, useLayerNorm bool) *Model {
-	if !isExactInt(math.Sqrt(float64(memorySize * k))) {
+type Config struct {
+	InputSize    int
+	HiddenSize   int
+	MemorySize   int
+	K            int
+	UseReLU      bool
+	UseLayerNorm bool
+}
+
+func New(config Config) *Model {
+	if !isExactInt(math.Sqrt(float64(config.MemorySize * config.K))) {
 		panic("nru: incompatible 'k' with 'memory size'")
 	}
-	sqrtMemK := int(math.Sqrt(float64(memorySize * k)))
+	sqrtMemK := int(math.Sqrt(float64(config.MemorySize * config.K)))
 
 	return &Model{
-		Wx:              nn.NewParam(mat.NewEmptyDense(hiddenSize, inputSize)),
-		Wh:              nn.NewParam(mat.NewEmptyDense(hiddenSize, hiddenSize)),
-		Wm:              nn.NewParam(mat.NewEmptyDense(hiddenSize, memorySize)),
-		B:               nn.NewParam(mat.NewEmptyVecDense(hiddenSize)),
-		Whm2alpha:       nn.NewParam(mat.NewEmptyDense(k, memorySize+hiddenSize)),
-		Bhm2alpha:       nn.NewParam(mat.NewEmptyVecDense(k)),
-		Whm2alphaVec:    nn.NewParam(mat.NewEmptyDense(2*sqrtMemK, memorySize+hiddenSize)),
+		Wx:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.InputSize)),
+		Wh:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.HiddenSize)),
+		Wm:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.MemorySize)),
+		B:               nn.NewParam(mat.NewEmptyVecDense(config.HiddenSize)),
+		Whm2alpha:       nn.NewParam(mat.NewEmptyDense(config.K, config.MemorySize+config.HiddenSize)),
+		Bhm2alpha:       nn.NewParam(mat.NewEmptyVecDense(config.K)),
+		Whm2alphaVec:    nn.NewParam(mat.NewEmptyDense(2*sqrtMemK, config.MemorySize+config.HiddenSize)),
 		Bhm2alphaVec:    nn.NewParam(mat.NewEmptyVecDense(2 * sqrtMemK)),
-		Whm2beta:        nn.NewParam(mat.NewEmptyDense(k, memorySize+hiddenSize)),
-		Bhm2beta:        nn.NewParam(mat.NewEmptyVecDense(k)),
-		Whm2betaVec:     nn.NewParam(mat.NewEmptyDense(2*sqrtMemK, memorySize+hiddenSize)),
+		Whm2beta:        nn.NewParam(mat.NewEmptyDense(config.K, config.MemorySize+config.HiddenSize)),
+		Bhm2beta:        nn.NewParam(mat.NewEmptyVecDense(config.K)),
+		Whm2betaVec:     nn.NewParam(mat.NewEmptyDense(2*sqrtMemK, config.MemorySize+config.HiddenSize)),
 		Bhm2betaVec:     nn.NewParam(mat.NewEmptyVecDense(2 * sqrtMemK)),
-		HiddenLayerNorm: layernorm.New(hiddenSize),
-		memorySize:      memorySize,
-		hiddenSize:      hiddenSize,
-		sqrtMemK:        sqrtMemK,
-		k:               k,
-		useReLU:         useReLU,
-		useLayerNorm:    useLayerNorm,
+		HiddenLayerNorm: layernorm.New(config.HiddenSize),
+		SqrtMemK:        sqrtMemK,
 	}
 }
 
@@ -91,10 +91,9 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt             []interface{}
-	model           *Model
-	mode            nn.ProcessingMode
-	g               *ag.Graph
+	nn.BaseProcessor
+	Config
+	SqrtMemK        int
 	wx              ag.Node
 	wh              ag.Node
 	wm              ag.Node
@@ -113,11 +112,14 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:           m,
-		mode:            nn.Training,
-		States:          nil,
-		opt:             opt,
-		g:               g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		Config:          m.Config,
+		SqrtMemK:        m.SqrtMemK,
 		wx:              g.NewWrap(m.Wx),
 		wh:              g.NewWrap(m.Wh),
 		wm:              g.NewWrap(m.Wm),
@@ -131,6 +133,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		whm2betaVec:     g.NewWrap(m.Whm2betaVec),
 		bhm2betaVec:     g.NewWrap(m.Bhm2betaVec),
 		hiddenLayerNorm: m.HiddenLayerNorm.NewProc(g),
+		States:          nil,
 	}
 	p.init(opt)
 	return p
@@ -147,13 +150,8 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model         { return p.model }
-func (p *Processor) Graph() *ag.Graph        { return p.g }
-func (p *Processor) RequiresFullSeq() bool   { return false }
-func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.hiddenLayerNorm.SetMode(mode)
 }
 
@@ -176,83 +174,79 @@ func (p *Processor) LastState() *State {
 }
 
 func (p *Processor) forward(x ag.Node) *State {
+	g := p.Graph
 	yPrev, mPrev := p.getPrev()
-	h := p.g.ReLU(p.optLayerNorm(nn.Affine(p.g, p.b, p.wx, x, p.wh, yPrev, p.wm, mPrev)))
-	hm := p.g.Concat(h, mPrev)
+	h := g.ReLU(p.optLayerNorm(nn.Affine(g, p.b, p.wx, x, p.wh, yPrev, p.wm, mPrev)))
+	hm := g.Concat(h, mPrev)
 	addMemory := p.calcAddMemory(hm)
 	forgetMemory := p.calcForgetMemory(hm)
 	diffMemory := p.calcDiffMemory(addMemory, forgetMemory)
 	return &State{
 		Y:      h,
-		Memory: p.g.Add(mPrev, diffMemory),
+		Memory: g.Add(mPrev, diffMemory),
 	}
 }
 
 func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
-	diffMemory := make([]ag.Node, p.model.memorySize)
-	k := p.g.NewScalar(float64(p.model.k))
-	for j := 0; j < p.model.memorySize; j++ {
+	g := p.Graph
+	diffMemory := make([]ag.Node, p.MemorySize)
+	k := g.NewScalar(float64(p.K))
+	for j := 0; j < p.MemorySize; j++ {
 		var sum ag.Node
-		for i := 0; i < p.model.k; i++ {
-			l := i*p.model.memorySize + j
-			sum = p.g.Add(sum, p.g.Sub(addMemory[l], forgetMemory[l]))
+		for i := 0; i < p.K; i++ {
+			l := i*p.MemorySize + j
+			sum = g.Add(sum, g.Sub(addMemory[l], forgetMemory[l]))
 		}
-		diffMemory[j] = p.g.Div(sum, k)
+		diffMemory[j] = g.Div(sum, k)
 	}
-	return p.g.Concat(diffMemory...)
+	return g.Concat(diffMemory...)
 }
 
 func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
-	alpha := nn.SeparateVec(p.g, p.optReLU(nn.Affine(p.g, p.bhm2alpha, p.whm2alpha, hm)))
-
-	uAlpha := nn.SplitVec(p.g, nn.Affine(p.g, p.bhm2alphaVec, p.whm2alphaVec, hm), 2)
+	g := p.Graph
+	alpha := nn.SeparateVec(g, p.optReLU(nn.Affine(g, p.bhm2alpha, p.whm2alpha, hm)))
+	uAlpha := nn.SplitVec(g, nn.Affine(g, p.bhm2alphaVec, p.whm2alphaVec, hm), 2)
 	uAlphaSecond := uAlpha[1]
 	uAlphaFirst := uAlpha[0]
-
 	vAlpha := make([]ag.Node, uAlphaFirst.Value().Size())
-	for i := 0; i < p.model.sqrtMemK; i++ {
-		vAlpha[i] = p.g.ProdScalar(uAlphaSecond, p.g.AtVec(uAlphaFirst, i))
+	for i := 0; i < p.SqrtMemK; i++ {
+		vAlpha[i] = g.ProdScalar(uAlphaSecond, g.AtVec(uAlphaFirst, i))
 	}
 	vAlpha = p.optReLU2(vAlpha)
-	vAlpha = normalization(p.g, vAlpha, 5)
-
-	addMemory := make([]ag.Node, p.model.k*p.model.memorySize)
-	for i := 0; i < p.model.k; i++ {
-		for j := 0; j < p.model.memorySize; j++ {
-			l := i*p.model.memorySize + j
-			ii := l / p.model.sqrtMemK
-			jj := l % p.model.sqrtMemK
-			addMemory[l] = p.g.Prod(alpha[i], p.g.AtVec(vAlpha[ii], jj))
+	vAlpha = normalization(g, vAlpha, 5)
+	addMemory := make([]ag.Node, p.K*p.MemorySize)
+	for i := 0; i < p.K; i++ {
+		for j := 0; j < p.MemorySize; j++ {
+			l := i*p.MemorySize + j
+			ii := l / p.SqrtMemK
+			jj := l % p.SqrtMemK
+			addMemory[l] = g.Prod(alpha[i], g.AtVec(vAlpha[ii], jj))
 		}
 	}
-
 	return addMemory
 }
 
 func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
-	beta := nn.SeparateVec(p.g, p.optReLU(nn.Affine(p.g, p.bhm2beta, p.whm2beta, hm)))
-
-	uBeta := nn.SplitVec(p.g, nn.Affine(p.g, p.bhm2betaVec, p.whm2betaVec, hm), 2)
+	g := p.Graph
+	beta := nn.SeparateVec(g, p.optReLU(nn.Affine(g, p.bhm2beta, p.whm2beta, hm)))
+	uBeta := nn.SplitVec(g, nn.Affine(g, p.bhm2betaVec, p.whm2betaVec, hm), 2)
 	uBetaSecond := uBeta[1]
 	uBetaFirst := uBeta[0]
-
 	vBeta := make([]ag.Node, uBetaFirst.Value().Size())
-	for i := 0; i < p.model.sqrtMemK; i++ {
-		vBeta[i] = p.g.ProdScalar(uBetaSecond, p.g.AtVec(uBetaFirst, i))
+	for i := 0; i < p.SqrtMemK; i++ {
+		vBeta[i] = g.ProdScalar(uBetaSecond, g.AtVec(uBetaFirst, i))
 	}
 	vBeta = p.optReLU2(vBeta)
-	vBeta = normalization(p.g, vBeta, 5)
-
-	forgetMemory := make([]ag.Node, p.model.k*p.model.memorySize)
-	for i := 0; i < p.model.k; i++ {
-		for j := 0; j < p.model.memorySize; j++ {
-			l := i*p.model.memorySize + j
-			ii := l / p.model.sqrtMemK
-			jj := l % p.model.sqrtMemK
-			forgetMemory[l] = p.g.Prod(beta[i], p.g.AtVec(vBeta[ii], jj))
+	vBeta = normalization(g, vBeta, 5)
+	forgetMemory := make([]ag.Node, p.K*p.MemorySize)
+	for i := 0; i < p.K; i++ {
+		for j := 0; j < p.MemorySize; j++ {
+			l := i*p.MemorySize + j
+			ii := l / p.SqrtMemK
+			jj := l % p.SqrtMemK
+			forgetMemory[l] = g.Prod(beta[i], g.AtVec(vBeta[ii], jj))
 		}
 	}
-
 	return forgetMemory
 }
 
@@ -262,14 +256,14 @@ func (p *Processor) getPrev() (yPrev, mPrev ag.Node) {
 		yPrev = prev.Y
 		mPrev = prev.Memory
 	} else {
-		yPrev = p.g.NewVariable(mat.NewEmptyVecDense(p.model.hiddenSize), false)
-		mPrev = p.g.NewVariable(mat.NewEmptyVecDense(p.model.memorySize), false)
+		yPrev = p.Graph.NewVariable(mat.NewEmptyVecDense(p.HiddenSize), false)
+		mPrev = p.Graph.NewVariable(mat.NewEmptyVecDense(p.MemorySize), false)
 	}
 	return
 }
 
 func (p *Processor) optLayerNorm(x ag.Node) ag.Node {
-	if p.model.useLayerNorm {
+	if p.UseLayerNorm {
 		return p.hiddenLayerNorm.Forward(x)[0]
 	} else {
 		return x
@@ -277,18 +271,18 @@ func (p *Processor) optLayerNorm(x ag.Node) ag.Node {
 }
 
 func (p *Processor) optReLU(x ag.Node) ag.Node {
-	if p.model.useReLU {
-		return p.g.ReLU(x)
+	if p.UseReLU {
+		return p.Graph.ReLU(x)
 	} else {
 		return x
 	}
 }
 
 func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
-	if p.model.useReLU {
+	if p.UseReLU {
 		ys := make([]ag.Node, len(xs))
 		for i, x := range xs {
-			ys[i] = p.g.ReLU(x)
+			ys[i] = p.Graph.ReLU(x)
 		}
 		return ys
 	} else {

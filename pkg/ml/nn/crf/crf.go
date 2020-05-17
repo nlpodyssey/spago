@@ -26,20 +26,25 @@ func New(labels int) *Model {
 	}
 }
 
+func (m *Model) Predict(emissionScores []ag.Node) []int {
+	return Viterbi(m.TransitionScores.Value(), emissionScores)
+}
+
 type Processor struct {
-	opt              []interface{}
-	model            *Model
-	mode             nn.ProcessingMode
-	g                *ag.Graph
+	nn.BaseProcessor
+	size             int
 	transitionScores [][]ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:            m,
-		mode:             nn.Training,
-		opt:              opt,
-		g:                g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
+		size:             m.TransitionScores.Value().Rows() - 1,
 		transitionScores: nn.Separate(g, g.NewWrap(m.TransitionScores)),
 	}
 	p.init(opt)
@@ -52,83 +57,75 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return true }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("crf: Forward() not available. Use Predict() instead.")
-}
-
-func (p *Processor) Predict(emissionScores []ag.Node) []int {
-	return Viterbi(p.model.TransitionScores.Value(), emissionScores)
 }
 
 func (p *Processor) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := p.goldScore(emissionScores, target)
 	totalScore := p.totalScore(emissionScores)
-	return p.g.Sub(totalScore, goldScore)
+	return p.Graph.Sub(totalScore, goldScore)
 }
 
 func (p *Processor) goldScore(emissionScores []ag.Node, target []int) ag.Node {
-	goldScore := p.g.At(emissionScores[0], target[0], 0)
-	goldScore = p.g.Add(goldScore, p.transitionScores[0][target[0]+1]) // start transition
+	g := p.Graph
+	goldScore := g.At(emissionScores[0], target[0], 0)
+	goldScore = g.Add(goldScore, p.transitionScores[0][target[0]+1]) // start transition
 	prevIndex := target[0] + 1
 	for i := 1; i < len(target); i++ {
-		goldScore = p.g.Add(goldScore, p.g.AtVec(emissionScores[i], target[i]))
-		goldScore = p.g.Add(goldScore, p.transitionScores[prevIndex][target[i]+1])
+		goldScore = g.Add(goldScore, g.AtVec(emissionScores[i], target[i]))
+		goldScore = g.Add(goldScore, p.transitionScores[prevIndex][target[i]+1])
 		prevIndex = target[i] + 1
 	}
-	goldScore = p.g.Add(goldScore, p.transitionScores[prevIndex][0]) // end transition
+	goldScore = g.Add(goldScore, p.transitionScores[prevIndex][0]) // end transition
 	return goldScore
 }
 
 func (p *Processor) totalScore(predicted []ag.Node) ag.Node {
+	g := p.Graph
 	totalVector := p.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
-		totalVector = p.totalScoreStep(totalVector, nn.SeparateVec(p.g, predicted[i]))
+		totalVector = p.totalScoreStep(totalVector, nn.SeparateVec(g, predicted[i]))
 	}
 	totalVector = p.totalScoreEnd(totalVector)
-	return p.g.Log(p.g.ReduceSum(p.g.Concat(totalVector...)))
+	return g.Log(g.ReduceSum(g.Concat(totalVector...)))
 
 }
 
 func (p *Processor) totalScoreStart(stepVec ag.Node) []ag.Node {
-	size := p.model.TransitionScores.Value().Rows() - 1
 	firstTransitionScores := p.transitionScores[0]
-	scores := make([]ag.Node, size)
-	for i := 0; i < size; i++ {
-		scores[i] = p.g.Add(p.g.AtVec(stepVec, i), firstTransitionScores[i+1])
+	scores := make([]ag.Node, p.size)
+	g := p.Graph
+	for i := 0; i < p.size; i++ {
+		scores[i] = g.Add(g.AtVec(stepVec, i), firstTransitionScores[i+1])
 	}
 	return scores
 }
 
 func (p *Processor) totalScoreEnd(stepVec []ag.Node) []ag.Node {
-	size := p.model.TransitionScores.Value().Rows() - 1
-	scores := make([]ag.Node, size)
-	for i := 0; i < size; i++ {
-		vecTrans := p.g.Add(stepVec[i], p.transitionScores[i+1][0])
-		scores[i] = p.g.Add(scores[i], p.g.Exp(vecTrans))
+	scores := make([]ag.Node, p.size)
+	g := p.Graph
+	for i := 0; i < p.size; i++ {
+		vecTrans := g.Add(stepVec[i], p.transitionScores[i+1][0])
+		scores[i] = g.Add(scores[i], g.Exp(vecTrans))
 	}
 	return scores
 }
 
 func (p *Processor) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
-	size := p.model.TransitionScores.Value().Rows() - 1
-	scores := make([]ag.Node, size)
-	for i := 0; i < size; i++ {
+	scores := make([]ag.Node, p.size)
+	g := p.Graph
+	for i := 0; i < p.size; i++ {
 		nodei := totalVec[i]
 		transitionScores := p.transitionScores[i+1]
-		for j := 0; j < size; j++ {
-			vecSum := p.g.Add(nodei, stepVec[j])
-			vecTrans := p.g.Add(vecSum, transitionScores[j+1])
-			scores[j] = p.g.Add(scores[j], p.g.Exp(vecTrans))
+		for j := 0; j < p.size; j++ {
+			vecSum := g.Add(nodei, stepVec[j])
+			vecTrans := g.Add(vecSum, transitionScores[j+1])
+			scores[j] = g.Add(scores[j], g.Exp(vecTrans))
 		}
 	}
-	for i := 0; i < size; i++ {
-		scores[i] = p.g.Log(scores[i])
+	for i := 0; i < p.size; i++ {
+		scores[i] = g.Log(scores[i])
 	}
 	return scores
 }

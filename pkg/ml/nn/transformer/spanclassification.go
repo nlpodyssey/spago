@@ -32,7 +32,7 @@ type SpanClassificationProcessor struct {
 
 // Classify returns the "span start logits" and "span end logits".
 func (p *SpanClassificationProcessor) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
-	g := p.Graph()
+	g := p.GetGraph()
 	for _, y := range p.Forward(xs...) {
 		split := nn.SeparateVec(g, y)
 		startLogits = append(startLogits, split[0])

@@ -34,21 +34,25 @@ func NewModel(convolution *convolution.Model, maxPoolingRows, maxPoolingCols int
 }
 
 type Processor struct {
-	opt         []interface{}
-	model       *Model
-	mode        nn.ProcessingMode
-	g           *ag.Graph
-	Convolution nn.Processor
-	FinalLayer  nn.Processor
+	nn.BaseProcessor
+	maxPoolingRows int
+	maxPoolingCols int
+	Convolution    nn.Processor
+	FinalLayer     nn.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:       m,
-		mode:        nn.Training,
-		Convolution: m.Convolution.NewProc(g),
-		FinalLayer:  m.FinalLayer.NewProc(g),
-		g:           g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
+		maxPoolingRows: m.maxPoolingRows,
+		maxPoolingCols: m.maxPoolingCols,
+		Convolution:    m.Convolution.NewProc(g),
+		FinalLayer:     m.FinalLayer.NewProc(g),
 	}
 	p.init(opt)
 	return p
@@ -60,13 +64,8 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model         { return p.model }
-func (p *Processor) Graph() *ag.Graph        { return p.g }
-func (p *Processor) RequiresFullSeq() bool   { return true }
-func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.Convolution.SetMode(mode)
 	p.FinalLayer.SetMode(mode)
 }
@@ -74,14 +73,14 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	filters := p.Convolution.Forward(xs...)
 	poolingFilters := p.maxPooling(filters...)
-	concatFilters := p.g.Concat(p.vectorize(poolingFilters...)...)
+	concatFilters := p.Graph.Concat(p.vectorize(poolingFilters...)...)
 	return p.FinalLayer.Forward(concatFilters)
 }
 
 func (p *Processor) maxPooling(xs ...ag.Node) []ag.Node {
 	ret := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ret[i] = p.g.MaxPooling(x, p.model.maxPoolingRows, p.model.maxPoolingCols)
+		ret[i] = p.Graph.MaxPooling(x, p.maxPoolingRows, p.maxPoolingCols)
 	}
 	return ret
 }
@@ -89,7 +88,7 @@ func (p *Processor) maxPooling(xs ...ag.Node) []ag.Node {
 func (p *Processor) vectorize(xs ...ag.Node) []ag.Node {
 	ret := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ret[i] = p.g.Vec(x)
+		ret[i] = p.Graph.Vec(x)
 	}
 	return ret
 }

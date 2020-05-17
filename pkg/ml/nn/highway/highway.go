@@ -35,26 +35,25 @@ func New(in int, activation ag.OpName) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	wIn   ag.Node
-	bIn   ag.Node
-	wT    ag.Node
-	bT    ag.Node
+	nn.BaseProcessor
+	wIn ag.Node
+	bIn ag.Node
+	wT  ag.Node
+	bT  ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		wIn:   g.NewWrap(m.WIn),
-		bIn:   g.NewWrap(m.BIn),
-		wT:    g.NewWrap(m.WT),
-		bT:    g.NewWrap(m.BT),
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		wIn: g.NewWrap(m.WIn),
+		bIn: g.NewWrap(m.BIn),
+		wT:  g.NewWrap(m.WT),
+		bT:  g.NewWrap(m.BT),
 	}
 	p.init(opt)
 	return p
@@ -65,12 +64,6 @@ func (p *Processor) init(opt []interface{}) {
 		log.Fatal("highway: invalid init options")
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -84,8 +77,10 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
 func (p *Processor) forward(x ag.Node) ag.Node {
-	t := p.g.Sigmoid(nn.Affine(p.g, p.bT, p.wT, x))
-	h := p.g.Invoke(p.model.Activation, nn.Affine(p.g, p.bIn, p.wIn, x))
-	y := p.g.Add(p.g.Prod(t, h), p.g.Prod(p.g.ReverseSub(t, p.g.NewScalar(1.0)), x))
+	activation := p.Model.(*Model).Activation
+	g := p.Graph
+	t := g.Sigmoid(nn.Affine(g, p.bT, p.wT, x))
+	h := g.Invoke(activation, nn.Affine(g, p.bIn, p.wIn, x))
+	y := g.Add(g.Prod(t, h), g.Prod(g.ReverseSub(t, g.NewScalar(1.0)), x))
 	return y
 }

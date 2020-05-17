@@ -55,10 +55,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt      []interface{}
-	model    *Model
-	mode     nn.ProcessingMode
-	g        *ag.Graph
+	nn.BaseProcessor
 	wPart    ag.Node
 	wPartRec ag.Node
 	bPart    ag.Node
@@ -73,11 +70,13 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:    m,
-		mode:     nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States:   nil,
-		opt:      opt,
-		g:        g,
 		wPart:    g.NewWrap(m.WPart),
 		wPartRec: g.NewWrap(m.WPartRec),
 		bPart:    g.NewWrap(m.BPart),
@@ -103,12 +102,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -132,14 +125,15 @@ func (p *Processor) LastState() *State {
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev := p.prev()
-	s.R = p.g.Sigmoid(nn.Affine(p.g, p.bRes, p.wRes, x, p.wResRec, yPrev))
-	s.P = p.g.Sigmoid(nn.Affine(p.g, p.bPart, p.wPart, x, p.wPartRec, yPrev))
-	s.C = p.g.Tanh(nn.Affine(p.g, p.bCand, p.wCand, x, p.wCandRec, tryProd(p.g, yPrev, s.R)))
-	s.Y = p.g.Prod(s.P, s.C)
+	s.R = g.Sigmoid(nn.Affine(g, p.bRes, p.wRes, x, p.wResRec, yPrev))
+	s.P = g.Sigmoid(nn.Affine(g, p.bPart, p.wPart, x, p.wPartRec, yPrev))
+	s.C = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, tryProd(g, yPrev, s.R)))
+	s.Y = g.Prod(s.P, s.C)
 	if yPrev != nil {
-		s.Y = p.g.Add(s.Y, p.g.Prod(p.g.ReverseSub(s.P, p.g.NewScalar(1.0)), yPrev))
+		s.Y = g.Add(s.Y, g.Prod(g.ReverseSub(s.P, g.NewScalar(1.0)), yPrev))
 	}
 	return
 }

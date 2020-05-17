@@ -73,16 +73,14 @@ func New(c Config) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	wz    []ag.Node
-	bz    []ag.Node
-	wh    ag.Node
-	bh    ag.Node
-	w     ag.Node
-	b     ag.Node
+	nn.BaseProcessor
+	Config
+	wz []ag.Node
+	bz []ag.Node
+	wh ag.Node
+	bh ag.Node
+	w  ag.Node
+	b  ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
@@ -109,16 +107,19 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		bh = g.NewWrap(m.Bh)
 	}
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		wz:    wx,
-		bz:    bx,
-		wh:    wh,
-		bh:    bh,
-		w:     g.NewWrap(m.W),
-		b:     g.NewWrap(m.B),
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		Config: m.Config,
+		wz:     wx,
+		bz:     bx,
+		wh:     wh,
+		bh:     bh,
+		w:      g.NewWrap(m.W),
+		b:      g.NewWrap(m.B),
 	}
 	p.init(opt)
 	return p
@@ -130,12 +131,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -145,31 +140,32 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) ag.Node {
+	g := p.Graph
 	z := p.useFeaturesDropout(p.featuresMapping(x))
-	h := p.useEnhancedNodesDropout(p.g.Invoke(p.model.EnhancedNodesActivation, nn.Affine(p.g, p.bh, p.wh, z)))
-	y := p.g.Invoke(p.model.OutputActivation, nn.Affine(p.g, p.b, p.w, p.g.Concat([]ag.Node{z, h}...)))
+	h := p.useEnhancedNodesDropout(g.Invoke(p.EnhancedNodesActivation, nn.Affine(g, p.bh, p.wh, z)))
+	y := g.Invoke(p.OutputActivation, nn.Affine(g, p.b, p.w, g.Concat([]ag.Node{z, h}...)))
 	return y
 }
 
 func (p *Processor) featuresMapping(x ag.Node) ag.Node {
-	z := make([]ag.Node, p.model.NumOfFeatures)
+	z := make([]ag.Node, p.NumOfFeatures)
 	for i := range z {
-		z[i] = nn.Affine(p.g, p.bz[i], p.wz[i], x)
+		z[i] = nn.Affine(p.Graph, p.bz[i], p.wz[i], x)
 	}
-	return p.g.Invoke(p.model.FeaturesActivation, p.g.Concat(z...))
+	return p.Graph.Invoke(p.FeaturesActivation, p.Graph.Concat(z...))
 }
 
 func (p *Processor) useFeaturesDropout(x ag.Node) ag.Node {
-	if p.mode == nn.Training && p.model.FeaturesDropout > 0.0 {
-		return p.g.Dropout(x, p.model.FeaturesDropout)
+	if p.Mode == nn.Training && p.FeaturesDropout > 0.0 {
+		return p.Graph.Dropout(x, p.FeaturesDropout)
 	} else {
 		return x
 	}
 }
 
 func (p *Processor) useEnhancedNodesDropout(x ag.Node) ag.Node {
-	if p.mode == nn.Training && p.model.EnhancedNodesDropout > 0.0 {
-		return p.g.Dropout(x, p.model.EnhancedNodesDropout)
+	if p.Mode == nn.Training && p.EnhancedNodesDropout > 0.0 {
+		return p.Graph.Dropout(x, p.EnhancedNodesDropout)
 	} else {
 		return x
 	}

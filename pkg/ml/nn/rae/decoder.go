@@ -24,10 +24,7 @@ type Decoder struct {
 }
 
 type DecoderProcessor struct {
-	opt            []interface{}
-	model          *Decoder
-	mode           nn.ProcessingMode
-	g              *ag.Graph
+	nn.BaseProcessor
 	ffn1           nn.Processor
 	ffn2           nn.Processor
 	ffn3           nn.Processor
@@ -53,10 +50,12 @@ func (m *Decoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 
 	return &DecoderProcessor{
-		model:          m,
-		mode:           nn.Training,
-		opt:            opt,
-		g:              g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		ffn1:           m.DecodingFNN1.NewProc(g),
 		ffn2:           m.DecodingFFN2.NewProc(g),
 		ffn3:           m.DescalingFFN.NewProc(g),
@@ -66,13 +65,8 @@ func (m *Decoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 }
 
-func (p *DecoderProcessor) Model() nn.Model         { return p.model }
-func (p *DecoderProcessor) Graph() *ag.Graph        { return p.g }
-func (p *DecoderProcessor) RequiresFullSeq() bool   { return true }
-func (p *DecoderProcessor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.ffn1.SetMode(mode)
 	p.ffn2.SetMode(mode)
 	p.ffn3.SetMode(mode)
@@ -98,17 +92,19 @@ func (p *DecoderProcessor) decodingPart1(xs []ag.Node) []ag.Node {
 	decoding := p.splitVectors(p.ffn1.Forward(p.addStepEncoding(xs)...))
 	ys := []ag.Node{decoding[0].y0, decoding[0].y1}
 	for i := 1; i < len(xs); i++ {
-		ys[i-1] = p.mean(ys[i-1], decoding[i].y0)
+		ys[i-1] = mean(p.Graph, ys[i-1], decoding[i].y0)
 		ys = append(ys, decoding[i].y1)
 	}
 	return ys
 }
 
 func (p *DecoderProcessor) addStepEncoding(xs []ag.Node) []ag.Node {
-	stepEncoding := p.g.NewVariable(p.model.StepEncoder.EncodingAt(p.recursions), false)
+	g := p.Graph
+	stepEncoder := p.Model.(*Model).Decoder.StepEncoder
+	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.recursions), false)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.g.Add(x, stepEncoding)
+		ys[i] = g.Add(x, stepEncoding)
 	}
 	return ys
 }
@@ -116,7 +112,7 @@ func (p *DecoderProcessor) addStepEncoding(xs []ag.Node) []ag.Node {
 func (p *DecoderProcessor) splitVectors(xs []ag.Node) []struct{ y0, y1 ag.Node } {
 	ys := make([]struct{ y0, y1 ag.Node }, len(xs))
 	for i, x := range xs {
-		lst := nn.SplitVec(p.g, x, 2)
+		lst := nn.SplitVec(p.Graph, x, 2)
 		ys[i] = struct{ y0, y1 ag.Node }{
 			y0: lst[0],
 			y1: lst[1],
@@ -125,6 +121,6 @@ func (p *DecoderProcessor) splitVectors(xs []ag.Node) []struct{ y0, y1 ag.Node }
 	return ys
 }
 
-func (p *DecoderProcessor) mean(x1 ag.Node, x2 ag.Node) ag.Node {
-	return p.g.ProdScalar(p.g.Add(x1, x2), p.g.NewScalar(0.5))
+func mean(g *ag.Graph, x1 ag.Node, x2 ag.Node) ag.Node {
+	return g.ProdScalar(g.Add(x1, x2), g.NewScalar(0.5))
 }

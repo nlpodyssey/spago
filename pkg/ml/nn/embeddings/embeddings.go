@@ -186,19 +186,20 @@ func (m *Model) Load(filename string) {
 }
 
 type Processor struct {
-	opt            []interface{}
-	model          *Model
-	mode           nn.ProcessingMode
-	g              *ag.Graph
+	nn.BaseProcessor
 	UsedEmbeddings map[string]*nn.Param
+	getEmbedding   func(word string) *nn.Param
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		getEmbedding: m.GetEmbedding,
 	}
 	p.init(opt)
 	return p
@@ -210,12 +211,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 // Encodes returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes are nil.
@@ -226,9 +221,9 @@ func (p *Processor) Encode(words ...string) []ag.Node {
 		if item, ok := cache[word]; ok {
 			encoding[i] = item
 		} else {
-			embedding := p.model.GetEmbedding(word)
+			embedding := p.getEmbedding(word)
 			if embedding != nil {
-				encoding[i] = p.g.NewWrap(embedding)
+				encoding[i] = p.Graph.NewWrap(embedding)
 			} else {
 				encoding[i] = nil
 			}

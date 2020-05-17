@@ -27,20 +27,19 @@ func New(in, rank int) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	b     ag.Node
+	nn.BaseProcessor
+	b ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		b:     g.NewWrap(m.B),
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		b: g.NewWrap(m.B),
 	}
 	p.init(opt)
 	return p
@@ -52,12 +51,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -67,6 +60,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) ag.Node {
-	bh := p.g.Mul(p.b, x)
-	return p.g.Mul(p.g.T(bh), bh)
+	g := p.Graph
+	bh := g.Mul(p.b, x)
+	return g.Mul(g.T(bh), bh)
 }

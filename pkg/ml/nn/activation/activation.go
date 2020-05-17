@@ -29,10 +29,7 @@ func New(activation ag.OpName, params ...*nn.Param) *Model {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	params []ag.Node
 }
 
@@ -42,10 +39,12 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		params = append(params, g.NewWrap(param))
 	}
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
-		opt:    opt,
-		g:      g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		params: params,
 	}
 	p.init(opt)
@@ -58,16 +57,11 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
+	activation := p.Model.(*Model).Activation
 	for i, x := range xs {
-		ys[i] = p.g.Invoke(p.model.Activation, append([]ag.Node{x}, p.params...)...)
+		ys[i] = p.Graph.Invoke(activation, append([]ag.Node{x}, p.params...)...)
 	}
 	return ys
 }

@@ -51,7 +51,7 @@ func New(size, numOfHeads int) *Model {
 }
 
 type Processor struct {
-	opt               []interface{}
+	nn.BaseProcessor
 	model             *Model
 	g                 *ag.Graph
 	mode              nn.ProcessingMode
@@ -65,10 +65,12 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		headAttentionProc[i] = m.Attention[i].NewProc(g).(*selfattention.Processor)
 	}
 	p := &Processor{
-		model:             m,
-		g:                 g,
-		mode:              nn.Training,
-		opt:               opt,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		HeadAttentionProc: headAttentionProc,
 		outputMerge:       m.OutputMerge.NewProc(g),
 	}
@@ -76,11 +78,13 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	return p
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return true }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
+func (p *Processor) SetMode(mode nn.ProcessingMode) {
+	p.mode = mode
+	p.outputMerge.SetMode(mode)
+	for _, proc := range p.HeadAttentionProc {
+		proc.SetMode(mode)
+	}
+}
 
 func (p *Processor) init(opt []interface{}) {
 	if len(opt) > 0 {

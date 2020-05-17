@@ -61,10 +61,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt      []interface{}
-	model    *Model
-	mode     nn.ProcessingMode
-	g        *ag.Graph
+	nn.BaseProcessor
 	wIn      ag.Node
 	wInRec   ag.Node
 	bIn      ag.Node
@@ -82,11 +79,13 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:    m,
-		mode:     nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States:   nil,
-		opt:      opt,
-		g:        g,
 		wIn:      g.NewWrap(m.WIn),
 		wInRec:   g.NewWrap(m.WInRec),
 		bIn:      g.NewWrap(m.BIn),
@@ -115,12 +114,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -147,18 +140,19 @@ func (p *Processor) LastState() *State {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev, cellPrev := p.prev()
-	s.InG = p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	s.OutG = p.g.Sigmoid(nn.Affine(p.g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
-	s.ForG = p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = p.g.Tanh(nn.Affine(p.g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
+	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrev))
+	s.OutG = g.Sigmoid(nn.Affine(g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
+	s.Cand = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
 	if cellPrev != nil {
-		s.Cell = p.g.Add(p.g.Prod(s.InG, s.Cand), p.g.Prod(s.ForG, cellPrev))
+		s.Cell = g.Add(g.Prod(s.InG, s.Cand), g.Prod(s.ForG, cellPrev))
 	} else {
-		s.Cell = p.g.Prod(s.InG, s.Cand)
+		s.Cell = g.Prod(s.InG, s.Cand)
 	}
-	s.Y = p.g.Prod(s.OutG, p.g.Tanh(s.Cell))
+	s.Y = g.Prod(s.OutG, g.Tanh(s.Cell))
 	return
 }
 

@@ -50,10 +50,8 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
+	order  int
 	w      ag.Node
 	wRec   ag.Node
 	wS     []ag.Node
@@ -67,11 +65,14 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		wS[i] = g.NewWrap(p)
 	}
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		order:  m.order,
 		States: nil,
-		opt:    opt,
-		g:      g,
 		w:      g.NewWrap(m.W),
 		wRec:   g.NewWrap(m.WRec),
 		wS:     wS,
@@ -92,12 +93,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -109,24 +104,27 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
-	h := nn.Affine(p.g, p.b, p.w, x)
+	h := nn.Affine(g, p.b, p.w, x)
 	if len(p.States) > 0 {
-		h = p.g.Add(h, p.g.Prod(p.wRec, p.feedback()))
+		h = g.Add(h, g.Prod(p.wRec, p.feedback()))
 	}
-	s.Y = p.g.ReLU(h)
+	s.Y = g.ReLU(h)
 	return
 }
 
 func (p *Processor) feedback() ag.Node {
+	g := p.Graph
 	var y ag.Node
 	n := len(p.States)
-	for i := 0; i < utils.MinInt(p.model.order, n); i++ {
-		scaled := p.g.Prod(p.wS[i], p.g.NewWrapNoGrad(p.States[n-1-i].Y))
+	min := utils.MinInt(p.order, n)
+	for i := 0; i < min; i++ {
+		scaled := g.Prod(p.wS[i], g.NewWrapNoGrad(p.States[n-1-i].Y))
 		if y == nil {
 			y = scaled
 		} else {
-			y = p.g.Add(y, scaled)
+			y = g.Add(y, scaled)
 		}
 	}
 	return y

@@ -41,10 +41,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	w      ag.Node
 	wRec   ag.Node
 	b      ag.Node
@@ -53,11 +50,13 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States: nil,
-		opt:    opt,
-		g:      g,
 		w:      g.NewWrap(m.W),
 		wRec:   g.NewWrap(m.WRec),
 		b:      g.NewWrap(m.B),
@@ -76,12 +75,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -105,11 +98,12 @@ func (p *Processor) LastState() *State {
 func (p *Processor) forward(x ag.Node) (s *State) {
 	s = new(State)
 	yPrev := p.prev()
-	h := nn.Affine(p.g, p.b, p.w, x)
+	h := nn.Affine(p.Graph, p.b, p.w, x)
 	if yPrev != nil {
-		h = p.g.Add(h, p.g.Prod(p.wRec, yPrev))
+		h = p.Graph.Add(h, p.Graph.Prod(p.wRec, yPrev))
 	}
-	s.Y = p.g.Invoke(p.model.Activation, h)
+	a := p.Model.(*Model).Activation
+	s.Y = p.Graph.Invoke(a, h)
 	return
 }
 

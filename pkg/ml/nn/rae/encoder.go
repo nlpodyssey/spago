@@ -23,10 +23,7 @@ type Encoder struct {
 }
 
 type EncoderProcessor struct {
-	opt        []interface{}
-	model      *Encoder
-	mode       nn.ProcessingMode
-	g          *ag.Graph
+	nn.BaseProcessor
 	ffn1       nn.Processor
 	ffn2       nn.Processor
 	recursions int
@@ -34,10 +31,12 @@ type EncoderProcessor struct {
 
 func (m *Encoder) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &EncoderProcessor{
-		model:      m,
-		mode:       nn.Training,
-		opt:        opt,
-		g:          g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		ffn1:       m.ScalingFFN.NewProc(g),
 		ffn2:       m.EncodingFFN.NewProc(g),
 		recursions: 0,
@@ -52,18 +51,13 @@ func (p *EncoderProcessor) init(opt []interface{}) {
 	}
 }
 
-func (p *EncoderProcessor) Model() nn.Model         { return p.model }
-func (p *EncoderProcessor) Graph() *ag.Graph        { return p.g }
-func (p *EncoderProcessor) RequiresFullSeq() bool   { return true }
-func (p *EncoderProcessor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *EncoderProcessor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.ffn1.SetMode(mode)
 	p.ffn2.SetMode(mode)
 }
 
-func (p *EncoderProcessor) Recursions() int {
+func (p *EncoderProcessor) GetRecursions() int {
 	return p.recursions
 }
 
@@ -78,11 +72,13 @@ func (p *EncoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *EncoderProcessor) encodingStep(xs []ag.Node) []ag.Node {
-	stepEncoding := p.g.NewVariable(p.model.StepEncoder.EncodingAt(p.recursions), false)
+	g := p.Graph
+	stepEncoder := p.Model.(*Model).Decoder.StepEncoder
+	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.recursions), false)
 	size := len(xs)
 	ys := make([]ag.Node, size-1)
 	for i := 0; i < size-1; i++ {
-		ys[i] = p.g.Add(p.g.Concat(xs[i:i+2]...), stepEncoding)
+		ys[i] = g.Add(g.Concat(xs[i:i+2]...), stepEncoding)
 	}
 	return p.ffn2.Forward(ys...)
 }

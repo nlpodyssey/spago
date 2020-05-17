@@ -44,8 +44,8 @@ func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
 		p := l.Model.NewProc(g).(*Processor)
-		for j := 0; j < p.model.NumOfFeatures; j++ {
-			featuresMap[j] = append(featuresMap[j], nn.Affine(p.g, p.bz[j], p.wz[j], x).Value())
+		for j := 0; j < p.NumOfFeatures; j++ {
+			featuresMap[j] = append(featuresMap[j], nn.Affine(p.Graph, p.bz[j], p.wz[j], x).Value())
 		}
 	}
 	x := mat.ConcatH(l.Input...)
@@ -79,8 +79,8 @@ func (l *BroadLearningAlgorithm) log(message string) {
 
 func singleZH(p *Processor, x ag.Node) *mat.Dense {
 	z := p.useFeaturesDropout(p.featuresMapping(x))
-	h := p.useEnhancedNodesDropout(p.g.Invoke(p.model.EnhancedNodesActivation, nn.Affine(p.g, p.bh, p.wh, z)))
-	return p.g.Concat([]ag.Node{z, h}...).Value().(*mat.Dense)
+	h := p.useEnhancedNodesDropout(p.Graph.Invoke(p.EnhancedNodesActivation, nn.Affine(p.Graph, p.bh, p.wh, z)))
+	return p.Graph.Concat([]ag.Node{z, h}...).Value().(*mat.Dense)
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y

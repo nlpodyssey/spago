@@ -53,10 +53,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	wInS   ag.Node
 	wInR   ag.Node
 	wRecS  ag.Node
@@ -70,11 +67,12 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
-		States: nil,
-		opt:    opt,
-		g:      g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		wInS:   g.NewWrap(m.WInS),
 		wInR:   g.NewWrap(m.WInR),
 		wRecS:  g.NewWrap(m.WRecS),
@@ -83,6 +81,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		bR:     g.NewWrap(m.BR),
 		s:      g.NewWrap(m.S),
 		r:      g.NewWrap(m.R),
+		States: nil,
 	}
 	p.init(opt)
 	return p
@@ -98,12 +97,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -136,11 +129,12 @@ func (p *Processor) forward(x ag.Node) (st *State) {
 		yPrev = sPrev.Y
 	}
 	st = new(State)
-	st.AR = p.g.Sigmoid(nn.Affine(p.g, p.bR, p.wInR, x, p.wRecR, yPrev))
-	st.AS = p.g.Sigmoid(nn.Affine(p.g, p.bS, p.wInS, x, p.wRecS, yPrev))
-	st.R = p.g.Mul(p.r, st.AR)
-	st.S = p.g.Mul(p.s, st.AS)
-	b := p.g.Mul(st.S, p.g.T(st.R))
-	st.Y = p.g.Vec(b)
+	g := p.Graph
+	st.AR = g.Sigmoid(nn.Affine(g, p.bR, p.wInR, x, p.wRecR, yPrev))
+	st.AS = g.Sigmoid(nn.Affine(g, p.bS, p.wInS, x, p.wRecS, yPrev))
+	st.R = g.Mul(p.r, st.AR)
+	st.S = g.Mul(p.s, st.AS)
+	b := g.Mul(st.S, g.T(st.R))
+	st.Y = g.Vec(b)
 	return
 }

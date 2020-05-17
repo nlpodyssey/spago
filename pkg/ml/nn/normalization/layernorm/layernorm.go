@@ -31,24 +31,23 @@ func New(size int) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	w     ag.Node
-	b     ag.Node
-	eps   ag.Node
+	nn.BaseProcessor
+	w   ag.Node
+	b   ag.Node
+	eps ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		w:     g.NewWrap(m.W),
-		b:     g.NewWrap(m.B),
-		eps:   g.NewScalar(1e-5), // avoid underflow errors
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		w:   g.NewWrap(m.W),
+		b:   g.NewWrap(m.B),
+		eps: g.NewScalar(1e-5), // avoid underflow errors
 	}
 	p.init(opt)
 	return p
@@ -60,20 +59,15 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	g := p.Graph
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		mean := p.g.ReduceMean(x)
-		dev := p.g.SubScalar(x, mean)
-		stdDev := p.g.Sqrt(p.g.Add(p.g.ReduceMean(p.g.Square(dev)), p.eps))
-		ys[i] = p.g.Add(p.g.Prod(p.g.DivScalar(dev, stdDev), p.w), p.b)
+		mean := g.ReduceMean(x)
+		dev := g.SubScalar(x, mean)
+		stdDev := g.Sqrt(g.Add(g.ReduceMean(g.Square(dev)), p.eps))
+		ys[i] = g.Add(g.Prod(g.DivScalar(dev, stdDev), p.w), p.b)
 	}
 	return ys
 }

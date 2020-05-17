@@ -46,10 +46,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	w1     ag.Node
 	w2     ag.Node
 	w3     ag.Node
@@ -59,15 +56,17 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
-		States: nil,
-		opt:    opt,
-		g:      g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		w1:     g.NewWrap(m.W1),
 		w2:     g.NewWrap(m.W2),
 		w3:     g.NewWrap(m.W3),
 		wCell:  g.NewWrap(m.WCell),
+		States: nil,
 	}
 	p.init(opt)
 	return p
@@ -83,12 +82,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -115,21 +108,22 @@ func (p *Processor) LastState() *State {
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev, cellPrev := p.prev()
 	h := x
 	if yPrev != nil {
-		h = p.g.Add(h, yPrev)
+		h = g.Add(h, yPrev)
 	}
-	s.L1 = p.g.Sigmoid(p.g.Mul(p.w1, h))
-	s.L2 = p.g.Sigmoid(p.g.Mul(p.w2, h))
-	s.L3 = p.g.Sigmoid(p.g.Mul(p.w3, h))
-	s.Cand = p.g.Prod(s.L1, s.L2)
+	s.L1 = g.Sigmoid(g.Mul(p.w1, h))
+	s.L2 = g.Sigmoid(g.Mul(p.w2, h))
+	s.L3 = g.Sigmoid(g.Mul(p.w3, h))
+	s.Cand = g.Prod(s.L1, s.L2)
 	if cellPrev != nil {
-		s.Cand = p.g.Add(s.Cand, cellPrev)
+		s.Cand = g.Add(s.Cand, cellPrev)
 	}
-	s.Cell = p.g.Sigmoid(p.g.Mul(p.wCell, s.Cand))
-	s.Y = p.g.Prod(s.Cell, s.L3)
+	s.Cell = g.Sigmoid(g.Mul(p.wCell, s.Cand))
+	s.Y = g.Prod(s.Cell, s.L3)
 	return
 }
 

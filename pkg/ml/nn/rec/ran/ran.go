@@ -56,10 +56,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt     []interface{}
-	model   *Model
-	mode    nn.ProcessingMode
-	g       *ag.Graph
+	nn.BaseProcessor
 	wIn     ag.Node
 	wInRec  ag.Node
 	bIn     ag.Node
@@ -73,11 +70,12 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:   m,
-		mode:    nn.Training,
-		States:  nil,
-		opt:     opt,
-		g:       g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		wIn:     g.NewWrap(m.WIn),
 		wInRec:  g.NewWrap(m.WInRec),
 		bIn:     g.NewWrap(m.BIn),
@@ -86,6 +84,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		bFor:    g.NewWrap(m.BFor),
 		wCand:   g.NewWrap(m.WCand),
 		bCand:   g.NewWrap(m.BCand),
+		States:  nil,
 	}
 	p.init(opt)
 	return p
@@ -101,12 +100,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -132,16 +125,17 @@ func (p *Processor) LastState() *State {
 // c = inG * c + forG * cPrev
 // y = f(c)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev, cPrev := p.prev()
-	s.InG = p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	s.ForG = p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = nn.Affine(p.g, p.bCand, p.wCand, x)
-	s.C = p.g.Prod(s.InG, s.Cand)
+	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
+	s.Cand = nn.Affine(g, p.bCand, p.wCand, x)
+	s.C = g.Prod(s.InG, s.Cand)
 	if cPrev != nil {
-		s.C = p.g.Add(s.C, p.g.Prod(s.ForG, cPrev))
+		s.C = g.Add(s.C, g.Prod(s.ForG, cPrev))
 	}
-	s.Y = p.g.Tanh(s.C)
+	s.Y = g.Tanh(s.C)
 	return
 }
 

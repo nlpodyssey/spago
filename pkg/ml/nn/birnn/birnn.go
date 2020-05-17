@@ -40,21 +40,23 @@ func New(positive, negative nn.Model, merge MergeType) *Model {
 }
 
 type Processor struct {
-	opt      []interface{}
-	model    *Model
-	mode     nn.ProcessingMode
-	g        *ag.Graph
-	Positive nn.Processor
-	Negative nn.Processor
+	nn.BaseProcessor
+	MergeMode MergeType
+	Positive  nn.Processor
+	Negative  nn.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:    m,
-		mode:     nn.Training,
-		Positive: m.Positive.NewProc(g),
-		Negative: m.Negative.NewProc(g),
-		g:        g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
+		MergeMode: m.MergeMode,
+		Positive:  m.Positive.NewProc(g),
+		Negative:  m.Negative.NewProc(g),
 	}
 	p.init(opt)
 	return p
@@ -66,13 +68,8 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model         { return p.model }
-func (p *Processor) Graph() *ag.Graph        { return p.g }
-func (p *Processor) RequiresFullSeq() bool   { return true }
-func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.Positive.SetMode(mode)
 	p.Negative.SetMode(mode)
 }
@@ -109,15 +106,17 @@ func reversed(ns []ag.Node) []ag.Node {
 }
 
 func (p *Processor) merge(a, b ag.Node) ag.Node {
-	if p.model.MergeMode == Concat {
-		return p.g.Concat(a, b)
-	} else if p.model.MergeMode == Sum {
-		return p.g.Add(a, b)
-	} else if p.model.MergeMode == Prod {
-		return p.g.Prod(a, b)
-	} else if p.model.MergeMode == Avg {
-		return p.g.ProdScalar(p.g.Add(a, b), p.g.NewScalar(0.5))
-	} else {
+	g := p.Graph
+	switch p.MergeMode {
+	case Concat:
+		return g.Concat(a, b)
+	case Sum:
+		return g.Add(a, b)
+	case Prod:
+		return g.Prod(a, b)
+	case Avg:
+		return g.ProdScalar(g.Add(a, b), g.NewScalar(0.5))
+	default:
 		panic("birnn: invalid merge mode")
 	}
 }

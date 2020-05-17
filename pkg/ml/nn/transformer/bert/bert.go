@@ -92,7 +92,7 @@ func (m *Model) LayerAt(i int) *Layer {
 // LayerProcAt returns the i-processor.
 // It panics if the underlying model is not BERT.
 func LayerProcAt(bertProc *stack.Processor, index int) *LayerProcessor {
-	if _, ok := bertProc.Model().(*Model); ok {
+	if _, ok := bertProc.GetModel().(*Model); ok {
 		return bertProc.Layers[index].(*LayerProcessor)
 	} else {
 		panic("bert: invalid neural model")
@@ -108,10 +108,7 @@ type Layer struct {
 }
 
 type LayerProcessor struct {
-	opt                []interface{}
-	model              *Layer
-	mode               nn.ProcessingMode
-	g                  *ag.Graph
+	nn.BaseProcessor
 	MultiHeadAttention *multiheadattention.Processor
 	NormAttention      nn.Processor
 	FFN                nn.Processor
@@ -120,10 +117,12 @@ type LayerProcessor struct {
 
 func (m *Layer) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &LayerProcessor{
-		model:              m,
-		mode:               nn.Training,
-		opt:                opt,
-		g:                  g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
 		NormAttention:      m.NormAttention.NewProc(g),
 		FFN:                m.FFN.NewProc(g),
@@ -139,18 +138,13 @@ func (p *LayerProcessor) init(opt []interface{}) {
 	}
 }
 
-func (p *LayerProcessor) Model() nn.Model         { return p.model }
-func (p *LayerProcessor) Graph() *ag.Graph        { return p.g }
-func (p *LayerProcessor) RequiresFullSeq() bool   { return true }
-func (p *LayerProcessor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *LayerProcessor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
-	nn.SetProcessingMode(p.mode, p.MultiHeadAttention, p.NormAttention, p.FFN, p.NormFFN)
+	p.Mode = mode
+	nn.SetProcessingMode(mode, p.MultiHeadAttention, p.NormAttention, p.FFN, p.NormFFN)
 }
 
 func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
-	subLayer1 := rc.PostNorm(p.g, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
-	subLayer2 := rc.PostNorm(p.g, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)
+	subLayer1 := rc.PostNorm(p.Graph, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
+	subLayer2 := rc.PostNorm(p.Graph, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)
 	return subLayer2
 }

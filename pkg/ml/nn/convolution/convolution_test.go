@@ -178,7 +178,15 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func newTestModel() *Model {
-	model := New(2, 2, 1, 1, 3, 2, ag.OpTanh)
+	model := New(Config{
+		KernelSizeX:    2,
+		KernelSizeY:    2,
+		XStride:        1,
+		YStride:        1,
+		InputChannels:  3,
+		OutputChannels: 2,
+		Activation:     ag.OpTanh,
+	})
 	model.K[0].Value().SetData([]float64{
 		0.5, -0.4,
 		0.3, 0.3,

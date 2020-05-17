@@ -58,10 +58,8 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
+	nd     int
 	wx     ag.Node
 	wh     ag.Node
 	b      ag.Node
@@ -76,11 +74,13 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
-		States: nil,
-		opt:    opt,
-		g:      g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		nd:     m.nd,
 		wx:     g.NewWrap(m.Wx),
 		wh:     g.NewWrap(m.Wh),
 		b:      g.NewWrap(m.B),
@@ -90,6 +90,7 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		wrx:    g.NewWrap(m.Wrx),
 		wrh:    g.NewWrap(m.Wrh),
 		br:     g.NewWrap(m.Br),
+		States: nil,
 	}
 	p.init(opt)
 	return p
@@ -105,12 +106,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -131,11 +126,12 @@ func (p *Processor) LastState() *State {
 }
 
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev := p.yPrev()
-	a := p.g.Softmax(nn.Affine(p.g, p.ba, p.wax, x, p.wah, yPrev))
-	r := p.g.Sigmoid(nn.Affine(p.g, p.br, p.wrx, x, p.wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = p.g.Tanh(nn.Affine(p.g, p.b, p.wx, x, p.wh, p.tryProd(r, p.weightHistory(a))))
+	a := g.Softmax(nn.Affine(g, p.ba, p.wax, x, p.wah, yPrev))
+	r := g.Sigmoid(nn.Affine(g, p.br, p.wrx, x, p.wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
+	s.Y = g.Tanh(nn.Affine(g, p.b, p.wx, x, p.wh, p.tryProd(r, p.weightHistory(a))))
 	return
 }
 
@@ -149,12 +145,13 @@ func (p *Processor) yPrev() ag.Node {
 }
 
 func (p *Processor) weightHistory(a ag.Node) ag.Node {
+	g := p.Graph
 	var sum ag.Node
 	n := len(p.States)
-	for i := 0; i < p.model.nd; i++ {
+	for i := 0; i < p.nd; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
 		if k <= n {
-			sum = p.g.Add(sum, p.g.ProdScalar(p.States[n-k].Y, p.g.AtVec(a, i)))
+			sum = g.Add(sum, g.ProdScalar(p.States[n-k].Y, g.AtVec(a, i)))
 		}
 	}
 	return sum
@@ -163,7 +160,7 @@ func (p *Processor) weightHistory(a ag.Node) ag.Node {
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
 func (p *Processor) tryProd(a, b ag.Node) ag.Node {
 	if a != nil && b != nil {
-		return p.g.Prod(a, b)
+		return p.Graph.Prod(a, b)
 	}
 	return nil
 }

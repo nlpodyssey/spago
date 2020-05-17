@@ -33,10 +33,7 @@ func New(encoder *Encoder, decoder *Decoder) *Model {
 }
 
 type Processor struct {
-	opt            []interface{}
-	model          *Model
-	mode           nn.ProcessingMode
-	g              *ag.Graph
+	nn.BaseProcessor
 	Encoder        *EncoderProcessor
 	Decoder        *DecoderProcessor
 	SequenceLength int
@@ -54,23 +51,20 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	}
 
 	return &Processor{
-		model:          m,
-		mode:           nn.Training,
-		opt:            opt,
-		g:              g,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: true,
+		},
 		Encoder:        m.Encoder.NewProc(g).(*EncoderProcessor),
 		Decoder:        m.Decoder.NewProc(g, sequenceLength).(*DecoderProcessor),
 		SequenceLength: sequenceLength,
 	}
 }
 
-func (p *Processor) Model() nn.Model         { return p.model }
-func (p *Processor) Graph() *ag.Graph        { return p.g }
-func (p *Processor) RequiresFullSeq() bool   { return true }
-func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.Encoder.SetMode(mode)
 	p.Decoder.SetMode(mode)
 }

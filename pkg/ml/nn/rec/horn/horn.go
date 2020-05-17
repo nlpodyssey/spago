@@ -46,10 +46,7 @@ type InitHidden struct {
 }
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	w      ag.Node
 	wRec   []ag.Node
 	b      ag.Node
@@ -62,11 +59,13 @@ func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 		wRec[i] = g.NewWrap(p)
 	}
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States: nil,
-		opt:    opt,
-		g:      g,
 		w:      g.NewWrap(m.W),
 		wRec:   wRec,
 		b:      g.NewWrap(m.B),
@@ -86,12 +85,6 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -104,8 +97,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 func (p *Processor) forward(x ag.Node) (s *State) {
 	s = new(State)
-	h := nn.Affine(p.g, append([]ag.Node{p.b, p.w, x}, p.feedback()...)...)
-	s.Y = p.g.Tanh(h)
+	h := nn.Affine(p.Graph, append([]ag.Node{p.b, p.w, x}, p.feedback()...)...)
+	s.Y = p.Graph.Tanh(h)
 	return
 }
 
@@ -113,8 +106,8 @@ func (p *Processor) feedback() []ag.Node {
 	var ys []ag.Node
 	n := len(p.States)
 	for i := 0; i < utils.MinInt(len(p.wRec), n); i++ {
-		alpha := p.g.NewScalar(math.Pow(0.6, float64(i+1)))
-		ys = append(ys, p.wRec[i], p.g.ProdScalar(p.States[n-1-i].Y, alpha))
+		alpha := p.Graph.NewScalar(math.Pow(0.6, float64(i+1)))
+		ys = append(ys, p.wRec[i], p.Graph.ProdScalar(p.States[n-1-i].Y, alpha))
 	}
 	return ys
 }

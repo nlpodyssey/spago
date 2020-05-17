@@ -27,20 +27,19 @@ func New(size int) *Model {
 }
 
 type Processor struct {
-	opt   []interface{}
-	model *Model
-	mode  nn.ProcessingMode
-	g     *ag.Graph
-	gain  ag.Node
+	nn.BaseProcessor
+	gain ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model: m,
-		mode:  nn.Training,
-		opt:   opt,
-		g:     g,
-		gain:  g.NewWrap(m.Gain),
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
+		gain: g.NewWrap(m.Gain),
 	}
 	p.init(opt)
 	return p
@@ -52,18 +51,13 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
-
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	g := p.Graph
 	ys := make([]ag.Node, len(xs))
-	eps := p.g.NewScalar(1e-10)
+	eps := g.NewScalar(1e-10)
 	for i, x := range xs {
-		norm := p.g.Sqrt(p.g.ReduceSum(p.g.Square(x)))
-		ys[i] = p.g.Prod(p.g.DivScalar(x, p.g.AddScalar(norm, eps)), p.gain)
+		norm := g.Sqrt(g.ReduceSum(g.Square(x)))
+		ys[i] = g.Prod(g.DivScalar(x, g.AddScalar(norm, eps)), p.gain)
 	}
 	return ys
 }

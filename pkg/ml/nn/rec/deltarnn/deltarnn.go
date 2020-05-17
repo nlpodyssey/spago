@@ -53,10 +53,7 @@ type InitHidden struct {
 var _ nn.Processor = &Processor{}
 
 type Processor struct {
-	opt    []interface{}
-	model  *Model
-	mode   nn.ProcessingMode
-	g      *ag.Graph
+	nn.BaseProcessor
 	w      ag.Node
 	wRec   ag.Node
 	b      ag.Node
@@ -69,11 +66,13 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:  m,
-		mode:   nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States: nil,
-		opt:    opt,
-		g:      g,
 		w:      g.NewWrap(m.W),
 		wRec:   g.NewWrap(m.WRec),
 		b:      g.NewWrap(m.B),
@@ -96,12 +95,6 @@ func (p *Processor) init(opt []interface{}) {
 		}
 	}
 }
-
-func (p *Processor) Model() nn.Model                { return p.model }
-func (p *Processor) Graph() *ag.Graph               { return p.g }
-func (p *Processor) RequiresFullSeq() bool          { return false }
-func (p *Processor) Mode() nn.ProcessingMode        { return p.mode }
-func (p *Processor) SetMode(mode nn.ProcessingMode) { p.mode = mode }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
@@ -127,21 +120,22 @@ func (p *Processor) LastState() *State {
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev := p.prev()
-	wx := p.g.Mul(p.w, x)
+	wx := g.Mul(p.w, x)
 	if yPrev == nil {
-		s.D1 = p.g.Prod(p.beta1, wx)
-		s.C = p.g.Tanh(p.g.Add(s.D1, p.b))
-		s.P = p.g.Sigmoid(p.g.Add(wx, p.bPart))
-		s.Y = p.g.Tanh(p.g.Prod(s.P, s.C))
+		s.D1 = g.Prod(p.beta1, wx)
+		s.C = g.Tanh(g.Add(s.D1, p.b))
+		s.P = g.Sigmoid(g.Add(wx, p.bPart))
+		s.Y = g.Tanh(g.Prod(s.P, s.C))
 	} else {
-		wyRec := p.g.Mul(p.wRec, yPrev)
-		s.D1 = p.g.Add(p.g.Prod(p.beta1, wx), p.g.Prod(p.beta2, wyRec))
-		s.D2 = p.g.Prod(p.g.Prod(p.alpha, wx), wyRec)
-		s.C = p.g.Tanh(p.g.Add(p.g.Add(s.D1, s.D2), p.b))
-		s.P = p.g.Sigmoid(p.g.Add(wx, p.bPart))
-		s.Y = p.g.Tanh(p.g.Add(p.g.Prod(s.P, s.C), p.g.Prod(p.g.ReverseSub(s.P, p.g.NewScalar(1.0)), yPrev)))
+		wyRec := g.Mul(p.wRec, yPrev)
+		s.D1 = g.Add(g.Prod(p.beta1, wx), g.Prod(p.beta2, wyRec))
+		s.D2 = g.Prod(g.Prod(p.alpha, wx), wyRec)
+		s.C = g.Tanh(g.Add(g.Add(s.D1, s.D2), p.b))
+		s.P = g.Sigmoid(g.Add(wx, p.bPart))
+		s.Y = g.Tanh(g.Add(g.Prod(s.P, s.C), g.Prod(g.ReverseSub(s.P, g.NewScalar(1.0)), yPrev)))
 	}
 	return
 }

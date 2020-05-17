@@ -83,10 +83,7 @@ type GateConcurrency struct {
 }
 
 type Processor struct {
-	opt             []interface{}
-	model           *Model
-	mode            nn.ProcessingMode
-	g               *ag.Graph
+	nn.BaseProcessor
 	wIn             ag.Node
 	wInRec          ag.Node
 	bIn             ag.Node
@@ -108,12 +105,14 @@ type Processor struct {
 
 func (m *Model) NewProc(g *ag.Graph, opt ...interface{}) nn.Processor {
 	p := &Processor{
-		model:           m,
-		mode:            nn.Training,
+		BaseProcessor: nn.BaseProcessor{
+			Model:             m,
+			Mode:              nn.Training,
+			Graph:             g,
+			FullSeqProcessing: false,
+		},
 		States:          nil,
 		GateConcurrency: false,
-		opt:             opt,
-		g:               g,
 		wIn:             g.NewWrap(m.WIn),
 		wInRec:          g.NewWrap(m.WInRec),
 		bIn:             g.NewWrap(m.BIn),
@@ -147,13 +146,8 @@ func (p *Processor) init(opt []interface{}) {
 	}
 }
 
-func (p *Processor) Model() nn.Model         { return p.model }
-func (p *Processor) Graph() *ag.Graph        { return p.g }
-func (p *Processor) RequiresFullSeq() bool   { return false }
-func (p *Processor) Mode() nn.ProcessingMode { return p.mode }
-
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.PolicyGradient.SetMode(mode)
 }
 
@@ -179,7 +173,7 @@ func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
 	logPropActions := make([]ag.Node, len(p.States)-1)
 	for i := range logPropActions {
 		st := p.States[i+1] // skip the first state
-		logPropActions[i] = p.g.Log(p.g.AtVec(st.Actions, st.SkipIndex))
+		logPropActions[i] = p.Graph.Log(p.Graph.AtVec(st.Actions, st.SkipIndex))
 	}
 	return logPropActions
 }
@@ -192,31 +186,32 @@ func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	g := p.Graph
 	s = new(State)
 	yPrev, cellPrev := p.prev()
-
 	yPrevNew := yPrev
 	cellPrevNew := cellPrev
+
 	if yPrev != nil {
-		s.Actions = p.PolicyGradient.Forward(p.g.NewWrapNoGrad(p.g.Concat(yPrev, x)))[0]
+		s.Actions = p.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x)))[0]
 		s.SkipIndex = f64utils.ArgMax(s.Actions.Value().Data())
 		if s.SkipIndex < len(p.States) {
 			kState := p.States[len(p.States)-1-s.SkipIndex]
-			yPrevNew = p.g.Add(p.g.ProdScalar(kState.Y, p.lambda), p.g.ProdScalar(yPrevNew, p.negLambda))
-			cellPrevNew = p.g.Add(p.g.ProdScalar(kState.Cell, p.lambda), p.g.ProdScalar(cellPrevNew, p.negLambda))
+			yPrevNew = g.Add(g.ProdScalar(kState.Y, p.lambda), g.ProdScalar(yPrevNew, p.negLambda))
+			cellPrevNew = g.Add(g.ProdScalar(kState.Cell, p.lambda), g.ProdScalar(cellPrevNew, p.negLambda))
 		}
 	}
 
-	s.InG = p.g.Sigmoid(nn.Affine(p.g, p.bIn, p.wIn, x, p.wInRec, yPrevNew))
-	s.OutG = p.g.Sigmoid(nn.Affine(p.g, p.bOut, p.wOut, x, p.wOutRec, yPrevNew))
-	s.ForG = p.g.Sigmoid(nn.Affine(p.g, p.bFor, p.wFor, x, p.wForRec, yPrevNew))
-	s.Cand = p.g.Tanh(nn.Affine(p.g, p.bCand, p.wCand, x, p.wCandRec, yPrevNew))
+	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrevNew))
+	s.OutG = g.Sigmoid(nn.Affine(g, p.bOut, p.wOut, x, p.wOutRec, yPrevNew))
+	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrevNew))
+	s.Cand = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, yPrevNew))
 	if cellPrevNew != nil {
-		s.Cell = p.g.Add(p.g.Prod(s.InG, s.Cand), p.g.Prod(s.ForG, cellPrevNew))
+		s.Cell = g.Add(g.Prod(s.InG, s.Cand), g.Prod(s.ForG, cellPrevNew))
 	} else {
-		s.Cell = p.g.Prod(s.InG, s.Cand)
+		s.Cell = g.Prod(s.InG, s.Cand)
 	}
-	s.Y = p.g.Prod(s.OutG, p.g.Tanh(s.Cell))
+	s.Y = g.Prod(s.OutG, g.Tanh(s.Cell))
 	return
 }
 
