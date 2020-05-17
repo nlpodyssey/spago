@@ -8,7 +8,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -54,12 +53,6 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		bIn: g.NewWrap(m.BIn),
 		wT:  g.NewWrap(m.WT),
 		bT:  g.NewWrap(m.BT),
-	}
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("highway: invalid init options")
 	}
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/selfattention"
-	"log"
 	"math"
 )
 
@@ -81,12 +80,6 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.outputMerge.SetMode(mode)
 	for _, proc := range p.HeadAttentionProc {
 		proc.SetMode(mode)
-	}
-}
-
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("multiheadattention: invalid init options")
 	}
 }
 

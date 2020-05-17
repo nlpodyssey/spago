@@ -45,10 +45,6 @@ type State struct {
 	Y ag.Node
 }
 
-type InitHidden struct {
-	*State
-}
-
 type Processor struct {
 	nn.BaseProcessor
 	order  int

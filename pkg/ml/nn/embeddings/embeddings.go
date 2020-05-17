@@ -203,12 +203,6 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
-func (p *Processor) init(opt []interface{}) {
-	if len(opt) > 0 {
-		log.Fatal("embeddings: invalid init options")
-	}
-}
-
 // Encodes returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes are nil.
