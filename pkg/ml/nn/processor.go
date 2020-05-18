@@ -35,8 +35,15 @@ type Processor interface {
 	Forward(xs ...ag.Node) []ag.Node
 }
 
-// BaseProcessors satisfies some methods of the Processor interface. Going a little against Go's philosophy,
-// it's meant to be embedded in other processors to reduce the amount of boilerplate code.
+// SetProcessingMode sets the processing mode to a group of processors.
+func SetProcessingMode(mode ProcessingMode, ps ...Processor) {
+	for _, proc := range ps {
+		proc.SetMode(mode)
+	}
+}
+
+// BaseProcessors satisfies some methods of the Processor interface.
+// It is meant to be embedded in other processors to reduce the amount of boilerplate code.
 type BaseProcessor struct {
 	Model             Model
 	Mode              ProcessingMode
@@ -69,11 +76,4 @@ func (p *BaseProcessor) GetGraph() *ag.Graph {
 // (as in the case of BiRNN and other bidirectional models), or not.
 func (p *BaseProcessor) RequiresFullSeq() bool {
 	return p.FullSeqProcessing
-}
-
-// SetProcessingMode sets the processing mode to a group of processors.
-func SetProcessingMode(mode ProcessingMode, ps ...Processor) {
-	for _, proc := range ps {
-		proc.SetMode(mode)
-	}
 }
