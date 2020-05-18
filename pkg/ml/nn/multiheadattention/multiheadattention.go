@@ -51,11 +51,8 @@ func New(size, numOfHeads int) *Model {
 
 type Processor struct {
 	nn.BaseProcessor
-	model             *Model
-	g                 *ag.Graph
-	mode              nn.ProcessingMode
 	HeadAttentionProc []*selfattention.Processor
-	outputMerge       nn.Processor
+	outputMerge       *linear.Processor
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -71,12 +68,12 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			FullSeqProcessing: true,
 		},
 		HeadAttentionProc: headAttentionProc,
-		outputMerge:       m.OutputMerge.NewProc(g),
+		outputMerge:       m.OutputMerge.NewProc(g).(*linear.Processor),
 	}
 }
 
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.mode = mode
+	p.Mode = mode
 	p.outputMerge.SetMode(mode)
 	for _, proc := range p.HeadAttentionProc {
 		proc.SetMode(mode)
@@ -84,17 +81,18 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	headsAttention := make([][]ag.Node, p.model.h)
+	h := p.Model.(*Model).h
+	headsAttention := make([][]ag.Node, h)
 	for h, proc := range p.HeadAttentionProc {
 		headsAttention[h] = proc.Forward(xs...)
 	}
 	concatHeads := make([]ag.Node, len(xs))
 	for i := 0; i < len(xs); i++ {
-		buf := make([]ag.Node, p.model.h)
-		for j := 0; j < p.model.h; j++ {
+		buf := make([]ag.Node, h)
+		for j := 0; j < h; j++ {
 			buf[j] = headsAttention[j][i]
 		}
-		concatHeads[i] = p.g.Concat(buf...)
+		concatHeads[i] = p.Graph.Concat(buf...)
 	}
 	return p.outputMerge.Forward(concatHeads...)
 }
