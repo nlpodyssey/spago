@@ -109,9 +109,9 @@ type Layer struct {
 type LayerProcessor struct {
 	nn.BaseProcessor
 	MultiHeadAttention *multiheadattention.Processor
-	NormAttention      nn.Processor
-	FFN                nn.Processor
-	NormFFN            nn.Processor
+	NormAttention      *layernorm.Processor
+	FFN                *stack.Processor
+	NormFFN            *layernorm.Processor
 }
 
 func (m *Layer) NewProc(g *ag.Graph) nn.Processor {
@@ -123,9 +123,9 @@ func (m *Layer) NewProc(g *ag.Graph) nn.Processor {
 			FullSeqProcessing: true,
 		},
 		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		NormAttention:      m.NormAttention.NewProc(g),
-		FFN:                m.FFN.NewProc(g),
-		NormFFN:            m.NormFFN.NewProc(g),
+		NormAttention:      m.NormAttention.NewProc(g).(*layernorm.Processor),
+		FFN:                m.FFN.NewProc(g).(*stack.Processor),
+		NormFFN:            m.NormFFN.NewProc(g).(*layernorm.Processor),
 	}
 }
 
