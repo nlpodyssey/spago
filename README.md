@@ -1,14 +1,19 @@
 spaGO
 =====
-![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)  [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![unstable](http://badges.github.io/stability-badges/dist/unstable.svg)](http://github.com/badges/stability-badges)
+![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![unstable](http://badges.github.io/stability-badges/dist/unstable.svg)](http://github.com/badges/stability-badges)
 
-spaGO is a beautiful and maintainable machine learning library written in Go designed to support relevant neural network architectures in natural language processing tasks.
+A beautiful and maintainable machine learning library written in Go. It is designed to support relevant neural architectures in **Natural Language Processing**.
+
+---
 
 spaGO ships with a ton of built-in features, including:
-- Automatic differentiation. You write the *forward()*, it does all *backward()* derivatives for you:
+* **Automatic differentiation**. You write the *forward()*, it does all *backward()* derivatives for you:
     -   Define-by-Run (default, just like PyTorch does)
     -   Define-and-Run (similar to the static graph of TensorFlow)
-- Neural networks:
+* **Neural networks**:
     -   Feed-forward models (Linear, Highway, Convolution, ...)
     -   Recurrent models (LSTM, GRU, ...)
     -   Transformer models (BERT-like)
