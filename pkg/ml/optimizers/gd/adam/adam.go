@@ -22,6 +22,12 @@ type Config struct {
 }
 
 func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
+	if !(beta1 >= 0.0 && beta1 < 1.0) {
+		panic("adam: `beta1` must be in the range [0.0, 1.0)")
+	}
+	if !(beta2 >= 0.0 && beta2 < 1.0) {
+		panic("adam: `beta2` must be in the range [0.0, 1.0)")
+	}
 	return Config{
 		StepSize: stepSize,
 		Beta1:    beta1,
