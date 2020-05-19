@@ -182,7 +182,7 @@ I've always felt satisfied to limit the use of third-party dependencies, writing
 So, I took the opportunity to speed up my understanding of the deep learning techniques and methodologies underlying cutting-edge NLP results, implementing them almost from scratch in straightforward Go code.
 I'm aware that [reinventing the wheel](https://en.wikipedia.org/wiki/Reinventing_the_wheel#Related_phrases) is an anti-pattern; nevertheless, I wanted to build something with my own concepts in my own (italian) style: that's the way I learn best, and it could be your best chance to understand what's going on under the hood of the artificial intelligence :)
 
-When I begin programming in a new language, I know almost anything about it. I often combine the techniques I have acquired by writing in other languages and other paradigms, so some choices may not be the most idiomatic... but who cares, right? 
+When I start programming in a new language, I usually do not know much of it. I often combine the techniques I have acquired by writing in other languages and other paradigms, so some choices may not be the most idiomatic... but who cares, right? 
 
 It's with this approach that I jumped on Go and created spaGo: a work in progress, (hopefully) understandable, easy to use library for machine learning and natural language processing.
 
