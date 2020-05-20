@@ -60,6 +60,16 @@ func (c *Vocabulary) Id(term string) (int, bool) {
 	return id, ok
 }
 
+// MustID returns the ID of a term.
+// It panics if the term is not in the vocabulary.
+func (c *Vocabulary) MustId(term string) int {
+	id, ok := c.Id(term)
+	if !ok {
+		panic("vocabulary: term not found.")
+	}
+	return id
+}
+
 // Term returns the term given the ID, and whether or not it was found in the vocabulary.
 func (c *Vocabulary) Term(id int) (string, bool) {
 	size := atomic.LoadInt64(&c.maxId)
