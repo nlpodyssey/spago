@@ -14,6 +14,7 @@ const (
 	SGD
 	AdaGrad
 	Adam
+	RAdam
 	RMSProp
 )
 
