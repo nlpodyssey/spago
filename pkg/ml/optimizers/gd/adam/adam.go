@@ -49,8 +49,8 @@ var _ gd.Method = &Adam{}
 
 type Adam struct {
 	Config
-	Alpha float64
-	Count int
+	Alpha    float64
+	TimeStep int
 }
 
 func New(c Config) *Adam {
@@ -88,12 +88,12 @@ func (o *Adam) NewSupport(r, c int) *nn.Payload {
 }
 
 func (o *Adam) IncExample() {
-	o.Count++
+	o.TimeStep++
 	o.updateAlpha()
 }
 
 func (o *Adam) updateAlpha() {
-	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, float64(o.Count))) / (1.0 - math.Pow(o.Beta1, float64(o.Count)))
+	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, float64(o.TimeStep))) / (1.0 - math.Pow(o.Beta1, float64(o.TimeStep)))
 }
 
 func (o *Adam) Delta(param *nn.Param) mat.Matrix {
