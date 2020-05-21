@@ -116,6 +116,7 @@ pkg
     │   ├── highway
     │   ├── embeddings
     │   ├── selfattention
+    │   ├── syntheticattention
     │   ├── multiheadattention
     │   ├── normalization
     │   │   ├── adanorm
@@ -157,6 +158,7 @@ pkg
         │   ├── rmsprop
         │   ├── adagrad
         │   ├── adam
+        │   ├── radam
         │   ├── clipper
         │   ├── decay
         │   │   ├── exponential
