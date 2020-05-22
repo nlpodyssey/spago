@@ -6,6 +6,7 @@ package vocabulary
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"sync/atomic"
 )
@@ -65,7 +66,7 @@ func (c *Vocabulary) Id(term string) (int, bool) {
 func (c *Vocabulary) MustId(term string) int {
 	id, ok := c.Id(term)
 	if !ok {
-		panic("vocabulary: term not found.")
+		panic(fmt.Sprintf("vocabulary: term `%s` not found.", term))
 	}
 	return id
 }
