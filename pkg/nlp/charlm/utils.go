@@ -6,6 +6,7 @@ package charlm
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"golang.org/x/exp/rand"
 )
 
@@ -15,6 +16,19 @@ func splitByRune(str string) []string {
 		out = append(out, string(item))
 	}
 	return out
+}
+
+func targetsIds(sequence []string, vocab *vocabulary.Vocabulary, unknownToken string) []int {
+	targetsIds := make([]int, len(sequence)-1) // skip last character
+	for i, target := range sequence[1:] {      // the target is always the next character
+		id, ok := vocab.Id(target)
+		if !ok {
+			targetsIds[i] = vocab.MustId(unknownToken)
+			continue
+		}
+		targetsIds[i] = id
+	}
+	return targetsIds
 }
 
 // sample extracts the next character from the probability multinomial distribution.
