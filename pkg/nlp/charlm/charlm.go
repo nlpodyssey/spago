@@ -77,10 +77,10 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 
 type Processor struct {
 	nn.BaseProcessor
-	decoder        *linear.Processor
-	rnn            nn.Processor
-	usedEmbeddings map[int]ag.Node
-	unkEmbedding   ag.Node
+	Decoder          *linear.Processor
+	RNN              nn.Processor
+	usedEmbeddings   map[int]ag.Node
+	UnknownEmbedding ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -91,37 +91,37 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		decoder:        m.Decoder.NewProc(g).(*linear.Processor),
-		rnn:            m.RNN.NewProc(g),
-		usedEmbeddings: make(map[int]ag.Node),
-		unkEmbedding:   g.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
+		Decoder:          m.Decoder.NewProc(g).(*linear.Processor),
+		RNN:              m.RNN.NewProc(g),
+		usedEmbeddings:   make(map[int]ag.Node),
+		UnknownEmbedding: g.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
 	}
 	return p
 }
 
 func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.Mode = mode
-	nn.SetProcessingMode(mode, p.rnn, p.decoder)
+	nn.SetProcessingMode(mode, p.RNN, p.Decoder)
 }
 
 func (p *Processor) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	encoding := p.getEmbeddings(xs)
+	encoding := p.GetEmbeddings(xs)
 	for i, x := range encoding {
 		p.Graph.IncTimeStep() // essential for truncated back-propagation
-		h := p.rnn.Forward(x)[0]
-		ys[i] = p.decoder.Forward(h)[0]
+		h := p.RNN.Forward(x)[0]
+		ys[i] = p.Decoder.Forward(h)[0]
 	}
 	return ys
 }
 
-func (p *Processor) getEmbeddings(xs []string) []ag.Node {
+func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
 	model := p.Model.(*Model)
 	ys := make([]ag.Node, len(xs))
 	for i, item := range xs {
 		id, ok := model.Vocabulary.Id(item)
 		if !ok {
-			ys[i] = p.unkEmbedding
+			ys[i] = p.UnknownEmbedding
 			continue
 		}
 		if embedding, ok := p.usedEmbeddings[id]; ok {
