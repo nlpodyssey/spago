@@ -108,9 +108,9 @@ func (p *Processor) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	encoding := p.getEmbeddings(xs)
 	for i, x := range encoding {
+		p.Graph.IncTimeStep() // essential for truncated back-propagation
 		h := p.rnn.Forward(x)[0]
 		ys[i] = p.decoder.Forward(h)[0]
-		p.Graph.IncTimeStep() // essential for truncated back-propagation
 	}
 	return ys
 }
