@@ -15,22 +15,32 @@ type forwardHandler struct {
 	toTimeStep   int64 // default -1 (no limit)
 }
 
-// TODO: check time-step range
-func (f *forwardHandler) runSerial() {
-	for _, node := range f.g.nodes {
-		if node, ok := node.(*operator); ok {
-			node.value = node.function.Forward()
+func (h *forwardHandler) runSerial() {
+	for _, node := range h.g.nodes {
+		if op, ok := node.(*operator); ok {
+			if op.timeStep < h.fromTimeStep {
+				continue
+			}
+			if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
+				continue
+			}
+			op.value = op.function.Forward()
 		}
 	}
 }
 
-// TODO: check time-step range
-func (f *forwardHandler) runConcurrent() {
-	groups := f.g.groupNodesByHeight()
+func (h *forwardHandler) runConcurrent() {
+	groups := h.g.groupNodesByHeight()
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
 			if op, ok := node.(*operator); ok {
+				if op.timeStep < h.fromTimeStep {
+					continue
+				}
+				if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
+					continue
+				}
 				wg.Add(1)
 				go func(op *operator) {
 					defer wg.Done()
@@ -49,19 +59,19 @@ type backwardHandler struct {
 	stopAtTimeStep int64 // default -1 (full backward)
 }
 
-func (f *backwardHandler) propagateOutputGrad() {
-	gx := f.outputGrad
+func (h *backwardHandler) propagateOutputGrad() {
+	gx := h.outputGrad
 	if gx == nil {
-		gx = f.node.Value().OnesLike()
+		gx = h.node.Value().OnesLike()
 		defer mat.ReleaseDense(gx.(*mat.Dense))
 	}
-	f.node.PropagateGrad(gx)
+	h.node.PropagateGrad(gx)
 }
 
-func (f *backwardHandler) runSerial() {
-	nodes := f.g.nodes
-	lastIndex := f.node.Id()
-	stopAtTimeStep := f.stopAtTimeStep
+func (h *backwardHandler) runSerial() {
+	nodes := h.g.nodes
+	lastIndex := h.node.Id()
+	stopAtTimeStep := h.stopAtTimeStep
 	truncated := stopAtTimeStep > -1
 	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
@@ -74,12 +84,12 @@ func (f *backwardHandler) runSerial() {
 	}
 }
 
-func (f *backwardHandler) runConcurrent() {
-	stopAtTimeStep := f.stopAtTimeStep
+func (h *backwardHandler) runConcurrent() {
+	stopAtTimeStep := h.stopAtTimeStep
 	truncated := stopAtTimeStep > -1
-	groups := f.g.groupNodesByHeight()
-	lastGroupIndex := f.g.cache.height[f.node.Id()]
-	lastNodeIndex := f.node.Id()
+	groups := h.g.groupNodesByHeight()
+	lastGroupIndex := h.g.cache.height[h.node.Id()]
+	lastNodeIndex := h.node.Id()
 	var wg sync.WaitGroup
 	for i := lastGroupIndex; i >= 0; i-- {
 		for _, node := range groups[i] {

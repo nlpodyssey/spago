@@ -252,7 +252,7 @@ func Range(fromTimeStep, toTimeStep int) ForwardOption {
 		log.Fatalf("ag: expected fromTimeStep equal to or greater than zero. Found %d.", fromTimeStep)
 	}
 	if toTimeStep > -1 && toTimeStep < fromTimeStep {
-		log.Fatalf("ag: expected toTimeStep equal to or greater than fromTimeStep (%d). Found %d.",
+		log.Fatalf("ag: expected toTimeStep equal to or greater than `%d` (fromTimeStep). Found `%d`.",
 			fromTimeStep, toTimeStep)
 	}
 	return func(f *forwardHandler) {
@@ -262,7 +262,6 @@ func Range(fromTimeStep, toTimeStep int) ForwardOption {
 }
 
 func (g *Graph) Forward(opts ...ForwardOption) {
-	g.ClearForReuse() // make sure you don't waste memory
 	handler := &forwardHandler{
 		g:            g,
 		fromTimeStep: 0,
@@ -271,6 +270,16 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 	for _, opt := range opts {
 		opt(handler)
 	}
+
+	// Free the values that are about to be recalculated so that memory is not wasted
+	for _, node := range g.nodes {
+		if op, ok := node.(*operator); ok {
+			if op.timeStep >= handler.fromTimeStep && (handler.toTimeStep == -1 || op.timeStep <= handler.toTimeStep) {
+				g.releaseValue(op)
+			}
+		}
+	}
+
 	if g.concurrentComputations {
 		handler.runConcurrent()
 	} else {
@@ -294,12 +303,15 @@ func OutputGrad(grad mat.Matrix) BackwardOption {
 
 // Backward performs the back-propagation.
 // It visits each node in reverse topological order, to propagate the gradients from the given node all the way
-// back to the leaf.
+// back to the leaf. Note that the gradients are summed to the existing ones. Unless that's what you want, make sure
+// all nodes have zero gradients.
+//
 // The back-propagation starts from the node's output gradients, following these mutually exclusive rules:
 //   a) the node has gradients (probably assigned externally via node.PropagateGrads()), use those;
 //   b) the output gradients are passed through the backward options, use those;
 //   c) the output gradients are automatically assigned by finding the derivative of the node with respect
 //      to the node itself (dy/dy = 1).
+//
 // If the optional back steps are set, a Truncated Back-Propagation Through Time is carried out, that is:
 // the visit ends as soon as it is encountered a node with time-step less or equal to the number of back steps.
 // The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
