@@ -35,3 +35,11 @@ func After(value string, a string) string {
 	}
 	return value[adjustedPos:]
 }
+
+func SplitByRune(str string) []string {
+	out := make([]string, 0)
+	for _, item := range str {
+		out = append(out, string(item))
+	}
+	return out
+}

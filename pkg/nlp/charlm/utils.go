@@ -10,14 +10,6 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-func splitByRune(str string) []string {
-	out := make([]string, 0)
-	for _, item := range str {
-		out = append(out, string(item))
-	}
-	return out
-}
-
 func targetsIds(sequence []string, vocab *vocabulary.Vocabulary, unknownToken string) []int {
 	targetsIds := make([]int, len(sequence)-1) // skip last character
 	for i, target := range sequence[1:] {      // the target is always the next character

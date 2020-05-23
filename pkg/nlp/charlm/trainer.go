@@ -77,7 +77,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 	proc := t.model.NewProc(g).(*Processor)
 
 	// Split the text into runes and append the sequence separator
-	sequence := splitByRune(text)
+	sequence := utils.SplitByRune(text)
 	sequence = append(sequence, t.model.SequenceSeparator)
 
 	length := len(sequence)

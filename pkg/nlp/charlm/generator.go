@@ -6,6 +6,7 @@ package charlm
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"strings"
 )
 
@@ -38,7 +39,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 	g := ag.NewGraph()
 	proc := m.model.NewProc(g).(*Processor)
 	characters := make([]string, 0)
-	next, prob := m.generateNext(proc, splitByRune(prefix)...)
+	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
 	characters = append(characters, next)
 	logProb += prob
 	for i := len(prefix); i < m.MaxCharacters; i++ {
