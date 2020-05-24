@@ -95,6 +95,14 @@ func ClearUsedEmbeddings() {
 	}
 }
 
+func (m *Model) Count() int {
+	keys, err := m.storage.Keys()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return len(keys)
+}
+
 // SetEmbeddings inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
 func (m *Model) SetEmbedding(word string, value *mat.Dense) {
