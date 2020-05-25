@@ -33,13 +33,17 @@ type Model struct {
 	LeftToRight *charlm.Model
 	RightToLeft *charlm.Model
 	MergeMode   MergeType
+	StartMarker rune
+	EndMarker   rune
 }
 
-func New(leftToRight, rightToLeft *charlm.Model, merge MergeType) *Model {
+func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
 		MergeMode:   merge,
+		StartMarker: startMarker,
+		EndMarker:   endMarker,
 	}
 }
 
@@ -76,7 +80,7 @@ type wordBoundary struct {
 	reverseEndIndex int
 }
 
-func (p Processor) Encode(words []string, startMarker, endMarker rune) []ag.Node {
+func (p Processor) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
 	sequence := utils.SplitByRune(text)
@@ -85,19 +89,20 @@ func (p Processor) Encode(words []string, startMarker, endMarker rune) []ag.Node
 	var reverseHiddenStates []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
+	m := p.Model.(*Model)
 	go func() {
 		defer wg.Done()
-		hiddenStates = process(p.leftToRight, padding(sequence, startMarker, endMarker))
+		hiddenStates = process(p.leftToRight, padding(sequence, m.StartMarker, m.EndMarker))
 	}()
 	go func() {
 		defer wg.Done()
-		reverseHiddenStates = process(p.rightToLeft, padding(reversed(sequence), startMarker, endMarker))
+		reverseHiddenStates = process(p.rightToLeft, padding(reversed(sequence), m.StartMarker, m.EndMarker))
 	}()
 	wg.Wait()
 
 	out := make([]ag.Node, len(words))
 	for i, boundary := range boundaries {
-		out[i] = p.merge(hiddenStates[boundary.endIndex], reverseHiddenStates[boundary.reverseEndIndex])
+		out[i] = p.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
 	}
 	return out
 }
