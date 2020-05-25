@@ -195,18 +195,20 @@ func (m *Model) Load(filename string) {
 	for scanner.Scan() {
 		lineCount++
 		bar.Incr()
-		if lineCount > 1 { // skip header
-			line := scanner.Text()
-			key := utils.BeforeSpace(line)
-			strVec := utils.AfterSpace(line)
-			data, err := f64utils.StrToFloat64Slice(strVec)
-			if err != nil {
-				log.Fatal(err)
-			}
-			vector := mat.NewVecDense(data)
-			m.SetEmbedding(key, vector)
-			mat.ReleaseDense(vector)
+		line := strings.Trim(scanner.Text(), " ")
+		if lineCount == 1 && strings.Count(line, " ") == 1 {
+			// TODO: use the header information
+			continue // skip header
 		}
+		key := utils.BeforeSpace(line)
+		strVec := utils.AfterSpace(line)
+		data, err := f64utils.StrToFloat64Slice(strVec)
+		if err != nil {
+			log.Fatal(err)
+		}
+		vector := mat.NewVecDense(data)
+		m.SetEmbedding(key, vector)
+		mat.ReleaseDense(vector)
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
