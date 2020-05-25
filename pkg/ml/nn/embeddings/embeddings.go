@@ -16,6 +16,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"log"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -121,12 +122,31 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 }
 
 // GetEmbedding returns the parameter (the word embedding) associated with the given word.
+// It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
+//
+// The returned embedding is also cached in m.UsedEmbeddings for two reasons:
+//     - to allow a faster recovery;
+//     - to keep track of used embeddings, should they be optimized.
+//
+// If no embedding is found, nil is returned.
+// It panics in case of storage errors.
+func (m *Model) GetEmbedding(word string) *nn.Param {
+	if found := m.getEmbedding(word); found != nil {
+		return found
+	}
+	if found := m.getEmbedding(strings.ToLower(word)); found != nil {
+		return found
+	}
+	return nil
+}
+
+// getEmbedding returns the parameter (the word embedding) associated with the given word (exact correspondence).
 // The returned embedding is also cached in m.UsedEmbeddings for two reasons:
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
 // If no embedding is found, nil is returned.
 // It panics in case of storage errors.
-func (m *Model) GetEmbedding(word string) *nn.Param {
+func (m *Model) getEmbedding(word string) *nn.Param {
 	if embedding, ok := m.UsedEmbeddings[word]; ok {
 		return embedding
 	}
