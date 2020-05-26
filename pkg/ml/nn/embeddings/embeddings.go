@@ -236,7 +236,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 // Encodes returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes are nil.
-func (p *Processor) Encode(words ...string) []ag.Node {
+func (p *Processor) Encode(words []string) []ag.Node {
 	encoding := make([]ag.Node, len(words))
 	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
 	for i, word := range words {
