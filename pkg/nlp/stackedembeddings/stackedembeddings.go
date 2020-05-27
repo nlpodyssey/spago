@@ -77,7 +77,11 @@ func (p *Processor) Encode(words []string) []ag.Node {
 	}
 	intermediateEncoding := make([]ag.Node, len(words))
 	for wordIndex, encoding := range encodingsPerWord {
-		intermediateEncoding[wordIndex] = p.Graph.Concat(encoding...)
+		if len(encoding) == 1 { // optimization
+			intermediateEncoding[wordIndex] = encoding[0]
+		} else {
+			intermediateEncoding[wordIndex] = p.Graph.Concat(encoding...)
+		}
 	}
 	return p.projectionLayer.Forward(intermediateEncoding...)
 }
