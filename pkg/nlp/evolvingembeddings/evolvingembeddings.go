@@ -7,10 +7,14 @@
 package evolvingembeddings
 
 import (
+	"bytes"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
+	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
+	"log"
+	"strings"
+	"sync"
 )
 
 var (
@@ -22,7 +26,9 @@ var allModels []*Model
 
 type Model struct {
 	Config
-	delegate *embeddings.Model
+	storage       kvdb.KeyValueDB
+	mu            sync.Mutex
+	ZeroEmbedding *nn.Param `type:"weights"`
 }
 
 type PoolingType int
@@ -48,30 +54,28 @@ type Config struct {
 func New(config Config) *Model {
 	m := &Model{
 		Config: config,
-		delegate: embeddings.New(embeddings.Config{
-			Size:             config.Size,
-			UseZeroEmbedding: true,
-			DBPath:           config.DBPath,
-			ReadOnly:         false,
-			ForceNewDB:       config.ForceNewDB,
+		storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
+			Path:     config.DBPath,
+			ReadOnly: false,
+			ForceNew: config.ForceNewDB,
 		}),
+		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size)),
 	}
+	nn.RequiresGrad(false)(m.ZeroEmbedding)
 	allModels = append(allModels, m)
 	return m
 }
 
 // Close closes the DB underlying the model of the embeddings map.
 func (m *Model) Close() {
-	m.delegate.Close()
-	m.delegate.ClearUsedEmbeddings()
+	_ = m.storage.Close() // explicitly ignore errors here
 }
 
 func (m *Model) DropAll() error {
-	return m.delegate.DropAll()
+	return m.storage.DropAll()
 }
 
 // Close closes the DBs underlying all instantiated embeddings models.
-// It automatically clears the caches.
 func Close() {
 	for _, model := range allModels {
 		model.Close()
@@ -79,7 +83,11 @@ func Close() {
 }
 
 func (m *Model) Count() int {
-	return m.delegate.Count()
+	keys, err := m.storage.Keys()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return len(keys)
 }
 
 type WordVectorPair struct {
@@ -88,19 +96,66 @@ type WordVectorPair struct {
 }
 
 func (m *Model) Aggregate(list []*WordVectorPair) {
-	m.delegate.ClearUsedEmbeddings()
 	for _, item := range list {
 		m.aggregate(item.Word, item.Vector)
 	}
 }
 
 func (m *Model) aggregate(word string, vector *mat.Dense) {
-	defer m.delegate.ClearUsedEmbeddings() // important
-	if found := m.delegate.GetEmbedding(word); found == nil {
-		m.delegate.SetEmbedding(word, vector)
+	if found := m.GetEmbedding(word); found == nil {
+		m.SetEmbedding(word, vector)
 	} else {
-		m.delegate.SetEmbedding(word, m.pooling(found.Value().(*mat.Dense), vector))
+		m.SetEmbedding(word, m.pooling(found, vector))
 	}
+}
+
+// SetEmbeddings inserts a new word embeddings.
+// If the word is already on the map, overwrites the existing value with the new one.
+func (m *Model) SetEmbedding(word string, value *mat.Dense) {
+	var buf bytes.Buffer
+	if _, err := mat.MarshalBinaryTo(value, &buf); err != nil {
+		log.Fatal(err)
+	}
+	if err := m.storage.Put([]byte(word), buf.Bytes()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// GetEmbedding returns the parameter (the word embedding) associated with the given word.
+// It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
+//
+// The returned embedding is also cached in m.UsedEmbeddings for two reasons:
+//     - to allow a faster recovery;
+//     - to keep track of used embeddings, should they be optimized.
+//
+// If no embedding is found, nil is returned.
+// It panics in case of storage errors.
+func (m *Model) GetEmbedding(word string) *mat.Dense {
+	if found := m.getEmbedding(word); found != nil {
+		return found
+	}
+	if found := m.getEmbedding(strings.ToLower(word)); found != nil {
+		return found
+	}
+	return nil
+}
+
+// getEmbedding returns the parameter (the word embedding) associated with the given word (exact correspondence).
+// If no embedding is found, nil is returned.
+// It panics in case of storage errors.
+func (m *Model) getEmbedding(word string) *mat.Dense {
+	data, ok, err := m.storage.Get([]byte(word))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !ok {
+		return nil // embedding not found
+	}
+	embedding, _, err := mat.NewUnmarshalBinaryFrom(bytes.NewReader(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return embedding
 }
 
 func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
@@ -116,7 +171,7 @@ func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
 
 type Processor struct {
 	nn.BaseProcessor
-	delegate *embeddings.Processor
+	ZeroEmbedding ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -127,7 +182,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		delegate: m.delegate.NewProc(g).(*embeddings.Processor),
+		ZeroEmbedding: ag.NewWrapNoGrad(m.ZeroEmbedding),
 	}
 }
 
@@ -148,11 +203,11 @@ func (p *Processor) Encode(words []string) []ag.Node {
 
 func (p *Processor) getEmbedding(words string) ag.Node {
 	model := p.Model.(*Model)
-	switch param := model.delegate.GetEmbedding(words); {
-	case param == nil:
-		return p.Graph.NewWrapNoGrad(p.delegate.ZeroEmbedding) // must not be nil; important no grad
+	switch vector := model.GetEmbedding(words); {
+	case vector == nil:
+		return p.Graph.NewWrapNoGrad(p.ZeroEmbedding) // must not be nil; important no grad
 	default:
-		return p.Graph.NewWrapNoGrad(param) // important no grad
+		return p.Graph.NewVariable(vector, false)
 	}
 }
 
