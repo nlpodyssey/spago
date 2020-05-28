@@ -114,7 +114,6 @@ pkg
 │   │   ├── convolution
 │   │   ├── crf
 │   │   ├── highway
-│   │   ├── embeddings
 │   │   ├── selfattention
 │   │   ├── syntheticattention
 │   │   ├── multiheadattention
