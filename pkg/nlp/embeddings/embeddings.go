@@ -84,6 +84,10 @@ func (m *Model) ClearUsedEmbeddings() {
 	m.mu.Unlock()
 }
 
+func (m *Model) DropAll() error {
+	return m.storage.DropAll()
+}
+
 // Close closes the DBs underlying all instantiated embeddings models.
 // It automatically clears the caches.
 func Close() {

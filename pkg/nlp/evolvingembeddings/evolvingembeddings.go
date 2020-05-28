@@ -66,6 +66,10 @@ func (m *Model) Close() {
 	m.delegate.ClearUsedEmbeddings()
 }
 
+func (m *Model) DropAll() error {
+	return m.delegate.DropAll()
+}
+
 // Close closes the DBs underlying all instantiated embeddings models.
 // It automatically clears the caches.
 func Close() {
