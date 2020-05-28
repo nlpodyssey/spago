@@ -173,7 +173,7 @@ pkg
     ├── sequence labeler
     ├── tokenizers
     │   ├── base (whitespaces and punctuation)
-    │   ├── wordpiece
+    │   └── wordpiece
     ├── vocabulary
     └── corpora
 ```
