@@ -73,6 +73,9 @@ func (m *Model) Close() {
 // ClearUsedEmbeddings clears the cache of the used embeddings.
 // Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
 func (m *Model) ClearUsedEmbeddings() {
+	if len(m.UsedEmbeddings) == 0 {
+		return
+	}
 	m.mu.Lock()
 	for _, embedding := range m.UsedEmbeddings {
 		mat.ReleaseDense(embedding.Value().(*mat.Dense))
