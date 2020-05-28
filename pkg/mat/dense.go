@@ -751,7 +751,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 }
 
 // Minimum returns a new matrix containing the element-wise minima.
-func (d *Dense) Minimum(other Matrix) Matrix {
+func (d *Dense) Minimum(other Matrix) *Dense {
 	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
 		panic("mat: matrix with not compatible size")
 	}
