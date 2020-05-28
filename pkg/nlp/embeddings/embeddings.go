@@ -174,7 +174,7 @@ func (m *Model) getEmbedding(word string) *nn.Param {
 
 type Processor struct {
 	nn.BaseProcessor
-	zeroEmbedding ag.Node
+	ZeroEmbedding ag.Node
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -189,7 +189,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		zeroEmbedding: zeroEmbedding, // it can be nil
+		ZeroEmbedding: zeroEmbedding, // it can be nil
 	}
 }
 
@@ -214,7 +214,7 @@ func (p *Processor) getEmbedding(words string) ag.Node {
 	model := p.Model.(*Model)
 	switch param := model.GetEmbedding(words); {
 	case param == nil:
-		return p.zeroEmbedding // it can be nil
+		return p.ZeroEmbedding // it can be nil
 	default:
 		return p.Graph.NewWrap(param)
 	}
