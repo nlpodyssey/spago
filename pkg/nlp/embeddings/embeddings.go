@@ -22,7 +22,6 @@ var (
 
 var allModels []*Model
 
-// TODO: add dedicated embeddings for out-of-vocabulary (OOV) words and other special words
 type Model struct {
 	Config
 	storage        kvdb.KeyValueDB
@@ -31,7 +30,6 @@ type Model struct {
 	ZeroEmbedding  *nn.Param            `type:"weights"`
 }
 
-// TODO: add Dropout
 type Config struct {
 	// Size of the embedding vectors.
 	Size int
@@ -85,6 +83,7 @@ func (m *Model) ClearUsedEmbeddings() {
 }
 
 func (m *Model) DropAll() error {
+	m.ClearUsedEmbeddings()
 	return m.storage.DropAll()
 }
 
@@ -152,7 +151,6 @@ func (m *Model) GetEmbedding(word string) *nn.Param {
 // The returned embedding is also cached in m.UsedEmbeddings for two reasons:
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
-// If no embedding is found, nil or the `ZeroEmbedding` is returned, depending on the configuration.
 // It panics in case of storage errors.
 func (m *Model) getEmbedding(word string) *nn.Param {
 	if embedding, ok := m.UsedEmbeddings[word]; ok {
@@ -202,7 +200,8 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 
 // Encodes returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
-// To words that have no embeddings, the corresponding nodes are nil.
+// To words that have no embeddings, the corresponding nodes
+// are nil or the `ZeroEmbedding`, depending on the configuration.
 func (p *Processor) Encode(words []string) []ag.Node {
 	encoding := make([]ag.Node, len(words))
 	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
@@ -217,9 +216,11 @@ func (p *Processor) Encode(words []string) []ag.Node {
 	return encoding
 }
 
-func (p *Processor) getEmbedding(words string) ag.Node {
+// getEmbedding returns the embedding associated to the word.
+// If no embedding is found, nil or the `ZeroEmbedding` is returned, depending on the model configuration.
+func (p *Processor) getEmbedding(word string) ag.Node {
 	model := p.Model.(*Model)
-	switch param := model.GetEmbedding(words); {
+	switch param := model.GetEmbedding(word); {
 	case param == nil:
 		return p.ZeroEmbedding // it can be nil
 	default:
