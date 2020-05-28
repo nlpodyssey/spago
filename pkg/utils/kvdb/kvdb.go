@@ -14,6 +14,7 @@ type KeyValueDB interface {
 	Put(key []byte, value []byte) error
 	Get(key []byte) ([]byte, bool, error)
 	Keys() ([]string, error)
+	DropAll() error
 	Close() error
 }
 
@@ -54,6 +55,12 @@ type badgerBackend struct {
 
 func (m *badgerBackend) Close() error {
 	return m.db.Close()
+}
+
+// DropAll would drop all the data stored.
+// Readings or writings performed during this operation may result in panics.
+func (m *badgerBackend) DropAll() error {
+	return m.db.DropAll()
 }
 
 func (m *badgerBackend) Keys() ([]string, error) {
