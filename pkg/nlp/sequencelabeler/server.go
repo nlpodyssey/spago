@@ -11,6 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
+	"github.com/nlpodyssey/spago/pkg/utils/httphandlers"
 	"log"
 	"net/http"
 )
@@ -28,8 +29,10 @@ func NewServer(model *Model, port int) *Server {
 }
 
 func (s *Server) Start() {
-	http.HandleFunc("/analyze", s.analyze)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port), nil))
+	r := http.NewServeMux()
+	r.HandleFunc("/analyze", s.analyze)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port),
+		httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
 }
 
 type OptionsType struct {
