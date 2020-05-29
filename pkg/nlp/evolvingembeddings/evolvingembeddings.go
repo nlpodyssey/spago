@@ -97,21 +97,30 @@ type WordVectorPair struct {
 
 func (m *Model) Aggregate(list []*WordVectorPair) {
 	for _, item := range list {
-		m.aggregate(item.Word, item.Vector)
+		word := item.Word
+		vector := item.Vector
+		if found := m.getEmbedding(word); found == nil {
+			m.setEmbedding(word, vector)
+		} else {
+			m.setEmbedding(word, m.pooling(found, vector))
+		}
 	}
 }
 
-func (m *Model) aggregate(word string, vector *mat.Dense) {
-	if found := m.GetEmbedding(word); found == nil {
-		m.SetEmbedding(word, vector)
-	} else {
-		m.SetEmbedding(word, m.pooling(found, vector))
+func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
+	switch m.PoolingOperation {
+	case Max:
+		return a.Maximum(b)
+	case Min:
+		return a.Minimum(b)
+	default:
+		panic("evolvingembeddings: invalid pooling operation")
 	}
 }
 
 // SetEmbeddings inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
-func (m *Model) SetEmbedding(word string, value *mat.Dense) {
+func (m *Model) setEmbedding(word string, value *mat.Dense) {
 	var buf bytes.Buffer
 	if _, err := mat.MarshalBinaryTo(value, &buf); err != nil {
 		log.Fatal(err)
@@ -121,29 +130,24 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	}
 }
 
-// GetEmbedding returns the parameter (the word embedding) associated with the given word.
+// getEmbedding returns the vector (the word embedding) associated with the given word.
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
-//
-// The returned embedding is also cached in m.UsedEmbeddings for two reasons:
-//     - to allow a faster recovery;
-//     - to keep track of used embeddings, should they be optimized.
-//
 // If no embedding is found, nil is returned.
 // It panics in case of storage errors.
-func (m *Model) GetEmbedding(word string) *mat.Dense {
-	if found := m.getEmbedding(word); found != nil {
+func (m *Model) getEmbedding(word string) *mat.Dense {
+	if found := m.getEmbeddingExactMatch(word); found != nil {
 		return found
 	}
-	if found := m.getEmbedding(strings.ToLower(word)); found != nil {
+	if found := m.getEmbeddingExactMatch(strings.ToLower(word)); found != nil {
 		return found
 	}
 	return nil
 }
 
-// getEmbedding returns the parameter (the word embedding) associated with the given word (exact correspondence).
+// getEmbeddingExactMatch returns the vector (the word embedding) associated with the given word (exact correspondence).
 // If no embedding is found, nil is returned.
 // It panics in case of storage errors.
-func (m *Model) getEmbedding(word string) *mat.Dense {
+func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	data, ok, err := m.storage.Get([]byte(word))
 	if err != nil {
 		log.Fatal(err)
@@ -156,17 +160,6 @@ func (m *Model) getEmbedding(word string) *mat.Dense {
 		log.Fatal(err)
 	}
 	return embedding
-}
-
-func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
-	switch m.PoolingOperation {
-	case Max:
-		return a.Maximum(b)
-	case Min:
-		return a.Minimum(b)
-	default:
-		panic("evolvingembeddings: invalid pooling operation")
-	}
 }
 
 type Processor struct {
@@ -203,7 +196,7 @@ func (p *Processor) Encode(words []string) []ag.Node {
 
 func (p *Processor) getEmbedding(words string) ag.Node {
 	model := p.Model.(*Model)
-	switch vector := model.GetEmbedding(words); {
+	switch vector := model.getEmbedding(words); {
 	case vector == nil:
 		return p.Graph.NewWrapNoGrad(p.ZeroEmbedding) // must not be nil; important no grad
 	default:
