@@ -241,6 +241,14 @@ Disclaimer
 **Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/nlpodyssey/spago/blob/master/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
 If you want spaGo to become something more than just a hobby project of me, I greatly appreciate any bug reports and contributions, which can be made by filing an issue or making a pull request through the github page. Thanks!
 
+Contact
+===== 
+
+I encourage you to write an issue. This would help the community grow.
+
+If you really want to write to me privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your questions or comments.
+
+
 Licensing
 =====
 
