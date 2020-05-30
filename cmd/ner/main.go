@@ -35,7 +35,8 @@ import (
 )
 
 var predefinedModels = map[string]string{
-	"goflair-en-ner-conll03": "https://dl.dropboxusercontent.com/s/jgyv568v0nd4ogx/goflair-en-ner-conll03.tar.gz?dl=0",
+	"goflair-en-ner-conll03":      "https://dl.dropboxusercontent.com/s/jgyv568v0nd4ogx/goflair-en-ner-conll03.tar.gz?dl=0",
+	"goflair-en-ner-fast-conll03": "https://dl.dropboxusercontent.com/s/9lhh9uom6vh66pg/goflair-en-ner-fast-conll03.tar.gz?dl=0",
 }
 
 func main() {

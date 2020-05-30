@@ -63,19 +63,23 @@ You must indicate the directory that contains the spaGO neural models. Reasonabl
 mkdir ~/.spago 
 ```
 
-Now run the `ner-server` indicating a port, the directory of the models, and the model name (at the moment only one model is available, named `goflair-en-ner-conll03`).
+Now run the `ner-server` indicating a port, the directory of the models, and the model name.
 
+At present, there are two models available, named `goflair-en-ner-conll03` and `goflair-en-ner-fast-conll03`.
+
+Example: 
+ 
 ```console
-./ner-server 1987 ~/.spago goflair-en-ner-conll03
+./ner-server 1987 ~/.spago goflair-en-ner-fast-conll03
 ```
 
 It should print:
 
 ```console
-Fetch model from `https://dl.dropboxusercontent.com/s/jgyv568v0nd4ogx/goflair-en-ner-conll03.tar.gz?dl=0`
-Downloading... 468 MB complete     
+Fetch model from `https://dl.dropboxusercontent.com/s/9lhh9uom6vh66pg/goflair-en-ner-fast-conll03.tar.gz?dl=0`
+Downloading... 278 MB complete     
 Extracting compressed model... ok
-Loading model parameters from `~/.spago/goflair-en-ner-conll03/model.bin`... ok
+Loading model parameters from `~/.spago/goflair-en-ner-fast-conll03/model.bin`... ok
 Start server on port 1987.
 ```
 
