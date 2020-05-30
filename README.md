@@ -30,6 +30,128 @@ go get -u https://github.com/nlpodyssey/spago
 
 spaGO is compatible with [go modules](https://blog.golang.org/using-go-modules).
 
+Demo
+=====
+
+To evaluate the usability of spaGO in NLP, I began experimenting with a basic task such as sequence labeling applied to [Named Entities Recognition (NER)](https://en.wikipedia.org/wiki/Named-entity_recognition).
+
+I felt the need to achieve gratification as quickly as possible, so I opted to use the state-of-the-art pre-trained model released with the [Flair](https://github.com/flairNLP/flair) library, instead of training one from scratch.
+
+You got it, I wrote a program to import the parameters (weights and bias) of Flair into spaGO structures. I'll make it available soon, now it's a bit chaotic.    
+
+Before start, make sure you have Go 1.14 and installed (or just cloned) spaGO.
+
+### Build
+
+Move into the spaGO directory.
+
+If you're on Linux and AMD64 architecture run:
+
+```consoleyou got it
+GOOS=linux GOARCH=amd64 go build -o ner-server cmd/ner/main.go 
+```
+
+If the command is successful you should find an executable called `ner-server` in the same folder.
+
+You can change the `GOOS` and `GOARCH` according to the [build](https://golang.org/pkg/go/build/) documentation but please note that I have so far tested only with Linux on AMD64.
+
+### Run
+
+You must indicate the directory that contains the spaGO neural models. Reasonably, you don't have this folder yet, so you can create a new one, for example:
+
+```console
+mkdir ~/.spago 
+```
+
+Now run the `ner-server` indicating a port, the directory of the models, and the model name (at the moment only one model is available, named `goflair-en-ner-conll03`).
+
+```console
+./ner-server 1987 ~/.spago goflair-en-ner-conll03
+```
+
+It should print:
+
+```console
+Fetch model from `https://dl.dropboxusercontent.com/s/jgyv568v0nd4ogx/goflair-en-ner-conll03.tar.gz?dl=0`
+Downloading... 468 MB complete     
+Extracting compressed model... ok
+Loading model parameters from `~/.spago/goflair-en-ner-conll03/model.bin`... ok
+Start server on port 1987.
+```
+
+At the first execution, the program downloads the required model, if available. For successive executions, it uses the previously downloaded model.
+
+### API
+
+You can test the API from command line with curl:
+
+```console
+curl -d '{"options": {"mergeEntities": true, "filterNotEntities": true}, "text": "Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"}' -H "Content-Type: application/json" "http://127.0.0.1:1987/analyze?pretty"
+```
+
+It should print:
+
+```json
+{
+    "tokens": [
+        {
+            "text": "Mark Freuder Knopfler",
+            "start": 0,
+            "end": 21,
+            "label": "PER"
+        },
+        {
+            "text": "Glasgow",
+            "start": 34,
+            "end": 41,
+            "label": "LOC"
+        },
+        {
+            "text": "Scotland",
+            "start": 43,
+            "end": 51,
+            "label": "LOC"
+        },
+        {
+            "text": "English",
+            "start": 59,
+            "end": 66,
+            "label": "MISC"
+        },
+        {
+            "text": "Louisa Mary",
+            "start": 75,
+            "end": 86,
+            "label": "PER"
+        },
+        {
+            "text": "Jewish",
+            "start": 94,
+            "end": 100,
+            "label": "MISC"
+        },
+        {
+            "text": "Hungarian",
+            "start": 101,
+            "end": 110,
+            "label": "MISC"
+        },
+        {
+            "text": "Erwin Knopfler",
+            "start": 119,
+            "end": 133,
+            "label": "PER"
+        },
+        {
+            "text": "Dire Straits",
+            "start": 203,
+            "end": 215,
+            "label": "ORG"
+        }
+    ]
+}
+```
+
 What's inside?
 =====
 
