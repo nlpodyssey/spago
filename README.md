@@ -39,7 +39,7 @@ I felt the need to achieve gratification as quickly as possible, so I opted to u
 
 You got it, I wrote a program to import the parameters (weights and bias) of Flair into spaGO structures. I'll make it available soon, now it's a bit chaotic.    
 
-Before start, make sure you have Go 1.14 and installed (or just cloned) spaGO.
+Before start, make sure you have Go 1.14 and spaGO installed (or just cloned).
 
 ### Build
 
