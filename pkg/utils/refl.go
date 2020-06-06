@@ -22,6 +22,9 @@ func ForEachField(i interface{}, callback func(field interface{}, name string, t
 		vField := v.Field(i)
 		tField := t.Field(i)
 		if vField.CanInterface() {
+			if vField.Kind() == reflect.Ptr && vField.IsNil() {
+				continue
+			}
 			callback(vField.Interface(), tField.Name, tField.Tag)
 		}
 	}
