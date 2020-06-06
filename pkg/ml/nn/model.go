@@ -169,9 +169,10 @@ func NewParamsSerializer(m Model) *ParamsSerializer {
 // TODO: use ParamsIterator?
 func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
 	ForEachParam(m, func(param *Param) {
-		cnt, err := mat.MarshalBinaryTo(param.Value(), w)
+		cnt, err2 := mat.MarshalBinaryTo(param.Value(), w)
 		n += cnt
-		if err != nil {
+		if err2 != nil {
+			err = err2
 			return
 		}
 	})
@@ -182,9 +183,10 @@ func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
 // TODO: use ParamsIterator?
 func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
 	ForEachParam(m, func(param *Param) {
-		cnt, err := mat.UnmarshalBinaryFrom(param.Value(), r)
+		cnt, err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
 		n += cnt
-		if err != nil {
+		if err2 != nil {
+			err = err2
 			return
 		}
 	})
