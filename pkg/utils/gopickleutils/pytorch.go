@@ -10,7 +10,7 @@ import "github.com/nlpodyssey/gopickle/pytorch"
 // It returns the data using the row-major representation, possibly converting column-major order to row-major order.
 func GetData(t *pytorch.Tensor) []float64 {
 	if len(t.Size) == 0 || len(t.Size) > 2 {
-		panic("pytorch: number of sizes not supported")
+		panic("gopickleutils: number of sizes not supported")
 	}
 	size := t.Size[0]
 	if len(t.Size) > 1 {
