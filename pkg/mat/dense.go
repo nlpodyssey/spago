@@ -93,7 +93,7 @@ func NewInitVecDense(size int, val float64) *Dense {
 // SetData sets the data
 func (d *Dense) SetData(data []float64) {
 	if len(data) != d.size {
-		panic(fmt.Sprintf("mat: data size must be: %d", d.size))
+		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
 	}
 	_ = append(d.data[:0], data...)
 }
