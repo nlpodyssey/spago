@@ -4,7 +4,10 @@
 
 package nn
 
-import "github.com/nlpodyssey/spago/pkg/ml/ag"
+import (
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"reflect"
+)
 
 // ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.) inside a Processor,
 // depending on whether you're doing training or inference.
@@ -38,7 +41,7 @@ type Processor interface {
 // SetProcessingMode sets the processing mode to a group of processors.
 func SetProcessingMode(mode ProcessingMode, ps ...Processor) {
 	for _, proc := range ps {
-		if proc != nil {
+		if !reflect.ValueOf(proc).IsNil() {
 			proc.SetMode(mode)
 		}
 	}
