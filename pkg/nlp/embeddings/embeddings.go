@@ -128,6 +128,14 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	}
 }
 
+// SetEmbeddingFromData inserts a new word embeddings.
+// If the word is already on the map, overwrites the existing value with the new one.
+func (m *Model) SetEmbeddingFromData(word string, data []float64) {
+	vec := mat.NewVecDense(data)
+	defer mat.ReleaseDense(vec)
+	m.SetEmbedding(word, vec)
+}
+
 // GetEmbedding returns the parameter (the word embedding) associated with the given word.
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
 //

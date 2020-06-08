@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package transformers
+package bert
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -10,28 +10,39 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 )
 
-type SpanClassificationConfig struct {
+var (
+	_ nn.Model     = &SpanClassifier{}
+	_ nn.Processor = &SpanClassifierProcessor{}
+)
+
+type SpanClassifierConfig struct {
 	InputSize int
 }
 
 // Span classification for extractive question-answering tasks like SQuAD.
 // It uses a linear layers to compute "span start logits" and "span end logits".
-type SpanClassification struct {
+type SpanClassifier struct {
 	*linear.Model
 }
 
-func NewSpanClassification(config SpanClassificationConfig) *SpanClassification {
-	return &SpanClassification{
-		Model: linear.New(config.InputSize, 2),
+func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
+	return &SpanClassifier{
+		Model: linear.New(config.InputSize, 2), // TODO: this is probably wrong, check the size of the output
 	}
 }
 
-type SpanClassificationProcessor struct {
+type SpanClassifierProcessor struct {
 	*linear.Processor
 }
 
+func (m *SpanClassifier) NewProc(g *ag.Graph) nn.Processor {
+	return &SpanClassifierProcessor{
+		Processor: m.Model.NewProc(g).(*linear.Processor),
+	}
+}
+
 // Classify returns the "span start logits" and "span end logits".
-func (p *SpanClassificationProcessor) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
+func (p *SpanClassifierProcessor) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
 	g := p.GetGraph()
 	for _, y := range p.Forward(xs...) {
 		split := nn.SeparateVec(g, y)

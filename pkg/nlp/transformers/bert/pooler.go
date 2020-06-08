@@ -2,13 +2,19 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package transformers
+package bert
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
+)
+
+var (
+	_ nn.Model     = &Pooler{}
+	_ nn.Processor = &PoolerProcessor{}
 )
 
 type PoolerConfig struct {
@@ -22,9 +28,19 @@ type Pooler struct {
 
 func NewPooler(config PoolerConfig) *Pooler {
 	return &Pooler{
-		stack.New(
+		Model: stack.New(
 			linear.New(config.InputSize, config.OutputSize),
 			activation.New(ag.OpTanh),
 		),
+	}
+}
+
+type PoolerProcessor struct {
+	*stack.Processor
+}
+
+func (m *Pooler) NewProc(g *ag.Graph) nn.Processor {
+	return &PoolerProcessor{
+		Processor: m.Model.NewProc(g).(*stack.Processor),
 	}
 }
