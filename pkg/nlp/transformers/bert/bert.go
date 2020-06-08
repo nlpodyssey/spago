@@ -2,140 +2,153 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-/*
-Reference: "Attention Is All You Need" by Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
-Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin (2017)
-(http://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf).
-*/
 package bert
 
 import (
+	"encoding/json"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rc"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
+	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
+	"log"
+	"os"
 )
 
 var (
 	_ nn.Model     = &Model{}
-	_ nn.Model     = &Layer{}
-	_ nn.Processor = &LayerProcessor{}
+	_ nn.Processor = &Processor{}
 )
 
-// TODO: include and use the dropout hyper-parameter
 type Config struct {
-	Size                   int
-	NumOfAttentionHeads    int
-	IntermediateSize       int
-	IntermediateActivation ag.OpName
-	NumOfLayers            int
+	HiddenAct             string `json:"hidden_act"`
+	HiddenSize            int    `json:"hidden_size"`
+	IntermediateSize      int    `json:"intermediate_size"`
+	MaxPositionEmbeddings int    `json:"max_position_embeddings"`
+	NumAttentionHeads     int    `json:"num_attention_heads"`
+	NumHiddenLayers       int    `json:"num_hidden_layers"`
+	TypeVocabSize         int    `json:"type_vocab_size"`
+	VocabSize             int    `json:"vocab_size"`
+}
+
+func LoadConfig(file string) Config {
+	var config Config
+	configFile, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer configFile.Close()
+	err = json.NewDecoder(configFile).Decode(&config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return config
 }
 
 type Model struct {
-	Config
-	*stack.Model
+	Vocabulary      *vocabulary.Vocabulary
+	Embeddings      *Embeddings
+	Encoder         *Encoder
+	Predictor       *Predictor
+	Discriminator   *Discriminator // used by "ELECTRA" training method
+	Pooler          *Pooler
+	SeqRelationship *linear.Model
 }
 
-// New returns a new BERT model composed of a stack of N identical BERT layers.
-func New(config Config) *Model {
-	layers := make([]nn.Model, config.NumOfLayers)
-	for layerIndex := range layers {
-		layers[layerIndex] = &Layer{
-			MultiHeadAttention: multiheadattention.New(config.Size, config.NumOfAttentionHeads),
-			NormAttention:      layernorm.New(config.Size),
-			FFN: stack.New(
-				linear.New(config.Size, config.IntermediateSize),
-				activation.New(config.IntermediateActivation),
-				linear.New(config.IntermediateSize, config.Size),
-			),
-			NormFFN: layernorm.New(config.Size),
-		}
-	}
+// NewDefaultBERT returns a new model based on the original BERT architecture.
+func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	return &Model{
-		Config: config,
-		Model:  stack.New(layers...),
+		Vocabulary: nil,
+		Embeddings: NewEmbeddings(EmbeddingsConfig{
+			Size:                config.HiddenSize,
+			OutputSize:          config.HiddenSize,
+			MaxPositions:        config.MaxPositionEmbeddings,
+			TokenTypes:          config.TypeVocabSize,
+			WordsMapFilename:    embeddingsStoragePath,
+			WordsMapReadOnly:    false,
+			DeletePreEmbeddings: false,
+		}),
+		Encoder: NewBertEncoder(EncoderConfig{
+			Size:                   config.HiddenSize,
+			NumOfAttentionHeads:    config.NumAttentionHeads,
+			IntermediateSize:       config.IntermediateSize,
+			IntermediateActivation: ag.OpGeLU,
+			NumOfLayers:            config.NumHiddenLayers,
+		}),
+		Predictor: NewPredictor(PredictorConfig{
+			InputSize:        config.HiddenSize,
+			HiddenSize:       config.HiddenSize,
+			OutputSize:       config.VocabSize,
+			HiddenActivation: ag.OpGeLU,
+			OutputActivation: ag.OpIdentity, // implicit Softmax (trained with CrossEntropyLoss)
+		}),
+		Discriminator: NewDiscriminator(DiscriminatorConfig{
+			InputSize:        config.HiddenSize,
+			HiddenSize:       config.HiddenSize,
+			HiddenActivation: ag.OpGeLU,
+			OutputActivation: ag.OpIdentity, // implicit Sigmoid (trained with BCEWithLogitsLoss)
+		}),
+		Pooler: NewPooler(PoolerConfig{
+			InputSize:  config.HiddenSize,
+			OutputSize: config.HiddenSize,
+		}),
+		SeqRelationship: linear.New(config.HiddenSize, 2),
 	}
 }
 
-// NewALBERT returns a new BERT model composed of a stack of N identical BERT layers, sharing the same parameters.
-func NewALBERT(config Config) *Model {
-	sharedLayer := &Layer{
-		MultiHeadAttention: multiheadattention.New(config.Size, config.NumOfAttentionHeads),
-		NormAttention:      layernorm.New(config.Size),
-		FFN: stack.New(
-			linear.New(config.Size, config.IntermediateSize),
-			activation.New(config.IntermediateActivation),
-			linear.New(config.IntermediateSize, config.Size),
-		),
-		NormFFN: layernorm.New(config.Size),
-	}
-	layers := make([]nn.Model, config.NumOfLayers)
-	for layerIndex := range layers {
-		layers[layerIndex] = sharedLayer
-	}
-	return &Model{
-		Config: config,
-		Model:  stack.New(layers...),
-	}
-}
-
-// LayerAt returns the i-layer model.
-func (m *Model) LayerAt(i int) *Layer {
-	return m.Layers[i].(*Layer)
-}
-
-// LayerProcAt returns the i-processor.
-// It panics if the underlying model is not BERT.
-func LayerProcAt(bertProc *stack.Processor, index int) *LayerProcessor {
-	if _, ok := bertProc.GetModel().(*Model); ok {
-		return bertProc.Layers[index].(*LayerProcessor)
-	} else {
-		panic("bert: invalid neural model")
-	}
-}
-
-// Single BERT Layer.
-type Layer struct {
-	MultiHeadAttention *multiheadattention.Model
-	NormAttention      *layernorm.Model
-	FFN                *stack.Model
-	NormFFN            *layernorm.Model
-}
-
-type LayerProcessor struct {
+type Processor struct {
 	nn.BaseProcessor
-	MultiHeadAttention *multiheadattention.Processor
-	NormAttention      *layernorm.Processor
-	FFN                *stack.Processor
-	NormFFN            *layernorm.Processor
+	Embeddings      *EmbeddingsProcessor
+	Encoder         *EncoderProcessor
+	Predictor       *PredictorProcessor
+	Discriminator   *DiscriminatorProcessor
+	Pooler          *PoolerProcessor
+	SeqRelationship *linear.Processor
 }
 
-func (m *Layer) NewProc(g *ag.Graph) nn.Processor {
-	return &LayerProcessor{
+func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
 			Mode:              nn.Training,
 			Graph:             g,
 			FullSeqProcessing: true,
 		},
-		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		NormAttention:      m.NormAttention.NewProc(g).(*layernorm.Processor),
-		FFN:                m.FFN.NewProc(g).(*stack.Processor),
-		NormFFN:            m.NormFFN.NewProc(g).(*layernorm.Processor),
+		Embeddings:      m.Embeddings.NewProc(g).(*EmbeddingsProcessor),
+		Encoder:         m.Encoder.NewProc(g).(*EncoderProcessor),
+		Predictor:       m.Predictor.NewProc(g).(*PredictorProcessor),
+		Discriminator:   m.Discriminator.NewProc(g).(*DiscriminatorProcessor),
+		Pooler:          m.Pooler.NewProc(g).(*PoolerProcessor),
+		SeqRelationship: m.SeqRelationship.NewProc(g).(*linear.Processor),
 	}
 }
 
-func (p *LayerProcessor) SetMode(mode nn.ProcessingMode) {
+func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.Mode = mode
-	nn.SetProcessingMode(mode, p.MultiHeadAttention, p.NormAttention, p.FFN, p.NormFFN)
+	nn.SetProcessingMode(mode, p.Embeddings, p.Encoder, p.Predictor, p.Pooler, p.SeqRelationship)
 }
 
-func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
-	subLayer1 := rc.PostNorm(p.Graph, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
-	subLayer2 := rc.PostNorm(p.Graph, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)
-	return subLayer2
+func (p *Processor) Encode(tokens []string) []ag.Node {
+	tokensEncoding := p.Embeddings.Encode(tokens)
+	return p.Encoder.Forward(tokensEncoding...)
+}
+
+func (p *Processor) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
+	return p.Predictor.PredictMasked(transformed, masked)
+}
+
+func (p *Processor) Discriminate(encoded []ag.Node) []int {
+	return p.Discriminator.Discriminate(encoded)
+}
+
+// Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
+func (p *Processor) Pool(transformed []ag.Node) ag.Node {
+	return p.Pooler.Forward(transformed[0])[0]
+}
+
+func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
+	return p.SeqRelationship.Forward(pooled)[0]
+}
+
+func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+	panic("bert: method not implemented")
 }
