@@ -126,3 +126,13 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 	}
 	return outputTokens
 }
+
+// IsDefaultSpecial return whether the word matches a special token, or not.
+func IsDefaultSpecial(word string) bool {
+	switch word {
+	case DefaultUnknownToken, DefaultClassToken, DefaultSequenceSeparator, DefaultMaskToken:
+		return true
+	default:
+		return false
+	}
+}
