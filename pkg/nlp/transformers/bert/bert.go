@@ -6,12 +6,22 @@ package bert
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
 	"os"
+	"path"
+)
+
+const (
+	DefaultConfigurationFile = "config.json"
+	DefaultVocabularyFile    = "vocab.txt"
+	DefaultModelFile         = "spago_model.bin"
+	DefaultEmbeddingsStorage = "embeddings_storage"
 )
 
 var (
@@ -30,21 +40,22 @@ type Config struct {
 	VocabSize             int    `json:"vocab_size"`
 }
 
-func LoadConfig(file string) Config {
+func LoadConfig(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)
 	if err != nil {
-		log.Fatal(err)
+		return Config{}, err
 	}
 	defer configFile.Close()
 	err = json.NewDecoder(configFile).Decode(&config)
 	if err != nil {
-		log.Fatal(err)
+		return Config{}, err
 	}
-	return config
+	return config, nil
 }
 
 type Model struct {
+	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
 	Embeddings      *Embeddings
 	Encoder         *Encoder
@@ -57,6 +68,7 @@ type Model struct {
 // NewDefaultBERT returns a new model based on the original BERT architecture.
 func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	return &Model{
+		Config:     config,
 		Vocabulary: nil,
 		Embeddings: NewEmbeddings(EmbeddingsConfig{
 			Size:                config.HiddenSize,
@@ -93,6 +105,39 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 		}),
 		SeqRelationship: linear.New(config.HiddenSize, 2),
 	}
+}
+
+func LoadModel(modelPath string) (*Model, error) {
+	configFilename := path.Join(modelPath, DefaultConfigurationFile)
+	vocabFilename := path.Join(modelPath, DefaultVocabularyFile)
+	embeddingsFilename := path.Join(modelPath, DefaultEmbeddingsStorage)
+	modelFilename := path.Join(modelPath, DefaultModelFile)
+
+	fmt.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
+	fmt.Printf("[1/3] Loading configuration... ")
+	config, err := LoadConfig(configFilename)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("ok\n")
+	model := NewDefaultBERT(config, embeddingsFilename)
+
+	fmt.Printf("[2/3] Loading vocabulary... ")
+	vocab, err := vocabulary.NewFromFile(vocabFilename)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("ok\n")
+	model.Vocabulary = vocab
+
+	fmt.Printf("[3/3] Loading model weights... ")
+	err = utils.DeserializeFromFile(modelFilename, nn.NewParamsSerializer(model))
+	if err != nil {
+		log.Fatal(fmt.Sprintf("bert: error during model deserialization (%s)", err.Error()))
+	}
+	fmt.Println("ok")
+
+	return model, nil
 }
 
 type Processor struct {
