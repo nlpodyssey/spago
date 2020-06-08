@@ -38,7 +38,9 @@ type Processor interface {
 // SetProcessingMode sets the processing mode to a group of processors.
 func SetProcessingMode(mode ProcessingMode, ps ...Processor) {
 	for _, proc := range ps {
-		proc.SetMode(mode)
+		if proc != nil {
+			proc.SetMode(mode)
+		}
 	}
 }
 
