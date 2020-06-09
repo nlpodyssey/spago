@@ -9,16 +9,32 @@ spaGO
 
 A beautiful and maintainable machine learning library written in Go. It is designed to support relevant neural architectures in **Natural Language Processing**.
 
+spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers) and with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture. 
+
 ---
 
 spaGO ships with a ton of built-in features, including:
 * **Automatic differentiation**. You write the *forward()*, it does all *backward()* derivatives for you:
     -   Define-by-Run (default, just like PyTorch does)
     -   Define-and-Run (similar to the static graph of TensorFlow)
+* **Optimization methods**:
+    - Adam, RAdam, RMS-Prop, AdaGrad, SGD
 * **Neural networks**:
     -   Feed-forward models (Linear, Highway, Convolution, ...)
-    -   Recurrent models (LSTM, GRU, ...)
+    -   Recurrent models (LSTM, GRU, BiLSTM...)
+    -   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
+    -   Recursive autoencoder
+* **Natural Language Processing**:
+    -   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+    -   Character Language Models
+    -   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
     -   Transformer models (BERT-like)
+        -   Masked language model
+        -   Next sentence prediction
+        -   Tokens Classification
+        -   Question Answering
+
+...and the best is yet to come!
 
 Installation
 =====
@@ -159,7 +175,9 @@ It should print:
 What's inside?
 =====
 
-I haven't found the time yet to write a proper documentation, or at least a clear description of what spaGO contains. I'm trying to keep the code self-documenting and straightforward through. By that, I don't mean that I don't have to improve the documentation tremendously. It's my very next step.
+I haven't found the time yet to write a proper documentation, or at least a clear description of what spaGO contains. I recently started a timid attempt to write a few lines on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
+ 
+I'm trying to keep the code self-documenting and straightforward through. By that, I don't mean that I don't have to improve the documentation tremendously. It's my very next step.
 
 For the time being, I hope that a tree-like view of the library (*pkg* folder) can help you to understand the current supported features, and - more important - how I decided to structure spaGO in the first place.
 
@@ -269,8 +287,7 @@ pkg
 │   │   │   ├── srn
 │   │   │   └── tpr
 │   │   ├── sqrdist
-│   │   ├── stack
-│   │   ├── transformer (BERT-like models)
+│   │   └── stack
 │   └── optimizers
 │       ├── de (differential evolution)
 │       │   ├── de.go
@@ -300,6 +317,7 @@ pkg
     ├── tokenizers
     │   ├── base (whitespaces and punctuation)
     │   └── wordpiece
+    ├── transformer (BERT-like models)
     ├── vocabulary
     └── corpora
 ```
@@ -373,7 +391,6 @@ Contact
 I encourage you to write an issue. This would help the community grow.
 
 If you really want to write to me privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your questions or comments.
-
 
 Licensing
 =====
