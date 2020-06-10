@@ -27,7 +27,7 @@ type SpanClassifier struct {
 
 func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
 	return &SpanClassifier{
-		Model: linear.New(config.InputSize, 2), // TODO: this is probably wrong, check the size of the output
+		Model: linear.New(config.InputSize, 2),
 	}
 }
 
