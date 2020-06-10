@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
 	"log"
+	"os"
 	"path"
 )
 
@@ -32,6 +33,13 @@ Options:
 	repo, err = homedir.Expand(repo)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// make sure the models path exists
+	if _, err := os.Stat(repo); os.IsNotExist(err) {
+		if err := os.MkdirAll(repo, 0755); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if err := bert.DownloadHuggingFacePreTrained(repo, model, overwrite); err != nil {
