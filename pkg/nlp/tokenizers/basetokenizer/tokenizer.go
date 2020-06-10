@@ -25,11 +25,29 @@ var asciiPunctuation = &unicode.RangeTable{
 
 var _ tokenizers.Tokenizer = &BaseTokenizer{}
 
-type BaseTokenizer struct{}
+type BaseTokenizer struct {
+	specialWords map[string]bool
+}
+
+type Option func(*BaseTokenizer)
+
+func RegisterSpecialWords(specialWords ...string) Option {
+	return func(f *BaseTokenizer) {
+		for _, word := range specialWords {
+			f.specialWords[word] = true
+		}
+	}
+}
 
 // New returns a new base tokenizer ready to use.
-func New() *BaseTokenizer {
-	return &BaseTokenizer{}
+func New(opts ...Option) *BaseTokenizer {
+	t := &BaseTokenizer{
+		specialWords: make(map[string]bool),
+	}
+	for _, opt := range opts {
+		opt(t)
+	}
+	return t
 }
 
 // Tokenize converts the input text to a slice of tokens, where each token is a white-separated word,
@@ -37,11 +55,15 @@ func New() *BaseTokenizer {
 // The resulting tokens preserve the alignment with the portion of the original text they belong to.
 func (t *BaseTokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 	splitTokens := make([]tokenizers.StringOffsetsPair, 0)
-	spaceTokens := splitOn(text, isWhitespace, false)
+	spaceTokens := t.splitOn(text, isWhitespace, false)
 
 	for _, spaceToken := range spaceTokens {
-		puncTokens := splitOn(spaceToken.String, isPunctuation, true)
+		if _, isSpecial := t.specialWords[spaceToken.String]; isSpecial {
+			splitTokens = append(splitTokens, spaceToken)
+			continue // TODO: this is temporary solution to don't split special tokens further; improve it.
+		}
 
+		puncTokens := t.splitOn(spaceToken.String, isPunctuation, true)
 		for _, puncToken := range puncTokens {
 			splitTokens = append(splitTokens, tokenizers.StringOffsetsPair{
 				String: puncToken.String,
@@ -57,7 +79,7 @@ func (t *BaseTokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 
 // splitOn splits the given string as the `shouldSplit` predicate dictates.
 // It keeps track of the offsets.
-func splitOn(text string, shouldSplit func(rune) bool, includeSplitToken bool) []tokenizers.StringOffsetsPair {
+func (t *BaseTokenizer) splitOn(text string, shouldSplit func(rune) bool, includeSplitToken bool) []tokenizers.StringOffsetsPair {
 	words := make([]tokenizers.StringOffsetsPair, 0)
 	word := make([]rune, 0)
 	offset := 0

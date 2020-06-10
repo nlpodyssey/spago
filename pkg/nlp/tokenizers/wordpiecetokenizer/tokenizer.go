@@ -43,12 +43,13 @@ type WordPieceTokenizer struct {
 
 func New(vocabulary *vocabulary.Vocabulary) *WordPieceTokenizer {
 	return &WordPieceTokenizer{
-		baseTokenizer: basetokenizer.New(),
-		vocabulary:    vocabulary,
-		unkToken:      DefaultUnknownToken,
-		splitPrefix:   DefaultSplitPrefix,
-		maxWordChars:  DefaultMaxWordChars,
-		neverSplit:    DefaultNeverSplit,
+		baseTokenizer: basetokenizer.New(
+			basetokenizer.RegisterSpecialWords(DefaultUnknownToken, DefaultClassToken, DefaultSequenceSeparator, DefaultMaskToken)),
+		vocabulary:   vocabulary,
+		unkToken:     DefaultUnknownToken,
+		splitPrefix:  DefaultSplitPrefix,
+		maxWordChars: DefaultMaxWordChars,
+		neverSplit:   DefaultNeverSplit,
 	}
 }
 
@@ -138,19 +139,20 @@ func IsDefaultSpecial(word string) bool {
 	}
 }
 
-type Group struct {
+type TokensRange struct {
 	Start int
 	End   int
 }
 
-// GroupPieces returns the start-end indices given tokens that represent complete words
-func GroupPieces(tokens []tokenizers.StringOffsetsPair) []Group {
-	groups := make([]Group, 0)
+// GroupPieces returns a list of tokens range each of which represents
+// the start and the end index of the tokens that form a complete word.
+func GroupPieces(tokens []tokenizers.StringOffsetsPair) []TokensRange {
+	groups := make([]TokensRange, 0)
 	for i, token := range tokens {
 		if strings.HasPrefix(token.String, DefaultSplitPrefix) {
 			groups[len(groups)-1].End = i
 		} else {
-			groups = append(groups, Group{
+			groups = append(groups, TokensRange{
 				Start: i,
 				End:   i,
 			})
