@@ -108,6 +108,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	c.addToModelMapping(mapEmbeddingsProjection(c.model.Embeddings.Projector))
 	c.addToModelMapping(mapBertEncoder(c.model.Encoder))
 	c.addToModelMapping(mapDiscriminator(c.model.Discriminator))
+	c.addToModelMapping(mapSpanClassifier(c.model.SpanClassifier))
 
 	log.Printf("Search for matches with the mapped model to import weights...")
 	for paramName, preTrainedWeights := range pyTorchParams {
@@ -316,6 +317,13 @@ func mapEmbeddingsProjection(embeddingsProjection *linear.Model) map[string]mat.
 	paramsMap := make(map[string]mat.Matrix)
 	paramsMap["bert.embeddings_project.weight"] = embeddingsProjection.W.Value()
 	paramsMap["bert.embeddings_project.bias"] = embeddingsProjection.B.Value()
+	return paramsMap
+}
+
+func mapSpanClassifier(classifier *SpanClassifier) map[string]mat.Matrix {
+	paramsMap := make(map[string]mat.Matrix)
+	paramsMap["qa_outputs.weight"] = classifier.W.Value()
+	paramsMap["qa_outputs.bias"] = classifier.B.Value()
 	return paramsMap
 }
 

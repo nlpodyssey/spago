@@ -63,6 +63,7 @@ type Model struct {
 	Discriminator   *Discriminator // used by "ELECTRA" training method
 	Pooler          *Pooler
 	SeqRelationship *linear.Model
+	SpanClassifier  *SpanClassifier
 }
 
 // NewDefaultBERT returns a new model based on the original BERT architecture.
@@ -104,6 +105,9 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			OutputSize: config.HiddenSize,
 		}),
 		SeqRelationship: linear.New(config.HiddenSize, 2),
+		SpanClassifier: NewSpanClassifier(SpanClassifierConfig{
+			InputSize: config.HiddenSize,
+		}),
 	}
 }
 
@@ -148,6 +152,7 @@ type Processor struct {
 	Discriminator   *DiscriminatorProcessor
 	Pooler          *PoolerProcessor
 	SeqRelationship *linear.Processor
+	SpanClassifier  *SpanClassifierProcessor
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -164,6 +169,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		Discriminator:   m.Discriminator.NewProc(g).(*DiscriminatorProcessor),
 		Pooler:          m.Pooler.NewProc(g).(*PoolerProcessor),
 		SeqRelationship: m.SeqRelationship.NewProc(g).(*linear.Processor),
+		SpanClassifier:  m.SpanClassifier.NewProc(g).(*SpanClassifierProcessor),
 	}
 }
 
