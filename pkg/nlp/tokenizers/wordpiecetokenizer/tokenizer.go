@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
+	"strings"
 )
 
 const (
@@ -135,4 +136,25 @@ func IsDefaultSpecial(word string) bool {
 	default:
 		return false
 	}
+}
+
+type Group struct {
+	Start int
+	End   int
+}
+
+// GroupPieces returns the start-end indices given tokens that represent complete words
+func GroupPieces(tokens []tokenizers.StringOffsetsPair) []Group {
+	groups := make([]Group, 0)
+	for i, token := range tokens {
+		if strings.HasPrefix(token.String, DefaultSplitPrefix) {
+			groups[len(groups)-1].End = i
+		} else {
+			groups = append(groups, Group{
+				Start: i,
+				End:   i,
+			})
+		}
+	}
+	return groups
 }
