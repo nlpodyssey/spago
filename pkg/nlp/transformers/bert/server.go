@@ -13,9 +13,12 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
+	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/httphandlers"
 	"log"
 	"net/http"
+	"sort"
+	"strings"
 )
 
 // TODO: This code needs to be refactored. Pull requests are welcome!
@@ -36,7 +39,7 @@ func (s *Server) Start() {
 	r := http.NewServeMux()
 	r.HandleFunc("/discriminate", s.discriminateHandler)
 	r.HandleFunc("/predict", s.predictHandler)
-	// r.HandleFunc("/answer", s.qaHandler)
+	r.HandleFunc("/answer", s.qaHandler)
 	// r.HandleFunc("/classify", s.classifyHandler)
 	// r.HandleFunc("/tag", s.tagHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port),
@@ -85,6 +88,37 @@ func (s *Server) predictHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	result := s.predict(body.Text)
+	_, pretty := req.URL.Query()["pretty"]
+	response, err := result.Dump(pretty)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+type QABody struct {
+	Question string `json:"question"`
+	Passage  string `json:"passage"`
+}
+
+func (s *Server) qaHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
+	w.Header().Set("Content-Type", "application/json")
+
+	var body QABody
+	err := json.NewDecoder(req.Body).Decode(&body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result := s.answer(body.Question, body.Passage)
 	_, pretty := req.URL.Query()["pretty"]
 	response, err := result.Dump(pretty)
 	if err != nil {
@@ -151,7 +185,7 @@ func (s *Server) discriminate(text string) *Response {
 		group := groupedTokens[i]
 		startToken, endToken := origTokens[group.Start], origTokens[group.End]
 		retTokens = append(retTokens, Token{
-			Text:  text[startToken.Offsets.Start:endToken.Offsets.End],
+			Text:  string([]rune(text)[startToken.Offsets.Start:endToken.Offsets.End]),
 			Start: startToken.Offsets.Start,
 			End:   endToken.Offsets.End,
 			Label: label,
@@ -195,6 +229,124 @@ func (s *Server) predict(text string) *Response {
 		})
 	}
 	return &Response{Tokens: retTokens}
+}
+
+type Answer struct {
+	Text       string  `json:"text"`
+	Start      int     `json:"start"`
+	End        int     `json:"end"`
+	Confidence float64 `json:"confidence"`
+}
+
+type AnswerSlice []Answer
+
+func (p AnswerSlice) Len() int           { return len(p) }
+func (p AnswerSlice) Less(i, j int) bool { return p[i].Confidence < p[j].Confidence }
+func (p AnswerSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p AnswerSlice) Sort()              { sort.Sort(p) }
+
+type QuestionAnsweringResponse struct {
+	Answers AnswerSlice `json:"answers"`
+}
+
+func (r *QuestionAnsweringResponse) Dump(pretty bool) ([]byte, error) {
+	buf := bytes.NewBufferString("")
+	enc := json.NewEncoder(buf)
+	if pretty {
+		enc.SetIndent("", "    ")
+	}
+	enc.SetEscapeHTML(true)
+	err := enc.Encode(r)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+const defaultMaxAnswerLength = 20     // TODO: from options
+const defaultMinConfidence = 0.1      // TODO: from options
+const defaultMaxCandidateLogits = 3.0 // TODO: from options
+const defaultMaxAnswers = 3           // TODO: from options
+
+// TODO: This method is too long; it needs to be refactored.
+func (s *Server) answer(question string, passage string) *QuestionAnsweringResponse {
+	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
+	origQuestionTokens := tokenizer.Tokenize(question)
+	origPassageTokens := tokenizer.Tokenize(passage)
+
+	cls := wordpiecetokenizer.DefaultClassToken
+	sep := wordpiecetokenizer.DefaultSequenceSeparator
+	tokenized := append([]string{cls}, append(tokenizers.GetStrings(origQuestionTokens), sep)...)
+	tokenized = append(tokenized, append(tokenizers.GetStrings(origPassageTokens), sep)...)
+
+	g := ag.NewGraph()
+	defer g.Clear()
+	proc := s.model.NewProc(g).(*Processor)
+	proc.SetMode(nn.Inference)
+	encoded := proc.Encode(tokenized)
+
+	passageStartIndex := len(origQuestionTokens) + 2
+	startLogits, endLogits := proc.SpanClassifier.Classify(encoded)
+	startLogits, endLogits = startLogits[passageStartIndex:], endLogits[passageStartIndex:] // cut invalid positions
+	startIndices := getBestIndices(extractScores(startLogits), defaultMaxCandidateLogits)
+	endIndices := getBestIndices(extractScores(endLogits), defaultMaxCandidateLogits)
+
+	candidateAnswers := make([]Answer, 0)
+	scores := make([]float64, 0) // the scores are aligned with the candidateAnswers
+	for _, startIndex := range startIndices {
+		for _, endIndex := range endIndices {
+			switch {
+			case endIndex < startIndex:
+				continue
+			case endIndex-startIndex+1 > defaultMaxAnswerLength:
+				continue
+			default:
+				startOffset := origPassageTokens[startIndex].Offsets.Start
+				endOffset := origPassageTokens[endIndex].Offsets.End
+				scores = append(scores, startLogits[startIndex].ScalarValue()+endLogits[endIndex].ScalarValue())
+				candidateAnswers = append(candidateAnswers, Answer{
+					Text:  strings.Trim(string([]rune(passage)[startOffset:endOffset]), " "),
+					Start: startOffset,
+					End:   endOffset,
+				})
+			}
+		}
+	}
+
+	probs := f64utils.SoftMax(scores)
+	answers := make(AnswerSlice, 0)
+	for i, candidate := range candidateAnswers {
+		if probs[i] >= defaultMinConfidence {
+			candidate.Confidence = probs[i]
+			answers = append(answers, candidate)
+		}
+	}
+
+	sort.Sort(sort.Reverse(answers))
+	if len(answers) > defaultMaxAnswers {
+		answers = answers[:defaultMaxAnswers]
+	}
+
+	return &QuestionAnsweringResponse{
+		Answers: answers,
+	}
+}
+
+func extractScores(logits []ag.Node) []float64 {
+	scores := make([]float64, len(logits))
+	for i, node := range logits {
+		scores[i] = node.ScalarValue()
+	}
+	return scores
+}
+
+func getBestIndices(logits []float64, size int) []int {
+	s := utils.NewFloat64Slice(logits...)
+	sort.Sort(sort.Reverse(s))
+	if len(s.Indices) < size {
+		return s.Indices
+	}
+	return s.Indices[:size]
 }
 
 type Response struct {
