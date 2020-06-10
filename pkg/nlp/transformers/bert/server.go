@@ -313,6 +313,12 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 		}
 	}
 
+	if len(candidateAnswers) == 0 {
+		return &QuestionAnsweringResponse{
+			Answers: AnswerSlice{},
+		}
+	}
+
 	probs := f64utils.SoftMax(scores)
 	answers := make(AnswerSlice, 0)
 	for i, candidate := range candidateAnswers {
