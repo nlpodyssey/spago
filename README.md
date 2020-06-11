@@ -309,7 +309,7 @@ At the heart of the library
 The [ag package](https://github.com/nlpodyssey/spago/tree/master/pkg/ml/ag) (a.k.a. auto-grad) is the centerpiece of the spaGO machine learning framework.
 
 Neural models optimized by back-propagation require gradients to be available during training.
-The set of expressions characterizing the forward-step of such models must be defined within the ag.Graph to take advantage of automatic differentiation.
+The set of expressions characterizing the forward-step of such models must be defined within the [ag.Graph](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/ag/graph.go) to take advantage of automatic differentiation.
 
 ### The basis
 
