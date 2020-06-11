@@ -11,6 +11,8 @@ A beautiful and maintainable machine learning library written in Go. It is desig
 
 spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers) and with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture. 
 
+<p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
+
 <div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/master/assets/screenshot_spago_api_qa.png" /></div>
 
 ---
