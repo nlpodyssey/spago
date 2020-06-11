@@ -301,6 +301,52 @@ It should print:
 }
 ```
 
+At the heart of the library
+=====
+
+The [ag package](https://github.com/nlpodyssey/spago/tree/master/pkg/ml/ag) (a.k.a. auto-grad) is the centerpiece of the spaGO machine learning framework.
+
+Neural models optimized by back-propagation require gradients to be available during training.
+The set of expressions characterizing the forward-step of such models must be defined within the ag.Graph to take advantage of automatic differentiation.
+
+### The basis
+
+Let's see if spaGO can tell as what two plus five is :)
+
+```go
+// create a new node of type variable with a scalar
+a := ag.NewVariable(mat.NewScalar(2.0), true)
+// create another node of type variable with a scalar
+b := ag.NewVariable(mat.NewScalar(5.0), true)
+// create an addition operator (the calculation is actually performed here)
+c := ag.Add(a, b)
+// print the result
+fmt.Printf("c = %v\n", c.Value())
+```
+
+It should print:
+
+```console
+c = [7]
+```
+
+Let's go one step further now and ask spaGO to give us the gradients on `a` and `b`, starting with arbitrary output gradients.
+
+```go
+ag.Backward(c, ag.OutputGrad(mat.NewScalar(0.5)))
+fmt.Printf("ga = %v\n", a.Grad())
+fmt.Printf("gb = %v\n", b.Grad())
+```
+
+It should print:
+
+```console
+ga = [0.5]
+gb = [0.5]
+```
+
+I know it's a tiny example, but have patience. You will soon find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
+
 What's inside?
 =====
 
