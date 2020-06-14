@@ -196,6 +196,15 @@ func normalizeParamName(orig string) (normalized string) {
 	normalized = strings.Replace(normalized, "electra.", "bert.", -1)
 	normalized = strings.Replace(normalized, ".gamma", ".weight", -1)
 	normalized = strings.Replace(normalized, ".beta", ".bias", -1)
+	if strings.HasPrefix(normalized, "embeddings.") {
+		normalized = fmt.Sprintf("bert.%s", normalized)
+	}
+	if strings.HasPrefix(normalized, "encoder.") {
+		normalized = fmt.Sprintf("bert.%s", normalized)
+	}
+	if strings.HasPrefix(normalized, "pooler.") {
+		normalized = fmt.Sprintf("bert.%s", normalized)
+	}
 	return
 }
 
