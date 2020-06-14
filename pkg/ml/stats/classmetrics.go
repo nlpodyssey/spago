@@ -8,7 +8,7 @@ import "math"
 
 type ClassMetrics struct {
 	TruePos  int // The number of true positive results (correctly marked as positive)
-    TrueNeg  int // The number of true negative results (correctly marked as negative)
+	TrueNeg  int // The number of true negative results (correctly marked as negative)
 	FalsePos int // The number of false positive results (that should have been negative)
 	FalseNeg int // The number of false negative results (that should have been positive)
 }
@@ -16,7 +16,7 @@ type ClassMetrics struct {
 func NewMetricCounter() *ClassMetrics {
 	return &ClassMetrics{
 		TruePos:  0,
-        TrueNeg:  0,
+		TrueNeg:  0,
 		FalsePos: 0,
 		FalseNeg: 0,
 	}
@@ -25,7 +25,7 @@ func NewMetricCounter() *ClassMetrics {
 // Reset sets all the counters to zero.
 func (c *ClassMetrics) Reset() {
 	c.TruePos = 0
-    c.TrueNeg = 0
+	c.TrueNeg = 0
 	c.FalsePos = 0
 	c.FalseNeg = 0
 }
@@ -68,13 +68,13 @@ func (c *ClassMetrics) F1Score() float64 {
 
 // Specificity returns the specificity (selectivity, true negative rate) metric, calculated as true negative / (true negative + false positive).
 func (c *ClassMetrics) Specificity() float64 {
-    return zeroIfNaN(float64(c.TrueNeg) / float64(c.TrueNeg+c.FalsePos))
+	return zeroIfNaN(float64(c.TrueNeg) / float64(c.TrueNeg+c.FalsePos))
 }
 
 // Accuracy returns the accuracy metric, calculated as (true positive + true negative) / (TP + TN + FP + FN).
 func (c *ClassMetrics) Accuracy() float64 {
-    numerator := float64(c.TruePos) + float64(c.TrueNeg)
-    return zeroIfNaN(numerator / (numerator + float64(c.FalseNeg+c.FalsePos)))
+	numerator := float64(c.TruePos) + float64(c.TrueNeg)
+	return zeroIfNaN(numerator / (numerator + float64(c.FalseNeg+c.FalsePos)))
 }
 
 func zeroIfNaN(value float64) float64 {
