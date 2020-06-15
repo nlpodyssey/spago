@@ -4,7 +4,7 @@ spaGO
 [![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
-![Unstable](https://github.com/nlpodyssey/spago/blob/master/assets/stability-unstable-yellow.svg)
+![Unstable](https://github.com/nlpodyssey/spago/blob/main/assets/stability-unstable-yellow.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 <p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
@@ -13,7 +13,7 @@ A beautiful and maintainable machine learning library written in Go. It is desig
 
 spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers) and with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture. 
 
-<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/master/assets/screenshot_spago_api_qa.png" /></div>
+<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
 
 ---
 
@@ -203,7 +203,7 @@ It should print:
 Demo for Question Answering
 =====
 
-Until recently, question-answering was considered a complex task. Today you can get good results with just a [linear layer](https://github.com/nlpodyssey/spago/blob/master/pkg/nlp/transformers/bert/spanclassifier.go#L25) on top of the transformer's encoding. Transformers are a recent trend in natural language processing. They are auto-regressive models trained in an unsupervised manner on huge amounts of text to assimilate human language patterns. In other words, they are [super-parrots](https://medium.com/@ElementalCognition/can-super-parrots-ever-achieve-language-understanding-8307dfd3e87c). Although I do not believe that this is the right way to solve the problem of language processing - at least not alone - I have to admit that their power is extraordinary. 
+Until recently, question-answering was considered a complex task. Today you can get good results with just a [linear layer](https://github.com/nlpodyssey/spago/blob/main/pkg/nlp/transformers/bert/spanclassifier.go#L25) on top of the transformer's encoding. Transformers are a recent trend in natural language processing. They are auto-regressive models trained in an unsupervised manner on huge amounts of text to assimilate human language patterns. In other words, they are [super-parrots](https://medium.com/@ElementalCognition/can-super-parrots-ever-achieve-language-understanding-8307dfd3e87c). Although I do not believe that this is the right way to solve the problem of language processing - at least not alone - I have to admit that their power is extraordinary. 
 
 No more talk. Here's how to test a question-answering system based on BERT, the first Transformer. 
 
@@ -360,10 +360,10 @@ It should print:
 At the heart of the library
 =====
 
-The [ag package](https://github.com/nlpodyssey/spago/tree/master/pkg/ml/ag) (a.k.a. auto-grad) is the centerpiece of the spaGO machine learning framework.
+The [ag package](https://github.com/nlpodyssey/spago/tree/main/pkg/ml/ag) (a.k.a. auto-grad) is the centerpiece of the spaGO machine learning framework.
 
 Neural models optimized by back-propagation require gradients to be available during training.
-The set of expressions characterizing the forward-step of such models must be defined within the [ag.Graph](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/ag/graph.go) to take advantage of automatic differentiation.
+The set of expressions characterizing the forward-step of such models must be defined within the [ag.Graph](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/ag/graph.go) to take advantage of automatic differentiation.
 
 ### The basis
 
@@ -586,7 +586,7 @@ Are you looking for a highly optimized, scalable, battle-tested, production-read
 
 If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
 
-The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/master/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
+The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
 
 ### What direction did you take for the development of spaGO?
 
@@ -613,7 +613,7 @@ Beyond that, I think there's a lot of basic design improvements that would be ne
 Disclaimer
 =====
 
-**Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/nlpodyssey/spago/blob/master/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
+**Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/nlpodyssey/spago/blob/main/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
 If you want spaGo to become something more than just a hobby project of me, I greatly appreciate any bug reports and contributions, which can be made by filing an issue or making a pull request through the github page. Thanks!
 
 Contact
@@ -626,4 +626,4 @@ If you really want to write to me privately, please email [Matteo Grella](mailto
 Licensing
 =====
 
-spaGO is licensed under a BSD-style license. See [LICENSE](https://github.com/nlpodyssey/spago/blob/master/LICENSE) for the full license text.
+spaGO is licensed under a BSD-style license. See [LICENSE](https://github.com/nlpodyssey/spago/blob/main/LICENSE) for the full license text.
