@@ -82,7 +82,7 @@ Alternativelty, the demos can be built into a single Docker container image.
 Move into the spaGO directory and run:
 
 ```console
-docker build -t spago:master . -f Dockerfile
+docker build -t spago:main . -f Dockerfile
 ```
 
 ### Run
@@ -126,7 +126,7 @@ mkdir ~/.spago
 Now run the `ner-server` using the Docker container image, indicating a port, the directory of the models, and the model name. Include the volume flag (`-v`) to bind-mount the directory of the models into the container, and include the publish flag (`-p`) to publish the server port to the container's host.
 
 ```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:master ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03
+docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03
 ```
 
 ### API
@@ -234,7 +234,7 @@ Alternativelty, the demos can be built into a single Docker container image.
 If the Docker container image hasn't already been built, move into the spaGO directory and run:
 
 ```console
-docker build -t spago:master . -f Dockerfile
+docker build -t spago:main . -f Dockerfile
 ```
 
 ### Import a Pre-Trained Model
@@ -267,7 +267,7 @@ Run the container image, including the volume flag (`-v`) to bind-mount the dire
 Example:
 
 ```console
-docker run --rm -it -v ~/.spago:/tmp/spago spago:master ./hugging_face_importer --model=deepset/bert-base-cased-squad2 --repo=/tmp/spago
+docker run --rm -it -v ~/.spago:/tmp/spago spago:main ./hugging_face_importer --model=deepset/bert-base-cased-squad2 --repo=/tmp/spago
 ```
 
 ### Run
@@ -300,7 +300,7 @@ Run the container image, including the volume flag (`-v`) to bind-mount the dire
 Example:
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:master ./bert_server --port=1987 --model=/tmp/spago/deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server --port=1987 --model=/tmp/spago/deepset/bert-base-cased-squad2
 ```
 
 ### API
