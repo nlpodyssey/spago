@@ -27,7 +27,7 @@ if [[ -z "$1" -o "$1" = "help" ]]; then
     echo ""
     echo "The models folder should be bind-mounted like this."
     echo ""
-    echo "docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:master ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03"
+    echo "docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03"
     echo ""
     echo "See README.md for more information about using docker to run the demos."
 
