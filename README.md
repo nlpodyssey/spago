@@ -45,7 +45,7 @@ Installation
 Make sure you have [Go 1.14](https://golang.org/dl/) installed on your computer first. The package can be installed using *go get* as follows:
 
 ```console
-go get -u https://github.com/nlpodyssey/spago
+go get -u github.com/nlpodyssey/spago
 ```
 
 spaGO is compatible with [go modules](https://blog.golang.org/using-go-modules).
