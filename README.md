@@ -367,7 +367,7 @@ The set of expressions characterizing the forward-step of such models must be de
 
 ### The basis
 
-Let's see if spaGO can tell as what two plus five is :)
+Let's see if spaGO can tell us what two plus five is :)
 
 ```go
 // create a new node of type variable with a scalar
