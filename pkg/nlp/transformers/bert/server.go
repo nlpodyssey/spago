@@ -7,12 +7,12 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
+
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -37,15 +37,21 @@ func NewServer(model *Model) *Server {
 // StartDefaultServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
-func (s *Server) StartDefaultServer(port int) {
+func (s *Server) StartDefaultServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	r := http.NewServeMux()
 	r.HandleFunc("/discriminate", s.DiscriminateHandler)
 	r.HandleFunc("/predict", s.PredictHandler)
 	r.HandleFunc("/answer", s.QaHandler)
 	// r.HandleFunc("/classify", s.classifyHandler)
 	// r.HandleFunc("/tag", s.tagHandler)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port),
-		httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+
+	if tlsDisable {
+		log.Fatal(http.ListenAndServe(address,
+			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+	} else {
+		log.Fatal(http.ListenAndServeTLS(address, tlsCert, tlsKey,
+			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+	}
 }
 
 type Body struct {

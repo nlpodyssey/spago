@@ -4,15 +4,18 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# docker-entrypoint.sh wraps access to the demo programs for
-# named entities recognition (ner-server), model importing
-# (hugging_face_importer), and question answering (bert_server).
+# The script docker-entrypoint.sh wraps access to the demo
+# programs for named entities recognition (ner-server), model
+# importing (hugging_face_importer), and question answering
+# (bert_server).
 
 set -o errexit
 set -o pipefail
 set -o nounset
 # set -o xtrace
 
+# The help screen is printed to the user when no commands
+# are given, or when the command "help" is given.
 if [[ -z "$1" -o "$1" = "help" ]]; then
     echo "spaGO is a beautiful and maintainable machine learning library written in Go designed to support relevant neural network architectures in natural language processing tasks."
     echo ""
@@ -21,19 +24,15 @@ if [[ -z "$1" -o "$1" = "help" ]]; then
     echo ""
     echo "The commands are:"
     echo ""
-    echo "   ner-server              demo for named entities recognition"
-    echo "   hugging_face_importer   demo for model importing"
-    echo "   bert_server             demo for question answering"
+    echo "   bert_server             demo server for question answering"
+    echo "   hugging_face_importer   demo program for model importing"
+    echo "   ner-server              demo server for named entities recognition"
     echo ""
-    echo "The models folder should be bind-mounted like this."
-    echo ""
-    echo "docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03"
-    echo ""
-    echo "See README.md for more information about using docker to run the demos."
+    echo "See README.md for more information about run the demo servers using docker."
 
     exit 0
 fi
 
-# needed to run parameters CMD
+# Run the commands defined by the Dockerfile CMD directive.
 echo "Running command '$@'"
 exec "$@"
