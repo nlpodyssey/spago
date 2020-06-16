@@ -8,12 +8,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 	"github.com/nlpodyssey/spago/pkg/utils/httphandlers"
-	"log"
-	"net/http"
 )
 
 type Server struct {
@@ -56,11 +58,11 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	analysis := s.process(body.Text, body.Options.MergeEntities)
+	analysis, took := s.process(body.Text, body.Options.MergeEntities)
 	if body.Options.FilterNotEntities {
 		analysis = filterNotEntities(analysis)
 	}
-	result := prepareResponse(analysis)
+	result := prepareResponse(analysis, took)
 
 	_, pretty := req.URL.Query()["pretty"]
 	response, err := result.Dump(pretty)
@@ -76,7 +78,8 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) process(text string, merge bool) []TokenLabel {
+func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) {
+	start := time.Now()
 	g := ag.NewGraph()
 	defer g.Clear()
 	proc := s.model.NewProc(g).(*Processor)
@@ -86,10 +89,10 @@ func (s *Server) process(text string, merge bool) []TokenLabel {
 	if merge {
 		predicted = mergeEntities(predicted)
 	}
-	return predicted
+	return predicted, time.Since(start)
 }
 
-func prepareResponse(tokens []TokenLabel) *Response {
+func prepareResponse(tokens []TokenLabel, took time.Duration) *Response {
 	newTokens := make([]Token, len(tokens))
 	for i, token := range tokens {
 		newTokens[i] = Token{
@@ -99,11 +102,13 @@ func prepareResponse(tokens []TokenLabel) *Response {
 			Label: token.Label,
 		}
 	}
-	return &Response{Tokens: newTokens}
+	return &Response{Tokens: newTokens, Took: took.Milliseconds()}
 }
 
 type Response struct {
 	Tokens []Token `json:"tokens"`
+	// Took is the number of milliseconds it took the server to execute the request.
+	Took int64 `json:"took"`
 }
 
 type Token struct {
