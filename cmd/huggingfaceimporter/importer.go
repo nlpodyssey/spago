@@ -1,18 +1,21 @@
+// Copyright 2020 spaGO Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
-	"os"
-	"path"
-
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
 	"github.com/urfave/cli"
+	"os"
+	"path"
 )
 
 const (
 	DefaultModelsURL = "https://huggingface.co/models"
 	DefaultRepoPath  = "~/.spago/"
-	CachefileName    = "huggingface-co-cache.json"
+	CacheFileName    = "huggingface-co-cache.json"
 )
 
 // ImporterArgs contain args for the import command (default)

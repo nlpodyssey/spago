@@ -1,21 +1,24 @@
+// Copyright 2020 spaGO Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
-
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
 	"github.com/manifoldco/promptui/list"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 )
 
 func writeMsg(m string) {
-	os.Stderr.WriteString(m)
+	_, _ = os.Stderr.WriteString(m)
 	if !strings.HasSuffix(m, "\n") {
-		os.Stderr.WriteString("\n")
+		_, _ = os.Stderr.WriteString("\n")
 	}
 }
 
@@ -46,7 +49,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 			}
 		} else if a.Model == searchStr {
 			// Check if data already is cached.
-			cacheFilePath := path.Join(repo, CachefileName)
+			cacheFilePath := path.Join(repo, CacheFileName)
 			var dataJson string
 			if _, err := os.Stat(cacheFilePath); err == nil {
 				dataBin, err := ioutil.ReadFile(cacheFilePath)

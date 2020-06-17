@@ -5,9 +5,8 @@
 package main
 
 import (
-	"os"
-
 	"github.com/urfave/cli"
+	"os"
 )
 
 // SuggestedModels are excellent models to start with.
