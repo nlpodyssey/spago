@@ -5,57 +5,36 @@
 package main
 
 import (
-	"github.com/docopt/docopt-go"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
-	"github.com/nlpodyssey/spago/pkg/utils/homedir"
-	"log"
 	"os"
-	"path"
+
+	"github.com/urfave/cli"
 )
 
+// SuggestedModels are excellent models to start with.
+var SuggestedModels = []string{
+	// suggested models for question-answering
+	"deepset/bert-base-cased-squad2",
+	// suggested models for real/fake token discrimination
+	"google/electra-base-discriminator",
+	// suggested models for masked tokens prediction
+	"bert-base-cased",
+	"bert-base-multilingual-cased",
+	"bert-base-german-cased",
+}
+
 func main() {
-	usage := `Usage: hugging_face_importer --model=<name> [--repo=<path>] [--overwrite]
+	importerArgs := NewDefaultImporterArgs()
+	importerFlags := importerArgs.BuildFlags()
 
-Options:
-  --model=<name>   The name of the model to import (as displayed at https://huggingface.co/models).
-  --repo=<path>    Directory where to import the model [default: ~/.spago/].
-  --overwrite      Overwrite files in case they already exist.
-  -h --help        Show this screen.`
+	app := cli.NewApp()
+	app.Name = "huggingfaceimporter"
+	app.Usage = "import data to a target path"
+	app.HideVersion = true
+	app.Action = importerArgs.RunImporterCli
+	app.Flags = importerFlags
 
-	arguments, err := docopt.ParseDoc(usage)
-	if err != nil {
-		log.Fatal(err)
+	if err := app.Run(os.Args); err != nil {
+		writeMsg(err.Error())
+		os.Exit(1)
 	}
-
-	overwrite := mustBool(arguments.Bool("--overwrite"))
-	model := mustStr(arguments.String("--model"))
-	repo := mustStr(arguments.String("--repo"))
-	repo, err = homedir.Expand(repo)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// make sure the models path exists
-	if _, err := os.Stat(repo); os.IsNotExist(err) {
-		if err := os.MkdirAll(repo, 0755); err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	if err := bert.DownloadHuggingFacePreTrained(repo, model, overwrite); err != nil {
-		log.Fatal(err)
-	}
-	if err := bert.ConvertHuggingFacePreTrained(path.Join(repo, model)); err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Enjoy :)")
-}
-
-func mustStr(value string, _ error) string {
-	return value
-}
-
-func mustBool(value bool, _ error) bool {
-	return value
 }
