@@ -8,26 +8,45 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/docopt/docopt-go"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 )
 
 func main() {
-	usage := `Usage: bert_server --model=<path> --port=<port>
+	usage := `Usage: bert_server --model=<path> [--address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]
 
 Options:
-  -m --model=<path>   The path of the model to load.
-  -p --port=<port>    The API port. 
-  -h --help           Show this screen.`
+     --address=<bind address>    Changes the bind address of the server. [default: 0.0.0.0:1987]
+  -m --model=<path>              The path of the model to load.
+	 --tls-cert-file=<cert>      Specifies the path of the TLS certificate file. [default: /etc/ssl/certs/spago/server.crt]
+	 --tls-key-file=<key>        Specifies the path of the private key for the certificate. [default: /etc/ssl/certs/spago/server.key]
+	 --tls-disable               Specifies that TLS is disabled.
+  -h --help                      Show this screen.`
 
 	arguments, err := docopt.ParseDoc(usage)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	port, err := strconv.Atoi(mustStr(arguments.String("--port")))
+	address, err := arguments.String("--address")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tlsCert, err := arguments.String("--tls-cert-file")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("TLS Cert path is %s\n", tlsCert)
+
+	tlsKey, err := arguments.String("--tls-key-file")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("TLS private key path is %s\n", tlsKey)
+
+	tlsDisable, err := arguments.Bool("--tls-disable")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,9 +62,14 @@ Options:
 	}
 	fmt.Printf("Config: %+v\n", model.Config)
 
-	fmt.Println(fmt.Sprintf("Start server on port %d.", port))
+	fmt.Printf("Start %s server listening on %s.\n", func() string {
+		if tlsDisable {
+			return "non-TLS"
+		}
+		return "TLS"
+	}(), address)
 	server := bert.NewServer(model)
-	server.StartDefaultServer(port)
+	server.StartDefaultServer(address, tlsCert, tlsKey, tlsDisable)
 }
 
 func mustStr(value string, _ error) string {

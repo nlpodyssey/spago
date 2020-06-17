@@ -279,28 +279,30 @@ Run the `bert_server` indicating a port and the model path (NOT the model file).
 Example: 
  
 ```console
-./bert_server --port=1987 --model=~/.spago/deepset/bert-base-cased-squad2 
+./bert_server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
 ```
 
 It should print:
 
 ```console
+TLS Cert path is /etc/ssl/certs/spago/server.crt
+TLS private key path is /etc/ssl/certs/spago/server.key
 Start loading pre-trained model from "~/.spago/deepset/bert-base-cased-squad2"
 [1/3] Loading configuration... ok
 [2/3] Loading vocabulary... ok
 [3/3] Loading model weights... ok
 Config: {HiddenAct:gelu HiddenSize:768 IntermediateSize:3072 MaxPositionEmbeddings:512 NumAttentionHeads:12 NumHiddenLayers:12 TypeVocabSize:2 VocabSize:28996}
-Start server on port 1987.
+Start non-TLS server listening on 0.0.0.0:1987.
 ```
 
 ### Docker Run
 
-Run the container image, including the volume flag (`-v`) to bind-mount the directory of the models into the container, and including the publish flag (`-p`) to publish the server port to the container's host.
+Run the container image, including the volume flag (`-v`) to bind-mount the directory of the models into the container, and including the publish flag (`-p`) to publish the server port to the container's host. TLS is enabled by default.
 
 Example:
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server --port=1987 --model=/tmp/spago/deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server --model=/tmp/spago/deepset/bert-base-cased-squad2
 ```
 
 ### API
@@ -318,7 +320,7 @@ QUESTION2="When was BERT created?"
 To get the answer to the first question, execute:
 
 ```console
-curl -d '{"question": "'"$QUESTION1"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "http://127.0.0.1:1987/answer?pretty"
+curl -k -d '{"question": "'"$QUESTION1"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/answer?pretty"
 ```
 
 It should print:
@@ -339,7 +341,7 @@ It should print:
 To get the answer to the second question, execute:
 
 ```console
-curl -d '{"question": "'"$QUESTION2"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "http://127.0.0.1:1987/answer?pretty"
+curl -k -d '{"question": "'"$QUESTION2"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/answer?pretty"
 ```
 
 It should print:

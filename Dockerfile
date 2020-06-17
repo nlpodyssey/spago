@@ -33,20 +33,45 @@ RUN GOOS=linux GOARCH=amd64 go build -o bert_server cmd/bert/main.go
 # match the version of Alpine used in the Builder image.
 FROM alpine:3.12
 
+# The packages ca-certificates and openssl are needed in order to run
+# the servers using TLS.
 RUN apk add --no-cache \
 		ca-certificates \
+		openssl \
 		;
 
-ENV GOOS linux
-ENV GOARCH amd64
-
+# The spago user and spago group are created so that the servers can
+# be run with limited privileges.
 RUN addgroup -S spago && adduser -S spago -G spago
 
+# A self-signed certificate and private key is generated so that the
+# servers can easily support TLS without requiring the user to
+# generate their own certificates.
+RUN mkdir /etc/ssl/certs/spago ;\
+	openssl req \
+		-x509 \
+		-nodes \
+		-newkey rsa:2048 \
+		-keyout /etc/ssl/certs/spago/server.key \
+		-out /etc/ssl/certs/spago/server.crt \
+		-days 3650 \
+		-subj "/C=IT/ST=Piedmont/L=Torino/EA=matteogrella@gmail.com/CN=*" && \
+	chgrp spago /etc/ssl/certs/spago/server.key && \
+	chmod 0640 /etc/ssl/certs/spago/server.key \
+	;
+
+# Copy the script docker-entrypoint.sh from source.
 COPY --chown=spago:spago docker-entrypoint.sh /home/spago/
 RUN chmod 0755 /home/spago/docker-entrypoint.sh
 
+# Copy the compiled demo servers and other programs from the Builder
+# container.
 COPY --chown=spago:spago --from=Builder /build/* /home/spago/
 
+# Setup the environment and run the script docker-entrypoint.sh so
+# that a help screen is printed to the user when no commands are given.
+ENV GOOS linux
+ENV GOARCH amd64
 USER spago
 WORKDIR /home/spago
 ENTRYPOINT ["/home/spago/docker-entrypoint.sh"]
