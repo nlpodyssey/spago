@@ -6,11 +6,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/docopt/docopt-go"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/docopt/docopt-go"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 )
 
 func main() {
@@ -43,8 +44,8 @@ Options:
 	fmt.Printf("Config: %+v\n", model.Config)
 
 	fmt.Println(fmt.Sprintf("Start server on port %d.", port))
-	server := bert.NewServer(model, port)
-	server.Start()
+	server := bert.NewServer(model)
+	server.StartDefaultServer(port)
 }
 
 func mustStr(value string, _ error) string {
