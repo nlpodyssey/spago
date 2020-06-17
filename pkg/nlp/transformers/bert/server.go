@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-
+	"time"
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -147,6 +147,8 @@ const DefaultPredictedLabel = "PREDICTED"
 
 // TODO: This method is too long; it needs to be refactored.
 func (s *Server) discriminate(text string) *Response {
+	start := time.Now()
+
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	groupedTokens := wordpiecetokenizer.GroupPieces(origTokens)
@@ -193,11 +195,13 @@ func (s *Server) discriminate(text string) *Response {
 			Label: label,
 		})
 	}
-	return &Response{Tokens: retTokens}
+	return &Response{Tokens: retTokens, Took: time.Since(start).Milliseconds()}
 }
 
 // TODO: This method is too long; it needs to be refactored.
 func (s *Server) predict(text string) *Response {
+	start := time.Now()
+
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
@@ -230,7 +234,7 @@ func (s *Server) predict(text string) *Response {
 			Label: label,
 		})
 	}
-	return &Response{Tokens: retTokens}
+	return &Response{Tokens: retTokens, Took: time.Since(start).Milliseconds()}
 }
 
 type Answer struct {
@@ -249,6 +253,8 @@ func (p AnswerSlice) Sort()              { sort.Sort(p) }
 
 type QuestionAnsweringResponse struct {
 	Answers AnswerSlice `json:"answers"`
+	// Took is the number of milliseconds it took the server to execute the request.
+	Took int64 `json:"took"`
 }
 
 func (r *QuestionAnsweringResponse) Dump(pretty bool) ([]byte, error) {
@@ -272,6 +278,8 @@ const defaultMaxAnswers = 3           // TODO: from options
 
 // TODO: This method is too long; it needs to be refactored.
 func (s *Server) answer(question string, passage string) *QuestionAnsweringResponse {
+	start := time.Now()
+
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
 	origQuestionTokens := tokenizer.Tokenize(question)
 	origPassageTokens := tokenizer.Tokenize(passage)
@@ -337,6 +345,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 
 	return &QuestionAnsweringResponse{
 		Answers: answers,
+		Took:    time.Since(start).Milliseconds(),
 	}
 }
 
@@ -359,6 +368,8 @@ func getBestIndices(logits []float64, size int) []int {
 
 type Response struct {
 	Tokens []Token `json:"tokens"`
+	// Took is the number of milliseconds it took the server to execute the request.
+	Took int64 `json:"took"`
 }
 
 type Token struct {
