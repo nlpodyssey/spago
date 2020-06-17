@@ -301,9 +301,10 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 	proc.SetMode(nn.Inference)
 	encoded := proc.Encode(tokenized)
 
-	passageStartIndex := len(origQuestionTokens) + 2
+	passageStartIndex := len(origQuestionTokens) + 2 // +2 because of [CLS] and [SEP]
+	passageEndIndex := passageStartIndex + len(origPassageTokens)
 	startLogits, endLogits := proc.SpanClassifier.Classify(encoded)
-	startLogits, endLogits = startLogits[passageStartIndex:], endLogits[passageStartIndex:] // cut invalid positions
+	startLogits, endLogits = startLogits[passageStartIndex:passageEndIndex], endLogits[passageStartIndex:passageEndIndex] // cut invalid positions
 	startIndices := getBestIndices(extractScores(startLogits), defaultMaxCandidateLogits)
 	endIndices := getBestIndices(extractScores(endLogits), defaultMaxCandidateLogits)
 
