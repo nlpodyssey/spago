@@ -8,6 +8,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"sort"
+	"strings"
+
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -15,34 +20,31 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/httphandlers"
-	"log"
-	"net/http"
-	"sort"
-	"strings"
 )
 
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
 type Server struct {
 	model *Model
-	port  int
 }
 
-func NewServer(model *Model, port int) *Server {
+func NewServer(model *Model) *Server {
 	return &Server{
 		model: model,
-		port:  port,
 	}
 }
 
-func (s *Server) Start() {
+// StartDefaultServer is used to start a basic BERT HTTP server.
+// If you want more control of the HTTP server you can run your own
+// HTTP router using the public handler functions
+func (s *Server) StartDefaultServer(port int) {
 	r := http.NewServeMux()
-	r.HandleFunc("/discriminate", s.discriminateHandler)
-	r.HandleFunc("/predict", s.predictHandler)
-	r.HandleFunc("/answer", s.qaHandler)
+	r.HandleFunc("/discriminate", s.DiscriminateHandler)
+	r.HandleFunc("/predict", s.PredictHandler)
+	r.HandleFunc("/answer", s.QaHandler)
 	// r.HandleFunc("/classify", s.classifyHandler)
 	// r.HandleFunc("/tag", s.tagHandler)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port),
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port),
 		httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
 }
 
@@ -50,7 +52,7 @@ type Body struct {
 	Text string `json:"text"`
 }
 
-func (s *Server) discriminateHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -76,7 +78,7 @@ func (s *Server) discriminateHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s *Server) predictHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -107,7 +109,7 @@ type QABody struct {
 	Passage  string `json:"passage"`
 }
 
-func (s *Server) qaHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
