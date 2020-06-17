@@ -5,24 +5,14 @@
 package main
 
 import (
+	"github.com/nlpodyssey/spago/cmd/huggingfaceimporter/internal"
 	"github.com/urfave/cli"
 	"os"
+	"strings"
 )
 
-// SuggestedModels are excellent models to start with.
-var SuggestedModels = []string{
-	// suggested models for question-answering
-	"deepset/bert-base-cased-squad2",
-	// suggested models for real/fake token discrimination
-	"google/electra-base-discriminator",
-	// suggested models for masked tokens prediction
-	"bert-base-cased",
-	"bert-base-multilingual-cased",
-	"bert-base-german-cased",
-}
-
 func main() {
-	importerArgs := NewDefaultImporterArgs()
+	importerArgs := internal.NewDefaultImporterArgs()
 	importerFlags := importerArgs.BuildFlags()
 
 	app := cli.NewApp()
@@ -35,5 +25,12 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		writeMsg(err.Error())
 		os.Exit(1)
+	}
+}
+
+func writeMsg(m string) {
+	_, _ = os.Stderr.WriteString(m)
+	if !strings.HasSuffix(m, "\n") {
+		_, _ = os.Stderr.WriteString("\n")
 	}
 }

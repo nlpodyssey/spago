@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package internal
 
 import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli"
 	"os"
 	"path"
+	"strings"
 )
 
 const (
@@ -109,4 +110,11 @@ func (a *ImporterArgs) RunImporter() error {
 // RunImporterCli runs the importer from the command line.
 func (a *ImporterArgs) RunImporterCli(_ *cli.Context) error {
 	return a.RunImporter()
+}
+
+func writeMsg(m string) {
+	_, _ = os.Stderr.WriteString(m)
+	if !strings.HasSuffix(m, "\n") {
+		_, _ = os.Stderr.WriteString("\n")
+	}
 }

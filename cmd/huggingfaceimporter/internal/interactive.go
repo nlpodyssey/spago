@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package internal
 
 import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -12,29 +12,32 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 )
 
-func writeMsg(m string) {
-	_, _ = os.Stderr.WriteString(m)
-	if !strings.HasSuffix(m, "\n") {
-		_, _ = os.Stderr.WriteString("\n")
-	}
+// SuggestedModels are excellent models to start with.
+var SuggestedModels = []string{
+	// suggested models for question-answering
+	"deepset/bert-base-cased-squad2",
+	// suggested models for real/fake token discrimination
+	"google/electra-base-discriminator",
+	// suggested models for masked tokens prediction
+	"bert-base-cased",
+	"bert-base-multilingual-cased",
+	"bert-base-german-cased",
 }
 
 // ConfigureInteractive uses the CLI to configure.
 func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 	if a.Model == "" {
-		models := SuggestedModels
-		mmodels := make([]string, len(models)+2)
-		copy(mmodels, models)
+		models := make([]string, len(SuggestedModels)+2)
+		copy(models, SuggestedModels)
 		otherStr := "Enter name"
-		mmodels[len(mmodels)-1] = otherStr
-		searchStr := "Search the directory"
-		mmodels[len(mmodels)-2] = searchStr
+		models[len(models)-1] = otherStr
+		searchStr := "Search"
+		models[len(models)-2] = searchStr
 		pr := &promptui.Select{
 			Label: "Model from " + a.ModelsURL,
-			Items: mmodels,
+			Items: models,
 		}
 		var err error
 		modelsURL := a.ModelsURL
