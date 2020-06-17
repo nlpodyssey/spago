@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// Model is a model in the search results.
-type Model struct {
+// ModelCard is a model in the search results.
+type ModelCard struct {
 	// LastModified is the last time this model was modified.
 	LastModified time.Time `json:"lastModified"`
 	// ModelID is the model identifier
@@ -49,10 +49,10 @@ func LookupFromHuggingFace(searchQuery string) (string, error) {
 	}
 
 	dataStr := string(data)
-	startSubstr := "window.getModels = () => ["
+	startSubstr := "window.getModelCards = () => ["
 	idx := strings.Index(dataStr, startSubstr)
 	if idx < 0 {
-		return "", errors.New("getModels not found")
+		return "", errors.New("getModelCards not found")
 	}
 	idx += len(startSubstr) - 1
 	dataStr = dataStr[idx:]
@@ -63,8 +63,8 @@ func LookupFromHuggingFace(searchQuery string) (string, error) {
 }
 
 // ParseSearchResults parses search results json.
-func ParseSearchResults(dataJson []byte) ([]*Model, error) {
-	var res []*Model
+func ParseSearchResults(dataJson []byte) ([]*ModelCard, error) {
+	var res []*ModelCard
 	if err := json.Unmarshal(dataJson, &res); err != nil {
 		return nil, err
 	}
