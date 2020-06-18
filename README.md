@@ -1,5 +1,5 @@
-spaGO
-=====
+![alt text](https://github.com/nlpodyssey/spago/blob/main/assets/spago_logo.png)
+
 ![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
@@ -629,3 +629,9 @@ Licensing
 =====
 
 spaGO is licensed under a BSD-style license. See [LICENSE](https://github.com/nlpodyssey/spago/blob/main/LICENSE) for the full license text.
+
+Acknowledgments
+=====
+
+spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here, which is providing full support for development by promoting the project and giving it increasing importance.
+
