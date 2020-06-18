@@ -279,7 +279,7 @@ Run the `bert_server` indicating a port and the model path (NOT the model file).
 Example: 
  
 ```console
-./bert_server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
+./bert_server run --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
 ```
 
 It should print:
@@ -302,7 +302,7 @@ Run the container image, including the volume flag (`-v`) to bind-mount the dire
 Example:
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server --model=/tmp/spago/deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server run --model=/tmp/spago/deepset/bert-base-cased-squad2
 ```
 
 ### API
