@@ -101,17 +101,19 @@ At present, there are two models available, named `goflair-en-ner-conll03` and `
 Example: 
  
 ```console
-./ner-server run --port=1987 --models=~/.spago --model-name=goflair-en-ner-fast-conll03
+./ner-server run --models ~/.spago --model-name=goflair-en-ner-fast-conll03 --tls-disable
 ```
 
 It should print:
 
 ```console
+TLS Cert path is /etc/ssl/certs/spago/server.crt
+TLS private key path is /etc/ssl/certs/spago/server.key
 Fetch model from `https://dl.dropboxusercontent.com/s/9lhh9uom6vh66pg/goflair-en-ner-fast-conll03.tar.gz?dl=0`
 Downloading... 278 MB complete     
 Extracting compressed model... ok
 Loading model parameters from `~/.spago/goflair-en-ner-fast-conll03/model.bin`... ok
-Start server on port 1987.
+Start non-TLS server listening on 0.0.0.0:1987.
 ```
 
 At the first execution, the program downloads the required model, if available. For successive executions, it uses the previously downloaded model.
@@ -135,7 +137,7 @@ docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server 
 You can test the API from command line with curl:
 
 ```console
-curl -d '{"options": {"mergeEntities": true, "filterNotEntities": true}, "text": "Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"}' -H "Content-Type: application/json" "http://127.0.0.1:1987/analyze?pretty"
+curl -k -d '{"options": {"mergeEntities": true, "filterNotEntities": true}, "text": "Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/analyze?pretty"
 ```
 
 It should print:
@@ -293,7 +295,7 @@ Start loading pre-trained model from "~/.spago/deepset/bert-base-cased-squad2"
 [2/3] Loading vocabulary... ok
 [3/3] Loading model weights... ok
 Config: {HiddenAct:gelu HiddenSize:768 IntermediateSize:3072 MaxPositionEmbeddings:512 NumAttentionHeads:12 NumHiddenLayers:12 TypeVocabSize:2 VocabSize:28996}
-Start non-TLS server listening on 0.0.0.0:1987.
+Start TLS server listening on 0.0.0.0:1987.
 ```
 
 ### Docker Run

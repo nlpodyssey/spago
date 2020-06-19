@@ -51,9 +51,12 @@ func main() {
 
 type nerServerApp struct {
 	*cli.App
-	port         int
+	address      string
 	modelsFolder string
 	modelName    string
+	tlsCert      string
+	tlsKey       string
+	tlsDisable   bool
 }
 
 func newNerServerApp() *nerServerApp {
@@ -72,7 +75,7 @@ func newRunCommandFor(app *nerServerApp) cli.Command {
 	return cli.Command{
 		Name:        "run",
 		Usage:       "Run the " + programName + ".",
-		UsageText:   programName + " run --model=<model-name> [--models=<path>] [--port=<port>]",
+		UsageText:   programName + " run --model=<model-name> [--models=<path>] [--address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
 		Flags:       newRunCommandFlagsFor(app),
 		Action:      newRunCommandActionFor(app),
@@ -81,6 +84,9 @@ func newRunCommandFor(app *nerServerApp) cli.Command {
 
 func newRunCommandActionFor(app *nerServerApp) func(c *cli.Context) {
 	return func(c *cli.Context) {
+		fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
+		fmt.Printf("TLS private key path is %s\n", app.tlsKey)
+
 		modelsFolder := app.modelsFolder
 		if _, err := os.Stat(modelsFolder); os.IsNotExist(err) {
 			log.Fatal(err)
@@ -112,9 +118,15 @@ func newRunCommandActionFor(app *nerServerApp) func(c *cli.Context) {
 		model := buildNewDefaultModel(config, modelPath)
 		loadModelParams(filepath.Join(modelPath, config.ModelFilename), model)
 
-		fmt.Println(fmt.Sprintf("Start server on port %d.", app.port))
-		server := sequencelabeler.NewServer(model, app.port)
-		server.Start()
+		fmt.Printf("Start %s server listening on %s.\n", func() string {
+			if app.tlsDisable {
+				return "non-TLS"
+			}
+			return "TLS"
+		}(), app.address)
+
+		server := sequencelabeler.NewServer(model)
+		server.Start(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
 	}
 }
 
@@ -125,11 +137,11 @@ func newRunCommandFlagsFor(app *nerServerApp) []cli.Flag {
 	}
 
 	return []cli.Flag{
-		cli.IntFlag{
-			Name:        "port",
-			Usage:       "Specifies the port to bind the server to.",
-			Value:       1987,
-			Destination: &app.port,
+		cli.StringFlag{
+			Name:        "address",
+			Usage:       "Specifies the bind-address of the server.",
+			Value:       "0.0.0.0:1987",
+			Destination: &app.address,
 		},
 		cli.StringFlag{
 			Name:        "models",
@@ -142,6 +154,23 @@ func newRunCommandFlagsFor(app *nerServerApp) []cli.Flag {
 			Usage:       "Specifies the name of the model to use.",
 			Destination: &app.modelName,
 			Required:    true,
+		},
+		cli.StringFlag{
+			Name:        "tls-cert-file",
+			Usage:       "Specifies the path of the TLS certificate file.",
+			Value:       "/etc/ssl/certs/spago/server.crt",
+			Destination: &app.tlsCert,
+		},
+		cli.StringFlag{
+			Name:        "tls-key-file",
+			Usage:       "Specifies the path of the private key for the certificate.",
+			Value:       "/etc/ssl/certs/spago/server.key",
+			Destination: &app.tlsKey,
+		},
+		cli.BoolFlag{
+			Name:        "tls-disable ",
+			Usage:       "Specifies that TLS is disabled.",
+			Destination: &app.tlsDisable,
 		},
 	}
 }
