@@ -7,7 +7,6 @@ package sequencelabeler
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -20,21 +19,25 @@ import (
 
 type Server struct {
 	model *Model
-	port  int
 }
 
-func NewServer(model *Model, port int) *Server {
+func NewServer(model *Model) *Server {
 	return &Server{
 		model: model,
-		port:  port,
 	}
 }
 
-func (s *Server) Start() {
+func (s *Server) Start(address, tlsCert, tlsKey string, tlsDisable bool) {
 	r := http.NewServeMux()
 	r.HandleFunc("/analyze", s.analyze)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", s.port),
-		httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+
+	if tlsDisable {
+		log.Fatal(http.ListenAndServe(address,
+			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+	} else {
+		log.Fatal(http.ListenAndServeTLS(address, tlsCert, tlsKey,
+			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
+	}
 }
 
 type OptionsType struct {
