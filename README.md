@@ -100,7 +100,7 @@ At present, there are two models available, named `goflair-en-ner-conll03` and `
 Example: 
  
 ```console
-./ner-server 1987 ~/.spago goflair-en-ner-fast-conll03
+./ner-server run --port=1987 --models=~/.spago --model-name=goflair-en-ner-fast-conll03
 ```
 
 It should print:
@@ -126,7 +126,7 @@ mkdir ~/.spago
 Now run the `ner-server` using the Docker container image, indicating a port, the directory of the models, and the model name. Include the volume flag (`-v`) to bind-mount the directory of the models into the container, and include the publish flag (`-p`) to publish the server port to the container's host.
 
 ```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server 1987 /tmp/spago goflair-en-ner-fast-conll03
+docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server run --models=/tmp/spago --model-name=goflair-en-ner-fast-conll03
 ```
 
 ### API
@@ -279,7 +279,7 @@ Run the `bert_server` indicating a port and the model path (NOT the model file).
 Example: 
  
 ```console
-./bert_server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
+./bert_server run --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
 ```
 
 It should print:
@@ -302,7 +302,7 @@ Run the container image, including the volume flag (`-v`) to bind-mount the dire
 Example:
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server --model=/tmp/spago/deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server run --model=/tmp/spago/deepset/bert-base-cased-squad2
 ```
 
 ### API
