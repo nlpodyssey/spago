@@ -126,7 +126,7 @@ mkdir ~/.spago
 Now run the `ner-server` using the Docker container image, indicating a port, the directory of the models, and the model name. Include the volume flag (`-v`) to bind-mount the directory of the models into the container, and include the publish flag (`-p`) to publish the server port to the container's host.
 
 ```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server run --model=goflair-en-ner-fast-conll03
+docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server run --models=/tmp/spago --model-name=goflair-en-ner-fast-conll03
 ```
 
 ### API
