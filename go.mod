@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/dgraph-io/badger/v2 v2.0.3
-	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
 	github.com/dustin/go-humanize v1.0.0
 	github.com/gosuri/uilive v0.0.4 // indirect
 	github.com/gosuri/uiprogress v0.0.1
