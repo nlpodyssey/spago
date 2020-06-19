@@ -11,6 +11,13 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"os"
+	"os/user"
+	"path"
+	"path/filepath"
+
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
@@ -25,11 +32,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
-	"io"
-	"log"
-	"os"
-	"path/filepath"
-	"strconv"
+	"github.com/urfave/cli"
+)
+
+const (
+	programName = "ner-server"
 )
 
 var predefinedModels = map[string]string{
@@ -38,50 +45,105 @@ var predefinedModels = map[string]string{
 }
 
 func main() {
-	if len(os.Args) != 4 {
-		fmt.Println("Usage:", os.Args[0], "port", "path/to/models/", "model-name")
-		return
-	}
+	app := newNerServerApp()
+	app.Run(os.Args)
+}
 
-	port, err := strconv.Atoi(os.Args[1])
+type nerServerApp struct {
+	*cli.App
+	port         int
+	modelsFolder string
+	modelName    string
+}
+
+func newNerServerApp() *nerServerApp {
+	app := &nerServerApp{
+		App: cli.NewApp(),
+	}
+	app.Name = programName
+	app.Usage = "A demo for named entities recognition."
+	app.Commands = []cli.Command{
+		newRunCommandFor(app),
+	}
+	return app
+}
+
+func newRunCommandFor(app *nerServerApp) cli.Command {
+	return cli.Command{
+		Name:        "run",
+		Usage:       "Run the " + programName + ".",
+		UsageText:   programName + " run --model=<model-name> [--models=<path>] [--port=<port>]",
+		Description: "You must indicate the directory that contains the spaGO neural models.",
+		Flags:       newRunCommandFlagsFor(app),
+		Action:      newRunCommandActionFor(app),
+	}
+}
+
+func newRunCommandActionFor(app *nerServerApp) func(c *cli.Context) {
+	return func(c *cli.Context) {
+		modelsFolder := app.modelsFolder
+		if _, err := os.Stat(modelsFolder); os.IsNotExist(err) {
+			log.Fatal(err)
+		}
+
+		modelName := app.modelName
+		modelPath := filepath.Join(modelsFolder, modelName)
+		if _, err := os.Stat(modelPath); os.IsNotExist(err) {
+			switch url, ok := predefinedModels[modelName]; {
+			case ok:
+				fmt.Printf("Fetch model from `%s`\n", url)
+				if err := httputils.DownloadFile(fmt.Sprintf("%s-compressed", modelPath), url); err != nil {
+					log.Fatal(err)
+				}
+				r, err := os.Open(fmt.Sprintf("%s-compressed", modelPath))
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Print("Extracting compressed model... ")
+				ExtractTarGz(r, modelsFolder)
+				fmt.Println("ok")
+			default:
+				log.Fatal(err)
+			}
+		}
+
+		configPath := filepath.Join(modelPath, "config.json")
+		config := loadConfig(configPath)
+		model := buildNewDefaultModel(config, modelPath)
+		loadModelParams(filepath.Join(modelPath, config.ModelFilename), model)
+
+		fmt.Println(fmt.Sprintf("Start server on port %d.", app.port))
+		server := sequencelabeler.NewServer(model, app.port)
+		server.Start()
+	}
+}
+
+func newRunCommandFlagsFor(app *nerServerApp) []cli.Flag {
+	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	modelsFolder := os.Args[2]
-	if _, err := os.Stat(modelsFolder); os.IsNotExist(err) {
-		log.Fatal(err)
+	return []cli.Flag{
+		cli.IntFlag{
+			Name:        "port",
+			Usage:       "Specifies the port to bind the server to.",
+			Value:       1987,
+			Destination: &app.port,
+		},
+		cli.StringFlag{
+			Name:        "models",
+			Usage:       "Specifies the path to the models.",
+			Value:       path.Join(usr.HomeDir, ".spago"),
+			Destination: &app.modelsFolder,
+		},
+		cli.StringFlag{
+			Name:        "model-name",
+			Usage:       "Specifies the name of the model to use.",
+			Destination: &app.modelName,
+			Required:    true,
+		},
 	}
-
-	modelName := os.Args[3]
-	modelPath := filepath.Join(modelsFolder, modelName)
-	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
-		switch url, ok := predefinedModels[modelName]; {
-		case ok:
-			fmt.Printf("Fetch model from `%s`\n", url)
-			if err := httputils.DownloadFile(fmt.Sprintf("%s-compressed", modelPath), url); err != nil {
-				log.Fatal(err)
-			}
-			r, err := os.Open(fmt.Sprintf("%s-compressed", modelPath))
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Print("Extracting compressed model... ")
-			ExtractTarGz(r, modelsFolder)
-			fmt.Println("ok")
-		default:
-			log.Fatal(err)
-		}
-	}
-
-	configPath := filepath.Join(modelPath, "config.json")
-	config := loadConfig(configPath)
-	model := buildNewDefaultModel(config, modelPath)
-	loadModelParams(filepath.Join(modelPath, config.ModelFilename), model)
-
-	fmt.Println(fmt.Sprintf("Start server on port %d.", port))
-	server := sequencelabeler.NewServer(model, port)
-	server.Start()
 }
 
 type Config struct {
