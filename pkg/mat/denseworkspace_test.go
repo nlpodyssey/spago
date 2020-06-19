@@ -6,7 +6,6 @@ package mat
 
 import (
 	"fmt"
-	"runtime/debug"
 	"testing"
 )
 
@@ -38,15 +37,11 @@ func TestGetAndRelease(t *testing.T) {
 	a1.data[0] = 42
 	b1.data[0] = 24
 
-	originalGcPercent := debug.SetGCPercent(-1)
-
 	ReleaseDense(a1)
 	ReleaseDense(b1)
 
 	a2 := GetDenseWorkspace(6, 1)
 	b2 := GetDenseWorkspace(9, 1)
-
-	debug.SetGCPercent(originalGcPercent)
 
 	x := GetDenseWorkspace(6, 1)
 	y := GetDenseWorkspace(9, 1)
