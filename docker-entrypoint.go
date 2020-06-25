@@ -17,7 +17,7 @@ const (
 spaGO is a beautiful and maintainable machine learning library written in Go designed to support relevant neural network architectures in natural language processing tasks.
 
 Usage:
-  <command> [arguments]"
+  <command> [arguments]
 
 The commands are:
 
