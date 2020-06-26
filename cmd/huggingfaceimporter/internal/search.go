@@ -19,15 +19,13 @@ type ModelCard struct {
 	// LastModified is the last time this model was modified.
 	LastModified time.Time `json:"lastModified"`
 	// ModelID is the model identifier
-	ModelID string `json:"modelId"`
+	ModelID string `json:"id"`
 	// Author is the author's name.
 	Author string `json:"author"`
 	// Downloads is the number of downloads.
 	Downloads int `json:"downloads"`
 	// Tags is the list of tags.
 	Tags []string `json:"tags"`
-	// CardSource is the source of the search card.
-	CardSource string `json:"cardSource"`
 }
 
 // LookupFromHuggingFace looks up a search query, empty query returns all.
@@ -53,10 +51,10 @@ func LookupFromHuggingFace(searchQuery string) (string, error) {
 	}
 
 	dataStr := string(data)
-	startSubstr := "window.getModelCards = () => ["
+	startSubstr := "window.getModels = () => ["
 	idx := strings.Index(dataStr, startSubstr)
 	if idx < 0 {
-		return "", errors.New("getModelCards not found")
+		return "", errors.New("getModels not found")
 	}
 	idx += len(startSubstr) - 1
 	dataStr = dataStr[idx:]
