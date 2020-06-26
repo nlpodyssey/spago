@@ -1,0 +1,66 @@
+syntax = "proto3";
+package grpcapi;
+
+// The BERT service definition.
+service BERT {
+  // Sends a request to /answer.
+  rpc Answer(AnswerRequest) returns (AnswerReply) {}
+
+  // Sends a request to /discriminate.
+  rpc Discriminate (DiscriminateRequest) returns (DiscriminateReply) {}
+
+  // Sends a request to /predict.
+  rpc Predict (PredictRequest) returns (PredictReply) {}
+}
+
+// The answer request message containing the passage and question to answer.
+message AnswerRequest {
+  string passage  = 1;
+  string question = 2;
+}
+
+// The response message containing the answers.
+message Answer {
+  string text       = 1;
+	int32  start      = 2;
+	int32  end        = 3;
+	double confidence = 4;
+}
+message AnswerReply {
+  repeated Answer answers = 1;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+	int64          took     = 2;
+}
+
+// The discriminate request message containing the text.
+message DiscriminateRequest {
+  string text = 1;
+}
+
+// The response message containing the tokens from discriminate analysis.
+message Token {
+  string text  = 1;
+	int32  start = 2;
+	int32  end   = 3;
+	string label = 4;
+}
+message DiscriminateReply {
+  repeated Token tokens = 1;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+	int64          took   = 2;
+}
+
+// The predict request message containing the text.
+message PredictRequest {
+  string text = 1;
+}
+
+// The response message containing the tokens from BERT prediction.
+message PredictReply {
+  repeated Token tokens = 1;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+	int64          took   = 2;
+}
