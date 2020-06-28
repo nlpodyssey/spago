@@ -7,6 +7,7 @@ package sequencelabeler
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/webui/ner"
 	"log"
 	"net/http"
 	"time"
@@ -29,6 +30,7 @@ func NewServer(model *Model) *Server {
 
 func (s *Server) Start(address, tlsCert, tlsKey string, tlsDisable bool) {
 	r := http.NewServeMux()
+	r.HandleFunc("/ner-ui", ner.Handler)
 	r.HandleFunc("/analyze", s.analyze)
 
 	if tlsDisable {
