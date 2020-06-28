@@ -7,6 +7,7 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/webui/bertqa"
 	"log"
 	"net/http"
 	"sort"
@@ -39,6 +40,7 @@ func NewServer(model *Model) *Server {
 // HTTP router using the public handler functions
 func (s *Server) StartDefaultServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	r := http.NewServeMux()
+	r.HandleFunc("/bert-qa-ui", bertqa.Handler)
 	r.HandleFunc("/discriminate", s.DiscriminateHandler)
 	r.HandleFunc("/predict", s.PredictHandler)
 	r.HandleFunc("/answer", s.QaHandler)
