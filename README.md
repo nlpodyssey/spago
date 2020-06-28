@@ -699,6 +699,15 @@ If you really want to write to me privately, please email [Matteo Grella](mailto
 
 Contributing
 =====
+Install the following tools like this, if you haven't already.
+
+```console
+brew install protobuf
+export GO111MODULE=on  # Enable module mode
+go get github.com/golang/protobuf/protoc-gen-go
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+```
+
 After changing the gRPC protobuf specification, run `go generate ./...` from the top-level folder.
 
 Licensing
