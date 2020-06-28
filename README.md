@@ -101,7 +101,7 @@ At present, there are two models available, named `goflair-en-ner-conll03` and `
 Example: 
  
 ```console
-./ner-server run --models ~/.spago --model-name=goflair-en-ner-fast-conll03 --tls-disable
+./ner-server server --models ~/.spago --model-name=goflair-en-ner-fast-conll03 --tls-disable
 ```
 
 It should print:
@@ -129,7 +129,7 @@ mkdir ~/.spago
 Now run the `ner-server` using the Docker container image, indicating a port, the directory of the models, and the model name. Include the volume flag (`-v`) to bind-mount the directory of the models into the container, and include the publish flag (`-p`) to publish the server port to the container's host.
 
 ```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server run --models=/tmp/spago --model-name=goflair-en-ner-fast-conll03
+docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server server --models=/tmp/spago --model-name=goflair-en-ner-fast-conll03
 ```
 
 ### API
@@ -282,7 +282,7 @@ Run the `bert_server` indicating a port and the model path (NOT the model file).
 Example: 
  
 ```console
-./bert_server run --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
+./bert_server server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
 ```
 
 It should print:
@@ -305,7 +305,7 @@ Run the container image, including the volume flag (`-v`) to bind-mount the dire
 Example:
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server run --model=/tmp/spago/deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server server --model=/tmp/spago/deepset/bert-base-cased-squad2
 ```
 
 ### API
@@ -696,6 +696,19 @@ Contact
 I encourage you to write an issue. This would help the community grow.
 
 If you really want to write to me privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your questions or comments.
+
+Contributing
+=====
+Install the following tools like this, if you haven't already.
+
+```console
+brew install protobuf
+export GO111MODULE=on  # Enable module mode
+go get github.com/golang/protobuf/protoc-gen-go
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+```
+
+After changing the gRPC protobuf specification, run `go generate ./...` from the top-level folder.
 
 Licensing
 =====

@@ -4,31 +4,34 @@
 
 package bert
 
+//go:generate protoc --go_out=Mgrpc/service_config/service_config.proto=/internal/proto/grpc_service_config:.  --go-grpc_out=Mgrpc/service_config/service_config.proto=/internal/proto/grpc_service_config:. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative grpcapi/bert.proto
+
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/nlpodyssey/spago/pkg/webui/bertqa"
-	"log"
 	"net/http"
 	"sort"
-	"strings"
-	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"github.com/nlpodyssey/spago/pkg/utils/httphandlers"
+	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
+	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/nlpodyssey/spago/pkg/webui/bertqa"
 )
 
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
+// Server contains everything needed to run a BERT server.
 type Server struct {
 	model *Model
+
+	// UnimplementedBERTServer must be embedded to have forward compatible implementations for gRPC.
+	grpcapi.UnimplementedBERTServer
 }
 
+// NewServer returns Server objects.
 func NewServer(model *Model) *Server {
 	return &Server{
 		model: model,
@@ -38,109 +41,29 @@ func NewServer(model *Model) *Server {
 // StartDefaultServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
-func (s *Server) StartDefaultServer(address, tlsCert, tlsKey string, tlsDisable bool) {
-	r := http.NewServeMux()
-	r.HandleFunc("/bert-qa-ui", bertqa.Handler)
-	r.HandleFunc("/discriminate", s.DiscriminateHandler)
-	r.HandleFunc("/predict", s.PredictHandler)
-	r.HandleFunc("/answer", s.QaHandler)
+func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/bert-qa-ui", bertqa.Handler)
+	mux.HandleFunc("/discriminate", s.DiscriminateHandler)
+	mux.HandleFunc("/predict", s.PredictHandler)
+	mux.HandleFunc("/answer", s.QaHandler)
 	// r.HandleFunc("/classify", s.classifyHandler)
 	// r.HandleFunc("/tag", s.tagHandler)
 
-	if tlsDisable {
-		log.Fatal(http.ListenAndServe(address,
-			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
-	} else {
-		log.Fatal(http.ListenAndServeTLS(address, tlsCert, tlsKey,
-			httphandlers.RecoveryHandler(httphandlers.PrintRecoveryStack(true))(r)))
-	}
+	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
+
+	grpcServer := grpcutils.NewGRPCServer(tlsDisable, tlsCert, tlsKey)
+	grpcapi.RegisterBERTServer(grpcServer, s)
+	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
 
 type Body struct {
 	Text string `json:"text"`
 }
 
-func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
-	w.Header().Set("Content-Type", "application/json")
-
-	var body Body
-	err := json.NewDecoder(req.Body).Decode(&body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result := s.discriminate(body.Text)
-	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	_, err = w.Write(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
-	w.Header().Set("Content-Type", "application/json")
-
-	var body Body
-	err := json.NewDecoder(req.Body).Decode(&body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result := s.predict(body.Text)
-	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	_, err = w.Write(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
 type QABody struct {
 	Question string `json:"question"`
 	Passage  string `json:"passage"`
-}
-
-func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
-	w.Header().Set("Content-Type", "application/json")
-
-	var body QABody
-	err := json.NewDecoder(req.Body).Decode(&body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result := s.answer(body.Question, body.Passage)
-	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	_, err = w.Write(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
 
 func pad(words []string) []string {
@@ -152,98 +75,6 @@ func pad(words []string) []string {
 const DefaultRealLabel = "REAL"
 const DefaultFakeLabel = "FAKE"
 const DefaultPredictedLabel = "PREDICTED"
-
-// TODO: This method is too long; it needs to be refactored.
-func (s *Server) discriminate(text string) *Response {
-	start := time.Now()
-
-	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
-	origTokens := tokenizer.Tokenize(text)
-	groupedTokens := wordpiecetokenizer.GroupPieces(origTokens)
-	tokenized := pad(tokenizers.GetStrings(origTokens))
-
-	g := ag.NewGraph()
-	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
-	encoded := proc.Encode(tokenized)
-
-	fakeTokens := make(map[int]bool, 0)
-	for i, fake := range proc.Discriminate(encoded) {
-		if i == 0 || i == len(tokenized)-1 {
-			continue // skip padding
-		}
-		if fake == 1.0 {
-			fakeTokens[i-1] = true // -1 because of [CLS]
-		}
-	}
-
-	fakeCompleteWords := make([]bool, len(groupedTokens))
-	for i, group := range groupedTokens {
-		fakeCompleteWords[i] = false
-		for j := group.Start; j <= group.End; j++ {
-			if fakeTokens[j] {
-				fakeCompleteWords[i] = true
-			}
-		}
-	}
-
-	retTokens := make([]Token, 0)
-	for i := range groupedTokens {
-		label := DefaultRealLabel
-		if fakeCompleteWords[i] {
-			label = DefaultFakeLabel
-		}
-		group := groupedTokens[i]
-		startToken, endToken := origTokens[group.Start], origTokens[group.End]
-		retTokens = append(retTokens, Token{
-			Text:  string([]rune(text)[startToken.Offsets.Start:endToken.Offsets.End]),
-			Start: startToken.Offsets.Start,
-			End:   endToken.Offsets.End,
-			Label: label,
-		})
-	}
-	return &Response{Tokens: retTokens, Took: time.Since(start).Milliseconds()}
-}
-
-// TODO: This method is too long; it needs to be refactored.
-func (s *Server) predict(text string) *Response {
-	start := time.Now()
-
-	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
-	origTokens := tokenizer.Tokenize(text)
-	tokenized := pad(tokenizers.GetStrings(origTokens))
-
-	g := ag.NewGraph()
-	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
-	encoded := proc.Encode(tokenized)
-
-	masked := make([]int, 0)
-	for i := range tokenized {
-		if tokenized[i] == wordpiecetokenizer.DefaultMaskToken {
-			masked = append(masked, i)
-		}
-	}
-
-	retTokens := make([]Token, 0)
-	for tokenId, prediction := range proc.PredictMasked(encoded, masked) {
-		bestPredictedWordIndex := f64utils.ArgMax(prediction.Value().Data())
-		word, ok := s.model.Vocabulary.Term(bestPredictedWordIndex)
-		if !ok {
-			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary
-		}
-		label := DefaultPredictedLabel
-		retTokens = append(retTokens, Token{
-			Text:  word,
-			Start: origTokens[tokenId-1].Offsets.Start, // skip CLS
-			End:   origTokens[tokenId-1].Offsets.End,   // skip CLS
-			Label: label,
-		})
-	}
-	return &Response{Tokens: retTokens, Took: time.Since(start).Milliseconds()}
-}
 
 type Answer struct {
 	Text       string  `json:"text"`
@@ -283,80 +114,6 @@ const defaultMaxAnswerLength = 20     // TODO: from options
 const defaultMinConfidence = 0.1      // TODO: from options
 const defaultMaxCandidateLogits = 3.0 // TODO: from options
 const defaultMaxAnswers = 3           // TODO: from options
-
-// TODO: This method is too long; it needs to be refactored.
-func (s *Server) answer(question string, passage string) *QuestionAnsweringResponse {
-	start := time.Now()
-
-	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
-	origQuestionTokens := tokenizer.Tokenize(question)
-	origPassageTokens := tokenizer.Tokenize(passage)
-
-	cls := wordpiecetokenizer.DefaultClassToken
-	sep := wordpiecetokenizer.DefaultSequenceSeparator
-	tokenized := append([]string{cls}, append(tokenizers.GetStrings(origQuestionTokens), sep)...)
-	tokenized = append(tokenized, append(tokenizers.GetStrings(origPassageTokens), sep)...)
-
-	g := ag.NewGraph()
-	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
-	encoded := proc.Encode(tokenized)
-
-	passageStartIndex := len(origQuestionTokens) + 2 // +2 because of [CLS] and [SEP]
-	passageEndIndex := passageStartIndex + len(origPassageTokens)
-	startLogits, endLogits := proc.SpanClassifier.Classify(encoded)
-	startLogits, endLogits = startLogits[passageStartIndex:passageEndIndex], endLogits[passageStartIndex:passageEndIndex] // cut invalid positions
-	startIndices := getBestIndices(extractScores(startLogits), defaultMaxCandidateLogits)
-	endIndices := getBestIndices(extractScores(endLogits), defaultMaxCandidateLogits)
-
-	candidateAnswers := make([]Answer, 0)
-	scores := make([]float64, 0) // the scores are aligned with the candidateAnswers
-	for _, startIndex := range startIndices {
-		for _, endIndex := range endIndices {
-			switch {
-			case endIndex < startIndex:
-				continue
-			case endIndex-startIndex+1 > defaultMaxAnswerLength:
-				continue
-			default:
-				startOffset := origPassageTokens[startIndex].Offsets.Start
-				endOffset := origPassageTokens[endIndex].Offsets.End
-				scores = append(scores, startLogits[startIndex].ScalarValue()+endLogits[endIndex].ScalarValue())
-				candidateAnswers = append(candidateAnswers, Answer{
-					Text:  strings.Trim(string([]rune(passage)[startOffset:endOffset]), " "),
-					Start: startOffset,
-					End:   endOffset,
-				})
-			}
-		}
-	}
-
-	if len(candidateAnswers) == 0 {
-		return &QuestionAnsweringResponse{
-			Answers: AnswerSlice{},
-		}
-	}
-
-	probs := f64utils.SoftMax(scores)
-	answers := make(AnswerSlice, 0)
-	for i, candidate := range candidateAnswers {
-		if probs[i] >= defaultMinConfidence {
-			candidate.Confidence = probs[i]
-			answers = append(answers, candidate)
-		}
-	}
-
-	sort.Sort(sort.Reverse(answers))
-	if len(answers) > defaultMaxAnswers {
-		answers = answers[:defaultMaxAnswers]
-	}
-
-	return &QuestionAnsweringResponse{
-		Answers: answers,
-		Took:    time.Since(start).Milliseconds(),
-	}
-}
 
 func extractScores(logits []ag.Node) []float64 {
 	scores := make([]float64, len(logits))
