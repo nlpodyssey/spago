@@ -5,11 +5,14 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/nlpodyssey/spago/cmd/bert/internal/app"
 )
 
 func main() {
-	app.NewBertApp().Run(os.Args)
+	if err := app.NewBertApp().Run(os.Args); err != nil {
+		log.Fatalln(err)
+	}
 }

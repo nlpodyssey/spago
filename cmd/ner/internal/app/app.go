@@ -22,11 +22,12 @@ type NERApp struct {
 	*cli.App
 	address           string
 	grpcAddress       string
-	modelsFolder      string
-	modelName         string
 	tlsCert           string
 	tlsKey            string
 	tlsDisable        bool
+	output            string
+	modelsFolder      string
+	modelName         string
 	text              string
 	mergeEntities     bool
 	filterNonEntities bool

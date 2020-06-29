@@ -6,11 +6,10 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 
+	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +17,7 @@ func newClientPredictCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "predict",
 		Usage:       "Perform a prediction based on a trained Masked Language Model (MLM).",
-		UsageText:   programName + " client predict --text=<value> [--address=<address>] [--tls-disable]",
+		UsageText:   programName + " client predict --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for prediction.",
 		Flags:       newClientPredictCommandFlagsFor(app),
 		Action:      newClientPredictCommandActionFor(app),
@@ -26,28 +25,20 @@ func newClientPredictCommandFor(app *BertApp) cli.Command {
 }
 
 func newClientPredictCommandFlagsFor(app *BertApp) []cli.Flag {
-	return []cli.Flag{
-		cli.StringFlag{
-			Name:        "address",
-			Value:       "127.0.0.1:1976",
-			Destination: &app.address,
-		},
+	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
 		cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.BoolFlag{
-			Name:        "tls-disable ",
-			Usage:       "Specifies that TLS is disabled.",
-			Destination: &app.tlsDisable,
-		},
-	}
+	})
 }
 
 func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		conn := grpcutils.OpenClientConnection(app.address, app.tlsDisable)
+		clientutils.VerifyFlags(app.output)
+
+		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
 		cli := grpcapi.NewBERTClient(conn)
 
 		resp, err := cli.Predict(context.Background(), &grpcapi.PredictRequest{
@@ -58,6 +49,6 @@ func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) {
 			log.Fatalln(err)
 		}
 
-		fmt.Println(resp)
+		clientutils.Println(app.output, resp)
 	}
 }

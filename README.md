@@ -203,6 +203,57 @@ It should print:
 }
 ```
 
+### gRPC Client
+
+You can test the API from command line using the built-in gRPC client:
+
+```console
+./ner-server client analyze --merge-entities=true --filter-non-entities=true --text="Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"
+```
+
+It should print:
+
+```yaml
+tokens:
+- text: Mark Freuder Knopfler
+  start: 0
+  end: 21
+  label: PER
+- text: Glasgow
+  start: 34
+  end: 41
+  label: LOC
+- text: Scotland
+  start: 43
+  end: 51
+  label: LOC
+- text: English
+  start: 59
+  end: 66
+  label: MISC
+- text: Louisa Mary
+  start: 75
+  end: 86
+  label: PER
+- text: Jewish
+  start: 94
+  end: 100
+  label: MISC
+- text: Hungarian
+  start: 101
+  end: 110
+  label: MISC
+- text: Erwin Knopfler
+  start: 119
+  end: 133
+  label: PER
+- text: Dire Straits
+  start: 203
+  end: 215
+  label: ORG
+took: 899
+```
+
 Demo for Question Answering
 =====
 
@@ -362,6 +413,25 @@ It should print:
 }
 ```
 
+### gRPC Client
+
+You can easily test the API with the command line using the build-in gRPC client.
+
+```console
+./bert_server client answer --passage="$PASSAGE" --question="$QUESTION1"
+```
+
+It should print:
+
+```yaml
+answers:
+- text: Jacob Devlin
+  start: 91
+  end: 103
+  confidence: 0.9641588621246571
+took: 1513
+```
+
 Demo for Masked Language Model
 =====
 
@@ -381,7 +451,7 @@ curl -k -d '{"text": "[MASK] is the most important thing in marriage"}' -H "Cont
 
 It should print:
 
-```
+```json
 {
     "tokens": [
         {
@@ -427,9 +497,28 @@ It should print:
     ],
     "took": 469
 }
-````
+```
 
 Cool! Isn't it? Actually, it doesn't always work that well. I tested a few sentences before I found one that made sense :)
+
+### gRPC Client
+
+To test the API using the built-in gRPC client, execute:
+
+```console
+./bert_server client predict --text="[MASK] is the most important thing in marriage"
+```
+
+It should print:
+
+```yaml
+tokens:
+- text: '[PAD]'
+  start: 0
+  end: 6
+  label: PREDICTED
+took: 402
+```
 
 At the heart of the library
 =====

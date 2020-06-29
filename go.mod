@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/dgraph-io/badger/v2 v2.0.3
 	github.com/dustin/go-humanize v1.0.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/protobuf v1.4.2
 	github.com/gosuri/uilive v0.0.4 // indirect
 	github.com/gosuri/uiprogress v0.0.1
@@ -22,4 +23,5 @@ require (
 	gonum.org/v1/gonum v0.6.2
 	google.golang.org/grpc v1.27.0
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/yaml.v2 v2.2.2
 )

@@ -6,11 +6,10 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 
+	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler/grpcapi"
-	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +17,7 @@ func newClientAnalyzeCommandFor(app *NERApp) cli.Command {
 	return cli.Command{
 		Name:        "analyze",
 		Usage:       "Perform sequence labeling analysis for Named Entity Recognition.",
-		UsageText:   programName + " client analyze --text=<text> [--merge-entities] [--filter-non-entities] [--address=<address>] [--tls-disable]",
+		UsageText:   programName + " client analyze --text=<text> [--merge-entities] [--filter-non-entities]" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for Named Entity Recognition.",
 		Flags:       newClientAnalyzeCommandFlagsFor(app),
 		Action:      newClientAnalyzeCommandActionFor(app),
@@ -26,15 +25,11 @@ func newClientAnalyzeCommandFor(app *NERApp) cli.Command {
 }
 
 func newClientAnalyzeCommandFlagsFor(app *NERApp) []cli.Flag {
-	return []cli.Flag{
-		cli.StringFlag{
-			Name:        "address",
-			Value:       "127.0.0.1:1976",
-			Destination: &app.address,
-		},
+	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
 		cli.StringFlag{
 			Name:        "text",
 			Destination: &app.text,
+			Required:    true,
 		},
 		cli.BoolFlag{
 			Name:        "merge-entities",
@@ -44,17 +39,14 @@ func newClientAnalyzeCommandFlagsFor(app *NERApp) []cli.Flag {
 			Name:        "filter-non-entities",
 			Destination: &app.filterNonEntities,
 		},
-		cli.BoolFlag{
-			Name:        "tls-disable ",
-			Usage:       "Specifies that TLS is disabled.",
-			Destination: &app.tlsDisable,
-		},
-	}
+	})
 }
 
 func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		conn := grpcutils.OpenClientConnection(app.address, app.tlsDisable)
+		clientutils.VerifyFlags(app.output)
+
+		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
 		cli := grpcapi.NewSequenceLabelerClient(conn)
 
 		resp, err := cli.Analyze(context.Background(), &grpcapi.AnalyzeRequest{
@@ -67,6 +59,6 @@ func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) {
 			log.Fatalln(err)
 		}
 
-		fmt.Println(resp)
+		clientutils.Println(app.output, resp)
 	}
 }

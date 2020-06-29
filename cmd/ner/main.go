@@ -7,11 +7,14 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/nlpodyssey/spago/cmd/ner/internal/app"
 )
 
 func main() {
-	app.NewNERApp().Run(os.Args)
+	if err := app.NewNERApp().Run(os.Args); err != nil {
+		log.Fatalln(err)
+	}
 }
