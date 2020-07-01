@@ -17,10 +17,11 @@ type BertApp struct {
 	*cli.App
 	address     string
 	grpcAddress string
-	modelPath   string
 	tlsCert     string
 	tlsKey      string
 	tlsDisable  bool
+	output      string
+	modelPath   string
 	requestText string
 	passage     string
 	question    string

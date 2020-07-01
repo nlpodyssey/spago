@@ -5,7 +5,6 @@
 package grpcutils
 
 import (
-	"crypto/tls"
 	"log"
 	"net"
 
@@ -50,25 +49,4 @@ func newListenerForGRPC(grpcAddress string) net.Listener {
 	}
 
 	return result
-}
-
-// OpenClientConnection returns a new grpc.ClientConn object. It blocks until
-// a connection is made or the process timed out.
-func OpenClientConnection(address string, tlsDisable bool) *grpc.ClientConn {
-	if tlsDisable {
-		conn, err := grpc.Dial(address, grpc.WithInsecure())
-		if err != nil {
-			log.Fatalln(err)
-		}
-		return conn
-	}
-
-	creds := credentials.NewTLS(&tls.Config{
-		InsecureSkipVerify: true,
-	})
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(creds))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return conn
 }

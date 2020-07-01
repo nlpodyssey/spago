@@ -6,11 +6,10 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 
+	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +17,7 @@ func newClientAnswerCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "answer",
 		Usage:       "Perform question-answering using BERT.",
-		UsageText:   programName + " client answer --passage=<passage> --question=<question> [--address=<address>] [--tls-disable]",
+		UsageText:   programName + " client answer --passage=<passage> --question=<question>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for question-answering.",
 		Flags:       newClientAnswerCommandFlagsFor(app),
 		Action:      newClientAnswerCommandActionFor(app),
@@ -26,12 +25,7 @@ func newClientAnswerCommandFor(app *BertApp) cli.Command {
 }
 
 func newClientAnswerCommandFlagsFor(app *BertApp) []cli.Flag {
-	return []cli.Flag{
-		cli.StringFlag{
-			Name:        "address",
-			Value:       "127.0.0.1:1976",
-			Destination: &app.address,
-		},
+	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
 		cli.StringFlag{
 			Name:        "passage",
 			Destination: &app.passage,
@@ -42,17 +36,14 @@ func newClientAnswerCommandFlagsFor(app *BertApp) []cli.Flag {
 			Destination: &app.question,
 			Required:    true,
 		},
-		cli.BoolFlag{
-			Name:        "tls-disable ",
-			Usage:       "Specifies that TLS is disabled.",
-			Destination: &app.tlsDisable,
-		},
-	}
+	})
 }
 
 func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		conn := grpcutils.OpenClientConnection(app.address, app.tlsDisable)
+		clientutils.VerifyFlags(app.output)
+
+		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
 		cli := grpcapi.NewBERTClient(conn)
 
 		resp, err := cli.Answer(context.Background(), &grpcapi.AnswerRequest{
@@ -64,6 +55,6 @@ func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) {
 			log.Fatalln(err)
 		}
 
-		fmt.Println(resp)
+		clientutils.Println(app.output, resp)
 	}
 }
