@@ -664,7 +664,7 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 	case *Sparse:
 		s.DoNonZero(func(i, j int, v float64) {
 			for k := 0; k < b.cols; k++ {
-				var secondValue = 0.0
+				var secondValue float64
 				if b.IsVector() {
 					secondValue = b.AtVec(j)
 				} else {
