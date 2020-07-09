@@ -15,25 +15,43 @@
 
 A beautiful and maintainable machine learning library written in Go. It is designed to support relevant neural architectures in **Natural Language Processing**.
 
-## Table of Contents
+**Is spaGO right for me?**
 
-* [Getting Started](#getting-started)
-* [Documentation](#documentation)
-* [Requirements](#requirements)
-* [Usage](#usage)
-* [Features](#features)
-* [Demos](#demos)
-    * [Build all of the Demos](#build-all-of-the-demos)
-    * [Named Entities Recognition](#named-entities-recognition)
-    * [Import a Pre-Trained Model](#import-a-pre-trained-model)
-    * [Question Answering](#question-answering)
-    * [Masked Language Model](#masked-language-model)
-* [Current Status](#current-status)
-* [Project Goals](#project-goals)
-* [Contributing](#contributing)
-* [License](#license)
-* [Acknowledgments](#acknowledgments)
-* [Contact](#contact)
+Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
+
+If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
+
+The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
+
+If you like the project, please ★ star this repository to show your support! 🤩
+
+## Features
+
+* Automatic differentiation
+    - You write the *forward()*, it does all *backward()* derivatives for you:
+    -   Define-by-Run (default, just like PyTorch does)
+    -   Define-and-Run (similar to the static graph of TensorFlow)
+* Optimization methods
+    - Adam, RAdam, RMS-Prop, AdaGrad, SGD
+* Neural networks
+    -   Feed-forward models (Linear, Highway, Convolution, ...)
+    -   Recurrent models (LSTM, GRU, BiLSTM...)
+    -   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
+    -   Recursive autoencoder
+* Natural Language Processing
+    -   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+    -   Character Language Models
+    -   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
+    -   Transformer models (BERT-like)
+        -   Masked language model
+        -   Next sentence prediction
+        -   Tokens Classification
+        -   Question Answering\
+* Compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
+* Compatible with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
+
+<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
+
 
 ## Getting Started
 
@@ -43,152 +61,14 @@ import "github.com/nlpodyssey/spago/pkg/ml/ag"
 
 ## Documentation
 
-See [godoc](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
+Documentation is in the [docs](docs/README.md) directory.
 
-A tree-like view of the currently supported features in the library now follows.
+Several demo programs that can be leveraged to tour the current capabilities in spaGo, and they are now documented.
 
-```bash
-pkg
-├── mat
-│   ├── matrix.go
-│   ├── dense.go
-│   ├── sparse.go
-│   └── rand
-│       ├── bernulli
-│       ├── normal
-│       └── uniform
-└── ml (machine learning)
-│   ├── ag (auto-grad)
-│   │   ├── fn (functions with automatic differentiation)
-│   │   │   ├── add.go
-│   │   │   ├── at.go
-│   │   │   ├── concat.go
-│   │   │   ├── div.go
-│   │   │   ├── dot.go
-│   │   │   ├── dropout.go
-│   │   │   ├── elu.go
-│   │   │   ├── fn.go
-│   │   │   ├── identity.go
-│   │   │   ├── leakyrelu.go
-│   │   │   ├── maxpooling.go
-│   │   │   ├── misc.go
-│   │   │   ├── mul.go
-│   │   │   ├── pow.go
-│   │   │   ├── prod.go
-│   │   │   ├── reducemean.go
-│   │   │   ├── reducesum.go
-│   │   │   ├── reshape.go
-│   │   │   ├── softmax.go
-│   │   │   ├── stack.go
-│   │   │   ├── sub.go
-│   │   │   ├── subscalar.go
-│   │   │   ├── swish.go
-│   │   │   ├── swish_test.go
-│   │   │   ├── threshold.go
-│   │   │   ├── transpose.go
-│   │   │   ├── unaryelementwise.go
-│   │   │   ├── ...
-│   │   ├── gradvalue.go
-│   │   ├── graph.go (computational graph)
-│   │   ├── node.go
-│   │   ├── operator.go
-│   │   ├── operators.go
-│   │   ├── variable.go
-│   │   └── wrapper.go
-│   ├── encoding
-│   │   ├── fofe
-│   │   │   ├── decoder.go
-│   │   │   ├── encoder.go
-│   │   └── pe (positional encoding)
-│   │       └── encoder.go
-│   ├── initializers
-│   │   ├── Constant
-│   │   ├── Uniform
-│   │   ├── Normal
-│   │   ├── Xavier (Glorot)
-│   ├── losses
-│   │   ├── MAE
-│   │   ├── MSE
-│   │   ├── NLL
-│   │   ├── CrossEntropy
-│   ├── nn
-│   │   ├── model.go (neural model and neural processor interfaces)
-│   │   ├── transforms.go (e.g. Affine, Conv2D, Self-Attention)
-│   │   ├── param.go (weights, biases)
-│   │   ├── activation
-│   │   ├── birnn (bi-directional recurrent neural network)
-│   │   ├── bls (broad learning system)
-│   │   ├── cnn
-│   │   ├── convolution
-│   │   ├── crf
-│   │   ├── highway
-│   │   ├── selfattention
-│   │   ├── syntheticattention
-│   │   ├── multiheadattention
-│   │   ├── normalization
-│   │   │   ├── adanorm
-│   │   │   ├── batchnorm
-│   │   │   ├── fixnorm
-│   │   │   ├── layernorm
-│   │   │   ├── layernormsimple
-│   │   │   ├── rmsnorm
-│   │   │   └── scalenorm
-│   │   ├── linear
-│   │   ├── rae (recursive auto-encoder)
-│   │   ├── rec (recurrent models)
-│   │   │   ├── cfn
-│   │   │   ├── deltarnn
-│   │   │   ├── fsmn
-│   │   │   ├── gru
-│   │   │   ├── horn
-│   │   │   ├── indrnn
-│   │   │   ├── lstm
-│   │   │   ├── lstmsc
-│   │   │   ├── ltm
-│   │   │   ├── mist
-│   │   │   ├── nru
-│   │   │   ├── ran
-│   │   │   ├── srn
-│   │   │   └── tpr
-│   │   ├── sqrdist
-│   │   └── stack
-│   └── optimizers
-│       ├── de (differential evolution)
-│       │   ├── de.go
-│       │   ├── crossover.go
-│       │   ├── member.go
-│       │   ├── mutator.go
-│       │   └── population.go
-│       ├── gd (gradient descent)
-│       │   ├── sgd
-│       │   ├── rmsprop
-│       │   ├── adagrad
-│       │   ├── adam
-│       │   ├── radam
-│       │   ├── clipper
-│       │   ├── decay
-│       │   │   ├── exponential
-│       │   │   └── hyperbolic
-│       │   ├── gd.go
-│       │   └── scheduler.go
-│       └── optimizer.go (interface implemented by all optimizers)
-└── nlp (natural language processing)
-    ├── embeddings
-    ├── contextual string embeddings
-    ├── evolving embeddings
-    ├── charlm (characters language model)
-    ├── sequence labeler
-    ├── tokenizers
-    │   ├── base (whitespaces and punctuation)
-    │   └── wordpiece
-    ├── transformer (BERT-like models)
-    ├── vocabulary
-    └── corpora
-```
-
-Please note that the structure above does not reflect the original folder structure (although it is very close). I added comments and deleted files to keep the visualization compact.
-
-The inclusion of neural models in the **nn** sub-package is mostly arbitrary. Not all neural models are useful. For instance, I wanted to implement many recurrent networks for the sake of curiosity, but in the end, the LSTM and GRU almost always gave me the best performance in natural language processing tasks (from language modelling to syntactic parsing). I might decide - based on your suggestions - to delete some of them to lighten the core package. 
+* [Named Entities Recognition](docs/named-entities-recognition-demo.md)
+* [Import a Pre-Trained Model](docs/import-a-pre-trained-model-demo.md)
+* [Question Answering](docs/question-answering-demo.md)
+* [Masked Language Model](docs/masked-language-model-demo.md)
 
 ## Requirements
 
@@ -249,463 +129,6 @@ gb = [0.5]
 
 You will soon find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
 
-## Features
-
-* Automatic differentiation
-    - You write the *forward()*, it does all *backward()* derivatives for you:
-    -   Define-by-Run (default, just like PyTorch does)
-    -   Define-and-Run (similar to the static graph of TensorFlow)
-* Optimization methods
-    - Adam, RAdam, RMS-Prop, AdaGrad, SGD
-* Neural networks
-    -   Feed-forward models (Linear, Highway, Convolution, ...)
-    -   Recurrent models (LSTM, GRU, BiLSTM...)
-    -   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
-    -   Recursive autoencoder
-* Natural Language Processing
-    -   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
-    -   Character Language Models
-    -   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
-    -   Transformer models (BERT-like)
-        -   Masked language model
-        -   Next sentence prediction
-        -   Tokens Classification
-        -   Question Answering\
-* Compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
-* Compatible with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
-
-<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
-
-## Demos
-
-Every demo can be built and run separately. Alternatively, all of the demos can be built and packaged together as a single Docker image. When using the Docker image, the demos can be invoked separately.
-
-### **Build All of the Demos**
-
-Move into the spaGO directory, and run the following command.
-
-```console
-GOARCH=amd64 go build -o bert_server cmd/bert/main.go \
-    && go build -o ner-server cmd/ner/main.go \
-    && go build -o huggingface_importer cmd/huggingfaceimporter/main.go 
-```
-
-If the command is successful you should find several executables called `bert_server`, `ner-server`, and `huggingface_importer` in the same folder.
-
-The Docker image can be built like this.
-
-```console
-docker build -t spago:main . -f Dockerfile
-```
-
-### **Named Entities Recognition**
-
-To evaluate the usability of spaGO in NLP, I began experimenting with a basic task such as sequence labeling applied to [Named Entities Recognition (NER)](https://en.wikipedia.org/wiki/Named-entity_recognition).
-
-I felt the need to achieve gratification as quickly as possible, so I opted to use the state-of-the-art pre-trained model released with the [Flair](https://github.com/flairNLP/flair) library, instead of training one from scratch.
-
-You got it, I wrote a program to import the parameters (weights and bias) of Flair into spaGO structures. I'll make it available soon, now it's a bit chaotic.
-
-#### Run
-
-You must indicate the directory that contains the spaGO neural models. Reasonably, you don't have this folder yet, so you can create a new one, for example:
-
-```console
-mkdir ~/.spago 
-```
-
-Now run the `ner-server` indicating a port, the directory of the models, and the model name.
-
-At present, there are two models available, named `goflair-en-ner-conll03` and `goflair-en-ner-fast-conll03`.
-
-Example: 
- 
-```console
-./ner-server server --models ~/.spago --model-name=goflair-en-ner-fast-conll03 --tls-disable
-```
-
-It should print:
-
-```console
-TLS Cert path is /etc/ssl/certs/spago/server.crt
-TLS private key path is /etc/ssl/certs/spago/server.key
-Fetch model from `https://dl.dropboxusercontent.com/s/9lhh9uom6vh66pg/goflair-en-ner-fast-conll03.tar.gz?dl=0`
-Downloading... 278 MB complete     
-Extracting compressed model... ok
-Loading model parameters from `~/.spago/goflair-en-ner-fast-conll03/model.bin`... ok
-Start non-TLS server listening on 0.0.0.0:1987.
-```
-
-At the first execution, the program downloads the required model, if available. For successive executions, it uses the previously downloaded model.
-
-The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
-
-```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server server --models=/tmp/spago --model-name=goflair-en-ner-fast-conll03
-```
-
-#### API
-
-You can test the API from command line with curl:
-
-```console
-curl -k -d '{"options": {"mergeEntities": true, "filterNotEntities": true}, "text": "Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/analyze?pretty"
-```
-
-It should print:
-
-```json
-{
-    "tokens": [
-        {
-            "text": "Mark Freuder Knopfler",
-            "start": 0,
-            "end": 21,
-            "label": "PER"
-        },
-        {
-            "text": "Glasgow",
-            "start": 34,
-            "end": 41,
-            "label": "LOC"
-        },
-        {
-            "text": "Scotland",
-            "start": 43,
-            "end": 51,
-            "label": "LOC"
-        },
-        {
-            "text": "English",
-            "start": 59,
-            "end": 66,
-            "label": "MISC"
-        },
-        {
-            "text": "Louisa Mary",
-            "start": 75,
-            "end": 86,
-            "label": "PER"
-        },
-        {
-            "text": "Jewish",
-            "start": 94,
-            "end": 100,
-            "label": "MISC"
-        },
-        {
-            "text": "Hungarian",
-            "start": 101,
-            "end": 110,
-            "label": "MISC"
-        },
-        {
-            "text": "Erwin Knopfler",
-            "start": 119,
-            "end": 133,
-            "label": "PER"
-        },
-        {
-            "text": "Dire Straits",
-            "start": 203,
-            "end": 215,
-            "label": "ORG"
-        }
-    ]
-}
-```
-
-#### gRPC Client
-
-You can test the API from command line using the built-in gRPC client:
-
-```console
-./ner-server client analyze --merge-entities=true --filter-non-entities=true --text="Mark Freuder Knopfler was born in Glasgow, Scotland, to an English mother, Louisa Mary, and a Jewish Hungarian father, Erwin Knopfler. He was the lead guitarist, singer, and songwriter for the rock band Dire Straits"
-```
-
-It should print:
-
-```yaml
-tokens:
-- text: Mark Freuder Knopfler
-  start: 0
-  end: 21
-  label: PER
-- text: Glasgow
-  start: 34
-  end: 41
-  label: LOC
-- text: Scotland
-  start: 43
-  end: 51
-  label: LOC
-- text: English
-  start: 59
-  end: 66
-  label: MISC
-- text: Louisa Mary
-  start: 75
-  end: 86
-  label: PER
-- text: Jewish
-  start: 94
-  end: 100
-  label: MISC
-- text: Hungarian
-  start: 101
-  end: 110
-  label: MISC
-- text: Erwin Knopfler
-  start: 119
-  end: 133
-  label: PER
-- text: Dire Straits
-  start: 203
-  end: 215
-  label: ORG
-took: 899
-```
-
-### **Import a Pre-Trained Model**
-
-spaGO allows you either to use a model in the inference phase or to train one from scratch, or fine-tune it.
-However, training a language model (i.e. the transformer objective) to get competitive results can become prohibitive.
-This applies in general, but even more so with spaGO as it does not currently use the GPU :scream:
-
-Pre-trained transformer models fine-tuned for question-answering exist for several languages and are publicly hosted on the [Hugging Face models repository](https://huggingface.co/models). Particularly, these exist for BERT and ELECTRA, the two types of transformers currently supported by spaGO.
-
-To import a pre-trained model, run the `hugging_face_importer` indicating both the model name you'd like to import (including organization), and a local directory where to store all your models.
-
-#### Run
-
-Example: 
-
-```console
-./hugging_face_importer --model=deepset/bert-base-cased-squad2 --repo=~/.spago 
-```
-
-At the end of the process, you should see:
-
-```console
-Serializing model to "~/.spago/deepset/bert-base-cased-squad2/spago_model.bin"... ok
-Cool! 🤗 transformer has been successfully converted!
-```
-
-The Docker version of the demo can be run like this.
-
-```console
-docker run --rm -it -v ~/.spago:/tmp/spago spago:main ./hugging_face_importer --model=deepset/bert-base-cased-squad2 --repo=/tmp/spago
-```
-
-### **Question Answering**
-
-Until recently, question-answering was considered a complex task. Today you can get good results with just a [linear layer](https://github.com/nlpodyssey/spago/blob/main/pkg/nlp/transformers/bert/spanclassifier.go#L25) on top of the transformer's encoding. Transformers are a recent trend in natural language processing. They are auto-regressive models trained in an unsupervised manner on huge amounts of text to assimilate human language patterns. In other words, they are [super-parrots](https://medium.com/@ElementalCognition/can-super-parrots-ever-achieve-language-understanding-8307dfd3e87c). Although I do not believe that this is the right way to solve the problem of language processing - at least not alone - I have to admit that their power is extraordinary. 
-
-No more talk. Here's how to test a question-answering system based on BERT, the first Transformer. 
-
-#### Run
-
-If you followed the import step above, now you should see the directory `~/.spago/deepset/bert-base-cased-squad2` containing the original Hugging Face files plus the files generated by spaGO: `spago_model.bin` and `embeddings_storage`. 
-
-Run the `bert_server` indicating a port and the model path (NOT the model file).
-
-Example: 
- 
-```console
-./bert_server server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
-```
-
-It should print:
-
-```console
-TLS Cert path is /etc/ssl/certs/spago/server.crt
-TLS private key path is /etc/ssl/certs/spago/server.key
-Start loading pre-trained model from "~/.spago/deepset/bert-base-cased-squad2"
-[1/3] Loading configuration... ok
-[2/3] Loading vocabulary... ok
-[3/3] Loading model weights... ok
-Config: {HiddenAct:gelu HiddenSize:768 IntermediateSize:3072 MaxPositionEmbeddings:512 NumAttentionHeads:12 NumHiddenLayers:12 TypeVocabSize:2 VocabSize:28996}
-Start TLS server listening on 0.0.0.0:1987.
-```
-
-The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
-
-```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server server --model=/tmp/spago/deepset/bert-base-cased-squad2
-```
-
-#### API
-
-You can easily test the API with the command line using curl.
-
-Set a PASSAGE and a couple of QUESTIONS as environment variables:
-
-```console
-PASSAGE="BERT is a technique for NLP developed by Google. BERT was created and published in 2018 by Jacob Devlin and his colleagues from Google."
-QUESTION1="Who is the author of BERT?"
-QUESTION2="When was BERT created?"
-```
-
-To get the answer to the first question, execute:
-
-```console
-curl -k -d '{"question": "'"$QUESTION1"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/answer?pretty"
-```
-
-It should print:
-
-```json
-{
-    "answers": [
-        {
-            "text": "Jacob Devlin",
-            "start": 91,
-            "end": 103,
-            "confidence": 0.9641588621246571
-        }
-    ]
-}
-```
-
-To get the answer to the second question, execute:
-
-```console
-curl -k -d '{"question": "'"$QUESTION2"'", "passage": "'"$PASSAGE"'"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/answer?pretty"
-```
-
-It should print:
-
-```json
-{
-    "answers": [
-        {
-            "text": "2018",
-            "start": 83,
-            "end": 87,
-            "confidence": 0.9924210921706913
-        }
-    ]
-}
-```
-
-#### gRPC Client
-
-You can easily test the API with the command line using the build-in gRPC client.
-
-```console
-./bert_server client answer --passage="$PASSAGE" --question="$QUESTION1"
-```
-
-It should print:
-
-```yaml
-answers:
-- text: Jacob Devlin
-  start: 91
-  end: 103
-  confidence: 0.9641588621246571
-took: 1513
-```
-
-### **Masked Language Model**
-
-In short, a Masked Language Model (MLM) is a fill-in-the-blank task, where the objective is to use the context words surrounding a `[MASK]` token to try to predict what that `[MASK]` word should be.
-
-We're going to use `BERT` here too, so make sure you've followed the steps of building, importing a model, and starting the server as described in the `Demo for Question Answering` section.
-
-To perform MLM it is necessary that the underlying model contains all the necessary neural layers (read [this](https://github.com/nlpodyssey/spago/issues/14#issuecomment-646472428) for more info). My advice is to start with the base BERT English model trained by Hugging Face (exact name for the import: `bert-base-cased`).
-
-#### Run
-
-```console
-./bert_server server --model=~/.spago/deepset/bert-base-cased-squad2 --tls-disable
-```
-
-The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
-
-```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert_server server --model=/tmp/spago/deepset/bert-base-cased-squad2
-```
-
-#### API
-
-To test the API, execute:
-
-```
-curl -k -d '{"text": "[MASK] is the most important thing in marriage"}' -H "Content-Type: application/json" "http://127.0.0.1:1987/predict?pretty"
-```
-
-It should print:
-
-```
-{
-    "tokens": [
-        {
-            "text": "Love",
-            "start": 0,
-            "end": 6,
-            "label": "PREDICTED"
-        }
-    ],
-    "took": 89
-}
-```
-
-(You're so sweet, BERT :heart:)
-
-You can experiment with more `[MASK]` tokens, and the model will generate the most likely substitution for each. Keep in mind that the more tokens are masked the less context is usable and therefore the accuracy may drop.
-
-You can even mix several languages in the same sentence using a multi-lingual model (exact name for the import: `bert-base-multilingual-cased`).
-
-For example:
-
-```console
-curl -k -d '{"text": "Io sono italiano quindi parlo [MASK] , but as soon as I am with my German colleagues I switch to [MASK] ."}' -H "Content-Type: application/json" "http://127.0.0.1:1987/predict?pretty"
-```
-
-It should print:
-
-```json
-{
-    "tokens": [
-        {
-            "text": "italiano",
-            "start": 30,
-            "end": 36,
-            "label": "PREDICTED"
-        },
-        {
-            "text": "English",
-            "start": 97,
-            "end": 103,
-            "label": "PREDICTED"
-        }
-    ],
-    "took": 469
-}
-```
-
-Cool! Isn't it? Actually, it doesn't always work that well. I tested a few sentences before I found one that made sense :)
-
-#### gRPC Client
-
-To test the API using the built-in gRPC client, execute:
-
-```console
-./bert_server client predict --text="[MASK] is the most important thing in marriage"
-```
-
-It should print:
-
-```yaml
-tokens:
-- text: '[PAD]'
-  start: 0
-  end: 6
-  label: PREDICTED
-took: 402
-```
-
 ## Current Status
 We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
 It's pretty easy to get your hands on through, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
@@ -726,14 +149,6 @@ I'm aware that [reinventing the wheel](https://en.wikipedia.org/wiki/Reinventing
 When I start programming in a new language, I usually do not know much of it. I often combine the techniques I have acquired by writing in other languages and other paradigms, so some choices may not be the most idiomatic... but who cares, right? 
 
 It's with this approach that I jumped on Go and created spaGo: a work in progress, (hopefully) understandable, easy to use library for machine learning and natural language processing.
-
-### Is spaGO right for me?
-
-Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
-
-If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
-
-The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
 
 ### What direction did you take for the development of spaGO?
 
@@ -762,26 +177,6 @@ Beyond that, I think there's a lot of basic design improvements that would be ne
 **Please note that I can only do development in my free time** (which is very limited: I am a [#onewheeler](https://twitter.com/hashtag/onewheel), I have a wonderful wife, a [Happy](https://github.com/nlpodyssey/spago/blob/main/assets/happy.jpg) dog, I play the piano and the guitar, and last but not least I'm actively engaged in my [daily job](https://www.exop-group.com/en/)), so no promises are made regarding response time, feature implementations or bug fixes.
 If you want spaGo to become something more than just a hobby project of me, I greatly appreciate any bug reports and contributions, which can be made by filing an issue or making a pull request through the github page. Thanks!
 
-
-## Contributing
-Install the following tools like this, if you haven't already.
-
-```console
-brew install protobuf
-export GO111MODULE=on  # Enable module mode
-go get github.com/golang/protobuf/protoc-gen-go
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-```
-
-After changing the gRPC protobuf specification, run `go generate ./...` from the top-level folder.
-
-### Branching
-
-The preferred flow is to fork the project, create branches in your fork, and submit PRs from your forked branch.
-
-## License
-
-spaGO is licensed under a BSD-style license. See [LICENSE](https://github.com/nlpodyssey/spago/blob/main/LICENSE) for the full license text.
 
 ## Acknowledgments
 
