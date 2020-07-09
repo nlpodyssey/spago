@@ -15,6 +15,7 @@ import (
 
 const (
 	DefaultModelsURL = "https://huggingface.co/models"
+	LocalModelsURL   = "local"
 	DefaultRepoPath  = "~/.spago/"
 	CacheFileName    = "huggingface-co-cache.json"
 )
@@ -95,8 +96,10 @@ func (a *ImporterArgs) RunImporter() error {
 		}
 	}
 
-	if err := bert.DownloadHuggingFacePreTrained(repo, a.Model, a.Overwrite); err != nil {
-		return err
+	if a.ModelsURL != LocalModelsURL {
+		if err := bert.DownloadHuggingFacePreTrained(repo, a.Model, a.Overwrite); err != nil {
+			return err
+		}
 	}
 
 	writeMsg("Configuring/converting dataset...")
