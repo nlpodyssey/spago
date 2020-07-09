@@ -1,4 +1,4 @@
-# spaGo
+![alt text](https://github.com/nlpodyssey/spago/blob/main/assets/spago_logo.png)
 
 ![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
@@ -7,13 +7,11 @@
 ![Unstable](https://github.com/nlpodyssey/spago/blob/main/assets/stability-unstable-yellow.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
-<p align="center">
-  <a href="https://github.com/nlpodyssey/spago">
-    <img src="https://github.com/nlpodyssey/spago/blob/main/assets/spago_logo.png" alt="Logo" width="80" height="80">
-  </a>
-</p>
+<p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
 
 A beautiful and maintainable machine learning library written in Go. It is designed to support relevant neural architectures in **Natural Language Processing**.
+
+spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers) and with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture. 
 
 <div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
 
@@ -24,8 +22,6 @@ Are you looking for a highly optimized, scalable, battle-tested, production-read
 If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
 
 The idea is that you could have written spaGO. Most of it, from the computational graph to the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/rec/lstm/lstm.go#L182) is straightforward Go code :)
-
-If you like the project, please ★ star this repository to show your support! 🤩
 
 ## Features
 
