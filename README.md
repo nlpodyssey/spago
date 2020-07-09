@@ -48,17 +48,11 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 * Compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
 * Compatible with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
 
-## Getting Started
-
-```Go
-import "github.com/nlpodyssey/spago/pkg/ml/ag"
-```
-
 ## Documentation
 
 Documentation is in the [docs](docs/README.md) directory.
 
-Several demo programs that can be leveraged to tour the current capabilities in spaGo, and they are now documented.
+Several demo programs can be leveraged to tour the current capabilities in spaGo, and they are now documented.
 
 * [Named Entities Recognition](docs/named-entities-recognition-demo.md)
 * [Import a Pre-Trained Model](docs/import-a-pre-trained-model-demo.md)
