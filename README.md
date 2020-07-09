@@ -15,6 +15,8 @@
 
 A beautiful and maintainable machine learning library written in Go. It is designed to support relevant neural architectures in **Natural Language Processing**.
 
+<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
+
 **Is spaGO right for me?**
 
 Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
@@ -49,9 +51,6 @@ If you like the project, please ★ star this repository to show your support! �
         -   Question Answering\
 * Compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
 * Compatible with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
-
-<div style="text-align:center"><img src="https://github.com/nlpodyssey/spago/blob/main/assets/screenshot_spago_api_qa.png" /></div>
-
 
 ## Getting Started
 
