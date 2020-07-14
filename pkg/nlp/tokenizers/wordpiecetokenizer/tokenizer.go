@@ -160,3 +160,22 @@ func GroupPieces(tokens []tokenizers.StringOffsetsPair) []TokensRange {
 	}
 	return groups
 }
+
+func MakeOffsetPairsFromGroups(
+	text string,
+	tokens []tokenizers.StringOffsetsPair,
+	groups []TokensRange,
+) []tokenizers.StringOffsetsPair {
+	outputTokens := make([]tokenizers.StringOffsetsPair, len(groups))
+	for i, group := range groups {
+		startToken, endToken := tokens[group.Start], tokens[group.End]
+		outputTokens[i] = tokenizers.StringOffsetsPair{
+			String: string([]rune(text)[startToken.Offsets.Start:endToken.Offsets.End]),
+			Offsets: tokenizers.OffsetsType{
+				Start: startToken.Offsets.Start,
+				End:   endToken.Offsets.End,
+			},
+		}
+	}
+	return outputTokens
+}
