@@ -109,7 +109,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	c.addToModelMapping(mapBertEncoder(c.model.Encoder))
 	c.addToModelMapping(mapDiscriminator(c.model.Discriminator))
 	c.addToModelMapping(mapSpanClassifier(c.model.SpanClassifier))
-	c.addToModelMapping(mapTokenClassifier(c.model.TokenClassifier))
+	c.addToModelMapping(mapClassifier(c.model.Classifier))
 
 	log.Printf("Search for matches with the mapped model to import weights...")
 	for paramName, preTrainedWeights := range pyTorchParams {
@@ -337,7 +337,7 @@ func mapSpanClassifier(classifier *SpanClassifier) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapTokenClassifier(classifier *TokenClassifier) map[string]mat.Matrix {
+func mapClassifier(classifier *Classifier) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	paramsMap["classifier.weight"] = classifier.W.Value()
 	paramsMap["classifier.bias"] = classifier.B.Value()

@@ -11,38 +11,38 @@ import (
 )
 
 var (
-	_ nn.Model     = &TokenClassifier{}
-	_ nn.Processor = &TokenClassifierProcessor{}
+	_ nn.Model     = &Classifier{}
+	_ nn.Processor = &ClassifierProcessor{}
 )
 
-type TokenClassifierConfig struct {
+type ClassifierConfig struct {
 	InputSize int
 	Labels    []string
 }
 
-type TokenClassifier struct {
-	config TokenClassifierConfig
+type Classifier struct {
+	config ClassifierConfig
 	*linear.Model
 }
 
-func NewTokenClassifier(config TokenClassifierConfig) *TokenClassifier {
-	return &TokenClassifier{
+func NewTokenClassifier(config ClassifierConfig) *Classifier {
+	return &Classifier{
 		config: config,
 		Model:  linear.New(config.InputSize, len(config.Labels)),
 	}
 }
 
-type TokenClassifierProcessor struct {
+type ClassifierProcessor struct {
 	*linear.Processor
 }
 
-func (m *TokenClassifier) NewProc(g *ag.Graph) nn.Processor {
-	return &TokenClassifierProcessor{
+func (m *Classifier) NewProc(g *ag.Graph) nn.Processor {
+	return &ClassifierProcessor{
 		Processor: m.Model.NewProc(g).(*linear.Processor),
 	}
 }
 
 // Predicts return the logits.
-func (p *TokenClassifierProcessor) Predict(xs []ag.Node) []ag.Node {
+func (p *ClassifierProcessor) Predict(xs []ag.Node) []ag.Node {
 	return p.Forward(xs...)
 }

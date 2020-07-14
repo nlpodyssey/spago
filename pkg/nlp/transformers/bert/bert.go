@@ -66,7 +66,7 @@ type Model struct {
 	Pooler          *Pooler
 	SeqRelationship *linear.Model
 	SpanClassifier  *SpanClassifier
-	TokenClassifier *TokenClassifier
+	Classifier      *Classifier
 }
 
 // NewDefaultBERT returns a new model based on the original BERT architecture.
@@ -111,7 +111,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 		SpanClassifier: NewSpanClassifier(SpanClassifierConfig{
 			InputSize: config.HiddenSize,
 		}),
-		TokenClassifier: NewTokenClassifier(TokenClassifierConfig{
+		Classifier: NewTokenClassifier(ClassifierConfig{
 			InputSize: config.HiddenSize,
 			Labels: func(x map[string]string) []string {
 				y := make([]string, len(x))
@@ -170,7 +170,7 @@ type Processor struct {
 	Pooler          *PoolerProcessor
 	SeqRelationship *linear.Processor
 	SpanClassifier  *SpanClassifierProcessor
-	TokenClassifier *TokenClassifierProcessor
+	Classifier      *ClassifierProcessor
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -188,7 +188,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		Pooler:          m.Pooler.NewProc(g).(*PoolerProcessor),
 		SeqRelationship: m.SeqRelationship.NewProc(g).(*linear.Processor),
 		SpanClassifier:  m.SpanClassifier.NewProc(g).(*SpanClassifierProcessor),
-		TokenClassifier: m.TokenClassifier.NewProc(g).(*TokenClassifierProcessor),
+		Classifier:      m.Classifier.NewProc(g).(*ClassifierProcessor),
 	}
 }
 
@@ -220,7 +220,7 @@ func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
 }
 
 func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
-	return p.TokenClassifier.Predict(transformed)
+	return p.Classifier.Predict(transformed)
 }
 
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {

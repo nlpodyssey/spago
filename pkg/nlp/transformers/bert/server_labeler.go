@@ -94,7 +94,7 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 			Text:  groupedTokens[i].String,
 			Start: groupedTokens[i].Offsets.Start,
 			End:   groupedTokens[i].Offsets.End,
-			Label: s.model.TokenClassifier.config.Labels[best],
+			Label: s.model.Classifier.config.Labels[best],
 		})
 	}
 	if merge {
