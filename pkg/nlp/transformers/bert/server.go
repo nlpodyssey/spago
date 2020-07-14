@@ -48,7 +48,7 @@ func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string
 	mux.HandleFunc("/predict", s.PredictHandler)
 	mux.HandleFunc("/answer", s.QaHandler)
 	mux.HandleFunc("/tag", s.LabelerHandler)
-	// r.HandleFunc("/classify", s.classifyHandler)
+	mux.HandleFunc("/classify", s.ClassifyHandler)
 
 	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
 

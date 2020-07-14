@@ -223,6 +223,10 @@ func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
 	return p.Classifier.Predict(transformed)
 }
 
+func (p *Processor) SequenceClassification(transformed []ag.Node) ag.Node {
+	return p.Classifier.Predict(p.Pooler.Forward(transformed[0]))[0]
+}
+
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bert: method not implemented")
 }
