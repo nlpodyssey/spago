@@ -15,6 +15,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 )
 
 const (
@@ -30,14 +31,15 @@ var (
 )
 
 type Config struct {
-	HiddenAct             string `json:"hidden_act"`
-	HiddenSize            int    `json:"hidden_size"`
-	IntermediateSize      int    `json:"intermediate_size"`
-	MaxPositionEmbeddings int    `json:"max_position_embeddings"`
-	NumAttentionHeads     int    `json:"num_attention_heads"`
-	NumHiddenLayers       int    `json:"num_hidden_layers"`
-	TypeVocabSize         int    `json:"type_vocab_size"`
-	VocabSize             int    `json:"vocab_size"`
+	HiddenAct             string            `json:"hidden_act"`
+	HiddenSize            int               `json:"hidden_size"`
+	IntermediateSize      int               `json:"intermediate_size"`
+	MaxPositionEmbeddings int               `json:"max_position_embeddings"`
+	NumAttentionHeads     int               `json:"num_attention_heads"`
+	NumHiddenLayers       int               `json:"num_hidden_layers"`
+	TypeVocabSize         int               `json:"type_vocab_size"`
+	VocabSize             int               `json:"vocab_size"`
+	Id2Label              map[string]string `json:"id2label"`
 }
 
 func LoadConfig(file string) (Config, error) {
@@ -64,6 +66,7 @@ type Model struct {
 	Pooler          *Pooler
 	SeqRelationship *linear.Model
 	SpanClassifier  *SpanClassifier
+	TokenClassifier *TokenClassifier
 }
 
 // NewDefaultBERT returns a new model based on the original BERT architecture.
@@ -107,6 +110,20 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 		SeqRelationship: linear.New(config.HiddenSize, 2),
 		SpanClassifier: NewSpanClassifier(SpanClassifierConfig{
 			InputSize: config.HiddenSize,
+		}),
+		TokenClassifier: NewTokenClassifier(TokenClassifierConfig{
+			InputSize: config.HiddenSize,
+			Labels: func(x map[string]string) []string {
+				y := make([]string, len(x))
+				for k, v := range x {
+					i, err := strconv.Atoi(k)
+					if err != nil {
+						log.Fatal(err)
+					}
+					y[i] = v
+				}
+				return y
+			}(config.Id2Label),
 		}),
 	}
 }
@@ -153,6 +170,7 @@ type Processor struct {
 	Pooler          *PoolerProcessor
 	SeqRelationship *linear.Processor
 	SpanClassifier  *SpanClassifierProcessor
+	TokenClassifier *TokenClassifierProcessor
 }
 
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
@@ -170,6 +188,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		Pooler:          m.Pooler.NewProc(g).(*PoolerProcessor),
 		SeqRelationship: m.SeqRelationship.NewProc(g).(*linear.Processor),
 		SpanClassifier:  m.SpanClassifier.NewProc(g).(*SpanClassifierProcessor),
+		TokenClassifier: m.TokenClassifier.NewProc(g).(*TokenClassifierProcessor),
 	}
 }
 
@@ -198,6 +217,10 @@ func (p *Processor) Pool(transformed []ag.Node) ag.Node {
 
 func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
 	return p.SeqRelationship.Forward(pooled)[0]
+}
+
+func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
+	return p.TokenClassifier.Predict(transformed)
 }
 
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
