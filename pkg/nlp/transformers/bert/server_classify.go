@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
@@ -44,9 +45,15 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-type ClassifyResponse struct {
+type ClassConfidencePair struct {
 	Class      string  `json:"class"`
 	Confidence float64 `json:"confidence"`
+}
+
+type ClassifyResponse struct {
+	Class        string                `json:"class"`
+	Confidence   float64               `json:"confidence"`
+	Distribution []ClassConfidencePair `json:"distribution"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
@@ -83,9 +90,22 @@ func (s *Server) classify(text string) *ClassifyResponse {
 	best := f64utils.ArgMax(probs)
 	class := s.model.Classifier.config.Labels[best]
 
+	distribution := make([]ClassConfidencePair, len(probs))
+	for i := 0; i < len(probs); i++ {
+		distribution[i] = ClassConfidencePair{
+			Class:      s.model.Classifier.config.Labels[i],
+			Confidence: probs[i],
+		}
+	}
+
+	sort.Slice(distribution, func(i, j int) bool {
+		return distribution[i].Confidence > distribution[j].Confidence
+	})
+
 	return &ClassifyResponse{
-		Class:      class,
-		Confidence: probs[best],
-		Took:       time.Since(start).Milliseconds(),
+		Class:        class,
+		Confidence:   probs[best],
+		Distribution: distribution,
+		Took:         time.Since(start).Milliseconds(),
 	}
 }
