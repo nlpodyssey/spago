@@ -19,7 +19,8 @@ import (
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
 const (
-	storageURL               = "https://s3.amazonaws.com/models.huggingface.co/bert/"
+	configURL                = "https://s3.amazonaws.com/models.huggingface.co/bert/"
+	storageURL               = "https://cdn.huggingface.co/"
 	defaultConfigurationFile = "config.json"
 	defaultModelFile         = "pytorch_model.bin"
 	defaultVocabularyFile    = "vocab.txt"
@@ -131,7 +132,7 @@ func (d *huggingFacePreTrainedDownloader) fetchModelWeights() error {
 }
 
 func buildConfigURL(modelName string) string {
-	u, _ := url.Parse(storageURL) // TODO: error handling
+	u, _ := url.Parse(configURL) // TODO: error handling
 	if _, exist := legacyModels[modelName]; exist {
 		u.Path = path.Join(u.Path, modelName)
 		u.Path = fmt.Sprintf("%s-%s", u.Path, defaultConfigurationFile)
