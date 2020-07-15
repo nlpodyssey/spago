@@ -26,7 +26,7 @@ type PositionalEncoder struct {
 }
 
 // New returns a new PositionalEncoder ready to use.
-func New(size, length int) *PositionalEncoder {
+func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	pe := &PositionalEncoder{
 		Size:   size,
 		Length: length,
@@ -37,7 +37,7 @@ func New(size, length int) *PositionalEncoder {
 		data := make([]float64, size, size)
 		for i := 0; i < size-1; i += 2 {
 			data[i] = math.Sin(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
-			data[i+1] = math.Cos(float64(pos) * math.Exp(float64(i+1)*-math.Log(10000.0)/float64(size)))
+			data[i+1] = math.Cos(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
 		}
 		pe.cache[pos] = mat.NewVecDense(data)
 	}

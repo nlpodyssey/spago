@@ -35,7 +35,7 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 			linear.New(hiddenSize, embeddingSize),
 			layernorm.New(embeddingSize),
 			activation.New(ag.OpMish)),
-		StepEncoder: pe.New(2*embeddingSize, maxSequenceLength),
+		StepEncoder: pe.NewPositionalEncoder(2*embeddingSize, maxSequenceLength),
 	}
 }
 
@@ -56,6 +56,6 @@ func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decode
 			linear.New(embeddingSize, descalingHidden),
 			activation.New(ag.OpMish),
 			linear.New(descalingHidden, outputSize)),
-		StepEncoder: pe.New(embeddingSize, maxSequenceLength),
+		StepEncoder: pe.NewPositionalEncoder(embeddingSize, maxSequenceLength),
 	}
 }
