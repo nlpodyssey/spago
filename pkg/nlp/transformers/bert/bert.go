@@ -114,6 +114,9 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 		Classifier: NewTokenClassifier(ClassifierConfig{
 			InputSize: config.HiddenSize,
 			Labels: func(x map[string]string) []string {
+				if len(x) == 0 {
+					return []string{"LABEL_0", "LABEL_1"} // assume binary classification by default
+				}
 				y := make([]string, len(x))
 				for k, v := range x {
 					i, err := strconv.Atoi(k)
