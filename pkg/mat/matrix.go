@@ -63,8 +63,8 @@ func ConcatV(vs ...Matrix) Matrix {
 	}
 	data := make([]float64, 0, cup)
 	for _, v := range vs {
-		if v.Columns() != 1 {
-			panic("mat: required vector, found matrix.")
+		if !v.IsVector() {
+			panic("mat: required vector, found matrix")
 		}
 		data = append(data, v.Data()...)
 	}
