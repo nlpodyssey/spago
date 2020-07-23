@@ -6,6 +6,7 @@ package ner
 
 import (
 	"bytes"
+	"github.com/nlpodyssey/spago/pkg/webui"
 	"html/template"
 	"log"
 	"net/http"
@@ -20,7 +21,8 @@ const htmlTemplate = `
 	<title>spaGO</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
-		{{.CSS}}
+		{{.CommonStyle}}
+		{{.CustomStyle}}
 	</style>
 </head>
 
@@ -91,11 +93,13 @@ func init() {
 	}
 
 	data := struct {
-		CSS    template.CSS
-		Script template.JS
+		CommonStyle template.CSS
+		CustomStyle template.CSS
+		Script      template.JS
 	}{
-		CSS:    style,
-		Script: script,
+		CommonStyle: webui.CommonStyle,
+		CustomStyle: style,
+		Script:      script,
 	}
 
 	buf := bytes.NewBuffer([]byte{})
