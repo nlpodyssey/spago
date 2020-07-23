@@ -8,8 +8,8 @@ import "html/template"
 
 const CommonStyle template.CSS = `
 html,
-body { 
-	height: 100vh; 
+body {
+	height: 100vh;
 }
 
 body {
@@ -56,7 +56,9 @@ button {
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .flex-grow { flex-grow: 1; }
+.justify-end { justify-content: flex-end; }
 
+.p-1 { padding: .25rem; }
 .p-2 { padding: .5rem; }
 .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
@@ -83,6 +85,8 @@ button {
 .shadow { box-shadow: 0 0 5px 0 rgba(0,0,0,0.1); }
 .z-10 { z-index: 10; }
 .rounded { border-radius: 0.25rem; }
+.rounded-l { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem; }
+.rounded-r { border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem; }
 .resize-none { resize: none; }
 .absolute { position: absolute; }
 .relative { position: relative; }
@@ -92,4 +96,5 @@ button {
 .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
 .overflow-hidden { overflow: hidden; }
 .overflow-auto { overflow: auto; }
+.leading-none { line-height: 1; }
 `
