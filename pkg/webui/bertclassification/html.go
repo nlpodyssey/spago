@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package ner
+package bertclassification
 
 import (
 	"bytes"
@@ -40,7 +40,7 @@ const htmlTemplate = `
 	<main class="flex-grow overflow-hidden flex">
 		<form
 			class="bg-gray-200 flex-grow p-2 flex flex-col"
-			onsubmit="analyze(); return false;"
+			onsubmit="classify(); return false;"
 		>
 			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
 				<div
@@ -48,32 +48,25 @@ const htmlTemplate = `
 					class="absolute inset-0 text-transparent p-2 overflow-auto"
 				></div>
 				<textarea
-					id="text"
-					placeholder="Text..."
+					id="passage"
+					placeholder="Passage..."
 					class="flex-grow resize-none bg-transparent p-2 z-10 overflow-auto"
 					oninput="handleTextareaInput()"
 					onscroll="handleTextareaScroll()"
 				></textarea>
-			</div>
-			<div class="mt-2 flex">
-				<div class="flex-grow py-2">
-					<input id="merge-entities" type="checkbox" checked>
-					<label for="merge-entities" class="mr-2">Merge entities</label>
-
-					<input id="filter-not-entities" type="checkbox" checked>
-					<label for="filter-not-entities">Filter non-entities</label>
 				</div>
+			<div class="mt-2 flex justify-end">
 				<input
 					type="submit"
 					id="submit"
-					value="Analyze"
+					value="Classify"
 					class="rounded shadow cursor-pointer py-2 px-4 bg-blue hover:bg-light-blue"
 				>
 				<div id="loader" class="hidden"></div>
 			</div>
 		</form>
 
-		<aside id="entities" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="classes" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>
@@ -87,7 +80,7 @@ const htmlTemplate = `
 var html []byte
 
 func init() {
-	t, err := template.New("NER Web UI").Parse(htmlTemplate)
+	t, err := template.New("BERT Classification Web UI").Parse(htmlTemplate)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -110,7 +103,7 @@ func init() {
 	html = buf.Bytes()
 }
 
-// Handler is the server handler function for Named-Entity Recognition web UI
+// Handler is the server handler function for BERT classification web UI
 func Handler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "text/html")

@@ -9,6 +9,7 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/webui/bertclassification"
 	"net/http"
 	"sort"
 
@@ -44,6 +45,7 @@ func NewServer(model *Model) *Server {
 func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/bert-qa-ui", bertqa.Handler)
+	mux.HandleFunc("/bert-classify-ui", bertclassification.Handler)
 	mux.HandleFunc("/discriminate", s.DiscriminateHandler)
 	mux.HandleFunc("/predict", s.PredictHandler)
 	mux.HandleFunc("/answer", s.QaHandler)
