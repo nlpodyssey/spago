@@ -55,7 +55,7 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 
 ### Demos
 
-Several demo programs can be leveraged to tour the current capabilities in spaGo. The demos are documented on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Demos. A list of the demos now follows.
+Several demo programs can be leveraged to tour the current capabilities in spaGO. The demos are documented on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Demos). A list of the demos now follows.
 
 * [Named Entities Recognition](https://github.com/nlpodyssey/spago/wiki/Demos#named-entities-recognition-demo)
 * [Import a Pre-Trained Model](https://github.com/nlpodyssey/spago/wiki/Demos#import-a-pre-trained-model-demo)
