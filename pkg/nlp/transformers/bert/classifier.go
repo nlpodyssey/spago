@@ -21,13 +21,13 @@ type ClassifierConfig struct {
 }
 
 type Classifier struct {
-	config ClassifierConfig
+	Config ClassifierConfig
 	*linear.Model
 }
 
 func NewTokenClassifier(config ClassifierConfig) *Classifier {
 	return &Classifier{
-		config: config,
+		Config: config,
 		Model:  linear.New(config.InputSize, len(config.Labels)),
 	}
 }

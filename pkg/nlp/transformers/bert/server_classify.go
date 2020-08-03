@@ -88,12 +88,12 @@ func (s *Server) classify(text string) *ClassifyResponse {
 	logits := proc.SequenceClassification(encoded)
 	probs := f64utils.SoftMax(logits.Value().Data())
 	best := f64utils.ArgMax(probs)
-	class := s.model.Classifier.config.Labels[best]
+	class := s.model.Classifier.Config.Labels[best]
 
 	distribution := make([]ClassConfidencePair, len(probs))
 	for i := 0; i < len(probs); i++ {
 		distribution[i] = ClassConfidencePair{
-			Class:      s.model.Classifier.config.Labels[i],
+			Class:      s.model.Classifier.Config.Labels[i],
 			Confidence: probs[i],
 		}
 	}
