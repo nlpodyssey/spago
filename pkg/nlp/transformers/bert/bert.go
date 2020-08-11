@@ -40,6 +40,7 @@ type Config struct {
 	TypeVocabSize         int               `json:"type_vocab_size"`
 	VocabSize             int               `json:"vocab_size"`
 	Id2Label              map[string]string `json:"id2label"`
+	ReadOnly              bool              `json:"read_only"`
 }
 
 func LoadConfig(file string) (Config, error) {
@@ -80,7 +81,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			MaxPositions:        config.MaxPositionEmbeddings,
 			TokenTypes:          config.TypeVocabSize,
 			WordsMapFilename:    embeddingsStoragePath,
-			WordsMapReadOnly:    false,
+			WordsMapReadOnly:    config.ReadOnly,
 			DeletePreEmbeddings: false,
 		}),
 		Encoder: NewBertEncoder(EncoderConfig{
