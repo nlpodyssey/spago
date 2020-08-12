@@ -75,11 +75,11 @@ func (m *Model) ClearUsedEmbeddings() {
 		return
 	}
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	for _, embedding := range m.UsedEmbeddings {
 		mat.ReleaseDense(embedding.Value().(*mat.Dense))
 	}
 	m.UsedEmbeddings = map[string]*nn.Param{}
-	m.mu.Unlock()
 }
 
 func (m *Model) DropAll() error {
@@ -161,7 +161,7 @@ func (m *Model) GetEmbedding(word string) *nn.Param {
 //     - to keep track of used embeddings, should they be optimized.
 // It panics in case of storage errors.
 func (m *Model) getEmbedding(word string) *nn.Param {
-	if embedding, ok := m.UsedEmbeddings[word]; ok {
+	if embedding, ok := m.getUsedEmbedding(word); ok {
 		return embedding
 	}
 	data, ok, err := m.storage.Get([]byte(word))
@@ -180,9 +180,16 @@ func (m *Model) getEmbedding(word string) *nn.Param {
 	}
 	embedding.SetName(word)
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.UsedEmbeddings[word] = embedding // important
-	m.mu.Unlock()
 	return embedding
+}
+
+func (m *Model) getUsedEmbedding(word string) (embedding *nn.Param, ok bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	embedding, ok = m.UsedEmbeddings[word]
+	return
 }
 
 type Processor struct {
