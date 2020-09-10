@@ -156,8 +156,13 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 		t := entry.Value.(*pytorch.Tensor)
 		paramName := normalizeParamName(key.(string))
 		fmt.Printf("Reading %s.... ", paramName)
-		paramsMap[paramName] = gopickleutils.GetData(t)
-		fmt.Println("ok")
+		switch t.Source.(type) {
+		case *pytorch.FloatStorage:
+			paramsMap[paramName] = gopickleutils.GetData(t)
+			fmt.Println("ok")
+		default:
+			fmt.Println("skip")
+		}
 	}
 	c.enrichHuggingFaceParams(paramsMap)
 	return paramsMap
