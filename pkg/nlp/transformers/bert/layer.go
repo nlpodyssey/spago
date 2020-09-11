@@ -23,6 +23,7 @@ type EncoderLayer struct {
 	NormAttention      *layernorm.Model
 	FFN                *stack.Model
 	NormFFN            *layernorm.Model
+	Index              int // layer index (useful for debugging)
 }
 
 type EncoderLayerProcessor struct {

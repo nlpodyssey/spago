@@ -72,6 +72,7 @@ func NewBertEncoder(config EncoderConfig) *Encoder {
 				linear.New(config.IntermediateSize, config.Size),
 			),
 			NormFFN: layernorm.New(config.Size),
+			Index:   layerIndex,
 		}
 	}
 	return &Encoder{
