@@ -730,6 +730,15 @@ func (d *Dense) Norm(pow float64) float64 {
 	return math.Pow(s, 1/pow)
 }
 
+// Normalize2 normalizes an array with the Euclidean norm.
+func (d *Dense) Normalize2() *Dense {
+	norm2 := d.Norm(2)
+	if norm2 != 0.0 {
+		return d.ProdScalar(1.0 / norm2).(*Dense)
+	}
+	return d.Clone().(*Dense)
+}
+
 // Maximum returns a new matrix containing the element-wise maxima.
 func (d *Dense) Maximum(other Matrix) *Dense {
 	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
