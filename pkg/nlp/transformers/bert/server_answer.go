@@ -33,7 +33,7 @@ func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 
 	result := s.answer(body.Question, body.Passage)
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

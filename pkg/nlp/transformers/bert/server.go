@@ -99,20 +99,6 @@ type QuestionAnsweringResponse struct {
 	Took int64 `json:"took"`
 }
 
-func (r *QuestionAnsweringResponse) Dump(pretty bool) ([]byte, error) {
-	buf := bytes.NewBufferString("")
-	enc := json.NewEncoder(buf)
-	if pretty {
-		enc.SetIndent("", "    ")
-	}
-	enc.SetEscapeHTML(true)
-	err := enc.Encode(r)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
 const defaultMaxAnswerLength = 20     // TODO: from options
 const defaultMinConfidence = 0.1      // TODO: from options
 const defaultMaxCandidateLogits = 3.0 // TODO: from options
@@ -148,14 +134,14 @@ type Token struct {
 	Label string `json:"label"`
 }
 
-func (r *Response) Dump(pretty bool) ([]byte, error) {
+func Dump(value interface{}, pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
 	enc := json.NewEncoder(buf)
 	if pretty {
 		enc.SetIndent("", "    ")
 	}
 	enc.SetEscapeHTML(true)
-	err := enc.Encode(r)
+	err := enc.Encode(value)
 	if err != nil {
 		return nil, err
 	}

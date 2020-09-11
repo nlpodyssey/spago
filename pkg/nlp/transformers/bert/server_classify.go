@@ -5,7 +5,6 @@
 package bert
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -32,7 +31,7 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 
 	result := s.classify(body.Text)
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,20 +55,6 @@ type ClassifyResponse struct {
 	Distribution []ClassConfidencePair `json:"distribution"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
-}
-
-func (r *ClassifyResponse) Dump(pretty bool) ([]byte, error) {
-	buf := bytes.NewBufferString("")
-	enc := json.NewEncoder(buf)
-	if pretty {
-		enc.SetIndent("", "    ")
-	}
-	enc.SetEscapeHTML(true)
-	err := enc.Encode(r)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 // TODO: This method is too long; it needs to be refactored.

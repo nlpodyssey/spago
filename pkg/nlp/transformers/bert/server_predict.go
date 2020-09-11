@@ -32,7 +32,7 @@ func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
 
 	result := s.predict(body.Text)
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

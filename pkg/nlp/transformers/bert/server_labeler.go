@@ -43,7 +43,7 @@ func (s *Server) LabelerHandler(w http.ResponseWriter, req *http.Request) {
 	result := s.label(body.Text, body.Options.MergeEntities, body.Options.FilterNotEntities)
 
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

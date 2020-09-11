@@ -31,7 +31,7 @@ func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
 
 	result := s.discriminate(body.Text)
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

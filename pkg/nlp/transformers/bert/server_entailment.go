@@ -35,7 +35,7 @@ func (s *Server) TextualEntailmentHandler(w http.ResponseWriter, req *http.Reque
 
 	result := s.textualEntailment(body.Premise, body.Hypothesis)
 	_, pretty := req.URL.Query()["pretty"]
-	response, err := result.Dump(pretty)
+	response, err := Dump(result, pretty)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
