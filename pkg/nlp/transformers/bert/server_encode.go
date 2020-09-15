@@ -5,8 +5,10 @@
 package bert
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"net/http"
 	"time"
 
@@ -47,6 +49,22 @@ type EncodeResponse struct {
 	Data []float64 `json:"data"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
+}
+
+// Predict handles a predict request over gRPC.
+// TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
+func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi.EncodeReply, error) {
+	result := s.encode(req.GetText())
+
+	vector32 := make([]float32, len(result.Data))
+	for i, f64 := range result.Data {
+		vector32[i] = float32(f64)
+	}
+
+	return &grpcapi.EncodeReply{
+		Vector: vector32,
+		Took:   result.Took,
+	}, nil
 }
 
 // TODO: This method is too long; it needs to be refactored.

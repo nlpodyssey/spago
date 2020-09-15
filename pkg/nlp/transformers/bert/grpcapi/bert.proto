@@ -11,6 +11,9 @@ service BERT {
 
   // Sends a request to /predict.
   rpc Predict (PredictRequest) returns (PredictReply) {}
+
+  // Sends a request to /encode.
+  rpc Encode (EncodeRequest) returns (EncodeReply) {}
 }
 
 // The answer request message containing the passage and question to answer.
@@ -62,5 +65,18 @@ message PredictReply {
   repeated Token tokens = 1;
 
   // Took is the number of milliseconds it took the server to execute the request.
-	int64          took   = 2;
+  int64          took = 2;
+}
+
+// The encode request message containing the text.
+message EncodeRequest {
+  string text = 1;
+}
+
+// The response message containing the tokens from BERT prediction.
+message EncodeReply {
+  repeated float vector = 1;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+  int64          took = 2;
 }
