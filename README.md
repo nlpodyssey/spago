@@ -27,15 +27,15 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 
 * Automatic differentiation
     - You write the *forward()*, it does all *backward()* derivatives for you:
-    -   Define-by-Run (default, just like PyTorch does)
-    -   Define-and-Run (similar to the static graph of TensorFlow)
+        -   Define-by-Run (default, just like PyTorch does)
+        -   Define-and-Run (similar to the static graph of TensorFlow)
 * Optimization methods
     - Adam, RAdam, RMS-Prop, AdaGrad, SGD
 * Neural networks
     -   Feed-forward models (Linear, Highway, Convolution, ...)
     -   Recurrent models (LSTM, GRU, BiLSTM...)
     -   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
-    -   Recursive autoencoder
+    -   Recursive auto-encoders
 * Natural Language Processing
     -   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
     -   Character Language Models
