@@ -44,9 +44,13 @@ The idea is that you could have written spaGO. Most of it, from the computationa
         -   Masked language model
         -   Next sentence prediction
         -   Tokens Classification
-        -   Question Answering\
-* Compatible with 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
-* Compatible with the [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
+        -   Text Classification (e.g. Sentiment Analysis)
+        -   Question Answering
+        -   Textual Entailment
+        -   Text Similarity
+* Compatible with pre-trained state-of-the-art neural models:
+    - 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
+    - [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
 
 ## Documentation
 
