@@ -18,6 +18,7 @@ func newClientCommandFor(app *BertApp) cli.Command {
 			newClientDiscriminateCommandFor(app),
 			newClientPredictCommandFor(app),
 			newClientEncodeCommandFor(app),
+			newClientSimilarityCommandFor(app),
 		},
 	}
 }
