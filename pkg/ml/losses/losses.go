@@ -13,9 +13,8 @@ func MAE(g *ag.Graph, x ag.Node, y ag.Node, reduceMean bool) ag.Node {
 	loss := g.Abs(g.Sub(x, y))
 	if reduceMean {
 		return g.ReduceMean(loss)
-	} else {
-		return g.ReduceSum(loss)
 	}
+	return g.ReduceSum(loss)
 }
 
 // MSE measures the mean squared error (squared L2 norm) between each element in the input x and target y.
@@ -23,9 +22,8 @@ func MSE(g *ag.Graph, x ag.Node, y ag.Node, reduceMean bool) ag.Node {
 	loss := g.ProdScalar(g.Square(g.Sub(x, y)), g.NewScalar(0.5))
 	if reduceMean {
 		return g.ReduceMean(loss)
-	} else {
-		return g.ReduceSum(loss)
 	}
+	return g.ReduceSum(loss)
 }
 
 // NLL returns the loss of the input x respect to the target y.
@@ -66,7 +64,7 @@ func MSESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 		loss = g.Add(loss, MSE(g, predicted[i], target[i], false))
 	}
 	if reduceMean {
-		loss = g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
 	}
 	return loss
 }
@@ -77,7 +75,7 @@ func CrossEntropySeq(g *ag.Graph, predicted []ag.Node, target []int, reduceMean 
 		loss = g.Add(loss, CrossEntropy(g, predicted[i], target[i]))
 	}
 	if reduceMean {
-		loss = g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
 	}
 	return loss
 }
