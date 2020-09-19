@@ -33,6 +33,7 @@ type Processor struct {
 	b ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -46,6 +47,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	g := p.Graph
 	meanVector := p.Mean(xs)

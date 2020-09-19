@@ -38,6 +38,7 @@ type Processor struct {
 	concurrent bool
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -56,6 +57,7 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && len(xs) > 1 {
 		return p.fwdConcurrent(xs)

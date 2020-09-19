@@ -32,6 +32,7 @@ type Processor struct {
 	params []ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	var params []ag.Node
 	for _, param := range m.Params {
@@ -48,6 +49,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	activation := p.Model.(*Model).Activation

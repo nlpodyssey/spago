@@ -32,6 +32,7 @@ type Model struct {
 	B []*nn.Param `type:"biases"`
 }
 
+// NewProc returns a new processor to execute the forward step.
 func New(config Config) *Model {
 	paramsSize := config.InputChannels * config.OutputChannels
 	kernels := make([]*nn.Param, paramsSize, paramsSize)
@@ -81,6 +82,7 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && p.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)

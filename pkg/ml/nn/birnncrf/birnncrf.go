@@ -26,6 +26,7 @@ type Processor struct {
 	lastScores []ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -45,6 +46,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	nn.SetProcessingMode(mode, p.biRNN, p.scorer)
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p Processor) Forward(xs ...ag.Node) []ag.Node {
 	features := p.biRNN.Forward(xs...)
 	return p.scorer.Forward(features...)

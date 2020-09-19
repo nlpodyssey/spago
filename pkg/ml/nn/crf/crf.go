@@ -35,6 +35,7 @@ type Processor struct {
 	transitionScores [][]ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -48,6 +49,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
+// Forward is not available for the CRF. Use Predict() instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("crf: Forward() not available. Use Predict() instead.")
 }

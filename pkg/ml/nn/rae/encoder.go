@@ -28,6 +28,7 @@ type EncoderProcessor struct {
 	recursions int
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Encoder) NewProc(g *ag.Graph) nn.Processor {
 	return &EncoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
@@ -52,6 +53,7 @@ func (p *EncoderProcessor) GetRecursions() int {
 	return p.recursions
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *EncoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 	ys := p.ffn1.Forward(xs...)
 	p.recursions = 1

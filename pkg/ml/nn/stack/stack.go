@@ -33,6 +33,7 @@ type Processor struct {
 	Layers []nn.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	procLayers := make([]nn.Processor, len(m.Layers))
 	for i, layer := range m.Layers {
@@ -65,6 +66,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	}
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.RequiresFullSeq() {
 		return p.fullSeqForward(xs)

@@ -58,6 +58,7 @@ type Processor struct {
 	Attention   *ContextProb
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -122,6 +123,7 @@ func insertNode(m map[int]*IndexedNodes, node ag.Node, i, h int) {
 	element.index = append(element.index, i)
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	length := len(xs)
 	qs := p.query.Forward(xs...)

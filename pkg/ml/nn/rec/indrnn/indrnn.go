@@ -44,6 +44,7 @@ type Processor struct {
 	States []*State
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -66,6 +67,7 @@ func (p *Processor) SetInitialState(state *State) {
 	p.States = append(p.States, state)
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {

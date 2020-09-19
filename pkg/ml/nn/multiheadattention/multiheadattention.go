@@ -55,6 +55,7 @@ type Processor struct {
 	outputMerge       *linear.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	headAttentionProc := make([]*selfattention.Processor, m.h)
 	for i := 0; i < m.h; i++ {
@@ -80,6 +81,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	}
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	h := p.Model.(*Model).h
 	headsAttention := make([][]ag.Node, h)

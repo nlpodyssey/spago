@@ -44,6 +44,7 @@ func (p *DecoderProcessor) SetSequenceLength(length int) {
 	p.recursions = maxRecursions
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Decoder) NewProc(g *ag.Graph) nn.Processor {
 	return &DecoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
@@ -68,6 +69,7 @@ func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
 	p.ffn3.SetMode(mode)
 }
 
+// Forward performs the the forward step for each input and returns the result.
 func (p *DecoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) != 1 {
 		panic("rae: the input must be a single node")

@@ -15,7 +15,9 @@ import (
 type ProcessingMode int
 
 const (
+	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
 	Training ProcessingMode = iota
+	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
 	Inference
 )
 
