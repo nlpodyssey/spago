@@ -10,6 +10,7 @@ import (
 
 var _ Function = &At{}
 
+// At is an operator to obtain the i,j-th value of a matrix.
 type At struct {
 	x Operand
 	i int

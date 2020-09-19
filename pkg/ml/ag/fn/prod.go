@@ -10,7 +10,7 @@ import (
 
 var _ Function = &Prod{}
 
-// Element-wise product over two values.
+// Prod is an operator to perform element-wise product over two values.
 type Prod struct {
 	x1 Operand
 	x2 Operand

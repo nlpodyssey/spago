@@ -12,14 +12,15 @@ import (
 
 var _ Function = &MaxPooling{}
 
+// MaxPooling is an operator to perform max pooling.
 type MaxPooling struct {
 	x    Operand
 	rows int
 	cols int
 	// initialized during the forward pass
 	y       mat.Matrix
-	argmaxi [][]int
-	argmaxj [][]int
+	argmaxI [][]int
+	argmaxJ [][]int
 }
 
 func NewMaxPooling(x Operand, r, c int) *MaxPooling {
@@ -28,8 +29,8 @@ func NewMaxPooling(x Operand, r, c int) *MaxPooling {
 		rows:    r,
 		cols:    c,
 		y:       nil,
-		argmaxi: nil,
-		argmaxj: nil,
+		argmaxI: nil,
+		argmaxJ: nil,
 	}
 }
 
@@ -40,8 +41,8 @@ func (r *MaxPooling) Forward() mat.Matrix {
 	}
 
 	r.y = mat.NewEmptyDense(r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
-	r.argmaxi = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
-	r.argmaxj = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
+	r.argmaxI = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
+	r.argmaxJ = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Columns(); col++ {
@@ -51,8 +52,8 @@ func (r *MaxPooling) Forward() mat.Matrix {
 					val := r.x.Value().At(i, j)
 					if val > max {
 						max = val
-						r.argmaxi[row][col] = i
-						r.argmaxj[row][col] = j
+						r.argmaxI[row][col] = i
+						r.argmaxJ[row][col] = j
 					}
 				}
 			}
@@ -68,8 +69,8 @@ func (r *MaxPooling) Backward(gy mat.Matrix) {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseDense(gx.(*mat.Dense))
 		for row := 0; row < r.y.Rows(); row++ {
-			rowi := r.argmaxi[row]
-			rowj := r.argmaxj[row]
+			rowi := r.argmaxI[row]
+			rowj := r.argmaxJ[row]
 			for col := 0; col < r.y.Columns(); col++ {
 				gx.Set(rowi[col], rowj[col], gy.At(row, col))
 			}

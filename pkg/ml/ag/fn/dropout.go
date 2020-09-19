@@ -12,6 +12,7 @@ import (
 
 var _ Function = &Dropout{}
 
+// Dropout is an operator to perform elements dropout with a probability.
 type Dropout struct {
 	x       Operand
 	prob    float64

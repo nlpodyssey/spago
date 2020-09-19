@@ -10,6 +10,7 @@ import (
 
 var _ Function = &LeakyReLU{}
 
+// LeakyReLU is an operator to perform the LeakyReLU activation function.
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
 type LeakyReLU struct {
 	x     Operand

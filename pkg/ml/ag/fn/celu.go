@@ -10,6 +10,7 @@ import (
 
 var _ Function = &CeLU{}
 
+// CeLU is an operator to perform the CeLU activation.
 // CeLU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
 type CeLU struct {
 	x     Operand

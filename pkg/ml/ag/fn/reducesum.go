@@ -10,7 +10,7 @@ import (
 
 var _ Function = &ReduceSum{}
 
-// Single-input, reduce sum function.
+// ReduceSum is an operator to perform reduce-sum function.
 type ReduceSum struct {
 	x Operand
 }

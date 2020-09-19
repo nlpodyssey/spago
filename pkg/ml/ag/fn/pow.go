@@ -10,6 +10,7 @@ import (
 
 var _ Function = &Pow{}
 
+// Pow is an operator to perform element-wise pow function.
 type Pow struct {
 	x     Operand
 	power float64

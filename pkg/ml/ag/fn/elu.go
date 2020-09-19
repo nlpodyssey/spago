@@ -10,6 +10,7 @@ import (
 
 var _ Function = &ELU{}
 
+// ELU is an operator to perform the ELU activation function.
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))
 type ELU struct {
 	x     Operand

@@ -10,7 +10,7 @@ import (
 
 var _ Function = &Div{}
 
-// Element-wise division over two values.
+// Div is an operator to perform element-wise division over two values.
 type Div struct {
 	x1 Operand
 	x2 Operand

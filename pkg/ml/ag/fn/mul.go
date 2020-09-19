@@ -11,6 +11,7 @@ import (
 
 var _ Function = &Mul{}
 
+// Mul is an operator to perform matrix-vector multiplication.
 type Mul struct {
 	x1 Operand // matrix
 	x2 Operand // vector

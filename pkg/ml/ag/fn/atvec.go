@@ -10,6 +10,7 @@ import (
 
 var _ Function = &AtVec{}
 
+// At is an operator to obtain the i-th value of a vector.
 type AtVec struct {
 	x Operand
 	i int

@@ -10,6 +10,7 @@ import (
 
 var _ Function = &Concat{}
 
+// Concat is an operator to perform vector concatenation.
 type Concat struct {
 	xs    []Operand
 	ySize int

@@ -8,7 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Identity{}
 
-// Identity function.
+// Identity is an operator to perform identity function.
 // y = x
 type Identity struct {
 	x Operand

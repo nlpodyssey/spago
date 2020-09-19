@@ -8,7 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Min{}
 
-// Element-wise min.
+// Min is an operator to perform element-wise min.
 // y = min(x1, x2)
 type Min struct {
 	x1 Operand

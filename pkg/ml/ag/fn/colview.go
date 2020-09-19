@@ -8,6 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &ColView{}
 
+// ColView is an operator to extract the i-th column from a matrix.
 type ColView struct {
 	x Operand
 	i int

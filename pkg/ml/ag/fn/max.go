@@ -8,7 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Max{}
 
-// Element-wise max.
+// Max is an operator to perform element-wise max.
 // y = max(x1, x2)
 type Max struct {
 	x1 Operand

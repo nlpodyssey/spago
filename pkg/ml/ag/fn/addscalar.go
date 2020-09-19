@@ -10,7 +10,7 @@ import (
 
 var _ Function = &AddScalar{}
 
-// Element-wise addition over two values.
+// AddScalar is an operator to perform element-wise addition over two values.
 type AddScalar struct {
 	x1 Operand
 	x2 Operand // scalar

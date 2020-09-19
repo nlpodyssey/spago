@@ -10,7 +10,7 @@ import (
 
 var _ Function = &ReduceMean{}
 
-// Single-input, reduce mean function.
+// ReduceMean is an operator to perform reduce-mean function.
 type ReduceMean struct {
 	x Operand
 }

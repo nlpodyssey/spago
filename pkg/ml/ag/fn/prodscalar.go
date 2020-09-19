@@ -10,7 +10,7 @@ import (
 
 var _ Function = &ProdScalar{}
 
-// The element-wise product with a scalar value.
+// ProdScalar is an operator to perform element-wise product with a scalar value.
 type ProdScalar struct {
 	x1 Operand
 	x2 Operand // scalar

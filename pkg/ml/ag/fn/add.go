@@ -8,7 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Add{}
 
-// Element-wise sum over two values.
+// Add is an operator to perform element-wise sum over two values.
 // y = x1 + x2
 type Add struct {
 	x1 Operand

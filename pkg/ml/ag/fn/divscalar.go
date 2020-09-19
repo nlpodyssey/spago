@@ -10,7 +10,7 @@ import (
 
 var _ Function = &DivScalar{}
 
-// The element-wise division with a scalar value.
+// DivScalar is an operator to perform element-wise division with a scalar value.
 type DivScalar struct {
 	x1 Operand
 	x2 Operand // scalar
