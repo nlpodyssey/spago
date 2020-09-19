@@ -14,6 +14,7 @@ import (
 
 var _ Matrix = &Dense{}
 
+// Dense is a Matrix implementation that uses float64 as data type.
 type Dense struct {
 	rows     int
 	cols     int
@@ -90,7 +91,7 @@ func NewInitVecDense(size int, val float64) *Dense {
 	return NewInitDense(size, 1, val)
 }
 
-// SetData sets the data
+// SetData sets the data.
 func (d *Dense) SetData(data []float64) {
 	if len(data) != d.size {
 		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
@@ -103,7 +104,7 @@ func (d *Dense) ZerosLike() Matrix {
 	return NewEmptyDense(d.rows, d.cols)
 }
 
-// ZerosLike returns a new Dense with of the same dimensions of the receiver, initialized to ones.
+// OnesLike returns a new Dense with of the same dimensions of the receiver, initialized to ones.
 func (d *Dense) OnesLike() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	data := out.data // avoid bounds check
@@ -173,7 +174,7 @@ func (d *Dense) Size() int {
 	return d.size
 }
 
-// LastIndex returns the last index.
+// LastIndex returns the last index respect to linear indexing
 func (d *Dense) LastIndex() int {
 	return d.size - 1
 }
@@ -721,7 +722,7 @@ func (d *Dense) SplitV(sizes ...int) []Matrix {
 	return out
 }
 
-// Norm returns the vector norm.  Use pow = 2.0 for Euclidean.
+// Norm returns the vector norm. Use pow = 2.0 for Euclidean.
 func (d *Dense) Norm(pow float64) float64 {
 	s := 0.0
 	for _, x := range d.data {

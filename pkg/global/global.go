@@ -13,9 +13,14 @@ import (
 // This is used to regulate the use of approximate math functions over the default implementations.
 var mathOptimizationLevel = 0
 
-const minMathOptimizationLevel = 0
-const maxMathOptimizationLevel = 2
-const defaultMathOptimizationLevel = 0
+const (
+	// Min optimization level
+	minMathOptimizationLevel = 0
+	// Max optimization level
+	maxMathOptimizationLevel = 2
+	// Default optimization level (no optimization)
+	defaultMathOptimizationLevel = 0
+)
 
 var ballast []byte
 
@@ -23,6 +28,7 @@ func init() {
 	// Create a virtual heap allocation of 2 GiB to reduce GC activity.
 	// https://blog.twitch.tv/go-memory-ballast-how-i-learnt-to-stop-worrying-and-love-the-heap-26c2462549a2
 	ballast = make([]byte, 2<<30)
+	_ = ballast // it is consciously not used
 
 	strOptLevel := os.Getenv("OPTIMIZATION_LEVEL")
 	if strOptLevel == "" {

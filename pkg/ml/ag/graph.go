@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 )
 
+// The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 type Graph struct {
 	// to avoid data race during concurrent computations
 	mu sync.Mutex

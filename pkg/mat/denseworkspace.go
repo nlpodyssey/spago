@@ -109,10 +109,6 @@ func bits(v uint64) byte {
 	return tab64[((v-(v>>1))*0x07EDD5E59A4E28C2)>>58] - 1
 }
 
-const emptySize = 100000000
-
-var empty [emptySize]float64
-
 // zero zeros the given slice's elements.
 func zero(f []float64) {
 	for i := range f {

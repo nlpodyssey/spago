@@ -109,6 +109,7 @@ func StrToFloat64Slice(str string) ([]float64, error) {
 	return data, nil
 }
 
+// SoftMax returns the results of the softmax function.
 func SoftMax(v []float64) (sm []float64) {
 	c := Max(v)
 	var sum float64 = 0
