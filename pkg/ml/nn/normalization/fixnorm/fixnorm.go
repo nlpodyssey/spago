@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Reference: "Improving Lexical Choice in Neural Machine Translation" by Toan Q. Nguyen and David Chiang (2018)
+// (https://arxiv.org/pdf/1710.01329.pdf)
 package fixnorm
 
 import (
@@ -14,10 +16,10 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Reference: "Improving Lexical Choice in Neural Machine Translation" by Toan Q. Nguyen and David Chiang (2018)
-// (https://arxiv.org/pdf/1710.01329.pdf)
+// Model is an empty model used to instantiate a new Processor.
 type Model struct{}
 
+// New returns a new model.
 func New() *Model {
 	return &Model{}
 }

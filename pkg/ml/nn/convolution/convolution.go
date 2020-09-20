@@ -26,6 +26,7 @@ type Config struct {
 	Activation     ag.OpName
 }
 
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	K []*nn.Param `type:"weights"`

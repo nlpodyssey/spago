@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// LSH-Attention as in `Reformer: The Efficient Transformer` by N. Kitaev, Ł. Kaiser, A. Levskaya.
 // TODO: Check compatibility with the LSH Attention implemented by Hugging Face:
 // TODO: https://huggingface.co/transformers/model_doc/reformer.html
 package lshattention
@@ -19,7 +20,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// LSH-Attention as in `Reformer: The Efficient Transformer` by N. Kitaev, Ł. Kaiser, A. Levskaya.
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	Query *linear.Model
@@ -35,6 +36,7 @@ type Config struct {
 	ScaleFactor float64
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
 		Config: config,

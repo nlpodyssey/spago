@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// LSTM enriched with a PolicyGradient to enable Dynamic Skip Connections.
 package lstmsc
 
 import (
@@ -20,7 +21,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// LSTM enriched with a PolicyGradient to enable Dynamic Skip Connections.
+// Model contains the serializable parameters.
 type Model struct {
 	PolicyGradient *stack.Model
 	Lambda         float64
@@ -38,8 +39,8 @@ type Model struct {
 	BCand          *nn.Param `type:"biases"`
 }
 
-// New returns a new model.
-// lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
+// New returns a new model with parameters initialized to zeros.
+// Lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
 func New(in, out, k int, lambda float64, intermediate int) *Model {
 	var m Model
 	m.PolicyGradient = stack.New(

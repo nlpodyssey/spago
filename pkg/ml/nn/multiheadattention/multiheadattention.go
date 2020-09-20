@@ -17,7 +17,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Multi-Head Attention
+// Model contains the serializable parameters.
 type Model struct {
 	Attention   []*selfattention.Model
 	OutputMerge *linear.Model
@@ -26,6 +26,7 @@ type Model struct {
 	dk          int // hidden vectors dimension (dm/h)
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(size, numOfHeads int) *Model {
 	dm := size
 	dk := size / numOfHeads

@@ -15,6 +15,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	TransitionScores *nn.Param `type:"weights"`
 }

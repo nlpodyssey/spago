@@ -42,6 +42,7 @@ type Config struct {
 	EnhancedNodesDropout         float64
 }
 
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	Wz []*nn.Param `type:"weights"`
@@ -52,6 +53,7 @@ type Model struct {
 	B  *nn.Param   `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(c Config) *Model {
 	length := c.NumOfFeatures
 	wz := make([]*nn.Param, length)

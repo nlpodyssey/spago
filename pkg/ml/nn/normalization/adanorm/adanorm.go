@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
+// (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
 package adanorm
 
 import (
@@ -14,12 +16,12 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
-// (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
+// Model contains the scaling factor.
 type Model struct {
 	scale float64
 }
 
+// New returns a new model.
 func New(scale float64) *Model {
 	return &Model{scale: scale}
 }

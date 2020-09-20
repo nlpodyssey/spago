@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Higher Order Recurrent Neural Networks (HORN)
 package horn
 
 import (
@@ -18,13 +19,14 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Higher Order Recurrent Neural Networks
+// Model contains the serializable parameters.
 type Model struct {
 	W    *nn.Param   `type:"weights"`
 	WRec []*nn.Param `type:"weights"`
 	B    *nn.Param   `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(in, out, order int) *Model {
 	wRec := make([]*nn.Param, order, order)
 	for i := 0; i < order; i++ {

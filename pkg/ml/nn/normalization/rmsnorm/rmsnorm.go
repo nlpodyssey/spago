@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Reference: "Root Mean Square Layer Normalization" by Biao Zhang and Rico Sennrich (2019).
+// (https://arxiv.org/pdf/1910.07467.pdf)
 package rmsnorm
 
 import (
@@ -15,13 +17,13 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Reference: "Root Mean Square Layer Normalization" by Biao Zhang and Rico Sennrich (2019).
-// (https://arxiv.org/pdf/1910.07467.pdf)
+// Model contains the serializable parameters.
 type Model struct {
 	W *nn.Param `type:"weights"`
 	B *nn.Param `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
 		W: nn.NewParam(mat.NewEmptyVecDense(size)),

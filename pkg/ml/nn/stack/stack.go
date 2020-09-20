@@ -14,10 +14,12 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Layers []nn.Model
 }
 
+// New returns a new model.
 func New(layers ...nn.Model) *Model {
 	return &Model{
 		Layers: layers,

@@ -27,6 +27,7 @@ type Model struct {
 	order int
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(in, out, order int) *Model {
 	WS := make([]*nn.Param, order, order)
 	for i := 0; i < order; i++ {
@@ -45,6 +46,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Model contains the serializable parameters.
 type Processor struct {
 	nn.BaseProcessor
 	order  int

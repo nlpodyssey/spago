@@ -21,6 +21,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	FFN   *stack.Model
@@ -35,6 +36,7 @@ type Config struct {
 	MaxLength  int
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
 		Config: config,

@@ -16,12 +16,14 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	W    *nn.Param `type:"weights"`
 	WRec *nn.Param `type:"weights"`
 	B    *nn.Param `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(in, out int) *Model {
 	return &Model{
 		W:    nn.NewParam(mat.NewEmptyDense(out, in)),

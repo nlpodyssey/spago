@@ -16,7 +16,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Self-Attention
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	Query *linear.Model
@@ -32,6 +32,7 @@ type Config struct {
 	ScaleFactor float64
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
 		Config: config,

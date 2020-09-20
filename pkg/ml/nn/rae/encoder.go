@@ -15,6 +15,7 @@ var (
 	_ nn.Processor = &EncoderProcessor{}
 )
 
+// Encoder contains the serializable parameters.
 type Encoder struct {
 	ScalingFFN  nn.Model
 	EncodingFFN nn.Model

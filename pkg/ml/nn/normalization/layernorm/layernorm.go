@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Reference: "Layer normalization" by Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton (2016).
+// (https://arxiv.org/pdf/1607.06450.pdf)
 package layernorm
 
 import (
@@ -15,13 +17,13 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Reference: "Layer normalization" by Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton (2016).
-// (https://arxiv.org/pdf/1607.06450.pdf)
+// Model contains the serializable parameters.
 type Model struct {
 	W *nn.Param `type:"weights"`
 	B *nn.Param `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
 		W: nn.NewParam(mat.NewEmptyVecDense(size)),

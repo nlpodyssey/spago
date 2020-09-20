@@ -14,12 +14,14 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the activation operator and serializable parameters.
 type Model struct {
 	Activation ag.OpName
 	Params     []*nn.Param
 }
 
 // TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
+// New returns a new model with parameters initialized to zeros.
 func New(activation ag.OpName, params ...*nn.Param) *Model {
 	return &Model{
 		Activation: activation,

@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	BiRNN  *birnn.Model
 	Scorer *linear.Model

@@ -17,6 +17,7 @@ var (
 	_ nn.Processor = &DecoderProcessor{}
 )
 
+// Decoder contains the serializable parameters.
 type Decoder struct {
 	DecodingFNN1 nn.Model // decoding part 1
 	DecodingFFN2 nn.Model // decoding part 2

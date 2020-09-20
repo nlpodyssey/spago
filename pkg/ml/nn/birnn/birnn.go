@@ -24,12 +24,14 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Positive  nn.Model // positive time direction a.k.a. left-to-right
 	Negative  nn.Model // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(positive, negative nn.Model, merge MergeType) *Model {
 	return &Model{
 		Positive:  positive,

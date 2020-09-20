@@ -16,6 +16,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Convolution    *convolution.Model
 	FinalLayer     *linear.Model
@@ -23,6 +24,7 @@ type Model struct {
 	maxPoolingCols int
 }
 
+// NewModel returns a new model with parameters initialized to zeros.
 func NewModel(convolution *convolution.Model, maxPoolingRows, maxPoolingCols int, finalLayer *linear.Model) *Model {
 	return &Model{
 		Convolution:    convolution,

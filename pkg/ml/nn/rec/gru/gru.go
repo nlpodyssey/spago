@@ -16,6 +16,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	WPart    *nn.Param `type:"weights"`
 	WPartRec *nn.Param `type:"weights"`
@@ -28,6 +29,7 @@ type Model struct {
 	BCand    *nn.Param `type:"biases"`
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(in, out int) *Model {
 	var m Model
 	m.WPart, m.WPartRec, m.BPart = newGateParams(in, out)

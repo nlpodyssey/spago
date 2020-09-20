@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
+// (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
 package layernormsimple
 
 import (
@@ -14,10 +16,10 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
-// (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
+// Model is an empty model used to instantiate a new Processor.
 type Model struct{}
 
+// New returns a new model.
 func New() *Model {
 	return &Model{}
 }

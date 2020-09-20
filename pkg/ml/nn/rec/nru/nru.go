@@ -26,6 +26,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	SqrtMemK        int
@@ -53,6 +54,7 @@ type Config struct {
 	UseLayerNorm bool
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	if !isExactInt(math.Sqrt(float64(config.MemorySize * config.K))) {
 		panic("nru: incompatible 'k' with 'memory size'")
