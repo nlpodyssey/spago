@@ -55,8 +55,8 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 
 ## Documentation
 
-* [Godocs for spaGo](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
-* [Contributing to spaGo](CONTRIBUTING.md)
+* [Godocs for spaGO](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
+* [Contributing to spaGO](CONTRIBUTING.md)
 
 ### Demos
 
