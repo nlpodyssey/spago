@@ -24,10 +24,14 @@ func GetGlobalGraph() *Graph {
 	return globalGraph
 }
 
+// Clear cleans the graph. This is a destructive operation.
+// See graph.Clear() for more information.
 func ClearGlobalGraph() {
 	globalGraph.Clear()
 }
 
+// ClearForReuse() does the same thing as Clear(), with the difference that the graph structure.
+// See graph.ClearForReuse() for more information.
 func ClearGlobalGraphForReuse() {
 	globalGraph.ClearForReuse()
 }
@@ -36,14 +40,17 @@ func ZeroGrad() {
 	globalGraph.ZeroGrad()
 }
 
+// NewVariable creates and returns a new node.
 func NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	return globalGraph.NewVariable(value, requiresGrad)
 }
 
+// NewScalar creates a variable node that doesn't require gradients.
 func NewScalar(value float64) Node {
 	return globalGraph.NewScalar(value)
 }
 
+// NewOperator creates a new operator along with its forward pass.
 func NewOperator(f fn.Function, operands ...Node) Node {
 	return globalGraph.NewOperator(f, operands...)
 }
@@ -72,295 +79,300 @@ func Forward(opts ...ForwardOption) {
 	globalGraph.Forward(opts...)
 }
 
+// Backward performs the back-propagation.
+// See graph.Backward() for more information.
 func Backward(node Node, opts ...BackwardOption) {
 	globalGraph.Backward(node, opts...)
 }
 
+// BackwardAll performs full back-propagation from the last node of the graph.
+// It requires the root nodes to have assigned gradients already.
 func BackwardAll() {
 	globalGraph.BackwardAll()
 }
 
-// Invoke
+// Invoke returns a new node as a result of the application of the input operator.
 func Invoke(operator OpName, xs ...Node) Node {
 	return globalGraph.Invoke(operator, xs...)
 }
 
-// Identity
+// Identity returns a new operator node as a result of the fn.Identity function.
 func Identity(x Node) Node {
 	return globalGraph.Identity(x)
 }
 
-// Dropout
+// Dropout returns a new operator node as a result of the fn.Dropout function.
 func Dropout(x Node, p float64) Node {
 	return globalGraph.Dropout(x, p)
 }
 
-// AtVec
+// AtVec returns a new operator node as a result of the fn.AtVec function.
 func AtVec(x Node, i int) Node {
 	return globalGraph.AtVec(x, i)
 }
 
-// At
+// At returns a new operator node as a result of the fn.At function.
 func At(x Node, i int, j int) Node {
 	return globalGraph.At(x, i, j)
 }
 
-// Add
+// Add returns a new operator node as a result of the fn.Add function.
+// The first node may be null. This help to keep the code as concise as possible e.g. during accumulation.
 func Add(x1 Node, x2 Node) Node {
 	return globalGraph.Add(x1, x2)
 }
 
-// Sub
+// Sub returns a new operator node as a result of the fn.Sub function.
 func Sub(x1 Node, x2 Node) Node {
 	return globalGraph.Sub(x1, x2)
 }
 
-// SubScalar
+// SubScalar returns a new operator node as a result of the fn.SubScalar function.
 func SubScalar(x1 Node, x2 Node) Node {
 	return globalGraph.SubScalar(x1, x2)
 }
 
-// AddScalar
+// AddScalar returns a new operator node as a result of the fn.AddScalar function.
 func AddScalar(x1 Node, x2 Node) Node {
 	return globalGraph.AddScalar(x1, x2)
 }
 
-// ReverseSub
+// ReverseSub returns a new operator node as a result of the fn.ReverseSub function.
 func ReverseSub(x1 Node, x2 Node) Node {
 	return globalGraph.ReverseSub(x1, x2)
 }
 
-// Prod
+// Prod returns a new operator node as a result of the fn.Prod function.
 func Prod(x1 Node, x2 Node) Node {
 	return globalGraph.Prod(x1, x2)
 }
 
-// Div
+// Div returns a new operator node as a result of the fn.Div function.
 func Div(x1 Node, x2 Node) Node {
 	return globalGraph.Div(x1, x2)
 }
 
-// ProdScalar
+// ProdScalar returns a new operator node as a result of the fn.ProdScalar function.
 func ProdScalar(x1 Node, x2 Node) Node {
 	return globalGraph.ProdScalar(x1, x2)
 }
 
-// DivScalar
+// DivScalar returns a new operator node as a result of the fn.DivScalar function.
 func DivScalar(x1 Node, x2 Node) Node {
 	return globalGraph.DivScalar(x1, x2)
 }
 
-// Mul
+// Mul returns a new operator node as a result of the fn.Mul function.
 func Mul(x1 Node, x2 Node) Node {
 	return globalGraph.Mul(x1, x2)
 }
 
-// Dot
+// Dot returns a new operator node as a result of the fn.Dot function.
 func Dot(x1 Node, x2 Node) Node {
 	return globalGraph.Dot(x1, x2)
 }
 
-// Max
+// Max returns a new operator node as a result of the fn.Max function.
 func Max(x1 Node, x2 Node) Node {
 	return globalGraph.Max(x1, x2)
 }
 
-// Min
+// Min returns a new operator node as a result of the fn.Min function.
 func Min(x1 Node, x2 Node) Node {
 	return globalGraph.Min(x1, x2)
 }
 
-// Reshape
+// Reshape returns a new operator node as a result of the fn.Reshape function.
 func Reshape(x Node, rows, columns int) Node {
 	return globalGraph.Reshape(x, rows, columns)
 }
 
-// MaxPooling
+// MaxPooling returns a new operator node as a result of the fn.MaxPooling function.
 func MaxPooling(x Node, rows, columns int) Node {
 	return globalGraph.MaxPooling(x, rows, columns)
 }
 
-// View
+// View returns a new operator node as a result of the fn.View function.
 func View(x Node, row, column, xStride, yStride int) Node {
 	return globalGraph.View(x, row, column, xStride, yStride)
 }
 
-// RowView
+// RowView returns a new operator node as a result of the fn.RowView function.
 func RowView(x Node, row int) Node {
 	return globalGraph.RowView(x, row)
 }
 
-// ColView
+// ColView returns a new operator node as a result of the fn.ColView function.
 func ColView(x Node, column int) Node {
 	return globalGraph.ColView(x, column)
 }
 
-// Vec
+// Vec returns a new operator node as a result of the fn.Vec function.
 func Vec(x Node) Node {
 	return globalGraph.Vec(x)
 }
 
-// T
+// T returns a new operator node as a result of the fn.T function.
 func T(x Node) Node {
 	return globalGraph.T(x)
 }
 
-// Square
+// Square returns a new operator node as a result of the fn.Prod(x, x) function.
 func Square(x Node) Node {
 	return globalGraph.Square(x)
 }
 
-// Pow
+// Pow returns a new operator node as a result of the fn.Pow function.
 func Pow(x Node, power float64) Node {
 	return globalGraph.Pow(x, power)
 }
 
-// Sqrt
+// Sqrt returns a new operator node as a result of the `Sqrt` function.
 func Sqrt(x Node) Node {
 	return globalGraph.Sqrt(x)
 }
 
-// Tan
+// Tan returns a new operator node as a result of the `Tan` function.
 func Tan(x Node) Node {
 	return globalGraph.Tan(x)
 }
 
-// Tanh
+// Tanh returns a new operator node as a result of the `Tanh` function.
 func Tanh(x Node) Node {
 	return globalGraph.Tanh(x)
 }
 
-// Sigmoid
+// Sigmoid returns a new operator node as a result of the `Sigmoid` function.
 func Sigmoid(x Node) Node {
 	return globalGraph.Sigmoid(x)
 }
 
-// HardSigmoid
+// HardSigmoid returns a new operator node as a result of the `HardSigmoid` function.
 func HardSigmoid(x Node) Node {
 	return globalGraph.HardSigmoid(x)
 }
 
-// HardTanh
+// HardTanh returns a new operator node as a result of the `HardTanh` function.
 func HardTanh(x Node) Node {
 	return globalGraph.HardTanh(x)
 }
 
-// Softsign
+// Softsign returns a new operator node as a result of the `SoftSign` function.
 func Softsign(x Node) Node {
 	return globalGraph.Softsign(x)
 }
 
-// ReLU
+// ReLU returns a new operator node as a result of the `ReLU` function.
 func ReLU(x Node) Node {
 	return globalGraph.ReLU(x)
 }
 
-// CeLU
+// CeLU returns a new operator node as a result of the fn.CeLU function.
 func CeLU(x Node, alpha Node) Node {
 	return globalGraph.CeLU(x, alpha)
 }
 
-// GeLU
+// GeLU returns a new operator node as a result of the fn.GeLU function.
 func GeLU(x Node) Node {
 	return globalGraph.GeLU(x)
 }
 
-// ELU
+// ELU returns a new operator node as a result of the fn.ELU function.
 func ELU(x Node, alpha Node) Node {
 	return globalGraph.ELU(x, alpha)
 }
 
-// Swish
+// Swish returns a new operator node as a result of the fn.Swish function.
 func Swish(x Node, beta Node) Node {
 	return globalGraph.Swish(x, beta)
 }
 
-// Mish
+// Mish returns a new operator node as a result of the `Mish` function.
 func Mish(x Node) Node {
 	return globalGraph.Mish(x)
 }
 
-// LeakyReLU
+// LeakyReLU returns a new operator node as a result of the fn.LeakyReLU function.
 func LeakyReLU(x Node, alpha Node) Node {
 	return globalGraph.LeakyReLU(x, alpha)
 }
 
-// SeLU
+// SeLU returns a new operator node as a result of the fn.SeLU function.
 func SeLU(x Node, alpha Node, scale Node) Node {
 	return globalGraph.SeLU(x, alpha, scale)
 }
 
-// SoftPlus
+// SoftPlus returns a new operator node as a result of the fn.SoftPlus function.
 func SoftPlus(x Node, beta Node, threshold Node) Node {
 	return globalGraph.SoftPlus(x, beta, threshold)
 }
 
-// SoftShrink
+// SoftShrink returns a new operator node as a result of the fn.SoftShrink function.
 func SoftShrink(x Node, lambda Node) Node {
 	return globalGraph.SoftShrink(x, lambda)
 }
 
-// Threshold
+// Threshold returns a new operator node as a result of the fn.Threshold function.
 func Threshold(x Node, threshold Node, k Node) Node {
 	return globalGraph.Threshold(x, threshold, k)
 }
 
-// Softmax
+// Softmax returns a new operator node as a result of the fn.Softmax function.
 func Softmax(x Node) Node {
 	return globalGraph.Softmax(x)
 }
 
-// Sin
+// Sin returns a new operator node as a result of the `Sin` function.
 func Sin(x Node) Node {
 	return globalGraph.Sin(x)
 }
 
-// Cos
+// Cos returns a new operator node as a result of the `Cos` function.
 func Cos(x Node) Node {
 	return globalGraph.Cos(x)
 }
 
-// Exp
+// Exp returns a new operator node as a result of the `Exp` function.
 func Exp(x Node) Node {
 	return globalGraph.Exp(x)
 }
 
-// Log
+// Log returns a new operator node as a result of the `Log` function.
 func Log(x Node) Node {
 	return globalGraph.Log(x)
 }
 
-// Abs
+// Abs returns a new operator node as a result of the `Abs` function.
 func Abs(x Node) Node {
 	return globalGraph.Abs(x)
 }
 
-// Neg
+// Neg returns a new operator node as a result of the `Neg` function.
 func Neg(x Node) Node {
 	return globalGraph.Neg(x)
 }
 
-// Reciprocal
+// Reciprocal returns a new operator node as a result of the `Reciprocal` function.
 func Reciprocal(x Node) Node {
 	return globalGraph.Reciprocal(x)
 }
 
-// ReduceSum
+// ReduceSum returns a new operator node as a result of the fn.ReduceSum function.
 func ReduceSum(x Node) Node {
 	return globalGraph.ReduceSum(x)
 }
 
-// ReduceMean
+// ReduceMean returns a new operator node as a result of the fn.ReduceMean function.
 func ReduceMean(x Node) Node {
 	return globalGraph.ReduceMean(x)
 }
 
-// Concat
+// Concat returns a new operator node as a result of the fn.Concat function.
 func Concat(xs ...Node) Node {
 	return globalGraph.Concat(xs...)
 }
 
-// Stack
+// Stack returns a new operator node as a result of the fn.Stack function.
 func Stack(xs ...Node) Node {
 	return globalGraph.Stack(xs...)
 }

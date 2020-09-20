@@ -153,7 +153,7 @@ func (g *Graph) ZeroGrad() {
 	}
 }
 
-// NewVariable creates e returns a new node.
+// NewVariable creates and returns a new node.
 func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -171,7 +171,8 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	return newNode
 }
 
-// NewScalar creates a variable node that doesn't require gradients
+// NewScalar creates a variable node that doesn't require gradients.
+// TODO: Why shouldn't gradient be required by default?
 func (g *Graph) NewScalar(value float64) Node {
 	return g.NewVariable(mat.NewScalar(value), false)
 }
