@@ -25,6 +25,8 @@ type BERTClient interface {
 	Predict(ctx context.Context, in *PredictRequest, opts ...grpc.CallOption) (*PredictReply, error)
 	// Sends a request to /encode.
 	Encode(ctx context.Context, in *EncodeRequest, opts ...grpc.CallOption) (*EncodeReply, error)
+	// Sends a request to /classify.
+	Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error)
 }
 
 type bERTClient struct {
@@ -71,6 +73,15 @@ func (c *bERTClient) Encode(ctx context.Context, in *EncodeRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *bERTClient) Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error) {
+	out := new(ClassifyReply)
+	err := c.cc.Invoke(ctx, "/grpcapi.BERT/Classify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BERTServer is the server API for BERT service.
 // All implementations must embed UnimplementedBERTServer
 // for forward compatibility
@@ -83,6 +94,8 @@ type BERTServer interface {
 	Predict(context.Context, *PredictRequest) (*PredictReply, error)
 	// Sends a request to /encode.
 	Encode(context.Context, *EncodeRequest) (*EncodeReply, error)
+	// Sends a request to /classify.
+	Classify(context.Context, *ClassifyRequest) (*ClassifyReply, error)
 	mustEmbedUnimplementedBERTServer()
 }
 
@@ -101,6 +114,9 @@ func (*UnimplementedBERTServer) Predict(context.Context, *PredictRequest) (*Pred
 }
 func (*UnimplementedBERTServer) Encode(context.Context, *EncodeRequest) (*EncodeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Encode not implemented")
+}
+func (*UnimplementedBERTServer) Classify(context.Context, *ClassifyRequest) (*ClassifyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Classify not implemented")
 }
 func (*UnimplementedBERTServer) mustEmbedUnimplementedBERTServer() {}
 
@@ -180,6 +196,24 @@ func _BERT_Encode_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BERT_Classify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClassifyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BERTServer).Classify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/grpcapi.BERT/Classify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BERTServer).Classify(ctx, req.(*ClassifyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _BERT_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "grpcapi.BERT",
 	HandlerType: (*BERTServer)(nil),
@@ -199,6 +233,10 @@ var _BERT_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Encode",
 			Handler:    _BERT_Encode_Handler,
+		},
+		{
+			MethodName: "Classify",
+			Handler:    _BERT_Classify_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -14,6 +14,9 @@ service BERT {
 
   // Sends a request to /encode.
   rpc Encode (EncodeRequest) returns (EncodeReply) {}
+
+  // Sends a request to /classify.
+  rpc Classify(ClassifyRequest) returns (ClassifyReply) {}
 }
 
 // The answer request message containing the passage and question to answer.
@@ -79,4 +82,26 @@ message EncodeReply {
 
   // Took is the number of milliseconds it took the server to execute the request.
   int64          took = 2;
+}
+
+// The classify request message containing the text to classify
+message ClassifyRequest {
+  bool has_text2 = 1;  // always set this to "true" when using text2
+  string text = 2;
+  string text2 = 3;
+}
+
+// The response message containing the classification.
+message ClassConfidencePair {
+  string class = 1;
+  double confidence = 2;
+}
+
+message ClassifyReply {
+  string class = 1;
+  double confidence = 2;
+  repeated ClassConfidencePair distribution = 3;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+  int64 took = 4;
 }

@@ -5,7 +5,9 @@
 package bert
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"net/http"
 	"sort"
 	"time"
@@ -55,6 +57,30 @@ type ClassifyResponse struct {
 	Distribution []ClassConfidencePair `json:"distribution"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
+}
+
+// Predict handles a predict request over gRPC.
+// TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
+func (s *Server) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
+	result := s.classify(req.GetText())
+	return classificationFrom(result), nil
+}
+
+func classificationFrom(resp *ClassifyResponse) *grpcapi.ClassifyReply {
+	distribution := make([]*grpcapi.ClassConfidencePair, len(resp.Distribution))
+	for i, t := range resp.Distribution {
+		distribution[i] = &grpcapi.ClassConfidencePair{
+			Class:      t.Class,
+			Confidence: t.Confidence,
+		}
+	}
+
+	return &grpcapi.ClassifyReply{
+		Class:        resp.Class,
+		Confidence:   resp.Confidence,
+		Distribution: distribution,
+		Took:         resp.Took,
+	}
 }
 
 // TODO: This method is too long; it needs to be refactored.
