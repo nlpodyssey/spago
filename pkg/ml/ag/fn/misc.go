@@ -5,7 +5,6 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"math"
 )
 
@@ -189,11 +188,11 @@ func square(i, j int, v float64) float64 {
 }
 
 func tanh(i, j int, v float64) float64 {
-	return f64utils.Tanh(v)
+	return math.Tanh(v)
 }
 
 func tanhDeriv(i, j int, v float64) float64 {
-	return 1.0 - math.Pow(f64utils.Tanh(v), 2.0)
+	return 1.0 - math.Pow(math.Tanh(v), 2.0)
 }
 
 func sigmoid(i, j int, v float64) float64 {
@@ -434,12 +433,12 @@ func mishDeriv(i, j int, v float64) float64 {
 }
 
 func gelu(i, j int, v float64) float64 {
-	return 0.5 * v * (1.0 + f64utils.Tanh(math.Sqrt(2/math.Pi)*(v+0.044715*math.Pow(v, 3.0))))
+	return 0.5 * v * (1.0 + math.Tanh(math.Sqrt(2/math.Pi)*(v+0.044715*math.Pow(v, 3.0))))
 }
 
 func geluDeriv(i, j int, x float64) float64 {
 	x3 := math.Pow(x, 3)
-	return 0.5*f64utils.Tanh(0.0356774*x3+0.797885*x) +
+	return 0.5*math.Tanh(0.0356774*x3+0.797885*x) +
 		(0.0535161*x3+0.398942*x)*
 			math.Pow(1.0/math.Cosh(0.0356774*x3+0.797885*x), 2) + 0.5
 }
