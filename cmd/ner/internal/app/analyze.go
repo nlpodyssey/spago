@@ -47,9 +47,9 @@ func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
-		cli := grpcapi.NewSequenceLabelerClient(conn)
+		client := grpcapi.NewSequenceLabelerClient(conn)
 
-		resp, err := cli.Analyze(context.Background(), &grpcapi.AnalyzeRequest{
+		resp, err := client.Analyze(context.Background(), &grpcapi.AnalyzeRequest{
 			Text:              app.text,
 			MergeEntities:     app.mergeEntities,
 			FilterNotEntities: app.filterNonEntities,

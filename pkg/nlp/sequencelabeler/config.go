@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package app
+package sequencelabeler
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ type WordEmbeddingsConfig struct {
 	WordEmbeddingsSize     int    `json:"embeddings_size"`
 }
 
-func loadConfig(file string) Config {
+func LoadConfig(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)
 	if err != nil {
