@@ -43,3 +43,13 @@ func SplitByRune(str string) []string {
 	}
 	return out
 }
+
+func ReverseString(text string) string {
+	str := []rune(text)
+	l := len(str)
+	revStr := make([]rune, l)
+	for i := 0; i <= l/2; i++ {
+		revStr[i], revStr[l-1-i] = str[l-1-i], str[i]
+	}
+	return string(revStr)
+}
