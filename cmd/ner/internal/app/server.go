@@ -112,7 +112,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 
 		configPath := filepath.Join(modelPath, "config.json")
 		config := sequencelabeler.LoadConfig(configPath)
-		model := sequencelabeler.NewDefaultModel(config, modelPath)
+		model := sequencelabeler.NewDefaultModel(config, modelPath, true, false)
 		model.LoadVocabulary(modelPath)
 		model.LoadParams(modelPath)
 

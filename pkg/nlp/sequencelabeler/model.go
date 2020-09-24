@@ -41,8 +41,7 @@ type Model struct {
 
 // NewDefaultModel returns a new sequence labeler built based on the architecture of Flair.
 // See https://github.com/flairNLP/flair for more information.
-// Note that the embeddings are set as ready-only.
-func NewDefaultModel(config Config, path string) *Model {
+func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) *Model {
 	CharLanguageModelConfig := charlm.Config{
 		VocabularySize:    config.ContextualStringEmbeddings.VocabularySize,
 		EmbeddingSize:     config.ContextualStringEmbeddings.EmbeddingSize,
@@ -59,8 +58,8 @@ func NewDefaultModel(config Config, path string) *Model {
 					Size:             config.WordEmbeddings.WordEmbeddingsSize,
 					UseZeroEmbedding: true,
 					DBPath:           filepath.Join(path, config.WordEmbeddings.WordEmbeddingsFilename),
-					ReadOnly:         true,
-					ForceNewDB:       false,
+					ReadOnly:         readOnlyEmbeddings,
+					ForceNewDB:       forceNewEmbeddingsDB,
 				}),
 				contextualstringembeddings.New(
 					charlm.New(CharLanguageModelConfig),
