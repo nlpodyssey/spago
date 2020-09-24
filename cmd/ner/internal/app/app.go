@@ -27,6 +27,7 @@ type NERApp struct {
 	tlsDisable        bool
 	output            string
 	modelsFolder      string
+	modelFolder       string
 	modelName         string
 	text              string
 	mergeEntities     bool
@@ -43,6 +44,7 @@ func NewNERApp() *NERApp {
 	app.Commands = []cli.Command{
 		newClientCommandFor(app),
 		newServerCommandFor(app),
+		newConvertCommandFor(app),
 	}
 	return app
 }
