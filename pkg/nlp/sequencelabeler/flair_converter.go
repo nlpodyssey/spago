@@ -27,8 +27,9 @@ import (
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
 const (
-	defaultConfigFilename     = "config.json"
-	defaultEmbeddingsFilename = "embeddings.txt"
+	defaultConfigFilename           = "config.json"
+	defaultEmbeddingsFilename       = "embeddings.txt"
+	defaultSecondEmbeddingsFilename = "embeddings2.txt"
 )
 
 type converter struct {
@@ -66,17 +67,29 @@ func newParam(value mat.Matrix) *mappedParam {
 func Convert(modelPath string, flairModelName string) {
 	config := LoadConfig(path.Join(modelPath, defaultConfigFilename))
 	model := NewDefaultModel(config, modelPath, false, true)
-	defer embeddings.Close() // ensure flushing
+	defer embeddings.Close()
 
 	c := newConverter(path.Join(modelPath, flairModelName))
 	c.loadPyTorchParams()
 
-	log.Printf("Load word embeddings...")
-	model.EmbeddingsLayer.WordsEncoders[0].(*embeddings.Model).Load(filepath.Join(modelPath, defaultEmbeddingsFilename))
-	println("ok")
+	lmIndex := 0
 
-	lm := model.EmbeddingsLayer.WordsEncoders[1].(*contextualstringembeddings.Model).LeftToRight
-	lmRev := model.EmbeddingsLayer.WordsEncoders[1].(*contextualstringembeddings.Model).RightToLeft
+	if config.WordEmbeddings.WordEmbeddingsSize > 0 {
+		log.Printf("Load word embeddings...")
+		model.EmbeddingsLayer.WordsEncoders[0].(*embeddings.Model).Load(filepath.Join(modelPath, defaultEmbeddingsFilename))
+		println("ok")
+		lmIndex++
+	}
+
+	if config.WordEmbeddings2.WordEmbeddingsSize > 0 {
+		log.Printf("Load word embeddings...")
+		model.EmbeddingsLayer.WordsEncoders[1].(*embeddings.Model).Load(filepath.Join(modelPath, defaultSecondEmbeddingsFilename))
+		println("ok")
+		lmIndex++
+	}
+
+	lm := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model).LeftToRight
+	lmRev := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model).RightToLeft
 
 	if lm.Config.VocabularySize != lmRev.VocabularySize || lm.Config.EmbeddingSize != lmRev.EmbeddingSize {
 		panic("language model size mismatch.")
@@ -168,6 +181,9 @@ func (c *converter) mapTagger(model *birnncrf.Model) {
 func (c *converter) mapCharLM(model *charlm.Model, prefix string) {
 	c.mapLSTM(model.RNN.(*lstm.Model), fmt.Sprintf("%slstm.", prefix))
 	c.mapLinear(model.Decoder, fmt.Sprintf("%sdecoder.", prefix))
+	if model.Config.OutputSize > 0 {
+		c.mapLinear(model.Projection, fmt.Sprintf("%sprojection.", prefix))
+	}
 }
 
 func (c *converter) mapLSTM(model *lstm.Model, prefix string) {

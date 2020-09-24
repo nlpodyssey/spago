@@ -13,6 +13,7 @@ import (
 type Config struct {
 	ModelFilename                  string                     `json:"model_filename"`
 	WordEmbeddings                 WordEmbeddingsConfig       `json:"word_embeddings"`
+	WordEmbeddings2                WordEmbeddingsConfig       `json:"word_embeddings_2"`
 	ContextualStringEmbeddings     ContextualEmbeddingsConfig `json:"contextual_string_embeddings"`
 	EmbeddingsProjectionInputSize  int                        `json:"embeddings_projection_input_size"`
 	EmbeddingsProjectionOutputSize int                        `json:"embeddings_projection_output_size"`
@@ -27,6 +28,7 @@ type ContextualEmbeddingsConfig struct {
 	VocabularySize     int    `json:"vocabulary_size"`
 	EmbeddingSize      int    `json:"embedding_size"`
 	HiddenSize         int    `json:"hidden_size"`
+	OutputSize         int    `json:"output_size"`
 	SequenceSeparator  string `json:"sequence_separator"`
 	UnknownToken       string `json:"unknown_token"`
 	VocabularyFilename string `json:"vocabulary_filename"`
