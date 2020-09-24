@@ -26,6 +26,7 @@ const (
 type Model struct {
 	Config
 	Decoder    *linear.Model
+	Projection *linear.Model
 	RNN        nn.Model
 	Embeddings []*nn.Param `type:"weights"`
 	Vocabulary *vocabulary.Vocabulary
@@ -36,7 +37,7 @@ type Config struct {
 	VocabularySize    int
 	EmbeddingSize     int
 	HiddenSize        int
-	OutputSize        int    // TODO: is it always equal to the vocabulary size?
+	OutputSize        int    // use the projection layer when the output size is > 0
 	SequenceSeparator string // empty string is replaced with DefaultSequenceSeparator
 	UnknownToken      string // empty string is replaced with DefaultUnknownToken
 }
@@ -48,9 +49,23 @@ func New(config Config) *Model {
 	if config.UnknownToken == "" {
 		config.UnknownToken = DefaultUnknownToken
 	}
+
+	if config.OutputSize > 0 {
+		// use projection layer
+		return &Model{
+			Config:     config,
+			Decoder:    linear.New(config.OutputSize, config.VocabularySize),
+			Projection: linear.New(config.HiddenSize, config.OutputSize),
+			RNN:        lstm.New(config.EmbeddingSize, config.HiddenSize),
+			Embeddings: newEmptyEmbeddings(config.VocabularySize, config.EmbeddingSize),
+		}
+	}
+
+	// don't use projection layer
 	return &Model{
 		Config:     config,
-		Decoder:    linear.New(config.HiddenSize, config.OutputSize),
+		Decoder:    linear.New(config.HiddenSize, config.VocabularySize),
+		Projection: linear.New(config.HiddenSize, config.HiddenSize), // TODO: Find a way to set to nil?
 		RNN:        lstm.New(config.EmbeddingSize, config.HiddenSize),
 		Embeddings: newEmptyEmbeddings(config.VocabularySize, config.EmbeddingSize),
 	}
@@ -78,6 +93,7 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 type Processor struct {
 	nn.BaseProcessor
 	Decoder          *linear.Processor
+	Projection       *linear.Processor
 	RNN              nn.Processor
 	usedEmbeddings   map[int]ag.Node
 	UnknownEmbedding ag.Node
@@ -91,7 +107,13 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		Decoder:          m.Decoder.NewProc(g).(*linear.Processor),
+		Decoder: m.Decoder.NewProc(g).(*linear.Processor),
+		Projection: func() *linear.Processor {
+			if m.Config.OutputSize > 0 {
+				return m.Projection.NewProc(g).(*linear.Processor)
+			}
+			return nil
+		}(),
 		RNN:              m.RNN.NewProc(g),
 		usedEmbeddings:   make(map[int]ag.Node),
 		UnknownEmbedding: g.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
@@ -110,9 +132,17 @@ func (p *Processor) Predict(xs ...string) []ag.Node {
 	for i, x := range encoding {
 		p.Graph.IncTimeStep() // essential for truncated back-propagation
 		h := p.RNN.Forward(x)[0]
-		ys[i] = p.Decoder.Forward(h)[0]
+		proj := p.UseProjection(h)[0]
+		ys[i] = p.Decoder.Forward(proj)[0]
 	}
 	return ys
+}
+
+func (p *Processor) UseProjection(xs ...ag.Node) []ag.Node {
+	if p.Projection == nil {
+		return xs
+	}
+	return p.Projection.Forward(xs...)
 }
 
 func (p *Processor) GetEmbeddings(xs []string) []ag.Node {

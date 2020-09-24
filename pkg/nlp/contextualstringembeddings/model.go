@@ -142,7 +142,7 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 }
 
 func process(proc *charlm.Processor, sequence []string) []ag.Node {
-	return proc.RNN.Forward(proc.GetEmbeddings(sequence)...)
+	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...)...)
 }
 
 func (p *Processor) merge(a, b ag.Node) ag.Node {
