@@ -34,14 +34,15 @@ type Model struct {
 }
 
 func New(config Config) *Model {
-	var m Model
-	m.Wk = nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize))
-	m.Bk = nn.NewParam(mat.NewEmptyVecDense(config.InputSize))
-	m.Wv = nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize))
-	m.Bv = nn.NewParam(mat.NewEmptyVecDense(config.InputSize))
-	m.Wq = nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize))
-	m.Bq = nn.NewParam(mat.NewEmptyVecDense(config.InputSize))
-	return &m
+	return &Model{
+		Config: config,
+		Wk:     nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize)),
+		Bk:     nn.NewParam(mat.NewEmptyVecDense(config.InputSize)),
+		Wv:     nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize)),
+		Bv:     nn.NewParam(mat.NewEmptyVecDense(config.InputSize)),
+		Wq:     nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize)),
+		Bq:     nn.NewParam(mat.NewEmptyVecDense(config.InputSize)),
+	}
 }
 
 type State struct {
