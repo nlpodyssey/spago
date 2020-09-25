@@ -15,14 +15,16 @@ import (
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 type Graph struct {
-	// to avoid data race during concurrent computations
-	mu sync.Mutex
+	// to avoid data race during concurrent computations (mu2 is used in Constant())
+	mu, mu2 sync.Mutex
 	// maxId is the id of the last inserted node (corresponds of len(nodes)-1)
 	maxId int64
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
+	//
+	constants map[float64]Node
 	//
 	incrementalForward bool
 	// whether to run the forward or backward computations distributing the workload over the available CPUs.
@@ -72,6 +74,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 		maxId:                  -1,
 		curTimeStep:            0,
 		nodes:                  nil,
+		constants:              map[float64]Node{},
 		incrementalForward:     true,
 		concurrentComputations: false,
 	}
@@ -175,6 +178,20 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 // TODO: Why shouldn't gradient be required by default?
 func (g *Graph) NewScalar(value float64) Node {
 	return g.NewVariable(mat.NewScalar(value), false)
+}
+
+// Constant returns a scalar Node that that doesn't require gradients.
+// For the same value, a previously created Node is returned without creating a new one.
+// Useful for example in the case of epsilon and number like 0.0 or 1.0.
+func (g *Graph) Constant(value float64) Node {
+	g.mu2.Lock()
+	defer g.mu2.Unlock()
+	if node, ok := g.constants[value]; ok {
+		return node
+	}
+	node := g.NewVariable(mat.NewScalar(value), false)
+	g.constants[value] = node
+	return node
 }
 
 // NewOperator creates a new operator along with its forward pass.
