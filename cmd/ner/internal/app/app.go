@@ -13,8 +13,11 @@ const (
 )
 
 var predefinedModels = map[string]string{
-	"goflair-en-ner-conll03":      "https://dl.dropboxusercontent.com/s/jgyv568v0nd4ogx/goflair-en-ner-conll03.tar.gz?dl=0",
-	"goflair-en-ner-fast-conll03": "https://dl.dropboxusercontent.com/s/9lhh9uom6vh66pg/goflair-en-ner-fast-conll03.tar.gz?dl=0",
+	"goflair-en-ner-conll03-v0.4":        "https://dl.dropboxusercontent.com/s/nd4hlnzfze2u1ra/goflair-en-ner-conll03-v0.4.tar.gz?dl=0",
+	"goflair-en-ner-fast-conll03-v0.4":   "https://dl.dropboxusercontent.com/s/rxf80quo1i64d83/goflair-en-ner-fast-conll03-v0.4.tar.gz?dl=0",
+	"goflair-ner-multi-fast":             "https://dl.dropboxusercontent.com/s/u4oa5pv5a27vjsy/goflair-ner-multi-fast.tar.gz?dl=0",
+	"goflair-en-ner-ontonotes-fast-v0.4": "https://dl.dropboxusercontent.com/s/jj4lalt52xohmz1/goflair-en-ner-ontonotes-fast-v0.4.tar.gz?dl=0",
+	"goflair-fr-ner-wikiner-0.4":         "https://dl.dropboxusercontent.com/s/y7tyykhyowerpdu/goflair-fr-ner-wikiner-0.4.tar.gz?dl=0",
 }
 
 // NERApp contains everything needed to run the NER client or server.
