@@ -132,5 +132,5 @@ func isWhitespace(r rune) bool {
 }
 
 func isPunctuation(r rune) bool {
-	return unicode.In(r, asciiPunctuation, unicode.P)
+	return unicode.In(r, asciiPunctuation, unicode.P) && r != '-' // TODO: use regex or unicode.In()
 }
