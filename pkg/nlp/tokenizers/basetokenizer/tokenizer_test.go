@@ -81,7 +81,7 @@ func TestBaseTokenizer_isPunctuation(t *testing.T) {
 		char  rune
 		valid bool
 	}{
-		{'-', true},
+		{'-', false}, // TODO: find a robust solution to handle the hyphen
 		{'$', true},
 		{'`', true},
 		{'.', true},
