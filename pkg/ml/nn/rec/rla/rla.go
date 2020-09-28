@@ -124,7 +124,7 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 		s.Z = attKey
 	}
 
-	s.Y = g.DivScalar(g.Mul(g.T(attQuery), s.S), g.AddScalar(g.Dot(attQuery, s.Z), g.Constant(1e-12)))
+	s.Y = g.DivScalar(g.T(g.Mul(g.T(attQuery), s.S)), g.AddScalar(g.Dot(attQuery, s.Z), g.Constant(1e-12)))
 	return
 }
 
