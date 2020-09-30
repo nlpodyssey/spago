@@ -5,6 +5,7 @@
 package f64utils
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
 	"gonum.org/v1/gonum/floats"
 	"math"
 	"strconv"
@@ -121,3 +122,8 @@ func SoftMax(v []float64) (sm []float64) {
 	}
 	return sm
 }
+
+func CumSum(dst,src []float64) []float64 {
+	return f64.CumSum(dst,src)
+}
+
