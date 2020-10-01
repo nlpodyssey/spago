@@ -322,6 +322,16 @@ func Softmax(x Node) Node {
 	return globalGraph.Softmax(x)
 }
 
+// SparseMax returns a new operator node as a result of the fn.SparseMax function.
+func SparseMax(x Node) Node {
+	return globalGraph.SparseMax(x)
+}
+
+// SparseMaxLoss returns a new operator node as a result of the fn.SparseMaxLoss function.
+func SparseMaxLoss(x Node) Node {
+	return globalGraph.SparseMaxLoss(x)
+}
+
 // Sin returns a new operator node as a result of the `Sin` function.
 func Sin(x Node) Node {
 	return globalGraph.Sin(x)

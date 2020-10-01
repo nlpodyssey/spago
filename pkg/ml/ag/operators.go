@@ -55,6 +55,8 @@ const (
 	OpSoftShrink
 	OpThreshold
 	OpSoftmax
+	OpSparseMax
+	OpSparseMaxLoss
 	OpSin
 	OpCos
 	OpExp
@@ -71,62 +73,64 @@ const (
 )
 
 var opNameToMethodName = map[OpName]string{
-	OpIdentity:    "Identity",
-	OpDropout:     "Dropout",
-	OpAtVec:       "AtVec",
-	OpAt:          "At",
-	OpAdd:         "Add",
-	OpSub:         "Sub",
-	OpSubScalar:   "SubScalar",
-	OpAddScalar:   "AddScalar",
-	OpReverseSub:  "ReverseSub",
-	OpProd:        "Prod",
-	OpDiv:         "Div",
-	OpProdScalar:  "ProdScalar",
-	OpDivScalar:   "DivScalar",
-	OpMul:         "Mul",
-	OpDot:         "Dot",
-	OpReshape:     "Reshape",
-	OpMaxPooling:  "MaxPooling",
-	OpView:        "View",
-	OpRowView:     "RowView",
-	OpColView:     "ColView",
-	OpVec:         "Vec",
-	OpT:           "T",
-	OpSquare:      "Square",
-	OpPow:         "Pow",
-	OpSqrt:        "Sqrt",
-	OpTan:         "Tan",
-	OpTanh:        "Tanh",
-	OpSigmoid:     "Sigmoid",
-	OpHardSigmoid: "HardSigmoid",
-	OpHardTanh:    "HardTanh",
-	OpSoftsign:    "Softsign",
-	OpReLU:        "ReLU",
-	OpCeLU:        "CeLU",
-	OpGeLU:        "GeLU",
-	OpELU:         "ELU",
-	OpSwish:       "Swish",
-	OpMish:        "Mish",
-	OpLeakyReLU:   "LeakyReLU",
-	OpSeLU:        "SeLU",
-	OpSoftPlus:    "SoftPlus",
-	OpSoftShrink:  "SoftShrink",
-	OpThreshold:   "Threshold",
-	OpSoftmax:     "Softmax",
-	OpSin:         "Sin",
-	OpCos:         "Cos",
-	OpExp:         "Exp",
-	OpLog:         "Log",
-	OpAbs:         "Abs",
-	OpNeg:         "Neg",
-	OpReciprocal:  "Reciprocal",
-	OpMax:         "Max",
-	OpMin:         "Min",
-	OpReduceSum:   "ReduceSum",
-	OpReduceMean:  "ReduceMean",
-	OpConcat:      "Concat",
-	OpStack:       "Stack",
+	OpIdentity:      "Identity",
+	OpDropout:       "Dropout",
+	OpAtVec:         "AtVec",
+	OpAt:            "At",
+	OpAdd:           "Add",
+	OpSub:           "Sub",
+	OpSubScalar:     "SubScalar",
+	OpAddScalar:     "AddScalar",
+	OpReverseSub:    "ReverseSub",
+	OpProd:          "Prod",
+	OpDiv:           "Div",
+	OpProdScalar:    "ProdScalar",
+	OpDivScalar:     "DivScalar",
+	OpMul:           "Mul",
+	OpDot:           "Dot",
+	OpReshape:       "Reshape",
+	OpMaxPooling:    "MaxPooling",
+	OpView:          "View",
+	OpRowView:       "RowView",
+	OpColView:       "ColView",
+	OpVec:           "Vec",
+	OpT:             "T",
+	OpSquare:        "Square",
+	OpPow:           "Pow",
+	OpSqrt:          "Sqrt",
+	OpTan:           "Tan",
+	OpTanh:          "Tanh",
+	OpSigmoid:       "Sigmoid",
+	OpHardSigmoid:   "HardSigmoid",
+	OpHardTanh:      "HardTanh",
+	OpSoftsign:      "Softsign",
+	OpReLU:          "ReLU",
+	OpCeLU:          "CeLU",
+	OpGeLU:          "GeLU",
+	OpELU:           "ELU",
+	OpSwish:         "Swish",
+	OpMish:          "Mish",
+	OpLeakyReLU:     "LeakyReLU",
+	OpSeLU:          "SeLU",
+	OpSoftPlus:      "SoftPlus",
+	OpSoftShrink:    "SoftShrink",
+	OpThreshold:     "Threshold",
+	OpSoftmax:       "Softmax",
+	OpSparseMax:     "SparseMax",
+	OpSparseMaxLoss: "SparseMaxLoss",
+	OpSin:           "Sin",
+	OpCos:           "Cos",
+	OpExp:           "Exp",
+	OpLog:           "Log",
+	OpAbs:           "Abs",
+	OpNeg:           "Neg",
+	OpReciprocal:    "Reciprocal",
+	OpMax:           "Max",
+	OpMin:           "Min",
+	OpReduceSum:     "ReduceSum",
+	OpReduceMean:    "ReduceMean",
+	OpConcat:        "Concat",
+	OpStack:         "Stack",
 }
 
 // Invoke returns a new node as a result of the application of the input operator.
@@ -369,6 +373,16 @@ func (g *Graph) Threshold(x Node, threshold Node, k Node) Node {
 // Softmax returns a new operator node as a result of the fn.Softmax function.
 func (g *Graph) Softmax(x Node) Node {
 	return g.NewOperator(fn.NewSoftmax(x), x)
+}
+
+// SparseMax returns a new operator node as a result of the fn.SparseMax function.
+func (g *Graph) SparseMax(x Node) Node {
+	return g.NewOperator(fn.NewSparseMax(x), x)
+}
+
+// SparseMaxLoss returns a new operator node as a result of the fn.SparseMaxLoss function.
+func (g *Graph) SparseMaxLoss(x Node) Node {
+	return g.NewOperator(fn.NewSparseMaxLoss(x), x)
 }
 
 // Sin returns a new operator node as a result of the `Sin` function.
