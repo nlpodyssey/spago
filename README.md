@@ -48,6 +48,7 @@ spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggin
 * [Godocs for spaGO](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
 * [Feature Source Tree](https://github.com/nlpodyssey/spago/wiki/Feature-Source-Tree)
 * [Contributing to spaGO](CONTRIBUTING.md)
+* [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
 
 ### Demos
 
