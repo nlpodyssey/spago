@@ -123,7 +123,6 @@ func SoftMax(v []float64) (sm []float64) {
 	return sm
 }
 
-func CumSum(dst,src []float64) []float64 {
-	return f64.CumSum(dst,src)
+func CumSum(dst, src []float64) []float64 {
+	return f64.CumSum(dst, src)
 }
-
