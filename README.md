@@ -16,32 +16,38 @@ spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggin
 
 ## Features
 
-* Automatic differentiation
-    - You write the *forward()*, it does all *backward()* derivatives for you:
-        -   Define-by-Run (default, just like PyTorch does)
-        -   Define-and-Run (similar to the static graph of TensorFlow)
-* Optimization methods
+#### Automatic differentiation
+- You write the *forward()*, it does all *backward()* derivatives for you:
+    -   Define-by-Run (default, just like PyTorch does)
+    -   Define-and-Run (similar to the static graph of TensorFlow)
+
+#### Optimization methods
+- Gradient descent:
     - Adam, RAdam, RMS-Prop, AdaGrad, SGD
-* Neural networks
-    -   Feed-forward models (Linear, Highway, Convolution, ...)
-    -   Recurrent models (LSTM, GRU, BiLSTM...)
-    -   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
-    -   Recursive auto-encoders
-* Natural Language Processing
-    -   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
-    -   Character Language Models
-    -   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
-    -   Transformer models (BERT-like)
-        -   Masked language model
-        -   Next sentence prediction
-        -   Tokens Classification
-        -   Text Classification (e.g. Sentiment Analysis)
-        -   Question Answering
-        -   Textual Entailment
-        -   Text Similarity
-* Compatible with pre-trained state-of-the-art neural models:
-    - 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
-    - [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
+- Differential Evolution
+
+#### Neural networks
+-   Feed-forward models (Linear, Highway, Convolution, ...)
+-   Recurrent models (LSTM, GRU, BiLSTM...)
+-   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
+-   Recursive auto-encoders
+
+#### Natural Language Processing
+-   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+-   Character Language Models
+-   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
+-   Transformer models (BERT-like)
+    -   Masked language model
+    -   Next sentence prediction
+    -   Tokens Classification
+    -   Text Classification (e.g. Sentiment Analysis)
+    -   Question Answering
+    -   Textual Entailment
+    -   Text Similarity
+
+#### Compatible with pre-trained state-of-the-art neural models:
+- 🤗 BERT-like [Transformers](https://github.com/huggingface/transformers)
+- [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
 
 ## Documentation
 
