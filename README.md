@@ -50,73 +50,27 @@ spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggin
 * [Contributing to spaGO](CONTRIBUTING.md)
 * [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
 
-### Demos
-
-Several demo programs can be leveraged to tour the current capabilities in spaGO. The demos are documented on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Demos). A list of the demos now follows.
-
-* [Named Entities Recognition](https://github.com/nlpodyssey/spago/wiki/Demos#named-entities-recognition-demo)
-* [Import a Pre-Trained Model](https://github.com/nlpodyssey/spago/wiki/Demos#import-a-pre-trained-model-demo)
-* [Question Answering](https://github.com/nlpodyssey/spago/wiki/Demos#question-answering-demo)
-* [Masked Language Model](https://github.com/nlpodyssey/spago/wiki/Demos#masked-language-model-demo)
-
-## Requirements
-
-* [Go 1.14](https://golang.org/dl/)
-* [go modules](https://blog.golang.org/using-go-modules)
-
 ## Usage
 
-Get the library:
+Requirements:
+
+* [Go 1.14](https://golang.org/dl/)
+* [Go modules](https://blog.golang.org/using-go-modules)
+
+Clone this repo or get the library:
 
 ```console
 go get -u github.com/nlpodyssey/spago
 ```
 
-The [ag package](https://github.com/nlpodyssey/spago/tree/main/pkg/ml/ag) (a.k.a. auto-grad) is the centerpiece of the spaGO machine learning framework.
+To get started, you can find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki) about the [Machine Learning Framework](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
 
-Neural models optimized by back-propagation require gradients to be available during training.
-The set of expressions characterizing the forward-step of such models must be defined within the [ag.Graph](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/ag/graph.go) to take advantage of automatic differentiation.
+Several demo programs can be leveraged to tour the current capabilities in spaGO. The demos are documented on this [page](https://github.com/nlpodyssey/spago/wiki/Demos) of the Wiki. A list of the demos now follows.
 
-Let's see if spaGO can tell us what two plus five is.
-Then, let's go one step further now and ask spaGO to give us the gradients on `a` and `b`, starting with arbitrary output gradients.
-
-Write some code:
-
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
-)
-
-func main() {
-	// create a new node of type variable with a scalar
-	a := ag.NewVariable(mat.NewScalar(2.0), true)
-	// create another node of type variable with a scalar
-	b := ag.NewVariable(mat.NewScalar(5.0), true)
-	// create an addition operator (the calculation is actually performed here)
-	c := ag.Add(a, b)
-	// print the result
-	fmt.Printf("c = %v\n", c.Value())
-
-	ag.Backward(c, ag.OutputGrad(mat.NewScalar(0.5)))
-	fmt.Printf("ga = %v\n", a.Grad())
-	fmt.Printf("gb = %v\n", b.Grad())
-}
-```
-
-It should print:
-
-```console
-c = [7]
-ga = [0.5]
-gb = [0.5]
-```
-
-You will soon find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
+* [Named Entities Recognition](https://github.com/nlpodyssey/spago/wiki/Demos#named-entities-recognition-demo)
+* [Import a Pre-Trained Model](https://github.com/nlpodyssey/spago/wiki/Demos#import-a-pre-trained-model-demo)
+* [Question Answering](https://github.com/nlpodyssey/spago/wiki/Demos#question-answering-demo)
+* [Masked Language Model](https://github.com/nlpodyssey/spago/wiki/Demos#masked-language-model-demo)
 
 ## Project Goals
 
