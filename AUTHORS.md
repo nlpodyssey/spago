@@ -2,8 +2,8 @@
 
 Matteo Grella <matteogrella@gmail.com>
 
-# This is the list of contributors who bring significant value to the project.
+Edoardo Brambilla <edo.brambill@gmail.com>
 
-Edoardo Brambilla <edo.brambill@gmail.com> - help writing unit tests and improving matrix functionalities
+Marco Nicola <marconicola@disroot.org>
 
-Marco Nicola <marconicola@disroot.org> - help with optimizations and other general improvements 
+Evan McClure <evanmcclure@gmail.com> 
