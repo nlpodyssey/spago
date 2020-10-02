@@ -118,17 +118,14 @@ gb = [0.5]
 
 You will soon find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
 
-## Current Status
-We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
-It's pretty easy to get your hands on through, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
-
-If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
-
 ## Project Goals
 
 <details><summary>Is spaGO right for me?</summary>
 <p>
-Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here. [PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
+
+Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here.
+
+[PyTorch](https://pytorch.org/) plus the wonders of the friends of [Hugging Face](https://github.com/huggingface) is the answer you seek!
 
 If instead you prefer statically typed, compiled programming language, and a **simpler yet well-structured** machine-learning framework almost ready to use is what you need, then you are in the right place!
 
@@ -138,6 +135,7 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 
 <details><summary>Why spaGO?</summary>
 <p>
+
 I've been writing more or less the same software for almost 20 years. I guess it's my way of learning a new language. Now it's Go's turn, and spaGO is the result of a few days of pure fun!
 
 Let me explain a little further. It's not precisely the very same software I've been writing now for 20 years: I've been working in the NLP for this long, experimenting with different approaches and techniques, and therefore software of the same field. 
@@ -153,6 +151,7 @@ It's with this approach that I jumped on Go and created spaGo: a work in progres
 
 <details><summary>What direction did you take for the development of spaGO?</summary>
 <p>
+
 I started spaGO to deepen first-hand the mechanisms underlying a machine learning framework. In doing this, I thought it was an excellent opportunity to set up the library so to enable the use and understanding of such algorithms to non-experts as well. 
 
 In my experience, the first barrier to (deep) machine learning for developers who do not enjoy mathematics, at least not too much, is getting familiar with the use of tensors rather than understanding neural architecture. Well, in spaGO, we only use well-known 2D Matrices, by which we can represent vectors and scalars too. That's all we need (performance aside). You won't lose sleep anymore by watching tensor axes to figure out how to do math operations. 
@@ -167,6 +166,7 @@ In other words, I wanted to limit as much as possible the use of tensors larger 
 
 <details><summary>Does spaGO support GPU?</summary>
 <p>
+
 Sadly, not using tensors, spaGO is not GPU or TPU friendly by design. You bet, I'm going to do some experiments integrating CUDA, but I can already tell you that I will not reach satisfactory levels.
 
 In spaGO, using slices of (slices of) matrices, we have to "loop" often to do mathematical operations, whereas they are performed in one go using tensors. Any time your code has a loop that is not GPU or TPU friendly.  
@@ -177,12 +177,23 @@ Beyond that, I think there's a lot of basic design improvements that would be ne
 </p>
 </details>
 
-## Acknowledgments
+<details><summary>Is spaGO stable?</summary>
+<p>
 
-spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here, which is providing full support for development by promoting the project and giving it increasing importance.
+We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
+It's pretty easy to get your hands on through, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
+
+If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
+
+</p>
+</details>
 
 ## Contact
 
 I encourage you to write an issue. This would help the community grow.
 
 If you really want to write to me privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your questions or comments.
+
+## Acknowledgments
+
+spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here, which is providing full support for development by promoting the project and giving it increasing importance.
