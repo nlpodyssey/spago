@@ -120,7 +120,7 @@ You will soon find some tutorials on the [Wiki](https://github.com/nlpodyssey/sp
 
 ## Project Goals
 
-<details><summary>Is spaGO right for me?</summary>
+<details><summary><b>Is spaGO right for me?</b></summary>
 <p>
 
 Are you looking for a highly optimized, scalable, battle-tested, production-ready machine-learning/NLP framework? Are you also a Python lover and enjoy manipulating tensors? If yes, you won't find much to your satisfaction here.
@@ -133,7 +133,7 @@ The idea is that you could have written spaGO. Most of it, from the computationa
 </p>
 </details>
 
-<details><summary>Why spaGO?</summary>
+<details><summary><b>Why spaGO?</b></summary>
 <p>
 
 I've been writing more or less the same software for almost 20 years. I guess it's my way of learning a new language. Now it's Go's turn, and spaGO is the result of a few days of pure fun!
@@ -149,7 +149,7 @@ It's with this approach that I jumped on Go and created spaGo: a work in progres
 </p>
 </details>
 
-<details><summary>What direction did you take for the development of spaGO?</summary>
+<details><summary><b>What direction did you take for the development of spaGO?</b></summary>
 <p>
 
 I started spaGO to deepen first-hand the mechanisms underlying a machine learning framework. In doing this, I thought it was an excellent opportunity to set up the library so to enable the use and understanding of such algorithms to non-experts as well. 
@@ -164,7 +164,7 @@ In other words, I wanted to limit as much as possible the use of tensors larger 
 </p>
 </details>
 
-<details><summary>Does spaGO support GPU?</summary>
+<details><summary><b>Does spaGO support GPU?</b></summary>
 <p>
 
 Sadly, not using tensors, spaGO is not GPU or TPU friendly by design. You bet, I'm going to do some experiments integrating CUDA, but I can already tell you that I will not reach satisfactory levels.
@@ -177,7 +177,7 @@ Beyond that, I think there's a lot of basic design improvements that would be ne
 </p>
 </details>
 
-<details><summary>Is spaGO stable?</summary>
+<details><summary><b>Is spaGO stable?</b></summary>
 <p>
 
 We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
