@@ -17,22 +17,36 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	W *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	W        *nn.Param `type:"weights"`
+	B        *nn.Param `type:"biases"`
+	Mean     *nn.Param `type:"undefined"`
+	StdDev   *nn.Param `type:"undefined"`
+	Momentum *nn.Param `type:"undefined"`
 }
 
-// New returns a new model with parameters initialized to zeros.
-func New(size int) *Model {
+const defaultMomentum = 0.9
+
+// New returns a new model with supplied size and momentum
+func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
-		W: nn.NewParam(mat.NewEmptyVecDense(size)),
-		B: nn.NewParam(mat.NewEmptyVecDense(size)),
+		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
+		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
+		Mean:     nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		StdDev:   nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		Momentum: nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
 	}
+}
+
+// New returns a new model with the supplied size and default momentum
+func New(size int) *Model {
+	return NewWithMomentum(size, defaultMomentum)
 }
 
 type Processor struct {
 	nn.BaseProcessor
-	w ag.Node
-	b ag.Node
+	w     ag.Node
+	b     ag.Node
+	model *Model
 }
 
 // NewProc returns a new processor to execute the forward step.
@@ -44,22 +58,52 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: true,
 		},
-		w: g.NewWrap(m.W),
-		b: g.NewWrap(m.B),
+		w:     g.NewWrap(m.W),
+		b:     g.NewWrap(m.B),
+		model: m,
 	}
 }
 
 // Forward performs the the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	if p.Mode == nn.Training {
+		return p.forwardTraining(xs)
+	} else {
+		return p.forwardInference(xs)
+	}
+}
+
+func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {
 	g := p.Graph
 	meanVector := p.Mean(xs)
 	devVector := p.StdDev(meanVector, xs)
+	p.updateBatchNormParameters(meanVector, devVector)
+	return p.process(g, xs, devVector, meanVector)
+}
+
+func (p *Processor) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
 	devVector = g.Div(p.w, devVector)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), p.b)
 	}
 	return ys
+}
+
+func (p *Processor) updateBatchNormParameters(meanVector, devVector ag.Node) {
+	momentum := p.model.Momentum.Value().Scalar()
+	p.model.Mean.ReplaceValue(p.model.Mean.Value().ProdScalar(momentum).Add(
+		meanVector.Value().ProdScalar(1.0 - momentum)))
+
+	p.model.StdDev.ReplaceValue(p.model.StdDev.Value().ProdScalar(momentum).Add(
+		devVector.Value().ProdScalar(1.0 - momentum)))
+}
+
+func (p *Processor) forwardInference(xs []ag.Node) []ag.Node {
+	g := p.Graph
+	meanVector := g.NewVariable(p.model.Mean.Value(), false)
+	devVector := g.NewVariable(p.model.StdDev.Value(), false)
+	return p.process(g, xs, devVector, meanVector)
 }
 
 func (p *Processor) Mean(xs []ag.Node) ag.Node {
