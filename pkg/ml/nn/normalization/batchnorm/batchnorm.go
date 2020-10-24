@@ -77,7 +77,7 @@ func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {
 	g := p.Graph
 	meanVector := p.Mean(xs)
 	devVector := p.StdDev(meanVector, xs)
-	p.updateBatchNormParameters(meanVector, devVector)
+	p.updateBatchNormParameters(meanVector.Value(), devVector.Value())
 	return p.process(g, xs, devVector, meanVector)
 }
 
@@ -90,19 +90,20 @@ func (p *Processor) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVe
 	return ys
 }
 
-func (p *Processor) updateBatchNormParameters(meanVector, devVector ag.Node) {
+func (p *Processor) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
 	momentum := p.model.Momentum.Value().Scalar()
-	p.model.Mean.ReplaceValue(p.model.Mean.Value().ProdScalar(momentum).Add(
-		meanVector.Value().ProdScalar(1.0 - momentum)))
 
-	p.model.StdDev.ReplaceValue(p.model.StdDev.Value().ProdScalar(momentum).Add(
-		devVector.Value().ProdScalar(1.0 - momentum)))
+	p.model.Mean.ReplaceValue(
+		p.model.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))
+
+	p.model.StdDev.ReplaceValue(
+		p.model.StdDev.Value().ProdScalar(momentum).Add(devVector.ProdScalar(1.0 - momentum)))
 }
 
 func (p *Processor) forwardInference(xs []ag.Node) []ag.Node {
 	g := p.Graph
-	meanVector := g.NewVariable(p.model.Mean.Value(), false)
-	devVector := g.NewVariable(p.model.StdDev.Value(), false)
+	meanVector := g.NewWrapNoGrad(p.model.Mean)
+	devVector := g.NewWrapNoGrad(p.model.StdDev)
 	return p.process(g, xs, devVector, meanVector)
 }
 
