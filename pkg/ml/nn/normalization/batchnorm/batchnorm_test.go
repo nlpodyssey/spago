@@ -155,7 +155,9 @@ func Test_Serialize(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "test_serialize")
 	require.Nil(t, err)
 	tempFile.Close()
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		_ = os.Remove(tempFile.Name())
+	}()
 	err = utils.SerializeToFile(tempFile.Name(), nn.NewParamsSerializer(model))
 	require.Nil(t, err)
 
