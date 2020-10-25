@@ -143,8 +143,9 @@ Beyond that, I think there's a lot of basic design improvements that would be ne
 We're not at a v1.0.0 yet, so spaGO is currently an experimental work-in-progress. 
 It's pretty easy to get your hands on through, so you might want to use it in your real applications. Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully tested and that APIs will change (maybe extensively).
 
-If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.
+<s>If you're wondering, I haven't used spaGO in production yet, but I plan to do the first integration tests soon.</s>
 
+spaGO has been running smoothly for a couple of months now in a system that analyzes thousands of news items a day!
 </p>
 </details>
 
