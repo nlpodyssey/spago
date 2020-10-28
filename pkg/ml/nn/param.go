@@ -7,15 +7,16 @@ package nn
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
+	"log"
+	"strings"
+	"sync"
+
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
-	"io"
-	"log"
-	"strings"
-	"sync"
 )
 
 type ParamsType int
@@ -236,6 +237,24 @@ func (r *Param) updateStorage() {
 	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
+func (r *Param) MarshalBinary() ([]byte, error) {
+	var b bytes.Buffer
+	_, err := mat.MarshalBinaryTo(r.value, &b)
+	if err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
+}
+
+// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
+func (r *Param) UnmarshalBinary(data []byte) error {
+	b := bytes.NewBuffer(data)
+	value, _, err := mat.NewUnmarshalBinaryFrom(b)
+	r.value = value
+	return err
 }
 
 type ParamSerializer struct {
