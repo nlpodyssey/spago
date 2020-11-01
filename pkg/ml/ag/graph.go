@@ -14,6 +14,7 @@ import (
 )
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
+// It takes the form of a directed graph with no directed cycles (DAG).
 type Graph struct {
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
@@ -279,6 +280,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	return newNode
 }
 
+// ForwardOption allows to adapt the Forward() to your specific needs.
 type ForwardOption func(*forwardHandler)
 
 // Range allows you to limit the forward computation within a time-step range.
@@ -297,6 +299,10 @@ func Range(fromTimeStep, toTimeStep int) ForwardOption {
 	}
 }
 
+// Forward computes the results of the entire Graph.
+// Usually you don't need to execute Forward() manually in the define-by-run configuration (default).
+// If you do, all values will be recalculated. You can also choose through the Range option to recalculate only a portion of nodes.
+// Instead, it is required to obtain the value of the nodes in case the Graph has been created with IncrementalForward(false).
 func (g *Graph) Forward(opts ...ForwardOption) {
 	handler := &forwardHandler{
 		g:            g,
@@ -323,6 +329,7 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 	}
 }
 
+// BackwardOption allows to adapt the Backward() to your specific needs.
 type BackwardOption func(*backwardHandler)
 
 func Truncate(backSteps int) BackwardOption {
