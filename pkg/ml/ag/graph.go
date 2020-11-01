@@ -25,9 +25,9 @@ type Graph struct {
 	nodes []Node
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[float64]Node
-	//
+	// IncrementalForward sets whether to compute the forward during the graph definition (default true).
 	incrementalForward bool
-	// whether to run the forward or backward computations distributing the workload over the available CPUs.
+	// concurrentComputations sets whether to run the forward or backward computations distributing the workload over the available CPUs.
 	concurrentComputations bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxId of the graph matches the maxId of the cache.
