@@ -23,7 +23,7 @@ type Graph struct {
 	curTimeStep int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
-	//
+	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[float64]Node
 	//
 	incrementalForward bool
@@ -44,14 +44,20 @@ type Graph struct {
 	randGen *rand.LockedRand
 }
 
+// GraphOptions allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
 
+// Rand sets the generator of random numbers.
 func Rand(rand *rand.LockedRand) GraphOption {
 	return func(g *Graph) {
 		g.randGen = rand
 	}
 }
 
+// IncrementalForward sets whether to compute the forward during the graph definition (default true).
+// When enabled it lets you access to the Value() resulting from the computation.
+// There are particular cases where you don't need intermediate values and computing the forward after
+// the graph definition can be more efficient though.
 func IncrementalForward(value bool) GraphOption {
 	return func(g *Graph) {
 		g.incrementalForward = value
@@ -108,6 +114,7 @@ func (g *Graph) Clear() {
 	g.nodes = nil
 }
 
+// clearCache cleans the cache.
 func (g *Graph) clearCache() {
 	g.cache.maxId = -1
 	g.cache.nodesByHeight = nil
@@ -138,6 +145,7 @@ func (g *Graph) releaseMemory() {
 	}
 }
 
+// releaseValue set the node value to nil release the memory.
 func (g *Graph) releaseValue(node *operator) {
 	if node.value == nil {
 		return
@@ -146,10 +154,12 @@ func (g *Graph) releaseValue(node *operator) {
 	node.value = nil
 }
 
+// releaseGrad set the node gradient to nil and release the memory.
 func (g *Graph) releaseGrad(node *operator) {
 	node.ZeroGrad()
 }
 
+// ZeroGrad sets the gradients of all nodes to zero.
 func (g *Graph) ZeroGrad() {
 	for _, node := range g.nodes {
 		node.ZeroGrad()
