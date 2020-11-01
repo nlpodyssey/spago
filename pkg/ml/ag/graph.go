@@ -54,6 +54,13 @@ func Rand(rand *rand.LockedRand) GraphOption {
 	}
 }
 
+// RandSeed set a new generator of random numbers with the given seed.
+func RandSeed(seed uint64) GraphOption {
+	return func(g *Graph) {
+		g.randGen = rand.NewLockedRand(seed)
+	}
+}
+
 // IncrementalForward sets whether to compute the forward during the graph definition (default true).
 // When enabled it lets you access to the Value() resulting from the computation.
 // There are particular cases where you don't need intermediate values and computing the forward after
