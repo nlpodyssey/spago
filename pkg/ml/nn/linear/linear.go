@@ -5,10 +5,11 @@
 package linear
 
 import (
+	"sync"
+
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"sync"
 )
 
 var (
@@ -22,12 +23,24 @@ type Model struct {
 	B *nn.Param `type:"biases"`
 }
 
+type LinearOption func(*Model)
+
+func Bias(bias bool) LinearOption {
+	return func(m *Model) {
+		nn.RequiresGrad(bias)(m.B)
+	}
+}
+
 // New returns a new model with parameters initialized to zeros.
-func New(in, out int) *Model {
-	return &Model{
+func New(in, out int, options ...LinearOption) *Model {
+	model := &Model{
 		W: nn.NewParam(mat.NewEmptyDense(out, in)),
 		B: nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
+	for _, option := range options {
+		option(model)
+	}
+	return model
 }
 
 const defaultConcurrency = true
