@@ -4,6 +4,7 @@
 
 package stats
 
+// MovingAvg provides a convenient way to calculate the moving average by adding value incrementally.
 type MovingAvg struct {
 	Mean     float64
 	Variance float64
