@@ -23,16 +23,17 @@ type Model struct {
 	B *nn.Param `type:"biases"`
 }
 
-type LinearOption func(*Model)
+type Option func(*Model)
 
-func Bias(bias bool) LinearOption {
+// BiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).
+func BiasGrad(enable bool) Option {
 	return func(m *Model) {
-		nn.RequiresGrad(bias)(m.B)
+		nn.RequiresGrad(enable)(m.B)
 	}
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(in, out int, options ...LinearOption) *Model {
+func New(in, out int, options ...Option) *Model {
 	model := &Model{
 		W: nn.NewParam(mat.NewEmptyDense(out, in)),
 		B: nn.NewParam(mat.NewEmptyVecDense(out)),
