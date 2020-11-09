@@ -69,6 +69,17 @@ func MSESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 	return loss
 }
 
+func MAESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool) ag.Node {
+	loss := MAE(g, predicted[0], target[0], false)
+	for i := 1; i < len(predicted); i++ {
+		loss = g.Add(loss, MAE(g, predicted[i], target[i], false))
+	}
+	if reduceMean {
+		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+	}
+	return loss
+}
+
 func CrossEntropySeq(g *ag.Graph, predicted []ag.Node, target []int, reduceMean bool) ag.Node {
 	loss := CrossEntropy(g, predicted[0], target[0])
 	for i := 1; i < len(predicted); i++ {
