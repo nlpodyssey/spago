@@ -24,5 +24,5 @@ func New(std, mean float64, generator *rand.LockedRand) *Normal {
 
 // Next returns a random sample drawn from the distribution.
 func (u Normal) Next() float64 {
-	return u.generator.Float64()*u.Std + u.Mean
+	return u.generator.NormFloat64()*u.Std + u.Mean
 }

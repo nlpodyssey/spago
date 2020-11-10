@@ -123,6 +123,16 @@ func (lr *LockedRand) Float64() (n float64) {
 	return
 }
 
+// NormFloat64 returns a normally distributed float64 in the range
+// [-math.MaxFloat64, +math.MaxFloat64] with
+// standard normal distribution (mean = 0, stddev = 1).
+func (lr *LockedRand) NormFloat64() (n float64) {
+	lr.lk.Lock()
+	n = lr.r.NormFloat64()
+	lr.lk.Unlock()
+	return
+}
+
 // Float32 returns, as a float32, a pseudo-random number in [0.0,1.0).
 func (lr *LockedRand) Float32() (n float32) {
 	lr.lk.Lock()

@@ -40,7 +40,7 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
 func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
-	dist := normal.New(0, std, generator)
+	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(i, j, dist.Next())
