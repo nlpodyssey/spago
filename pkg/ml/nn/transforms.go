@@ -127,9 +127,8 @@ func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingF
 		attKeysSum = g.Add(attKeysSum, attKeys[i])
 	}
 
-	keys := g.T(g.Stack(attKeys...))
-	values := g.Stack(vs...)
-	kv := g.Mul(keys, values)
+	attKeysT := g.T(g.Stack(attKeys...))
+	kv := g.Mul(attKeysT, g.Stack(vs...))
 
 	for i, q := range attQueries {
 		n := g.Mul(g.T(q), kv)
