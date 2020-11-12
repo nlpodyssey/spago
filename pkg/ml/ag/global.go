@@ -282,6 +282,11 @@ func ELU(x Node, alpha Node) Node {
 	return globalGraph.ELU(x, alpha)
 }
 
+// PositiveELU returns a new operator node as a result of ELU(x, 1.0) + 1.
+func PositiveELU(x Node) Node {
+	return globalGraph.PositiveELU(x)
+}
+
 // Swish returns a new operator node as a result of the fn.Swish function.
 func Swish(x Node, beta Node) Node {
 	return globalGraph.Swish(x, beta)

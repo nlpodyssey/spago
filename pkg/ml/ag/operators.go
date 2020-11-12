@@ -47,6 +47,7 @@ const (
 	OpCeLU
 	OpGeLU
 	OpELU
+	OpPositiveELU
 	OpSwish
 	OpMish
 	OpLeakyReLU
@@ -108,6 +109,7 @@ var opNameToMethodName = map[OpName]string{
 	OpCeLU:          "CeLU",
 	OpGeLU:          "GeLU",
 	OpELU:           "ELU",
+	OpPositiveELU:   "PositiveELU",
 	OpSwish:         "Swish",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
