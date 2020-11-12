@@ -5,6 +5,7 @@
 package internal
 
 import (
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
 	"github.com/urfave/cli"
@@ -97,7 +98,7 @@ func (a *ImporterArgs) RunImporter() error {
 	}
 
 	if a.ModelsURL != LocalModelsURL {
-		if err := bert.DownloadHuggingFacePreTrained(repo, a.Model, a.Overwrite); err != nil {
+		if err := transformers.DownloadHuggingFacePreTrained(repo, a.Model, a.Overwrite); err != nil {
 			return err
 		}
 	}
