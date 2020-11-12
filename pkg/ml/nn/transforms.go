@@ -113,7 +113,7 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
-// It operates with O(N) complexity, where where N is the sequence length.
+// It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
 func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
 	context := make([]ag.Node, len(qs))
