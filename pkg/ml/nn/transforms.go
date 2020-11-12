@@ -117,22 +117,21 @@ type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
 func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
 	context := make([]ag.Node, len(qs))
-	attKeys := make([]ag.Node, len(qs))
-	attQueries := make([]ag.Node, len(qs))
+	attKeys := make([]ag.Node, len(ks))
 
 	var attKeysSum ag.Node = nil
 	for i := range ks {
 		attKeys[i] = mappingFunction(g, ks[i])
-		attQueries[i] = mappingFunction(g, qs[i])
 		attKeysSum = g.Add(attKeysSum, attKeys[i])
 	}
 
 	attKeysT := g.T(g.Stack(attKeys...))
 	kv := g.Mul(attKeysT, g.Stack(vs...))
 
-	for i, q := range attQueries {
-		n := g.Mul(g.T(q), kv)
-		d := g.Dot(attQueries[i], attKeysSum)
+	for i := range qs {
+		attQuery := mappingFunction(g, qs[i])
+		n := g.Mul(g.T(attQuery), kv)
+		d := g.Dot(attQuery, attKeysSum)
 		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))
 	}
 	return context
