@@ -20,10 +20,11 @@ func NewStack(xs []Operand) *Stack {
 func (r *Stack) Forward() mat.Matrix {
 	rows := len(r.xs)
 	cols := r.xs[0].Value().Rows()
-	ms := mat.NewEmptyDense(rows, cols)
+	ms := mat.GetDenseWorkspace(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
 	for i, x := range r.xs {
+		row := x.Value()
 		for j := 0; j < cols; j++ {
-			ms.Set(i, j, x.Value().At(j, 0))
+			ms.Set(i, j, row.At(j, 0))
 		}
 	}
 	return ms
