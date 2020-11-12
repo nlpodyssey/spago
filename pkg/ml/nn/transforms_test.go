@@ -223,3 +223,40 @@ func TestScaledDotProductAttention2(t *testing.T) {
 		t.Error("vs[2] doesn't match the expected values")
 	}
 }
+
+func TestLinearAttention(t *testing.T) {
+	g := ag.NewGraph()
+	qs := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{1.8, 1.35, -1.89}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.08, 1.27, -1.06}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.28, 0.12, -0.67}), true),
+	}
+	ks := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{0.71, -0.5, -1.58}), true),
+		g.NewVariable(mat.NewVecDense([]float64{1.43, -0.16, 0.49}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.58, -0.27, -0.25}), true),
+	}
+	vs := []ag.Node{
+		g.NewVariable(mat.NewVecDense([]float64{0.88, -1.09, -0.45}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.43, -0.21, -0.75}), true),
+		g.NewVariable(mat.NewVecDense([]float64{0.84, 0.01, 0.01}), true),
+	}
+
+	defaultMappingFunction := func(g *ag.Graph, x ag.Node) ag.Node {
+		return g.PositiveELU(x)
+	}
+	output := LinearAttention(g, qs, ks, vs, defaultMappingFunction, 1e-12)
+
+	if len(output) != 3 {
+		t.Error("The attention doesn't have the expected length")
+	}
+	if !floats.EqualApprox(output[0].Value().Data(), []float64{0.68021652, -0.39977211, -0.44051976}, 1.0e-05) {
+		t.Error("The output doesn't match the expected values")
+	}
+	if !floats.EqualApprox(output[1].Value().Data(), []float64{0.678651, -0.38249578, -0.43479299}, 1.0e-05) {
+		t.Error("The output doesn't match the expected values")
+	}
+	if !floats.EqualApprox(output[2].Value().Data(), []float64{0.6720585, -0.38117003, -0.44469679}, 1.0e-05) {
+		t.Error("The output doesn't match the expected values")
+	}
+}

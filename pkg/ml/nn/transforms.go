@@ -110,6 +110,35 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 	return
 }
 
+type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
+
+// LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
+// It operates with O(N) complexity, where where N is the sequence length.
+// Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
+func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
+	context := make([]ag.Node, len(qs))
+	attKeys := make([]ag.Node, len(qs))
+	attQueries := make([]ag.Node, len(qs))
+
+	var attKeysSum ag.Node = nil
+	for i := range ks {
+		attKeys[i] = mappingFunction(g, ks[i])
+		attQueries[i] = mappingFunction(g, qs[i])
+		attKeysSum = g.Add(attKeysSum, attKeys[i])
+	}
+
+	keys := g.T(g.Stack(attKeys...))
+	values := g.Stack(vs...)
+	kv := g.Mul(keys, values)
+
+	for i, q := range attQueries {
+		n := g.Mul(g.T(q), kv)
+		d := g.Dot(attQueries[i], attKeysSum)
+		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))
+	}
+	return context
+}
+
 // Separate returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
 func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
