@@ -130,5 +130,5 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 
 // ELU(x) + 1
 func defaultMappingFunction(g *ag.Graph, x ag.Node) ag.Node {
-	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
+	return g.PositiveELU(x)
 }
