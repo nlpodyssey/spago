@@ -19,6 +19,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model contains the serializable parameters.
 type Model struct {
 	Config
 	Query         *linear.Model
@@ -39,6 +40,7 @@ type Config struct {
 	Steps     int
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
 		Config:        config,
@@ -74,6 +76,7 @@ type State struct {
 	S ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -114,6 +117,7 @@ func (p *Processor) newInitState(xs []ag.Node) *State {
 	return s
 }
 
+// Forward performs the the forward step returns the results.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	p.States = append(p.States, p.newInitState(xs))
 
