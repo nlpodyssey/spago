@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
+	"sync"
 )
 
 var (
@@ -120,6 +121,8 @@ func (p *Processor) copy(xs []ag.Node) []ag.Node {
 
 func (p *Processor) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []ag.Node) []ag.Node {
 	n := len(prevH)
+	var wg sync.WaitGroup
+	wg.Add(n)
 	h := make([]ag.Node, n)
 	first := 0
 	last := n - 1
@@ -132,10 +135,14 @@ func (p *Processor) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residua
 		if k > last {
 			k = first
 		}
-		context := []ag.Node{prevH[j], prevH[i], prevH[k], residual[i], prevS}
-		h[i] = p.satelliteAttention(prevH[i], context)
-		h[i] = p.satelliteNorm.Forward(p.Graph.ReLU(h[i]))[0]
+		go func(i, j, k int) {
+			defer wg.Done()
+			context := []ag.Node{prevH[j], prevH[i], prevH[k], residual[i], prevS}
+			h[i] = p.satelliteAttention(prevH[i], context)
+			h[i] = p.satelliteNorm.Forward(p.Graph.ReLU(h[i]))[0]
+		}(i, j, k)
 	}
+	wg.Wait()
 	return h
 }
 
