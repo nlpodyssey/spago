@@ -136,3 +136,18 @@ func ConcatH(ms ...Matrix) *Dense {
 	}
 	return out
 }
+
+// Stack ...
+func Stack(vs ...*Dense) *Dense {
+	rows := len(vs)
+	cols := vs[0].size
+	out := GetDenseWorkspace(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
+	start := 0
+	end := cols
+	for _, v := range vs {
+		copy(out.data[start:end], v.data)
+		start = end
+		end += cols
+	}
+	return out
+}

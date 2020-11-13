@@ -1108,3 +1108,15 @@ func TestDense_ApplyWithAlpha(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 }
+
+func TestDense_Stack(t *testing.T) {
+	v1 := NewVecDense([]float64{0.1, 0.2, 0.3, 0.5})
+	v2 := NewVecDense([]float64{0.4, 0.5, 0.6, 0.4})
+	v3 := NewVecDense([]float64{0.8, 0.9, 0.7, 0.6})
+
+	out := Stack(v1, v2, v3)
+
+	if !floats.EqualApprox(out.Data(), []float64{0.1, 0.2, 0.3, 0.5, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9, 0.7, 0.6}, 1.0e-6) {
+		t.Error("The output doesn't match the expected values")
+	}
+}
