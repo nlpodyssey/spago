@@ -34,7 +34,7 @@ type Processor interface {
 	// RequiresFullSeq returns whether the processor needs the complete sequence to start processing
 	// (as in the case of BiRNN and other bidirectional models), or not.
 	RequiresFullSeq() bool
-	// Forward performs the the forward step for each input and returns the result.
+	// Forward performs the forward step for each input and returns the result.
 	// Recurrent networks treats the input nodes as a sequence.
 	// Differently, feed-forward networks are stateless so every computation is independent.
 	Forward(xs ...ag.Node) []ag.Node

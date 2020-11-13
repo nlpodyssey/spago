@@ -83,7 +83,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	nn.SetProcessingMode(mode, p.value, p.ffn)
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	g := p.Graph
 	length := len(xs)

@@ -87,6 +87,7 @@ func (p *Processor) SetInitialState(state *State) {
 	p.States = append(p.States, state)
 }
 
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {

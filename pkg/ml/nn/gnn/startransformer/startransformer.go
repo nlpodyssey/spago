@@ -99,7 +99,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	)
 }
 
-// Forward performs the the forward step returns the results.
+// Forward performs the forward step returns the results.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	h := p.copy(xs)       // `h` are the satellite nodes
 	s := p.Graph.Mean(xs) // `s` is the relay node

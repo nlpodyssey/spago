@@ -70,7 +70,7 @@ func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
 	p.ffn3.SetMode(mode)
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *DecoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) != 1 {
 		panic("rae: the input must be a single node")

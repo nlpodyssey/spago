@@ -83,7 +83,7 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && p.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)

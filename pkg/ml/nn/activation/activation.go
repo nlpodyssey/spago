@@ -51,7 +51,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	activation := p.Model.(*Model).Activation

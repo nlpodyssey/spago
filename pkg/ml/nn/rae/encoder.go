@@ -54,7 +54,7 @@ func (p *EncoderProcessor) GetRecursions() int {
 	return p.recursions
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *EncoderProcessor) Forward(xs ...ag.Node) []ag.Node {
 	ys := p.ffn1.Forward(xs...)
 	p.recursions = 1

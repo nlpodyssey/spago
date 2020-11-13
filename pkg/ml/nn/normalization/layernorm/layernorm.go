@@ -53,7 +53,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	}
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	g := p.Graph

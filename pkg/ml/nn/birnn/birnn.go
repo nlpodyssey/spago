@@ -68,7 +68,7 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	p.Negative.SetMode(mode)
 }
 
-// Forward performs the the forward step for each input and returns the result.
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	var pos []ag.Node
 	var neg []ag.Node
