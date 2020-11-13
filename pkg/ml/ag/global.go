@@ -382,6 +382,11 @@ func ReduceMean(x Node) Node {
 	return globalGraph.ReduceMean(x)
 }
 
+// Mean returns the value that describes the average of the sample.
+func Mean(xs []Node) Node {
+	return globalGraph.Mean(xs)
+}
+
 // Concat returns a new operator node as a result of the fn.Concat function.
 func Concat(xs ...Node) Node {
 	return globalGraph.Concat(xs...)
