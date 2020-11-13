@@ -66,14 +66,9 @@ type Processor struct {
 	satelliteNorm *layernorm.Processor
 	relayNorm     *layernorm.Processor
 	Steps         int
-	States        []*State
 }
 
 type State struct {
-	// H are the satellite nodes
-	H []ag.Node
-	// S is the relay node
-	S ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
@@ -94,7 +89,6 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		relayValue:    m.RelayValue.NewProc(g).(*linear.Processor),
 		satelliteNorm: m.SatelliteNorm.NewProc(g).(*layernorm.Processor),
 		relayNorm:     m.RelayNorm.NewProc(g).(*layernorm.Processor),
-		States:        nil,
 	}
 }
 
@@ -107,30 +101,24 @@ func (p *Processor) SetMode(mode nn.ProcessingMode) {
 	)
 }
 
-func (p *Processor) newInitState(xs []ag.Node) *State {
-	s := new(State)
-	s.S = p.Graph.Mean(xs)
-	s.H = make([]ag.Node, len(xs))
-	for i, x := range xs {
-		s.H[i] = p.Graph.Identity(x)
-	}
-	return s
-}
-
 // Forward performs the the forward step returns the results.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	p.States = append(p.States, p.newInitState(xs))
+	h := p.copy(xs)       // `h` are the satellite nodes
+	s := p.Graph.Mean(xs) // `s` is the relay node
 
 	for t := 1; t <= p.Steps; t++ {
-		prev := p.States[t-1]
-		h := p.updateSatelliteNodes(prev.H, prev.S, xs)
-		s := p.updateRelayNode(prev.S, h)
-		p.States = append(p.States, &State{H: h, S: s})
+		h = p.updateSatelliteNodes(h, s, xs)
+		s = p.updateRelayNode(s, h)
 	}
+	return append(h, s)
+}
 
-	lastState := p.States[len(p.States)-1]
-
-	return append(lastState.H, lastState.S)
+func (p *Processor) copy(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
+	for i, x := range xs {
+		ys[i] = p.Graph.Identity(x)
+	}
+	return ys
 }
 
 func (p *Processor) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []ag.Node) []ag.Node {
