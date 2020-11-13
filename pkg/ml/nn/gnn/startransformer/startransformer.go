@@ -68,9 +68,6 @@ type Processor struct {
 	Steps         int
 }
 
-type State struct {
-}
-
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 	return &Processor{
