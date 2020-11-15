@@ -130,7 +130,7 @@ func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingF
 
 	for i := range qs {
 		attQuery := mappingFunction(g, qs[i])
-		n := g.Mul(g.T(attQuery), kv)
+		n := g.T(g.Mul(g.T(attQuery), kv))
 		d := g.Dot(attQuery, attKeysSum)
 		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))
 	}
