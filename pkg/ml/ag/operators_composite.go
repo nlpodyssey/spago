@@ -9,6 +9,15 @@ func (g *Graph) PositiveELU(x Node) Node {
 	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
 }
 
+// Sum returns the value that describes the sum of the sample.
+func (g *Graph) Sum(xs []Node) Node {
+	sumVector := xs[0]
+	for i := 1; i < len(xs); i++ {
+		sumVector = g.Add(sumVector, xs[i])
+	}
+	return sumVector
+}
+
 // Mean returns the value that describes the average of the sample.
 func (g *Graph) Mean(xs []Node) Node {
 	sumVector := xs[0]

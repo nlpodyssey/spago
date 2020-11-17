@@ -70,6 +70,7 @@ const (
 	OpReduceSum
 	OpReduceMean
 	OpMean
+	OpSum
 	OpConcat
 	OpStack
 )
@@ -133,6 +134,7 @@ var opNameToMethodName = map[OpName]string{
 	OpReduceSum:     "ReduceSum",
 	OpReduceMean:    "ReduceMean",
 	OpMean:          "Mean",
+	OpSum:           "Sum",
 	OpConcat:        "Concat",
 	OpStack:         "Stack",
 }

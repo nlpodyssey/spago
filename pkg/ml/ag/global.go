@@ -382,6 +382,11 @@ func ReduceMean(x Node) Node {
 	return globalGraph.ReduceMean(x)
 }
 
+// Sum returns the value that describes the sum of the sample.
+func Sum(xs []Node) Node {
+	return globalGraph.Sum(xs)
+}
+
 // Mean returns the value that describes the average of the sample.
 func Mean(xs []Node) Node {
 	return globalGraph.Mean(xs)
