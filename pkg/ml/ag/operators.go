@@ -6,6 +6,7 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"github.com/pkg/errors"
 	"reflect"
 )
 
@@ -137,6 +138,24 @@ var opNameToMethodName = map[OpName]string{
 	OpSum:           "Sum",
 	OpConcat:        "Concat",
 	OpStack:         "Stack",
+}
+
+// strToOpName is the inverse map of opNameToMethodName
+var strToOpName = func() map[string]OpName {
+	invMap := make(map[string]OpName)
+	for k, v := range opNameToMethodName {
+		invMap[v] = k
+	}
+	return invMap
+}()
+
+// GetOpName maps a string to an operator.
+// It panics if the string does not match any operator.
+func GetOpName(str string) (OpName, error) {
+	if value, ok := strToOpName[str]; ok {
+		return value, nil
+	}
+	return -1, errors.Errorf("ag: unknown operator %s", str)
 }
 
 // Invoke returns a new node as a result of the application of the input operator.
