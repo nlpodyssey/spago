@@ -174,7 +174,6 @@ func TestModel_Forward(t *testing.T) {
 	}, 1.0e-05) {
 		t.Error("x3 gradients don't match the expected values")
 	}
-
 }
 
 func newTestModel() *Model {
@@ -185,6 +184,51 @@ func newTestModel() *Model {
 		YStride:        1,
 		InputChannels:  3,
 		OutputChannels: 2,
+		Mask:           []int{1, 1, 1},
+		Activation:     ag.OpTanh,
+	})
+	model.K[0].Value().SetData([]float64{
+		0.5, -0.4,
+		0.3, 0.3,
+	})
+	model.K[1].Value().SetData([]float64{
+		-0.5, 0.3,
+		0.2, 0.9,
+	})
+	model.K[2].Value().SetData([]float64{
+		0.4, 0.3,
+		0.2, 0.6,
+	})
+	model.B[0].Value().SetData([]float64{0.0})
+	model.B[1].Value().SetData([]float64{0.2})
+	model.B[2].Value().SetData([]float64{0.5})
+	model.K[3].Value().SetData([]float64{
+		0.4, 0.8,
+		-0.9, 0.4,
+	})
+	model.K[4].Value().SetData([]float64{
+		0.0, 0.5,
+		0.3, -0.5,
+	})
+	model.K[5].Value().SetData([]float64{
+		0.3, 0.6,
+		0.2, 0.8,
+	})
+	model.B[3].Value().SetData([]float64{0.4})
+	model.B[4].Value().SetData([]float64{0.1})
+	model.B[5].Value().SetData([]float64{0.5})
+	return model
+}
+
+func newTestModel2() *Model {
+	model := New(Config{
+		KernelSizeX:    2,
+		KernelSizeY:    2,
+		XStride:        1,
+		YStride:        1,
+		InputChannels:  3,
+		OutputChannels: 2,
+		Mask:           []int{0, 1, 1},
 		Activation:     ag.OpTanh,
 	})
 	model.K[0].Value().SetData([]float64{

@@ -5,6 +5,7 @@
 package convolution
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -23,24 +24,27 @@ type Config struct {
 	YStride        int
 	InputChannels  int
 	OutputChannels int
+	Mask           []int
 	Activation     ag.OpName
 }
 
-// Model contains the serializable parameters.
 type Model struct {
 	Config
 	K []*nn.Param `type:"weights"`
 	B []*nn.Param `type:"biases"`
 }
 
-// NewProc returns a new processor to execute the forward step.
 func New(config Config) *Model {
+	if config.Mask != nil && config.InputChannels != len(config.Mask) {
+		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
+	}
 	paramsSize := config.InputChannels * config.OutputChannels
 	kernels := make([]*nn.Param, paramsSize, paramsSize)
 	biases := make([]*nn.Param, paramsSize, paramsSize)
 	for i := 0; i < paramsSize; i++ {
-		kernels[i] = nn.NewParam(mat.NewEmptyDense(config.KernelSizeX, config.KernelSizeY))
-		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1))
+		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
+		kernels[i] = nn.NewParam(mat.NewEmptyDense(config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))
+		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1), nn.RequiresGrad(requireGrad))
 	}
 	return &Model{
 		Config: config,
@@ -83,7 +87,6 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }
 
-// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && p.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)
@@ -117,11 +120,12 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
 	g := p.Graph
 	offset := outputChannel * p.InputChannels
-	out := nn.Conv2D(g, p.k[0+offset], xs[0], p.XStride, p.YStride)
-	out = g.AddScalar(out, p.b[0+offset])
-	for i := 1; i < len(xs); i++ {
-		out = g.Add(out, nn.Conv2D(g, p.k[i+offset], xs[i], p.XStride, p.YStride))
-		out = g.AddScalar(out, p.b[i+offset])
+	var out ag.Node
+	for i := 0; i < len(xs); i++ {
+		if p.Config.Mask == nil || p.Config.Mask[i] == 1 {
+			out = g.Add(out, nn.Conv2D(g, p.k[i+offset], xs[i], p.XStride, p.YStride))
+			out = g.AddScalar(out, p.b[i+offset])
+		}
 	}
 	return g.Invoke(p.Activation, out)
 }
