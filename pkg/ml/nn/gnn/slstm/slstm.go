@@ -24,65 +24,35 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	Config Config
+	Config                 Config
+	InputGate              *HyperLinear4 `type:"params"`
+	LeftCellGate           *HyperLinear4 `type:"params"`
+	RightCellGate          *HyperLinear4 `type:"params"`
+	CellGate               *HyperLinear4 `type:"params"`
+	SentCellGate           *HyperLinear4 `type:"params"`
+	OutputGate             *HyperLinear4 `type:"params"`
+	InputActivation        *HyperLinear4 `type:"params"`
+	NonLocalSentCellGate   *HyperLinear3 `type:"params"`
+	NonLocalInputGate      *HyperLinear3 `type:"params"`
+	NonLocalSentOutputGate *HyperLinear3 `type:"params"`
+	StartH                 *nn.Param     `type:"weights"`
+	EndH                   *nn.Param     `type:"weights"`
+	InitValue              *nn.Param     `type:"weights"`
+}
 
-	// Input gate
-	Wi *nn.Param `type:"weights"`
-	Ui *nn.Param `type:"weights"`
-	Vi *nn.Param `type:"weights"`
-	Bi *nn.Param `type:"biases"`
+// HyperLinear4 groups multiple params for an affine transformation.
+type HyperLinear4 struct {
+	W *nn.Param `type:"weights"`
+	U *nn.Param `type:"weights"`
+	V *nn.Param `type:"weights"`
+	B *nn.Param `type:"biases"`
+}
 
-	// Left context cell gate
-	Wl *nn.Param `type:"weights"`
-	Ul *nn.Param `type:"weights"`
-	Vl *nn.Param `type:"weights"`
-	Bl *nn.Param `type:"biases"`
-
-	// Right context cell gate
-	Wr *nn.Param `type:"weights"`
-	Ur *nn.Param `type:"weights"`
-	Vr *nn.Param `type:"weights"`
-	Br *nn.Param `type:"biases"`
-
-	// Cell gate
-	Wf *nn.Param `type:"weights"`
-	Uf *nn.Param `type:"weights"`
-	Vf *nn.Param `type:"weights"`
-	Bf *nn.Param `type:"biases"`
-
-	// Sentence context cell gate
-	Ws *nn.Param `type:"weights"`
-	Us *nn.Param `type:"weights"`
-	Vs *nn.Param `type:"weights"`
-	Bs *nn.Param `type:"biases"`
-
-	// Output gate
-	Wo *nn.Param `type:"weights"`
-	Uo *nn.Param `type:"weights"`
-	Vo *nn.Param `type:"weights"`
-	Bo *nn.Param `type:"biases"`
-
-	// Tanh gate
-	Wu *nn.Param `type:"weights"`
-	Uu *nn.Param `type:"weights"`
-	Vu *nn.Param `type:"weights"`
-	Bu *nn.Param `type:"biases"`
-
-	SentWg *nn.Param `type:"weights"`
-	SentUg *nn.Param `type:"weights"`
-	SentBg *nn.Param `type:"biases"`
-
-	SentWf *nn.Param `type:"weights"`
-	SentUf *nn.Param `type:"weights"`
-	SentBf *nn.Param `type:"biases"`
-
-	SentWo *nn.Param `type:"weights"`
-	SentUo *nn.Param `type:"weights"`
-	SentBo *nn.Param `type:"biases"`
-
-	StartH    *nn.Param `type:"weights"`
-	EndH      *nn.Param `type:"weights"`
-	InitValue *nn.Param `type:"weights"`
+// HyperLinear4 groups multiple params for an affine transformation.
+type HyperLinear3 struct {
+	W *nn.Param `type:"weights"`
+	U *nn.Param `type:"weights"`
+	B *nn.Param `type:"biases"`
 }
 
 type Config struct {
@@ -97,57 +67,38 @@ const windowSize = 3 // the window is fixed in this implementation
 func New(config Config) *Model {
 	in, out := config.InputSize, config.OutputSize
 	return &Model{
-		Config: config,
-		Wi:     nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Ui:     nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vi:     nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bi:     nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Wl: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Ul: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vl: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bl: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Wr: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Ur: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vr: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Br: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Wf: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Uf: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vf: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bf: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Ws: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Us: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vs: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bs: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Wo: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Uo: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vo: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bo: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		Wu: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		Uu: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Vu: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Bu: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		SentWg: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentUg: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentBg: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		SentWf: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentUf: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentBf: nn.NewParam(mat.NewEmptyVecDense(out)),
-
-		SentWo: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentUo: nn.NewParam(mat.NewEmptyDense(out, out)),
-		SentBo: nn.NewParam(mat.NewEmptyVecDense(out)),
+		Config:                 config,
+		InputGate:              newGate4(in, out),
+		LeftCellGate:           newGate4(in, out),
+		RightCellGate:          newGate4(in, out),
+		CellGate:               newGate4(in, out),
+		SentCellGate:           newGate4(in, out),
+		OutputGate:             newGate4(in, out),
+		InputActivation:        newGate4(in, out),
+		NonLocalSentCellGate:   newGate3(out),
+		NonLocalInputGate:      newGate3(out),
+		NonLocalSentOutputGate: newGate3(out),
 
 		StartH:    nn.NewParam(mat.NewEmptyVecDense(out)),
 		EndH:      nn.NewParam(mat.NewEmptyVecDense(out)),
 		InitValue: nn.NewParam(mat.NewEmptyVecDense(out)),
+	}
+}
+
+func newGate4(in, out int) *HyperLinear4 {
+	return &HyperLinear4{
+		W: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
+		U: nn.NewParam(mat.NewEmptyDense(out, in)),
+		V: nn.NewParam(mat.NewEmptyDense(out, out)),
+		B: nn.NewParam(mat.NewEmptyVecDense(out)),
+	}
+}
+
+func newGate3(size int) *HyperLinear3 {
+	return &HyperLinear3{
+		W: nn.NewParam(mat.NewEmptyDense(size, size)),
+		U: nn.NewParam(mat.NewEmptyDense(size, size)),
+		B: nn.NewParam(mat.NewEmptyVecDense(size)),
 	}
 }
 
@@ -166,6 +117,7 @@ type Processor struct {
 	SentWo, SentUo, SentBo ag.Node
 	StartH, EndH           ag.Node
 	InitValue              ag.Node
+
 	// shared among all steps
 	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node
 	// shared among all nodes at the same step
@@ -188,52 +140,53 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			FullSeqProcessing: true,
 		},
 		Config: m.Config,
-		Wi:     g.NewWrap(m.Wi),
-		Ui:     g.NewWrap(m.Ui),
-		Vi:     g.NewWrap(m.Vi),
-		Bi:     g.NewWrap(m.Bi),
 
-		Wl: g.NewWrap(m.Wl),
-		Ul: g.NewWrap(m.Ul),
-		Vl: g.NewWrap(m.Vl),
-		Bl: g.NewWrap(m.Bl),
+		Wi: g.NewWrap(m.InputGate.W),
+		Ui: g.NewWrap(m.InputGate.U),
+		Vi: g.NewWrap(m.InputGate.V),
+		Bi: g.NewWrap(m.InputGate.B),
 
-		Wr: g.NewWrap(m.Wr),
-		Ur: g.NewWrap(m.Ur),
-		Vr: g.NewWrap(m.Vr),
-		Br: g.NewWrap(m.Br),
+		Wl: g.NewWrap(m.LeftCellGate.W),
+		Ul: g.NewWrap(m.LeftCellGate.U),
+		Vl: g.NewWrap(m.LeftCellGate.V),
+		Bl: g.NewWrap(m.LeftCellGate.B),
 
-		Wf: g.NewWrap(m.Wf),
-		Uf: g.NewWrap(m.Uf),
-		Vf: g.NewWrap(m.Vf),
-		Bf: g.NewWrap(m.Bf),
+		Wr: g.NewWrap(m.RightCellGate.W),
+		Ur: g.NewWrap(m.RightCellGate.U),
+		Vr: g.NewWrap(m.RightCellGate.V),
+		Br: g.NewWrap(m.RightCellGate.B),
 
-		Ws: g.NewWrap(m.Ws),
-		Us: g.NewWrap(m.Us),
-		Vs: g.NewWrap(m.Vs),
-		Bs: g.NewWrap(m.Bs),
+		Wf: g.NewWrap(m.CellGate.W),
+		Uf: g.NewWrap(m.CellGate.U),
+		Vf: g.NewWrap(m.CellGate.V),
+		Bf: g.NewWrap(m.CellGate.B),
 
-		Wo: g.NewWrap(m.Wo),
-		Uo: g.NewWrap(m.Uo),
-		Vo: g.NewWrap(m.Vo),
-		Bo: g.NewWrap(m.Bo),
+		Ws: g.NewWrap(m.SentCellGate.W),
+		Us: g.NewWrap(m.SentCellGate.U),
+		Vs: g.NewWrap(m.SentCellGate.V),
+		Bs: g.NewWrap(m.SentCellGate.B),
 
-		Wu: g.NewWrap(m.Wu),
-		Uu: g.NewWrap(m.Uu),
-		Vu: g.NewWrap(m.Vu),
-		Bu: g.NewWrap(m.Bu),
+		Wo: g.NewWrap(m.OutputGate.W),
+		Uo: g.NewWrap(m.OutputGate.U),
+		Vo: g.NewWrap(m.OutputGate.V),
+		Bo: g.NewWrap(m.OutputGate.B),
 
-		SentWg: g.NewWrap(m.SentWg),
-		SentUg: g.NewWrap(m.SentUg),
-		SentBg: g.NewWrap(m.SentBg),
+		Wu: g.NewWrap(m.InputActivation.W),
+		Uu: g.NewWrap(m.InputActivation.U),
+		Vu: g.NewWrap(m.InputActivation.V),
+		Bu: g.NewWrap(m.InputActivation.B),
 
-		SentWf: g.NewWrap(m.SentWf),
-		SentUf: g.NewWrap(m.SentUf),
-		SentBf: g.NewWrap(m.SentBf),
+		SentWg: g.NewWrap(m.NonLocalSentCellGate.W),
+		SentUg: g.NewWrap(m.NonLocalSentCellGate.U),
+		SentBg: g.NewWrap(m.NonLocalSentCellGate.B),
 
-		SentWo: g.NewWrap(m.SentWo),
-		SentUo: g.NewWrap(m.SentUo),
-		SentBo: g.NewWrap(m.SentBo),
+		SentWf: g.NewWrap(m.NonLocalInputGate.W),
+		SentUf: g.NewWrap(m.NonLocalInputGate.U),
+		SentBf: g.NewWrap(m.NonLocalInputGate.B),
+
+		SentWo: g.NewWrap(m.NonLocalSentOutputGate.W),
+		SentUo: g.NewWrap(m.NonLocalSentOutputGate.U),
+		SentBo: g.NewWrap(m.NonLocalSentOutputGate.B),
 
 		StartH:    g.NewWrap(m.StartH),
 		EndH:      g.NewWrap(m.EndH),
