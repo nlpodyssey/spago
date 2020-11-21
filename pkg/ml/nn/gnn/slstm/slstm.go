@@ -104,23 +104,34 @@ func newGate3(size int) *HyperLinear3 {
 
 type Processor struct {
 	nn.BaseProcessor
-	Config                 Config
-	Wi, Ui, Vi, Bi         ag.Node
-	Wl, Ul, Vl, Bl         ag.Node
-	Wr, Ur, Vr, Br         ag.Node
-	Wf, Uf, Vf, Bf         ag.Node
-	Ws, Us, Vs, Bs         ag.Node
-	Wo, Uo, Vo, Bo         ag.Node
-	Wu, Uu, Vu, Bu         ag.Node
-	SentWg, SentUg, SentBg ag.Node
-	SentWf, SentUf, SentBf ag.Node
-	SentWo, SentUo, SentBo ag.Node
-	StartH, EndH           ag.Node
-	InitValue              ag.Node
-
-	// shared among all steps
+	Config Config
+	// InputGate
+	Wi, Ui, Vi, Bi ag.Node
+	// LeftCellGate
+	Wl, Ul, Vl, Bl ag.Node
+	// RightCellGate
+	Wr, Ur, Vr, Br ag.Node
+	// CellGate
+	Wf, Uf, Vf, Bf ag.Node
+	// SentCellGate
+	Ws, Us, Vs, Bs ag.Node
+	// OutputGate
+	Wo, Uo, Vo, Bo ag.Node
+	// InputActivation
+	Wu, Uu, Vu, Bu ag.Node
+	// NonLocalSentCellGate
+	NLSentWg, NLSentUg, NLSentBg ag.Node
+	// NonLocalInputGate
+	NLSentWf, NLSentUf, NLSentBf ag.Node
+	// NonLocalSentOutputGate
+	NLSentWo, NLSentUo, NLSentBo ag.Node
+	// Start/End Hidden
+	StartH, EndH ag.Node
+	// Values at t0
+	InitValue ag.Node
+	// Shared among all steps
 	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node
-	// shared among all nodes at the same step
+	// Shared among all nodes at the same step
 	ViPrevG ag.Node
 	VlPrevG ag.Node
 	VrPrevG ag.Node
@@ -176,17 +187,17 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		Vu: g.NewWrap(m.InputActivation.V),
 		Bu: g.NewWrap(m.InputActivation.B),
 
-		SentWg: g.NewWrap(m.NonLocalSentCellGate.W),
-		SentUg: g.NewWrap(m.NonLocalSentCellGate.U),
-		SentBg: g.NewWrap(m.NonLocalSentCellGate.B),
+		NLSentWg: g.NewWrap(m.NonLocalSentCellGate.W),
+		NLSentUg: g.NewWrap(m.NonLocalSentCellGate.U),
+		NLSentBg: g.NewWrap(m.NonLocalSentCellGate.B),
 
-		SentWf: g.NewWrap(m.NonLocalInputGate.W),
-		SentUf: g.NewWrap(m.NonLocalInputGate.U),
-		SentBf: g.NewWrap(m.NonLocalInputGate.B),
+		NLSentWf: g.NewWrap(m.NonLocalInputGate.W),
+		NLSentUf: g.NewWrap(m.NonLocalInputGate.U),
+		NLSentBf: g.NewWrap(m.NonLocalInputGate.B),
 
-		SentWo: g.NewWrap(m.NonLocalSentOutputGate.W),
-		SentUo: g.NewWrap(m.NonLocalSentOutputGate.U),
-		SentBo: g.NewWrap(m.NonLocalSentOutputGate.B),
+		NLSentWo: g.NewWrap(m.NonLocalSentOutputGate.W),
+		NLSentUo: g.NewWrap(m.NonLocalSentOutputGate.U),
+		NLSentBo: g.NewWrap(m.NonLocalSentOutputGate.B),
 
 		StartH:    g.NewWrap(m.StartH),
 		EndH:      g.NewWrap(m.EndH),
@@ -336,13 +347,13 @@ func (p *Processor) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG 
 	g := p.Graph
 	n := len(prevH)
 	avgH := g.Mean(prevH)
-	fG := g.Sigmoid(nn.Affine(g, p.SentBg, p.SentWg, prevG, p.SentUg, avgH))
-	oG := g.Sigmoid(nn.Affine(g, p.SentBo, p.SentWo, prevG, p.SentUo, avgH))
+	fG := g.Sigmoid(nn.Affine(g, p.NLSentBg, p.NLSentWg, prevG, p.NLSentUg, avgH))
+	oG := g.Sigmoid(nn.Affine(g, p.NLSentBo, p.NLSentWo, prevG, p.NLSentUo, avgH))
 
 	hG := make([]ag.Node, n)
-	gG := nn.Affine(g, p.SentBf, p.SentWf, prevG)
+	gG := nn.Affine(g, p.NLSentBf, p.NLSentWf, prevG)
 	for i := 0; i < n; i++ {
-		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(p.SentUf, prevH[i])))
+		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(p.NLSentUf, prevH[i])))
 	}
 
 	var sum ag.Node
