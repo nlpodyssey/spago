@@ -18,28 +18,46 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	WIn      *nn.Param `type:"weights"`
-	WInRec   *nn.Param `type:"weights"`
-	BIn      *nn.Param `type:"biases"`
-	WOut     *nn.Param `type:"weights"`
-	WOutRec  *nn.Param `type:"weights"`
-	BOut     *nn.Param `type:"biases"`
-	WFor     *nn.Param `type:"weights"`
-	WForRec  *nn.Param `type:"weights"`
-	BFor     *nn.Param `type:"biases"`
-	WCand    *nn.Param `type:"weights"`
-	WCandRec *nn.Param `type:"weights"`
-	BCand    *nn.Param `type:"biases"`
+	WIn             *nn.Param `type:"weights"`
+	WInRec          *nn.Param `type:"weights"`
+	BIn             *nn.Param `type:"biases"`
+	WOut            *nn.Param `type:"weights"`
+	WOutRec         *nn.Param `type:"weights"`
+	BOut            *nn.Param `type:"biases"`
+	WFor            *nn.Param `type:"weights"`
+	WForRec         *nn.Param `type:"weights"`
+	BFor            *nn.Param `type:"biases"`
+	WCand           *nn.Param `type:"weights"`
+	WCandRec        *nn.Param `type:"weights"`
+	BCand           *nn.Param `type:"biases"`
+	UseRefinedGates bool
+}
+
+type Option func(*Model)
+
+// SetRefinedGates sets whether to use refined gates.
+// Refined Gate: A Simple and Effective Gating Mechanism for Recurrent Units
+// (https://arxiv.org/pdf/2002.11338.pdf)
+// TODO: panic input size and output size are different
+func SetRefinedGates(value bool) Option {
+	return func(m *Model) {
+		m.UseRefinedGates = value
+	}
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(in, out int) *Model {
-	var m Model
+func New(in, out int, options ...Option) *Model {
+	m := &Model{}
 	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)
 	m.WOut, m.WOutRec, m.BOut = newGateParams(in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams(in, out)
 	m.WCand, m.WCandRec, m.BCand = newGateParams(in, out)
-	return &m
+	m.UseRefinedGates = false
+
+	for _, option := range options {
+		option(m)
+	}
+	return m
 }
 
 func newGateParams(in, out int) (w, wRec, b *nn.Param) {
@@ -73,6 +91,8 @@ type Processor struct {
 	wCandRec ag.Node
 	bCand    ag.Node
 	States   []*State
+	// whether to use refined gates
+	useRefinedGates bool
 }
 
 // NewProc returns a new processor to execute the forward step.
@@ -84,19 +104,20 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		States:   nil,
-		wIn:      g.NewWrap(m.WIn),
-		wInRec:   g.NewWrap(m.WInRec),
-		bIn:      g.NewWrap(m.BIn),
-		wOut:     g.NewWrap(m.WOut),
-		wOutRec:  g.NewWrap(m.WOutRec),
-		bOut:     g.NewWrap(m.BOut),
-		wFor:     g.NewWrap(m.WFor),
-		wForRec:  g.NewWrap(m.WForRec),
-		bFor:     g.NewWrap(m.BFor),
-		wCand:    g.NewWrap(m.WCand),
-		wCandRec: g.NewWrap(m.WCandRec),
-		bCand:    g.NewWrap(m.BCand),
+		States:          nil,
+		wIn:             g.NewWrap(m.WIn),
+		wInRec:          g.NewWrap(m.WInRec),
+		bIn:             g.NewWrap(m.BIn),
+		wOut:            g.NewWrap(m.WOut),
+		wOutRec:         g.NewWrap(m.WOutRec),
+		bOut:            g.NewWrap(m.BOut),
+		wFor:            g.NewWrap(m.WFor),
+		wForRec:         g.NewWrap(m.WForRec),
+		bFor:            g.NewWrap(m.BFor),
+		wCand:           g.NewWrap(m.WCand),
+		wCandRec:        g.NewWrap(m.WCandRec),
+		bCand:           g.NewWrap(m.BCand),
+		useRefinedGates: m.UseRefinedGates,
 	}
 }
 
@@ -141,6 +162,12 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	s.OutG = g.Sigmoid(nn.Affine(g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
 	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
 	s.Cand = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
+
+	if p.useRefinedGates {
+		s.InG = g.Prod(s.InG, x)
+		s.OutG = g.Prod(s.OutG, x)
+	}
+
 	if cellPrev != nil {
 		s.Cell = g.Add(g.Prod(s.InG, s.Cand), g.Prod(s.ForG, cellPrev))
 	} else {
