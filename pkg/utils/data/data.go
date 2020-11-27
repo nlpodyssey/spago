@@ -70,9 +70,9 @@ func SplitDataset(size int, splitRatio float64, seed uint64, class func(i int) s
 		c := class(i)
 		usedClassCount[c] = usedClassCount[c] + 1
 		if usedClassCount[c] <= int(splitRatio*float64(classCount[c])) {
-			a = append(a, i)
-		} else {
 			b = append(b, i)
+		} else {
+			a = append(a, i)
 		}
 	}
 	return
