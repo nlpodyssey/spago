@@ -53,10 +53,11 @@ func New(config Config) *Model {
 
 type Processor struct {
 	nn.BaseProcessor
-	fc     *stack.Processor
-	fc2    *linear.Processor
-	fc3    *linear.Processor
-	States []*State
+	fc        *stack.Processor
+	fc2       *linear.Processor
+	fc3       *linear.Processor
+	multiHead bool
+	States    []*State
 }
 
 type State struct {
@@ -73,10 +74,11 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 			Graph:             g,
 			FullSeqProcessing: false,
 		},
-		States: nil,
-		fc:     m.FC.NewProc(g).(*stack.Processor),
-		fc2:    m.FC2.NewProc(g).(*linear.Processor),
-		fc3:    m.FC3.NewProc(g).(*linear.Processor),
+		States:    nil,
+		multiHead: m.Config.MultiHead,
+		fc:        m.FC.NewProc(g).(*stack.Processor),
+		fc2:       m.FC2.NewProc(g).(*linear.Processor),
+		fc3:       m.FC3.NewProc(g).(*linear.Processor),
 	}
 }
 
@@ -101,15 +103,16 @@ func (p *Processor) getPrevHY() (ag.Node, ag.Node) {
 }
 
 func (p *Processor) forward(hPrev, x ag.Node) (h ag.Node, y ag.Node) {
+	g := p.Graph
 	b := p.fc.Forward(x)[0]
-	if p.Model.(*Model).Config.MultiHead {
-		sigAlphas := p.Graph.Sigmoid(p.fc2.Forward(x)[0])
-		b = p.Graph.Prod(b, sigAlphas)
+	if p.multiHead {
+		sigAlphas := g.Sigmoid(p.fc2.Forward(x)[0])
+		b = g.Prod(b, sigAlphas)
 	}
 	if hPrev != nil {
-		h = p.Graph.ReLU(p.Graph.Add(b, p.Graph.RotateR(hPrev, 1)))
+		h = g.ReLU(g.Add(b, g.RotateR(hPrev, 1)))
 	} else {
-		h = p.Graph.ReLU(b)
+		h = g.ReLU(b)
 	}
 	y = p.fc3.Forward(h)[0]
 	return
