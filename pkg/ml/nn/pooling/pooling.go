@@ -22,7 +22,10 @@ type MaxPooling struct {
 
 // NewMax returns a new model.
 func NewMax(rows, columns int) *MaxPooling {
-	return &MaxPooling{}
+	return &MaxPooling{
+		Rows:    rows,
+		Columns: columns,
+	}
 }
 
 type Processor struct {
