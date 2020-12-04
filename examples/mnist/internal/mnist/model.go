@@ -10,8 +10,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/cnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/flatten"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/pooling"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
@@ -45,7 +45,6 @@ func InitMLP(model *stack.Model, rndGen *rand.LockedRand) {
 }
 
 // NewCNN returns a new CNN initialized to zeros.
-// TODO: output activation after the cnn Final Layer
 func NewCNN(
 	kernelSizeX, kernelSizeY int,
 	inputChannels, outputChannels int,
@@ -53,32 +52,30 @@ func NewCNN(
 	hidden, out int,
 	hiddenAct ag.OpName,
 	outputAct ag.OpName,
-) *cnn.Model {
-	// TODO: pass the outputAct to the CNN
-	return cnn.NewModel(
-		convolution.New(convolution.Config{
-			KernelSizeX:    kernelSizeX,
-			KernelSizeY:    kernelSizeY,
-			XStride:        1,
-			YStride:        1,
-			InputChannels:  inputChannels,
-			OutputChannels: outputChannels,
-			Activation:     hiddenAct,
-		}),
+) *stack.Model {
+	convConfig := convolution.Config{
+		KernelSizeX:    kernelSizeX,
+		KernelSizeY:    kernelSizeY,
+		XStride:        1,
+		YStride:        1,
+		InputChannels:  inputChannels,
+		OutputChannels: outputChannels,
+		Activation:     hiddenAct,
+	}
+	return stack.New(
+		convolution.New(convConfig),
 		pooling.NewMax(maxPoolingRows, maxPoolingCols),
+		flatten.New(),
 		linear.New(hidden, out),
+		activation.New(outputAct),
 	)
 }
 
 // InitCNN initializes the model using the Xavier (Glorot) method.
-func InitCNN(model *cnn.Model, rndGen *rand.LockedRand) {
-	for i := 0; i < len(model.Convolution.K); i++ {
-		initializers.XavierUniform(model.Convolution.K[i].Value(), initializers.Gain(model.Convolution.Activation), rndGen)
-		initializers.XavierUniform(model.Convolution.B[i].Value(), initializers.Gain(model.Convolution.Activation), rndGen)
-	}
-	nn.ForEachParam(model.FinalLayer, func(param *nn.Param) {
+func InitCNN(model *stack.Model, rndGen *rand.LockedRand) {
+	nn.ForEachParam(model, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
-			initializers.XavierUniform(param.Value(), initializers.Gain(ag.OpSoftmax), rndGen)
+			initializers.XavierUniform(param.Value(), 1.0, rndGen)
 		}
 	})
 }
