@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/cnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/pooling"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
@@ -64,7 +65,7 @@ func NewCNN(
 			OutputChannels: outputChannels,
 			Activation:     hiddenAct,
 		}),
-		maxPoolingRows, maxPoolingCols,
+		pooling.NewMax(maxPoolingRows, maxPoolingCols),
 		linear.New(hidden, out),
 	)
 }
