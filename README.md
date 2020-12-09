@@ -60,7 +60,7 @@ spaGO is compatible with 🤗 BERT-like [Transformers](https://github.com/huggin
 
 Requirements:
 
-* [Go 1.14](https://golang.org/dl/)
+* [Go 1.15](https://golang.org/dl/)
 * [Go modules](https://blog.golang.org/using-go-modules)
 
 Clone this repo or get the library:
@@ -77,6 +77,8 @@ Several demo programs can be leveraged to tour the current capabilities in spaGO
 * [Import a Pre-Trained Model](https://github.com/nlpodyssey/spago/wiki/Demos#import-a-pre-trained-model-demo)
 * [Question Answering](https://github.com/nlpodyssey/spago/wiki/Demos#question-answering-demo)
 * [Masked Language Model](https://github.com/nlpodyssey/spago/wiki/Demos#masked-language-model-demo)
+
+There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy examples, such as MNIST classification.
 
 ## Project Goals
 
