@@ -197,16 +197,16 @@ type Processor struct {
 	ZeroEmbedding ag.Node
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	var zeroEmbedding ag.Node = nil
 	if m.UseZeroEmbedding {
-		zeroEmbedding = g.NewWrap(m.ZeroEmbedding)
+		zeroEmbedding = ctx.Graph.NewWrap(m.ZeroEmbedding)
 	}
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 		ZeroEmbedding: zeroEmbedding, // it can be nil

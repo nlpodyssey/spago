@@ -39,17 +39,18 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
+	g := ctx.Graph
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 		w:   g.NewWrap(m.W),
 		b:   g.NewWrap(m.B),
-		eps: g.NewScalar(1e-12), // avoid underflow errors
+		eps: g.Constant(1e-12), // avoid underflow errors
 	}
 }
 

@@ -47,9 +47,9 @@ type EncoderProcessor struct {
 	*stack.Processor
 }
 
-func (m *Encoder) NewProc(g *ag.Graph) nn.Processor {
+func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
 	return &EncoderProcessor{
-		Processor: m.Model.NewProc(g).(*stack.Processor),
+		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }
 

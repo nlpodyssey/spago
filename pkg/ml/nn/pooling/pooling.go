@@ -33,12 +33,12 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *MaxPooling) NewProc(g *ag.Graph) nn.Processor {
+func (m *MaxPooling) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 	}

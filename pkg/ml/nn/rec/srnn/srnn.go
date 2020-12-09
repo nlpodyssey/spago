@@ -11,7 +11,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
+	"sync"
 )
 
 var (
@@ -38,9 +40,17 @@ type Config struct {
 
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
-	layers := []nn.Model{linear.New(config.InputSize, config.HyperSize), activation.New(ag.OpReLU)}
+	layers := []nn.Model{
+		linear.New(config.InputSize, config.HyperSize),
+		layernorm.New(config.HyperSize),
+		activation.New(ag.OpReLU),
+	}
 	for i := 1; i < config.NumLayers; i++ {
-		layers = append(layers, linear.New(config.HyperSize, config.HyperSize), activation.New(ag.OpReLU))
+		layers = append(layers,
+			linear.New(config.HyperSize, config.HyperSize),
+			layernorm.New(config.HyperSize),
+			activation.New(ag.OpReLU),
+		)
 	}
 	layers = append(layers, linear.New(config.HyperSize, config.HiddenSize))
 	return &Model{
@@ -66,28 +76,29 @@ type State struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 		States:    nil,
 		multiHead: m.Config.MultiHead,
-		fc:        m.FC.NewProc(g).(*stack.Processor),
-		fc2:       m.FC2.NewProc(g).(*linear.Processor),
-		fc3:       m.FC3.NewProc(g).(*linear.Processor),
+		fc:        m.FC.NewProc(ctx).(*stack.Processor),
+		fc2:       m.FC2.NewProc(ctx).(*linear.Processor),
+		fc3:       m.FC3.NewProc(ctx).(*linear.Processor),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
+	b := p.transformInputConcurrent(xs)
 	h, y := p.getPrevHY()
-	for i, x := range xs {
-		h, y = p.forward(h, x)
+	for i := range xs {
+		h, y = p.forward(h, b[i])
 		p.States = append(p.States, &State{Y: y, H: h})
 		ys[i] = y
 	}
@@ -102,13 +113,8 @@ func (p *Processor) getPrevHY() (ag.Node, ag.Node) {
 	return s.H, s.Y
 }
 
-func (p *Processor) forward(hPrev, x ag.Node) (h ag.Node, y ag.Node) {
+func (p *Processor) forward(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	g := p.Graph
-	b := p.fc.Forward(x)[0]
-	if p.multiHead {
-		sigAlphas := g.Sigmoid(p.fc2.Forward(x)[0])
-		b = g.Prod(b, sigAlphas)
-	}
 	if hPrev != nil {
 		h = g.ReLU(g.Add(b, g.RotateR(hPrev, 1)))
 	} else {
@@ -116,4 +122,29 @@ func (p *Processor) forward(hPrev, x ag.Node) (h ag.Node, y ag.Node) {
 	}
 	y = p.fc3.Forward(h)[0]
 	return
+}
+
+func (p *Processor) transformInput(x ag.Node) ag.Node {
+	g := p.Graph
+	b := p.fc.Forward(x)[0]
+	if p.multiHead {
+		sigAlphas := g.Sigmoid(p.fc2.Forward(x)[0])
+		b = g.Prod(b, sigAlphas)
+	}
+	return b
+}
+
+func (p *Processor) transformInputConcurrent(xs []ag.Node) []ag.Node {
+	var wg sync.WaitGroup
+	n := len(xs)
+	wg.Add(n)
+	ys := make([]ag.Node, n)
+	for i := 0; i < n; i++ {
+		go func(i int) {
+			defer wg.Done()
+			ys[i] = p.transformInput(xs[i])
+		}(i)
+	}
+	wg.Wait()
+	return ys
 }

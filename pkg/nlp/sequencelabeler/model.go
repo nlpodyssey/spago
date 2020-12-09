@@ -139,16 +139,16 @@ func (m *Model) LoadParams(path string) {
 	fmt.Println("ok")
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		EmbeddingsLayer: m.EmbeddingsLayer.NewProc(g).(*stackedembeddings.Processor),
-		TaggerLayer:     m.TaggerLayer.NewProc(g).(*birnncrf.Processor),
+		EmbeddingsLayer: m.EmbeddingsLayer.NewProc(ctx).(*stackedembeddings.Processor),
+		TaggerLayer:     m.TaggerLayer.NewProc(ctx).(*birnncrf.Processor),
 	}
 }
 
@@ -156,11 +156,6 @@ type Processor struct {
 	nn.BaseProcessor
 	EmbeddingsLayer *stackedembeddings.Processor
 	TaggerLayer     *birnncrf.Processor
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.EmbeddingsLayer, p.TaggerLayer)
 }
 
 type TokenLabel struct {

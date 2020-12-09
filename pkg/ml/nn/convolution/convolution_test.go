@@ -7,6 +7,7 @@ package convolution
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -38,7 +39,7 @@ func TestModel_Forward(t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := model.NewProc(g).Forward(x1, x2, x3)
+	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{
 		0.6291451614, 0.4218990053, 0.0399786803,

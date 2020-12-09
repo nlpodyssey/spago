@@ -36,16 +36,16 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	procLayers := make([]nn.Processor, len(m.Layers))
 	for i, layer := range m.Layers {
-		procLayers[i] = layer.NewProc(g)
+		procLayers[i] = layer.NewProc(ctx)
 	}
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: requiresFullSeq(procLayers),
 		},
 		Layers: procLayers,
@@ -59,13 +59,6 @@ func requiresFullSeq(ps []nn.Processor) bool {
 		}
 	}
 	return false
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	for _, layer := range p.Layers {
-		layer.SetMode(mode)
-	}
 }
 
 // Forward performs the forward step for each input and returns the result.

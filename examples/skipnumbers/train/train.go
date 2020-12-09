@@ -8,7 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/examples/skipnumbers/skipnumbers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstmsc"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/srnn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
 	"log"
@@ -31,7 +31,7 @@ func main() {
 		datasetPath = "examples/skipnumbers/data"
 	}
 
-	hiddenSize := 200
+	hiddenSize := 100
 	batchSize := 1
 	epochs := 10
 
@@ -43,13 +43,23 @@ func main() {
 
 	// new model
 	model := skipnumbers.NewModel(
-		lstmsc.New(
-			10,         // in
-			hiddenSize, // out
-			10,         // k,
-			0.5,        // lambda,
-			50,         // intermediate layer
-		),
+		/*
+			lstmsc.New(
+				10,         // in
+				hiddenSize, // out
+				10,         // k,
+				0.5,        // lambda,
+				50,         // intermediate layer
+			),
+		*/
+		srnn.New(srnn.Config{
+			InputSize:  10,
+			HiddenSize: hiddenSize,
+			NumLayers:  1,
+			HyperSize:  8,
+			OutputSize: hiddenSize,
+			MultiHead:  true,
+		}),
 		linear.New(hiddenSize, 10), // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 

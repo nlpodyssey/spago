@@ -47,22 +47,17 @@ type Processor struct {
 	Predictor nn.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		RNN:       m.RNN.NewProc(g),
-		Predictor: m.Predictor.NewProc(g),
+		RNN:       m.RNN.NewProc(ctx),
+		Predictor: m.Predictor.NewProc(ctx),
 	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.RNN, p.Predictor)
 }
 
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {

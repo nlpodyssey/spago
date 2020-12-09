@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/srnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/adam"
@@ -35,7 +35,7 @@ func main() {
 		datasetPath = "examples/progsum/data"
 	}
 
-	hiddenSize := 100
+	hiddenSize := 128
 	batchSize := 1
 	epochs := 4
 	rndGen := rand.NewLockedRand(743)
@@ -47,7 +47,14 @@ func main() {
 	}
 
 	model := stack.New(
-		lstm.New(1, hiddenSize),
+		srnn.New(srnn.Config{
+			InputSize:  1,
+			HiddenSize: hiddenSize,
+			NumLayers:  1,
+			HyperSize:  32,
+			OutputSize: hiddenSize,
+			MultiHead:  true,
+		}),
 		linear.New(hiddenSize, 11), // The CrossEntropy loss doesn't require explicit Softmax activation
 	)
 

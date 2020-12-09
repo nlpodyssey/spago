@@ -46,9 +46,9 @@ type PredictorProcessor struct {
 	*stack.Processor
 }
 
-func (m *Predictor) NewProc(g *ag.Graph) nn.Processor {
+func (m *Predictor) NewProc(ctx nn.Context) nn.Processor {
 	return &PredictorProcessor{
-		Processor: m.Model.NewProc(g).(*stack.Processor),
+		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }
 

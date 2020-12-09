@@ -36,9 +36,9 @@ type ClassifierProcessor struct {
 	*linear.Processor
 }
 
-func (m *Classifier) NewProc(g *ag.Graph) nn.Processor {
+func (m *Classifier) NewProc(ctx nn.Context) nn.Processor {
 	return &ClassifierProcessor{
-		Processor: m.Model.NewProc(g).(*linear.Processor),
+		Processor: m.Model.NewProc(ctx).(*linear.Processor),
 	}
 }
 

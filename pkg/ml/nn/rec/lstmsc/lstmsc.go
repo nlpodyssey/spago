@@ -96,12 +96,13 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
+	g := ctx.Graph
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 		States:         nil,
@@ -119,7 +120,7 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 		bCand:          g.NewWrap(m.BCand),
 		lambda:         g.NewScalar(m.Lambda),
 		negLambda:      g.NewScalar(1.0 - m.Lambda),
-		PolicyGradient: m.PolicyGradient.NewProc(g).(*stack.Processor),
+		PolicyGradient: m.PolicyGradient.NewProc(ctx).(*stack.Processor),
 	}
 }
 
@@ -128,11 +129,6 @@ func (p *Processor) SetInitialState(state *State) {
 		log.Fatal("lstmsc: the initial state must be set before any input")
 	}
 	p.States = append(p.States, state)
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	p.PolicyGradient.SetMode(mode)
 }
 
 // Forward performs the forward step for each input and returns the result.

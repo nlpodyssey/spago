@@ -68,7 +68,7 @@ func main() {
 		nn.ZeroGrad(model)
 
 		// get output (i.e. prediction) from the model, given the inputs
-		outputs := model.NewProc(cg).Forward(inputs...)
+		outputs := model.NewProc(nn.Context{Graph: cg, Mode: nn.Training}).Forward(inputs...)
 
 		// get loss for the predicted output
 		loss := criterion(cg, outputs, labels, true) // true = reduce mean

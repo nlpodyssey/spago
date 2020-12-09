@@ -7,6 +7,7 @@ package crf
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"reflect"
 	"testing"
@@ -34,7 +35,7 @@ func TestModel_Predict(t *testing.T) {
 func TestModel_GoldScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -53,7 +54,7 @@ func TestModel_GoldScore(t *testing.T) {
 func TestModel_TotalScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -71,7 +72,7 @@ func TestModel_TotalScore(t *testing.T) {
 func TestModel_Loss(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)

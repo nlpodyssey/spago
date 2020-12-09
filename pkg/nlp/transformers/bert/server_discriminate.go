@@ -81,8 +81,7 @@ func (s *Server) discriminate(text string) *Response {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
+	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	encoded := proc.Encode(tokenized)
 
 	fakeTokens := make(map[int]bool, 0)

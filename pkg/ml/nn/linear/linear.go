@@ -55,17 +55,17 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
-		w:          g.NewWrap(m.W),
-		b:          g.NewWrap(m.B),
-		concurrent: defaultConcurrency,
+		w:          ctx.Graph.NewWrap(m.W),
+		b:          ctx.Graph.NewWrap(m.B),
+		concurrent: defaultConcurrency, // TODO: from options
 	}
 }
 

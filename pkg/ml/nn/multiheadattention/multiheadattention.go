@@ -57,28 +57,20 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	headAttentionProc := make([]*selfattention.Processor, m.h)
 	for i := 0; i < m.h; i++ {
-		headAttentionProc[i] = m.Attention[i].NewProc(g).(*selfattention.Processor)
+		headAttentionProc[i] = m.Attention[i].NewProc(ctx).(*selfattention.Processor)
 	}
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
 		HeadAttentionProc: headAttentionProc,
-		outputMerge:       m.OutputMerge.NewProc(g).(*linear.Processor),
-	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	p.outputMerge.SetMode(mode)
-	for _, proc := range p.HeadAttentionProc {
-		proc.SetMode(mode)
+		outputMerge:       m.OutputMerge.NewProc(ctx).(*linear.Processor),
 	}
 }
 

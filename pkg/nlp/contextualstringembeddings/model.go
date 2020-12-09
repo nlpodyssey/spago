@@ -54,23 +54,18 @@ type Processor struct {
 	rightToLeft *charlm.Processor
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
 		mergeMode:   m.MergeMode,
-		leftToRight: m.LeftToRight.NewProc(g).(*charlm.Processor),
-		rightToLeft: m.RightToLeft.NewProc(g).(*charlm.Processor),
+		leftToRight: m.LeftToRight.NewProc(ctx).(*charlm.Processor),
+		rightToLeft: m.RightToLeft.NewProc(ctx).(*charlm.Processor),
 	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.leftToRight, p.rightToLeft)
 }
 
 type wordBoundary struct {

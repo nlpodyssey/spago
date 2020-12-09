@@ -48,24 +48,18 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
 		MergeMode: m.MergeMode,
-		Positive:  m.Positive.NewProc(g),
-		Negative:  m.Negative.NewProc(g),
+		Positive:  m.Positive.NewProc(ctx),
+		Negative:  m.Negative.NewProc(ctx),
 	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	p.Positive.SetMode(mode)
-	p.Negative.SetMode(mode)
 }
 
 // Forward performs the forward step for each input and returns the result.

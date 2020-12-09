@@ -45,9 +45,9 @@ type DiscriminatorProcessor struct {
 	*stack.Processor
 }
 
-func (m *Discriminator) NewProc(g *ag.Graph) nn.Processor {
+func (m *Discriminator) NewProc(ctx nn.Context) nn.Processor {
 	return &DiscriminatorProcessor{
-		Processor: m.Model.NewProc(g).(*stack.Processor),
+		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }
 

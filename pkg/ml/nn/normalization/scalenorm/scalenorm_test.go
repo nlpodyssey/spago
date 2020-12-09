@@ -7,6 +7,7 @@ package scalenorm
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -20,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := model.NewProc(g).Forward(x1, x2, x3)
+	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.1091089451, -0.0872871560, 0.0, 0.6982972487}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")

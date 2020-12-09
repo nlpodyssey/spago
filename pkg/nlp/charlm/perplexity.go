@@ -7,6 +7,7 @@ package charlm
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -14,7 +15,7 @@ import (
 // The output of the language model is directly compared to the expected targets extracted from the input itself.
 func CalculatePerplexity(m *Model, text string) float64 {
 	g := ag.NewGraph()
-	proc := m.NewProc(g).(*Processor)
+	proc := m.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
 	sequence := utils.SplitByRune(text)
 	prediction := proc.Predict(sequence...)
 	targets := targetsIds(sequence, m.Vocabulary, m.UnknownToken)

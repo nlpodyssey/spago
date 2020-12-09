@@ -99,31 +99,26 @@ type Processor struct {
 	UnknownEmbedding ag.Node
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	p := &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
-		Decoder: m.Decoder.NewProc(g).(*linear.Processor),
+		Decoder: m.Decoder.NewProc(ctx).(*linear.Processor),
 		Projection: func() *linear.Processor {
 			if m.Config.OutputSize > 0 {
-				return m.Projection.NewProc(g).(*linear.Processor)
+				return m.Projection.NewProc(ctx).(*linear.Processor)
 			}
 			return nil
 		}(),
-		RNN:              m.RNN.NewProc(g),
+		RNN:              m.RNN.NewProc(ctx),
 		usedEmbeddings:   make(map[int]ag.Node),
-		UnknownEmbedding: g.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
+		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
 	}
 	return p
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.RNN, p.Decoder)
 }
 
 func (p *Processor) Predict(xs ...string) []ag.Node {

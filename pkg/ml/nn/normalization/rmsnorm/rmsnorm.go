@@ -33,21 +33,23 @@ func New(size int) *Model {
 
 type Processor struct {
 	nn.BaseProcessor
-	w ag.Node
-	b ag.Node
+	w   ag.Node
+	b   ag.Node
+	eps ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
-		w: g.NewWrap(m.W),
-		b: g.NewWrap(m.B),
+		w:   ctx.Graph.NewWrap(m.W),
+		b:   ctx.Graph.NewWrap(m.B),
+		eps: ctx.Graph.Constant(1e-10),
 	}
 }
 
@@ -55,10 +57,9 @@ func (m *Model) NewProc(g *ag.Graph) nn.Processor {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	g := p.Graph
 	ys := make([]ag.Node, len(xs))
-	eps := g.NewScalar(1e-10)
 	for i, x := range xs {
 		rms := g.Sqrt(g.ReduceMean(g.Square(x)))
-		ys[i] = g.Add(g.Prod(g.DivScalar(x, g.AddScalar(rms, eps)), p.w), p.b)
+		ys[i] = g.Add(g.Prod(g.DivScalar(x, g.AddScalar(rms, p.eps)), p.w), p.b)
 	}
 	return ys
 }

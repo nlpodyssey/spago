@@ -133,7 +133,7 @@ func (t *Trainer) learn(example Sequence) float64 {
 	g := ag.NewGraph()
 	defer g.Clear()
 	xs, ts := extract(g, example)
-	ys := t.model.NewProc(g).Forward(xs...)
+	ys := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(xs...)
 	loss := g.Div(losses.CrossEntropySeq(g, ys, ts, false), g.NewScalar(float64(t.batchSize)))
 	g.Backward(loss)
 	return loss.ScalarValue()

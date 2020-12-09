@@ -29,8 +29,7 @@ func (t *Evaluator) Predict(image *mat.Dense) int {
 	g := ag.NewGraph()
 	defer g.Clear()
 	x := g.NewVariable(image, false)
-	proc := t.model.NewProc(g)
-	proc.SetMode(nn.Inference) // Important!
+	proc := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference})
 	y := proc.Forward(x)[0]
 	return f64utils.ArgMax(y.Value().Data())
 }

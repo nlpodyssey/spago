@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -15,7 +16,7 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
 
 	// == Forward
 
@@ -66,7 +67,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	g := ag.NewGraph()
 
 	yPrev := g.NewVariable(mat.NewVecDense([]float64{0.211, -0.451, 0.499, -1.333, -0.11645, 0.366}), true)
-	proc := model.NewProc(g).(*Processor)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	proc.SetInitialState(&State{Y: yPrev})
 
 	// == Forward
@@ -118,7 +119,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g).(*Processor)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	proc.SetInitialState(&State{
 		Y: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}), true),
 	})

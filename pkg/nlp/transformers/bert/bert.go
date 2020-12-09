@@ -177,28 +177,23 @@ type Processor struct {
 	Classifier      *ClassifierProcessor
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		Embeddings:      m.Embeddings.NewProc(g).(*EmbeddingsProcessor),
-		Encoder:         m.Encoder.NewProc(g).(*EncoderProcessor),
-		Predictor:       m.Predictor.NewProc(g).(*PredictorProcessor),
-		Discriminator:   m.Discriminator.NewProc(g).(*DiscriminatorProcessor),
-		Pooler:          m.Pooler.NewProc(g).(*PoolerProcessor),
-		SeqRelationship: m.SeqRelationship.NewProc(g).(*linear.Processor),
-		SpanClassifier:  m.SpanClassifier.NewProc(g).(*SpanClassifierProcessor),
-		Classifier:      m.Classifier.NewProc(g).(*ClassifierProcessor),
+		Embeddings:      m.Embeddings.NewProc(ctx).(*EmbeddingsProcessor),
+		Encoder:         m.Encoder.NewProc(ctx).(*EncoderProcessor),
+		Predictor:       m.Predictor.NewProc(ctx).(*PredictorProcessor),
+		Discriminator:   m.Discriminator.NewProc(ctx).(*DiscriminatorProcessor),
+		Pooler:          m.Pooler.NewProc(ctx).(*PoolerProcessor),
+		SeqRelationship: m.SeqRelationship.NewProc(ctx).(*linear.Processor),
+		SpanClassifier:  m.SpanClassifier.NewProc(ctx).(*SpanClassifierProcessor),
+		Classifier:      m.Classifier.NewProc(ctx).(*ClassifierProcessor),
 	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.Embeddings, p.Encoder, p.Predictor, p.Pooler, p.SeqRelationship)
 }
 
 func (p *Processor) Encode(tokens []string) []ag.Node {

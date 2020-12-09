@@ -7,6 +7,7 @@ package sqrdist
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{0.3, 0.5, -0.4}), true)
-	y := model.NewProc(g).Forward(x)[0]
+	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.5928}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")

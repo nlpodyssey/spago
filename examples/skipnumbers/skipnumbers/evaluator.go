@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/stats"
 )
 
@@ -30,7 +31,7 @@ func (t *Evaluator) Predict(example example) int {
 	for i, x := range example.xs {
 		xs[i] = g.NewVariable(mat.OneHotVecDense(10, x), false)
 	}
-	y := t.model.NewProc(g).Forward(xs...)[0]
+	y := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).Forward(xs...)[0]
 	return f64utils.ArgMax(y.Value().Data())
 }
 

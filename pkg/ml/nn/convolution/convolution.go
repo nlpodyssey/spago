@@ -62,18 +62,18 @@ type Processor struct {
 	concurrent bool
 }
 
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	k := make([]ag.Node, len(m.K))
 	b := make([]ag.Node, len(m.B))
 	for i := range m.K {
-		k[i] = g.NewWrap(m.K[i])
-		b[i] = g.NewWrap(m.B[i])
+		k[i] = ctx.Graph.NewWrap(m.K[i])
+		b[i] = ctx.Graph.NewWrap(m.B[i])
 	}
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
 		Config:     m.Config,

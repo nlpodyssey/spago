@@ -30,15 +30,15 @@ type Processor struct {
 	w ag.Node
 }
 
-func (m *LinearRegression) NewProc(g *ag.Graph) nn.Processor {
+func (m *LinearRegression) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
-		w: g.NewWrap(m.W),
+		w: ctx.Graph.NewWrap(m.W),
 	}
 }
 

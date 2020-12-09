@@ -103,8 +103,7 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
+	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
 	encoded := proc.Encode(tokenized)
 
 	logits := proc.SequenceClassification(encoded)

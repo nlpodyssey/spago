@@ -93,8 +93,6 @@ func TestModel_Forward_Params(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-
-		g := ag.NewGraph()
 		model := NewWithMomentum(dataSize, tt.momentum)
 		data := make([][]float64, len(testData))
 		for i := range testData {
@@ -103,15 +101,15 @@ func TestModel_Forward_Params(t *testing.T) {
 				data[i][j] = tt.multiplier*testData[i][j] + tt.shift
 			}
 		}
-		x := make([]ag.Node, len(testData))
-		for i := range x {
-			x[i] = g.NewVariable(mat.NewVecDense(data[i]), false)
-		}
 
+		x := make([]ag.Node, len(testData))
 		var y []ag.Node
 		for i := 0; i < tt.forwardSteps; i++ {
-			y = model.NewProc(g).Forward(x...)
-			g.Clear()
+			g := ag.NewGraph()
+			for j := range data {
+				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
+			}
+			y = model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x...)
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -137,8 +135,7 @@ func TestModel_Inference(t *testing.T) {
 	model.Mean = nn.NewParam(mat.NewVecDense([]float64{0.0, 0.0, 1.0}))
 	model.StdDev = nn.NewParam(mat.NewVecDense([]float64{1.0, 0.5, 1.0}))
 	g := ag.NewGraph()
-	proc := model.NewProc(g)
-	proc.SetMode(nn.Inference)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Inference})
 	data := []float64{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense(data), false)
 	y := proc.Forward(x)
@@ -182,7 +179,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(g, model.NewProc(g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(g, model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{1.1828427, 0.2, 0.0, 0.0}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")

@@ -70,33 +70,24 @@ type Processor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(g *ag.Graph) nn.Processor {
+func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
 		Steps:         m.Config.Steps,
-		query:         m.Query.NewProc(g).(*linear.Processor),
-		key:           m.Key.NewProc(g).(*linear.Processor),
-		value:         m.Value.NewProc(g).(*linear.Processor),
-		relayQuery:    m.RelayQuery.NewProc(g).(*linear.Processor),
-		relayKey:      m.RelayKey.NewProc(g).(*linear.Processor),
-		relayValue:    m.RelayValue.NewProc(g).(*linear.Processor),
-		satelliteNorm: m.SatelliteNorm.NewProc(g).(*layernorm.Processor),
-		relayNorm:     m.RelayNorm.NewProc(g).(*layernorm.Processor),
+		query:         m.Query.NewProc(ctx).(*linear.Processor),
+		key:           m.Key.NewProc(ctx).(*linear.Processor),
+		value:         m.Value.NewProc(ctx).(*linear.Processor),
+		relayQuery:    m.RelayQuery.NewProc(ctx).(*linear.Processor),
+		relayKey:      m.RelayKey.NewProc(ctx).(*linear.Processor),
+		relayValue:    m.RelayValue.NewProc(ctx).(*linear.Processor),
+		satelliteNorm: m.SatelliteNorm.NewProc(ctx).(*layernorm.Processor),
+		relayNorm:     m.RelayNorm.NewProc(ctx).(*layernorm.Processor),
 	}
-}
-
-func (p *Processor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode,
-		p.query, p.key, p.value,
-		p.relayQuery, p.relayKey, p.relayValue,
-		p.satelliteNorm, p.relayNorm,
-	)
 }
 
 // Forward performs the forward step returns the results.

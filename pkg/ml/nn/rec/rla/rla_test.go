@@ -7,6 +7,7 @@ package rla
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -14,7 +15,7 @@ import (
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(g).(*Processor)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 
 	// == Forward
 	x0 := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)

@@ -6,6 +6,7 @@ package charlm
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"strings"
 )
@@ -37,7 +38,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 		prefix = m.model.SequenceSeparator
 	}
 	g := ag.NewGraph()
-	proc := m.model.NewProc(g).(*Processor)
+	proc := m.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
 	characters := make([]string, 0)
 	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
 	characters = append(characters, next)

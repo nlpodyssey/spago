@@ -7,6 +7,7 @@ package highway
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -19,7 +20,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := model.NewProc(g).Forward(x)[0]
+	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{-0.456097, -0.855358, -0.79552, 0.844718}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")

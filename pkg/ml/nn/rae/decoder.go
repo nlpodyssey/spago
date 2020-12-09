@@ -46,28 +46,21 @@ func (p *DecoderProcessor) SetSequenceLength(length int) {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Decoder) NewProc(g *ag.Graph) nn.Processor {
+func (m *Decoder) NewProc(ctx nn.Context) nn.Processor {
 	return &DecoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		ffn1:           m.DecodingFNN1.NewProc(g),
-		ffn2:           m.DecodingFFN2.NewProc(g),
-		ffn3:           m.DescalingFFN.NewProc(g),
+		ffn1:           m.DecodingFNN1.NewProc(ctx),
+		ffn2:           m.DecodingFFN2.NewProc(ctx),
+		ffn3:           m.DescalingFFN.NewProc(ctx),
 		sequenceLength: 0, // late init
 		maxRecursions:  0, // late init
 		recursions:     0, // late init
 	}
-}
-
-func (p *DecoderProcessor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	p.ffn1.SetMode(mode)
-	p.ffn2.SetMode(mode)
-	p.ffn3.SetMode(mode)
 }
 
 // Forward performs the forward step for each input and returns the result.

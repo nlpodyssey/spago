@@ -68,8 +68,7 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := s.model.NewProc(g).(*Processor)
-	proc.SetMode(nn.Inference)
+	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
 	encoded := proc.Encode(tokenized)
 	encoded = encoded[1 : len(encoded)-1] // trim [CLS] and [SEP]
 

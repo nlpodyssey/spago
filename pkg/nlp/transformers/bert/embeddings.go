@@ -87,34 +87,29 @@ type EmbeddingsProcessor struct {
 	unknownEmbedding    ag.Node
 }
 
-func (m *Embeddings) NewProc(g *ag.Graph) nn.Processor {
+func (m *Embeddings) NewProc(ctx nn.Context) nn.Processor {
 	var projection *linear.Processor = nil
 	if m.Projector != nil {
-		projection = m.Projector.NewProc(g).(*linear.Processor)
+		projection = m.Projector.NewProc(ctx).(*linear.Processor)
 	}
 	tokenTypeEmbeddings := make([]ag.Node, m.TokenTypes)
 	for i, param := range m.TokenType {
-		tokenTypeEmbeddings[i] = g.NewWrap(param)
+		tokenTypeEmbeddings[i] = ctx.Graph.NewWrap(param)
 	}
 	return &EmbeddingsProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: false,
 		},
 		model:               m,
-		wordsLayer:          m.Word.NewProc(g).(*embeddings.Processor),
-		norm:                m.Norm.NewProc(g).(*layernorm.Processor),
+		wordsLayer:          m.Word.NewProc(ctx).(*embeddings.Processor),
+		norm:                m.Norm.NewProc(ctx).(*layernorm.Processor),
 		projection:          projection,
 		tokenTypeEmbeddings: tokenTypeEmbeddings,
-		unknownEmbedding:    g.NewWrap(m.Word.GetEmbedding(wordpiecetokenizer.DefaultUnknownToken)),
+		unknownEmbedding:    ctx.Graph.NewWrap(m.Word.GetEmbedding(wordpiecetokenizer.DefaultUnknownToken)),
 	}
-}
-
-func (p *EmbeddingsProcessor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.wordsLayer, p.norm, p.projection)
 }
 
 func (p *EmbeddingsProcessor) Encode(words []string) []ag.Node {

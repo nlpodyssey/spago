@@ -124,7 +124,7 @@ func (r *fitnessFunc) callback(solution *mat.Dense, batchIndex int) float64 {
 			defer wg.Done()
 			g := ag.NewGraph()
 			x := g.NewVariable(example.Features, false)
-			y := model.NewProc(g).Forward(x)[0]
+			y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
 			batchLosses[i] = losses.CrossEntropy(g, y, example.Label).ScalarValue()
 		}(i, r.examples[exampleIndex])
 	}
@@ -144,7 +144,7 @@ func (r *validator) callback(solution *mat.Dense) float64 {
 	for _, example := range r.examples {
 		g := ag.NewGraph()
 		x := g.NewVariable(example.Features, false)
-		y := model.NewProc(g).Forward(x)[0]
+		y := model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).Forward(x)[0]
 		argMax := f64utils.ArgMax(y.Value().Data())
 		if argMax == example.Label {
 			counter.IncTruePos()
@@ -168,7 +168,7 @@ func (r *onNewBest) callback(solution *de.ScoredVector) {
 	for _, example := range r.examples {
 		g := ag.NewGraph()
 		x := g.NewVariable(example.Features, false)
-		y := model.NewProc(g).Forward(x)[0]
+		y := model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).Forward(x)[0]
 		argMax := f64utils.ArgMax(y.Value().Data())
 		if argMax == example.Label {
 			counter.IncTruePos()

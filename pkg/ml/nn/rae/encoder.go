@@ -30,24 +30,18 @@ type EncoderProcessor struct {
 }
 
 // NewProc returns a new processor to execute the forward step.
-func (m *Encoder) NewProc(g *ag.Graph) nn.Processor {
+func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
 	return &EncoderProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		ffn1:       m.ScalingFFN.NewProc(g),
-		ffn2:       m.EncodingFFN.NewProc(g),
+		ffn1:       m.ScalingFFN.NewProc(ctx),
+		ffn2:       m.EncodingFFN.NewProc(ctx),
 		recursions: 0,
 	}
-}
-
-func (p *EncoderProcessor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	p.ffn1.SetMode(mode)
-	p.ffn2.SetMode(mode)
 }
 
 func (p *EncoderProcessor) GetRecursions() int {

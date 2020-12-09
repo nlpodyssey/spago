@@ -39,8 +39,8 @@ type PoolerProcessor struct {
 	*stack.Processor
 }
 
-func (m *Pooler) NewProc(g *ag.Graph) nn.Processor {
+func (m *Pooler) NewProc(ctx nn.Context) nn.Processor {
 	return &PoolerProcessor{
-		Processor: m.Model.NewProc(g).(*stack.Processor),
+		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }

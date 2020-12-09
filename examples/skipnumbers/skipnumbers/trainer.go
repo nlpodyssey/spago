@@ -138,7 +138,7 @@ func (t *Trainer) learn(example example) float64 {
 	defer g.Clear()
 
 	xs, target := extract(g, example)
-	proc := t.model.NewProc(g).(*Processor)
+	proc := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	y := proc.Forward(xs...)[0]
 
 	var loss ag.Node

@@ -74,7 +74,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 		ag.ConcurrentComputations(true),
 	)
 	defer g.Clear()
-	proc := t.model.NewProc(g).(*Processor)
+	proc := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 
 	// Split the text into runes and append the sequence separator
 	sequence := utils.SplitByRune(text)

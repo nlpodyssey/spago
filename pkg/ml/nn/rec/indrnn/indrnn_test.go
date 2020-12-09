@@ -7,6 +7,7 @@ package indrnn
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"gonum.org/v1/gonum/floats"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := model.NewProc(g).Forward(x)[0]
+	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{-0.39693, -0.796878, 0.0, 0.701374, -0.187746}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")
@@ -61,7 +62,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
 	yPrev := g.Tanh(g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
-	proc := model.NewProc(g).(*Processor)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	proc.SetInitialState(&State{Y: yPrev})
 	y := proc.Forward(x)[0]
 
@@ -117,7 +118,7 @@ func newTestModel() *Model {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
-	proc := model.NewProc(g).(*Processor)
+	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 	proc.SetInitialState(
 		&State{Y: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0}), true)},
 	)

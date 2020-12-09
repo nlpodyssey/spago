@@ -34,24 +34,19 @@ type EncoderLayerProcessor struct {
 	NormFFN            *layernorm.Processor
 }
 
-func (m *EncoderLayer) NewProc(g *ag.Graph) nn.Processor {
+func (m *EncoderLayer) NewProc(ctx nn.Context) nn.Processor {
 	return &EncoderLayerProcessor{
 		BaseProcessor: nn.BaseProcessor{
 			Model:             m,
-			Mode:              nn.Training,
-			Graph:             g,
+			Mode:              ctx.Mode,
+			Graph:             ctx.Graph,
 			FullSeqProcessing: true,
 		},
-		MultiHeadAttention: m.MultiHeadAttention.NewProc(g).(*multiheadattention.Processor),
-		NormAttention:      m.NormAttention.NewProc(g).(*layernorm.Processor),
-		FFN:                m.FFN.NewProc(g).(*stack.Processor),
-		NormFFN:            m.NormFFN.NewProc(g).(*layernorm.Processor),
+		MultiHeadAttention: m.MultiHeadAttention.NewProc(ctx).(*multiheadattention.Processor),
+		NormAttention:      m.NormAttention.NewProc(ctx).(*layernorm.Processor),
+		FFN:                m.FFN.NewProc(ctx).(*stack.Processor),
+		NormFFN:            m.NormFFN.NewProc(ctx).(*layernorm.Processor),
 	}
-}
-
-func (p *EncoderLayerProcessor) SetMode(mode nn.ProcessingMode) {
-	p.Mode = mode
-	nn.SetProcessingMode(mode, p.MultiHeadAttention, p.NormAttention, p.FFN, p.NormFFN)
 }
 
 func (p *EncoderLayerProcessor) Forward(xs ...ag.Node) []ag.Node {

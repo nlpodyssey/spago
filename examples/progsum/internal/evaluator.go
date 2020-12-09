@@ -30,7 +30,7 @@ func (t *Evaluator) Predict(example Sequence) int {
 	for i, x := range example {
 		xs[i] = g.NewScalar(x.Input)
 	}
-	ys := t.model.NewProc(g).Forward(xs...)
+	ys := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).Forward(xs...)
 	return f64utils.ArgMax(ys[len(example)-1].Value().Data())
 }
 

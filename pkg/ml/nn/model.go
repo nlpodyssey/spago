@@ -7,7 +7,6 @@ package nn
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
 	"reflect"
@@ -17,7 +16,7 @@ import (
 // Model contains the serializable parameters.
 type Model interface {
 	// NewProc returns a new processor to execute the forward step.
-	NewProc(g *ag.Graph) Processor
+	NewProc(ctx Context) Processor
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.

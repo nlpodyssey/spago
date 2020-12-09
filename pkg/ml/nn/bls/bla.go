@@ -43,7 +43,7 @@ func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
 	for _, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
-		p := l.Model.NewProc(g).(*Processor)
+		p := l.Model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 		for j := 0; j < p.NumOfFeatures; j++ {
 			featuresMap[j] = append(featuresMap[j], nn.Affine(p.Graph, p.bz[j], p.wz[j], x).Value())
 		}
@@ -61,7 +61,7 @@ func (l *BroadLearningAlgorithm) zhs() []mat.Matrix {
 	for i, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
-		proc := l.Model.NewProc(g).(*Processor)
+		proc := l.Model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
 		zhs[i] = singleZH(proc, x)
 	}
 	return zhs
