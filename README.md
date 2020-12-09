@@ -160,3 +160,14 @@ If you really want to write to me privately, please email [Matteo Grella](mailto
 ## Acknowledgments
 
 spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here, which is providing full support for development by promoting the project and giving it increasing importance.
+
+## Sponsors
+
+I appreciate contributions of all kinds. I especially want to thank spaGO fiscal sponsors who contribute to ongoing project maintenance.
+
+![Faire.ai logo](https://github.com/nlpodyssey/spago/blob/main/assets/sponsors/faire_ai_logo.png)
+
+> Our aim is simplifying people's life by making lending easy, fast and accessible, leveraging Open Banking and Artificial Intelligence.
+> https://www.faire.ai/
+
+See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.
