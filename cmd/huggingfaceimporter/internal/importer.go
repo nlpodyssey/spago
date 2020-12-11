@@ -5,6 +5,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingfacedownloader"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
@@ -104,12 +105,26 @@ func (a *ImporterArgs) RunImporter() error {
 		}
 	}
 
+	return a.convertPreTrainedDataset(repo)
+}
+
+func (a *ImporterArgs) convertPreTrainedDataset(repo string) error {
 	writeMsg("Configuring/converting dataset...")
-	if err := bert.ConvertHuggingFacePreTrained(path.Join(repo, a.Model)); err != nil {
+
+	configFilePath := path.Join(repo, a.Model, huggingfacedownloader.ModelConfigFilename)
+	config, err := huggingfacedownloader.ReadCommonModelConfig(configFilePath)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	switch config.ModelType {
+	case "bart":
+		panic("BART conversion not implemented")
+	case "bert", "electra":
+		return bert.ConvertHuggingFacePreTrained(path.Join(repo, a.Model))
+	default:
+		return fmt.Errorf("unsupported model type: `%s`", config.ModelType)
+	}
 }
 
 // RunImporterCli runs the importer from the command line.

@@ -87,6 +87,7 @@ const (
 // supportedModelsFiles contains the set of all supported model types as keys,
 // mapped with the set of all related files to download.
 var supportedModelsFiles = map[string][]string{
+	"bart":    {"pytorch_model.bin", "vocab.json", "merges.txt"},
 	"bert":    {"pytorch_model.bin", "vocab.txt"},
 	"electra": {"pytorch_model.bin", "vocab.txt"},
 }
