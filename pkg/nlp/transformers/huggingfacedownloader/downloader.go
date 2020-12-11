@@ -58,6 +58,10 @@ func (d *Downloader) Download() error {
 		return err
 	}
 
+	return d.downloadModelSpecificFiles()
+}
+
+func (d *Downloader) downloadModelSpecificFiles() error {
 	config, err := ReadCommonModelConfig(d.configFilePath)
 	if err != nil {
 		return err
