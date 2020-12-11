@@ -270,11 +270,7 @@ func (p *Processor) optReLU(x ag.Node) ag.Node {
 
 func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
 	if p.UseReLU {
-		ys := make([]ag.Node, len(xs))
-		for i, x := range xs {
-			ys[i] = p.Graph.ReLU(x)
-		}
-		return ys
+		return ag.Map(func(x ag.Node) ag.Node { return p.Graph.ReLU(x) }, xs)
 	} else {
 		return xs
 	}

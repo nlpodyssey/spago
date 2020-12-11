@@ -53,10 +53,9 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
 	activation := p.Model.(*Model).Activation
-	for i, x := range xs {
-		ys[i] = p.Graph.Invoke(activation, append([]ag.Node{x}, p.params...)...)
+	transformed := func(x ag.Node) ag.Node {
+		return p.Graph.Invoke(activation, append([]ag.Node{x}, p.params...)...)
 	}
-	return ys
+	return ag.Map(transformed, xs)
 }

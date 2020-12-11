@@ -47,15 +47,9 @@ func (m *MaxPooling) NewProc(ctx nn.Context) nn.Processor {
 // Forward performs the forward step for each input and returns the result.
 // The max pooling is applied independently to each input.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
-	r, c := p.poolingDims()
-	for i, x := range xs {
-		ys[i] = p.Graph.MaxPooling(x, r, c)
-	}
-	return ys
-}
-
-func (p *Processor) poolingDims() (r, c int) {
 	m := p.BaseProcessor.Model.(*MaxPooling)
-	return m.Rows, m.Columns
+	pooled := func(x ag.Node) ag.Node {
+		return p.Graph.MaxPooling(x, m.Rows, m.Columns)
+	}
+	return ag.Map(pooled, xs)
 }

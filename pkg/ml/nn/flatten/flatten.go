@@ -41,13 +41,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	return []ag.Node{p.Graph.Concat(p.vectorize(xs...)...)}
-}
-
-func (p *Processor) vectorize(xs ...ag.Node) []ag.Node {
-	ret := make([]ag.Node, len(xs))
-	for i, x := range xs {
-		ret[i] = p.Graph.Vec(x)
+	vectorized := func(x ag.Node) ag.Node {
+		return p.Graph.Vec(x)
 	}
-	return ret
+	return []ag.Node{p.Graph.Concat(ag.Map(vectorized, xs)...)}
 }
