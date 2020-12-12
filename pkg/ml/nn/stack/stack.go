@@ -26,6 +26,17 @@ func New(layers ...nn.Model) *Model {
 	}
 }
 
+// Make makes a new model by obtaining each layer with a callback.
+func Make(size int, callback func(i int) nn.Model) *Model {
+	layers := make([]nn.Model, size)
+	for i := 0; i < size; i++ {
+		layers[i] = callback(i)
+	}
+	return &Model{
+		Layers: layers,
+	}
+}
+
 func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
