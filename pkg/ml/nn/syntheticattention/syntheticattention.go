@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// This is an implementation of the Synthetic Attention described in:
+// Package syntheticattention provides an implementation of the Synthetic Attention described in:
 // "SYNTHESIZER: Rethinking Self-Attention in Transformer Models" by Tay et al., 2020.
 // (https://arxiv.org/pdf/2005.00743.pdf)
 package syntheticattention

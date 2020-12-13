@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// LSH-Attention as in `Reformer: The Efficient Transformer` by N. Kitaev, Ł. Kaiser, A. Levskaya.
+// Package lshattention provides an implementation of the LSH-Attention model, as
+// describe in `Reformer: The Efficient Transformer` by N. Kitaev, Ł. Kaiser, A. Levskaya
+// (https://arxiv.org/pdf/2001.04451.pdf).
 // TODO: Check compatibility with the LSH Attention implemented by Hugging Face:
 // TODO: https://huggingface.co/transformers/model_doc/reformer.html
 package lshattention

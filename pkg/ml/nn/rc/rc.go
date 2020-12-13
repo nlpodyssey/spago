@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// This package contains built-in Residual Connections (RC).
+// Package rc contains built-in Residual Connections (RC).
 package rc
 
 import "github.com/nlpodyssey/spago/pkg/ml/ag"

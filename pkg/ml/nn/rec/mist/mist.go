@@ -3,8 +3,9 @@
 // license that can be found in the LICENSE file.
 
 /*
-Implementation of the MIST (MIxed hiSTory) recurrent network as described in "Analyzing and Exploiting NARX Recurrent
-Neural Networks for Long-Term Dependencies" by Di Pietro et al., 2018 (https://arxiv.org/pdf/1702.07805.pdf).
+Package mist provides an implementation of the MIST (MIxed hiSTory) recurrent network as
+described in "Analyzing and Exploiting NARX Recurrent Neural Networks for Long-Term Dependencies"
+by Di Pietro et al., 2018 (https://arxiv.org/pdf/1702.07805.pdf).
 */
 package mist
 

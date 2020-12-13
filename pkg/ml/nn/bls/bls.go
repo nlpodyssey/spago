@@ -3,9 +3,9 @@
 // license that can be found in the LICENSE file.
 
 /*
-Implementation of the Broad Learning System (BLS) described in "Broad Learning System: An Effective and Efficient
-Incremental Learning System Without the Need for Deep Architecture" by C. L. Philip Chen and Zhulin Liu, 2017.
-(https://ieeexplore.ieee.org/document/7987745)
+Package bls provides an implementation of the Broad Learning System (BLS) described in "Broad Learning System:
+An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture" by C. L. Philip Chen
+and Zhulin Liu, 2017. (https://ieeexplore.ieee.org/document/7987745)
 
 The "Model" contains only the inference part of the Broad Learning System.
 The ridge regression approximation training is performed by the "BroadLearningAlgorithm".

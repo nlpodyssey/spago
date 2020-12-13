@@ -48,7 +48,7 @@ type HyperLinear4 struct {
 	B *nn.Param `type:"biases"`
 }
 
-// HyperLinear4 groups multiple params for an affine transformation.
+// HyperLinear3 groups multiple params for an affine transformation.
 type HyperLinear3 struct {
 	W *nn.Param `type:"weights"`
 	U *nn.Param `type:"weights"`

@@ -47,7 +47,7 @@ type Processor interface {
 	Forward(xs ...ag.Node) []ag.Node
 }
 
-// BaseProcessors satisfies some methods of the Processor interface.
+// BaseProcessor satisfies some methods of the Processor interface.
 // It is meant to be embedded in other processors to reduce the amount of boilerplate code.
 type BaseProcessor struct {
 	Model             Model

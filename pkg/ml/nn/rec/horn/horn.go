@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Higher Order Recurrent Neural Networks (HORN)
+// Package horn provides an implementation of Higher Order Recurrent Neural Networks (HORN).
 package horn
 
 import (

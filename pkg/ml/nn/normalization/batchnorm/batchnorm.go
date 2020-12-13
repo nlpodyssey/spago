@@ -26,7 +26,7 @@ type Model struct {
 
 const defaultMomentum = 0.9
 
-// New returns a new model with supplied size and momentum
+// NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),

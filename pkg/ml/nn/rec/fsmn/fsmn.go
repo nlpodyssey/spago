@@ -17,8 +17,9 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// This is variant of the Feedforward Sequential Memory Networks (https://arxiv.org/pdf/1512.08301.pdf) where the
-// neurons in the same hidden layer are independent of each other and they are connected across layers as in the IndRNN.
+// Model implements a variant of the Feedforward Sequential Memory Networks
+// (https://arxiv.org/pdf/1512.08301.pdf) where the neurons in the same hidden layer
+// are independent of each other and they are connected across layers as in the IndRNN.
 type Model struct {
 	W     *nn.Param   `type:"weights"`
 	WRec  *nn.Param   `type:"weights"`
@@ -46,7 +47,6 @@ type State struct {
 	Y ag.Node
 }
 
-// Model contains the serializable parameters.
 type Processor struct {
 	nn.BaseProcessor
 	order  int

@@ -3,8 +3,10 @@
 // license that can be found in the LICENSE file.
 
 /*
-Implementation of the recursive auto-encoder strategy described in "Towards Lossless Encoding of Sentences" by Prato et al., 2019.
-Unlike the method described in the paper above, here I opted to use the positional encoding introduced by Vaswani et al. (2017) for the step encoding.
+Package rae provides an implementation of the recursive auto-encoder strategy described in
+"Towards Lossless Encoding of Sentences" by Prato et al., 2019.
+Unlike the method described in the paper above, here I opted to use the positional encoding
+introduced byVaswani et al. (2017) for the step encoding.
 */
 package rae
 

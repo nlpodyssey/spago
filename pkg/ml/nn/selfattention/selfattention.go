@@ -90,7 +90,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return context
 }
 
-// Forward performs the forward step for each input and returns the result.
+// ForwardQKV performs the forward step for each input and returns the result.
 func (p *Processor) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
 	qsProj := p.query.Forward(qs...)
 	ksProj := p.key.Forward(ks...)
