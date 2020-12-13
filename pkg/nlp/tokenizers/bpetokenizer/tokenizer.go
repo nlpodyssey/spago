@@ -6,6 +6,7 @@ package bpetokenizer
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/gotokenizers/encodings"
 	"github.com/nlpodyssey/gotokenizers/models"
 	"github.com/nlpodyssey/gotokenizers/models/bpemodel"
 	"github.com/nlpodyssey/gotokenizers/normalizedstring"
@@ -141,4 +142,30 @@ func (t *BPETokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 	}
 
 	return result
+}
+
+// Encode converts a text into an encoded tokens representation useful for Transformer architectures.
+// It tokenizes using byte-level pre-tokenization and BPE tokenization.
+func (t *BPETokenizer) Encode(text string) *encodings.Encoding {
+	pts := pretokenizedstring.FromString(text)
+
+	err := t.preTokenizer.PreTokenize(pts)
+	if err != nil {
+		panic(fmt.Sprintf("BPETokenizer PreTokenize error: %v", err))
+	}
+
+	err = pts.Tokenize(
+		func(ns *normalizedstring.NormalizedString) ([]models.Token, error) {
+			return t.model.Tokenize(ns.Get())
+		},
+	)
+	if err != nil {
+		panic(fmt.Sprintf("BPETokenizer Tokenize error: %v", err))
+	}
+
+	encoding, err := pts.IntoEncoding(0, 0)
+	if err != nil {
+		panic(fmt.Sprintf("BPETokenizer Encoding error: %v", err))
+	}
+	return encoding
 }
