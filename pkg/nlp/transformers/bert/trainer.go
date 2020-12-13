@@ -135,8 +135,8 @@ func (t *Trainer) getMaskedForm(orig string) string {
 	case prob < 0.80:
 		return wordpiecetokenizer.DefaultMaskToken
 	case prob < 0.90:
-		randomId := int(math.Floor(t.randGen.Float64() * float64(t.model.Vocabulary.Size())))
-		newWord, _ := t.model.Vocabulary.Term(randomId)
+		randomID := int(math.Floor(t.randGen.Float64() * float64(t.model.Vocabulary.Size())))
+		newWord, _ := t.model.Vocabulary.Term(randomID)
 		return newWord
 	default:
 		return orig

@@ -17,7 +17,7 @@ type Provider interface {
 }
 
 type Vocabulary struct {
-	maxId   int64
+	maxID   int64
 	terms   map[string]int
 	inverse []string
 }
@@ -25,7 +25,7 @@ type Vocabulary struct {
 // New returns a new vocabulary populated with the terms.
 func New(terms []string) *Vocabulary {
 	c := &Vocabulary{
-		maxId:   -1,
+		maxID:   -1,
 		terms:   make(map[string]int),
 		inverse: make([]string, 0),
 	}
@@ -73,9 +73,9 @@ func (c *Vocabulary) MustId(term string) int {
 
 // Term returns the term given the ID, and whether or not it was found in the vocabulary.
 func (c *Vocabulary) Term(id int) (string, bool) {
-	size := atomic.LoadInt64(&c.maxId)
-	maxId := int(size)
-	if id >= maxId {
+	size := atomic.LoadInt64(&c.maxID)
+	maxID := int(size)
+	if id >= maxID {
 		return "", false
 	}
 	return c.inverse[id], true
@@ -97,7 +97,7 @@ func (c *Vocabulary) Add(term string) int {
 	if id, ok := c.terms[term]; ok {
 		return id
 	}
-	id := atomic.AddInt64(&c.maxId, 1)
+	id := atomic.AddInt64(&c.maxID, 1)
 	c.terms[term] = int(id)
 	c.inverse = append(c.inverse, term)
 	return int(id)
@@ -105,7 +105,7 @@ func (c *Vocabulary) Add(term string) int {
 
 // Size returns the size of the vocabulary.
 func (c *Vocabulary) Size() int {
-	size := atomic.LoadInt64(&c.maxId)
+	size := atomic.LoadInt64(&c.maxID)
 	return int(size)
 }
 

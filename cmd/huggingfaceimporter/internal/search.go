@@ -65,9 +65,9 @@ func LookupFromHuggingFace(searchQuery string) (string, error) {
 }
 
 // ParseSearchResults parses search results json.
-func ParseSearchResults(dataJson []byte) ([]*ModelCard, error) {
+func ParseSearchResults(dataJSON []byte) ([]*ModelCard, error) {
 	var res []*ModelCard
-	if err := json.Unmarshal(dataJson, &res); err != nil {
+	if err := json.Unmarshal(dataJSON, &res); err != nil {
 		return nil, err
 	}
 	return res, nil

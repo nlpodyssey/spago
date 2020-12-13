@@ -53,31 +53,31 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 		} else if a.Model == searchStr {
 			// Check if data already is cached.
 			cacheFilePath := path.Join(repo, CacheFileName)
-			var dataJson string
+			var dataJSON string
 			if _, err := os.Stat(cacheFilePath); err == nil {
 				dataBin, err := ioutil.ReadFile(cacheFilePath)
 				if err != nil {
 					writeMsg("Could not read cache file, skipping: " + err.Error())
 				}
-				dataJson = string(dataBin)
+				dataJSON = string(dataBin)
 			}
-			if len(dataJson) == 0 {
+			if len(dataJSON) == 0 {
 				writeMsg("Loading data from " + modelsURL)
-				dataJson, err = LookupFromHuggingFace("")
+				dataJSON, err = LookupFromHuggingFace("")
 				if err != nil {
 					return errors.Wrap(err, "load data from "+modelsURL)
 				}
 			}
-			if len(dataJson) == 0 {
+			if len(dataJSON) == 0 {
 				return errors.New("fetch returned no data from " + modelsURL)
 			}
 			// parse
-			srData, err := ParseSearchResults([]byte(dataJson))
+			srData, err := ParseSearchResults([]byte(dataJSON))
 			if err != nil {
 				return errors.Wrap(err, "parse search results data")
 			}
 			// write cache
-			if err := ioutil.WriteFile(cacheFilePath, []byte(dataJson), 0644); err != nil {
+			if err := ioutil.WriteFile(cacheFilePath, []byte(dataJSON), 0644); err != nil {
 				writeMsg("Unable to write cache file: " + err.Error())
 			}
 

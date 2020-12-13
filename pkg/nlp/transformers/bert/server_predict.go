@@ -77,7 +77,7 @@ func (s *Server) predict(text string) *Response {
 	}
 
 	retTokens := make([]Token, 0)
-	for tokenId, prediction := range proc.PredictMasked(encoded, masked) {
+	for tokenID, prediction := range proc.PredictMasked(encoded, masked) {
 		bestPredictedWordIndex := f64utils.ArgMax(prediction.Value().Data())
 		word, ok := s.model.Vocabulary.Term(bestPredictedWordIndex)
 		if !ok {
@@ -86,8 +86,8 @@ func (s *Server) predict(text string) *Response {
 		label := DefaultPredictedLabel
 		retTokens = append(retTokens, Token{
 			Text:  word,
-			Start: origTokens[tokenId-1].Offsets.Start, // skip CLS
-			End:   origTokens[tokenId-1].Offsets.End,   // skip CLS
+			Start: origTokens[tokenID-1].Offsets.Start, // skip CLS
+			End:   origTokens[tokenID-1].Offsets.End,   // skip CLS
 			Label: label,
 		})
 	}
