@@ -103,7 +103,7 @@ func (t *BaseTokenizer) splitOn(text string, shouldSplit func(rune) bool, includ
 		} else {
 			word = append(word, r)
 		}
-		offset += 1
+		offset++
 	}
 
 	// Don't forget the potential last word

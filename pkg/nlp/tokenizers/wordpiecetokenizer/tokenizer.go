@@ -104,7 +104,7 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 					}
 					break
 				}
-				end -= 1
+				end--
 			}
 			if !found {
 				isBad = true

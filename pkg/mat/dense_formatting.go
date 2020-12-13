@@ -77,7 +77,7 @@ func writeFormattedValue(f fmt.State, buf, spaceBuf []byte, maxW lrWidth) {
 		leftPadding = maxW.left - len(buf)
 		rightPadding = maxW.right
 		if rightPadding > 0 {
-			rightPadding += 1
+			rightPadding++
 		}
 	}
 

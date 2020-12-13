@@ -39,7 +39,7 @@ func (s *SparseMax) Backward(gy mat.Matrix) {
 		for i := range output {
 			if output[i] != 0 {
 				nzSum += gy.At(i, 0)
-				nzCount += 1
+				nzCount++
 			}
 		}
 		nzSum = nzSum / nzCount
