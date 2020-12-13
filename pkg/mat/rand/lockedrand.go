@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// LockedSource is an implementation of rand.Rand that is concurrency-safe.
+// LockedRand is an implementation of rand.Rand that is concurrency-safe.
 // It is just a wrap of the standard rand.Rand with its operations protected by a sync.Mutex.
 type LockedRand struct {
 	lk sync.Mutex
