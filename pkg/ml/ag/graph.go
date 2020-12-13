@@ -45,7 +45,7 @@ type Graph struct {
 	randGen *rand.LockedRand
 }
 
-// GraphOptions allows to configure a new Graph with your specific needs.
+// GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
 
 // Rand sets the generator of random numbers.
@@ -129,9 +129,10 @@ func (g *Graph) clearCache() {
 	g.cache.height = nil
 }
 
-// ClearForReuse() does the same thing as Clear(), with the difference that the graph structure i.e. how nodes are
-// connected to each other, is maintained.
-// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll() method for this usage).
+// ClearForReuse does the same thing as Clear(), with the difference that the graph structure (i.e.
+// how nodes are connected to each other) is maintained.
+// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll()
+// method for this usage).
 func (g *Graph) ClearForReuse() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -394,8 +395,8 @@ func (g *Graph) BackwardAll() {
 	}
 }
 
-// GetValues returns a copy of the value of a node. If the value is nil, GetCopiedValue returns nil.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
@@ -405,8 +406,8 @@ func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
 	return node.Value().Clone()
 }
 
-// GetValues returns a copy of the gradients of a node. If the gradients are nil, GetCopiedGrad returns nil.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
@@ -416,7 +417,6 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 	return node.Grad().Clone()
 }
 
-// ReplaceValue
 func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	if node, ok := node.(*variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
