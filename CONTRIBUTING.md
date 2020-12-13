@@ -30,6 +30,13 @@ Install the following tools like this, if you haven't already.
 brew install protobuf
 go get -u github.com/golang/protobuf/proto
 go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/grpc
+```
+
+```console
+go install \
+    google.golang.org/protobuf/cmd/protoc-gen-go \
+    google.golang.org/grpc/cmd/protoc-gen-go-grpc
 ```
 
 ### Generate API source

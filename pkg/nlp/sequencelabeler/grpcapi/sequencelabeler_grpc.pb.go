@@ -11,7 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion7
 
 // SequenceLabelerClient is the client API for SequenceLabeler service.
 //
@@ -31,7 +31,7 @@ func NewSequenceLabelerClient(cc grpc.ClientConnInterface) SequenceLabelerClient
 
 func (c *sequenceLabelerClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error) {
 	out := new(AnalyzeReply)
-	err := c.cc.Invoke(ctx, "/grpcapi.SequenceLabeler/Analyze", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/SequenceLabeler/Analyze", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +51,19 @@ type SequenceLabelerServer interface {
 type UnimplementedSequenceLabelerServer struct {
 }
 
-func (*UnimplementedSequenceLabelerServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error) {
+func (UnimplementedSequenceLabelerServer) Analyze(context.Context, *AnalyzeRequest) (*AnalyzeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Analyze not implemented")
 }
-func (*UnimplementedSequenceLabelerServer) mustEmbedUnimplementedSequenceLabelerServer() {}
+func (UnimplementedSequenceLabelerServer) mustEmbedUnimplementedSequenceLabelerServer() {}
 
-func RegisterSequenceLabelerServer(s *grpc.Server, srv SequenceLabelerServer) {
+// UnsafeSequenceLabelerServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SequenceLabelerServer will
+// result in compilation errors.
+type UnsafeSequenceLabelerServer interface {
+	mustEmbedUnimplementedSequenceLabelerServer()
+}
+
+func RegisterSequenceLabelerServer(s grpc.ServiceRegistrar, srv SequenceLabelerServer) {
 	s.RegisterService(&_SequenceLabeler_serviceDesc, srv)
 }
 
@@ -70,7 +77,7 @@ func _SequenceLabeler_Analyze_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/grpcapi.SequenceLabeler/Analyze",
+		FullMethod: "/SequenceLabeler/Analyze",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SequenceLabelerServer).Analyze(ctx, req.(*AnalyzeRequest))
@@ -79,7 +86,7 @@ func _SequenceLabeler_Analyze_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 var _SequenceLabeler_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "grpcapi.SequenceLabeler",
+	ServiceName: "SequenceLabeler",
 	HandlerType: (*SequenceLabelerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -88,5 +95,5 @@ var _SequenceLabeler_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "grpcapi/sequencelabeler.proto",
+	Metadata: "sequencelabeler.proto",
 }

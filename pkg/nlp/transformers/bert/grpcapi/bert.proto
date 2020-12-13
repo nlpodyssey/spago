@@ -1,5 +1,6 @@
 syntax = "proto3";
-package grpcapi;
+
+option go_package = "github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi";
 
 // The BERT service definition.
 service BERT {
