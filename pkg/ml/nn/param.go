@@ -142,7 +142,7 @@ func (r *Param) ReplaceValue(value mat.Matrix) {
 	}
 }
 
-// ScalarValue() returns the the scalar value of the node.
+// ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
 func (r *Param) ScalarValue() float64 {
@@ -322,7 +322,6 @@ func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
 	return n, err
 }
 
-//
 func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
 	var h header
 	n, err := h.unmarshalBinaryFrom(r)
