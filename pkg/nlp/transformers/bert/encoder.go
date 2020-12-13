@@ -61,23 +61,25 @@ func (p *EncoderProcessor) LayerAt(index int) *EncoderLayerProcessor {
 
 // NewBertEncoder returns a new BERT encoder model composed of a stack of N identical BERT encoder layers.
 func NewBertEncoder(config EncoderConfig) *Encoder {
-	layers := make([]nn.Model, config.NumOfLayers)
-	for layerIndex := range layers {
-		layers[layerIndex] = &EncoderLayer{
-			MultiHeadAttention: multiheadattention.New(config.Size, config.NumOfAttentionHeads),
-			NormAttention:      layernorm.New(config.Size),
-			FFN: stack.New(
-				linear.New(config.Size, config.IntermediateSize),
-				activation.New(config.IntermediateActivation),
-				linear.New(config.IntermediateSize, config.Size),
-			),
-			NormFFN: layernorm.New(config.Size),
-			Index:   layerIndex,
-		}
-	}
 	return &Encoder{
 		EncoderConfig: config,
-		Model:         stack.New(layers...),
+		Model: stack.Make(config.NumOfLayers, func(i int) nn.Model {
+			return &EncoderLayer{
+				MultiHeadAttention: multiheadattention.New(
+					config.Size,
+					config.NumOfAttentionHeads,
+					false, // don't use causal mask
+				),
+				NormAttention: layernorm.New(config.Size),
+				FFN: stack.New(
+					linear.New(config.Size, config.IntermediateSize),
+					activation.New(config.IntermediateActivation),
+					linear.New(config.IntermediateSize, config.Size),
+				),
+				NormFFN: layernorm.New(config.Size),
+				Index:   i,
+			}
+		}),
 	}
 }
 
@@ -85,8 +87,12 @@ func NewBertEncoder(config EncoderConfig) *Encoder {
 // In this variant the stack of N identical BERT encoder layers share the same parameters.
 func NewAlbertEncoder(config EncoderConfig) *Encoder {
 	sharedLayer := &EncoderLayer{
-		MultiHeadAttention: multiheadattention.New(config.Size, config.NumOfAttentionHeads),
-		NormAttention:      layernorm.New(config.Size),
+		MultiHeadAttention: multiheadattention.New(
+			config.Size,
+			config.NumOfAttentionHeads,
+			false, // don't use causal mask
+		),
+		NormAttention: layernorm.New(config.Size),
 		FFN: stack.New(
 			linear.New(config.Size, config.IntermediateSize),
 			activation.New(config.IntermediateActivation),
@@ -94,12 +100,10 @@ func NewAlbertEncoder(config EncoderConfig) *Encoder {
 		),
 		NormFFN: layernorm.New(config.Size),
 	}
-	layers := make([]nn.Model, config.NumOfLayers)
-	for layerIndex := range layers {
-		layers[layerIndex] = sharedLayer
-	}
 	return &Encoder{
 		EncoderConfig: config,
-		Model:         stack.New(layers...),
+		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Model {
+			return sharedLayer
+		}),
 	}
 }
