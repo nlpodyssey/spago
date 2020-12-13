@@ -10,7 +10,7 @@ import (
 
 var _ Function = &UnaryElementwise{}
 
-// Single-input, element-wise function.
+// UnaryElementwise is a single-input element-wise function.
 type UnaryElementwise struct {
 	x  Operand
 	f  func(i, j int, v float64) float64 // function

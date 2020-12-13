@@ -11,7 +11,7 @@ import (
 
 var _ Function = &Softmax{}
 
-// Single-input, softmax function.
+// Softmax is a single-input softmax function.
 type Softmax struct {
 	x Operand
 	y mat.Matrix // initialized during the forward pass (required by the backward pass)

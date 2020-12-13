@@ -10,7 +10,8 @@ import (
 
 var _ Function = &Swish{}
 
-// Swish(x) = ​x * sigmoid
+// Swish function: f(x) = x * sigmoid.
+//
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
 type Swish struct {

@@ -8,12 +8,12 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &RowView{}
 
+// RowView is a function to extract the i-th row from the input matrix.
 type RowView struct {
 	x Operand
 	i int
 }
 
-// Extract the i-th row from the input matrix
 func NewRowView(x Operand, i int) *RowView {
 	if i < 0 {
 		panic("fn: invalid row index")

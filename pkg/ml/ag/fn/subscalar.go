@@ -10,7 +10,7 @@ import (
 
 var _ Function = &SubScalar{}
 
-// Element-wise subtraction with a scalar value.
+// SubScalar is an element-wise subtraction function with a scalar value.
 type SubScalar struct {
 	x1 Operand
 	x2 Operand // scalar

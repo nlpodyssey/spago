@@ -10,7 +10,7 @@ import (
 
 var _ Function = &Sub{}
 
-// Element-wise subtraction over two values.
+// Sub is an element-wise subtraction function over two values.
 type Sub struct {
 	x1 Operand
 	x2 Operand

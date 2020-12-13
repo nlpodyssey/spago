@@ -10,7 +10,7 @@ import (
 
 var _ Function = &SoftPlus{}
 
-// SoftPlus(x) = 1/ β ​∗ log( 1 + exp(β ∗ x))
+// SoftPlus function: f(x) = 1 / β ∗ log(1 + exp(β ∗ x))
 type SoftPlus struct {
 	x         Operand
 	beta      Operand
