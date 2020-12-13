@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-// Gradients Descent (GD) Optimizer
+// GradientDescent implements Gradients Descent (GD) optimization.
 type GradientDescent struct {
 	method           Method // optimization method (SGD, AdaGrad, Adam, ...)
 	gradClipper      clipper.GradClipper
