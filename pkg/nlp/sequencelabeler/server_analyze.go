@@ -58,7 +58,7 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// Sends a request to /analyze.
+// Analyze sends a request to /analyze.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
 func (s *Server) Analyze(ctx context.Context, req *grpcapi.AnalyzeRequest) (*grpcapi.AnalyzeReply, error) {
 	analysis, took := s.process(req.GetText(), req.GetMergeEntities())

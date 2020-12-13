@@ -42,7 +42,7 @@ func (m *Classifier) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
-// Predicts return the logits.
+// Predict returns the logits.
 func (p *ClassifierProcessor) Predict(xs []ag.Node) []ag.Node {
 	return p.Forward(xs...)
 }

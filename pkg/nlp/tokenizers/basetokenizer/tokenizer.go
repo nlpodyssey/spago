@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// BaseTokenizer is a very simple tokenizer that splits per white-spaces (and alike) and punctuation symbols.
-// Please note that abbreviations, real numbers, apostrophes and other expressions are tokenized without any linguistic
-// criteria. It makes disasters on URLs, emails, etc.
+// Package basetokenizer provides an implementation of a very simple tokenizer that splits by
+// white-spaces (and alike) and punctuation symbols.
+// Please note that abbreviations, real numbers, apostrophes and other expressions are tokenized
+// without any linguistic criteria. It makes disasters on URLs, emails, etc.
 package basetokenizer
 
 import (

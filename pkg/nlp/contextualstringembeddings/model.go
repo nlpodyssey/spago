@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Implementation of the "Contextual String Embeddings" of words (Akbik et al., 2018).
+// Package contextualstringembeddings provides an implementation of the "Contextual String Embeddings"
+// of words (Akbik et al., 2018).
 // https://www.aclweb.org/anthology/C18-1139/
 package contextualstringembeddings
 

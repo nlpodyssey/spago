@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// CharLM implements a character-level language model that uses a recurrent neural network as its backbone.
-// A fully connected softmax layer (a.k.a decoder) is placed on top of each recurrent hidden state to predict
-// the next character.
+// Package charlm provides an implementation of a character-level language model that uses a
+// recurrent neural network as its backbone.
+// A fully connected softmax layer (a.k.a decoder) is placed on top of each recurrent hidden
+// state to predict the next character.
 package charlm
 
 import (

@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Implementation of a sequence labeling architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
+// Package sequencelabeler provides an implementation of a sequence labeling
+//architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
 package sequencelabeler
 
 import (

@@ -111,8 +111,8 @@ func (m *Model) Count() int {
 	return len(keys)
 }
 
-// SetEmbeddings inserts a new word embeddings.
-// If the word is already on the map, overwrites the existing value with the new one.
+// SetEmbedding inserts a new word embedding.
+// If the word is already on the map, it overwrites the existing value with the new one.
 func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
@@ -213,7 +213,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
-// Encodes returns the embeddings associated with the input words.
+// Encode returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes
 // are nil or the `ZeroEmbedding`, depending on the configuration.
