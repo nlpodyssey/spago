@@ -23,8 +23,8 @@ type wrapper struct {
 	wrapGrad bool
 }
 
-// Id returns the id of the node in the graph.
-func (r *wrapper) Id() int64 {
+// ID returns the ID of the node in the graph.
+func (r *wrapper) ID() int64 {
 	return r.id
 }
 

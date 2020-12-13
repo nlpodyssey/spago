@@ -38,7 +38,7 @@ type Graph struct {
 		maxID int64
 		// nodes grouped by height
 		nodesByHeight [][]Node
-		// the nodes height. The index corresponds to the node Id.
+		// the nodes height. The index corresponds to the node ID.
 		height []int
 	}
 	// randGen is the generator of random numbers
@@ -456,7 +456,7 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 				}
 			}
 		}
-		height[node.Id()] = h
+		height[node.ID()] = h
 		if h == len(groups) {
 			groups = append(groups, make([]Node, 0, 1))
 		}
