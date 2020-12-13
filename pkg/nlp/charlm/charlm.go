@@ -117,7 +117,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 		}(),
 		RNN:              m.RNN.NewProc(ctx),
 		usedEmbeddings:   make(map[int]ag.Node),
-		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
+		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)]),
 	}
 	return p
 }

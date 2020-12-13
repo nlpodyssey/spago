@@ -61,9 +61,9 @@ func (c *Vocabulary) ID(term string) (int, bool) {
 	return id, ok
 }
 
-// MustId returns the ID of a term.
+// MustID returns the ID of a term.
 // It panics if the term is not in the vocabulary.
-func (c *Vocabulary) MustId(term string) int {
+func (c *Vocabulary) MustID(term string) int {
 	id, ok := c.ID(term)
 	if !ok {
 		panic(fmt.Sprintf("vocabulary: term `%s` not found.", term))
