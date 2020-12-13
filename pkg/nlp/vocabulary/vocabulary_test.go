@@ -13,7 +13,7 @@ func TestNew(t *testing.T) {
 	items := []string{"word1", "word2", "word3"}
 	voc := vocabulary.New(items)
 	for i, item := range items {
-		if id, _ := voc.Id(item); id != i {
+		if id, _ := voc.ID(item); id != i {
 			t.Error("The id doesn't match the expected value")
 		}
 	}

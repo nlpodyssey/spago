@@ -145,7 +145,7 @@ func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
 	model := p.Model.(*Model)
 	ys := make([]ag.Node, len(xs))
 	for i, item := range xs {
-		id, ok := model.Vocabulary.Id(item)
+		id, ok := model.Vocabulary.ID(item)
 		if !ok {
 			ys[i] = p.UnknownEmbedding
 			continue

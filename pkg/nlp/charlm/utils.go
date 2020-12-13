@@ -13,7 +13,7 @@ import (
 func targetsIds(sequence []string, vocab *vocabulary.Vocabulary, unknownToken string) []int {
 	targetsIds := make([]int, len(sequence)-1) // skip last character
 	for i, target := range sequence[1:] {      // the target is always the next character
-		id, ok := vocab.Id(target)
+		id, ok := vocab.ID(target)
 		if !ok {
 			targetsIds[i] = vocab.MustId(unknownToken)
 			continue

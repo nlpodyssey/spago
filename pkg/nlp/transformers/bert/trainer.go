@@ -101,7 +101,7 @@ func (t *Trainer) trainPassage(text string) {
 
 	var loss ag.Node
 	for _, id := range maskedIds {
-		target, _ := t.model.Vocabulary.Id(tokenized[id])
+		target, _ := t.model.Vocabulary.ID(tokenized[id])
 		loss = g.Add(loss, losses.CrossEntropy(g, predicted[id], target))
 	}
 	if loss == nil {

@@ -55,8 +55,8 @@ func (c *Vocabulary) Items() []string {
 	return c.inverse
 }
 
-// Id returns the ID of a term and whether or not it was found in the vocabulary.
-func (c *Vocabulary) Id(term string) (int, bool) {
+// ID returns the ID of a term and whether or not it was found in the vocabulary.
+func (c *Vocabulary) ID(term string) (int, bool) {
 	id, ok := c.terms[term]
 	return id, ok
 }
@@ -64,7 +64,7 @@ func (c *Vocabulary) Id(term string) (int, bool) {
 // MustId returns the ID of a term.
 // It panics if the term is not in the vocabulary.
 func (c *Vocabulary) MustId(term string) int {
-	id, ok := c.Id(term)
+	id, ok := c.ID(term)
 	if !ok {
 		panic(fmt.Sprintf("vocabulary: term `%s` not found.", term))
 	}
