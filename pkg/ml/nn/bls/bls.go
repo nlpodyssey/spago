@@ -154,15 +154,13 @@ func (p *Processor) featuresMapping(x ag.Node) ag.Node {
 func (p *Processor) useFeaturesDropout(x ag.Node) ag.Node {
 	if p.Mode == nn.Training && p.FeaturesDropout > 0.0 {
 		return p.Graph.Dropout(x, p.FeaturesDropout)
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) useEnhancedNodesDropout(x ag.Node) ag.Node {
 	if p.Mode == nn.Training && p.EnhancedNodesDropout > 0.0 {
 		return p.Graph.Dropout(x, p.EnhancedNodesDropout)
-	} else {
-		return x
 	}
+	return x
 }

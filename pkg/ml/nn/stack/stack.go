@@ -76,9 +76,8 @@ func requiresFullSeq(ps []nn.Processor) bool {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.RequiresFullSeq() {
 		return p.fullSeqForward(xs)
-	} else {
-		return p.incrementalForward(xs)
 	}
+	return p.incrementalForward(xs)
 }
 
 func (p *Processor) fullSeqForward(xs []ag.Node) []ag.Node {

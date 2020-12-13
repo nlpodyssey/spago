@@ -255,25 +255,22 @@ func (p *Processor) getPrev() (yPrev, mPrev ag.Node) {
 func (p *Processor) optLayerNorm(x ag.Node) ag.Node {
 	if p.UseLayerNorm {
 		return p.hiddenLayerNorm.Forward(x)[0]
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) optReLU(x ag.Node) ag.Node {
 	if p.UseReLU {
 		return p.Graph.ReLU(x)
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
 	if p.UseReLU {
 		return ag.Map(func(x ag.Node) ag.Node { return p.Graph.ReLU(x) }, xs)
-	} else {
-		return xs
 	}
+	return xs
 }
 
 // TODO: improve performance and clean code

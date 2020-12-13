@@ -68,9 +68,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.Mode == nn.Training {
 		return p.forwardTraining(xs)
-	} else {
-		return p.forwardInference(xs)
 	}
+	return p.forwardInference(xs)
 }
 
 func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {

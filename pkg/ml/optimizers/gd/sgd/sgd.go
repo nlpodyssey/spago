@@ -56,26 +56,24 @@ func (o *SGD) NewSupport(r, c int) *nn.Payload {
 			Label: o.Label(),
 			Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // v at index 0
 		}
-	} else {
-		if !o.Nesterov {
-			supp := make([]mat.Matrix, 2, 2)
-			supp[v] = mat.NewEmptyDense(r, c)
-			supp[buf] = mat.NewEmptyDense(r, c)
-			return &nn.Payload{
-				Label: o.Label(),
-				Data:  supp,
-			}
-		} else {
-			supp := make([]mat.Matrix, 4, 4)
-			supp[v] = mat.NewEmptyDense(r, c)
-			supp[buf] = mat.NewEmptyDense(r, c)
-			supp[vPrev] = mat.NewEmptyDense(r, c)
-			supp[vTmp] = mat.NewEmptyDense(r, c)
-			return &nn.Payload{
-				Label: o.Label(),
-				Data:  supp,
-			}
+	}
+	if !o.Nesterov {
+		supp := make([]mat.Matrix, 2, 2)
+		supp[v] = mat.NewEmptyDense(r, c)
+		supp[buf] = mat.NewEmptyDense(r, c)
+		return &nn.Payload{
+			Label: o.Label(),
+			Data:  supp,
 		}
+	}
+	supp := make([]mat.Matrix, 4, 4)
+	supp[v] = mat.NewEmptyDense(r, c)
+	supp[buf] = mat.NewEmptyDense(r, c)
+	supp[vPrev] = mat.NewEmptyDense(r, c)
+	supp[vTmp] = mat.NewEmptyDense(r, c)
+	return &nn.Payload{
+		Label: o.Label(),
+		Data:  supp,
 	}
 }
 

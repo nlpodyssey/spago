@@ -217,9 +217,8 @@ func hardSigmoid(i, j int, v float64) float64 {
 func hardSigmoidDeriv(i, j int, v float64) float64 {
 	if v < 2.5 && v > -2.5 {
 		return 0.2
-	} else {
-		return 0.0
 	}
+	return 0.0
 }
 
 func hardTanh(i, j int, v float64) float64 {
@@ -235,9 +234,8 @@ func hardTanh(i, j int, v float64) float64 {
 func hardTanhDeriv(i, j int, v float64) float64 {
 	if v < 1.0 && v > -1.0 {
 		return 1.0
-	} else {
-		return 0.0
 	}
+	return 0.0
 }
 
 func relu(i, j int, v float64) float64 {
@@ -247,9 +245,8 @@ func relu(i, j int, v float64) float64 {
 func reluDeriv(i, j int, v float64) float64 {
 	if v >= 0.0 {
 		return 1.0
-	} else {
-		return 0.0
 	}
+	return 0.0
 }
 
 func softsign(i, j int, v float64) float64 {

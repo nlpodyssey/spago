@@ -88,7 +88,6 @@ func (c *ClassMetrics) Accuracy() float64 {
 func zeroIfNaN(value float64) float64 {
 	if value == math.NaN() {
 		return 0.0
-	} else {
-		return value
 	}
+	return value
 }
