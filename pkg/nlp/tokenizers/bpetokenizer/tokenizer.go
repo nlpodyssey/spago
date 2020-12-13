@@ -15,10 +15,11 @@ import (
 	"github.com/nlpodyssey/gotokenizers/strutils"
 	"github.com/nlpodyssey/gotokenizers/vocabulary"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
+	"github.com/pkg/errors"
 	"path/filepath"
 )
 
-var _ tokenizers.Tokenizer = &BPETokenizer{}
+// var _ tokenizers.Tokenizer = &BPETokenizer{} // TODO: update Tokenizer interface to return errors
 
 // BPETokenizer is a higher-level tokenizer, which includes byte-level pre-tokenization.
 type BPETokenizer struct {
@@ -89,12 +90,12 @@ func NewFromModelFolder(path string) (*BPETokenizer, error) {
 }
 
 // Tokenize performs byte-level pre-tokenization and BPE tokenization.
-func (t *BPETokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
+func (t *BPETokenizer) Tokenize(text string) ([]tokenizers.StringOffsetsPair, error) {
 	pts := pretokenizedstring.FromString(text)
 
 	err := t.preTokenizer.PreTokenize(pts)
 	if err != nil {
-		panic(fmt.Sprintf("BPETokenizer PreTokenize error: %v", err))
+		return nil, errors.Wrapf(err, "BPETokenizer PreTokenize for %s", text)
 	}
 
 	err = pts.Tokenize(
@@ -103,7 +104,7 @@ func (t *BPETokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 		},
 	)
 	if err != nil {
-		panic(fmt.Sprintf("BPETokenizer Tokenize error: %v", err))
+		return nil, errors.Wrapf(err, "BPETokenizer Tokenize for %s", text)
 	}
 
 	converter := strutils.NewBytesToRuneOffsetConverter(text)
@@ -121,7 +122,7 @@ func (t *BPETokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 				),
 			)
 			if !ok {
-				panic(fmt.Sprintf("BPETokenizer range coercion error."))
+				return nil, errors.Wrapf(err, "BPETokenizer range coercion for %s", text)
 			}
 
 			byteOffsets := strutils.ByteOffsets{
@@ -141,17 +142,17 @@ func (t *BPETokenizer) Tokenize(text string) []tokenizers.StringOffsetsPair {
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 // Encode converts a text into an encoded tokens representation useful for Transformer architectures.
 // It tokenizes using byte-level pre-tokenization and BPE tokenization.
-func (t *BPETokenizer) Encode(text string) *encodings.Encoding {
+func (t *BPETokenizer) Encode(text string) (*encodings.Encoding, error) {
 	pts := pretokenizedstring.FromString(text)
 
 	err := t.preTokenizer.PreTokenize(pts)
 	if err != nil {
-		panic(fmt.Sprintf("BPETokenizer PreTokenize error: %v", err))
+		return nil, errors.Wrapf(err, "BPETokenizer PreTokenize for %s", text)
 	}
 
 	err = pts.Tokenize(
@@ -160,12 +161,12 @@ func (t *BPETokenizer) Encode(text string) *encodings.Encoding {
 		},
 	)
 	if err != nil {
-		panic(fmt.Sprintf("BPETokenizer Tokenize error: %v", err))
+		return nil, errors.Wrapf(err, "BPETokenizer Tokenize for %s", text)
 	}
 
 	encoding, err := pts.IntoEncoding(0, 0)
 	if err != nil {
-		panic(fmt.Sprintf("BPETokenizer Encoding error: %v", err))
+		return nil, errors.Wrapf(err, "BPETokenizer Encoding for %s", text)
 	}
-	return encoding
+	return encoding, nil
 }

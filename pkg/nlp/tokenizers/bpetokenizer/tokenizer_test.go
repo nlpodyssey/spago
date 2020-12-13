@@ -19,7 +19,7 @@ func TestNewFromModelFolder(t *testing.T) {
 		t.Fatal("expected *BPETokenizer, actual nil")
 	}
 
-	actual := tokenizer.Tokenize("related unrelated")
+	actual, _ := tokenizer.Tokenize("related unrelated")
 
 	expected := []tokenizers.StringOffsetsPair{
 		{
