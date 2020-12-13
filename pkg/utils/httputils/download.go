@@ -4,7 +4,6 @@
 package httputils
 
 import (
-	"errors"
 	"fmt"
 	"github.com/dustin/go-humanize"
 	"io"
@@ -34,8 +33,8 @@ func DownloadFile(filepath string, url string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprintf(
-			"Error fetching %s. Found status code `%d`. Expected `200`.", url, resp.StatusCode))
+		return fmt.Errorf(
+			"error fetching %s: found status code `%d`, expected `200`", url, resp.StatusCode)
 	}
 
 	// Create our progress reporter and pass it to be used alongside our writer

@@ -70,7 +70,7 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 		characters := []rune(token)
 
 		if len(characters) > t.maxWordChars {
-			if _, exists := t.vocabulary.Id(t.unkToken); !exists {
+			if _, exists := t.vocabulary.ID(t.unkToken); !exists {
 				panic("Missing unk-token")
 			}
 			outputTokens = append(outputTokens, tokenizers.StringOffsetsPair{
@@ -95,7 +95,7 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 					subStr = t.splitPrefix + subStr
 				}
 
-				if _, exists := t.vocabulary.Id(subStr); exists {
+				if _, exists := t.vocabulary.ID(subStr); exists {
 					found = true
 					curStrToken.String = subStr
 					curStrToken.Offsets = tokenizers.OffsetsType{
@@ -104,7 +104,7 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 					}
 					break
 				}
-				end -= 1
+				end--
 			}
 			if !found {
 				isBad = true
@@ -115,7 +115,7 @@ func (t *WordPieceTokenizer) WordPieceTokenize(tokens []tokenizers.StringOffsets
 		}
 
 		if isBad {
-			if _, exists := t.vocabulary.Id(t.unkToken); !exists {
+			if _, exists := t.vocabulary.ID(t.unkToken); !exists {
 				panic("Missing unk-token")
 			}
 			outputTokens = append(outputTokens, tokenizers.StringOffsetsPair{

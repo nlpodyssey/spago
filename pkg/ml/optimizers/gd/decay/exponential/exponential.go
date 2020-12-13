@@ -28,7 +28,6 @@ func New(init, final float64, iter int) *Exponential {
 func (d *Exponential) Decay(lr float64, t int) float64 {
 	if t > 1 && lr > d.final {
 		return math.Exp((float64(d.times-t)*math.Log(lr) + math.Log(d.final)) / float64(d.times-t+1))
-	} else {
-		return lr
 	}
+	return lr
 }

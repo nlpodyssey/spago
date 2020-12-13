@@ -14,7 +14,7 @@ type ColView struct {
 	i int
 }
 
-// Extract the i-th column from the input matrix
+// NewColView extracts the i-th column from the input matrix.
 func NewColView(x Operand, i int) *ColView {
 	if i < 0 {
 		panic("fn: invalid column index")

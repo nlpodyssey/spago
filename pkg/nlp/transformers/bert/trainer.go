@@ -101,7 +101,7 @@ func (t *Trainer) trainPassage(text string) {
 
 	var loss ag.Node
 	for _, id := range maskedIds {
-		target, _ := t.model.Vocabulary.Id(tokenized[id])
+		target, _ := t.model.Vocabulary.ID(tokenized[id])
 		loss = g.Add(loss, losses.CrossEntropy(g, predicted[id], target))
 	}
 	if loss == nil {
@@ -135,8 +135,8 @@ func (t *Trainer) getMaskedForm(orig string) string {
 	case prob < 0.80:
 		return wordpiecetokenizer.DefaultMaskToken
 	case prob < 0.90:
-		randomId := int(math.Floor(t.randGen.Float64() * float64(t.model.Vocabulary.Size())))
-		newWord, _ := t.model.Vocabulary.Term(randomId)
+		randomID := int(math.Floor(t.randGen.Float64() * float64(t.model.Vocabulary.Size())))
+		newWord, _ := t.model.Vocabulary.Term(randomID)
 		return newWord
 	default:
 		return orig

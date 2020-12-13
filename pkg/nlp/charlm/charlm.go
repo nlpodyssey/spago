@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// CharLM implements a character-level language model that uses a recurrent neural network as its backbone.
-// A fully connected softmax layer (a.k.a decoder) is placed on top of each recurrent hidden state to predict
-// the next character.
+// Package charlm provides an implementation of a character-level language model that uses a
+// recurrent neural network as its backbone.
+// A fully connected softmax layer (a.k.a decoder) is placed on top of each recurrent hidden
+// state to predict the next character.
 package charlm
 
 import (
@@ -116,7 +117,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 		}(),
 		RNN:              m.RNN.NewProc(ctx),
 		usedEmbeddings:   make(map[int]ag.Node),
-		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustId(m.UnknownToken)]),
+		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)]),
 	}
 	return p
 }
@@ -144,7 +145,7 @@ func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
 	model := p.Model.(*Model)
 	ys := make([]ag.Node, len(xs))
 	for i, item := range xs {
-		id, ok := model.Vocabulary.Id(item)
+		id, ok := model.Vocabulary.ID(item)
 		if !ok {
 			ys[i] = p.UnknownEmbedding
 			continue

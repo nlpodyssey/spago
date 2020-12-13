@@ -10,7 +10,7 @@ import (
 	"math"
 )
 
-// A member of the Population.
+// Member represents a member of the Population.
 type Member struct {
 	// The hyper-params tha might change over the generations
 	MemberHyperParams

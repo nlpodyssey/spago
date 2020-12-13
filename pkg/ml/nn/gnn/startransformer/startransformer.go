@@ -2,8 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// StarTransformer is a variant of the model introduced by Qipeng Guo, Xipeng Qiu et al.
-// in "Star-Transformer", 2019 (https://www.aclweb.org/anthology/N19-1133.pdf).
+// Package startransformer provides a variant implementation of the Star-Transformer model
+// introduced by Qipeng Guo, Xipeng Qiu et al. in "Star-Transformer", 2019
+// (https://www.aclweb.org/anthology/N19-1133.pdf).
 // In this implementation, the Scaled Dot Product Attention is replaced by a Linear Attention.
 package startransformer
 

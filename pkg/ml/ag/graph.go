@@ -18,8 +18,8 @@ import (
 type Graph struct {
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
-	// maxId is the id of the last inserted node (corresponds of len(nodes)-1)
-	maxId int64
+	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
+	maxID int64
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int64
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
@@ -31,21 +31,21 @@ type Graph struct {
 	// concurrentComputations sets whether to run the forward or backward computations distributing the workload over the available CPUs.
 	concurrentComputations bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
-	// Before using it you have to check if the maxId of the graph matches the maxId of the cache.
+	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise the cache must be invalidated and the values recalculated.
 	cache struct {
-		// the maxId when this cache was created.
-		maxId int64
+		// the maxID when this cache was created.
+		maxID int64
 		// nodes grouped by height
 		nodesByHeight [][]Node
-		// the nodes height. The index corresponds to the node Id.
+		// the nodes height. The index corresponds to the node ID.
 		height []int
 	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
 }
 
-// GraphOptions allows to configure a new Graph with your specific needs.
+// GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
 
 // Rand sets the generator of random numbers.
@@ -85,7 +85,7 @@ func ConcurrentComputations(value bool) GraphOption {
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opts ...GraphOption) *Graph {
 	g := &Graph{
-		maxId:                  -1,
+		maxID:                  -1,
 		curTimeStep:            0,
 		nodes:                  nil,
 		constants:              map[float64]Node{},
@@ -115,7 +115,7 @@ func (g *Graph) Clear() {
 	if g.nodes == nil {
 		return
 	}
-	g.maxId = -1
+	g.maxID = -1
 	g.curTimeStep = 0
 	g.clearCache()
 	g.releaseMemory()
@@ -124,14 +124,15 @@ func (g *Graph) Clear() {
 
 // clearCache cleans the cache.
 func (g *Graph) clearCache() {
-	g.cache.maxId = -1
+	g.cache.maxID = -1
 	g.cache.nodesByHeight = nil
 	g.cache.height = nil
 }
 
-// ClearForReuse() does the same thing as Clear(), with the difference that the graph structure i.e. how nodes are
-// connected to each other, is maintained.
-// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll() method for this usage).
+// ClearForReuse does the same thing as Clear(), with the difference that the graph structure (i.e.
+// how nodes are connected to each other) is maintained.
+// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll()
+// method for this usage).
 func (g *Graph) ClearForReuse() {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -181,7 +182,7 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	newNode := &variable{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           g.newId(),
+		id:           g.newID(),
 		value:        value,
 		grad:         nil,
 		hasGrad:      false,
@@ -237,7 +238,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	newNode := &operator{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           g.newId(),
+		id:           g.newID(),
 		function:     f,
 		operands:     operands,
 		value:        value,
@@ -257,7 +258,7 @@ func (g *Graph) NewWrap(value GradValue) Node {
 		GradValue: value,
 		timeStep:  g.curTimeStep,
 		graph:     g,
-		id:        g.newId(),
+		id:        g.newID(),
 		wrapGrad:  true,
 	}
 	// the new id is sequential so this the append is fine
@@ -272,7 +273,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 		GradValue: value,
 		graph:     g,
 		timeStep:  g.curTimeStep,
-		id:        g.newId(),
+		id:        g.newID(),
 		wrapGrad:  false,
 	}
 	// the new id is sequential so this the append is fine
@@ -383,7 +384,7 @@ func (g *Graph) Backward(node Node, opts ...BackwardOption) {
 func (g *Graph) BackwardAll() {
 	handler := &backwardHandler{
 		g:              g,
-		node:           g.nodes[g.maxId],
+		node:           g.nodes[g.maxID],
 		outputGrad:     nil,
 		stopAtTimeStep: -1, // no stop
 	}
@@ -394,8 +395,8 @@ func (g *Graph) BackwardAll() {
 	}
 }
 
-// GetValues returns a copy of the value of a node. If the value is nil, GetCopiedValue returns nil.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
@@ -405,8 +406,8 @@ func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
 	return node.Value().Clone()
 }
 
-// GetValues returns a copy of the gradients of a node. If the gradients are nil, GetCopiedGrad returns nil.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling g.Clear().
+// GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
@@ -416,7 +417,6 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 	return node.Grad().Clone()
 }
 
-// ReplaceValue
 func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	if node, ok := node.(*variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
@@ -433,13 +433,13 @@ func (g *Graph) TimeStep() int {
 	return int(g.curTimeStep)
 }
 
-// newId generates and returns a new incremental sequential ID.
-func (g *Graph) newId() int64 {
-	return atomic.AddInt64(&g.maxId, 1)
+// newID generates and returns a new incremental sequential ID.
+func (g *Graph) newID() int64 {
+	return atomic.AddInt64(&g.maxID, 1)
 }
 
 func (g *Graph) groupNodesByHeight() [][]Node {
-	if g.cache.maxId == g.maxId {
+	if g.cache.maxID == g.maxID {
 		return g.cache.nodesByHeight
 	}
 	groups := make([][]Node, 0, 1)
@@ -456,7 +456,7 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 				}
 			}
 		}
-		height[node.Id()] = h
+		height[node.ID()] = h
 		if h == len(groups) {
 			groups = append(groups, make([]Node, 0, 1))
 		}
@@ -464,7 +464,7 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	}
 
 	// update cache and return
-	g.cache.maxId = g.maxId
+	g.cache.maxID = g.maxID
 	g.cache.nodesByHeight = groups
 	g.cache.height = height
 	return groups

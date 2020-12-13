@@ -27,8 +27,8 @@ type variable struct {
 	requiresGrad bool
 }
 
-// Id returns the id of the node in the graph.
-func (r *variable) Id() int64 {
+// ID returns the ID of the node in the graph.
+func (r *variable) ID() int64 {
 	return r.id
 }
 

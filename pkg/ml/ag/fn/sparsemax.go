@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// SparseMax implementation based on https://github.com/gokceneraslan/SparseMax.torch
 package fn
 
 import (
@@ -12,6 +11,7 @@ import (
 	"sort"
 )
 
+// SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMax struct {
 	x Operand
 	y mat.Matrix // initialized during the forward pass, required by the backward pass
@@ -39,7 +39,7 @@ func (s *SparseMax) Backward(gy mat.Matrix) {
 		for i := range output {
 			if output[i] != 0 {
 				nzSum += gy.At(i, 0)
-				nzCount += 1
+				nzCount++
 			}
 		}
 		nzSum = nzSum / nzCount

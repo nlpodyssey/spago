@@ -77,9 +77,8 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && len(xs) > 1 {
 		return p.fwdConcurrent(xs)
-	} else {
-		return p.fwdSerial(xs)
 	}
+	return p.fwdSerial(xs)
 }
 
 func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {

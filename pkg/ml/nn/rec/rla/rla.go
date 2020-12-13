@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// RLA (Recurrent Linear Attention)
-// "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al., 2020.
+// Package rla provides an implementation of RLA (Recurrent Linear Attention).
+// See: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al., 2020.
 // TODO: support arbitrary mapping functions
 package rla
 

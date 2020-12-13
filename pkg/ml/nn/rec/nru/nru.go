@@ -3,8 +3,8 @@
 // license that can be found in the LICENSE file.
 
 /*
-Implementation of the NRU (Non-Saturating Recurrent Units) recurrent network as described in "Towards Non-Saturating
-Recurrent Units for Modelling Long-Term Dependencies" by Chandar et al., 2019.
+Package nru provides an implementation of the NRU (Non-Saturating Recurrent Units) recurrent network as described
+in "Towards Non-Saturating Recurrent Units for Modelling Long-Term Dependencies" by Chandar et al., 2019.
 (https://www.aaai.org/ojs/index.php/AAAI/article/view/4200/4078)
 
 Unfortunately this implementation is extremely inefficient due to the lack of functionality in the auto-grad (ag)
@@ -255,25 +255,22 @@ func (p *Processor) getPrev() (yPrev, mPrev ag.Node) {
 func (p *Processor) optLayerNorm(x ag.Node) ag.Node {
 	if p.UseLayerNorm {
 		return p.hiddenLayerNorm.Forward(x)[0]
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) optReLU(x ag.Node) ag.Node {
 	if p.UseReLU {
 		return p.Graph.ReLU(x)
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
 	if p.UseReLU {
 		return ag.Map(func(x ag.Node) ag.Node { return p.Graph.ReLU(x) }, xs)
-	} else {
-		return xs
 	}
+	return xs
 }
 
 // TODO: improve performance and clean code

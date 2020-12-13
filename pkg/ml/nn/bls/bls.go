@@ -3,9 +3,9 @@
 // license that can be found in the LICENSE file.
 
 /*
-Implementation of the Broad Learning System (BLS) described in "Broad Learning System: An Effective and Efficient
-Incremental Learning System Without the Need for Deep Architecture" by C. L. Philip Chen and Zhulin Liu, 2017.
-(https://ieeexplore.ieee.org/document/7987745)
+Package bls provides an implementation of the Broad Learning System (BLS) described in "Broad Learning System:
+An Effective and Efficient Incremental Learning System Without the Need for Deep Architecture" by C. L. Philip Chen
+and Zhulin Liu, 2017. (https://ieeexplore.ieee.org/document/7987745)
 
 The "Model" contains only the inference part of the Broad Learning System.
 The ridge regression approximation training is performed by the "BroadLearningAlgorithm".
@@ -154,15 +154,13 @@ func (p *Processor) featuresMapping(x ag.Node) ag.Node {
 func (p *Processor) useFeaturesDropout(x ag.Node) ag.Node {
 	if p.Mode == nn.Training && p.FeaturesDropout > 0.0 {
 		return p.Graph.Dropout(x, p.FeaturesDropout)
-	} else {
-		return x
 	}
+	return x
 }
 
 func (p *Processor) useEnhancedNodesDropout(x ag.Node) ag.Node {
 	if p.Mode == nn.Training && p.EnhancedNodesDropout > 0.0 {
 		return p.Graph.Dropout(x, p.EnhancedNodesDropout)
-	} else {
-		return x
 	}
+	return x
 }

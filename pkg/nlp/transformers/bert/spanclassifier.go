@@ -19,7 +19,7 @@ type SpanClassifierConfig struct {
 	InputSize int
 }
 
-// Span classification for extractive question-answering tasks like SQuAD.
+// SpanClassifier implements span classification for extractive question-answering tasks like SQuAD.
 // It uses a linear layers to compute "span start logits" and "span end logits".
 type SpanClassifier struct {
 	*linear.Model

@@ -5,7 +5,6 @@
 package converter
 
 import (
-	"errors"
 	"fmt"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
@@ -168,7 +167,7 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	}
 	err := utils.SerializeToFile(c.modelFilename, nn.NewParamsSerializer(sequenceClassificationModel))
 	if err != nil {
-		return errors.New(fmt.Sprintf("bert: error during model serialization. %s", err.Error()))
+		return fmt.Errorf("bert: error during model serialization. %v", err)
 	}
 	fmt.Println("ok")
 	return nil

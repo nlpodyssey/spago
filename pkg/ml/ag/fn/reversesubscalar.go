@@ -8,7 +8,7 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &ReverseSubScalar{}
 
-// Element-wise subtraction over two values.
+// ReverseSubScalar is the element-wise subtraction function over two values.
 type ReverseSubScalar struct {
 	x1 Operand
 	x2 Operand // scalar

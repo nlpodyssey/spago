@@ -45,7 +45,8 @@ func (m *RandomMutation) Mutate(p *Population) {
 
 var _ Mutator = &DeglMutation{}
 
-// Differential Evolution with Global and Local Neighborhoods mutation strategy
+// DeglMutation implements Differential Evolution with Global and Local Neighborhoods mutation strategy.
+//
 // Reference:
 //   "Design of Two-Channel Quadrature Mirror Filter Banks Using Differential Evolution with Global and Local Neighborhoods"
 //   Authors: Pradipta Ghosh, Hamim Zafar, Joydeep Banerjee, Swagatam Das (2011)

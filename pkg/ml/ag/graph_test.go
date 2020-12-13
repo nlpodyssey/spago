@@ -11,8 +11,8 @@ import (
 
 func TestNewGraph(t *testing.T) {
 	g := NewGraph()
-	if !(g.maxId == -1) {
-		t.Errorf("maxId doesn't match the expected value.")
+	if !(g.maxID == -1) {
+		t.Errorf("maxID doesn't match the expected value.")
 	}
 	if !(g.curTimeStep == 0) {
 		t.Errorf("curTimeStep doesn't match the expected value.")

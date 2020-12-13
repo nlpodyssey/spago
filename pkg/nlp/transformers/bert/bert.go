@@ -39,7 +39,7 @@ type Config struct {
 	NumHiddenLayers       int               `json:"num_hidden_layers"`
 	TypeVocabSize         int               `json:"type_vocab_size"`
 	VocabSize             int               `json:"vocab_size"`
-	Id2Label              map[string]string `json:"id2label"`
+	ID2Label              map[string]string `json:"id2label"`
 	ReadOnly              bool              `json:"read_only"`
 }
 
@@ -127,7 +127,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 					y[i] = v
 				}
 				return y
-			}(config.Id2Label),
+			}(config.ID2Label),
 		}),
 	}
 }

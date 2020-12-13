@@ -22,7 +22,7 @@ func Copy(in []float64) []float64 {
 	return out
 }
 
-// Fill the given slice's elements with value
+// FillFloatSlice fills the given slice's elements with value.
 func FillFloatSlice(slice []float64, value float64) {
 	for i := range slice {
 		slice[i] = value

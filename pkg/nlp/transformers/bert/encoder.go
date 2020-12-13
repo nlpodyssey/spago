@@ -53,10 +53,10 @@ func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
-// LayerProcAt returns the i-processor.
+// LayerAt returns the i-th processor.
 // It panics if the underlying model is not BERT.
-func (p *EncoderProcessor) LayerAt(index int) *EncoderLayerProcessor {
-	return p.Layers[index].(*EncoderLayerProcessor)
+func (p *EncoderProcessor) LayerAt(i int) *EncoderLayerProcessor {
+	return p.Layers[i].(*EncoderLayerProcessor)
 }
 
 // NewBertEncoder returns a new BERT encoder model composed of a stack of N identical BERT encoder layers.

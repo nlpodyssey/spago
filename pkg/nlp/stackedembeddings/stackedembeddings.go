@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// StackedEmbeddings is a convenient module that stacks multiple word embedding representations by concatenating them.
+// Package stackedembeddings provides convenient types to stack multiple word embedding representations by concatenating them.
 // The concatenation is then followed by a linear layer. The latter has the double utility of being able to project
 // the concatenated embeddings in a smaller dimension, and to further train the final words representation.
 package stackedembeddings

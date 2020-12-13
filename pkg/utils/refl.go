@@ -31,19 +31,19 @@ func ForEachField(i interface{}, callback func(field interface{}, name string, t
 }
 
 func TypeName(instance interface{}) string {
-	if t := reflect.TypeOf(instance); t.Kind() == reflect.Ptr {
+	t := reflect.TypeOf(instance)
+	if t.Kind() == reflect.Ptr {
 		return t.Elem().Name()
-	} else {
-		return t.Name()
 	}
+	return t.Name()
 }
 
 func Name(i interface{}) string {
 	if IsStruct(i) {
 		return reflect.TypeOf(i).String()
-	} else { //pointer
-		return reflect.TypeOf(i).Elem().String()
 	}
+	//pointer
+	return reflect.TypeOf(i).Elem().String()
 }
 
 func IsStruct(i interface{}) bool { return reflect.ValueOf(i).Kind() == reflect.Struct }

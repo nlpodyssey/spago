@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Bidirectional Recurrent Neural Network (BiRNN) with a Conditional Random Fields (CRF) on top.
+// Package birnncrf provides an implementation of a Bidirectional Recurrent Neural Network (BiRNN)
+// with a Conditional Random Fields (CRF) on top.
 package birnncrf
 
 import (

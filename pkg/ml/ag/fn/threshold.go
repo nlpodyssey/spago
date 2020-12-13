@@ -10,7 +10,7 @@ import (
 
 var _ Function = &Threshold{}
 
-// Threshold(x) = x if x > threshold; k otherwise ​
+// Threshold function: f(x) = x if x > threshold; k otherwise.
 type Threshold struct {
 	x         Operand
 	threshold Operand // scalar

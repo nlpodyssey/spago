@@ -5,7 +5,6 @@
 package bert
 
 import (
-	"errors"
 	"fmt"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
@@ -139,7 +138,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	err := utils.SerializeToFile(c.modelFilename, nn.NewParamsSerializer(c.model))
 	if err != nil {
-		return errors.New(fmt.Sprintf("bert: error during model serialization. %s", err.Error()))
+		return fmt.Errorf("bert: error during model serialization. %v", err)
 	}
 	fmt.Println("ok")
 	return nil

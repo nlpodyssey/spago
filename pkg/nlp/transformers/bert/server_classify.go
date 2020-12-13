@@ -59,7 +59,7 @@ type ClassifyResponse struct {
 	Took int64 `json:"took"`
 }
 
-// Predict handles a predict request over gRPC.
+// Classify handles a classification request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
 func (s *Server) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
 	result := s.classify(req.GetText(), req.GetText2())

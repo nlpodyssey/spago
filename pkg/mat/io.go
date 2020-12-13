@@ -74,7 +74,8 @@ func MarshalBinaryTo(m Matrix, w io.Writer) (int, error) {
 	return n, nil
 }
 
-//
+// NewUnmarshalBinaryFrom decodes binary data form the reader and returns a new
+// Dense matrix, along with the number of bytes read and an error, if any.
 func NewUnmarshalBinaryFrom(r io.Reader) (*Dense, int, error) {
 	var h header
 	n, err := h.unmarshalBinaryFrom(r)
@@ -112,7 +113,8 @@ func NewUnmarshalBinaryFrom(r io.Reader) (*Dense, int, error) {
 	return m, n, nil
 }
 
-//
+// UnmarshalBinaryFrom decodes binary data form the reader into the given Matrix,
+// and returns the number of bytes read and an error, if any.
 func UnmarshalBinaryFrom(m Matrix, r io.Reader) (int, error) {
 	var h header
 	n, err := h.unmarshalBinaryFrom(r)
@@ -177,8 +179,8 @@ func UnmarshalBinarySlice(ms []Matrix, r io.Reader) (int, error) {
 	return n, nil
 }
 
-// UnmarshalBinarySlice decodes the binary form the reader into the slice itself and returns
-// the number of bytes read and an error if any.
+// NewUnmarshalBinarySlice decodes binary data form the reader into the given slice
+// of Matrix, and returns the number of bytes read and an error, if any.
 func NewUnmarshalBinarySlice(ms []Matrix, r io.Reader) (int, error) {
 	n := 0
 	for i := range ms {

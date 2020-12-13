@@ -70,7 +70,7 @@ func (h *backwardHandler) propagateOutputGrad() {
 
 func (h *backwardHandler) runSerial() {
 	nodes := h.g.nodes
-	lastIndex := h.node.Id()
+	lastIndex := h.node.ID()
 	stopAtTimeStep := h.stopAtTimeStep
 	truncated := stopAtTimeStep > -1
 	_ = nodes[lastIndex] // avoid bounds check
@@ -88,8 +88,8 @@ func (h *backwardHandler) runConcurrent() {
 	stopAtTimeStep := h.stopAtTimeStep
 	truncated := stopAtTimeStep > -1
 	groups := h.g.groupNodesByHeight()
-	lastGroupIndex := h.g.cache.height[h.node.Id()]
-	lastNodeIndex := h.node.Id()
+	lastGroupIndex := h.g.cache.height[h.node.ID()]
+	lastNodeIndex := h.node.ID()
 	var wg sync.WaitGroup
 	for i := lastGroupIndex; i >= 0; i-- {
 		for _, node := range groups[i] {

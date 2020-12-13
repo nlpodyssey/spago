@@ -24,14 +24,15 @@ func GetGlobalGraph() *Graph {
 	return globalGraph
 }
 
-// Clear cleans the graph. This is a destructive operation.
-// See graph.Clear() for more information.
+// ClearGlobalGraph clears the global graph. This is a destructive operation.
+// See Graph.Clear() for more information.
 func ClearGlobalGraph() {
 	globalGraph.Clear()
 }
 
-// ClearForReuse() does the same thing as Clear(), with the difference that the graph structure.
-// See graph.ClearForReuse() for more information.
+// ClearGlobalGraphForReuse does the same thing as ClearGlobalGraph(), with the difference that the
+// graph structure is maintained.
+// See Graph.ClearForReuse() for more information.
 func ClearGlobalGraphForReuse() {
 	globalGraph.ClearForReuse()
 }
@@ -80,7 +81,7 @@ func Forward(opts ...ForwardOption) {
 }
 
 // Backward performs the back-propagation.
-// See graph.Backward() for more information.
+// See Graph.Backward() for more information.
 func Backward(node Node, opts ...BackwardOption) {
 	globalGraph.Backward(node, opts...)
 }

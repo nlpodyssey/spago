@@ -10,8 +10,8 @@ type Node interface {
 	GradValue
 	// Graph returns the graph this node belongs to.
 	Graph() *Graph
-	// Id returns the id of the node in the graph.
-	Id() int64
+	// ID returns the ID of the node in the graph.
+	ID() int64
 	//
 	getTimeStep() int64
 }

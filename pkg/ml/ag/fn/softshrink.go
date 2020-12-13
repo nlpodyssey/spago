@@ -10,7 +10,7 @@ import (
 
 var _ Function = &SoftShrink{}
 
-// SoftShrink(x) = ​x − λ if x > λ; x + λ if x < −λ; 0 otherwise ​
+// SoftShrink function: f(x) = x − λ if x > λ; x + λ if x < −λ; 0 otherwise.
 type SoftShrink struct {
 	x      Operand
 	lambda Operand // scalar

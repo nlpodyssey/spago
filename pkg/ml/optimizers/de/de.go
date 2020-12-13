@@ -10,7 +10,7 @@ import (
 	"math"
 )
 
-// Differential Evolution implements a simple and efficient heuristic for global optimization over continuous spaces.
+// DifferentialEvolution implements a simple and efficient heuristic for global optimization over continuous spaces.
 // Reference: https://link.springer.com/article/10.1023/A:1008202821328 (Storn & Price, 1997)
 type DifferentialEvolution struct {
 	// The initial configuration

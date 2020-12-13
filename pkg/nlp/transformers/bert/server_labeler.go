@@ -28,7 +28,7 @@ type TokenClassifierBody struct {
 	Text    string             `json:"text"`
 }
 
-// DiscriminateHandler handles a discriminate request over HTTP.
+// LabelerHandler handles a labeling request over HTTP.
 func (s *Server) LabelerHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")

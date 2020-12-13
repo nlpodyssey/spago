@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// LSTM enriched with a PolicyGradient to enable Dynamic Skip Connections.
+// Package lstmsc provides an implementation of LSTM enriched with a PolicyGradient
+// to enable Dynamic Skip Connections.
 package lstmsc
 
 import (

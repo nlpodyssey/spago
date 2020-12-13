@@ -51,7 +51,7 @@ type EncodeResponse struct {
 	Took int64 `json:"took"`
 }
 
-// Predict handles a predict request over gRPC.
+// Encode handles an encoding request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
 func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi.EncodeReply, error) {
 	result := s.encode(req.GetText())

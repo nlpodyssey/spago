@@ -38,7 +38,6 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
 	}
 }
 
-// Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
 func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
@@ -67,7 +66,7 @@ func Zeros(m mat.Matrix) {
 	m.Zeros()
 }
 
-// Fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
+// XavierUniform fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
 func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	rows, cols := m.Dims()

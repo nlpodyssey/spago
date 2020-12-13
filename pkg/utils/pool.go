@@ -4,7 +4,7 @@
 
 package utils
 
-// Naive implementation of a pool based on broadcast channel.
+// Pool is a naive implementation of a pool, based on broadcast channel.
 // You can use this pool in the same way you use sync.Pool.
 type Pool struct {
 	pool chan interface{}
@@ -14,7 +14,7 @@ type Pool struct {
 	New func() interface{}
 }
 
-// Return a new pool ready to use. The pool can contain up to a max number of items.
+// NewPool returns a new pool ready to use. The pool can contain up to a max number of items.
 // Set the property New to generate new items when needed during the Get.
 func NewPool(max int) *Pool {
 	return &Pool{

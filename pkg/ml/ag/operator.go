@@ -29,8 +29,8 @@ type operator struct {
 	requiresGrad bool
 }
 
-// Id returns the id of the node in the graph.
-func (r *operator) Id() int64 {
+// ID returns the ID of the node in the graph.
+func (r *operator) ID() int64 {
 	return r.id
 }
 

@@ -27,7 +27,7 @@ type ClipNorm struct {
 	MaxNorm, NormType float64
 }
 
-// ClipNorm clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
+// Clip clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
 // NormType is the n-norm. Can be ``Double.POSITIVE_INFINITY`` for infinity norm (default 2.0)
 func (c *ClipNorm) Clip(gs []mat.Matrix) {
 	if c.NormType <= 1 {

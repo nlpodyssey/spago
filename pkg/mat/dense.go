@@ -61,12 +61,12 @@ func NewEmptyVecDense(size int) *Dense {
 	return GetEmptyDenseWorkspace(size, 1)
 }
 
-// NewEmptyVecDense returns a new rows x cols matrix initialized to zeros.
+// NewEmptyDense returns a new rows x cols matrix initialized to zeros.
 func NewEmptyDense(rows, cols int) *Dense {
 	return GetEmptyDenseWorkspace(rows, cols)
 }
 
-// NewEmptyVecDense returns a new one-hot vector of the given size.
+// OneHotVecDense returns a new one-hot vector of the given size.
 func OneHotVecDense(size int, oneAt int) *Dense {
 	if oneAt >= size {
 		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
@@ -86,7 +86,7 @@ func NewInitDense(rows, cols int, val float64) *Dense {
 	return out
 }
 
-// NewInitDense returns a new size x 1 dense matrix initialized with a constant value.
+// NewInitVecDense returns a new size x 1 dense matrix initialized with a constant value.
 func NewInitVecDense(size int, val float64) *Dense {
 	return NewInitDense(size, 1, val)
 }
@@ -184,7 +184,7 @@ func (d *Dense) Data() []float64 {
 	return d.data
 }
 
-// IsVectors returns whether the matrix has one row or one column, or not.
+// IsVector returns whether the matrix has one row or one column, or not.
 func (d *Dense) IsVector() bool {
 	return d.rows == 1 || d.cols == 1
 }
@@ -257,7 +257,7 @@ func (d *Dense) ExtractRow(i int) Matrix {
 	return out
 }
 
-// ExtractRow returns a copy of the i-th column of the matrix.
+// ExtractColumn returns a copy of the i-th column of the matrix.
 func (d *Dense) ExtractColumn(i int) Matrix {
 	if i >= d.Columns() {
 		panic("mat: index out of range")
@@ -499,7 +499,7 @@ func (d *Dense) Div(other Matrix) Matrix {
 	return out
 }
 
-// Div performs the result of the element-wise division in place.
+// DivInPlace performs the result of the element-wise division in place.
 func (d *Dense) DivInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -810,7 +810,7 @@ func (d Dense) SwapInPlace(r1, r2 int) {
 	}
 }
 
-// Return the partial pivots of a square matrix to reorder rows.
+// Pivoting returns the partial pivots of a square matrix to reorder rows.
 // Considerate square sub-matrix from element (offset, offset).
 func (d *Dense) Pivoting(row int) (Matrix, bool, []int) {
 	if d.Columns() != d.Rows() {

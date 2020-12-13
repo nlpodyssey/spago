@@ -20,8 +20,8 @@ type Model struct {
 	Params     []*nn.Param
 }
 
-// TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
 // New returns a new model with parameters initialized to zeros.
+// TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
 func New(activation ag.OpName, params ...*nn.Param) *Model {
 	return &Model{
 		Activation: activation,

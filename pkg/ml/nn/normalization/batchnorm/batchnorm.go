@@ -26,7 +26,7 @@ type Model struct {
 
 const defaultMomentum = 0.9
 
-// New returns a new model with supplied size and momentum
+// NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
@@ -68,9 +68,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.Mode == nn.Training {
 		return p.forwardTraining(xs)
-	} else {
-		return p.forwardInference(xs)
 	}
+	return p.forwardInference(xs)
 }
 
 func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {

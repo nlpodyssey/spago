@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// This package is an interim solution while developing `gotokenizers` (https://github.com/nlpodyssey/gotokenizers).
+// Package tokenizers is an interim solution while developing `gotokenizers` (https://github.com/nlpodyssey/gotokenizers).
 // APIs and implementations may be subject to frequent refactoring.
 package tokenizers
 

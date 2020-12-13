@@ -8,7 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-// Axial positional encodings use part of the original encodings to save memory space.
+// AxialPositionalEncoder uses part of the original encodings to save memory space.
 type AxialPositionalEncoder struct {
 	// Size is the encoding vector size.
 	Size int
@@ -22,7 +22,7 @@ type AxialPositionalEncoder struct {
 	cache []*mat.Dense
 }
 
-// New returns a new PositionalEncoder ready to use.
+// NewAxialPositionalEncoder returns a new AxialPositionalEncoder ready to use.
 func NewAxialPositionalEncoder(size, d, length, width, height int) *AxialPositionalEncoder {
 	pe := &AxialPositionalEncoder{
 		Size:   size,

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// bart implements the transformer model introduced by Mike et al., 2019.
+// Package bart implements the transformer model introduced by Mike et al., 2019.
 // "BART: Denoising Sequence-to-Sequence Pre-training for Natural Language Generation, Translation, and Comprehension"
 // https://arxiv.org/abs/1910.13461
 package bart
