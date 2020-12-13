@@ -73,14 +73,25 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 // ScaledDotProductAttention is a self-attention mechanism relating different positions of a single sequence in order to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained from the input sequence.
 // The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
+func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
 	context = make([]ag.Node, len(qs))
 	prob = make([]mat.Matrix, len(qs))
 	keys := g.Stack(ks...)
 	values := g.T(g.Stack(vs...))
 	factor := g.NewScalar(scaleFactor)
+	seqLen := len(qs)
 	for i, q := range qs {
 		attScores := g.ProdScalar(g.Mul(keys, q), factor)
+
+		if useCausalMask {
+			// TODO: use external cache for causal mask?
+			causalMask := make([]float64, seqLen)
+			for k := i + 1; k < len(causalMask); k++ {
+				causalMask[k] = math.Inf(-1)
+			}
+			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense(causalMask), false))
+		}
+
 		attProb := g.Softmax(attScores)
 		context[i] = g.Mul(values, attProb)
 		prob[i] = attProb.Value()

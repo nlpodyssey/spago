@@ -27,16 +27,17 @@ type Model struct {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(size, numOfHeads int) *Model {
+func New(size, numOfHeads int, useCausalMask bool) *Model {
 	dm := size
 	dk := size / numOfHeads
 	attention := make([]*selfattention.Model, numOfHeads)
 	attentionConfig := selfattention.Config{
-		InputSize:   dm,
-		QuerySize:   dk,
-		KeySize:     dk,
-		ValueSize:   dk,
-		ScaleFactor: 1.0 / math.Sqrt(float64(dk)),
+		InputSize:     dm,
+		QuerySize:     dk,
+		KeySize:       dk,
+		ValueSize:     dk,
+		ScaleFactor:   1.0 / math.Sqrt(float64(dk)),
+		UseCausalMask: useCausalMask,
 	}
 	for i := 0; i < numOfHeads; i++ {
 		attention[i] = selfattention.New(attentionConfig)
@@ -83,6 +84,23 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	}
 	concatHeads := make([]ag.Node, len(xs))
 	for i := 0; i < len(xs); i++ {
+		buf := make([]ag.Node, h)
+		for j := 0; j < h; j++ {
+			buf[j] = headsAttention[j][i]
+		}
+		concatHeads[i] = p.Graph.Concat(buf...)
+	}
+	return p.outputMerge.Forward(concatHeads...)
+}
+
+func (p *Processor) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
+	h := p.Model.(*Model).h
+	headsAttention := make([][]ag.Node, h)
+	for h, proc := range p.HeadAttentionProc {
+		headsAttention[h] = proc.ForwardQKV(qs, ks, vs)
+	}
+	concatHeads := make([]ag.Node, len(qs))
+	for i := 0; i < len(qs); i++ {
 		buf := make([]ag.Node, h)
 		for j := 0; j < h; j++ {
 			buf[j] = headsAttention[j][i]
