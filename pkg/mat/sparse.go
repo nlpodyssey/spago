@@ -46,7 +46,7 @@ func NewEmptyVecSparse(size int) *Sparse {
 	return NewEmptySparse(size, 1)
 }
 
-// NewEmptyVecDense returns a new rows x cols sparse matrix.
+// NewEmptySparse returns a new rows x cols Sparse matrix.
 func NewEmptySparse(rows, cols int) *Sparse {
 	return newSparse(rows, cols, make([]float64, rows*cols))
 }
@@ -305,6 +305,7 @@ func (s *Sparse) Reshape(r, c int) Matrix {
 	panic("mat: Reshape not implemented for Sparse matrices")
 }
 
+// Apply executes the unary function fn.
 // Important: apply to Functions such that f(0) = 0 (i.e. Sin, Tan)
 func (s *Sparse) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	if _, ok := a.(*Sparse); !ok {
@@ -315,12 +316,15 @@ func (s *Sparse) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	}
 }
 
+// ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
+// It is currently not implemented for a Sparse matrix.
 // Important: apply to Functions such that f(0, a) = 0
 func (s *Sparse) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64) {
 	panic("mat: ApplyWithAlpha not implemented for Sparse matrices")
 }
 
-// It returns a Dense matrix.
+// AddScalar performs an addition between the Sparse matrix and a float,
+// returning a new Dense matrix.
 func (s *Sparse) AddScalar(n float64) Matrix {
 	out := NewInitDense(s.rows, s.cols, n)
 	s.DoNonZero(func(i, j int, v float64) {
@@ -330,12 +334,14 @@ func (s *Sparse) AddScalar(n float64) Matrix {
 	return out
 }
 
-// It returns a Dense matrix.
+// AddScalarInPlace adds the scalar to the receiver.
+// It is currently not implemented for a Sparse matrix.
 func (s *Sparse) AddScalarInPlace(n float64) Matrix {
 	panic("mat: AddScalarInPlace not implemented for Sparse matrices")
 }
 
-// It returns a Dense matrix.
+// SubScalar performs a subtraction between the Sparse Matrix and a float,
+// returning a new Dense matrix.
 func (s *Sparse) SubScalar(n float64) Matrix {
 	out := NewInitDense(s.rows, s.cols, -n)
 	s.DoNonZero(func(i, j int, v float64) {
@@ -344,12 +350,14 @@ func (s *Sparse) SubScalar(n float64) Matrix {
 	return out
 }
 
-// It returns a Dense matrix.
+// SubScalarInPlace subtracts the scalar to the receiver.
+// It is currently not implemented for a Sparse matrix.
 func (s *Sparse) SubScalarInPlace(n float64) Matrix {
 	panic("mat: SubScalarInPlace not implemented for Sparse matrices")
 }
 
-// It returns a Sparse matrix.
+// ProdScalar returns the multiplication of the float with the receiver,
+// returning a new Sparse matrix.
 func (s *Sparse) ProdScalar(n float64) Matrix {
 	out := s.Clone().(*Sparse) // TODO: find a better alternative to s.Clone()
 	if n == 0.0 {
@@ -361,7 +369,8 @@ func (s *Sparse) ProdScalar(n float64) Matrix {
 	return out
 }
 
-// It returns a Sparse matrix.
+// ProdScalarInPlace multiplies a float with the receiver in place,
+// returning the same receiver Sparse matrix.
 func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
 	if n == 0.0 {
 		return NewEmptySparse(s.rows, s.cols)
@@ -372,7 +381,8 @@ func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
 	return s
 }
 
-// It returns a Sparse matrix.
+// ProdMatrixScalarInPlace multiplies a matrix with a float, storing the result
+// in the receiver, and returning the same receiver Sparse matrix.
 func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 	if _, ok := m.(*Sparse); !ok {
 		panic("mat: incompatible matrix types.")
@@ -512,7 +522,10 @@ func (s *Sparse) prodSparse(other *Sparse) *Sparse {
 	return out
 }
 
-// It returns Dense if other is Dense, Sparse otherwise.
+// Add returns the addition of a matrix with the receiver. It returns the same
+// type of matrix of the other, that is a Dense matrix if other is Dense,
+// or a Sparse matrix otherwise.
+// It returns a Dense matrix if other is Dense, or a Sparse matrix otherwise.
 func (s *Sparse) Add(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
@@ -545,7 +558,8 @@ func (s *Sparse) AddInPlace(other Matrix) Matrix {
 	return s
 }
 
-// It returns Dense if other is Dense, Sparse otherwise.
+// Sub returns the subtraction of a matrix from the receiver.
+// It returns a Dense matrix if other is Dense, or a Sparse matrix otherwise.
 func (s *Sparse) Sub(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
@@ -578,7 +592,8 @@ func (s *Sparse) SubInPlace(other Matrix) Matrix {
 	return s
 }
 
-// It returns a Sparse matrix.
+// Prod performs the element-wise product with the receiver,
+// returning a new Sparse matrix.
 func (s *Sparse) Prod(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
@@ -616,7 +631,8 @@ func (s *Sparse) ProdInPlace(other Matrix) Matrix {
 	return s
 }
 
-// It returns a Sparse matrix.
+// Div returns the result of the element-wise division,
+// returning a new Sparse matrix.
 func (s *Sparse) Div(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
@@ -645,7 +661,7 @@ func (s *Sparse) DivInPlace(other Matrix) Matrix {
 	panic("mat: DivInPlace not implemented for Sparse matrices")
 }
 
-// It returns Dense.
+// Mul performs the multiplication row by column, returning a Dense matrix.
 func (s *Sparse) Mul(other Matrix) Matrix {
 	if s.Columns() != other.Rows() {
 		panic("mat: matrices with not compatible size")
