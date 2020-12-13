@@ -38,17 +38,17 @@ func (c *ClassMetrics) IncTruePos() {
 	c.TruePos++
 }
 
-// IncTruePos increments the true negative.
+// IncTrueNeg increments the true negative.
 func (c *ClassMetrics) IncTrueNeg() {
 	c.TrueNeg++
 }
 
-// IncTruePos increments the false positive.
+// IncFalsePos increments the false positive.
 func (c *ClassMetrics) IncFalsePos() {
 	c.FalsePos++
 }
 
-// IncTruePos increments the false negative.
+// IncFalseNeg increments the false negative.
 func (c *ClassMetrics) IncFalseNeg() {
 	c.FalseNeg++
 }
