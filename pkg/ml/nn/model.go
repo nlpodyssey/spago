@@ -148,7 +148,7 @@ func ZeroGrad(m Model) {
 	})
 }
 
-// ClearPayload clears the support structure of all model's parameters (including sub-params).
+// ClearSupport clears the support structure of all model's parameters (including sub-params).
 // TODO: use ParamsIterator?
 func ClearSupport(m Model) {
 	ForEachParam(m, func(param *Param) {
