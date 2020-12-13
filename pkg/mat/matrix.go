@@ -124,7 +124,7 @@ func ConcatV(vs ...Matrix) Matrix {
 	return NewVecDense(data)
 }
 
-// ConcatV returns a new Matrix created concatenating the input matrices horizontally.
+// ConcatH returns a new Matrix created concatenating the input matrices horizontally.
 func ConcatH(ms ...Matrix) *Dense {
 	rows := len(ms)
 	cols := ms[0].Rows()
