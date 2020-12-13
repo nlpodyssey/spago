@@ -54,7 +54,7 @@ func GetDenseWorkspace(r, c int) *Dense {
 	return w
 }
 
-// GetDenseWorkspace returns a *Dense of size r×c and a data slice with a cap that is less than 2*r*c.
+// GetEmptyDenseWorkspace returns a *Dense of size r×c and a data slice with a cap that is less than 2*r*c.
 // The returned matrix is ready-to-use (with all the values set to zeros).
 func GetEmptyDenseWorkspace(r, c int) *Dense {
 	size := r * c
