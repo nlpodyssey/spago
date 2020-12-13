@@ -17,8 +17,8 @@ func EncodeDense(alpha float64, size int, seq []int) []*mat.Dense {
 	return y
 }
 
-// The Fixed-Size Ordinally-Forgetting Encoding
-//    zt = α * zt−1 + et (1 ≤ t ≤ T)
+// Encode implements the Fixed-Size Ordinally-Forgetting Encoding.
+// zt = α * zt−1 + et (1 ≤ t ≤ T)
 func Encode(alpha float64, size int, seq []int) []*mat.Sparse {
 	var z []*mat.Sparse
 	for t, i := range seq {

@@ -25,7 +25,7 @@ type PositionalEncoder struct {
 	cache []*mat.Dense
 }
 
-// New returns a new PositionalEncoder ready to use.
+// NewPositionalEncoder returns a new PositionalEncoder ready to use.
 func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	pe := &PositionalEncoder{
 		Size:   size,
