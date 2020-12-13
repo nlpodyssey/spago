@@ -6,6 +6,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/converter"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingfacedownloader"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
@@ -119,7 +120,7 @@ func (a *ImporterArgs) convertPreTrainedDataset(repo string) error {
 
 	switch config.ModelType {
 	case "bart":
-		panic("BART conversion not implemented")
+		return converter.ConvertHuggingFacePreTrained(path.Join(repo, a.Model))
 	case "bert", "electra":
 		return bert.ConvertHuggingFacePreTrained(path.Join(repo, a.Model))
 	default:
