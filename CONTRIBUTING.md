@@ -13,13 +13,25 @@ The preferred flow is to fork the project, create branches in your fork, and sub
 
 ## API Development
 
+### Setup
+
+Set the desired environment variable, for example:
+
+```console
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export GOBIN=$GOPATH/bin
+export PATH=$PATH:$GOROOT:$GOPATH:$GOBIN
+```
+
 Install the following tools like this, if you haven't already.
 
 ```console
 brew install protobuf
-export GO111MODULE=on  # Enable module mode
-go get github.com/golang/protobuf/protoc-gen-go
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+go get -u github.com/golang/protobuf/proto
+go get -u github.com/golang/protobuf/protoc-gen-go
 ```
+
+### Generate API source
 
 After changing the gRPC protobuf specification, run `go generate ./...` from the top-level folder.
