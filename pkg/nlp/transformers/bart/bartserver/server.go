@@ -13,10 +13,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/nlpodyssey/spago/pkg/webui/bartnli"
 	"net/http"
 )
 
-// Server contains everything needed to run a BART server.
+// ServerForSequenceClassification contains everything needed to run a BART server.
 type ServerForSequenceClassification struct {
 	model     *barthead.SequenceClassification
 	tokenizer *bpetokenizer.BPETokenizer
@@ -42,11 +43,12 @@ func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCer
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
 
-// StartDefaultServer is used to start a basic BERT HTTP server.
+// StartDefaultHTTPServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
 func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
 	mux.HandleFunc("/classify", s.ClassifyHandler)
 	mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
 	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)

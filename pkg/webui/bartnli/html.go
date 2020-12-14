@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bertqa
+package bartnli
 
 import (
 	"bytes"
@@ -28,9 +28,9 @@ const htmlTemplate = `
 
 <body class="flex flex-col">
 	<header class="p-2 shadow z-10">
-		<a 
-			class="text-xl font-bold italic" 
-			href="https://github.com/nlpodyssey/spago" 
+		<a
+			class="text-xl font-bold italic"
+			href="https://github.com/nlpodyssey/spago"
 			target="_blank"
 		>
 			spa<em class="text-blue">GO</em>
@@ -38,41 +38,51 @@ const htmlTemplate = `
 	</header>
 
 	<main class="flex-grow overflow-hidden flex">
-		<form 
+		<form
 			class="bg-gray-200 flex-grow p-2 flex flex-col"
-			onsubmit="answer(); return false;"
+			onsubmit="classify(); return false;"
 		>
 			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
-				<div
-					id="highlightable-text"
-					class="absolute inset-0 text-transparent p-2 overflow-auto"
-				></div>
-				<textarea 
-					id="passage"
-					placeholder="Passage..."
+				<textarea
+					id="text"
+					placeholder="Text..."
 					class="flex-grow resize-none bg-transparent p-2 z-10 overflow-auto"
-					oninput="handleTextareaInput()"
-					onscroll="handleTextareaScroll()"
 				></textarea>
 			</div>
+
+			<label for="hypothesis-template" class="text-sm mt-2">Hypothesis template (use "{}" as label placeholder)</label>
+			<input
+				type="text"
+				id="hypothesis-template"
+				placeholder="Hypothesis template..."
+				class="p-2 rounded shadow"
+				value="This text is about {}"
+			>
+
+			<label for="possible-labels" class="text-sm mt-2">Possible labels (separated by comma ",")</label>
+			<input
+				type="text"
+				id="possible-labels"
+				placeholder="Topics..."
+				class="p-2 rounded shadow"
+			>
+
 			<div class="mt-2 flex">
-				<input 
-					type="text"
-					id="question" 
-					placeholder="Question..."
-					class="flex-grow mr-2 p-2 rounded shadow"
-				>
-				<input 
+				<div class="flex-grow py-2">
+					<input id="multi-class" type="checkbox" checked>
+					<label for="multi-class" class="mr-2">Multi class</label>
+				</div>
+				<input
 					type="submit"
 					id="submit"
-					value="Answer"
+					value="Classify"
 					class="rounded shadow cursor-pointer py-2 px-4 bg-blue hover:bg-light-blue"
 				>
 				<div id="loader" class="hidden"></div>
 			</div>
 		</form>
 
-		<aside id="answers" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="classes" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>
@@ -86,7 +96,7 @@ const htmlTemplate = `
 var html []byte
 
 func init() {
-	t, err := template.New("BERT QA Web UI").Parse(htmlTemplate)
+	t, err := template.New("BERT Classification Web UI").Parse(htmlTemplate)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,7 +119,7 @@ func init() {
 	html = buf.Bytes()
 }
 
-// Handler is the server handler function for BERT question-answering web UI
+// Handler is the server handler function for BART NLI classification web UI
 func Handler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "text/html")

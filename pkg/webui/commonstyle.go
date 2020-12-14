@@ -66,7 +66,8 @@ button {
 .mb-2 { margin-bottom: .5rem; }
 .mr-2 { margin-right: .5rem; }
 
-.text-xl { font-size: 1.25rem; }
+.text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.text-xl { font-size: 1.25rem; line-height: 1.75rem; }
 .font-bold { font-weight: bold; }
 .italic { font-style: italic; }
 .text-blue { color: #0aadd8; }
