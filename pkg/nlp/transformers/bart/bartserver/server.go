@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/nlpodyssey/spago/pkg/webui/bartnli"
 	"net/http"
 )
 
@@ -47,6 +48,7 @@ func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCer
 // HTTP router using the public handler functions
 func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
 	mux.HandleFunc("/classify", s.ClassifyHandler)
 	mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
 	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
