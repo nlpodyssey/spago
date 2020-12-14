@@ -42,6 +42,7 @@ const htmlTemplate = `
 			class="bg-gray-200 flex-grow p-4 flex flex-col"
 			onsubmit="classify(); return false;"
 		>
+			<label for="text" class="text-sm">Text</label>
 			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
 				<textarea
 					id="text"
