@@ -17,11 +17,12 @@ import (
 func (s *ServerForSequenceClassification) classify(text string, text2 string) *ClassifyResponse {
 	start := time.Now()
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(true))
 	defer g.Clear()
 	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*barthead.SequenceClassificationProcessor)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
 	logits := proc.Predict(inputIds...)[0]
+	g.Forward()
 
 	probs := f64utils.SoftMax(logits.Value().Data())
 	best := f64utils.ArgMax(probs)
