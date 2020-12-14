@@ -50,7 +50,7 @@ const htmlTemplate = `
 				></textarea>
 			</div>
 
-			<label for="hypothesis-template" class="text-sm mt-2">Hypothesis template (use "{}" as label placeholder)</label>
+			<label for="hypothesis-template" class="text-sm mt-4">Hypothesis template (use "{}" as label placeholder)</label>
 			<input
 				type="text"
 				id="hypothesis-template"
@@ -59,7 +59,7 @@ const htmlTemplate = `
 				value="This text is about {}"
 			>
 
-			<label for="possible-labels" class="text-sm mt-2">Possible labels (separated by comma ",")</label>
+			<label for="possible-labels" class="text-sm mt-4">Possible labels (separated by comma ",")</label>
 			<input
 				type="text"
 				id="possible-labels"
@@ -67,7 +67,7 @@ const htmlTemplate = `
 				class="p-2 rounded shadow"
 			>
 
-			<div class="mt-2 flex">
+			<div class="mt-4 flex">
 				<div class="flex-grow py-2">
 					<input id="multi-class" type="checkbox" checked>
 					<label for="multi-class" class="mr-2">Multi class</label>

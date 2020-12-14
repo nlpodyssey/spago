@@ -64,6 +64,7 @@ button {
 .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .mt-2 { margin-top: .5rem; }
+.mt-4 { margin-top: 1rem; }
 .mb-2 { margin-bottom: .5rem; }
 .mr-2 { margin-right: .5rem; }
 

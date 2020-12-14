@@ -55,7 +55,7 @@ const htmlTemplate = `
 					onscroll="handleTextareaScroll()"
 				></textarea>
 			</div>
-			<div class="mt-2 flex justify-end">
+			<div class="mt-4 flex justify-end">
 				<input
 					type="submit"
 					id="submit"

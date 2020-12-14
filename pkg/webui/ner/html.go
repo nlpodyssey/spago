@@ -55,7 +55,7 @@ const htmlTemplate = `
 					onscroll="handleTextareaScroll()"
 				></textarea>
 			</div>
-			<div class="mt-2 flex">
+			<div class="mt-4 flex">
 				<div class="flex-grow py-2">
 					<input id="merge-entities" type="checkbox" checked>
 					<label for="merge-entities" class="mr-2">Merge entities</label>
