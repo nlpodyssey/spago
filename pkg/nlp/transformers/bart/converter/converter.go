@@ -43,6 +43,11 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	if err != nil {
 		return err
 	}
+
+	// Enable training mode, so that we have writing permissions
+	// (for example, for embeddings storage files).
+	config.Training = true
+
 	model := bart.New(config, path.Join(modelPath, bartconfig.DefaultEmbeddingsStorage))
 	defer model.Close()
 	classification := barthead.NewClassification(barthead.ClassificationConfig{
