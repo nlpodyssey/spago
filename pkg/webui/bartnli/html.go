@@ -64,7 +64,7 @@ const htmlTemplate = `
 			<input
 				type="text"
 				id="possible-labels"
-				placeholder="Topics..."
+				placeholder="Possible labels..."
 				class="p-2 rounded shadow"
 			>
 
