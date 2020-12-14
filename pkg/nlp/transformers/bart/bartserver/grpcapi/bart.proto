@@ -6,6 +6,8 @@ option go_package = "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/grpca
 service BART {
   // Sends a request to classify.
   rpc Classify(ClassifyRequest) returns (ClassifyReply) {}
+  // Sends a request to classify-nli.
+  rpc ClassifyNLI(ClassifyNLIRequest) returns (ClassifyReply) {}
 }
 
 // The classify request message containing the text to classify
@@ -13,6 +15,14 @@ message ClassifyRequest {
   bool has_text2 = 1;  // always set this to "true" when using text2
   string text = 2;
   string text2 = 3;
+}
+
+// The classify-nli request message containing the text to classify using natural language inference
+message ClassifyNLIRequest {
+  string text = 1;
+  string hypothesis_template = 2;
+  repeated string possible_labels = 3;
+  bool multi_class = 4;
 }
 
 // The pair of class and confidence.

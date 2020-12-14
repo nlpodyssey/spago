@@ -17,8 +17,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BARTClient interface {
-	// Sends a request to /classify.
+	// Sends a request to classify.
 	Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error)
+	// Sends a request to classify-nli.
+	ClassifyNLI(ctx context.Context, in *ClassifyNLIRequest, opts ...grpc.CallOption) (*ClassifyReply, error)
 }
 
 type bARTClient struct {
@@ -38,12 +40,23 @@ func (c *bARTClient) Classify(ctx context.Context, in *ClassifyRequest, opts ...
 	return out, nil
 }
 
+func (c *bARTClient) ClassifyNLI(ctx context.Context, in *ClassifyNLIRequest, opts ...grpc.CallOption) (*ClassifyReply, error) {
+	out := new(ClassifyReply)
+	err := c.cc.Invoke(ctx, "/BART/ClassifyNLI", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BARTServer is the server API for BART service.
 // All implementations must embed UnimplementedBARTServer
 // for forward compatibility
 type BARTServer interface {
-	// Sends a request to /classify.
+	// Sends a request to classify.
 	Classify(context.Context, *ClassifyRequest) (*ClassifyReply, error)
+	// Sends a request to classify-nli.
+	ClassifyNLI(context.Context, *ClassifyNLIRequest) (*ClassifyReply, error)
 	mustEmbedUnimplementedBARTServer()
 }
 
@@ -53,6 +66,9 @@ type UnimplementedBARTServer struct {
 
 func (UnimplementedBARTServer) Classify(context.Context, *ClassifyRequest) (*ClassifyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Classify not implemented")
+}
+func (UnimplementedBARTServer) ClassifyNLI(context.Context, *ClassifyNLIRequest) (*ClassifyReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClassifyNLI not implemented")
 }
 func (UnimplementedBARTServer) mustEmbedUnimplementedBARTServer() {}
 
@@ -85,6 +101,24 @@ func _BART_Classify_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BART_ClassifyNLI_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClassifyNLIRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BARTServer).ClassifyNLI(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/BART/ClassifyNLI",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BARTServer).ClassifyNLI(ctx, req.(*ClassifyNLIRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _BART_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "BART",
 	HandlerType: (*BARTServer)(nil),
@@ -92,6 +126,10 @@ var _BART_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Classify",
 			Handler:    _BART_Classify_Handler,
+		},
+		{
+			MethodName: "ClassifyNLI",
+			Handler:    _BART_ClassifyNLI_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
