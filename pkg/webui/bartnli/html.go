@@ -43,7 +43,7 @@ const htmlTemplate = `
 			onsubmit="classify(); return false;"
 		>
 			<label for="text" class="text-sm">Text</label>
-			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
+			<div class="flex-grow max-h-96 bg-white rounded shadow flex overflow-hidden relative">
 				<textarea
 					id="text"
 					placeholder="Text..."

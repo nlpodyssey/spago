@@ -42,7 +42,7 @@ const htmlTemplate = `
 			class="bg-gray-200 flex-grow p-4 flex flex-col"
 			onsubmit="classify(); return false;"
 		>
-			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
+			<div class="flex-grow max-h-96 bg-white rounded shadow flex overflow-hidden relative">
 				<div
 					id="highlightable-text"
 					class="absolute inset-0 text-transparent p-2 overflow-auto"
