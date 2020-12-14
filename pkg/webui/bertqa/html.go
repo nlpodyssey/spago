@@ -72,7 +72,7 @@ const htmlTemplate = `
 			</div>
 		</form>
 
-		<aside id="answers" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="answers" class="bg-gray-300 shadow p-4 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>

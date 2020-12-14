@@ -39,7 +39,7 @@ const htmlTemplate = `
 
 	<main class="flex-grow overflow-hidden flex">
 		<form
-			class="bg-gray-200 flex-grow p-2 flex flex-col"
+			class="bg-gray-200 flex-grow p-4 flex flex-col"
 			onsubmit="analyze(); return false;"
 		>
 			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
@@ -73,7 +73,7 @@ const htmlTemplate = `
 			</div>
 		</form>
 
-		<aside id="entities" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="entities" class="bg-gray-300 shadow p-4 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>
