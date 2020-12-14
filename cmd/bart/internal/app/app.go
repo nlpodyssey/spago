@@ -15,6 +15,7 @@ const (
 // BartApp contains everything needed to run the BART demo client or server.
 type BartApp struct {
 	*cli.App
+	address        string
 	grpcAddress    string
 	tlsCert        string
 	tlsKey         string

@@ -34,6 +34,12 @@ func newServerCommandFlagsFor(app *BartApp) []cli.Flag {
 			Destination: &app.grpcAddress,
 		},
 		cli.StringFlag{
+			Name:        "address",
+			Usage:       "Changes the bind address of the HTTP JSON server.",
+			Value:       "0.0.0.0:1987",
+			Destination: &app.address,
+		},
+		cli.StringFlag{
 			Name:        "model, m",
 			Required:    true,
 			Usage:       "The path of the model to load.",
@@ -86,7 +92,15 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) {
 			return "TLS"
 		}(), app.grpcAddress)
 
+		fmt.Printf("Start %s HTTP server listening on %s.\n", func() string {
+			if app.tlsDisable {
+				return "non-TLS"
+			}
+			return "TLS"
+		}(), app.address)
+
 		server := bartserver.NewServer(model, tokenizer)
+		server.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
 		server.StartDefaultServer(app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
 	}
 }

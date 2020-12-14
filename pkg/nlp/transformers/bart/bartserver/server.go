@@ -5,11 +5,15 @@
 package bartserver
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
+	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"net/http"
 )
 
 // Server contains everything needed to run a BART server.
@@ -38,6 +42,16 @@ func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCer
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
 
+// StartDefaultServer is used to start a basic BERT HTTP server.
+// If you want more control of the HTTP server you can run your own
+// HTTP router using the public handler functions
+func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/classify", s.ClassifyHandler)
+	mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
+	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
+}
+
 // Classify handles a classification request over gRPC.
 func (s *ServerForSequenceClassification) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
 	result := s.classify(req.GetText(), req.GetText2())
@@ -56,6 +70,79 @@ func (s *ServerForSequenceClassification) ClassifyNLI(_ context.Context, req *gr
 		return nil, err
 	}
 	return classificationFrom(result), nil
+}
+
+type body struct {
+	Text  string `json:"text"`
+	Text2 string `json:"text2"`
+	// Following fields used by ClassifyNLI
+	HypothesisTemplate string   `json:"hypothesis_template"`
+	PossibleLabels     []string `json:"possible_labels"`
+	MultiClass         bool     `json:"multi_class"`
+}
+
+// ClassifyHandler handles a classify request over HTTP.
+func (s *ServerForSequenceClassification) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
+	w.Header().Set("Content-Type", "application/json")
+
+	var content body
+	err := json.NewDecoder(req.Body).Decode(&content)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result := s.classify(content.Text, content.Text2)
+	_, pretty := req.URL.Query()["pretty"]
+	response, err := Dump(result, pretty)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// ClassifyNLIHandler handles a classify request over HTTP.
+func (s *ServerForSequenceClassification) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
+	w.Header().Set("Content-Type", "application/json")
+
+	var content body
+	err := json.NewDecoder(req.Body).Decode(&content)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := s.classifyNLI(
+		content.Text,
+		content.HypothesisTemplate,
+		content.PossibleLabels,
+		content.MultiClass,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, pretty := req.URL.Query()["pretty"]
+	response, err := Dump(result, pretty)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 type ClassConfidencePair struct {
@@ -101,4 +188,18 @@ func getInputIDs(tokenizer *bpetokenizer.BPETokenizer, text, text2 string) []int
 		inputIds = append(inputIds, inputIds2...)
 	}
 	return inputIds
+}
+
+func Dump(value interface{}, pretty bool) ([]byte, error) {
+	buf := bytes.NewBufferString("")
+	enc := json.NewEncoder(buf)
+	if pretty {
+		enc.SetIndent("", "    ")
+	}
+	enc.SetEscapeHTML(true)
+	err := enc.Encode(value)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
