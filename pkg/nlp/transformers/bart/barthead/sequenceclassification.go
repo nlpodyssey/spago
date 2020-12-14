@@ -47,7 +47,7 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	modelFilename := path.Join(modelPath, bartconfig.DefaultModelFile)
 
 	fmt.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
-	fmt.Printf("[1/3] Loading configuration... ")
+	fmt.Printf("[1/2] Loading configuration... ")
 	config, err := bartconfig.Load(configFilename)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	fmt.Printf("ok\n")
 	model := NewSequenceClassification(config, embeddingsPath)
 
-	fmt.Printf("[3/3] Loading model weights... ")
+	fmt.Printf("[2/2] Loading model weights... ")
 	err = utils.DeserializeFromFile(modelFilename, nn.NewParamsSerializer(model))
 	if err != nil {
 		log.Fatal(fmt.Sprintf("bert: error during model deserialization (%s)", err.Error()))
