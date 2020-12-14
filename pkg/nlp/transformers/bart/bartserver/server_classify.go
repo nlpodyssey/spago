@@ -24,7 +24,7 @@ func (s *ServerForSequenceClassification) classify(text string, text2 string) *C
 	logits := proc.Predict(inputIds...)[0]
 	g.Forward()
 
-	probs := f64utils.SoftMax(logits.Value().Data())
+	probs := f64utils.SoftMax(g.GetCopiedValue(logits).Data())
 	best := f64utils.ArgMax(probs)
 	classes := s.model.BART.Config.ID2Label
 	class := classes[strconv.Itoa(best)]
