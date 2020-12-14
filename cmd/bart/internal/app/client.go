@@ -15,6 +15,7 @@ func newClientCommandFor(app *BartApp) cli.Command {
 		UsageText: programName + " client",
 		Subcommands: []cli.Command{
 			newClientClassifyCommandFor(app),
+			newClientClassifyNLICommandFor(app),
 		},
 	}
 }
