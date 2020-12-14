@@ -46,7 +46,16 @@ func (s *ServerForSequenceClassification) Classify(_ context.Context, req *grpca
 
 // ClassifyNLI handles a zero-shot classification request over gRPC.
 func (s *ServerForSequenceClassification) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest) (*grpcapi.ClassifyReply, error) {
-	return nil, nil // TODO: implement zero-shot classification algorithm
+	result, err := s.classifyNLI(
+		req.GetText(),
+		req.GetHypothesisTemplate(),
+		req.GetPossibleLabels(),
+		req.MultiClass,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return classificationFrom(result), nil
 }
 
 type ClassConfidencePair struct {
