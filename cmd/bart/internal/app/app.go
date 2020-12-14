@@ -15,11 +15,14 @@ const (
 // BartApp contains everything needed to run the BART demo client or server.
 type BartApp struct {
 	*cli.App
-	grpcAddress string
-	tlsCert     string
-	tlsKey      string
-	tlsDisable  bool
-	modelPath   string
+	grpcAddress  string
+	tlsCert      string
+	tlsKey       string
+	tlsDisable   bool
+	modelPath    string
+	output       string
+	requestText  string
+	requestText2 string
 }
 
 // NewBartApp returns BartApp objects. The app can be used as both a client and a server.
@@ -31,6 +34,7 @@ func NewBartApp() *BartApp {
 	app.Usage = "A demo for sequence-classification based on BART."
 	app.Commands = []cli.Command{
 		newServerCommandFor(app),
+		newClientCommandFor(app),
 	}
 	return app
 }
