@@ -54,7 +54,7 @@ const htmlTemplate = `
 					oninput="handleTextareaInput()"
 					onscroll="handleTextareaScroll()"
 				></textarea>
-				</div>
+			</div>
 			<div class="mt-2 flex">
 				<input 
 					type="text"
