@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option go_package = "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/grpcapi";
+
+// The BART service definition.
+service BART {
+  // Sends a request to classify.
+  rpc Classify(ClassifyRequest) returns (ClassifyReply) {}
+}
+
+// The classify request message containing the text to classify
+message ClassifyRequest {
+  bool has_text2 = 1;  // always set this to "true" when using text2
+  string text = 2;
+  string text2 = 3;
+}
+
+// The pair of class and confidence.
+message ClassConfidencePair {
+  string class = 1;
+  double confidence = 2;
+}
+
+// The response message containing the classification.
+message ClassifyReply {
+  string class = 1;
+  double confidence = 2;
+  repeated ClassConfidencePair distribution = 3;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+  int64 took = 4;
+}
