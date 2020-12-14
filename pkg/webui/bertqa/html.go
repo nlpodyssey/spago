@@ -42,7 +42,7 @@ const htmlTemplate = `
 			class="bg-gray-200 flex-grow p-2 flex flex-col"
 			onsubmit="answer(); return false;"
 		>
-			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
+			<div class="flex-grow max-h-96 bg-white rounded shadow flex overflow-hidden relative">
 				<div
 					id="highlightable-text"
 					class="absolute inset-0 text-transparent p-2 overflow-auto"
@@ -55,7 +55,7 @@ const htmlTemplate = `
 					onscroll="handleTextareaScroll()"
 				></textarea>
 			</div>
-			<div class="mt-2 flex">
+			<div class="mt-4 flex">
 				<input 
 					type="text"
 					id="question" 
@@ -72,7 +72,7 @@ const htmlTemplate = `
 			</div>
 		</form>
 
-		<aside id="answers" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="answers" class="bg-gray-300 shadow p-4 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>

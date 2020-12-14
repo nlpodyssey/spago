@@ -39,10 +39,11 @@ const htmlTemplate = `
 
 	<main class="flex-grow overflow-hidden flex">
 		<form
-			class="bg-gray-200 flex-grow p-2 flex flex-col"
+			class="bg-gray-200 flex-grow p-4 flex flex-col"
 			onsubmit="classify(); return false;"
 		>
-			<div class="flex-grow bg-white rounded shadow flex overflow-hidden relative">
+			<label for="text" class="text-sm">Text</label>
+			<div class="flex-grow max-h-96 bg-white rounded shadow flex overflow-hidden relative">
 				<textarea
 					id="text"
 					placeholder="Text..."
@@ -50,7 +51,7 @@ const htmlTemplate = `
 				></textarea>
 			</div>
 
-			<label for="hypothesis-template" class="text-sm mt-2">Hypothesis template (use "{}" as label placeholder)</label>
+			<label for="hypothesis-template" class="text-sm mt-4">Hypothesis template (use "{}" as label placeholder)</label>
 			<input
 				type="text"
 				id="hypothesis-template"
@@ -59,15 +60,15 @@ const htmlTemplate = `
 				value="This text is about {}"
 			>
 
-			<label for="possible-labels" class="text-sm mt-2">Possible labels (separated by comma ",")</label>
+			<label for="possible-labels" class="text-sm mt-4">Possible labels (separated by comma ",")</label>
 			<input
 				type="text"
 				id="possible-labels"
-				placeholder="Topics..."
+				placeholder="Possible labels..."
 				class="p-2 rounded shadow"
 			>
 
-			<div class="mt-2 flex">
+			<div class="mt-4 flex">
 				<div class="flex-grow py-2">
 					<input id="multi-class" type="checkbox" checked>
 					<label for="multi-class" class="mr-2">Multi class</label>
@@ -82,7 +83,7 @@ const htmlTemplate = `
 			</div>
 		</form>
 
-		<aside id="classes" class="bg-gray-300 shadow p-2 overflow-auto flex flex-col">
+		<aside id="classes" class="bg-gray-300 shadow p-4 overflow-auto flex flex-col">
 		</aside>
 	</main>
 	<script>

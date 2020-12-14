@@ -60,11 +60,15 @@ button {
 
 .p-1 { padding: .25rem; }
 .p-2 { padding: .5rem; }
+.p-4 { padding: 1rem; }
 .py-2 { padding-top: .5rem; padding-bottom: .5rem; }
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .mt-2 { margin-top: .5rem; }
+.mt-4 { margin-top: 1rem; }
 .mb-2 { margin-bottom: .5rem; }
 .mr-2 { margin-right: .5rem; }
+
+.max-h-96 { max-height: 24rem; }
 
 .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
 .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
