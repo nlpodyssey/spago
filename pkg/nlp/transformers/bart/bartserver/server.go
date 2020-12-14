@@ -17,7 +17,7 @@ import (
 	"net/http"
 )
 
-// Server contains everything needed to run a BART server.
+// ServerForSequenceClassification contains everything needed to run a BART server.
 type ServerForSequenceClassification struct {
 	model     *barthead.SequenceClassification
 	tokenizer *bpetokenizer.BPETokenizer
@@ -43,7 +43,7 @@ func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCer
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
 
-// StartDefaultServer is used to start a basic BERT HTTP server.
+// StartDefaultHTTPServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
 func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
