@@ -34,6 +34,7 @@ const (
 	OpRowView
 	OpColView
 	OpVec
+	OpRotateR
 	OpT
 	OpSquare
 	OpPow
@@ -98,6 +99,7 @@ var opNameToMethodName = map[OpName]string{
 	OpRowView:       "RowView",
 	OpColView:       "ColView",
 	OpVec:           "Vec",
+	OpRotateR:       "RotateR",
 	OpT:             "T",
 	OpSquare:        "Square",
 	OpPow:           "Pow",
@@ -277,6 +279,12 @@ func (g *Graph) View(x Node, row, column, xStride, yStride int) Node {
 // RowView returns a new operator node as a result of the fn.RowView function.
 func (g *Graph) RowView(x Node, row int) Node {
 	return g.NewOperator(fn.NewRowView(x, row), x)
+}
+
+// RotateR performs the right circular shift.
+// `i` is the number of places by which the elements are shifted.
+func (g *Graph) RotateR(x Node, i int) Node {
+	return g.NewOperator(fn.NewRotateR(x, i), x)
 }
 
 // ColView returns a new operator node as a result of the fn.ColView function.

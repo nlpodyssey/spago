@@ -27,14 +27,3 @@ func (g *Graph) Mean(xs []Node) Node {
 	}
 	return g.DivScalar(sumVector, g.Constant(float64(len(xs))))
 }
-
-// RotateR performs the right circular shift.
-// `i` is the number of places by which the elements are shifted.
-// TODO: replace this composite operator with a native auto-grad function
-func (g *Graph) RotateR(x Node, i int) Node {
-	size := x.Value().Size()
-	l := size - i
-	a := g.View(x, 0, 0, l, 1)
-	b := g.View(x, l, 0, size-l, 1)
-	return g.Concat(b, a)
-}

@@ -208,6 +208,12 @@ func ColView(x Node, column int) Node {
 	return globalGraph.ColView(x, column)
 }
 
+// RotateR performs the right circular shift.
+// `i` is the number of places by which the elements are shifted.
+func RotateR(x Node, i int) Node {
+	return globalGraph.RotateR(x, i)
+}
+
 // Vec returns a new operator node as a result of the fn.Vec function.
 func Vec(x Node) Node {
 	return globalGraph.Vec(x)
