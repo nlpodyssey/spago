@@ -96,9 +96,9 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	b := p.transformInputConcurrent(xs)
-	h, y := p.getPrevHY()
+	h, _ := p.getPrevHY()
 	for i := range xs {
-		h, y = p.forward(h, b[i])
+		h, y := p.forward(h, b[i])
 		p.States = append(p.States, &State{Y: y, H: h})
 		ys[i] = y
 	}
