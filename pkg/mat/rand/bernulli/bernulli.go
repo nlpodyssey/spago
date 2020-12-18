@@ -11,6 +11,7 @@ import (
 	"math"
 )
 
+// Distribution creates a new matrix initialized with Bernoulli distribution.
 func Distribution(r, c int, prob float64, generator *rand.LockedRand) mat.Matrix {
 	out := mat.NewEmptyDense(r, c)
 	dist := uniform.New(0.0, 1.0, generator)

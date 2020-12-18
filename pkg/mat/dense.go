@@ -92,7 +92,8 @@ func NewInitVecDense(size int, val float64) *Dense {
 	return NewInitDense(size, 1, val)
 }
 
-// SetData sets the data.
+// SetData sets the values of the matrix, given a raw one-dimensional slice
+// data representation.
 func (d *Dense) SetData(data []float64) {
 	if len(data) != d.size {
 		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
@@ -100,12 +101,14 @@ func (d *Dense) SetData(data []float64) {
 	_ = append(d.data[:0], data...)
 }
 
-// ZerosLike returns a new Dense with of the same dimensions of the receiver, initialized with zeros.
+// ZerosLike returns a new Dense matrix with the same dimensions of the receiver,
+// initialized with zeroes.
 func (d *Dense) ZerosLike() Matrix {
 	return NewEmptyDense(d.rows, d.cols)
 }
 
-// OnesLike returns a new Dense with of the same dimensions of the receiver, initialized to ones.
+// OnesLike returns a new Dense matrix with the same dimensions of the receiver,
+// initialized with ones.
 func (d *Dense) OnesLike() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	data := out.data // avoid bounds check
@@ -115,12 +118,14 @@ func (d *Dense) OnesLike() Matrix {
 	return out
 }
 
-// Clone returns a new matrix copying the values of the receiver.
+// Clone returns a new Dense matrix, copying all its values from the receiver.
 func (d *Dense) Clone() Matrix {
 	return NewDense(d.rows, d.cols, d.data)
 }
 
-// Copy copies the data to the receiver.
+// Copy copies the data from the other matrix to the receiver.
+// It panics if the matrices have different dimensions, or if the other
+// matrix is not Dense.
 func (d *Dense) Copy(other Matrix) {
 	if !SameDims(d, other) {
 		panic("mat: incompatible matrix dimensions.")
@@ -147,7 +152,7 @@ func (d *Dense) View(rows, cols int) *Dense {
 	}
 }
 
-// Zeros set all the values to zeros.
+// Zeros sets all the values of the matrix to zero.
 func (d *Dense) Zeros() {
 	data := d.data // avoid bounds check
 	for i := range data {
@@ -155,47 +160,49 @@ func (d *Dense) Zeros() {
 	}
 }
 
-// Dims returns the number of rows and columns.
+// Dims returns the number of rows and columns of the matrix.
 func (d *Dense) Dims() (r, c int) {
 	return d.rows, d.cols
 }
 
-// Rows returns the number of rows.
+// Rows returns the number of rows of the matrix.
 func (d *Dense) Rows() int {
 	return d.rows
 }
 
-// Columns returns the number of columns.
+// Columns returns the number of columns of the matrix.
 func (d *Dense) Columns() int {
 	return d.cols
 }
 
-// Size returns the size of the matrix (rows * cols).
+// Size returns the size of the matrix (rows × columns).
 func (d *Dense) Size() int {
 	return d.size
 }
 
-// LastIndex returns the last index respect to linear indexing
+// LastIndex returns the last element's index, in respect of linear indexing.
+// It returns -1 if the matrix is empty.
 func (d *Dense) LastIndex() int {
 	return d.size - 1
 }
 
-// Data returns the underlying data.
+// Data returns the underlying data of the matrix, as a raw one-dimensional slice of values.
 func (d *Dense) Data() []float64 {
 	return d.data
 }
 
-// IsVector returns whether the matrix has one row or one column, or not.
+// IsVector returns whether the matrix is either a row or column vector.
 func (d *Dense) IsVector() bool {
 	return d.rows == 1 || d.cols == 1
 }
 
-// IsScalar returns whether the matrix contains a scalar, or not.
+// IsScalar returns whether the matrix contains exactly one scalar value.
 func (d *Dense) IsScalar() bool {
 	return d.size == 1
 }
 
-// Scalar returns the scalar. It panics if the matrix contains more elements.
+// Scalar returns the scalar value.
+// It panics if the matrix does not contain exactly one element.
 func (d *Dense) Scalar() float64 {
 	if !d.IsScalar() {
 		panic("mat: expected scalar but the matrix contains more elements.")
@@ -204,6 +211,7 @@ func (d *Dense) Scalar() float64 {
 }
 
 // Set sets the value v at row i and column j.
+// It panics if the given indices are out of range.
 func (d *Dense) Set(i int, j int, v float64) {
 	if i >= d.rows {
 		panic("mat: 'i' argument out of range.")
@@ -215,6 +223,7 @@ func (d *Dense) Set(i int, j int, v float64) {
 }
 
 // At returns the value at row i and column j.
+// It panics if the given indices are out of range.
 func (d *Dense) At(i int, j int) float64 {
 	if i >= d.rows {
 		panic("mat: 'i' argument out of range.")
@@ -226,7 +235,7 @@ func (d *Dense) At(i int, j int) float64 {
 }
 
 // SetVec sets the value v at position i of a vector.
-// It panics if not IsVector().
+// It panics if the receiver is not a vector.
 func (d *Dense) SetVec(i int, v float64) {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
@@ -237,8 +246,8 @@ func (d *Dense) SetVec(i int, v float64) {
 	d.data[i] = v
 }
 
-// AtVec returns the value at position i of a vector
-// It panics if not IsVector().
+// AtVec returns the value at position i of a vector.
+// It panics if the receiver is not a vector.
 func (d *Dense) AtVec(i int) float64 {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
@@ -288,7 +297,8 @@ func (d *Dense) T() Matrix {
 	return m
 }
 
-// Reshape returns a copy of the matrix. It panics if the dimensions are not compatible.
+// Reshape returns a copy of the matrix.
+// It panics if the dimensions are incompatible.
 func (d *Dense) Reshape(r, c int) Matrix {
 	if d.Size() != r*c {
 		panic("mat: incompatible sizes.")
@@ -308,7 +318,7 @@ func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) fl
 	}
 }
 
-// Apply execute the unary function fn.
+// Apply executes the unary function fn.
 func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
@@ -344,52 +354,54 @@ func (d *Dense) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 	}
 }
 
-// AddScalar performs an addition between the Matrix and a float.
+// AddScalar performs the addition between the matrix and the given value.
 func (d *Dense) AddScalar(n float64) Matrix {
 	out := d.Clone().(*Dense)
 	f64.AddConst(n, out.data)
 	return out
 }
 
-// SubScalar performs a subtraction between the Matrix and a float.
+// SubScalar performs a subtraction between the matrix and the given value.
 func (d *Dense) SubScalar(n float64) Matrix {
 	out := d.Clone().(*Dense)
 	f64.AddConst(-n, out.data)
 	return out
 }
 
-// AddScalarInPlace adds the scalar to the receiver.
+// AddScalarInPlace adds the scalar to all values of the matrix.
 func (d *Dense) AddScalarInPlace(n float64) Matrix {
 	f64.AddConst(n, d.data)
 	return d
 }
 
-// SubScalarInPlace subtracts the scalar to the receiver.
+// SubScalarInPlace subtracts the scalar from the receiver's values.
 func (d *Dense) SubScalarInPlace(n float64) Matrix {
 	f64.AddConst(-n, d.data)
 	return d
 }
 
-// ProdScalarInPlace multiply a float with the receiver in place.
+// ProdScalarInPlace performs the in-place multiplication between the matrix and
+// the given value.
 func (d *Dense) ProdScalarInPlace(n float64) Matrix {
 	f64.ScalUnitary(n, d.data)
 	return d
 }
 
-// ProdMatrixScalarInPlace multiply a matrix with a float, storing the result in the receiver.
+// ProdMatrixScalarInPlace multiplies the given matrix with the value, storing the
+// result in the receiver.
 func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 	f64.ScalUnitaryTo(d.data, n, m.(*Dense).data)
 	return d
 }
 
-// ProdScalar returns the multiplication of the float with the receiver.
+// ProdScalar returns the multiplication between the matrix and the given value.
 func (d *Dense) ProdScalar(n float64) Matrix {
 	out := d.ZerosLike().(*Dense)
 	f64.ScalUnitaryTo(out.data, n, d.data)
 	return out
 }
 
-// Add returns the addition with a matrix with the receiver.
+// Add returns the addition between the receiver and another matrix.
 func (d *Dense) Add(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -402,7 +414,7 @@ func (d *Dense) Add(other Matrix) Matrix {
 	return out
 }
 
-// AddInPlace performs the addition with the other matrix in place.
+// AddInPlace performs the in-place addition with the other matrix.
 func (d *Dense) AddInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -414,7 +426,7 @@ func (d *Dense) AddInPlace(other Matrix) Matrix {
 	return d
 }
 
-// Sub returns the subtraction with a matrix with the receiver.
+// Sub returns the subtraction of the other matrix from the receiver.
 func (d *Dense) Sub(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -427,7 +439,7 @@ func (d *Dense) Sub(other Matrix) Matrix {
 	return out
 }
 
-// SubInPlace performs the subtraction with the other matrix in place.
+// SubInPlace performs the in-place subtraction with the other matrix.
 func (d *Dense) SubInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -445,7 +457,7 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 	return d
 }
 
-// Prod performs the element-wise product with the receiver.
+// Prod performs the element-wise product between the receiver and the other matrix.
 func (d *Dense) Prod(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -472,7 +484,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 	return out
 }
 
-// ProdInPlace performs the element-wise product with the receiver in place.
+// ProdInPlace performs the in-place element-wise product with the other matrix.
 func (d *Dense) ProdInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -488,7 +500,7 @@ func (d *Dense) ProdInPlace(other Matrix) Matrix {
 	return d
 }
 
-// Div returns the result of the element-wise division.
+// Div returns the result of the element-wise division of the receiver by the other matrix.
 func (d *Dense) Div(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -500,7 +512,7 @@ func (d *Dense) Div(other Matrix) Matrix {
 	return out
 }
 
-// DivInPlace performs the result of the element-wise division in place.
+// DivInPlace performs the in-place element-wise division of the receiver by the other matrix.
 func (d *Dense) DivInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
@@ -514,8 +526,8 @@ func (d *Dense) DivInPlace(other Matrix) Matrix {
 	return d
 }
 
-// Mul performs the multiplication row by column. AB = C
-// if A is an r x c Matrix, and B is j X k, c = j the resulting Matrix C will be r x k
+// Mul performs the multiplication row by column.
+// If A is an i×j Matrix, and B is j×k, then the resulting Matrix C = AB will be i×k.
 func (d *Dense) Mul(other Matrix) Matrix {
 	if d.Columns() != other.Rows() {
 		panic("mat: matrices with not compatible size")
@@ -626,8 +638,7 @@ func (d *Dense) DotUnitary(other Matrix) float64 {
 	return f64.DotUnitary(d.data, other.Data())
 }
 
-// ClipInPlace performs the clip in place.
-// If element k of Matrix if k > max, k = max and if k < min, k = min
+// ClipInPlace clips in place each value of the matrix.
 func (d *Dense) ClipInPlace(min, max float64) Matrix {
 	data := d.data
 	for i, v := range data {
@@ -642,7 +653,7 @@ func (d *Dense) ClipInPlace(min, max float64) Matrix {
 	return d
 }
 
-// Abs returns a new matrix applying the abs function to all elements.
+// Abs returns a new matrix applying the absolute value function to all elements.
 func (d *Dense) Abs() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
@@ -652,7 +663,8 @@ func (d *Dense) Abs() Matrix {
 	return out
 }
 
-// Pow returns a new matrix applying the power v (applying the pow function) to all elements.
+// Pow returns a new matrix, applying the power function with given exponent to all elements
+// of the matrix.
 func (d *Dense) Pow(power float64) Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
@@ -662,7 +674,7 @@ func (d *Dense) Pow(power float64) Matrix {
 	return out
 }
 
-// Sqrt returns a new matrix applying the sqrt function to all elements.
+// Sqrt returns a new matrix applying the square root function to all elements.
 func (d *Dense) Sqrt() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	inData := d.data
@@ -683,7 +695,7 @@ func (d *Dense) Sum() float64 {
 	return f64.Sum(d.data)
 }
 
-// Max returns the max value of the matrix.
+// Max returns the maximum value of the matrix.
 func (d *Dense) Max() float64 {
 	max := math.Inf(-1)
 	for _, v := range d.data {
@@ -694,7 +706,7 @@ func (d *Dense) Max() float64 {
 	return max
 }
 
-// Min returns the min value of the matrix.
+// Min returns the minimum value of the matrix.
 func (d *Dense) Min() float64 {
 	min := math.Inf(1)
 	for _, v := range d.data {
@@ -723,7 +735,7 @@ func (d *Dense) SplitV(sizes ...int) []Matrix {
 	return out
 }
 
-// Norm returns the vector norm. Use pow = 2.0 for Euclidean.
+// Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 func (d *Dense) Norm(pow float64) float64 {
 	s := 0.0
 	for _, x := range d.data {
@@ -911,7 +923,7 @@ func (d Dense) Inverse() Matrix {
 	return out
 }
 
-// String returns the string representation of the data.
+// String returns a string representation of the matrix data.
 func (d *Dense) String() string {
 	return fmt.Sprintf("%v", d.data)
 }
