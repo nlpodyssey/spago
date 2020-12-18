@@ -17,6 +17,7 @@ type CeLU struct {
 	alpha Operand // scalar
 }
 
+// NewCeLU returns a new CeLU Function.
 func NewCeLU(x, alpha Operand) *CeLU {
 	return &CeLU{x: x, alpha: alpha}
 }

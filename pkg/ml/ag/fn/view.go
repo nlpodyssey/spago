@@ -18,6 +18,7 @@ type View struct {
 	ly int // y length
 }
 
+// NewView returns a new View Function.
 func NewView(x Operand, sx, sy, lx, ly int) *View {
 	return &View{x: x, sx: sx, sy: sy, lx: lx, ly: ly}
 }

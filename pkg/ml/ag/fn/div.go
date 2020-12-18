@@ -16,6 +16,7 @@ type Div struct {
 	x2 Operand
 }
 
+// NewDiv returns a new Div Function.
 func NewDiv(x1, x2 Operand) *Div {
 	return &Div{x1: x1, x2: x2}
 }

@@ -17,6 +17,7 @@ type Mul struct {
 	x2 Operand // vector
 }
 
+// NewMul returns a new Mul Function.
 func NewMul(x1, x2 Operand) *Mul {
 	return &Mul{x1: x1, x2: x2}
 }

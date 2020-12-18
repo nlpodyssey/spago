@@ -15,6 +15,7 @@ type ReduceMean struct {
 	x Operand
 }
 
+// NewReduceMean returns a new ReduceMean Function.
 func NewReduceMean(x Operand) *ReduceMean {
 	return &ReduceMean{x: x}
 }

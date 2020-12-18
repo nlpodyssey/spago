@@ -17,6 +17,7 @@ type SoftPlus struct {
 	threshold Operand
 }
 
+// NewSoftPlus returns a new SoftPlus Function.
 func NewSoftPlus(x, beta, threshold Operand) *SoftPlus {
 	return &SoftPlus{x: x, beta: beta, threshold: threshold}
 }

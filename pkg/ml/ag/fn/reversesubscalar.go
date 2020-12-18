@@ -14,6 +14,7 @@ type ReverseSubScalar struct {
 	x2 Operand // scalar
 }
 
+// NewReverseSubScalar returns a new ReverseSubScalar Function.
 func NewReverseSubScalar(x1, x2 Operand) *ReverseSubScalar {
 	return &ReverseSubScalar{x1: x1, x2: x2}
 }

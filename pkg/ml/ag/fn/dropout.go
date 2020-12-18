@@ -21,6 +21,7 @@ type Dropout struct {
 	mask    mat.Matrix // filled during the forward
 }
 
+// NewDropout returns a new Dropout Function.
 func NewDropout(x Operand, p float64, randGen *rand.LockedRand) *Dropout {
 	return &Dropout{
 		x:       x,

@@ -23,6 +23,7 @@ type MaxPooling struct {
 	argmaxJ [][]int
 }
 
+// NewMaxPooling returns a new MaxPooling Function.
 func NewMaxPooling(x Operand, r, c int) *MaxPooling {
 	return &MaxPooling{
 		x:       x,

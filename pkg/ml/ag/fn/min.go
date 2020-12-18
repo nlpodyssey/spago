@@ -15,6 +15,7 @@ type Min struct {
 	x2 Operand
 }
 
+// NewMin returns a new Min Function.
 func NewMin(x1, x2 Operand) *Min {
 	return &Min{x1: x1, x2: x2}
 }

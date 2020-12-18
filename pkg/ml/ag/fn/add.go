@@ -15,6 +15,7 @@ type Add struct {
 	x2 Operand
 }
 
+// NewAdd returns a new Add Function.
 func NewAdd(x1, x2 Operand) *Add {
 	return &Add{x1: x1, x2: x2}
 }

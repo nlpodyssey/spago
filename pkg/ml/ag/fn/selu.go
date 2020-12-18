@@ -17,6 +17,7 @@ type SeLU struct {
 	scale Operand // scalar
 }
 
+// NewSeLU returns a new SeLU Function.
 func NewSeLU(x, alpha, scale Operand) *SeLU {
 	return &SeLU{x: x, alpha: alpha, scale: scale}
 }

@@ -13,6 +13,7 @@ type RotateR struct {
 	i int
 }
 
+// NewRotateR returns a new RotateR Function.
 func NewRotateR(x Operand, i int) *RotateR {
 	return &RotateR{x: x, i: i}
 }

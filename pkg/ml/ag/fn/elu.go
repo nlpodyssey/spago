@@ -17,6 +17,7 @@ type ELU struct {
 	alpha Operand // scalar
 }
 
+// NewELU returns a new ELU Function.
 func NewELU(x, alpha Operand) *ELU {
 	return &ELU{x: x, alpha: alpha}
 }

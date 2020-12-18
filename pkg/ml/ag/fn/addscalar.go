@@ -16,6 +16,7 @@ type AddScalar struct {
 	x2 Operand // scalar
 }
 
+// NewAddScalar returns a new AddScalar Function.
 func NewAddScalar(x1, x2 Operand) *AddScalar {
 	return &AddScalar{x1: x1, x2: x2}
 }

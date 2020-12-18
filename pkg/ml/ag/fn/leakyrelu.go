@@ -17,6 +17,7 @@ type LeakyReLU struct {
 	alpha Operand // scalar
 }
 
+// NewLeakyReLU returns a new LeakyReLU Function.
 func NewLeakyReLU(x, alpha Operand) *LeakyReLU {
 	return &LeakyReLU{x: x, alpha: alpha}
 }

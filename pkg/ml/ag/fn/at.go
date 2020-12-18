@@ -17,6 +17,7 @@ type At struct {
 	j int
 }
 
+// NewAt returns a new At Function.
 func NewAt(x Operand, i int, j int) *At {
 	return &At{x: x, i: i, j: j}
 }
