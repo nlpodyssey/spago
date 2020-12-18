@@ -34,6 +34,7 @@ type Model struct {
 	B []*nn.Param `type:"biases"`
 }
 
+// New returns a new convolution Model, initialized according to the given configuration.
 func New(config Config) *Model {
 	if config.Mask != nil && config.InputChannels != len(config.Mask) {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))

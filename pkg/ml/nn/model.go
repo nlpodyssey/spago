@@ -126,6 +126,7 @@ type DefaultParamsIterator struct {
 	models []Model
 }
 
+// NewDefaultParamsIterator returns a new DefaultParamsIterator.
 func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
 	return &DefaultParamsIterator{models: models}
 }
@@ -193,6 +194,7 @@ type ParamsSerializer struct {
 	Model
 }
 
+// NewParamsSerializer returns a new ParamsSerializer.
 func NewParamsSerializer(m Model) *ParamsSerializer {
 	return &ParamsSerializer{Model: m}
 }

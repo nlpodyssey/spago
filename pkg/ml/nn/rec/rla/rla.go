@@ -33,6 +33,7 @@ type Model struct {
 	Bq *nn.Param `type:"biases"`
 }
 
+// New returns a new RLA Model, initialized according to the given configuration.
 func New(config Config) *Model {
 	return &Model{
 		Config: config,
