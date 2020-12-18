@@ -12,6 +12,7 @@ type Stack struct {
 	xs []Operand
 }
 
+// NewStack returns a new Stack Function.
 func NewStack(xs []Operand) *Stack {
 	return &Stack{xs: xs}
 }

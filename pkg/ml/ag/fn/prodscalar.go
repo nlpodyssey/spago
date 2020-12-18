@@ -16,6 +16,7 @@ type ProdScalar struct {
 	x2 Operand // scalar
 }
 
+// NewProdScalar returns a new ProdScalar Function.
 func NewProdScalar(x1, x2 Operand) *ProdScalar {
 	return &ProdScalar{x1: x1, x2: x2}
 }

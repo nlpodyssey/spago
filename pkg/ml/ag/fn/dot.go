@@ -15,6 +15,7 @@ type Dot struct {
 	x2 Operand
 }
 
+// NewDot returns a new Dot Function.
 func NewDot(x1, x2 Operand) *Dot {
 	return &Dot{x1: x1, x2: x2}
 }

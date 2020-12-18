@@ -16,6 +16,7 @@ type Pow struct {
 	power float64
 }
 
+// NewPow returns a new Pow Function.
 func NewPow(x Operand, power float64) *Pow {
 	return &Pow{x: x, power: power}
 }

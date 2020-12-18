@@ -39,9 +39,9 @@ func newClientDiscriminateCommandActionFor(app *BertApp) func(c *cli.Context) {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
-		cli := grpcapi.NewBERTClient(conn)
+		client := grpcapi.NewBERTClient(conn)
 
-		resp, err := cli.Discriminate(context.Background(), &grpcapi.DiscriminateRequest{
+		resp, err := client.Discriminate(context.Background(), &grpcapi.DiscriminateRequest{
 			Text: app.requestText,
 		})
 

@@ -14,6 +14,7 @@ type RowView struct {
 	i int
 }
 
+// NewRowView returns a new RowView Function.
 func NewRowView(x Operand, i int) *RowView {
 	if i < 0 {
 		panic("fn: invalid row index")

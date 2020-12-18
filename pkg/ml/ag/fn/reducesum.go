@@ -15,6 +15,7 @@ type ReduceSum struct {
 	x Operand
 }
 
+// NewReduceSum returns a new ReduceSum Function.
 func NewReduceSum(x Operand) *ReduceSum {
 	return &ReduceSum{x: x}
 }

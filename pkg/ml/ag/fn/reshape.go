@@ -16,6 +16,7 @@ type Reshape struct {
 	cols int
 }
 
+// NewReshape returns a new Reshape Function.
 func NewReshape(x Operand, r, c int) *Reshape {
 	return &Reshape{x: x, rows: r, cols: c}
 }

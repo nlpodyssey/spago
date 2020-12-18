@@ -16,6 +16,7 @@ type Prod struct {
 	x2 Operand
 }
 
+// NewProd returns a new Prod Function.
 func NewProd(x1, x2 Operand) *Prod {
 	return &Prod{x1: x1, x2: x2}
 }

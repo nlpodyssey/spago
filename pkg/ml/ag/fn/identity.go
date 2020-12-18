@@ -14,6 +14,7 @@ type Identity struct {
 	x Operand
 }
 
+// NewIdentity returns a new Identity Function.
 func NewIdentity(x Operand) *Identity {
 	return &Identity{x: x}
 }

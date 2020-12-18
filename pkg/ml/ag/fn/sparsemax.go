@@ -20,6 +20,7 @@ type SparseMax struct {
 var _ Function = &SparseMax{}
 var _ Function = &SparseMaxLoss{}
 
+// NewSparseMax returns a new SparseMax Function.
 func NewSparseMax(x Operand) *SparseMax {
 	return &SparseMax{x: x}
 }
@@ -111,6 +112,7 @@ type SparseMaxLoss struct {
 	y   mat.Matrix // computed during forward pass
 }
 
+// NewSparseMaxLoss returns a new SparseMaxLoss Function.
 func NewSparseMaxLoss(x Operand) *SparseMaxLoss {
 	return &SparseMaxLoss{x: x}
 }

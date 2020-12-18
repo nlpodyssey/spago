@@ -16,6 +16,7 @@ type AtVec struct {
 	i int
 }
 
+// NewAtVec returns a new AtVec Function.
 func NewAtVec(x Operand, i int) *AtVec {
 	return &AtVec{x: x, i: i}
 }

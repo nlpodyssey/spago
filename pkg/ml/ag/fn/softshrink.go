@@ -16,6 +16,7 @@ type SoftShrink struct {
 	lambda Operand // scalar
 }
 
+// NewSoftShrink returns a new SoftShrink Function.
 func NewSoftShrink(x, lambda Operand) *SoftShrink {
 	return &SoftShrink{x: x, lambda: lambda}
 }

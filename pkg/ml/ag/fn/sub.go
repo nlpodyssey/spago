@@ -16,6 +16,7 @@ type Sub struct {
 	x2 Operand
 }
 
+// NewSub returns a new Sub Function.
 func NewSub(x1, x2 Operand) *Sub {
 	return &Sub{x1: x1, x2: x2}
 }

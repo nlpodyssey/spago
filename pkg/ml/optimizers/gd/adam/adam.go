@@ -21,6 +21,7 @@ type Config struct {
 	Epsilon  float64
 }
 
+// NewConfig returns a new Adam Config.
 func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
@@ -53,6 +54,7 @@ type Adam struct {
 	TimeStep int
 }
 
+// New returns a new Adam optimizer, initialized according to the given configuration.
 func New(c Config) *Adam {
 	adam := &Adam{
 		Config: c,

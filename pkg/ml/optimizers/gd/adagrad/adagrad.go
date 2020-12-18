@@ -18,6 +18,7 @@ type Config struct {
 	Epsilon float64
 }
 
+// NewConfig returns a new AdaGrad Config.
 func NewConfig(lr, epsilon float64) Config {
 	return Config{
 		LR:      lr,
@@ -42,6 +43,7 @@ type AdaGrad struct {
 	Config
 }
 
+// New returns a new AdaGrad optimizer, initialized according to the given configuration.
 func New(c Config) *AdaGrad {
 	return &AdaGrad{Config: c}
 }

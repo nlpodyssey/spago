@@ -16,6 +16,7 @@ type SubScalar struct {
 	x2 Operand // scalar
 }
 
+// NewSubScalar returns a new SubScalar Function.
 func NewSubScalar(x1, x2 Operand) *SubScalar {
 	return &SubScalar{x1: x1, x2: x2}
 }

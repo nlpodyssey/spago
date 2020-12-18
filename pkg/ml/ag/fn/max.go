@@ -15,6 +15,7 @@ type Max struct {
 	x2 Operand
 }
 
+// NewMax returns a new Max Function.
 func NewMax(x1, x2 Operand) *Max {
 	return &Max{x1: x1, x2: x2}
 }

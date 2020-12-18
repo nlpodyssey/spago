@@ -17,6 +17,7 @@ type Softmax struct {
 	y mat.Matrix // initialized during the forward pass (required by the backward pass)
 }
 
+// NewSoftmax returns a new Softmax Function.
 func NewSoftmax(x Operand) *Softmax {
 	return &Softmax{x: x}
 }

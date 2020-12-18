@@ -14,6 +14,7 @@ type Transpose struct {
 	x Operand
 }
 
+// NewTranspose returns a new Transpose Function.
 func NewTranspose(x Operand) *Transpose {
 	return &Transpose{x: x}
 }

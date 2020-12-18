@@ -65,6 +65,9 @@ func (lr *LockedRand) Uint64() (n uint64) {
 	return
 }
 
+// Uint64n returns, as a uint64, a pseudo-random number in [0,n).
+// It is guaranteed more uniform than taking a Source value mod n
+// for any n that is not a power of 2.
 func (lr *LockedRand) Uint64n(n uint64) uint64 {
 	lr.lk.Lock()
 	n = lr.r.Uint64n(n)

@@ -16,6 +16,7 @@ type Concat struct {
 	ySize int
 }
 
+// NewConcat returns a new Concat Function.
 func NewConcat(xs []Operand) *Concat {
 	return &Concat{
 		xs:    xs,

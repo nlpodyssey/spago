@@ -19,6 +19,7 @@ type Swish struct {
 	beta Operand // scalar
 }
 
+// NewSwish returns a new Swish Function.
 func NewSwish(x, beta Operand) *Swish {
 	return &Swish{x: x, beta: beta}
 }

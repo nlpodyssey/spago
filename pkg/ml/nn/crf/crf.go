@@ -20,6 +20,7 @@ type Model struct {
 	TransitionScores *nn.Param `type:"weights"`
 }
 
+// New returns a new convolution Model, initialized according to the given configuration.
 func New(labels int) *Model {
 	return &Model{
 		TransitionScores: nn.NewParam(mat.NewEmptyDense(labels+1, labels+1)), // +1 for start and end transitions

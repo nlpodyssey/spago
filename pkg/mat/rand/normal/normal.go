@@ -8,12 +8,15 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
+// Normal is a source of normally distributed random numbers.
 type Normal struct {
 	Std       float64
 	Mean      float64
 	generator *rand.LockedRand
 }
 
+// New returns a new Normal, initialized with the given standard deviation and
+// mean parameters.
 func New(std, mean float64, generator *rand.LockedRand) *Normal {
 	return &Normal{
 		Std:       std,

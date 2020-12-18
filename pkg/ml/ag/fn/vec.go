@@ -14,6 +14,7 @@ type Vec struct {
 	x Operand
 }
 
+// NewVec returns a new Vec Function.
 func NewVec(x Operand) *Vec {
 	return &Vec{x: x}
 }

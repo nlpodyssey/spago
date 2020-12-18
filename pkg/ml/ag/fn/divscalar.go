@@ -16,6 +16,7 @@ type DivScalar struct {
 	x2 Operand // scalar
 }
 
+// NewDivScalar returns a new DivScalar Function.
 func NewDivScalar(x1, x2 Operand) *DivScalar {
 	return &DivScalar{x1: x1, x2: x2}
 }
