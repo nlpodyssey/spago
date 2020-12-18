@@ -14,6 +14,7 @@ type Exponential struct {
 	times int
 }
 
+// New returns a new Exponential decay optimizer.
 func New(init, final float64, iter int) *Exponential {
 	if init < final {
 		panic("decay: the initial learning rate must be >= than the final one")

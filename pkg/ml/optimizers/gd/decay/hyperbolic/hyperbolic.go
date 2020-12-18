@@ -12,6 +12,7 @@ type Hyperbolic struct {
 	rate  float64
 }
 
+// New returns a new Hyperbolic decay optimizer.
 func New(init, final, rate float64) *Hyperbolic {
 	if init < final {
 		panic("decay: the initial learning rate must be >= than the final one")
