@@ -12,10 +12,13 @@ import (
 	"strings"
 )
 
+// EqualApprox returns true if a and b are equal to within reasonable
+// absolute or relative tolerances (both hardcoded as 1.0e-06).
 func EqualApprox(a, b float64) bool {
 	return floats.EqualWithinAbsOrRel(a, b, 1.0e-06, 1.0e-06)
 }
 
+// Copy creates and return a copy of the given slice.
 func Copy(in []float64) []float64 {
 	out := make([]float64, len(in))
 	copy(out, in)
@@ -29,6 +32,7 @@ func FillFloatSlice(slice []float64, value float64) {
 	}
 }
 
+// Sign returns +1 if a is positive, -1 if a is negative, or 0 if a is 0.
 func Sign(a float64) int {
 	switch {
 	case a < 0:
@@ -39,6 +43,7 @@ func Sign(a float64) int {
 	return 0
 }
 
+// Max returns the maximum value from the given slice, which MUST NOT be empty.
 func Max(v []float64) (m float64) {
 	m = v[len(v)-1]
 	for _, e := range v {
@@ -49,6 +54,7 @@ func Max(v []float64) (m float64) {
 	return
 }
 
+// Sum returns the sum of all values from the given slice.
 func Sum(v []float64) (s float64) {
 	for _, e := range v {
 		s += e
@@ -56,7 +62,7 @@ func Sum(v []float64) (s float64) {
 	return
 }
 
-// ArgMinMax finds the indices of min and max arguments
+// ArgMinMax finds the indices of min and max arguments.
 func ArgMinMax(v []float64) (imin, imax int) {
 	if len(v) < 1 {
 		return
@@ -76,18 +82,19 @@ func ArgMinMax(v []float64) (imin, imax int) {
 	return
 }
 
-// ArgMax finds the index of the max argument
+// ArgMax finds the index of the max argument.
 func ArgMax(v []float64) int {
 	_, imax := ArgMinMax(v)
 	return imax
 }
 
-// ArgMin finds the index of the min argument
+// ArgMin finds the index of the min argument.
 func ArgMin(v []float64) int {
 	imin, _ := ArgMinMax(v)
 	return imin
 }
 
+// MakeFloat64Matrix returns a new 2-dimensional slice.
 func MakeFloat64Matrix(rows, cols int) [][]float64 {
 	matrix := make([][]float64, rows)
 	for i := 0; i < rows; i++ {
@@ -96,6 +103,7 @@ func MakeFloat64Matrix(rows, cols int) [][]float64 {
 	return matrix
 }
 
+// StrToFloat64Slice parses a string representation of a slice of float64 values.
 func StrToFloat64Slice(str string) ([]float64, error) {
 	spl := strings.Fields(str)
 	data := make([]float64, len(spl))
@@ -123,6 +131,7 @@ func SoftMax(v []float64) (sm []float64) {
 	return sm
 }
 
+// CumSum computes the cumulative sum of src into dst, and returns dst.
 func CumSum(dst, src []float64) []float64 {
 	return f64.CumSum(dst, src)
 }
