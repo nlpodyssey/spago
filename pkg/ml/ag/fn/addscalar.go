@@ -27,6 +27,7 @@ func (r *AddScalar) Forward() mat.Matrix {
 	return r.x1.Value().AddScalar(r.x2.Value().Scalar())
 }
 
+// Backward computes the backward pass.
 func (r *AddScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

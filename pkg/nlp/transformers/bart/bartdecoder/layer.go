@@ -21,6 +21,7 @@ var (
 	_ nn.Processor = &bartencoder.LayerProcessor{}
 )
 
+// Layer is a BART decoder layer.
 type Layer struct {
 	Config                    bartconfig.Config
 	SelfAttention             *multiheadattention.Model
@@ -31,6 +32,7 @@ type Layer struct {
 	LayerNorm                 *layernorm.Model
 }
 
+// NewLayer returns a new BART decoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
 		Config: config,
@@ -50,7 +52,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 		EncoderAttentionLayerNorm: layernorm.New(config.DModel),
 		FFN: stack.New(
 			linear.New(config.DModel, config.DecoderFFNDim),
-			activation.New(ag.OpGeLU), // TODO: config.ActivationFunction
+			activation.New(ag.OpGELU), // TODO: config.ActivationFunction
 			// dropout.New(config.ActivationDropout)
 			linear.New(config.DecoderFFNDim, config.DModel),
 			// dropout.New(config.Dropout)

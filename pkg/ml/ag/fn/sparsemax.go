@@ -30,6 +30,7 @@ func (s *SparseMax) Forward() mat.Matrix {
 	return s.y
 }
 
+// Backward computes the backward pass.
 func (s *SparseMax) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		output := s.y.Data()
@@ -144,6 +145,7 @@ func (s *SparseMaxLoss) Forward() mat.Matrix {
 	return s.y
 }
 
+// Backward computes the backward pass.
 func (s *SparseMaxLoss) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		input := s.x.Value().Data()

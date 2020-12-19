@@ -88,20 +88,20 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			Size:                   config.HiddenSize,
 			NumOfAttentionHeads:    config.NumAttentionHeads,
 			IntermediateSize:       config.IntermediateSize,
-			IntermediateActivation: ag.OpGeLU,
+			IntermediateActivation: ag.OpGELU,
 			NumOfLayers:            config.NumHiddenLayers,
 		}),
 		Predictor: NewPredictor(PredictorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
 			OutputSize:       config.VocabSize,
-			HiddenActivation: ag.OpGeLU,
+			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Softmax (trained with CrossEntropyLoss)
 		}),
 		Discriminator: NewDiscriminator(DiscriminatorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
-			HiddenActivation: ag.OpGeLU,
+			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Sigmoid (trained with BCEWithLogitsLoss)
 		}),
 		Pooler: NewPooler(PoolerConfig{

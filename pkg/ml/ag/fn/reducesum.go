@@ -25,6 +25,7 @@ func (r *ReduceSum) Forward() mat.Matrix {
 	return mat.NewScalar(r.x.Value().Sum())
 }
 
+// Backward computes the backward pass.
 func (r *ReduceSum) Backward(gy mat.Matrix) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")

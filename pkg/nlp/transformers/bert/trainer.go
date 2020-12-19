@@ -43,6 +43,7 @@ type Trainer struct {
 	countLine     int
 }
 
+// NewTrainer returns a new BERT Trainer.
 func NewTrainer(model *Model, config TrainingConfig) *Trainer {
 	optimizer := gd.NewOptimizer(gdmbuilder.NewMethod(config.UpdateMethod), nn.NewDefaultParamsIterator(model))
 	if config.GradientClipping != 0.0 {

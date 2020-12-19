@@ -27,6 +27,7 @@ type Model struct {
 	LayerNorm                   *layernorm.Model
 }
 
+// New returns a new BART encoder Model.
 func New(config bartconfig.Config) *Model {
 	if config.StaticPositionEmbeddings {
 		panic("bart: static position embeddings not implemented.")

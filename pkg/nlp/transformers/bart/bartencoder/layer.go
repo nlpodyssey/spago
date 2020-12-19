@@ -28,6 +28,7 @@ type Layer struct {
 	LayerNorm              *layernorm.Model
 }
 
+// NewLayer returns a new BART encoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
 		Config:                 config,
@@ -35,7 +36,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 		SelfAttentionLayerNorm: layernorm.New(config.DModel),
 		FFN: stack.New(
 			linear.New(config.DModel, config.EncoderFFNDim),
-			activation.New(ag.OpGeLU), // TODO: config.ActivationFunction
+			activation.New(ag.OpGELU), // TODO: config.ActivationFunction
 			// dropout.New(config.ActivationDropout)
 			linear.New(config.EncoderFFNDim, config.DModel),
 			// dropout.New(config.Dropout)

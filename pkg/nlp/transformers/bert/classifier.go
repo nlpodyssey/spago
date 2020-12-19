@@ -25,6 +25,7 @@ type Classifier struct {
 	*linear.Model
 }
 
+// NewTokenClassifier returns a new BERT Classifier model.
 func NewTokenClassifier(config ClassifierConfig) *Classifier {
 	return &Classifier{
 		Config: config,

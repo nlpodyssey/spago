@@ -310,13 +310,13 @@ func TestNewMishForward(t *testing.T) {
 	}
 }
 
-func TestNewGeLUForward(t *testing.T) {
+func TestNewGELUForward(t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]float64{0.0, 0.1, 0.01, -0.1, -0.01, 1.0, 10.0, -1.0, -10.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewGeLU(x)
+	f := NewGELU(x)
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, 1.0e-6) {

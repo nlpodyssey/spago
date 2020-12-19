@@ -65,6 +65,7 @@ func (r *MaxPooling) Forward() mat.Matrix {
 	return r.y
 }
 
+// Backward computes the backward pass.
 func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()

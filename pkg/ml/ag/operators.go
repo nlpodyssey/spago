@@ -10,6 +10,8 @@ import (
 	"reflect"
 )
 
+// OpName is the enumeration-like type used for the set of operators supported
+// by spaGO.
 type OpName int
 
 const (
@@ -46,14 +48,14 @@ const (
 	OpHardTanh
 	OpSoftsign
 	OpReLU
-	OpCeLU
-	OpGeLU
+	OpCELU
+	OpGELU
 	OpELU
 	OpPositiveELU
 	OpSwish
 	OpMish
 	OpLeakyReLU
-	OpSeLU
+	OpSELU
 	OpSoftPlus
 	OpSoftShrink
 	OpThreshold
@@ -111,14 +113,14 @@ var opNameToMethodName = map[OpName]string{
 	OpHardTanh:      "HardTanh",
 	OpSoftsign:      "Softsign",
 	OpReLU:          "ReLU",
-	OpCeLU:          "CeLU",
-	OpGeLU:          "GeLU",
+	OpCELU:          "CELU",
+	OpGELU:          "GELU",
 	OpELU:           "ELU",
 	OpPositiveELU:   "PositiveELU",
 	OpSwish:         "Swish",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
-	OpSeLU:          "SeLU",
+	OpSELU:          "SELU",
 	OpSoftPlus:      "SoftPlus",
 	OpSoftShrink:    "SoftShrink",
 	OpThreshold:     "Threshold",
@@ -352,14 +354,14 @@ func (g *Graph) ReLU(x Node) Node {
 	return g.NewOperator(fn.NewReLU(x), x)
 }
 
-// CeLU returns a new operator node as a result of the fn.CeLU function.
-func (g *Graph) CeLU(x Node, alpha Node) Node {
-	return g.NewOperator(fn.NewCeLU(x, alpha), x, alpha)
+// CELU returns a new operator node as a result of the fn.CELU function.
+func (g *Graph) CELU(x Node, alpha Node) Node {
+	return g.NewOperator(fn.NewCELU(x, alpha), x, alpha)
 }
 
-// GeLU returns a new operator node as a result of the fn.GeLU function.
-func (g *Graph) GeLU(x Node) Node {
-	return g.NewOperator(fn.NewGeLU(x), x)
+// GELU returns a new operator node as a result of the fn.GELU function.
+func (g *Graph) GELU(x Node) Node {
+	return g.NewOperator(fn.NewGELU(x), x)
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
@@ -382,9 +384,9 @@ func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)
 }
 
-// SeLU returns a new operator node as a result of the fn.SeLU function.
-func (g *Graph) SeLU(x Node, alpha Node, scale Node) Node {
-	return g.NewOperator(fn.NewSeLU(x, alpha, scale), x, alpha, scale)
+// SELU returns a new operator node as a result of the fn.SELU function.
+func (g *Graph) SELU(x Node, alpha Node, scale Node) Node {
+	return g.NewOperator(fn.NewSELU(x, alpha, scale), x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.

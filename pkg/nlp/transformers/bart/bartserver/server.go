@@ -26,6 +26,7 @@ type ServerForSequenceClassification struct {
 	grpcapi.UnimplementedBARTServer
 }
 
+// NewServer returns a new ServerForSequenceClassification.
 func NewServer(
 	model *barthead.SequenceClassification,
 	tokenizer *bpetokenizer.BPETokenizer,

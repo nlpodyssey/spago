@@ -13,6 +13,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/sgd"
 )
 
+// NewMethod returns a new gd.Method, chosen and initialized according to
+// the given config.
+// It panics if the config type is unknown or unsupported.
 func NewMethod(config gd.MethodConfig) gd.Method {
 	switch config := config.(type) {
 	case adagrad.Config:

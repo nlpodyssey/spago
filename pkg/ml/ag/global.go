@@ -37,6 +37,7 @@ func ClearGlobalGraphForReuse() {
 	globalGraph.ClearForReuse()
 }
 
+// ZeroGrad sets the gradients of all nodes of the global graph to zero.
 func ZeroGrad() {
 	globalGraph.ZeroGrad()
 }
@@ -56,26 +57,36 @@ func NewOperator(f fn.Function, operands ...Node) Node {
 	return globalGraph.NewOperator(f, operands...)
 }
 
+// NewWrap creates a new wrapper Node for the given value, attaching it to
+// the global graph.
 func NewWrap(value GradValue) Node {
 	return globalGraph.NewWrap(value)
 }
 
+// NewWrapNoGrad is similar to NewWrap, but it disables automatic
+// differentiation on the new node.
 func NewWrapNoGrad(value GradValue) Node {
 	return globalGraph.NewWrapNoGrad(value)
 }
 
+// ReplaceValue replaces the current value of a variable Node with the given value,
+// on the global graph. It panics if node is not a variable.
 func ReplaceValue(node Node, value mat.Matrix) {
 	globalGraph.ReplaceValue(node, value)
 }
 
+// IncTimeStep increments the value of the global graph's TimeStep by one.
 func IncTimeStep() {
 	globalGraph.IncTimeStep()
 }
 
+// TimeStep is an integer value associated with the global graph, which can be useful
+// to perform truncated back propagation.
 func TimeStep() int {
 	return globalGraph.TimeStep()
 }
 
+// Forward computes the results of the entire global raph.
 func Forward(opts ...ForwardOption) {
 	globalGraph.Forward(opts...)
 }
@@ -274,14 +285,14 @@ func ReLU(x Node) Node {
 	return globalGraph.ReLU(x)
 }
 
-// CeLU returns a new operator node as a result of the fn.CeLU function.
-func CeLU(x Node, alpha Node) Node {
-	return globalGraph.CeLU(x, alpha)
+// CELU returns a new operator node as a result of the fn.CELU function.
+func CELU(x Node, alpha Node) Node {
+	return globalGraph.CELU(x, alpha)
 }
 
-// GeLU returns a new operator node as a result of the fn.GeLU function.
-func GeLU(x Node) Node {
-	return globalGraph.GeLU(x)
+// GELU returns a new operator node as a result of the fn.GELU function.
+func GELU(x Node) Node {
+	return globalGraph.GELU(x)
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
@@ -309,9 +320,9 @@ func LeakyReLU(x Node, alpha Node) Node {
 	return globalGraph.LeakyReLU(x, alpha)
 }
 
-// SeLU returns a new operator node as a result of the fn.SeLU function.
-func SeLU(x Node, alpha Node, scale Node) Node {
-	return globalGraph.SeLU(x, alpha, scale)
+// SELU returns a new operator node as a result of the fn.SELU function.
+func SELU(x Node, alpha Node, scale Node) Node {
+	return globalGraph.SELU(x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.

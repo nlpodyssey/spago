@@ -6,6 +6,7 @@ package ag
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
+// GradValue is implemented by any value that implements automatic differentiation features.
 type GradValue interface {
 	// Value returns the value of the node.
 	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.

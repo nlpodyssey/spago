@@ -30,6 +30,7 @@ func (r *Mul) Forward() mat.Matrix {
 	return r.x1.Value().Mul(r.x2.Value())
 }
 
+// Backward computes the backward pass.
 // TODO: backward of sparse gradients
 func (r *Mul) Backward(gy mat.Matrix) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {

@@ -27,6 +27,7 @@ func (r *At) Forward() mat.Matrix {
 	return mat.NewScalar(r.x.Value().At(r.i, r.j))
 }
 
+// Backward computes the backward pass.
 func (r *At) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x.Value().Dims())

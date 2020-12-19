@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
+// EncodeDense is similar to Encode, but it works with Dense matrices.
 func EncodeDense(alpha float64, size int, seq []int) []*mat.Dense {
 	y := make([]*mat.Dense, len(seq), len(seq))
 	for i, x := range Encode(alpha, size, seq) {
@@ -17,8 +18,9 @@ func EncodeDense(alpha float64, size int, seq []int) []*mat.Dense {
 	return y
 }
 
-// Encode implements the Fixed-Size Ordinally-Forgetting Encoding.
-// zt = α * zt−1 + et (1 ≤ t ≤ T)
+// Encode is the FOFE encoding function, which works with Sparse matrices.
+//
+// Reference recursive formula: z(t) = α · z(t−1) + e(t), where 1 ≤ t ≤ T
 func Encode(alpha float64, size int, seq []int) []*mat.Sparse {
 	var z []*mat.Sparse
 	for t, i := range seq {

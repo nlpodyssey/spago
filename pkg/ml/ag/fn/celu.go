@@ -8,28 +8,29 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &CeLU{}
+var _ Function = &CELU{}
 
-// CeLU is an operator to perform the CeLU activation.
-// CeLU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
-type CeLU struct {
+// CELU is an operator to perform the CELU activation.
+// CELU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
+type CELU struct {
 	x     Operand
 	alpha Operand // scalar
 }
 
-// NewCeLU returns a new CeLU Function.
-func NewCeLU(x, alpha Operand) *CeLU {
-	return &CeLU{x: x, alpha: alpha}
+// NewCELU returns a new CELU Function.
+func NewCELU(x, alpha Operand) *CELU {
+	return &CELU{x: x, alpha: alpha}
 }
 
 // Forward computes the output of the function.
-func (r *CeLU) Forward() mat.Matrix {
+func (r *CELU) Forward() mat.Matrix {
 	y := mat.GetDenseWorkspace(r.x.Value().Dims())
 	y.ApplyWithAlpha(celu, r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
 
-func (r *CeLU) Backward(gy mat.Matrix) {
+// Backward computes the backward pass.
+func (r *CELU) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

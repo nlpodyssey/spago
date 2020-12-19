@@ -27,6 +27,7 @@ type LearnedPositionalEmbeddings struct {
 	Vectors []*nn.Param
 }
 
+// NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.
 // TODO: PaddingIDX
 func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings {
 	vectors := make([]*nn.Param, config.NumEmbeddings+config.Offset)

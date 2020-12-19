@@ -20,6 +20,7 @@ type Server struct {
 	grpcapi.UnimplementedSequenceLabelerServer
 }
 
+// NewServer returns a new Server.
 func NewServer(model *Model) *Server {
 	return &Server{
 		model: model,

@@ -36,6 +36,7 @@ func (r *Concat) Forward() mat.Matrix {
 	return mat.ConcatV(ms...)
 }
 
+// Backward computes the backward pass.
 func (r *Concat) Backward(gy mat.Matrix) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")

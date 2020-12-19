@@ -26,6 +26,7 @@ func (r *DivScalar) Forward() mat.Matrix {
 	return r.x1.Value().ProdScalar(1.0 / r.x2.Value().Scalar())
 }
 
+// Backward computes the backward pass.
 func (r *DivScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
