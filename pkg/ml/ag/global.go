@@ -320,9 +320,9 @@ func LeakyReLU(x Node, alpha Node) Node {
 	return globalGraph.LeakyReLU(x, alpha)
 }
 
-// SeLU returns a new operator node as a result of the fn.SeLU function.
-func SeLU(x Node, alpha Node, scale Node) Node {
-	return globalGraph.SeLU(x, alpha, scale)
+// SELU returns a new operator node as a result of the fn.SELU function.
+func SELU(x Node, alpha Node, scale Node) Node {
+	return globalGraph.SELU(x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.

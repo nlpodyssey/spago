@@ -55,7 +55,7 @@ const (
 	OpSwish
 	OpMish
 	OpLeakyReLU
-	OpSeLU
+	OpSELU
 	OpSoftPlus
 	OpSoftShrink
 	OpThreshold
@@ -120,7 +120,7 @@ var opNameToMethodName = map[OpName]string{
 	OpSwish:         "Swish",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
-	OpSeLU:          "SeLU",
+	OpSELU:          "SELU",
 	OpSoftPlus:      "SoftPlus",
 	OpSoftShrink:    "SoftShrink",
 	OpThreshold:     "Threshold",
@@ -384,9 +384,9 @@ func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)
 }
 
-// SeLU returns a new operator node as a result of the fn.SeLU function.
-func (g *Graph) SeLU(x Node, alpha Node, scale Node) Node {
-	return g.NewOperator(fn.NewSeLU(x, alpha, scale), x, alpha, scale)
+// SELU returns a new operator node as a result of the fn.SELU function.
+func (g *Graph) SELU(x Node, alpha Node, scale Node) Node {
+	return g.NewOperator(fn.NewSELU(x, alpha, scale), x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.
