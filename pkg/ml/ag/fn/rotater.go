@@ -24,6 +24,7 @@ func (r *RotateR) Forward() mat.Matrix {
 	return mat.NewVecDense(rotateR(xv, r.i))
 }
 
+// Backward computes the backward pass.
 func (r *RotateR) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewVecDense(rotateL(gy.Data(), r.i))

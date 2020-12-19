@@ -19,6 +19,7 @@ type Config struct {
 	Nesterov bool
 }
 
+// NewConfig returns a new SGD Config.
 func NewConfig(lr, momentum float64, nesterov bool) Config {
 	return Config{
 		LR:       lr,
@@ -34,6 +35,7 @@ type SGD struct {
 	Alpha float64
 }
 
+// New returns a new SGD optimizer, initialized according to the given configuration.
 func New(c Config) *SGD {
 	return &SGD{Config: c, Alpha: c.LR}
 }

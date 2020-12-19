@@ -19,6 +19,7 @@ type Config struct {
 	Decay   float64
 }
 
+// NewConfig returns a new RMSProp Config.
 func NewConfig(lr, epsilon, decay float64) Config {
 	return Config{
 		LR:      lr,
@@ -45,6 +46,7 @@ type RMSProp struct {
 	Config
 }
 
+// New returns a new RMSProp optimizer, initialized according to the given configuration.
 func New(c Config) *RMSProp {
 	return &RMSProp{Config: c}
 }

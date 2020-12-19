@@ -43,6 +43,7 @@ func (r *Dropout) Forward() mat.Matrix {
 	return r.x.Value().Prod(r.mask)
 }
 
+// Backward computes the backward pass.
 func (r *Dropout) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

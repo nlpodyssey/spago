@@ -34,6 +34,7 @@ func (r *Add) Forward() mat.Matrix {
 	return x1v.Add(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Add) Backward(gy mat.Matrix) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()

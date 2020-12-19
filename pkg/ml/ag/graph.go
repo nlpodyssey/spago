@@ -251,6 +251,8 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	return newNode
 }
 
+// NewWrap creates a new wrapper Node for the given value, attaching it to
+// the graph.
 func (g *Graph) NewWrap(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -266,6 +268,8 @@ func (g *Graph) NewWrap(value GradValue) Node {
 	return newNode
 }
 
+// NewWrapNoGrad is similar to NewWrap, but it disables automatic
+// differentiation on the new node.
 func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -417,6 +421,8 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 	return node.Grad().Clone()
 }
 
+// ReplaceValue replaces the current value of a variable Node with the given value.
+// It panics if node is not a variable.
 func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	if node, ok := node.(*variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
@@ -425,10 +431,14 @@ func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	}
 }
 
+// IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph) IncTimeStep() {
 	atomic.AddInt64(&g.curTimeStep, 1)
 }
 
+// TimeStep is an integer value associated with the graph, which can be useful
+// to perform truncated back propagation. This value is 0 for a new Graph, and
+// can be incremented calling IncTimeStep.
 func (g *Graph) TimeStep() int {
 	return int(g.curTimeStep)
 }

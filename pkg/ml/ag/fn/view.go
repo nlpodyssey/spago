@@ -34,6 +34,7 @@ func (r *View) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *View) Backward(gy mat.Matrix) {
 	if !(gy.Rows() == r.lx && gy.Columns() == r.ly) {
 		panic("fn: matrices with not compatible size")

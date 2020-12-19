@@ -8,6 +8,8 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Stack{}
 
+// Stack is a Function which stacks together all given operand matrices,
+// producing a single bigger matrix as result.
 type Stack struct {
 	xs []Operand
 }
@@ -26,6 +28,7 @@ func (r *Stack) Forward() mat.Matrix {
 	return mat.Stack(vs...)
 }
 
+// Backward computes the backward pass.
 func (r *Stack) Backward(gy mat.Matrix) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")

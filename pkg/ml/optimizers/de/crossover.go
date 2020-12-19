@@ -21,6 +21,7 @@ type BinomialCrossover struct {
 	rndGen *rand.LockedRand
 }
 
+// NewBinomialCrossover returns a new BinomialCrossover.
 func NewBinomialCrossover(rndGen *rand.LockedRand) *BinomialCrossover {
 	return &BinomialCrossover{rndGen: rndGen}
 }

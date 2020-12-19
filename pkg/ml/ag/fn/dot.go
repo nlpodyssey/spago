@@ -40,6 +40,7 @@ func (r *Dot) Forward() mat.Matrix {
 	return mat.NewScalar(y)
 }
 
+// Backward computes the backward pass.
 func (r *Dot) Backward(gy mat.Matrix) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")

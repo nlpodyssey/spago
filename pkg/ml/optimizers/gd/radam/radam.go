@@ -21,6 +21,8 @@ type Config struct {
 	Epsilon  float64
 }
 
+// NewConfig returns a new RAdam Config.
+// It panics if beta1 or beta2 are not in the range [0.0, 1.0).
 func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
@@ -53,6 +55,7 @@ type RAdam struct {
 	TimeStep int
 }
 
+// New returns a new RAdam optimizer, initialized according to the given configuration.
 func New(c Config) *RAdam {
 	adam := &RAdam{
 		Config:   c,

@@ -10,6 +10,8 @@ import (
 	"reflect"
 )
 
+// OpName is the enumeration-like type used for the set of operators supported
+// by spaGO.
 type OpName int
 
 const (

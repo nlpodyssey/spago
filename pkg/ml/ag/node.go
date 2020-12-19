@@ -6,6 +6,7 @@ package ag
 
 import "github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 
+// Node is implemented by any value that can represent a node of a Graph.
 type Node interface {
 	GradValue
 	// Graph returns the graph this node belongs to.

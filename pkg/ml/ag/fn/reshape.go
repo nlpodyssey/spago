@@ -10,6 +10,8 @@ import (
 
 var _ Function = &Reshape{}
 
+// Reshape is a Function which reshapes an operand into a new matrix of given
+// rows × columns size.
 type Reshape struct {
 	x    Operand
 	rows int
@@ -29,6 +31,7 @@ func (r *Reshape) Forward() mat.Matrix {
 	return r.x.Value().Reshape(r.rows, r.cols)
 }
 
+// Backward computes the backward pass.
 func (r *Reshape) Backward(gy mat.Matrix) {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
 		panic("fn: matrices with not compatible size")

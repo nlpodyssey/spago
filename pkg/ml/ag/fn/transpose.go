@@ -10,6 +10,7 @@ import (
 
 var _ Function = &Transpose{}
 
+// Transpose is a Function to calculate the transpose of the matrix-operand.
 type Transpose struct {
 	x Operand
 }
@@ -24,6 +25,7 @@ func (r *Transpose) Forward() mat.Matrix {
 	return r.x.Value().T()
 }
 
+// Backward computes the backward pass.
 func (r *Transpose) Backward(gy mat.Matrix) {
 	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
 		panic("fn: matrices with not compatible size")
