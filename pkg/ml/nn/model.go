@@ -116,12 +116,15 @@ func forEachParam(m interface{}, callback func(param *Param), exploreSubModels b
 	})
 }
 
+// ParamsIterator is implemented by any value that implements the ParamsList function,
+// which should return the list of parameters of one or more models.
 type ParamsIterator interface {
 	ParamsList() []*Param
 }
 
 var _ ParamsIterator = &DefaultParamsIterator{}
 
+// DefaultParamsIterator is spaGO default implementation of a ParamsIterator.
 type DefaultParamsIterator struct {
 	models []Model
 }
@@ -131,6 +134,8 @@ func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
 	return &DefaultParamsIterator{models: models}
 }
 
+// ParamsList returns a slice with all Param elements from all models held by
+// the DefaultParamsIterator.
 func (i *DefaultParamsIterator) ParamsList() []*Param {
 	params := make([]*Param, 0)
 	for _, model := range i.models {
@@ -190,6 +195,8 @@ func MakeNewModels(n int, callback func(i int) Model) []Model {
 var _ utils.Serializer = &ParamsSerializer{}
 var _ utils.Deserializer = &ParamsSerializer{}
 
+// ParamsSerializer allows serialization and deserialization of all
+// parameters of a given Model.
 type ParamsSerializer struct {
 	Model
 }

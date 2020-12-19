@@ -40,6 +40,7 @@ func New(positive, negative nn.Model, merge MergeType) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a BiRNN Model.
 type Processor struct {
 	nn.BaseProcessor
 	MergeMode MergeType

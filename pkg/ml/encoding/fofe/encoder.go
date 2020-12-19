@@ -34,6 +34,7 @@ func Encode(alpha float64, size int, seq []int) []*mat.Sparse {
 	return z
 }
 
+// BiEncode is the FOFE bidirectional encoding function.
 func BiEncode(alpha float64, size int, seq []int) (fwd []*mat.Sparse, bwd []*mat.Sparse) {
 	fwd = Encode(alpha, size, seq)
 	bwd = Encode(alpha, size, utils.ReverseIntSlice(seq))

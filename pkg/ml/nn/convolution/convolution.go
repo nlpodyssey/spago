@@ -54,6 +54,7 @@ func New(config Config) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a convolution Model.
 type Processor struct {
 	nn.BaseProcessor
 	Config
@@ -63,6 +64,7 @@ type Processor struct {
 	concurrent bool
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	k := make([]ag.Node, len(m.K))
 	b := make([]ag.Node, len(m.B))

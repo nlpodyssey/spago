@@ -56,6 +56,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Processor implements the nn.Processor interface for a MIST Model.
 type Processor struct {
 	nn.BaseProcessor
 	nd     int

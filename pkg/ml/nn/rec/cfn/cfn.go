@@ -50,6 +50,7 @@ type State struct {
 	Y    ag.Node
 }
 
+// Processor implements the nn.Processor interface for a CFN Model.
 type Processor struct {
 	nn.BaseProcessor
 	wIn     ag.Node

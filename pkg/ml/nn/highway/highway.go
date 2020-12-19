@@ -35,6 +35,7 @@ func New(in int, activation ag.OpName) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a highway Model.
 type Processor struct {
 	nn.BaseProcessor
 	wIn ag.Node

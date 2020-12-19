@@ -31,6 +31,7 @@ func (m *Model) Predict(emissionScores []ag.Node) []int {
 	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
 
+// Processor implements the nn.Processor interface for a CRF Model.
 type Processor struct {
 	nn.BaseProcessor
 	size             int

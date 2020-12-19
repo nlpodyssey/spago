@@ -51,6 +51,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a multi-head attention Model.
 type Processor struct {
 	nn.BaseProcessor
 	HeadAttentionProc []*selfattention.Processor

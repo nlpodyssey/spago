@@ -257,10 +257,12 @@ func (r *Param) UnmarshalBinary(data []byte) error {
 	return err
 }
 
+// ParamSerializer allows serialization and deserialization of a single Param.
 type ParamSerializer struct {
 	*Param
 }
 
+// Serialize dumps the Param to the writer.
 func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 	return paramDataMarshalBinaryTo(&paramData{
 		Value:   s.value.(*mat.Dense),
@@ -268,6 +270,7 @@ func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 	}, w)
 }
 
+// Deserialize assigns reads a Param the reader.
 func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
 	var data *paramData
 	data, n, err = paramDataUnmarshalBinaryFrom(r)

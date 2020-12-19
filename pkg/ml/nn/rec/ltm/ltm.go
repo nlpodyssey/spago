@@ -43,6 +43,7 @@ type State struct {
 	Y    ag.Node
 }
 
+// Processor implements the nn.Processor interface for an LTM Model.
 type Processor struct {
 	nn.BaseProcessor
 	w1     ag.Node

@@ -27,6 +27,7 @@ func New(in, rank int) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for an sqrdist Model.
 type Processor struct {
 	nn.BaseProcessor
 	b ag.Node

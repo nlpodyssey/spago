@@ -50,6 +50,7 @@ type State struct {
 	Y  ag.Node
 }
 
+// Processor implements the nn.Processor interface for a TPR Model.
 type Processor struct {
 	nn.BaseProcessor
 	wInS   ag.Node

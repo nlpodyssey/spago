@@ -61,6 +61,7 @@ func New(config Config) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for an SRNN Model.
 type Processor struct {
 	nn.BaseProcessor
 	fc        *stack.Processor

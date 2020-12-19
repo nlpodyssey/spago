@@ -24,6 +24,7 @@ func New() *Model {
 	return &Model{}
 }
 
+// Processor implements the nn.Processor interface for a simple layer normalization Model.
 type Processor struct {
 	nn.BaseProcessor
 }

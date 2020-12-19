@@ -31,6 +31,7 @@ func New(size int) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a Root Mean Square Layer Normalization Model.
 type Processor struct {
 	nn.BaseProcessor
 	w   ag.Node

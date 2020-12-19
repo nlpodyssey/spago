@@ -53,6 +53,7 @@ type ContextProb struct {
 	prob    []mat.Matrix
 }
 
+// Processor implements the nn.Processor interface for an LSH-Attention Model.
 type Processor struct {
 	nn.BaseProcessor
 	scaleFactor float64

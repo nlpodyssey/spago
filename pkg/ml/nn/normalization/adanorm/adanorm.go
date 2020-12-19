@@ -26,6 +26,7 @@ func New(scale float64) *Model {
 	return &Model{scale: scale}
 }
 
+// Processor implements the nn.Processor interface for an AdaNorm Model.
 type Processor struct {
 	nn.BaseProcessor
 	eps ag.Node

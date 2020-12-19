@@ -73,6 +73,7 @@ func New(c Config) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a BLS Model.
 type Processor struct {
 	nn.BaseProcessor
 	Config

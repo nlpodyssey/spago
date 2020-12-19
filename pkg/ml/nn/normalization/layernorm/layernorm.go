@@ -31,6 +31,7 @@ func New(size int) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a layer normalization Model.
 type Processor struct {
 	nn.BaseProcessor
 	w   ag.Node

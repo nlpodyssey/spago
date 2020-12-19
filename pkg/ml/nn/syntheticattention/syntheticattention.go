@@ -54,6 +54,7 @@ type ContextProb struct {
 	prob    []mat.Matrix
 }
 
+// Processor implements the nn.Processor interface for a Synthetic Attention Model.
 type Processor struct {
 	nn.BaseProcessor
 	ffn       *stack.Processor

@@ -88,6 +88,7 @@ type State struct {
 	Memory ag.Node
 }
 
+// Processor implements the nn.Processor interface for an NRU Model.
 type Processor struct {
 	nn.BaseProcessor
 	Config
