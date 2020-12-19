@@ -285,9 +285,9 @@ func ReLU(x Node) Node {
 	return globalGraph.ReLU(x)
 }
 
-// CeLU returns a new operator node as a result of the fn.CeLU function.
-func CeLU(x Node, alpha Node) Node {
-	return globalGraph.CeLU(x, alpha)
+// CELU returns a new operator node as a result of the fn.CELU function.
+func CELU(x Node, alpha Node) Node {
+	return globalGraph.CELU(x, alpha)
 }
 
 // GELU returns a new operator node as a result of the fn.GELU function.

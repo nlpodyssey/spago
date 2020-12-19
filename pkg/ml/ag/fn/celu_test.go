@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestCeLUForward(t *testing.T) {
+func TestCELUForward(t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -22,7 +22,7 @@ func TestCeLUForward(t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewCeLU(x, alpha)
+	f := NewCELU(x, alpha)
 	y := f.Forward()
 
 	if !floats.EqualApprox(y.Data(), []float64{0.1, -0.19032516, 0.3, 0}, 1.0e-6) {
