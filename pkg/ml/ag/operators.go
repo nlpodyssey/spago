@@ -49,7 +49,7 @@ const (
 	OpSoftsign
 	OpReLU
 	OpCeLU
-	OpGeLU
+	OpGELU
 	OpELU
 	OpPositiveELU
 	OpSwish
@@ -114,7 +114,7 @@ var opNameToMethodName = map[OpName]string{
 	OpSoftsign:      "Softsign",
 	OpReLU:          "ReLU",
 	OpCeLU:          "CeLU",
-	OpGeLU:          "GeLU",
+	OpGELU:          "GELU",
 	OpELU:           "ELU",
 	OpPositiveELU:   "PositiveELU",
 	OpSwish:         "Swish",
@@ -359,9 +359,9 @@ func (g *Graph) CeLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewCeLU(x, alpha), x, alpha)
 }
 
-// GeLU returns a new operator node as a result of the fn.GeLU function.
-func (g *Graph) GeLU(x Node) Node {
-	return g.NewOperator(fn.NewGeLU(x), x)
+// GELU returns a new operator node as a result of the fn.GELU function.
+func (g *Graph) GELU(x Node) Node {
+	return g.NewOperator(fn.NewGELU(x), x)
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.

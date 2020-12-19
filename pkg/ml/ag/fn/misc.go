@@ -149,8 +149,8 @@ func NewMish(x Operand) *UnaryElementwise {
 	}
 }
 
-// NewGeLU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
-func NewGeLU(x Operand) *UnaryElementwise {
+// NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
+func NewGELU(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
 		f:  gelu,

@@ -52,7 +52,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 		EncoderAttentionLayerNorm: layernorm.New(config.DModel),
 		FFN: stack.New(
 			linear.New(config.DModel, config.DecoderFFNDim),
-			activation.New(ag.OpGeLU), // TODO: config.ActivationFunction
+			activation.New(ag.OpGELU), // TODO: config.ActivationFunction
 			// dropout.New(config.ActivationDropout)
 			linear.New(config.DecoderFFNDim, config.DModel),
 			// dropout.New(config.Dropout)
