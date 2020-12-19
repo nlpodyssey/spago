@@ -49,6 +49,7 @@ func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, e
 	}
 }
 
+// Processor implements the nn.Processor interface for a Contextual String Embeddings Model.
 type Processor struct {
 	nn.BaseProcessor
 	mergeMode   MergeType
@@ -56,6 +57,7 @@ type Processor struct {
 	rightToLeft *charlm.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{

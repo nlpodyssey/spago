@@ -164,11 +164,13 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	return embedding
 }
 
+// Processor implements the nn.Processor interface for an evolving embeddings Model.
 type Processor struct {
 	nn.BaseProcessor
 	ZeroEmbedding ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{

@@ -93,6 +93,7 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 	})
 }
 
+// Processor implements the nn.Processor interface for a character-level language Model.
 type Processor struct {
 	nn.BaseProcessor
 	Decoder          *linear.Processor
@@ -102,6 +103,7 @@ type Processor struct {
 	UnknownEmbedding ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	p := &Processor{
 		BaseProcessor: nn.BaseProcessor{

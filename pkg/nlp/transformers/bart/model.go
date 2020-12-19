@@ -44,6 +44,7 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
+// Processor implements the nn.Processor interface for a BART transformer Model.
 type Processor struct {
 	nn.BaseProcessor
 	bartconfig.Config
@@ -52,6 +53,7 @@ type Processor struct {
 	Decoder    *bartdecoder.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
