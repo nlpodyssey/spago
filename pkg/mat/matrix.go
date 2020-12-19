@@ -148,7 +148,6 @@ func ConcatH(ms ...Matrix) *Dense {
 	return out
 }
 
-// Stack ...
 func Stack(vs ...*Dense) *Dense {
 	rows := len(vs)
 	cols := vs[0].size
