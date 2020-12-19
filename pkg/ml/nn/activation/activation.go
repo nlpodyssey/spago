@@ -29,6 +29,7 @@ func New(activation ag.OpName, params ...*nn.Param) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for an activation Model.
 type Processor struct {
 	nn.BaseProcessor
 	params []ag.Node

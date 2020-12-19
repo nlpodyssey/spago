@@ -32,6 +32,7 @@ type Model struct {
 	ProjectionLayer *linear.Model
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	processors := make([]WordsEncoderProcessor, len(m.WordsEncoders))
 	for i, encoder := range m.WordsEncoders {
@@ -54,6 +55,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Processor implements the nn.Processor interface for a stack-embeddings Model.
 type Processor struct {
 	nn.BaseProcessor
 	encoders        []WordsEncoderProcessor

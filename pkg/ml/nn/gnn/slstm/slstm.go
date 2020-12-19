@@ -102,6 +102,7 @@ func newGate3(size int) *HyperLinear3 {
 	}
 }
 
+// Processor implements the nn.Processor interface for a Sentence-State LSTM Model.
 type Processor struct {
 	nn.BaseProcessor
 	Config Config

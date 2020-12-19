@@ -42,6 +42,7 @@ func New(size int) *Model {
 	return NewWithMomentum(size, defaultMomentum)
 }
 
+// Processor implements the nn.Processor interface for a batch normalization Model.
 type Processor struct {
 	nn.BaseProcessor
 	w     ag.Node

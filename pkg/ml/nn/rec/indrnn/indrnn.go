@@ -38,6 +38,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Processor implements the nn.Processor interface for an IndRNN Model.
 type Processor struct {
 	nn.BaseProcessor
 	w      ag.Node

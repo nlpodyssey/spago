@@ -25,6 +25,7 @@ func NewSparseMax(x Operand) *SparseMax {
 	return &SparseMax{x: x}
 }
 
+// Forward computes the output of the function.
 func (s *SparseMax) Forward() mat.Matrix {
 	s.y = mat.NewVecDense(sparseMax(translateInput(s.x.Value().Data())))
 	return s.y
@@ -138,6 +139,8 @@ func sparseMaxLoss(v []float64) ([]float64, float64) {
 	}
 	return zs, tau
 }
+
+// Forward computes the output of the function.
 func (s *SparseMaxLoss) Forward() mat.Matrix {
 	output, tau := sparseMaxLoss(s.x.Value().Data())
 	s.y = mat.NewVecDense(output)

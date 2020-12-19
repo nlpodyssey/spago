@@ -43,6 +43,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Processor implements the nn.Processor interface for a HORN Model.
 type Processor struct {
 	nn.BaseProcessor
 	w      ag.Node

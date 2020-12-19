@@ -36,6 +36,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Processor implements the nn.Processor interface for an SRN Model.
 type Processor struct {
 	nn.BaseProcessor
 	w      ag.Node

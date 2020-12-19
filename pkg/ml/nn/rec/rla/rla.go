@@ -52,6 +52,7 @@ type State struct {
 	Y ag.Node
 }
 
+// Processor implements the nn.Processor interface for an RLA Model.
 type Processor struct {
 	nn.BaseProcessor
 	wK     ag.Node
@@ -63,6 +64,7 @@ type Processor struct {
 	States []*State
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	g := ctx.Graph
 	return &Processor{

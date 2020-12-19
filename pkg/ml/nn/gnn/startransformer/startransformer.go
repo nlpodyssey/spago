@@ -57,6 +57,7 @@ func New(config Config) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a Star-Transformer Model.
 type Processor struct {
 	nn.BaseProcessor
 	query         *linear.Processor

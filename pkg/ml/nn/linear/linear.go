@@ -46,6 +46,7 @@ func New(in, out int, options ...Option) *Model {
 
 const defaultConcurrency = true
 
+// Processor implements the nn.Processor interface for a linear Model.
 type Processor struct {
 	nn.BaseProcessor
 	w ag.Node

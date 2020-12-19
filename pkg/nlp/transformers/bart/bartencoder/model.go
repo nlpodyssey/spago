@@ -54,6 +54,7 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a BART encoder Model.
 type Processor struct {
 	nn.BaseProcessor
 	bartconfig.Config
@@ -63,6 +64,7 @@ type Processor struct {
 	LayerNorm                   *layernorm.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{

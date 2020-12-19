@@ -41,6 +41,7 @@ func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
 
+// Processor implements the nn.Processor interface for a stack Model.
 type Processor struct {
 	nn.BaseProcessor
 	Layers []nn.Processor

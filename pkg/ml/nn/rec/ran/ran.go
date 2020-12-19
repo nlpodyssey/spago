@@ -53,6 +53,7 @@ type State struct {
 	Y    ag.Node
 }
 
+// Processor implements the nn.Processor interface for a RAN Model.
 type Processor struct {
 	nn.BaseProcessor
 	wIn     ag.Node

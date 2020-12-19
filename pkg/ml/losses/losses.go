@@ -32,11 +32,13 @@ func NLL(g *ag.Graph, x ag.Node, y ag.Node) ag.Node {
 	return g.Neg(g.ReduceSum(g.Prod(y, g.Log(x))))
 }
 
+// CrossEntropy implements a cross-entropy loss function.
 // c is the index of the gold class
 func CrossEntropy(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return g.Add(g.Neg(g.AtVec(x, c)), g.Log(g.ReduceSum(g.Exp(x))))
 }
 
+// Perplexity computes the perplexity, implemented as exp over the cross-entropy.
 func Perplexity(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return g.Exp(CrossEntropy(g, x, c))
 }

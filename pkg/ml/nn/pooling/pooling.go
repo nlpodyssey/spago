@@ -28,6 +28,7 @@ func NewMax(rows, columns int) *MaxPooling {
 	}
 }
 
+// Processor implements the nn.Processor interface for a pooling Model.
 type Processor struct {
 	nn.BaseProcessor
 }

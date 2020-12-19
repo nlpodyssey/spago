@@ -15,67 +15,129 @@ import (
 type OpName int
 
 const (
+	// OpIdentity identifies the Graph.Identity operator.
 	OpIdentity OpName = iota
+	// OpDropout identifies the Graph.Dropout operator.
 	OpDropout
+	// OpAtVec identifies the Graph.AtVec operator.
 	OpAtVec
+	// OpAt identifies the Graph.At operator.
 	OpAt
+	// OpAdd identifies the Graph.Add operator.
 	OpAdd
+	// OpSub identifies the Graph.Sub operator.
 	OpSub
+	// OpSubScalar identifies the Graph.SubScalar operator.
 	OpSubScalar
+	// OpAddScalar identifies the Graph.AddScalar operator.
 	OpAddScalar
+	// OpReverseSub identifies the Graph.ReverseSub operator.
 	OpReverseSub
+	// OpProd identifies the Graph.Prod operator.
 	OpProd
+	// OpDiv identifies the Graph.Div operator.
 	OpDiv
+	// OpProdScalar identifies the Graph.ProdScalar operator.
 	OpProdScalar
+	// OpDivScalar identifies the Graph.DivScalar operator.
 	OpDivScalar
+	// OpMul identifies the Graph.Mul operator.
 	OpMul
+	// OpDot identifies the Graph.Dot operator.
 	OpDot
+	// OpReshape identifies the Graph.Reshape operator.
 	OpReshape
+	// OpMaxPooling identifies the Graph.MaxPooling operator.
 	OpMaxPooling
+	// OpView identifies the Graph.View operator.
 	OpView
+	// OpRowView identifies the Graph.RowView operator.
 	OpRowView
+	// OpColView identifies the Graph.ColView operator.
 	OpColView
+	// OpVec identifies the Graph.Vec operator.
 	OpVec
+	// OpRotateR identifies the Graph.RotateR operator.
 	OpRotateR
+	// OpT identifies the Graph.T operator.
 	OpT
+	// OpSquare identifies the Graph.Square operator.
 	OpSquare
+	// OpPow identifies the Graph.Pow operator.
 	OpPow
+	// OpSqrt identifies the Graph.Sqrt operator.
 	OpSqrt
+	// OpTan identifies the Graph.Tan operator.
 	OpTan
+	// OpTanh identifies the Graph.Tanh operator.
 	OpTanh
+	// OpSigmoid identifies the Graph.Sigmoid operator.
 	OpSigmoid
+	// OpHardSigmoid identifies the Graph.HardSigmoid operator.
 	OpHardSigmoid
+	// OpHardTanh identifies the Graph.HardTanh operator.
 	OpHardTanh
+	// OpSoftsign identifies the Graph.Softsign operator.
 	OpSoftsign
+	// OpReLU identifies the Graph.ReLU operator.
 	OpReLU
+	// OpCELU identifies the Graph.CELU operator.
 	OpCELU
+	// OpGELU identifies the Graph.GELU operator.
 	OpGELU
+	// OpELU identifies the Graph.ELU operator.
 	OpELU
+	// OpPositiveELU identifies the Graph.PositiveELU operator.
 	OpPositiveELU
+	// OpSwish identifies the Graph.Swish operator.
 	OpSwish
+	// OpMish identifies the Graph.Mish operator.
 	OpMish
+	// OpLeakyReLU identifies the Graph.LeakyReLU operator.
 	OpLeakyReLU
+	// OpSELU identifies the Graph.SELU operator.
 	OpSELU
+	// OpSoftPlus identifies the Graph.SoftPlus operator.
 	OpSoftPlus
+	// OpSoftShrink identifies the Graph.SoftShrink operator.
 	OpSoftShrink
+	// OpThreshold identifies the Graph.Threshold operator.
 	OpThreshold
+	// OpSoftmax identifies the Graph.Softmax operator.
 	OpSoftmax
+	// OpSparseMax identifies the Graph.SparseMax operator.
 	OpSparseMax
+	// OpSparseMaxLoss identifies the Graph.SparseMaxLoss operator.
 	OpSparseMaxLoss
+	// OpSin identifies the Graph.Sin operator.
 	OpSin
+	// OpCos identifies the Graph.Cos operator.
 	OpCos
+	// OpExp identifies the Graph.Exp operator.
 	OpExp
+	// OpLog identifies the Graph.Log operator.
 	OpLog
+	// OpAbs identifies the Graph.Abs operator.
 	OpAbs
+	// OpNeg identifies the Graph.Neg operator.
 	OpNeg
+	// OpReciprocal identifies the Graph.Reciprocal operator.
 	OpReciprocal
+	// OpMax identifies the Graph.Max operator.
 	OpMax
+	// OpMin identifies the Graph.Min operator.
 	OpMin
+	// OpReduceSum identifies the Graph.ReduceSum operator.
 	OpReduceSum
+	// OpReduceMean identifies the Graph.ReduceMean operator.
 	OpReduceMean
+	// OpMean identifies the Graph.Mean operator.
 	OpMean
+	// OpSum identifies the Graph.Sum operator.
 	OpSum
+	// OpConcat identifies the Graph.Concat operator.
 	OpConcat
+	// OpStack identifies the Graph.Stack operator.
 	OpStack
 )
 

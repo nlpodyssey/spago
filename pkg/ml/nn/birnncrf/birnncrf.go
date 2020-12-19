@@ -21,6 +21,7 @@ type Model struct {
 	CRF    *crf.Model
 }
 
+// Processor implements the nn.Processor interface for a BiRNN/CRF Model.
 type Processor struct {
 	nn.BaseProcessor
 	biRNN      *birnn.Processor

@@ -27,6 +27,7 @@ func New(size int) *Model {
 	}
 }
 
+// Processor implements the nn.Processor interface for a ScareNorm Model.
 type Processor struct {
 	nn.BaseProcessor
 	gain ag.Node

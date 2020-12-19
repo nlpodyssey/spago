@@ -76,6 +76,7 @@ type State struct {
 	SkipIndex int
 }
 
+// Processor implements the nn.Processor interface for an LSTM with Dynamic Skip Connections Model.
 type Processor struct {
 	nn.BaseProcessor
 	wIn            ag.Node

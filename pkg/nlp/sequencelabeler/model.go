@@ -140,6 +140,7 @@ func (m *Model) LoadParams(path string) {
 	fmt.Println("ok")
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
 		BaseProcessor: nn.BaseProcessor{
@@ -153,6 +154,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Processor implements the nn.Processor interface for a sequence labeler Model.
 type Processor struct {
 	nn.BaseProcessor
 	EmbeddingsLayer *stackedembeddings.Processor

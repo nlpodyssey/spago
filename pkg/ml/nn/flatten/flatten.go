@@ -23,6 +23,7 @@ func New() *Model {
 	return &Model{}
 }
 
+// Processor implements the nn.Processor interface for a parameter-free Model.
 type Processor struct {
 	nn.BaseProcessor
 }
