@@ -26,6 +26,7 @@ type Pooler struct {
 	*stack.Model
 }
 
+// NewPooler returns a new BERT Pooler model.
 func NewPooler(config PoolerConfig) *Pooler {
 	return &Pooler{
 		Model: stack.New(

@@ -30,6 +30,7 @@ type Discriminator struct {
 	*stack.Model
 }
 
+// NewDiscriminator returns a new BERT Discriminator model.
 func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 	return &Discriminator{
 		Model: stack.New(

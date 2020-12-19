@@ -38,6 +38,7 @@ type Embeddings struct {
 	Projector *linear.Model
 }
 
+// NewEmbeddings returns a new BERT Embeddings model.
 func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	return &Embeddings{
 		EmbeddingsConfig: config,
@@ -147,6 +148,8 @@ func (p *EmbeddingsProcessor) useProjection(xs []ag.Node) []ag.Node {
 	return p.projection.Forward(xs...)
 }
 
+// Forward is not implemented for EmbeddingsProcessor (it always panics). You
+// should use Encode instead.
 func (p *EmbeddingsProcessor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bert: Forward() method not implemented. Use Encode() instead.")
 }

@@ -28,6 +28,7 @@ type Layer struct {
 	LayerNorm              *layernorm.Model
 }
 
+// NewLayer returns a new BART encoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
 		Config:                 config,

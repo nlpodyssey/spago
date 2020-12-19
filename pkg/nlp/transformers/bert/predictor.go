@@ -30,6 +30,7 @@ type Predictor struct {
 	*stack.Model
 }
 
+// NewPredictor returns a new BERT Predictor model.
 func NewPredictor(config PredictorConfig) *Predictor {
 	return &Predictor{
 		Model: stack.New(

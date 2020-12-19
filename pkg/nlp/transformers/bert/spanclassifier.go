@@ -25,6 +25,7 @@ type SpanClassifier struct {
 	*linear.Model
 }
 
+// NewSpanClassifier returns a new BERT SpanClassifier model.
 func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
 	return &SpanClassifier{
 		Model: linear.New(config.InputSize, 2),

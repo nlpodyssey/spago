@@ -17,6 +17,7 @@ import (
 	"strconv"
 )
 
+// Model is a BART transformer model.
 type Model struct {
 	Config     bartconfig.Config
 	Embeddings *embeddings.Model
@@ -24,6 +25,7 @@ type Model struct {
 	Decoder    *bartdecoder.Model
 }
 
+// New returns a new BART transformer Model.
 func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	return &Model{
 		Config: config,

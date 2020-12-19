@@ -41,6 +41,7 @@ type WordPieceTokenizer struct {
 	neverSplit    []string
 }
 
+// New returns a new WordPieceTokenizer.
 func New(vocabulary *vocabulary.Vocabulary) *WordPieceTokenizer {
 	return &WordPieceTokenizer{
 		baseTokenizer: basetokenizer.New(

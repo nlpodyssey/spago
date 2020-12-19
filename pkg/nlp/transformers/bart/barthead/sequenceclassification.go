@@ -25,6 +25,7 @@ type SequenceClassification struct {
 	Classification *Classification
 }
 
+// NewSequenceClassification returns a new SequenceClassification.
 func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
 		BART: bart.New(config, embeddingsPath),

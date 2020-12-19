@@ -23,6 +23,7 @@ type GZipCorpusIterator struct {
 	CorpusPath string
 }
 
+// NewGZipCorpusIterator returns a new GZipCorpusIterator.
 func NewGZipCorpusIterator(corpusPath string) *GZipCorpusIterator {
 	return &GZipCorpusIterator{CorpusPath: corpusPath}
 }

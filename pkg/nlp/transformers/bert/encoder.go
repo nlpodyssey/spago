@@ -3,9 +3,12 @@
 // license that can be found in the LICENSE file.
 
 /*
-Reference: "Attention Is All You Need" by Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
-Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin (2017)
-(http://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf).
+Package bert provides an implementation of BERT model (Bidirectional Encoder
+Representations from Transformers).
+
+Reference: "Attention Is All You Need" by Ashish Vaswani, Noam Shazeer, Niki Parmar,
+Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin (2017)
+(http://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf)
 */
 package bert
 
@@ -24,6 +27,7 @@ var (
 	_ nn.Processor = &EncoderProcessor{}
 )
 
+// EncoderConfig provides configuration parameters for BERT Encoder.
 // TODO: include and use the dropout hyper-parameter
 type EncoderConfig struct {
 	Size                   int

@@ -43,6 +43,8 @@ type Config struct {
 	UnknownToken      string // empty string is replaced with DefaultUnknownToken
 }
 
+// New returns a new character-level language Model, initialized according to
+// the given configuration.
 func New(config Config) *Model {
 	if config.SequenceSeparator == "" {
 		config.SequenceSeparator = DefaultSequenceSeparator

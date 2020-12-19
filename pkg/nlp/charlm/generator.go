@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// Generator is a character-level language model text generator.
 type Generator struct {
 	GeneratorConfig
 	model *Model
@@ -22,6 +23,7 @@ type GeneratorConfig struct {
 	Temperature   float64
 }
 
+// NewGenerator returns a new Generator.
 func NewGenerator(model *Model, config GeneratorConfig) *Generator {
 	return &Generator{
 		GeneratorConfig: config,

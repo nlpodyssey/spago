@@ -39,6 +39,7 @@ type Trainer struct {
 	curPerplexity float64
 }
 
+// NewTrainer returns a new Trainer.
 func NewTrainer(config TrainingConfig, corpus corpora.TextCorpusIterator, model *Model) *Trainer {
 	return &Trainer{
 		TrainingConfig: config,

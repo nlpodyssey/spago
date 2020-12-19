@@ -25,12 +25,13 @@ type ClassificationConfig struct {
 	PoolerDropout float64
 }
 
-// Head for sentence-level classification tasks.
+// Classification is a model for BART head for sentence-level classification tasks.
 type Classification struct {
 	Config ClassificationConfig
 	*stack.Model
 }
 
+// NewClassification returns a new Classification.
 func NewClassification(config ClassificationConfig) *Classification {
 	return &Classification{
 		Config: config,

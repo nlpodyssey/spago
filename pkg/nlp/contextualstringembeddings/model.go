@@ -38,6 +38,7 @@ type Model struct {
 	EndMarker   rune
 }
 
+// New returns a new Contextual String Embeddings Model.
 func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
 		LeftToRight: leftToRight,
