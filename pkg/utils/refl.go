@@ -6,6 +6,7 @@ package utils
 
 import "reflect"
 
+// ReverseInPlace reverses the elements of s (usually a slice).
 func ReverseInPlace(s interface{}) {
 	n := reflect.ValueOf(s).Len()
 	swap := reflect.Swapper(s)

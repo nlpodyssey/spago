@@ -36,6 +36,7 @@ func MakeIndices(size int) []int {
 	return indices
 }
 
+// MakeIntMatrix returns a new 2-dimensional slice of int.
 func MakeIntMatrix(rows, cols int) [][]int {
 	matrix := make([][]int, rows)
 	for i := 0; i < rows; i++ {

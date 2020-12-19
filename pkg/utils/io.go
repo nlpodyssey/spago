@@ -12,10 +12,12 @@ import (
 	"os"
 )
 
+// Serializer is implemented by any value that implements the Serialize function.
 type Serializer interface {
 	Serialize(w io.Writer) (int, error)
 }
 
+// Deserializer is implemented by any value that implements the Deserialize function.
 type Deserializer interface {
 	Deserialize(r io.Reader) (int, error)
 }
@@ -71,7 +73,8 @@ func ReadFull(r io.Reader, buf []byte) (int, error) {
 	return n, err
 }
 
-// https://stackoverflow.com/questions/24562942/golang-how-do-i-determine-the-number-of-lines-in-a-file-efficiently
+// CountLines efficiently counts the lines of text inside a file.
+// See: https://stackoverflow.com/questions/24562942/golang-how-do-i-determine-the-number-of-lines-in-a-file-efficiently
 func CountLines(filename string) (int, error) {
 	file, err := os.Open(filename)
 	if err != nil {
