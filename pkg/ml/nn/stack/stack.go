@@ -37,6 +37,7 @@ func Make(size int, callback func(i int) nn.Model) *Model {
 	}
 }
 
+// LastLayer returns the last layer from the stack.
 func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }

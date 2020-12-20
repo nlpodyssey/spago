@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
+// Package adanorm implements the Adaptive Normalization (AdaNorm) method.
+//
+// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun,
+// Zhiyuan Zhang,Guangxiang Zhao, Junyang Lin (2019).
 // (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
 package adanorm
 
@@ -67,6 +70,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return zs
 }
 
+// Mean computes the mean of the input.
 func (p *Processor) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -75,6 +79,7 @@ func (p *Processor) Mean(xs []ag.Node) []ag.Node {
 	return ys
 }
 
+// StdDev computes the standard deviation of the input.
 func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
 	g := p.Graph
 	devVectors := make([]ag.Node, len(xs))

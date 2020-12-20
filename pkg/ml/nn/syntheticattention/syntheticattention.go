@@ -29,6 +29,7 @@ type Model struct {
 	W     *nn.Param `type:"weights"`
 }
 
+// Config provides configuration settings for a Synthetic Attention Model.
 type Config struct {
 	InputSize  int
 	HiddenSize int

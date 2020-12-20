@@ -10,11 +10,17 @@ import (
 )
 
 const (
+	// None represents the absence of a specific gradient descent optimization method.
 	None int = iota
+	// SGD represents the SGD gradient descent optimization method.
 	SGD
+	// AdaGrad represents the AdaGrad gradient descent optimization method.
 	AdaGrad
+	// Adam represents the Adam gradient descent optimization method.
 	Adam
+	// RAdam represents the RAdam gradient descent optimization method.
 	RAdam
+	// RMSProp represents the RMSProp gradient descent optimization method.
 	RMSProp
 )
 
@@ -24,11 +30,11 @@ type MethodConfig interface{}
 
 // Method is implemented by any optimization method.
 type Method interface {
-	// Label can be None, SGD, AdaGrad, Adam, RMSProp
+	// Label returns the enumeration-like value which identifies this gradient descent method.
 	Label() int
 	// Delta returns the difference between the current params and where the method wants it to be.
 	Delta(param *nn.Param) mat.Matrix
-	// NewSupport returns a new support structure with the given dimensions
+	// NewSupport returns a new support structure with the given dimensions.
 	NewSupport(r, c int) *nn.Payload
 }
 

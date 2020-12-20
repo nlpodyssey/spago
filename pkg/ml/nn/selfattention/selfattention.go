@@ -24,6 +24,7 @@ type Model struct {
 	Value *linear.Model
 }
 
+// Config provides configuration settings for a Self-Attention Model.
 type Config struct {
 	InputSize     int
 	QuerySize     int

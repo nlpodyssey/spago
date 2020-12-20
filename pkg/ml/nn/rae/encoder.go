@@ -22,6 +22,7 @@ type Encoder struct {
 	StepEncoder *pe.PositionalEncoder
 }
 
+// EncoderProcessor implements the nn.Processor interface for a RAE Encoder.
 type EncoderProcessor struct {
 	nn.BaseProcessor
 	ffn1       nn.Processor
@@ -44,6 +45,7 @@ func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// GetRecursions returns the number of recursions.
 func (p *EncoderProcessor) GetRecursions() int {
 	return p.recursions
 }

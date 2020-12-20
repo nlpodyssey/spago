@@ -10,13 +10,19 @@ import (
 	"sync"
 )
 
+// MergeType is the enumeration-like type used for the set of merging methods
+// which a BiRNN model Processor can perform.
 type MergeType int
 
 const (
-	Concat MergeType = iota // The outputs are concatenated together (the default)
-	Sum                     // The outputs are added together
-	Prod                    // The outputs are multiplied element-wise together
-	Avg                     // The average of the outputs is taken
+	// Concat merging method: the outputs are concatenated together (the default)
+	Concat MergeType = iota
+	// Sum merging method: the outputs are added together
+	Sum
+	// Prod merging method: the outputs multiplied element-wise together
+	Prod
+	// Avg merging method: the average of the outputs is taken
+	Avg
 )
 
 var (

@@ -70,6 +70,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// SetConcurrentComputations enables or disables the usage of concurrency
+// in the Forward method.
 func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }

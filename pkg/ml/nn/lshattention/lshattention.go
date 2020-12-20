@@ -30,6 +30,7 @@ type Model struct {
 	Value *linear.Model
 }
 
+// Config provides configuration settings for a LSH-Attention Model.
 type Config struct {
 	InputSize   int
 	QuerySize   int

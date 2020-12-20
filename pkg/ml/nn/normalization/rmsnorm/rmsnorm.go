@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package rmsnorm implements the Root Mean Square Layer Normalization method.
+//
 // Reference: "Root Mean Square Layer Normalization" by Biao Zhang and Rico Sennrich (2019).
 // (https://arxiv.org/pdf/1910.07467.pdf)
 package rmsnorm

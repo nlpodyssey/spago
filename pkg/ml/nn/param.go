@@ -19,11 +19,17 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 )
 
+// ParamsType is the enumeration-like type used for the set of parameter
+// (Param) types of a neural network Model.
 type ParamsType int
 
 const (
+	// Weights identifies a Param containing weights.
 	Weights ParamsType = iota
+	// Biases identifies a Param containing biases.
 	Biases
+	// Undefined identifies a generic Param, which cannot be described
+	// with other ParamsType values.
 	Undefined
 )
 
@@ -207,6 +213,8 @@ func (r *Param) Payload() *Payload {
 	return r.payload
 }
 
+// SetPayload is a thread safe operation to set the given Payload on the
+// receiver Param.
 func (r *Param) SetPayload(payload *Payload) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

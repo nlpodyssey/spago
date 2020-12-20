@@ -29,6 +29,7 @@ type Model struct {
 	FC3    *linear.Model
 }
 
+// Config provides configuration settings for a SRNN Model.
 type Config struct {
 	InputSize  int
 	HiddenSize int
@@ -71,6 +72,7 @@ type Processor struct {
 	States    []*State
 }
 
+// State represent a state of the SRNN recurrent network.
 type State struct {
 	Y ag.Node
 	H ag.Node

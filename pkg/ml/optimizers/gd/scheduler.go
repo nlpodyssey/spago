@@ -4,17 +4,20 @@
 
 package gd
 
+// EpochScheduler is implemented by any value that has the IncEpoch method.
 type EpochScheduler interface {
-	// Beat the occurrence of a new epoch
+	// IncEpoch beats the occurrence of a new epoch.
 	IncEpoch()
 }
 
+// BatchScheduler is implemented by any value that has the IncBatch method.
 type BatchScheduler interface {
-	// Beat the occurrence of a new batch
+	// IncBatch beats the occurrence of a new batch.
 	IncBatch()
 }
 
+// ExampleScheduler is implemented by any value that has the IncExample method.
 type ExampleScheduler interface {
-	// Beat the occurrence of a new example
+	// IncExample beats the occurrence of a new example.
 	IncExample()
 }

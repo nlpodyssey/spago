@@ -17,6 +17,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Config provides configuration settings for a convolution Model.
 type Config struct {
 	KernelSizeX    int
 	KernelSizeY    int
@@ -28,6 +29,7 @@ type Config struct {
 	Activation     ag.OpName
 }
 
+// Model contains the serializable parameters for a convolutional neural network model.
 type Model struct {
 	Config
 	K []*nn.Param `type:"weights"`
@@ -86,10 +88,13 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// SetConcurrentComputations enables or disables the usage of concurrency
+// in the Forward method.
 func (p *Processor) SetConcurrentComputations(value bool) {
 	p.concurrent = value
 }
 
+// Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	if p.concurrent && p.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)
