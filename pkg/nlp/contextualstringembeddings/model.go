@@ -87,7 +87,7 @@ type wordBoundary struct {
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (p Processor) Encode(words []string) []ag.Node {
+func (p *Processor) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
 	sequence := utils.SplitByRune(text)
@@ -170,6 +170,6 @@ func (p *Processor) merge(a, b ag.Node) ag.Node {
 
 // Forward is not implemented for Contextual String Embeddings model Processor
 // (it always panics). You should use Encode instead.
-func (p Processor) Forward(_ ...ag.Node) []ag.Node {
+func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("contextual string embeddings: method not implemented. Use Encode() instead.")
 }

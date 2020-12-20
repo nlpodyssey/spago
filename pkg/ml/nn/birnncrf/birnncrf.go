@@ -45,7 +45,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
+func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	features := p.biRNN.Forward(xs...)
 	return p.scorer.Forward(features...)
 }

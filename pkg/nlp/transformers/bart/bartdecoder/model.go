@@ -86,7 +86,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
-func (p Processor) Decode(xs, encoded []ag.Node) []ag.Node {
+func (p *Processor) Decode(xs, encoded []ag.Node) []ag.Node {
 	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := p.add(xs, embedPos)
 	ys = p.EmbeddingLayerNorm.Forward(ys...)
@@ -113,6 +113,6 @@ func (p *Processor) add(a []ag.Node, b []ag.Node) []ag.Node {
 
 // Forward is not implemented for BART decoder Processor (it always panics).
 // You should use Decode instead.
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
+func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	panic("bartdecoder: Forward() not implemented; use Decode() instead.")
 }
