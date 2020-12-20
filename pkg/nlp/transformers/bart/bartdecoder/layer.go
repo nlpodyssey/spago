@@ -21,7 +21,7 @@ var (
 	_ nn.Processor = &bartencoder.LayerProcessor{}
 )
 
-// Layer implements a BART transformer decoder layer.
+// Layer implements a BART decoder layer.
 type Layer struct {
 	Config                    bartconfig.Config
 	SelfAttention             *multiheadattention.Model

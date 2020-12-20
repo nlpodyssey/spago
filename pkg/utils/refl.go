@@ -15,6 +15,7 @@ func ReverseInPlace(s interface{}) {
 	}
 }
 
+// ForEachField calls the callback for each field of the struct i.
 func ForEachField(i interface{}, callback func(field interface{}, name string, tag reflect.StructTag)) {
 	v := reflect.ValueOf(i).Elem()
 	t := reflect.TypeOf(i).Elem()
@@ -31,6 +32,7 @@ func ForEachField(i interface{}, callback func(field interface{}, name string, t
 	}
 }
 
+// TypeName returns the type name of instance.
 func TypeName(instance interface{}) string {
 	t := reflect.TypeOf(instance)
 	if t.Kind() == reflect.Ptr {
@@ -39,6 +41,7 @@ func TypeName(instance interface{}) string {
 	return t.Name()
 }
 
+// Name returns the name of i.
 func Name(i interface{}) string {
 	if IsStruct(i) {
 		return reflect.TypeOf(i).String()
@@ -47,4 +50,7 @@ func Name(i interface{}) string {
 	return reflect.TypeOf(i).Elem().String()
 }
 
-func IsStruct(i interface{}) bool { return reflect.ValueOf(i).Kind() == reflect.Struct }
+// IsStruct returns wether i is a struct.
+func IsStruct(i interface{}) bool {
+	return reflect.ValueOf(i).Kind() == reflect.Struct
+}

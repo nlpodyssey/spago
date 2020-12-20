@@ -36,6 +36,7 @@ func NewPooler(config PoolerConfig) *Pooler {
 	}
 }
 
+// PoolerProcessor implements a nn.Processor for a BERT Pooler.
 type PoolerProcessor struct {
 	*stack.Processor
 }

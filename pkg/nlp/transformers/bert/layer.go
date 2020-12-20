@@ -26,6 +26,7 @@ type EncoderLayer struct {
 	Index              int // layer index (useful for debugging)
 }
 
+// EncoderLayerProcessor implements a nn.Processor for a BERT EncoderLayer.
 type EncoderLayerProcessor struct {
 	nn.BaseProcessor
 	MultiHeadAttention *multiheadattention.Processor

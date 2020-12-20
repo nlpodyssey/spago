@@ -20,6 +20,7 @@ func SumInt(v []int) (s int) {
 	return
 }
 
+// ReverseIntSlice returns a reversed version of the given slice.
 func ReverseIntSlice(lst []int) []int {
 	r := make([]int, len(lst))
 	copy(r, lst)
@@ -30,6 +31,8 @@ func ReverseIntSlice(lst []int) []int {
 	return r
 }
 
+// MakeIndices returns a slice of the given size, where each element has
+// the same value of its own index position.
 func MakeIndices(size int) []int {
 	indices := make([]int, size)
 	for i := range indices {
@@ -57,6 +60,7 @@ func ContainsInt(lst []int, x int) bool {
 	return false
 }
 
+// GetNeighborsIndices returns the indices of the (circular) neighbours at position index.
 func GetNeighborsIndices(size, index, windowSize int) []int {
 	low := index - windowSize
 	high := index + windowSize

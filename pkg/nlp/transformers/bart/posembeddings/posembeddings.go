@@ -15,6 +15,7 @@ var (
 	_ nn.Processor = &LearnedPositionalEmbeddingsProcessor{}
 )
 
+// Config provides configuration settings for a LearnedPositionalEmbeddings Model.
 type Config struct {
 	NumEmbeddings int
 	EmbeddingDim  int
@@ -22,6 +23,8 @@ type Config struct {
 	Offset        int
 }
 
+// LearnedPositionalEmbeddings contains positional embeddings fine-tuned during
+// the training phase.
 type LearnedPositionalEmbeddings struct {
 	Config  Config
 	Vectors []*nn.Param
@@ -40,6 +43,7 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 	}
 }
 
+// LearnedPositionalEmbeddingsProcessor implements a nn.Processor for a BART LearnedPositionalEmbeddings.
 type LearnedPositionalEmbeddingsProcessor struct {
 	nn.BaseProcessor
 }
@@ -56,6 +60,7 @@ func (m *LearnedPositionalEmbeddings) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Encode performs the forward step for each input and returns the result.
 func (p *LearnedPositionalEmbeddingsProcessor) Encode(positions []int) []ag.Node {
 	m := p.Model.(*LearnedPositionalEmbeddings)
 	embeddings := make([]ag.Node, len(positions))

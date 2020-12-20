@@ -20,7 +20,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Model implements a BART transformer decoder.
+// Model implements a BART decoder.
 type Model struct {
 	Config                      bartconfig.Config
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
@@ -86,6 +86,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Decode performs the forward step for each input and returns the result.
 func (p *Processor) Decode(xs, encoded []ag.Node) []ag.Node {
 	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := p.add(xs, embedPos)

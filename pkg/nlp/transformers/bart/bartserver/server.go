@@ -148,11 +148,14 @@ func (s *ServerForSequenceClassification) ClassifyNLIHandler(w http.ResponseWrit
 	}
 }
 
+// ClassConfidencePair is a JSON-serializable pair of Class and Confidence.
 type ClassConfidencePair struct {
 	Class      string  `json:"class"`
 	Confidence float64 `json:"confidence"`
 }
 
+// ClassifyResponse is a JSON-serializable structure which holds server
+// classification response data.
 type ClassifyResponse struct {
 	Class        string                `json:"class"`
 	Confidence   float64               `json:"confidence"`
@@ -193,6 +196,7 @@ func getInputIDs(tokenizer *bpetokenizer.BPETokenizer, text, text2 string) []int
 	return inputIds
 }
 
+// Dump serializes the given value to JSON.
 func Dump(value interface{}, pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
 	enc := json.NewEncoder(buf)

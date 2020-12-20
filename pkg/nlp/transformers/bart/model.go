@@ -17,7 +17,7 @@ import (
 	"strconv"
 )
 
-// Model implements a BART transformer model.
+// Model implements a BART model.
 type Model struct {
 	Config     bartconfig.Config
 	Embeddings *embeddings.Model
@@ -25,7 +25,7 @@ type Model struct {
 	Decoder    *bartdecoder.Model
 }
 
-// New returns a new BART transformer Model.
+// New returns a new BART Model.
 func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	return &Model{
 		Config: config,
@@ -45,7 +45,7 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-// Processor implements the nn.Processor interface for a BART transformer Model.
+// Processor implements the nn.Processor interface for a BART Model.
 type Processor struct {
 	nn.BaseProcessor
 	bartconfig.Config

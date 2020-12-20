@@ -47,6 +47,7 @@ func NewClassification(config ClassificationConfig) *Classification {
 	}
 }
 
+// ClassificationProcessor implements a nn.Processor for a BERT sentence-level Classification.
 type ClassificationProcessor struct {
 	*stack.Processor
 }

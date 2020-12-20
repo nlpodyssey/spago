@@ -42,6 +42,7 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 	}
 }
 
+// DiscriminatorProcessor implements a nn.Processor for a BERT Discriminator.
 type DiscriminatorProcessor struct {
 	*stack.Processor
 }

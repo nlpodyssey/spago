@@ -43,6 +43,7 @@ func NewPredictor(config PredictorConfig) *Predictor {
 	}
 }
 
+// PredictorProcessor implements a nn.Processor for a BERT Predictor.
 type PredictorProcessor struct {
 	*stack.Processor
 }

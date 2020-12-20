@@ -32,6 +32,7 @@ func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
 	}
 }
 
+// SpanClassifierProcessor implements a nn.Processor for a BERT SpanClassifier.
 type SpanClassifierProcessor struct {
 	*linear.Processor
 }

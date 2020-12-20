@@ -22,6 +22,7 @@ type Deserializer interface {
 	Deserialize(r io.Reader) (int, error)
 }
 
+// SerializeToFile serializes obj to file.
 func SerializeToFile(filename string, obj Serializer) (err error) {
 	f, err := os.Create(filename)
 	if err != nil {
@@ -40,6 +41,7 @@ func SerializeToFile(filename string, obj Serializer) (err error) {
 	return
 }
 
+// DeserializeFromFile deserializes obj from file.
 func DeserializeFromFile(filename string, obj Deserializer) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
