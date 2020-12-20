@@ -62,6 +62,7 @@ type Config struct {
 	Training                   bool              `json:"training"` // Custom for spaGO
 }
 
+// Load loads a BART transformer model Config from file.
 func Load(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)

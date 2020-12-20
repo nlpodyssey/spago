@@ -19,9 +19,13 @@ import (
 )
 
 const (
+	// DefaultConfigurationFile is the default BERT JSON configuration filename.
 	DefaultConfigurationFile = "config.json"
-	DefaultVocabularyFile    = "vocab.txt"
-	DefaultModelFile         = "spago_model.bin"
+	// DefaultVocabularyFile is the default BERT model's vocabulary filename.
+	DefaultVocabularyFile = "vocab.txt"
+	// DefaultModelFile is the default BERT spaGO model filename.
+	DefaultModelFile = "spago_model.bin"
+	// DefaultEmbeddingsStorage is the default directory name for BERT model's embedding storage.
 	DefaultEmbeddingsStorage = "embeddings_storage"
 )
 
@@ -30,6 +34,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Config provides configuration settings for a BERT transformer Model.
 type Config struct {
 	HiddenAct             string            `json:"hidden_act"`
 	HiddenSize            int               `json:"hidden_size"`
@@ -43,6 +48,7 @@ type Config struct {
 	ReadOnly              bool              `json:"read_only"`
 }
 
+// LoadConfig loads a BERT transformer model Config from file.
 func LoadConfig(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)

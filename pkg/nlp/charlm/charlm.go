@@ -132,6 +132,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return p
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p *Processor) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	encoding := p.GetEmbeddings(xs)

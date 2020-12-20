@@ -87,6 +87,7 @@ func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p SequenceClassificationProcessor) Predict(inputIds ...int) []ag.Node {
 	transformed := p.BART.Process(inputIds...)
 	sentenceRepresentation := transformed[len(transformed)-1]

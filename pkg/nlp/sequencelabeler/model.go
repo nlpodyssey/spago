@@ -169,6 +169,7 @@ type TokenLabel struct {
 	Label string
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p *Processor) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	model := p.Model.(*Model)
 	words := tokenizers.GetStrings(tokens)
@@ -184,6 +185,7 @@ func (p *Processor) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel 
 	return result
 }
 
+// NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: it could be more consistent if the targets were the string labels
 func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
 	return p.TaggerLayer.NegativeLogLoss(targets)
