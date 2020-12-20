@@ -33,6 +33,7 @@ type DifferentialEvolution struct {
 	state *State
 }
 
+// State represents a status of the differential evolution process.
 type State struct {
 	// The current generation
 	CurGeneration int
@@ -72,6 +73,7 @@ type Config struct {
 	Seed uint64
 }
 
+// ScoredVector is a pair which associates a Score to a Vector corresponding to a specific solution.
 type ScoredVector struct {
 	Vector *mat.Dense
 	Score  float64

@@ -24,6 +24,7 @@ func New(init, final, rate float64) *Hyperbolic {
 	}
 }
 
+// Decay calculates the decay of the learning rate lr at time t.
 func (d *Hyperbolic) Decay(lr float64, t int) float64 {
 	if t > 1 && d.rate > 0.0 && lr > d.final {
 		return d.init / (1.0 + d.rate*float64(t))

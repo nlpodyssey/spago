@@ -38,6 +38,8 @@ type Method interface {
 	NewSupport(r, c int) *nn.Payload
 }
 
+// GetOrSetPayload returns the payload from param, if it already exists, otherwise
+// a new payload is created, assigned to the param, and returned.
 func GetOrSetPayload(param *nn.Param, m Method) *nn.Payload {
 	payload := param.Payload()
 	switch {
