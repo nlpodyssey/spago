@@ -50,8 +50,8 @@ func New(config Config) *Model {
 }
 
 type ContextProb struct {
-	context []ag.Node
-	prob    []mat.Matrix
+	Context []ag.Node
+	Prob    []mat.Matrix
 }
 
 // Processor implements the nn.Processor interface for an LSH-Attention Model.
@@ -156,8 +156,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	}
 
 	p.Attention = &ContextProb{
-		context: context,
-		prob:    prob,
+		Context: context,
+		Prob:    prob,
 	}
 	return context
 }
