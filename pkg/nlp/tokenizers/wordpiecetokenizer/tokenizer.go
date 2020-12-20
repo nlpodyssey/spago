@@ -26,7 +26,7 @@ const (
 	DefaultMaxWordChars = 100
 )
 
-var DefaultNeverSplit = []string{
+var defaultNeverSplit = []string{
 	DefaultClassToken,
 	DefaultSequenceSeparator,
 	DefaultUnknownToken,
@@ -56,7 +56,7 @@ func New(vocabulary *vocabulary.Vocabulary) *WordPieceTokenizer {
 		unkToken:     DefaultUnknownToken,
 		splitPrefix:  DefaultSplitPrefix,
 		maxWordChars: DefaultMaxWordChars,
-		neverSplit:   DefaultNeverSplit,
+		neverSplit:   defaultNeverSplit,
 	}
 }
 
