@@ -12,12 +12,15 @@ import (
 	"syscall"
 )
 
+// WorkerPool is a structure to run a pool of worker goroutines, gracefully
+// handling interrupt and termination signals.
 type WorkerPool struct {
 	size       int
 	ingestChan chan interface{}
 	jobsChan   chan interface{}
 }
 
+// WorkerFunc is a function to perform a single worker job.
 type WorkerFunc func(workerID int, jobData interface{})
 
 // New returns a new WorkerPool ready-to-use.
@@ -29,6 +32,7 @@ func New(size int) *WorkerPool {
 	}
 }
 
+// Run runs all workers and blocks until a signal is received.
 func (wp *WorkerPool) Run(workerFunc WorkerFunc) {
 	ctx, ctxCancelFunc := context.WithCancel(context.Background())
 
@@ -47,6 +51,7 @@ func (wp *WorkerPool) Run(workerFunc WorkerFunc) {
 	wg.Wait()
 }
 
+// PublishJobData adds some data to be processed by the workers.
 func (wp *WorkerPool) PublishJobData(jobData interface{}) {
 	wp.ingestChan <- jobData
 }
