@@ -81,7 +81,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
-type IndexedNodes struct {
+type indexedNodes struct {
 	node  []ag.Node
 	index []int
 }
@@ -99,7 +99,7 @@ func (p *Processor) lshScaledDotProductAttention(
 	g *ag.Graph,
 	q ag.Node,
 	ks,
-	vs *IndexedNodes,
+	vs *indexedNodes,
 	length int,
 	scaleFactor float64,
 ) (context ag.Node, prob mat.Matrix) {
@@ -120,9 +120,9 @@ func (p *Processor) lshScaledDotProductAttention(
 	return context, prob
 }
 
-func insertNode(m map[int]*IndexedNodes, node ag.Node, i, h int) {
+func insertNode(m map[int]*indexedNodes, node ag.Node, i, h int) {
 	if _, found := m[h]; !found {
-		m[h] = &IndexedNodes{node: []ag.Node{}, index: []int{}}
+		m[h] = &indexedNodes{node: []ag.Node{}, index: []int{}}
 	}
 	element := m[h]
 	element.node = append(element.node, node)
@@ -135,8 +135,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	qs := p.query.Forward(xs...)
 	ks := make([]ag.Node, length)
 	vs := p.value.Forward(xs...)
-	mapk := make(map[int]*IndexedNodes)
-	mapv := make(map[int]*IndexedNodes)
+	mapk := make(map[int]*indexedNodes)
+	mapv := make(map[int]*indexedNodes)
 
 	// TODO: can it be implemented in a concurrent fashion?
 	for i, q := range qs {
