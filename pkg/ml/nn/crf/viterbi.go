@@ -11,6 +11,7 @@ import (
 	"math"
 )
 
+// ViterbiStructure implements Viterbi decoding.
 type ViterbiStructure struct {
 	scores       mat.Matrix
 	backpointers []int
@@ -24,6 +25,7 @@ func NewViterbiStructure(size int) *ViterbiStructure {
 	}
 }
 
+// Viterbi decodes the xs sequence according to the transitionMatrix.
 func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
 	alpha := make([]*ViterbiStructure, len(xs)+1)
 	alpha[0] = ViterbiStepStart(transitionMatrix, xs[0].Value())

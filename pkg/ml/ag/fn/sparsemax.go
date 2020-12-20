@@ -108,6 +108,7 @@ func sparseMax(v []float64) []float64 {
 	return zs
 }
 
+// SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss struct {
 	x   Operand
 	tau float64    // computed during the forward pass

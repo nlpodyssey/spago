@@ -43,23 +43,29 @@ func Perplexity(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return g.Exp(CrossEntropy(g, x, c))
 }
 
+// ZeroOneQuantization is a loss function that is minimized when each component
+// of x satisfies x(i) ≡ [x]i ∈ {0, 1}.
 func ZeroOneQuantization(g *ag.Graph, x ag.Node) ag.Node {
 	return g.ReduceSum(g.Prod(g.Square(x), g.Square(g.ReverseSub(x, g.NewScalar(1.0)))))
 }
 
+// Norm2Quantization is a loss function that is minimized when norm2(x) = 1.
 func Norm2Quantization(g *ag.Graph, x ag.Node) ag.Node {
 	return g.Square(g.SubScalar(g.ReduceSum(g.Square(x)), g.NewScalar(1.0)))
 }
 
-// q is the quantization regularizer weight (suggested  0.00001)
+// OneHotQuantization is a loss function that pushes towards the x vector to be 1-hot.
+// q is the quantization regularizer weight (suggested  0.00001).
 func OneHotQuantization(g *ag.Graph, x ag.Node, q float64) ag.Node {
 	return g.ProdScalar(g.Add(ZeroOneQuantization(g, x), Norm2Quantization(g, x)), g.NewScalar(q))
 }
 
+// Distance is a loss function that calculates the distance between target and x.
 func Distance(g *ag.Graph, x ag.Node, target float64) ag.Node {
 	return g.Abs(g.Sub(g.NewScalar(target), x))
 }
 
+// MSESeq calculates the MSE loss on the given sequence.
 func MSESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool) ag.Node {
 	loss := MSE(g, predicted[0], target[0], false)
 	for i := 1; i < len(predicted); i++ {
@@ -71,6 +77,7 @@ func MSESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 	return loss
 }
 
+// MAESeq calculates the MAE loss on the given sequence.
 func MAESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool) ag.Node {
 	loss := MAE(g, predicted[0], target[0], false)
 	for i := 1; i < len(predicted); i++ {
@@ -82,6 +89,7 @@ func MAESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 	return loss
 }
 
+// CrossEntropySeq calculates the CrossEntropy loss on the given sequence.
 func CrossEntropySeq(g *ag.Graph, predicted []ag.Node, target []int, reduceMean bool) ag.Node {
 	loss := CrossEntropy(g, predicted[0], target[0])
 	for i := 1; i < len(predicted); i++ {

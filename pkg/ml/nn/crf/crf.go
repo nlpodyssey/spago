@@ -27,6 +27,7 @@ func New(labels int) *Model {
 	}
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (m *Model) Predict(emissionScores []ag.Node) []int {
 	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
@@ -57,6 +58,7 @@ func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("crf: Forward() not available. Use Predict() instead.")
 }
 
+// NegativeLogLoss computes the negative log loss with respect to the targets.
 func (p *Processor) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := p.goldScore(emissionScores, target)
 	totalScore := p.totalScore(emissionScores)

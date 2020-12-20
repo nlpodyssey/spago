@@ -24,6 +24,7 @@ type BroadLearningAlgorithm struct {
 	Verbose                bool
 }
 
+// Do runs the board learning algorithm.
 func (l *BroadLearningAlgorithm) Do() {
 	if l.OptimizeFeaturesWeight {
 		l.log("Optimizing features weights...")

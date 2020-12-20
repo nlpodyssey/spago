@@ -68,6 +68,7 @@ func NewEmptySupport() *Payload {
 	}
 }
 
+// Param is a parameter of a Model.
 type Param struct {
 	name         string
 	pType        ParamsType // lazy initialization
@@ -80,14 +81,19 @@ type Param struct {
 	storage      kvdb.KeyValueDB // default nil
 }
 
+// ParamOption allows to configure a new Param with your specific needs.
 type ParamOption func(*Param)
 
+// RequiresGrad is an option to specify whether a Param should be trained or not.
 func RequiresGrad(value bool) ParamOption {
 	return func(p *Param) {
 		p.requiresGrad = value
 	}
 }
 
+// SetStorage is an option to specify a kvdb.KeyValueDB storage.
+// This is useful, for example, for a memory-efficient embeddings
+// Param implementation.
 func SetStorage(storage kvdb.KeyValueDB) ParamOption {
 	return func(p *Param) {
 		p.storage = storage
@@ -333,6 +339,7 @@ func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
 	return n, err
 }
 
+// NewPayloadUnmarshalBinaryFrom reads a Payload from the given reader.
 func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
 	var h header
 	n, err := h.unmarshalBinaryFrom(r)

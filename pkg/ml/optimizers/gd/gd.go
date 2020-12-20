@@ -19,6 +19,7 @@ type GradientDescent struct {
 	paramsToOptimize []*nn.Param
 }
 
+// Option allows to configure a new GradientDescent with your specific needs.
 type Option func(*GradientDescent)
 
 func ClipGradByValue(value float64) Option {

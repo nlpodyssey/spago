@@ -96,6 +96,10 @@ func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	}
 }
 
+// Achlioptas fills the input matrix with values according to the mthod
+// described on "Database-friendly random projections: Johnson-Lindenstrauss
+// with binary coins", by Dimitris Achlioptas 2001
+// (https://core.ac.uk/download/pdf/82724427.pdf)
 func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := 1.0 / 6.0
