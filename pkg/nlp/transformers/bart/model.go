@@ -69,6 +69,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Process performs the forward step for each input and returns the result.
 func (p *Processor) Process(inputIDs ...int) []ag.Node {
 	encoderInput := p.Embeddings.Encode(intToStringSlice(inputIDs))
 	encoderOutput := p.Encoder.Forward(encoderInput...)

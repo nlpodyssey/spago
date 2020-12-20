@@ -74,6 +74,7 @@ type SequenceClassificationProcessor struct {
 	Classification *ClassificationProcessor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
 	return &SequenceClassificationProcessor{
 		BaseProcessor: nn.BaseProcessor{

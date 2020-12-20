@@ -88,6 +88,7 @@ type EmbeddingsProcessor struct {
 	unknownEmbedding    ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Embeddings) NewProc(ctx nn.Context) nn.Processor {
 	var projection *linear.Processor = nil
 	if m.Projector != nil {

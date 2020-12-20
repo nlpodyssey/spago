@@ -36,6 +36,7 @@ type SpanClassifierProcessor struct {
 	*linear.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *SpanClassifier) NewProc(ctx nn.Context) nn.Processor {
 	return &SpanClassifierProcessor{
 		Processor: m.Model.NewProc(ctx).(*linear.Processor),

@@ -47,6 +47,7 @@ type PredictorProcessor struct {
 	*stack.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Predictor) NewProc(ctx nn.Context) nn.Processor {
 	return &PredictorProcessor{
 		Processor: m.Model.NewProc(ctx).(*stack.Processor),

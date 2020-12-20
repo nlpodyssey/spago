@@ -51,6 +51,7 @@ type ClassificationProcessor struct {
 	*stack.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Classification) NewProc(ctx nn.Context) nn.Processor {
 	return &ClassificationProcessor{
 		Processor: m.Model.NewProc(ctx).(*stack.Processor),

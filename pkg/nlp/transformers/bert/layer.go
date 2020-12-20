@@ -34,6 +34,7 @@ type EncoderLayerProcessor struct {
 	NormFFN            *layernorm.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *EncoderLayer) NewProc(ctx nn.Context) nn.Processor {
 	return &EncoderLayerProcessor{
 		BaseProcessor: nn.BaseProcessor{
