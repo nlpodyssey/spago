@@ -86,6 +86,7 @@ type wordBoundary struct {
 	reverseEndIndex int
 }
 
+// Encode performs the forward step for each input and returns the result.
 func (p Processor) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
