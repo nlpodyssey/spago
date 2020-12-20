@@ -116,7 +116,7 @@ func forEachParam(m interface{}, callback func(param *Param), exploreSubModels b
 	})
 }
 
-// ParamsIterator is implemented by any value that implements the ParamsList function,
+// ParamsIterator is implemented by any value that has the ParamsList method,
 // which should return the list of parameters of one or more models.
 type ParamsIterator interface {
 	ParamsList() []*Param

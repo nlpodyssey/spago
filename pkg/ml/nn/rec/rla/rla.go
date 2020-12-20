@@ -19,10 +19,12 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Config provides configuration settings for a RLA Model.
 type Config struct {
 	InputSize int
 }
 
+// Model contains the serializable parameters for an RLA neural network.
 type Model struct {
 	Config
 	Wk *nn.Param `type:"weights"`
@@ -46,6 +48,7 @@ func New(config Config) *Model {
 	}
 }
 
+// State represent a state of the RLA recurrent network.
 type State struct {
 	S ag.Node
 	Z ag.Node
@@ -84,6 +87,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// SetInitialState sets the initial state of the recurrent network.
+// It panics if one or more states are already present.
 func (p *Processor) SetInitialState(state *State) {
 	if len(p.States) > 0 {
 		log.Fatal("lstm: the initial state must be set before any input")
@@ -102,6 +107,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
+// LastState returns the last state of the recurrent network.
+// It returns nil if there are no states.
 func (p *Processor) LastState() *State {
 	n := len(p.States)
 	if n == 0 {

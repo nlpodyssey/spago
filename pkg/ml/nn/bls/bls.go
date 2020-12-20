@@ -27,6 +27,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Config provides configuration settings for a BLS Model.
 type Config struct {
 	InputSize                    int
 	FeaturesSize                 int

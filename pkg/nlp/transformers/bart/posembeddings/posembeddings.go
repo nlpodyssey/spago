@@ -64,6 +64,8 @@ func (p *LearnedPositionalEmbeddingsProcessor) Encode(positions []int) []ag.Node
 	return embeddings
 }
 
+// Forward is not implemented for LearnedPositionalEmbeddingsProcessor (it always panics).
+// You should use Process instead.
 func (p LearnedPositionalEmbeddingsProcessor) Forward(xs ...ag.Node) []ag.Node {
 	panic("posembeddings: Forward() not implemented for LearnedPositionalEmbeddings. Use Encode() instead.")
 }

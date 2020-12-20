@@ -17,11 +17,13 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 )
 
+// OptionsType provides JSON-serializable options for the sequence labeling Server.
 type OptionsType struct {
 	MergeEntities     bool `json:"mergeEntities"`     // default false
 	FilterNotEntities bool `json:"filterNotEntities"` // default false
 }
 
+// Body provides JSON-serializable parameters for sequence labeling Server requests.
 type Body struct {
 	Options OptionsType `json:"options"`
 	Text    string      `json:"text"`
@@ -114,12 +116,15 @@ func prepareResponse(tokens []TokenLabel, took time.Duration) *Response {
 	return &Response{Tokens: newTokens, Took: took.Milliseconds()}
 }
 
+// Response provides JSON-serializable parameters for sequence labeling Server responses.
 type Response struct {
 	Tokens []Token `json:"tokens"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
 
+// Token provides JSON-serializable parameters for a single token of sequence
+// labeling Server responses.
 type Token struct {
 	Text  string `json:"text"`
 	Start int    `json:"start"`
@@ -127,6 +132,7 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+// Dump serializes the Response to JSON.
 func (r *Response) Dump(pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
 	enc := json.NewEncoder(buf)

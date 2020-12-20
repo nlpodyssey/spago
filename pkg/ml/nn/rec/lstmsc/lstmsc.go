@@ -65,6 +65,7 @@ func newGateParams(in, out int) (w, wRec, b *nn.Param) {
 	return
 }
 
+// State represent a state of the LSTM with Dynamic Skip Connections recurrent network.
 type State struct {
 	InG       ag.Node
 	OutG      ag.Node
@@ -126,6 +127,8 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// SetInitialState sets the initial state of the recurrent network.
+// It panics if one or more states are already present.
 func (p *Processor) SetInitialState(state *State) {
 	if len(p.States) > 0 {
 		log.Fatal("lstmsc: the initial state must be set before any input")
@@ -144,6 +147,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
+// LastState returns the last state of the recurrent network.
+// It returns nil if there are no states.
 func (p *Processor) LastState() *State {
 	n := len(p.States)
 	if n == 0 {

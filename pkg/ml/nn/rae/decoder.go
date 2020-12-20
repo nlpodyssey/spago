@@ -25,6 +25,7 @@ type Decoder struct {
 	StepEncoder  *pe.PositionalEncoder
 }
 
+// DecoderProcessor implements the nn.Processor interface for a RAE Decoder.
 type DecoderProcessor struct {
 	nn.BaseProcessor
 	ffn1           nn.Processor

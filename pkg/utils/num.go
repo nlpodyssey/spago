@@ -4,6 +4,7 @@
 
 package utils
 
+// MinInt returns the minimum value between a and b.
 func MinInt(a, b int) int {
 	if a < b {
 		return a
@@ -11,6 +12,7 @@ func MinInt(a, b int) int {
 	return b
 }
 
+// SumInt returns the sum of all values from v.
 func SumInt(v []int) (s int) {
 	for _, e := range v {
 		s += e

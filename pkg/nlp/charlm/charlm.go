@@ -20,10 +20,15 @@ import (
 )
 
 const (
+	// DefaultSequenceSeparator is the default sequence separator value for the
+	// character-level language model.
 	DefaultSequenceSeparator = "[SEP]"
-	DefaultUnknownToken      = "[UNK]"
+	// DefaultUnknownToken is the default unknown token value for the
+	// character-level language model.
+	DefaultUnknownToken = "[UNK]"
 )
 
+// Model implements a Character-level Language Model.
 type Model struct {
 	Config
 	Decoder    *linear.Model
@@ -33,6 +38,7 @@ type Model struct {
 	Vocabulary *vocabulary.Vocabulary
 }
 
+// Config provides configuration settings for a Character-level Language Model.
 // TODO: add dropout
 type Config struct {
 	VocabularySize    int
@@ -164,6 +170,8 @@ func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
 	return ys
 }
 
+// Forward is not implemented for character-level language model Processor
+// (it always panics). You should use Predict instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("charlm: method not implemented. Use Predict() instead.")
 }

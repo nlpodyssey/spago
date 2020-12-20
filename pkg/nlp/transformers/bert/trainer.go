@@ -24,6 +24,7 @@ import (
 	"os"
 )
 
+// TrainingConfig provides configuration settings for a BERT Trainer.
 type TrainingConfig struct {
 	Seed             uint64
 	BatchSize        int
@@ -33,6 +34,7 @@ type TrainingConfig struct {
 	ModelPath        string
 }
 
+// Trainer implements the training process for a BERT Model.
 type Trainer struct {
 	TrainingConfig
 	randGen       *rand.LockedRand
@@ -57,6 +59,7 @@ func NewTrainer(model *Model, config TrainingConfig) *Trainer {
 	}
 }
 
+// Train executes the training process.
 func (t *Trainer) Train() {
 	t.forEachLine(func(i int, text string) {
 		t.trainPassage(text)

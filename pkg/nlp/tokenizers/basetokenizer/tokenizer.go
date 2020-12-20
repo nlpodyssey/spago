@@ -26,6 +26,8 @@ var asciiPunctuation = &unicode.RangeTable{
 
 var _ tokenizers.Tokenizer = &BaseTokenizer{}
 
+// BaseTokenizer is a straightforward tokenizer implementation, which
+// splits by whitespace and punctuation characters.
 type BaseTokenizer struct {
 	specialWords map[string]bool
 }

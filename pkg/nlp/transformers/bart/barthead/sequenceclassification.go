@@ -38,10 +38,12 @@ func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) 
 	}
 }
 
+// Close closes the BART model's embeddings DB.
 func (m *SequenceClassification) Close() {
 	m.BART.Close()
 }
 
+// LoadModelForSequenceClassification loads a SequenceClassification model from file.
 func LoadModelForSequenceClassification(modelPath string) (*SequenceClassification, error) {
 	configFilename := path.Join(modelPath, bartconfig.DefaultConfigurationFile)
 	embeddingsPath := path.Join(modelPath, bartconfig.DefaultEmbeddingsStorage)
@@ -91,6 +93,8 @@ func (p SequenceClassificationProcessor) Predict(inputIds ...int) []ag.Node {
 	return p.Classification.Forward(sentenceRepresentation)
 }
 
+// Forward is not implemented for BART SequenceClassificationProcessor (it always panics).
+// You should use Predict instead.
 func (p SequenceClassificationProcessor) Forward(_ ...ag.Node) []ag.Node {
 	panic("barthead: Forward() not implemented for SequenceClassification. Use Predict() instead.")
 }

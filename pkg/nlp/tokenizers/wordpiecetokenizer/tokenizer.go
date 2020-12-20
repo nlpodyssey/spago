@@ -12,12 +12,18 @@ import (
 )
 
 const (
-	DefaultClassToken        = "[CLS]"
+	// DefaultClassToken is the default class token value for the WordPiece tokenizer.
+	DefaultClassToken = "[CLS]"
+	// DefaultSequenceSeparator is the default sequence separator value for the WordPiece tokenizer.
 	DefaultSequenceSeparator = "[SEP]"
-	DefaultUnknownToken      = "[UNK]"
-	DefaultMaskToken         = "[MASK]"
-	DefaultSplitPrefix       = "##"
-	DefaultMaxWordChars      = 100
+	// DefaultUnknownToken is the default unknown token value for the WordPiece tokenizer.
+	DefaultUnknownToken = "[UNK]"
+	// DefaultMaskToken is the default mask token value for the WordPiece tokenizer.
+	DefaultMaskToken = "[MASK]"
+	// DefaultSplitPrefix is the default split prefix value for the WordPiece tokenizer.
+	DefaultSplitPrefix = "##"
+	// DefaultMaxWordChars is the default makimum word length for the WordPiece tokenizer.
+	DefaultMaxWordChars = 100
 )
 
 var DefaultNeverSplit = []string{

@@ -12,12 +12,12 @@ import (
 	"os"
 )
 
-// Serializer is implemented by any value that implements the Serialize function.
+// Serializer is implemented by any value that has the Serialize method.
 type Serializer interface {
 	Serialize(w io.Writer) (int, error)
 }
 
-// Deserializer is implemented by any value that implements the Deserialize function.
+// Deserializer is implemented by any value that has the Deserialize method.
 type Deserializer interface {
 	Deserialize(r io.Reader) (int, error)
 }

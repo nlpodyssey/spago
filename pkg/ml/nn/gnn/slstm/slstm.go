@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// slstm
+// Package slstm implements a Sentence-State LSTM graph neural network.
+//
 // Reference: "Sentence-State LSTM for Text Representation" by Zhang et al, 2018.
 // (https://arxiv.org/pdf/1805.02474.pdf)
 package slstm
@@ -55,6 +56,7 @@ type HyperLinear3 struct {
 	B *nn.Param `type:"biases"`
 }
 
+// Config provides configuration settings for a Sentence-State LSTM Model.
 type Config struct {
 	InputSize  int
 	OutputSize int

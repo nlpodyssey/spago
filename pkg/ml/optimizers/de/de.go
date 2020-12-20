@@ -44,6 +44,7 @@ type State struct {
 	countBestScoreUnchanged int
 }
 
+// Config provides configuration settings for a DifferentialEvolution optimizer.
 type Config struct {
 	// The number of member of the populations
 	PopulationSize int

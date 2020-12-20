@@ -20,6 +20,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model implements a BART transformer decoder.
 type Model struct {
 	Config                      bartconfig.Config
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
@@ -110,6 +111,8 @@ func (p *Processor) add(a []ag.Node, b []ag.Node) []ag.Node {
 	return c
 }
 
+// Forward is not implemented for BART decoder Processor (it always panics).
+// You should use Decode instead.
 func (p Processor) Forward(xs ...ag.Node) []ag.Node {
 	panic("bartdecoder: Forward() not implemented; use Decode() instead.")
 }

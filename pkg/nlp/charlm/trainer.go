@@ -17,6 +17,7 @@ import (
 	"math"
 )
 
+// TrainingConfig provides configuration settings for a Character-level Language Trainer.
 // TODO: add dropout
 type TrainingConfig struct {
 	Seed                  uint64
@@ -28,6 +29,7 @@ type TrainingConfig struct {
 	ModelPath             string
 }
 
+// Trainer implements the training process for a Character-level Language Model.
 type Trainer struct {
 	TrainingConfig
 	randGen       *rand.LockedRand
@@ -53,6 +55,7 @@ func NewTrainer(config TrainingConfig, corpus corpora.TextCorpusIterator, model 
 	}
 }
 
+// Train executes the training process.
 func (t *Trainer) Train() {
 	t.corpus.ForEachLine(func(i int, line string) {
 		t.trainPassage(i, line)

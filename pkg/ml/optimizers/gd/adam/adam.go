@@ -13,6 +13,7 @@ import (
 
 var _ gd.MethodConfig = &Config{}
 
+// Config provides configuration settings for an Adam optimizer.
 type Config struct {
 	gd.MethodConfig
 	StepSize float64
@@ -37,6 +38,7 @@ func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	}
 }
 
+// NewDefaultConfig returns a new Config with generically reasonable default values.
 func NewDefaultConfig() Config {
 	return Config{
 		StepSize: 0.001,
@@ -48,6 +50,7 @@ func NewDefaultConfig() Config {
 
 var _ gd.Method = &Adam{}
 
+// Adam implements the Adam gradient descent optimization method.
 type Adam struct {
 	Config
 	Alpha    float64
@@ -64,6 +67,7 @@ func New(c Config) *Adam {
 	return adam
 }
 
+// Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *Adam) Label() int {
 	return gd.Adam
 }
@@ -76,6 +80,7 @@ const (
 	buf3 int = 4
 )
 
+// NewSupport returns a new support structure with the given dimensions.
 func (o *Adam) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense(r, c)
@@ -89,6 +94,7 @@ func (o *Adam) NewSupport(r, c int) *nn.Payload {
 	}
 }
 
+// IncExample beats the occurrence of a new example.
 func (o *Adam) IncExample() {
 	o.TimeStep++
 	o.updateAlpha()
@@ -98,6 +104,7 @@ func (o *Adam) updateAlpha() {
 	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, float64(o.TimeStep))) / (1.0 - math.Pow(o.Beta1, float64(o.TimeStep)))
 }
 
+// Delta returns the difference between the current params and where the method wants it to be.
 func (o *Adam) Delta(param *nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }

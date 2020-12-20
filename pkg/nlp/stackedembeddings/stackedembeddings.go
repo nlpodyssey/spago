@@ -25,6 +25,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model implements a stacked embeddings model.
 // TODO: optional use of the projection layer?
 // TODO: include an optional layer normalization?
 type Model struct {
@@ -80,6 +81,8 @@ func (p *Processor) Encode(words []string) []ag.Node {
 	return p.projectionLayer.Forward(intermediateEncoding...)
 }
 
+// Forward is not implemented for stacked embedding model Processor (it always panics).
+// You should use Encode instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("stackedembeddings: method not implemented. Use Encode() instead.")
+	panic("stackedembeddings: Forward() not implemented. Use Encode() instead.")
 }

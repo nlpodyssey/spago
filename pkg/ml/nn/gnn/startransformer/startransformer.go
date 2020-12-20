@@ -34,6 +34,7 @@ type Model struct {
 	RelayNorm     *layernorm.Model
 }
 
+// Config provides configuration settings for a Star-Transformer Model.
 type Config struct {
 	InputSize int
 	QuerySize int

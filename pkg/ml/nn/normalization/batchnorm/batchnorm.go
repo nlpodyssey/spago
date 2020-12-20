@@ -107,6 +107,7 @@ func (p *Processor) forwardInference(xs []ag.Node) []ag.Node {
 	return p.process(g, xs, devVector, meanVector)
 }
 
+// Mean computes the mean of the input.
 func (p *Processor) Mean(xs []ag.Node) ag.Node {
 	g := p.Graph
 	sumVector := xs[0]
@@ -116,6 +117,7 @@ func (p *Processor) Mean(xs []ag.Node) ag.Node {
 	return g.DivScalar(sumVector, g.NewScalar(float64(len(xs))+1e-10))
 }
 
+// StdDev computes the standard deviation of the input.
 func (p *Processor) StdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 	g := p.Graph
 	devVector := g.NewVariable(meanVector.Value().ZerosLike(), false)

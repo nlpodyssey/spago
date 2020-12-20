@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package layernorm implements the Layer Normalization (LayerNorm) i method.
+//
 // Reference: "Layer normalization" by Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton (2016).
 // (https://arxiv.org/pdf/1607.06450.pdf)
 package layernorm

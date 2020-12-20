@@ -12,6 +12,7 @@ import (
 
 var _ gd.MethodConfig = &Config{}
 
+// Config provides configuration settings for an AdaGrad optimizer.
 type Config struct {
 	gd.MethodConfig
 	LR      float64
@@ -26,6 +27,7 @@ func NewConfig(lr, epsilon float64) Config {
 	}
 }
 
+// NewDefaultConfig returns a new Config with generically reasonable default values.
 func NewDefaultConfig() Config {
 	return Config{
 		LR:      0.01,
@@ -50,10 +52,12 @@ func New(c Config) *AdaGrad {
 
 const m = 0
 
+// Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *AdaGrad) Label() int {
 	return gd.AdaGrad
 }
 
+// NewSupport returns a new support structure with the given dimensions.
 func (o *AdaGrad) NewSupport(r, c int) *nn.Payload {
 	return &nn.Payload{
 		Label: o.Label(),
@@ -61,6 +65,7 @@ func (o *AdaGrad) NewSupport(r, c int) *nn.Payload {
 	}
 }
 
+// Delta returns the difference between the current params and where the method wants it to be.
 func (o *AdaGrad) Delta(param *nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }

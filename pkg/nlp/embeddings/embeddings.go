@@ -22,6 +22,7 @@ var (
 
 var allModels []*Model
 
+// Model implements an embeddings model.
 type Model struct {
 	Config
 	storage        kvdb.KeyValueDB
@@ -30,6 +31,7 @@ type Model struct {
 	ZeroEmbedding  *nn.Param            `type:"weights"`
 }
 
+// Config provides configuration settings for an embeddings Model.
 type Config struct {
 	// Size of the embedding vectors.
 	Size int
@@ -82,6 +84,7 @@ func (m *Model) ClearUsedEmbeddings() {
 	m.UsedEmbeddings = map[string]*nn.Param{}
 }
 
+// DropAll clears the cache of used embeddings and drops all the data stored in the DB.
 func (m *Model) DropAll() error {
 	m.ClearUsedEmbeddings()
 	return m.storage.DropAll()
@@ -103,6 +106,8 @@ func ClearUsedEmbeddings() {
 	}
 }
 
+// Count counts how many embeddings are stored in the DB.
+// It invokes log.Fatal in case of reading errors.
 func (m *Model) Count() int {
 	keys, err := m.storage.Keys()
 	if err != nil {
@@ -245,6 +250,8 @@ func (p *Processor) getEmbedding(word string) ag.Node {
 	}
 }
 
+// Forward is not implemented for embeddings model Processor (it always panics).
+// You should use Encode instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("embeddings: p.Forward() not implemented. Use p.Encode() instead.")
 }
