@@ -50,9 +50,12 @@ func New(config Config) *Model {
 	}
 }
 
+// ContextProb is a pair of Context encodings and Prob attention scores.
 type ContextProb struct {
-	context []ag.Node
-	prob    []mat.Matrix
+	// Context encodings.
+	Context []ag.Node
+	// Prob attention scores.
+	Prob []mat.Matrix
 }
 
 // Processor implements the nn.Processor interface for a Synthetic Attention Model.
@@ -96,8 +99,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 		prob[i] = attProb.Value()
 	}
 	p.Attention = &ContextProb{
-		context: context,
-		prob:    prob,
+		Context: context,
+		Prob:    prob,
 	}
 	return context
 }
