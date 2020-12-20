@@ -18,6 +18,8 @@ var (
 	_ nn.Processor = &bartencoder.LayerProcessor{}
 )
 
+// ClassificationConfig provides configuration settings for a BART head for sentence-level
+// Classification model.
 type ClassificationConfig struct {
 	InputSize     int
 	HiddenSize    int

@@ -21,7 +21,7 @@ var (
 	_ nn.Processor = &bartencoder.LayerProcessor{}
 )
 
-// Layer is a BART decoder layer.
+// Layer implements a BART transformer decoder layer.
 type Layer struct {
 	Config                    bartconfig.Config
 	SelfAttention             *multiheadattention.Model
@@ -61,6 +61,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
+// LayerProcessor implements the nn.Processor interface for a BART decoder Layer.
 type LayerProcessor struct {
 	nn.BaseProcessor
 	bartconfig.Config
@@ -152,6 +153,8 @@ func (p *LayerProcessor) add(a []ag.Node, b []ag.Node) []ag.Node {
 	return c
 }
 
+// Forward is not implemented for BART decoder LayerProcessor (it always panics).
+// You should use Process instead.
 func (p *LayerProcessor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bertdecoder: Forward() not implemented; use Process() instead.")
 }

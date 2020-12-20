@@ -19,6 +19,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model implements a BART transformer encoder.
 type Model struct {
 	Config                      bartconfig.Config
 	Layers                      *stack.Model
@@ -81,6 +82,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Forward performs the forward step for each input and returns the result.
 func (p Processor) Forward(xs ...ag.Node) []ag.Node {
 	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := p.add(xs, embedPos)

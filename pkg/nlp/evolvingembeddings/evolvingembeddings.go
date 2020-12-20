@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package evolvingembeddings provides s word embedding model that evolves by dynamically
+// Package evolvingembeddings provides a word embedding model that evolves by dynamically
 // aggregating contextual embeddings over time during inference.
 // See "Pooled Contextualized Embeddings" by Akbik et al., 2019
 // https://www.aclweb.org/anthology/papers/N/N19/N19-1078/
@@ -26,6 +26,7 @@ var (
 
 var allModels []*Model
 
+// Model implements an Evolving Pooled Contextualized Embeddings model.
 type Model struct {
 	Config
 	storage       kvdb.KeyValueDB
@@ -33,14 +34,19 @@ type Model struct {
 	ZeroEmbedding *nn.Param `type:"weights"`
 }
 
+// PoolingType is the enumeration-like type used to distinguish different types
+// of pooling operations for an Evolving Pooled Contextualized Embeddings Model.
 type PoolingType int
 
 const (
+	// Max identifies the maximum pooling operation function.
 	Max PoolingType = iota
+	// Min identifies the minimum pooling operation function.
 	Min
 	// TODO: Avg
 )
 
+// Config provides configuration settings for an Evolving Pooled Contextualized Embeddings Model.
 type Config struct {
 	// Size of the embedding vectors.
 	Size int
@@ -52,7 +58,7 @@ type Config struct {
 	ForceNewDB bool
 }
 
-// New returns a new embedding model.
+// New returns a new embedding Model.
 func New(config Config) *Model {
 	m := &Model{
 		Config: config,
@@ -73,6 +79,7 @@ func (m *Model) Close() {
 	_ = m.storage.Close() // explicitly ignore errors here
 }
 
+// DropAll drops all the data stored in the DB.
 func (m *Model) DropAll() error {
 	return m.storage.DropAll()
 }
@@ -84,6 +91,8 @@ func Close() {
 	}
 }
 
+// Count counts how many embeddings are stored in the DB.
+// It invokes log.Fatal in case of reading errors.
 func (m *Model) Count() int {
 	keys, err := m.storage.Keys()
 	if err != nil {
@@ -208,6 +217,8 @@ func (p *Processor) getEmbedding(words string) ag.Node {
 	}
 }
 
+// Forward is not implemented for Evolving Pooled Contextualized Embeddings model Processor
+// (it always panics). You should use Encode instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("embeddings: p.Forward() not implemented. Use p.Encode() instead.")
 }

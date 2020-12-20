@@ -20,6 +20,7 @@ var (
 	_ nn.Processor = &LayerProcessor{}
 )
 
+// Layer implements a BART transformer encoder layer.
 type Layer struct {
 	Config                 bartconfig.Config
 	SelfAttention          *multiheadattention.Model
@@ -45,6 +46,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
+// LayerProcessor implements the nn.Processor interface for a BART encoder Layer.
 type LayerProcessor struct {
 	nn.BaseProcessor
 	bartconfig.Config
@@ -69,6 +71,7 @@ func (m *Layer) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Forward performs the forward step for each input and returns the result.
 func (p *LayerProcessor) Forward(xs ...ag.Node) []ag.Node {
 	selfAtt := p.selfAttentionBlock(xs)
 	out := p.fullyConnectedBlock(selfAtt)

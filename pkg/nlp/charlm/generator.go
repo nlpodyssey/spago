@@ -17,6 +17,7 @@ type Generator struct {
 	model *Model
 }
 
+// GeneratorConfig provides configuration settings for a Character-level Language Model Generator.
 type GeneratorConfig struct {
 	MaxCharacters int
 	StopAtEOS     bool

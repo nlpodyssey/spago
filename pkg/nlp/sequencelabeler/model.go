@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package sequencelabeler provides an implementation of a sequence labeling
-//architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
+// architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
 package sequencelabeler
 
 import (
@@ -33,6 +33,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
+// Model implements a sequence labeling model.
 type Model struct {
 	Config          Config
 	EmbeddingsLayer *stackedembeddings.Model
@@ -104,6 +105,7 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
+// LoadVocabulary loads a vocabulary from file.
 func (m *Model) LoadVocabulary(path string) {
 	var terms []string
 	file, err := os.Open(filepath.Join(path, m.Config.ContextualStringEmbeddings.VocabularyFilename))
@@ -130,6 +132,7 @@ func (m *Model) LoadVocabulary(path string) {
 	l2rCharLM.Vocabulary, r2lCharLM.Vocabulary = vocab, vocab
 }
 
+// LoadParams load Model parameters from file.
 func (m *Model) LoadParams(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
@@ -186,6 +189,8 @@ func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
 	return p.TaggerLayer.NegativeLogLoss(targets)
 }
 
+// Forward is not implemented for sequence labeler model Processor (it always panics).
+// You should use Encode instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("sequencetagger: method not implemented. Use Predict() instead.")
+	panic("sequencelabeler: Forward() not implemented. Use Predict() instead.")
 }

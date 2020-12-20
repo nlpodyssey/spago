@@ -10,8 +10,11 @@ import (
 )
 
 const (
+	// DefaultConfigurationFile is the default BART JSON configuration filename.
 	DefaultConfigurationFile = "config.json"
-	DefaultModelFile         = "spago_model.bin"
+	// DefaultModelFile is the default BART spaGO model filename.
+	DefaultModelFile = "spago_model.bin"
+	// DefaultEmbeddingsStorage is the default directory name for BART model's embedding storage.
 	DefaultEmbeddingsStorage = "embeddings_storage"
 )
 

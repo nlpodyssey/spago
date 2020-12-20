@@ -30,6 +30,8 @@ import (
 
 const defaultHuggingFaceModelFile = "pytorch_model.bin"
 
+// ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BART
+// transformer model to a corresponding spaGO model.
 func ConvertHuggingFacePreTrained(modelPath string) error {
 	configFilename, err := exists(path.Join(modelPath, bartconfig.DefaultConfigurationFile))
 	if err != nil {

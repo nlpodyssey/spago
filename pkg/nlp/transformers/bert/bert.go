@@ -57,6 +57,7 @@ func LoadConfig(file string) (Config, error) {
 	return config, nil
 }
 
+// Model implements a BERT transformer model.
 type Model struct {
 	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
@@ -132,6 +133,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	}
 }
 
+// LoadModel loads a BERT transformer Model from file.
 func LoadModel(modelPath string) (*Model, error) {
 	configFilename := path.Join(modelPath, DefaultConfigurationFile)
 	vocabFilename := path.Join(modelPath, DefaultVocabularyFile)
@@ -228,6 +230,7 @@ func (p *Processor) SequenceClassification(transformed []ag.Node) ag.Node {
 	return p.Classifier.Predict(p.Pooler.Forward(transformed[0]))[0]
 }
 
+// Forward is not implemented for BERT transformer model Processor (it always panics).
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bert: method not implemented")
 }

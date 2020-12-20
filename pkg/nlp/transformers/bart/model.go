@@ -17,7 +17,7 @@ import (
 	"strconv"
 )
 
-// Model is a BART transformer model.
+// Model implements a BART transformer model.
 type Model struct {
 	Config     bartconfig.Config
 	Embeddings *embeddings.Model
@@ -40,6 +40,7 @@ func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	}
 }
 
+// Close closes the BART model's embeddings DB.
 func (m *Model) Close() {
 	m.Embeddings.Close()
 }
@@ -89,6 +90,8 @@ func shiftR(a []int, i int) []int {
 	return append(b, x...)
 }
 
+// Forward is not implemented for BART model Processor (it always panics).
+// You should use Process instead.
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bart: Forward() not implemented; use Process() instead.")
 }
