@@ -164,6 +164,7 @@ type Processor struct {
 	TaggerLayer     *birnncrf.Processor
 }
 
+// TokenLabel associates a tokenizers.StringOffsetsPair to a Label.
 type TokenLabel struct {
 	tokenizers.StringOffsetsPair
 	Label string

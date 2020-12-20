@@ -15,8 +15,11 @@ import (
 	"log"
 )
 
+// WordsEncoderProcessor extends an nn.Processor providing the Encode method to
+// transform a string sequence into an encoded representation.
 type WordsEncoderProcessor interface {
 	nn.Processor
+	// Encode transforms a string sequence into an encoded representation.
 	Encode([]string) []ag.Node
 }
 
@@ -63,6 +66,7 @@ type Processor struct {
 	projectionLayer *linear.Processor
 }
 
+// Encode transforms a string sequence into an encoded representation.
 func (p *Processor) Encode(words []string) []ag.Node {
 	encodingsPerWord := make([][]ag.Node, len(words))
 	for _, encoder := range p.encoders {

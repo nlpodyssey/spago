@@ -206,6 +206,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Encode transforms a string sequence into an encoded representation.
 func (p *Processor) Encode(tokens []string) []ag.Node {
 	tokensEncoding := p.Embeddings.Encode(tokens)
 	return p.Encoder.Forward(tokensEncoding...)
