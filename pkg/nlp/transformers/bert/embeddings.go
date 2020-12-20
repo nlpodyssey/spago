@@ -78,6 +78,7 @@ func newProjector(in, out int) *linear.Model {
 	return linear.New(in, out)
 }
 
+// EmbeddingsProcessor implements a nn.Processor for BERT Embeddings.
 type EmbeddingsProcessor struct {
 	nn.BaseProcessor
 	model               *Embeddings

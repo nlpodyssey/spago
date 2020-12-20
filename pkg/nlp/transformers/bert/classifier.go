@@ -15,11 +15,13 @@ var (
 	_ nn.Processor = &ClassifierProcessor{}
 )
 
+// ClassifierConfig provides configuration settings for a BERT Classifier.
 type ClassifierConfig struct {
 	InputSize int
 	Labels    []string
 }
 
+// Classifier implements a BERT Classifier.
 type Classifier struct {
 	Config ClassifierConfig
 	*linear.Model
@@ -33,6 +35,7 @@ func NewTokenClassifier(config ClassifierConfig) *Classifier {
 	}
 }
 
+// ClassifierProcessor implements a nn.Processor for a BERT Classifier.
 type ClassifierProcessor struct {
 	*linear.Processor
 }

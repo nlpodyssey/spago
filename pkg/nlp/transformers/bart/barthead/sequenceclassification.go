@@ -20,6 +20,8 @@ var (
 	_ nn.Processor = &SequenceClassificationProcessor{}
 )
 
+// SequenceClassification is a model for sentence-level classification tasks
+// which embeds a BART pre-trained model.
 type SequenceClassification struct {
 	BART           *bart.Model
 	Classification *Classification
@@ -68,6 +70,7 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	return model, nil
 }
 
+// SequenceClassificationProcessor implements a nn.Processor for a BART SequenceClassification.
 type SequenceClassificationProcessor struct {
 	nn.BaseProcessor
 	BART           *bart.Processor

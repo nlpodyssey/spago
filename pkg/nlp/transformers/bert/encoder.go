@@ -47,6 +47,7 @@ func (m *Encoder) LayerAt(i int) *EncoderLayer {
 	return m.Layers[i].(*EncoderLayer)
 }
 
+// EncoderProcessor implements a nn.Processor for a BERT Encoder.
 type EncoderProcessor struct {
 	*stack.Processor
 }

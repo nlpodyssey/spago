@@ -34,7 +34,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Config provides configuration settings for a BERT transformer Model.
+// Config provides configuration settings for a BERT Model.
 type Config struct {
 	HiddenAct             string            `json:"hidden_act"`
 	HiddenSize            int               `json:"hidden_size"`
@@ -48,7 +48,7 @@ type Config struct {
 	ReadOnly              bool              `json:"read_only"`
 }
 
-// LoadConfig loads a BERT transformer model Config from file.
+// LoadConfig loads a BERT model Config from file.
 func LoadConfig(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)
@@ -63,7 +63,7 @@ func LoadConfig(file string) (Config, error) {
 	return config, nil
 }
 
-// Model implements a BERT transformer model.
+// Model implements a BERT model.
 type Model struct {
 	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
@@ -139,7 +139,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	}
 }
 
-// LoadModel loads a BERT transformer Model from file.
+// LoadModel loads a BERT Model from file.
 func LoadModel(modelPath string) (*Model, error) {
 	configFilename := path.Join(modelPath, DefaultConfigurationFile)
 	vocabFilename := path.Join(modelPath, DefaultVocabularyFile)
@@ -173,7 +173,7 @@ func LoadModel(modelPath string) (*Model, error) {
 	return model, nil
 }
 
-// Processor implements the nn.Processor interface for a BERT transformer Model.
+// Processor implements the nn.Processor interface for a BERT Model.
 type Processor struct {
 	nn.BaseProcessor
 	Embeddings      *EmbeddingsProcessor
@@ -212,10 +212,14 @@ func (p *Processor) Encode(tokens []string) []ag.Node {
 	return p.Encoder.Forward(tokensEncoding...)
 }
 
+// PredictMasked performs a masked prediction task. It returns the predictions
+// for indices associated to the masked nodes.
 func (p *Processor) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
 	return p.Predictor.PredictMasked(transformed, masked)
 }
 
+// Discriminate returns 0 or 1 for each encoded element, where 1 means that
+// the word is out of context.
 func (p *Processor) Discriminate(encoded []ag.Node) []int {
 	return p.Discriminator.Discriminate(encoded)
 }
@@ -225,19 +229,24 @@ func (p *Processor) Pool(transformed []ag.Node) ag.Node {
 	return p.Pooler.Forward(transformed[0])[0]
 }
 
+// PredictSeqRelationship predicts if the second sentence in the pair is the
+// subsequent sentence in the original document.
 func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
 	return p.SeqRelationship.Forward(pooled)[0]
 }
 
+// TokenClassification performs a classification for each element in the sequence.
 func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
 	return p.Classifier.Predict(transformed)
 }
 
+// SequenceClassification performs a single sentence-level classification,
+// using the pooled CLS token.
 func (p *Processor) SequenceClassification(transformed []ag.Node) ag.Node {
 	return p.Classifier.Predict(p.Pooler.Forward(transformed[0]))[0]
 }
 
-// Forward is not implemented for BERT transformer model Processor (it always panics).
+// Forward is not implemented for BERT model Processor (it always panics).
 func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
 	panic("bert: method not implemented")
 }

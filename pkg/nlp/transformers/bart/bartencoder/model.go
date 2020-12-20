@@ -19,7 +19,7 @@ var (
 	_ nn.Processor = &Processor{}
 )
 
-// Model implements a BART transformer encoder.
+// Model implements a BART encoder.
 type Model struct {
 	Config                      bartconfig.Config
 	Layers                      *stack.Model
