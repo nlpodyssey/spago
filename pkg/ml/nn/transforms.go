@@ -121,6 +121,7 @@ func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scal
 	return
 }
 
+// MappingFunc is a mapping function used by LinearAttention.
 type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
@@ -175,6 +176,8 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 	return ys
 }
 
+// SplitVec splits the x Node into multiple chunks.
+// It panics if the x Node is not a vector.
 // TODO: optimize, this is extremely inefficient!
 func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
 	size := int(math.Ceil(float64(x.Value().Size()) / float64(chunks)))

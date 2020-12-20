@@ -23,6 +23,7 @@ type Model struct {
 	B *nn.Param `type:"biases"`
 }
 
+// Option allows to configure a new Model with your specific needs.
 type Option func(*Model)
 
 // BiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).

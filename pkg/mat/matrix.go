@@ -148,6 +148,7 @@ func ConcatH(ms ...Matrix) *Dense {
 	return out
 }
 
+// Stack returns a new Matrix created concatenating the input vectors horizontally.
 func Stack(vs ...*Dense) *Dense {
 	rows := len(vs)
 	cols := vs[0].size

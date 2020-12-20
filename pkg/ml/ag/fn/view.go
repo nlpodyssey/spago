@@ -10,6 +10,7 @@ import (
 
 var _ Function = &View{}
 
+// View is a function to extract a portion of a matrix.
 type View struct {
 	x  Operand
 	sx int

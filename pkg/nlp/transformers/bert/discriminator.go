@@ -46,6 +46,7 @@ type DiscriminatorProcessor struct {
 	*stack.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Discriminator) NewProc(ctx nn.Context) nn.Processor {
 	return &DiscriminatorProcessor{
 		Processor: m.Model.NewProc(ctx).(*stack.Processor),

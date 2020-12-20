@@ -32,8 +32,10 @@ type BaseTokenizer struct {
 	specialWords map[string]bool
 }
 
+// Option allows to configure a new BaseTokenizer with your specific needs.
 type Option func(*BaseTokenizer)
 
+// RegisterSpecialWords is an option to register a special word.
 func RegisterSpecialWords(specialWords ...string) Option {
 	return func(f *BaseTokenizer) {
 		for _, word := range specialWords {

@@ -88,6 +88,7 @@ func newEmptyEmbeddings(vocabularySize, embeddingSize int) []*nn.Param {
 	return embeddings
 }
 
+// Initialize initializes the Model m using the given random generator.
 func Initialize(m *Model, rndGen *rand.LockedRand) {
 	nn.ForEachParam(m, func(param *nn.Param) {
 		if param.Type() == nn.Weights {
@@ -132,6 +133,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return p
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p *Processor) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	encoding := p.GetEmbeddings(xs)
@@ -144,6 +146,8 @@ func (p *Processor) Predict(xs ...string) []ag.Node {
 	return ys
 }
 
+// UseProjection performs a linear projection with Processor.Projection model,
+// if available, otherwise returns xs unmodified.
 func (p *Processor) UseProjection(xs ...ag.Node) []ag.Node {
 	if p.Projection == nil {
 		return xs
@@ -151,6 +155,8 @@ func (p *Processor) UseProjection(xs ...ag.Node) []ag.Node {
 	return p.Projection.Forward(xs...)
 }
 
+// GetEmbeddings transforms the string sequence xs into a sequence of
+// embeddings nodes.
 func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
 	model := p.Model.(*Model)
 	ys := make([]ag.Node, len(xs))

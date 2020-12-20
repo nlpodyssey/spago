@@ -11,12 +11,14 @@ import (
 	"math"
 )
 
+// Mutator is implemented by values that provides mutation operations.
 type Mutator interface {
 	Mutate(p *Population)
 }
 
 var _ Mutator = &RandomMutation{}
 
+// RandomMutation implements a random mutation operation.
 type RandomMutation struct {
 	Bound float64
 }

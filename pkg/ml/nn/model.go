@@ -162,6 +162,7 @@ func ClearSupport(m Model) {
 	})
 }
 
+// DumpParamsVector dumps all params of a Model into a single Dense vector.
 // TODO: use ParamsIterator?
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
@@ -171,6 +172,7 @@ func DumpParamsVector(model Model) *mat.Dense {
 	return mat.NewVecDense(data)
 }
 
+// LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
 // TODO: use ParamsIterator?
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()

@@ -44,9 +44,12 @@ func New(config Config) *Model {
 	}
 }
 
+// ContextProb is a pair of Context encodings and Prob attention scores.
 type ContextProb struct {
-	context []ag.Node
-	prob    []mat.Matrix
+	// Context encodings.
+	Context []ag.Node
+	// Prob attention scores.
+	Prob []mat.Matrix
 }
 
 // Processor implements the nn.Processor interface for a Self-Attention Model.
@@ -86,8 +89,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	vs := p.value.Forward(xs...)
 	context, prob := nn.ScaledDotProductAttention(p.Graph, qs, ks, vs, p.scaleFactor, p.useCasualMask)
 	p.Attention = &ContextProb{
-		context: context,
-		prob:    prob,
+		Context: context,
+		Prob:    prob,
 	}
 	return context
 }
@@ -99,8 +102,8 @@ func (p *Processor) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.No
 	vsProj := p.value.Forward(vs...)
 	context, prob := nn.ScaledDotProductAttention(p.Graph, qsProj, ksProj, vsProj, p.scaleFactor, p.useCasualMask)
 	p.Attention = &ContextProb{
-		context: context,
-		prob:    prob,
+		Context: context,
+		Prob:    prob,
 	}
 	return context
 }

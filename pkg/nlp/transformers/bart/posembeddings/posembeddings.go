@@ -44,6 +44,7 @@ type LearnedPositionalEmbeddingsProcessor struct {
 	nn.BaseProcessor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *LearnedPositionalEmbeddings) NewProc(ctx nn.Context) nn.Processor {
 	return &LearnedPositionalEmbeddingsProcessor{
 		BaseProcessor: nn.BaseProcessor{

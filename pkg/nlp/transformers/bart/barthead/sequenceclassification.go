@@ -74,6 +74,7 @@ type SequenceClassificationProcessor struct {
 	Classification *ClassificationProcessor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
 	return &SequenceClassificationProcessor{
 		BaseProcessor: nn.BaseProcessor{
@@ -87,6 +88,7 @@ func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p SequenceClassificationProcessor) Predict(inputIds ...int) []ag.Node {
 	transformed := p.BART.Process(inputIds...)
 	sentenceRepresentation := transformed[len(transformed)-1]

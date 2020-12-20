@@ -19,14 +19,18 @@ type GradientDescent struct {
 	paramsToOptimize []*nn.Param
 }
 
+// Option allows to configure a new GradientDescent with your specific needs.
 type Option func(*GradientDescent)
 
+// ClipGradByValue is an option to clip the gradients during the training between
+// -value and +value.
 func ClipGradByValue(value float64) Option {
 	return func(f *GradientDescent) {
 		f.gradClipper = &clipper.ClipValue{Value: value}
 	}
 }
 
+// ClipGradByNorm is an option to clip the gradients during the training by norm.
 func ClipGradByNorm(max, normType float64) Option {
 	return func(f *GradientDescent) {
 		f.gradClipper = &clipper.ClipNorm{

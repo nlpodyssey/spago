@@ -88,6 +88,7 @@ type EmbeddingsProcessor struct {
 	unknownEmbedding    ag.Node
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Embeddings) NewProc(ctx nn.Context) nn.Processor {
 	var projection *linear.Processor = nil
 	if m.Projector != nil {
@@ -113,6 +114,7 @@ func (m *Embeddings) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Encode transforms a string sequence into an encoded representation.
 func (p *EmbeddingsProcessor) Encode(words []string) []ag.Node {
 	encoded := make([]ag.Node, len(words))
 	wordEmbeddings := p.getWordEmbeddings(words)

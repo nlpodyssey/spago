@@ -56,6 +56,7 @@ type LayerProcessor struct {
 	LayerNorm              *layernorm.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Layer) NewProc(ctx nn.Context) nn.Processor {
 	return &LayerProcessor{
 		BaseProcessor: nn.BaseProcessor{

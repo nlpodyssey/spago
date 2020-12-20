@@ -37,6 +37,7 @@ type ClassifierProcessor struct {
 	*linear.Processor
 }
 
+// NewProc returns a new processor to execute the forward step.
 func (m *Classifier) NewProc(ctx nn.Context) nn.Processor {
 	return &ClassifierProcessor{
 		Processor: m.Model.NewProc(ctx).(*linear.Processor),

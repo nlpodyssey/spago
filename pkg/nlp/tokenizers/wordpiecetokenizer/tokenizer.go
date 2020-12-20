@@ -22,11 +22,11 @@ const (
 	DefaultMaskToken = "[MASK]"
 	// DefaultSplitPrefix is the default split prefix value for the WordPiece tokenizer.
 	DefaultSplitPrefix = "##"
-	// DefaultMaxWordChars is the default makimum word length for the WordPiece tokenizer.
+	// DefaultMaxWordChars is the default maximum word length for the WordPiece tokenizer.
 	DefaultMaxWordChars = 100
 )
 
-var DefaultNeverSplit = []string{
+var defaultNeverSplit = []string{
 	DefaultClassToken,
 	DefaultSequenceSeparator,
 	DefaultUnknownToken,
@@ -56,7 +56,7 @@ func New(vocabulary *vocabulary.Vocabulary) *WordPieceTokenizer {
 		unkToken:     DefaultUnknownToken,
 		splitPrefix:  DefaultSplitPrefix,
 		maxWordChars: DefaultMaxWordChars,
-		neverSplit:   DefaultNeverSplit,
+		neverSplit:   defaultNeverSplit,
 	}
 }
 
@@ -146,6 +146,7 @@ func IsDefaultSpecial(word string) bool {
 	}
 }
 
+// TokensRange represents an index offsets pair of a token.
 type TokensRange struct {
 	Start int
 	End   int
@@ -168,6 +169,8 @@ func GroupPieces(tokens []tokenizers.StringOffsetsPair) []TokensRange {
 	return groups
 }
 
+// MakeOffsetPairsFromGroups creates a sequence tokenizers.StringOffsetsPair
+// elements from the given groups.
 func MakeOffsetPairsFromGroups(
 	text string,
 	tokens []tokenizers.StringOffsetsPair,

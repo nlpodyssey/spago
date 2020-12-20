@@ -45,16 +45,18 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
+func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	features := p.biRNN.Forward(xs...)
 	return p.scorer.Forward(features...)
 }
 
+// Predict performs the forward step for each input and returns the result.
 func (p *Processor) Predict(xs []ag.Node) []int {
 	p.lastScores = p.Forward(xs...)
 	return p.Model.(*Model).CRF.Predict(p.lastScores)
 }
 
+// NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: the CRF backward tests are still missing
 func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
 	decoder := p.Model.(*Model).CRF.NewProc(

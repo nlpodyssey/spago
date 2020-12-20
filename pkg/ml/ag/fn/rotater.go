@@ -8,12 +8,14 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &RotateR{}
 
+// RotateR is a function to perform a right circular shift of a vector.
 type RotateR struct {
 	x Operand
 	i int
 }
 
-// NewRotateR returns a new RotateR Function.
+// NewRotateR returns a new RotateR Function. `i` is the number of places by
+// which the elements are shifted.
 func NewRotateR(x Operand, i int) *RotateR {
 	return &RotateR{x: x, i: i}
 }

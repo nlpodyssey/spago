@@ -33,6 +33,7 @@ type Model struct {
 	UseRefinedGates bool
 }
 
+// Option allows to configure a new Model with your specific needs.
 type Option func(*Model)
 
 // SetRefinedGates sets whether to use refined gates.

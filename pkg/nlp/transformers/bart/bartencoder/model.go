@@ -83,7 +83,7 @@ func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
+func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := p.add(xs, embedPos)
 	ys = p.EmbeddingLayerNorm.Forward(ys...)

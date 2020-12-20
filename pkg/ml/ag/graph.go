@@ -337,12 +337,16 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 // BackwardOption allows to adapt the Backward() to your specific needs.
 type BackwardOption func(*backwardHandler)
 
+// Truncate is an option that sets the number of back steps for the
+// Truncated Back-Propagation.
 func Truncate(backSteps int) BackwardOption {
 	return func(f *backwardHandler) {
 		f.stopAtTimeStep = f.node.getTimeStep() - int64(backSteps)
 	}
 }
 
+// OutputGrad is an option that sets the output gradients which are the starting
+// point for the back-propagation (Backward).
 func OutputGrad(grad mat.Matrix) BackwardOption {
 	return func(f *backwardHandler) {
 		f.outputGrad = grad
