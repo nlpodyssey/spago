@@ -157,6 +157,8 @@ func (p *Processor) LastState() *State {
 	return p.States[n-1]
 }
 
+// PolicyGradientLogProbActions returns the log probabilities for each action
+// estimated by the policy gradient.
 func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
 	logPropActions := make([]ag.Node, len(p.States)-1)
 	for i := range logPropActions {

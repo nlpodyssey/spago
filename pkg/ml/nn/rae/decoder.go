@@ -36,6 +36,7 @@ type DecoderProcessor struct {
 	recursions     int
 }
 
+// SetSequenceLength sets the length of the expected sequence.
 func (p *DecoderProcessor) SetSequenceLength(length int) {
 	maxRecursions := 0
 	for i := 0; i < length-1; i++ {

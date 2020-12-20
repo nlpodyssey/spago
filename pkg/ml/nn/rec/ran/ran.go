@@ -149,6 +149,7 @@ func (p *Processor) prev() (yPrev, cPrev ag.Node) {
 	return
 }
 
+// Importance returns the "importance" score for each element of the processed sequence.
 func (p *Processor) Importance() [][]float64 {
 	importance := make([][]float64, len(p.States))
 	for i := range importance {

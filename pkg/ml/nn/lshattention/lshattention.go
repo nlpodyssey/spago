@@ -49,9 +49,12 @@ func New(config Config) *Model {
 	}
 }
 
+// ContextProb is a pair of Context encodings and Prob attention scores.
 type ContextProb struct {
+	// Context encodings.
 	Context []ag.Node
-	Prob    []mat.Matrix
+	// Prob attention scores.
+	Prob []mat.Matrix
 }
 
 // Processor implements the nn.Processor interface for an LSH-Attention Model.

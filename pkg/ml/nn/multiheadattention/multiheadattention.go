@@ -94,6 +94,9 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	return p.outputMerge.Forward(concatHeads...)
 }
 
+// ForwardQKV performs the forward step for each input and returns the result.
+// This is a variant of the standard Forward, where you can specify independent
+// sets of queries, keys and values.
 func (p *Processor) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
 	h := p.Model.(*Model).h
 	headsAttention := make([][]ag.Node, h)
