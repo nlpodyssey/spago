@@ -20,6 +20,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 )
 
+// QaHandler is the HTTP server handler function for BERT question-answering requests.
 func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")

@@ -519,6 +519,7 @@ func TestGemv(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func dgemvcomp(t *testing.T, test DgemvCase, trans bool, cas DgemvSubcase, i int) {
 	const (
 		xGdVal, yGdVal, aGdVal = 0.5, 1.5, 10

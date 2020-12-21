@@ -17,11 +17,13 @@ var (
 	_ nn.Processor = &PoolerProcessor{}
 )
 
+// PoolerConfig provides configuration settings for a BERT Pooler.
 type PoolerConfig struct {
 	InputSize  int
 	OutputSize int
 }
 
+// Pooler is a BERT Pooler model.
 type Pooler struct {
 	*stack.Model
 }

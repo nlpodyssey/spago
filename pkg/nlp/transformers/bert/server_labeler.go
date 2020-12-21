@@ -18,11 +18,13 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
 )
 
+// LabelerOptionsType is a JSON-serializable set of options for BERT "tag" (labeler) requests.
 type LabelerOptionsType struct {
 	MergeEntities     bool `json:"mergeEntities"`     // default false
 	FilterNotEntities bool `json:"filterNotEntities"` // default false
 }
 
+// TokenClassifierBody provides JSON-serializable parameters for BERT "tag" (labeler) requests.
 type TokenClassifierBody struct {
 	Options LabelerOptionsType `json:"options"`
 	Text    string             `json:"text"`

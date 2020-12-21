@@ -13,6 +13,7 @@ import (
 	"testing"
 )
 
+//gocyclo:ignore
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
@@ -115,6 +116,7 @@ func TestModel_Forward(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
@@ -318,6 +320,7 @@ func newTestModel() *Model {
 	return model
 }
 
+//gocyclo:ignore
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()

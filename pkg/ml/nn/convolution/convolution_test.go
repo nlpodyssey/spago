@@ -12,6 +12,7 @@ import (
 	"testing"
 )
 
+//gocyclo:ignore
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()

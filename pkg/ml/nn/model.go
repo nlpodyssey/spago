@@ -5,12 +5,9 @@
 package nn
 
 import (
-	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
-	"reflect"
-	"strings"
 )
 
 // Model contains the serializable parameters.
@@ -22,98 +19,12 @@ type Model interface {
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead
 func ForEachParam(m Model, callback func(param *Param)) {
-	forEachParam(m, callback, true)
+	newParamsTraversal(callback, true).walk(m)
 }
 
 // ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
 func ForEachParamStrict(m Model, callback func(param *Param)) {
-	forEachParam(m, callback, false)
-}
-
-// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func forEachParam(m interface{}, callback func(param *Param), exploreSubModels bool) {
-	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
-		switch item := field.(type) {
-		case *Param:
-			if item.name == "" {
-				item.name = strings.ToLower(name)
-			}
-			item.pType = ToType(tag.Get("type"))
-			callback(item)
-		case Model:
-			if exploreSubModels {
-				forEachParam(item, callback, true)
-			}
-		case []*Param:
-			for _, p := range item {
-				if p.name == "" {
-					p.name = strings.ToLower(name)
-				}
-				p.pType = ToType(tag.Get("type"))
-				callback(p)
-			}
-		case []Model:
-			if exploreSubModels {
-				for _, m := range item {
-					forEachParam(m, callback, true)
-				}
-			}
-		default:
-			v := reflect.ValueOf(item)
-			switch v.Kind() {
-			case reflect.Slice:
-				length := v.Len()
-				for i := 0; i < length; i++ {
-					if m, ok := v.Index(i).Interface().(Model); ok {
-						if exploreSubModels {
-							forEachParam(m, callback, true)
-						} else {
-							return // skip
-						}
-					} else {
-						switch v.Index(i).Kind() {
-						case reflect.Struct, reflect.Ptr:
-							if tag.Get("type") == "params" {
-								forEachParam(item, callback, exploreSubModels)
-							} else {
-								return // skip
-							}
-						default:
-							return // skip
-						}
-					}
-				}
-			case reflect.Map:
-				mapRange := v.MapRange()
-				for mapRange.Next() {
-					key := ""
-					switch k := mapRange.Key().Interface().(type) {
-					case string:
-						key = k
-					case int:
-						key = fmt.Sprintf("%d", k)
-					default:
-						return // skip map if the key is not a string or an int
-					}
-					// TODO: map of *Models
-					p, ok := mapRange.Value().Interface().(*Param)
-					if !ok {
-						return // skip the map if the value is not a *Param
-					}
-					if p.name == "" {
-						p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
-					}
-					p.pType = ToType(tag.Get("type"))
-					callback(p)
-				}
-			case reflect.Struct, reflect.Ptr:
-				if tag.Get("type") == "params" {
-					forEachParam(item, callback, exploreSubModels)
-				}
-			}
-		}
-	})
+	newParamsTraversal(callback, false).walk(m)
 }
 
 // ParamsIterator is implemented by any value that has the ParamsList method,

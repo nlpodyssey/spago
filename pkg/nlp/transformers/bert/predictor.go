@@ -18,6 +18,7 @@ var (
 	_ nn.Processor = &PredictorProcessor{}
 )
 
+// PredictorConfig provides configuration settings for a BERT Predictor.
 type PredictorConfig struct {
 	InputSize        int
 	HiddenSize       int
@@ -26,6 +27,7 @@ type PredictorConfig struct {
 	OutputActivation ag.OpName
 }
 
+// Predictor is a BERT Predictor model.
 type Predictor struct {
 	*stack.Model
 }
@@ -55,6 +57,8 @@ func (m *Predictor) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// PredictMasked performs a masked prediction task. It returns the predictions
+// for indices associated to the masked nodes.
 func (p *PredictorProcessor) PredictMasked(encoded []ag.Node, masked []int) map[int]ag.Node {
 	predictions := make(map[int]ag.Node)
 	for _, id := range masked {

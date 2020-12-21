@@ -18,6 +18,7 @@ var (
 	_ nn.Processor = &EncoderLayerProcessor{}
 )
 
+// EncoderLayer is a BERT Encoder Layer model.
 type EncoderLayer struct {
 	MultiHeadAttention *multiheadattention.Model
 	NormAttention      *layernorm.Model
@@ -51,6 +52,7 @@ func (m *EncoderLayer) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Forward performs the forward step for each input and returns the result.
 func (p *EncoderLayerProcessor) Forward(xs ...ag.Node) []ag.Node {
 	subLayer1 := rc.PostNorm(p.Graph, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
 	subLayer2 := rc.PostNorm(p.Graph, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)

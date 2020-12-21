@@ -19,6 +19,7 @@ var (
 	_ nn.Processor = &EmbeddingsProcessor{}
 )
 
+// EmbeddingsConfig provides configuration settings for BERT Embeddings.
 type EmbeddingsConfig struct {
 	Size                int
 	OutputSize          int
@@ -29,6 +30,7 @@ type EmbeddingsConfig struct {
 	DeletePreEmbeddings bool
 }
 
+// Embeddings is a BERT Embeddings model.
 type Embeddings struct {
 	EmbeddingsConfig
 	Word      *embeddings.Model

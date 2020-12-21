@@ -141,6 +141,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func TestScaledDotProductAttention2(t *testing.T) {
 	g := ag.NewGraph()
 	qs := []ag.Node{
