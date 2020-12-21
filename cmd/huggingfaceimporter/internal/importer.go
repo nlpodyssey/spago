@@ -93,8 +93,11 @@ func (a *ImporterArgs) RunImporter() error {
 		return err
 	}
 
-	if err := a.ConfigureInteractive(repo); err != nil {
-		return err
+	// Run interactive model selection if a model is not already set.
+	if a.Model == "" {
+		if err := a.ConfigureInteractive(repo); err != nil {
+			return err
+		}
 	}
 
 	writeMsg("Downloading dataset...")
