@@ -320,6 +320,7 @@ func newTestModel() *Model {
 	return model
 }
 
+//gocyclo:ignore
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
