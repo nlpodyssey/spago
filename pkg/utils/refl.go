@@ -17,8 +17,14 @@ func ReverseInPlace(s interface{}) {
 
 // ForEachField calls the callback for each field of the struct i.
 func ForEachField(i interface{}, callback func(field interface{}, name string, tag reflect.StructTag)) {
-	v := reflect.ValueOf(i).Elem()
-	t := reflect.TypeOf(i).Elem()
+	v := reflect.ValueOf(i)
+	t := reflect.TypeOf(i)
+
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		t = t.Elem()
+	}
+
 	length := v.NumField()
 	for i := 0; i < length; i++ {
 		vField := v.Field(i)
