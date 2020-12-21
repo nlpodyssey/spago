@@ -115,6 +115,7 @@ func TestModel_Forward(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
