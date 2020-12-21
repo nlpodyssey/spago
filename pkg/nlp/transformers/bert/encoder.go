@@ -37,6 +37,7 @@ type EncoderConfig struct {
 	NumOfLayers            int
 }
 
+// Encoder is a BERT Encoder model.
 type Encoder struct {
 	EncoderConfig
 	*stack.Model

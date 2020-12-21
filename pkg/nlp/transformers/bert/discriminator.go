@@ -19,6 +19,7 @@ var (
 	_ nn.Processor = &DiscriminatorProcessor{}
 )
 
+// DiscriminatorConfig provides configuration settings for a BERT Discriminator.
 type DiscriminatorConfig struct {
 	InputSize        int
 	HiddenSize       int
@@ -26,6 +27,7 @@ type DiscriminatorConfig struct {
 	OutputActivation ag.OpName
 }
 
+// Discriminator is a BERT Discriminator model.
 type Discriminator struct {
 	*stack.Model
 }
@@ -54,6 +56,8 @@ func (m *Discriminator) NewProc(ctx nn.Context) nn.Processor {
 	}
 }
 
+// Discriminate returns 0 or 1 for each encoded element, where 1 means that
+// the word is out of context.
 func (p *DiscriminatorProcessor) Discriminate(encoded []ag.Node) []int {
 	ys := make([]int, len(encoded))
 	for i, x := range p.Processor.Forward(encoded...) {

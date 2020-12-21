@@ -46,11 +46,13 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ClassConfidencePair associates a Confidence to a symbolic Class.
 type ClassConfidencePair struct {
 	Class      string  `json:"class"`
 	Confidence float64 `json:"confidence"`
 }
 
+// ClassifyResponse is a JSON-serializable server response for BERT "classify" requests.
 type ClassifyResponse struct {
 	Class        string                `json:"class"`
 	Confidence   float64               `json:"confidence"`

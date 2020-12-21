@@ -15,6 +15,7 @@ var (
 	_ nn.Processor = &SpanClassifierProcessor{}
 )
 
+// SpanClassifierConfig provides configuration settings for a BERT SpanClassifier.
 type SpanClassifierConfig struct {
 	InputSize int
 }
