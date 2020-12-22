@@ -88,6 +88,6 @@ func (r *variable) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *variable) getTimeStep() int64 {
+func (r *variable) TimeStep() int64 {
 	return r.timeStep
 }

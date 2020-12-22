@@ -73,6 +73,6 @@ func (r *wrapper) ZeroGrad() {
 	r.GradValue.ZeroGrad()
 }
 
-func (r *wrapper) getTimeStep() int64 {
+func (r *wrapper) TimeStep() int64 {
 	return r.timeStep
 }

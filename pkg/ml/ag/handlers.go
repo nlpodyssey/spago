@@ -75,7 +75,7 @@ func (h *backwardHandler) runSerial() {
 	truncated := stopAtTimeStep > -1
 	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
-		if truncated && nodes[i].getTimeStep() <= stopAtTimeStep {
+		if truncated && nodes[i].TimeStep() <= stopAtTimeStep {
 			break
 		}
 		if node, ok := nodes[i].(*operator); ok {
@@ -93,7 +93,7 @@ func (h *backwardHandler) runConcurrent() {
 	var wg sync.WaitGroup
 	for i := lastGroupIndex; i >= 0; i-- {
 		for _, node := range groups[i] {
-			if truncated && node.getTimeStep() <= stopAtTimeStep {
+			if truncated && node.TimeStep() <= stopAtTimeStep {
 				break
 			}
 			if op, ok := node.(*operator); ok {

@@ -341,7 +341,7 @@ type BackwardOption func(*backwardHandler)
 // Truncated Back-Propagation.
 func Truncate(backSteps int) BackwardOption {
 	return func(f *backwardHandler) {
-		f.stopAtTimeStep = f.node.getTimeStep() - int64(backSteps)
+		f.stopAtTimeStep = f.node.TimeStep() - int64(backSteps)
 	}
 }
 

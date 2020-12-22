@@ -90,7 +90,7 @@ func (r *operator) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *operator) getTimeStep() int64 {
+func (r *operator) TimeStep() int64 {
 	return r.timeStep
 }
 

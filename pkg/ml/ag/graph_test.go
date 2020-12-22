@@ -28,7 +28,7 @@ func TestGraph_TimeStep(t *testing.T) {
 		t.Errorf("The graph time-step doesn't match the expected value.")
 	}
 	a := g.NewVariable(mat.NewVecDense([]float64{1.0}), false)
-	if !(a.getTimeStep() == 0) {
+	if !(a.TimeStep() == 0) {
 		t.Errorf("The node time-step doesn't match the expected value.")
 	}
 	g.IncTimeStep()
@@ -36,7 +36,7 @@ func TestGraph_TimeStep(t *testing.T) {
 		t.Errorf("The graph time-step doesn't match the expected value.")
 	}
 	b := g.NewVariable(mat.NewVecDense([]float64{2.0}), false)
-	if !(b.getTimeStep() == 1) {
+	if !(b.TimeStep() == 1) {
 		t.Errorf("The node time-step doesn't match the expected value.")
 	}
 	g.IncTimeStep()
@@ -44,7 +44,7 @@ func TestGraph_TimeStep(t *testing.T) {
 		t.Errorf("The graph time-step doesn't match the expected value.")
 	}
 	c := g.NewVariable(mat.NewVecDense([]float64{3.0}), false)
-	if !(c.getTimeStep() == 2) {
+	if !(c.TimeStep() == 2) {
 		t.Errorf("The node time-step doesn't match the expected value.")
 	}
 	g.IncTimeStep()
@@ -52,7 +52,7 @@ func TestGraph_TimeStep(t *testing.T) {
 		t.Errorf("The graph time-step doesn't match the expected value.")
 	}
 	d := g.NewVariable(mat.NewVecDense([]float64{4.0}), false)
-	if !(d.getTimeStep() == 3) {
+	if !(d.TimeStep() == 3) {
 		t.Errorf("The node time-step doesn't match the expected value.")
 	}
 }
