@@ -33,14 +33,14 @@ type Method interface {
 	// Label returns the enumeration-like value which identifies this gradient descent method.
 	Label() int
 	// Delta returns the difference between the current params and where the method wants it to be.
-	Delta(param *nn.Param) mat.Matrix
+	Delta(param nn.Param) mat.Matrix
 	// NewSupport returns a new support structure with the given dimensions.
 	NewSupport(r, c int) *nn.Payload
 }
 
 // GetOrSetPayload returns the payload from param, if it already exists, otherwise
 // a new payload is created, assigned to the param, and returned.
-func GetOrSetPayload(param *nn.Param, m Method) *nn.Payload {
+func GetOrSetPayload(param nn.Param, m Method) *nn.Payload {
 	payload := param.Payload()
 	switch {
 	case payload == nil:

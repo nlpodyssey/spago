@@ -16,7 +16,7 @@ type GradientDescent struct {
 	method           Method // optimization method (SGD, AdaGrad, Adam, ...)
 	gradClipper      clipper.GradClipper
 	paramsIterator   nn.ParamsIterator
-	paramsToOptimize []*nn.Param
+	paramsToOptimize []nn.Param
 }
 
 // Option allows to configure a new GradientDescent with your specific needs.
@@ -45,7 +45,7 @@ func NewOptimizer(method Method, paramsIterator nn.ParamsIterator, opts ...Optio
 	optimizer := &GradientDescent{
 		method:           method,
 		paramsIterator:   paramsIterator,
-		paramsToOptimize: make([]*nn.Param, 0),
+		paramsToOptimize: make([]nn.Param, 0),
 	}
 	for _, opt := range opts {
 		opt(optimizer)
@@ -83,7 +83,7 @@ func (o *GradientDescent) updateParams() {
 	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() {
 			wg.Add(1)
-			go func(param *nn.Param) {
+			go func(param nn.Param) {
 				defer wg.Done()
 				delta := o.method.Delta(param)
 				param.ApplyDelta(delta)

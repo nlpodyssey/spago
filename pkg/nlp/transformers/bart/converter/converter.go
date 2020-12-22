@@ -279,7 +279,7 @@ func mapClassificationHead(model *barthead.Classification) map[string]mat.Matrix
 	return paramsMap
 }
 
-func assignToParamsList(source []float64, dest []*nn.Param, rows, cols int) {
+func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}

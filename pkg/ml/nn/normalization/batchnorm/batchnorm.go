@@ -17,11 +17,11 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	W        *nn.Param `type:"weights"`
-	B        *nn.Param `type:"biases"`
-	Mean     *nn.Param `type:"undefined"`
-	StdDev   *nn.Param `type:"undefined"`
-	Momentum *nn.Param `type:"undefined"`
+	W        nn.Param `type:"weights"`
+	B        nn.Param `type:"biases"`
+	Mean     nn.Param `type:"undefined"`
+	StdDev   nn.Param `type:"undefined"`
+	Momentum nn.Param `type:"undefined"`
 }
 
 const defaultMomentum = 0.9

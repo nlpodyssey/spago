@@ -34,7 +34,7 @@ type Model struct {
 	Decoder    *linear.Model
 	Projection *linear.Model
 	RNN        nn.Model
-	Embeddings []*nn.Param `type:"weights"`
+	Embeddings []nn.Param `type:"weights"`
 	Vocabulary *vocabulary.Vocabulary
 }
 
@@ -80,8 +80,8 @@ func New(config Config) *Model {
 	}
 }
 
-func newEmptyEmbeddings(vocabularySize, embeddingSize int) []*nn.Param {
-	embeddings := make([]*nn.Param, vocabularySize)
+func newEmptyEmbeddings(vocabularySize, embeddingSize int) []nn.Param {
+	embeddings := make([]nn.Param, vocabularySize)
 	for i := range embeddings {
 		embeddings[i] = nn.NewParam(mat.NewEmptyVecDense(embeddingSize))
 	}
@@ -90,7 +90,7 @@ func newEmptyEmbeddings(vocabularySize, embeddingSize int) []*nn.Param {
 
 // Initialize initializes the Model m using the given random generator.
 func Initialize(m *Model, rndGen *rand.LockedRand) {
-	nn.ForEachParam(m, func(param *nn.Param) {
+	nn.ForEachParam(m, func(param nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1, rndGen)
 		} else if param.Type() == nn.Biases && param.Name() == "bfor" {

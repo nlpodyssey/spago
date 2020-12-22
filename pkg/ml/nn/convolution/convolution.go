@@ -32,8 +32,8 @@ type Config struct {
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model struct {
 	Config
-	K []*nn.Param `type:"weights"`
-	B []*nn.Param `type:"biases"`
+	K []nn.Param `type:"weights"`
+	B []nn.Param `type:"biases"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
@@ -42,8 +42,8 @@ func New(config Config) *Model {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
 	}
 	paramsSize := config.InputChannels * config.OutputChannels
-	kernels := make([]*nn.Param, paramsSize, paramsSize)
-	biases := make([]*nn.Param, paramsSize, paramsSize)
+	kernels := make([]nn.Param, paramsSize, paramsSize)
+	biases := make([]nn.Param, paramsSize, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
 		kernels[i] = nn.NewParam(mat.NewEmptyDense(config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))

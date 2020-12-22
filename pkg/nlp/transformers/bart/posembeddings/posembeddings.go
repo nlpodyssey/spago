@@ -27,13 +27,13 @@ type Config struct {
 // the training phase.
 type LearnedPositionalEmbeddings struct {
 	Config  Config
-	Vectors []*nn.Param
+	Vectors []nn.Param
 }
 
 // NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.
 // TODO: PaddingIDX
 func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings {
-	vectors := make([]*nn.Param, config.NumEmbeddings+config.Offset)
+	vectors := make([]nn.Param, config.NumEmbeddings+config.Offset)
 	for i := 0; i < len(vectors); i++ {
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}

@@ -17,7 +17,7 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	Gain *nn.Param `type:"weights"`
+	Gain nn.Param `type:"weights"`
 }
 
 // New returns a new model with parameters initialized to zeros.

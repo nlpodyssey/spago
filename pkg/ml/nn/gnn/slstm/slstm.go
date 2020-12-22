@@ -36,24 +36,24 @@ type Model struct {
 	NonLocalSentCellGate   *HyperLinear3 `type:"params"`
 	NonLocalInputGate      *HyperLinear3 `type:"params"`
 	NonLocalSentOutputGate *HyperLinear3 `type:"params"`
-	StartH                 *nn.Param     `type:"weights"`
-	EndH                   *nn.Param     `type:"weights"`
-	InitValue              *nn.Param     `type:"weights"`
+	StartH                 nn.Param      `type:"weights"`
+	EndH                   nn.Param      `type:"weights"`
+	InitValue              nn.Param      `type:"weights"`
 }
 
 // HyperLinear4 groups multiple params for an affine transformation.
 type HyperLinear4 struct {
-	W *nn.Param `type:"weights"`
-	U *nn.Param `type:"weights"`
-	V *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	W nn.Param `type:"weights"`
+	U nn.Param `type:"weights"`
+	V nn.Param `type:"weights"`
+	B nn.Param `type:"biases"`
 }
 
 // HyperLinear3 groups multiple params for an affine transformation.
 type HyperLinear3 struct {
-	W *nn.Param `type:"weights"`
-	U *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	W nn.Param `type:"weights"`
+	U nn.Param `type:"weights"`
+	B nn.Param `type:"biases"`
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.

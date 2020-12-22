@@ -17,7 +17,7 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	TransitionScores *nn.Param `type:"weights"`
+	TransitionScores nn.Param `type:"weights"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.

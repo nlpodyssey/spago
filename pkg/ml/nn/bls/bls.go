@@ -46,19 +46,19 @@ type Config struct {
 // Model contains the serializable parameters.
 type Model struct {
 	Config
-	Wz []*nn.Param `type:"weights"`
-	Bz []*nn.Param `type:"biases"`
-	Wh *nn.Param   `type:"weights"`
-	Bh *nn.Param   `type:"biases"`
-	W  *nn.Param   `type:"weights"`
-	B  *nn.Param   `type:"biases"`
+	Wz []nn.Param `type:"weights"`
+	Bz []nn.Param `type:"biases"`
+	Wh nn.Param   `type:"weights"`
+	Bh nn.Param   `type:"biases"`
+	W  nn.Param   `type:"weights"`
+	B  nn.Param   `type:"biases"`
 }
 
 // New returns a new model with parameters initialized to zeros.
 func New(c Config) *Model {
 	length := c.NumOfFeatures
-	wz := make([]*nn.Param, length)
-	bz := make([]*nn.Param, length)
+	wz := make([]nn.Param, length)
+	bz := make([]nn.Param, length)
 	for i := 0; i < length; i++ {
 		wz[i] = nn.NewParam(mat.NewEmptyDense(c.FeaturesSize, c.InputSize))
 		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize))

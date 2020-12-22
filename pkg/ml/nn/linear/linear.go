@@ -19,8 +19,8 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	W *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	W nn.Param `type:"weights"`
+	B nn.Param `type:"biases"`
 }
 
 // Option allows to configure a new Model with your specific needs.
@@ -29,7 +29,7 @@ type Option func(*Model)
 // BiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).
 func BiasGrad(enable bool) Option {
 	return func(m *Model) {
-		nn.RequiresGrad(enable)(m.B)
+		m.B.SetRequiresGrad(enable)
 	}
 }
 

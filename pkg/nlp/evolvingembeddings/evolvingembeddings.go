@@ -31,7 +31,7 @@ type Model struct {
 	Config
 	storage       kvdb.KeyValueDB
 	mu            sync.Mutex
-	ZeroEmbedding *nn.Param `type:"weights"`
+	ZeroEmbedding nn.Param `type:"weights"`
 }
 
 // PoolingType is the enumeration-like type used to distinguish different types
@@ -67,9 +67,8 @@ func New(config Config) *Model {
 			ReadOnly: false,
 			ForceNew: config.ForceNewDB,
 		}),
-		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size)),
+		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
-	nn.RequiresGrad(false)(m.ZeroEmbedding)
 	allModels = append(allModels, m)
 	return m
 }

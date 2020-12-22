@@ -37,7 +37,7 @@ func New(config bartconfig.Config) *Model {
 	if config.ScaleEmbedding {
 		panic("bart: scale embedding not implemented.")
 	}
-	learnedPositionalEmbeddings := make([]*nn.Param, config.MaxPositionEmbeddings+config.ExtraPosEmbedding)
+	learnedPositionalEmbeddings := make([]nn.Param, config.MaxPositionEmbeddings+config.ExtraPosEmbedding)
 	for i := 0; i < len(learnedPositionalEmbeddings); i++ {
 		learnedPositionalEmbeddings[i] = nn.NewParam(mat.NewEmptyVecDense(config.DModel))
 	}

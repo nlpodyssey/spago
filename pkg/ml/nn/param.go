@@ -49,11 +49,6 @@ func ToType(s string) ParamsType {
 	return Undefined
 }
 
-var (
-	_ fn.Operand   = &Param{}
-	_ ag.GradValue = &Param{}
-)
-
 // Payload contains the support data used for example by the optimization methods
 type Payload struct {
 	Label int
@@ -68,8 +63,57 @@ func NewEmptySupport() *Payload {
 	}
 }
 
-// Param is a parameter of a Model.
-type Param struct {
+// Param is the interface for a Model parameter.
+type Param interface {
+	// Name returns the params name (can be empty string).
+	Name() string
+	// SetName set the params name (can be empty string).
+	SetName(name string)
+	// Type returns the params type (weights, biases, undefined).
+	Type() ParamsType
+	// SetType set the params type (weights, biases, undefined).
+	SetType(pType ParamsType)
+	// Value returns the value of the delegate itself.
+	Value() mat.Matrix
+	// ReplaceValue replaces the value of the parameter and clears the support structure.
+	ReplaceValue(value mat.Matrix)
+	// ScalarValue returns the the scalar value of the node.
+	// It panics if the value is not a scalar.
+	// Note that it is not possible to start the backward step from a scalar value.
+	ScalarValue() float64
+	// Grad returns the gradients accumulated during the backward pass.
+	Grad() mat.Matrix
+	// PropagateGrad accumulate the gradients
+	PropagateGrad(grad mat.Matrix)
+	// HasGrad returns true if there are accumulated gradients.
+	HasGrad() bool
+	// RequiresGrad returns true if the param requires gradients.
+	RequiresGrad() bool
+	// SetRequiresGrad set whether the param requires gradient, or not.
+	SetRequiresGrad(value bool)
+	// ZeroGrad clears the gradients.
+	ZeroGrad()
+	// ApplyDelta updates the value of the underlying storage applying the delta.
+	ApplyDelta(delta mat.Matrix)
+	// Payload returns the optimizer support structure (can be nil).
+	Payload() *Payload
+	// SetPayload is a thread safe operation to set the given Payload on the
+	// receiver Param.
+	SetPayload(payload *Payload)
+	// ClearPayload clears the support structure.
+	ClearPayload()
+	// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
+	MarshalBinary() ([]byte, error)
+	// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
+	UnmarshalBinary(data []byte) error
+}
+
+var (
+	_ fn.Operand   = &param{}
+	_ ag.GradValue = &param{}
+)
+
+type param struct {
 	name         string
 	pType        ParamsType // lazy initialization
 	mu           sync.Mutex // to avoid data race
@@ -82,11 +126,11 @@ type Param struct {
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
-type ParamOption func(*Param)
+type ParamOption func(*param)
 
 // RequiresGrad is an option to specify whether a Param should be trained or not.
 func RequiresGrad(value bool) ParamOption {
-	return func(p *Param) {
+	return func(p *param) {
 		p.requiresGrad = value
 	}
 }
@@ -95,14 +139,14 @@ func RequiresGrad(value bool) ParamOption {
 // This is useful, for example, for a memory-efficient embeddings
 // Param implementation.
 func SetStorage(storage kvdb.KeyValueDB) ParamOption {
-	return func(p *Param) {
+	return func(p *param) {
 		p.storage = storage
 	}
 }
 
 // NewParam returns a new param.
-func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
-	p := &Param{
+func NewParam(value mat.Matrix, opts ...ParamOption) Param {
+	p := &param{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
@@ -119,32 +163,32 @@ func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
 }
 
 // SetName set the params name (can be empty string).
-func (r *Param) SetName(name string) {
+func (r *param) SetName(name string) {
 	r.name = name
 }
 
 // SetType set the params type (weights, biases, undefined).
-func (r *Param) SetType(name string) {
-	r.name = name
+func (r *param) SetType(pType ParamsType) {
+	r.pType = pType
 }
 
 // Name returns the params name (can be empty string).
-func (r *Param) Name() string {
+func (r *param) Name() string {
 	return r.name
 }
 
 // Type returns the params type (weights, biases, undefined).
-func (r *Param) Type() ParamsType {
+func (r *param) Type() ParamsType {
 	return r.pType
 }
 
 // Value returns the value of the delegate itself.
-func (r *Param) Value() mat.Matrix {
+func (r *param) Value() mat.Matrix {
 	return r.value
 }
 
 // ReplaceValue replaces the value of the parameter and clears the support structure.
-func (r *Param) ReplaceValue(value mat.Matrix) {
+func (r *param) ReplaceValue(value mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.value = value
@@ -157,17 +201,17 @@ func (r *Param) ReplaceValue(value mat.Matrix) {
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Param) ScalarValue() float64 {
+func (r *param) ScalarValue() float64 {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Param) Grad() mat.Matrix {
+func (r *param) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulate the gradients
-func (r *Param) PropagateGrad(grad mat.Matrix) {
+func (r *param) PropagateGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}
@@ -181,17 +225,22 @@ func (r *Param) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Param) HasGrad() bool {
+func (r *param) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the param requires gradients.
-func (r *Param) RequiresGrad() bool {
+func (r *param) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
+// RequiresGrad is an option to specify whether a Param should be trained or not.
+func (r *param) SetRequiresGrad(value bool) {
+	r.requiresGrad = value
+}
+
 // ZeroGrad clears the gradients.
-func (r *Param) ZeroGrad() {
+func (r *param) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
@@ -203,7 +252,7 @@ func (r *Param) ZeroGrad() {
 }
 
 // ApplyDelta updates the value of the underlying storage applying the delta.
-func (r *Param) ApplyDelta(delta mat.Matrix) {
+func (r *param) ApplyDelta(delta mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.Value().SubInPlace(delta)
@@ -213,7 +262,7 @@ func (r *Param) ApplyDelta(delta mat.Matrix) {
 }
 
 // Payload returns the optimizer support structure (can be nil).
-func (r *Param) Payload() *Payload {
+func (r *param) Payload() *Payload {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.payload
@@ -221,7 +270,7 @@ func (r *Param) Payload() *Payload {
 
 // SetPayload is a thread safe operation to set the given Payload on the
 // receiver Param.
-func (r *Param) SetPayload(payload *Payload) {
+func (r *param) SetPayload(payload *Payload) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.payload = payload
@@ -231,7 +280,7 @@ func (r *Param) SetPayload(payload *Payload) {
 }
 
 // ClearPayload clears the support structure.
-func (r *Param) ClearPayload() {
+func (r *param) ClearPayload() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.payload = nil
@@ -240,7 +289,7 @@ func (r *Param) ClearPayload() {
 	}
 }
 
-func (r *Param) updateStorage() {
+func (r *param) updateStorage() {
 	if r.storage == nil {
 		return
 	}
@@ -254,7 +303,7 @@ func (r *Param) updateStorage() {
 }
 
 // MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
-func (r *Param) MarshalBinary() ([]byte, error) {
+func (r *param) MarshalBinary() ([]byte, error) {
 	var b bytes.Buffer
 	_, err := mat.MarshalBinaryTo(r.value, &b)
 	if err != nil {
@@ -264,7 +313,7 @@ func (r *Param) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
-func (r *Param) UnmarshalBinary(data []byte) error {
+func (r *param) UnmarshalBinary(data []byte) error {
 	b := bytes.NewBuffer(data)
 	value, _, err := mat.NewUnmarshalBinaryFrom(b)
 	r.value = value
@@ -273,14 +322,14 @@ func (r *Param) UnmarshalBinary(data []byte) error {
 
 // ParamSerializer allows serialization and deserialization of a single Param.
 type ParamSerializer struct {
-	*Param
+	Param
 }
 
 // Serialize dumps the Param to the writer.
 func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 	return paramDataMarshalBinaryTo(&paramData{
-		Value:   s.value.(*mat.Dense),
-		Payload: s.payload,
+		Value:   s.Value().(*mat.Dense),
+		Payload: s.Payload(),
 	}, w)
 }
 
@@ -291,8 +340,8 @@ func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
 	if err != nil {
 		return
 	}
-	s.Param.value = data.Value
-	s.Param.payload = data.Payload
+	s.Param.ReplaceValue(data.Value)
+	s.Param.SetPayload(data.Payload)
 	return
 }
 

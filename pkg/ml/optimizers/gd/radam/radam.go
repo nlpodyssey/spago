@@ -101,7 +101,7 @@ func (o *RAdam) IncBatch() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RAdam) Delta(param *nn.Param) mat.Matrix {
+func (o *RAdam) Delta(param nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 

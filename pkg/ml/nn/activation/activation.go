@@ -17,12 +17,12 @@ var (
 // Model contains the activation operator and serializable parameters.
 type Model struct {
 	Activation ag.OpName
-	Params     []*nn.Param
+	Params     []nn.Param
 }
 
 // New returns a new model with parameters initialized to zeros.
 // TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
-func New(activation ag.OpName, params ...*nn.Param) *Model {
+func New(activation ag.OpName, params ...nn.Param) *Model {
 	return &Model{
 		Activation: activation,
 		Params:     params,

@@ -17,10 +17,10 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	WIn        *nn.Param `type:"weights"`
-	BIn        *nn.Param `type:"biases"`
-	WT         *nn.Param `type:"weights"`
-	BT         *nn.Param `type:"biases"`
+	WIn        nn.Param `type:"weights"`
+	BIn        nn.Param `type:"biases"`
+	WT         nn.Param `type:"weights"`
+	BT         nn.Param `type:"biases"`
 	Activation ag.OpName
 }
 

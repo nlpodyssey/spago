@@ -26,18 +26,18 @@ var (
 type Model struct {
 	PolicyGradient *stack.Model
 	Lambda         float64
-	WIn            *nn.Param `type:"weights"`
-	WInRec         *nn.Param `type:"weights"`
-	BIn            *nn.Param `type:"biases"`
-	WOut           *nn.Param `type:"weights"`
-	WOutRec        *nn.Param `type:"weights"`
-	BOut           *nn.Param `type:"biases"`
-	WFor           *nn.Param `type:"weights"`
-	WForRec        *nn.Param `type:"weights"`
-	BFor           *nn.Param `type:"biases"`
-	WCand          *nn.Param `type:"weights"`
-	WCandRec       *nn.Param `type:"weights"`
-	BCand          *nn.Param `type:"biases"`
+	WIn            nn.Param `type:"weights"`
+	WInRec         nn.Param `type:"weights"`
+	BIn            nn.Param `type:"biases"`
+	WOut           nn.Param `type:"weights"`
+	WOutRec        nn.Param `type:"weights"`
+	BOut           nn.Param `type:"biases"`
+	WFor           nn.Param `type:"weights"`
+	WForRec        nn.Param `type:"weights"`
+	BFor           nn.Param `type:"biases"`
+	WCand          nn.Param `type:"weights"`
+	WCandRec       nn.Param `type:"weights"`
+	BCand          nn.Param `type:"biases"`
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -58,7 +58,7 @@ func New(in, out, k int, lambda float64, intermediate int) *Model {
 	return &m
 }
 
-func newGateParams(in, out int) (w, wRec, b *nn.Param) {
+func newGateParams(in, out int) (w, wRec, b nn.Param) {
 	w = nn.NewParam(mat.NewEmptyDense(out, in))
 	wRec = nn.NewParam(mat.NewEmptyDense(out, out))
 	b = nn.NewParam(mat.NewEmptyVecDense(out))

@@ -16,12 +16,12 @@ import (
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
 type paramsTraversal struct {
-	callback         func(param *Param)
+	callback         func(param Param)
 	exploreSubModels bool
 }
 
 // newParamsTraversal returns a new paramsTraversal.
-func newParamsTraversal(callback func(param *Param), exploreSubModels bool) paramsTraversal {
+func newParamsTraversal(callback func(param Param), exploreSubModels bool) paramsTraversal {
 	return paramsTraversal{
 		callback:         callback,
 		exploreSubModels: exploreSubModels,
@@ -33,11 +33,11 @@ func newParamsTraversal(callback func(param *Param), exploreSubModels bool) para
 func (pt paramsTraversal) walk(m interface{}) {
 	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
 		switch item := field.(type) {
-		case *Param:
+		case Param:
 			pt.walkParam(item, name, tag)
 		case Model:
 			pt.walkModel(item)
-		case []*Param:
+		case []Param:
 			pt.walkParamSlice(item, name, tag)
 		case []Model:
 			pt.walkModelSlice(item)
@@ -55,11 +55,11 @@ func (pt paramsTraversal) walk(m interface{}) {
 	})
 }
 
-func (pt paramsTraversal) walkParam(item *Param, name string, tag reflect.StructTag) {
-	if item.name == "" {
-		item.name = strings.ToLower(name)
+func (pt paramsTraversal) walkParam(item Param, name string, tag reflect.StructTag) {
+	if item.Name() == "" {
+		item.SetName(strings.ToLower(name))
 	}
-	item.pType = ToType(tag.Get("type"))
+	item.SetType(ToType(tag.Get("type")))
 	pt.callback(item)
 }
 
@@ -69,12 +69,12 @@ func (pt paramsTraversal) walkModel(item Model) {
 	}
 }
 
-func (pt paramsTraversal) walkParamSlice(item []*Param, name string, tag reflect.StructTag) {
+func (pt paramsTraversal) walkParamSlice(item []Param, name string, tag reflect.StructTag) {
 	for _, p := range item {
-		if p.name == "" {
-			p.name = strings.ToLower(name)
+		if p.Name() == "" {
+			p.SetName(strings.ToLower(name))
 		}
-		p.pType = ToType(tag.Get("type"))
+		p.SetType(ToType(tag.Get("type")))
 		pt.callback(p)
 	}
 }
@@ -125,14 +125,15 @@ func (pt paramsTraversal) walkGenericMap(v reflect.Value, name string, tag refle
 			return // skip map if the key is not a string or an int
 		}
 		// TODO: map of *Models
-		p, ok := mapRange.Value().Interface().(*Param)
+		p, ok := mapRange.Value().Interface().(Param)
 		if !ok {
 			return // skip the map if the value is not a *Param
 		}
-		if p.name == "" {
-			p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+		if p.Name() == "" {
+			p.SetName(strings.ToLower(fmt.Sprintf("%s.%s", name, key)))
 		}
-		p.pType = ToType(tag.Get("type"))
+		p.SetType(ToType(tag.Get("type")))
+
 		pt.callback(p)
 	}
 }

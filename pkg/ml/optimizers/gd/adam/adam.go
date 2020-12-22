@@ -105,7 +105,7 @@ func (o *Adam) updateAlpha() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *Adam) Delta(param *nn.Param) mat.Matrix {
+func (o *Adam) Delta(param nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 

@@ -18,15 +18,15 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	WPart    *nn.Param `type:"weights"`
-	WPartRec *nn.Param `type:"weights"`
-	BPart    *nn.Param `type:"biases"`
-	WRes     *nn.Param `type:"weights"`
-	WResRec  *nn.Param `type:"weights"`
-	BRes     *nn.Param `type:"biases"`
-	WCand    *nn.Param `type:"weights"`
-	WCandRec *nn.Param `type:"weights"`
-	BCand    *nn.Param `type:"biases"`
+	WPart    nn.Param `type:"weights"`
+	WPartRec nn.Param `type:"weights"`
+	BPart    nn.Param `type:"biases"`
+	WRes     nn.Param `type:"weights"`
+	WResRec  nn.Param `type:"weights"`
+	BRes     nn.Param `type:"biases"`
+	WCand    nn.Param `type:"weights"`
+	WCandRec nn.Param `type:"weights"`
+	BCand    nn.Param `type:"biases"`
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -38,7 +38,7 @@ func New(in, out int) *Model {
 	return &m
 }
 
-func newGateParams(in, out int) (w, wRec, b *nn.Param) {
+func newGateParams(in, out int) (w, wRec, b nn.Param) {
 	w = nn.NewParam(mat.NewEmptyDense(out, in))
 	wRec = nn.NewParam(mat.NewEmptyDense(out, out))
 	b = nn.NewParam(mat.NewEmptyVecDense(out))

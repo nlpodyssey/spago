@@ -34,8 +34,8 @@ type EmbeddingsConfig struct {
 type Embeddings struct {
 	EmbeddingsConfig
 	Word      *embeddings.Model
-	Position  []*nn.Param `type:"weights"`
-	TokenType []*nn.Param `type:"weights"`
+	Position  []nn.Param `type:"weights"`
+	TokenType []nn.Param `type:"weights"`
 	Norm      *layernorm.Model
 	Projector *linear.Model
 }
@@ -57,16 +57,16 @@ func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	}
 }
 
-func newPositionEmbeddings(size, maxPositions int) []*nn.Param {
-	out := make([]*nn.Param, maxPositions)
+func newPositionEmbeddings(size, maxPositions int) []nn.Param {
+	out := make([]nn.Param, maxPositions)
 	for i := 0; i < maxPositions; i++ {
 		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
 	}
 	return out
 }
 
-func newTokenTypes(size, tokenTypes int) []*nn.Param {
-	out := make([]*nn.Param, tokenTypes)
+func newTokenTypes(size, tokenTypes int) []nn.Param {
+	out := make([]nn.Param, tokenTypes)
 	for i := 0; i < tokenTypes; i++ {
 		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
 	}

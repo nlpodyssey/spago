@@ -27,8 +27,8 @@ type Model struct {
 	Config
 	storage        kvdb.KeyValueDB
 	mu             sync.Mutex
-	UsedEmbeddings map[string]*nn.Param `type:"weights"`
-	ZeroEmbedding  *nn.Param            `type:"weights"`
+	UsedEmbeddings map[string]nn.Param `type:"weights"`
+	ZeroEmbedding  nn.Param            `type:"weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -55,10 +55,9 @@ func New(config Config) *Model {
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		UsedEmbeddings: map[string]*nn.Param{},
-		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size)),
+		UsedEmbeddings: map[string]nn.Param{},
+		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
-	nn.RequiresGrad(false)(m.ZeroEmbedding)
 	allModels = append(allModels, m)
 	return m
 }
@@ -81,7 +80,7 @@ func (m *Model) ClearUsedEmbeddings() {
 	for _, embedding := range m.UsedEmbeddings {
 		mat.ReleaseDense(embedding.Value().(*mat.Dense))
 	}
-	m.UsedEmbeddings = map[string]*nn.Param{}
+	m.UsedEmbeddings = map[string]nn.Param{}
 }
 
 // DropAll clears the cache of used embeddings and drops all the data stored in the DB.
@@ -150,7 +149,7 @@ func (m *Model) SetEmbeddingFromData(word string, data []float64) {
 //
 // If no embedding is found, nil is returned.
 // It panics in case of storage errors.
-func (m *Model) GetEmbedding(word string) *nn.Param {
+func (m *Model) GetEmbedding(word string) nn.Param {
 	if found := m.getEmbedding(word); found != nil {
 		return found
 	}
@@ -165,7 +164,7 @@ func (m *Model) GetEmbedding(word string) *nn.Param {
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
 // It panics in case of storage errors.
-func (m *Model) getEmbedding(word string) *nn.Param {
+func (m *Model) getEmbedding(word string) nn.Param {
 	if embedding, ok := m.getUsedEmbedding(word); ok {
 		return embedding
 	}
@@ -176,12 +175,9 @@ func (m *Model) getEmbedding(word string) *nn.Param {
 	if !ok {
 		return nil // embedding not found
 	}
-	embedding := nn.NewParam(nil, nn.SetStorage(m.storage))
+	embedding := nn.NewParam(nil, nn.SetStorage(m.storage), nn.RequiresGrad(!m.ReadOnly))
 	if _, err := (&nn.ParamSerializer{Param: embedding}).Deserialize(bytes.NewReader(data)); err != nil {
 		log.Fatal(err)
-	}
-	if m.ReadOnly {
-		nn.RequiresGrad(false)(embedding)
 	}
 	embedding.SetName(word)
 	m.mu.Lock()
@@ -190,7 +186,7 @@ func (m *Model) getEmbedding(word string) *nn.Param {
 	return embedding
 }
 
-func (m *Model) getUsedEmbedding(word string) (embedding *nn.Param, ok bool) {
+func (m *Model) getUsedEmbedding(word string) (embedding nn.Param, ok bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	embedding, ok = m.UsedEmbeddings[word]

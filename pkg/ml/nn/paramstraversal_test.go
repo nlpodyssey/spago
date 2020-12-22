@@ -11,14 +11,14 @@ import (
 )
 
 type ParamsTraversalTester struct {
-	CollectedParams []*Param
+	CollectedParams []Param
 }
 
 func NewParamsTraversalTester() *ParamsTraversalTester {
-	return &ParamsTraversalTester{CollectedParams: make([]*Param, 0)}
+	return &ParamsTraversalTester{CollectedParams: make([]Param, 0)}
 }
 
-func (ptt *ParamsTraversalTester) collect(param *Param) {
+func (ptt *ParamsTraversalTester) collect(param Param) {
 	ptt.CollectedParams = append(ptt.CollectedParams, param)
 }
 
@@ -45,7 +45,7 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		assertEqual(t, tt.CollectedParams, []*Param{})
+		assertEqual(t, tt.CollectedParams, []Param{})
 	})
 
 	t.Run("irrelevant fields are ignored", func(t *testing.T) {
@@ -73,16 +73,16 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		assertEqual(t, tt.CollectedParams, []*Param{})
+		assertEqual(t, tt.CollectedParams, []Param{})
 	})
 
-	t.Run("it visits *Param fields", func(t *testing.T) {
+	t.Run("it visits Param fields", func(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			A *Param
-			B *Param
+			A Param
+			B Param
 		}
 
 		m := &TestModel{
@@ -94,25 +94,25 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []*Param{m.A, m.B}
+		expected := []Param{m.A, m.B}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
-	t.Run("it visits []*Param fields", func(t *testing.T) {
+	t.Run("it visits []Param fields", func(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			A []*Param
-			B []*Param
+			A []Param
+			B []Param
 		}
 
 		m := &TestModel{
-			A: []*Param{
+			A: []Param{
 				NewParam(mat.NewScalar(1)),
 				NewParam(mat.NewScalar(2)),
 			},
-			B: []*Param{
+			B: []Param{
 				NewParam(mat.NewScalar(3)),
 				NewParam(mat.NewScalar(4)),
 			},
@@ -122,7 +122,7 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []*Param{m.A[0], m.A[1], m.B[0], m.B[1]}
+		expected := []Param{m.A[0], m.A[1], m.B[0], m.B[1]}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
@@ -131,7 +131,7 @@ func TestParamsTraversal(t *testing.T) {
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			P *Param
+			P Param
 			M Model
 		}
 
@@ -151,7 +151,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []*Param{m.P}
+			expected := []Param{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
@@ -161,7 +161,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []*Param{m.P, nestedModel.P}
+			expected := []Param{m.P, nestedModel.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -171,7 +171,7 @@ func TestParamsTraversal(t *testing.T) {
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			P *Param
+			P Param
 			M []Model
 		}
 
@@ -189,7 +189,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []*Param{m.P}
+			expected := []Param{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
@@ -199,7 +199,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []*Param{m.P, mA.P, mB.P}
+			expected := []Param{m.P, mA.P, mB.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -209,7 +209,7 @@ func TestParamsTraversal(t *testing.T) {
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			P *Param
+			P Param
 			M []interface{}
 		}
 
@@ -227,7 +227,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []*Param{m.P}
+			expected := []Param{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
@@ -237,7 +237,7 @@ func TestParamsTraversal(t *testing.T) {
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []*Param{m.P, mA.P, mB.P}
+			expected := []Param{m.P, mA.P, mB.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -246,7 +246,7 @@ func TestParamsTraversal(t *testing.T) {
 		t.Parallel()
 
 		type MyStruct struct {
-			P *Param
+			P Param
 		}
 
 		type TestModel struct {
@@ -271,24 +271,24 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []*Param{m.S[0].P, m.S[1].P}
+		expected := []Param{m.S[0].P, m.S[1].P}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
-	t.Run("it visits *Param items in map[int] and map[string] fields", func(t *testing.T) {
+	t.Run("it visits Param items in map[int] and map[string] fields", func(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			MI map[int]*Param
-			MS map[string]*Param
+			MI map[int]Param
+			MS map[string]Param
 		}
 
 		m := &TestModel{
-			MI: map[int]*Param{
+			MI: map[int]Param{
 				0: NewParam(mat.NewScalar(1)),
 			},
-			MS: map[string]*Param{
+			MS: map[string]Param{
 				"a": NewParam(mat.NewScalar(3)),
 			},
 		}
@@ -298,15 +298,15 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []*Param{m.MI[0], m.MS["a"]}
+		expected := []Param{m.MI[0], m.MS["a"]}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
-	t.Run("it visits *Param items in params-annotated struct of ptr fields", func(t *testing.T) {
+	t.Run("it visits Param items in params-annotated struct of ptr fields", func(t *testing.T) {
 		t.Parallel()
 
 		type MyStruct struct {
-			P *Param
+			P Param
 		}
 
 		type TestModel struct {
@@ -325,7 +325,7 @@ func TestParamsTraversal(t *testing.T) {
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []*Param{m.MS.P, m.MP.P}
+		expected := []Param{m.MS.P, m.MP.P}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 }

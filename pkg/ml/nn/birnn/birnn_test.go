@@ -52,7 +52,7 @@ func TestModelConcat_Forward(t *testing.T) {
 	g.BackwardAll()
 
 	// Important! average params by sequence length
-	nn.ForEachParam(model, func(param *nn.Param) {
+	nn.ForEachParam(model, func(param nn.Param) {
 		param.Grad().ProdScalarInPlace(1.0 / 3.0)
 	})
 

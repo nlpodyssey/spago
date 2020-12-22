@@ -18,13 +18,13 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	W     *nn.Param `type:"weights"`
-	WRec  *nn.Param `type:"weights"`
-	B     *nn.Param `type:"biases"`
-	BPart *nn.Param `type:"biases"`
-	Alpha *nn.Param `type:"weights"`
-	Beta1 *nn.Param `type:"weights"`
-	Beta2 *nn.Param `type:"weights"`
+	W     nn.Param `type:"weights"`
+	WRec  nn.Param `type:"weights"`
+	B     nn.Param `type:"biases"`
+	BPart nn.Param `type:"biases"`
+	Alpha nn.Param `type:"weights"`
+	Beta1 nn.Param `type:"weights"`
+	Beta2 nn.Param `type:"weights"`
 }
 
 // New returns a new model with parameters initialized to zeros.

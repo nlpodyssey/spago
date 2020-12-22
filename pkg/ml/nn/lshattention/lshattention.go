@@ -26,7 +26,7 @@ var (
 type Model struct {
 	Config
 	Query *linear.Model
-	R     *nn.Param `type:"weights"`
+	R     nn.Param `type:"weights"`
 	Value *linear.Model
 }
 

@@ -26,7 +26,7 @@ type Model struct {
 	Config
 	FFN   *stack.Model
 	Value *linear.Model
-	W     *nn.Param `type:"weights"`
+	W     nn.Param `type:"weights"`
 }
 
 // Config provides configuration settings for a Synthetic Attention Model.

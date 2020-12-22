@@ -21,16 +21,16 @@ var (
 // (https://arxiv.org/pdf/1512.08301.pdf) where the neurons in the same hidden layer
 // are independent of each other and they are connected across layers as in the IndRNN.
 type Model struct {
-	W     *nn.Param   `type:"weights"`
-	WRec  *nn.Param   `type:"weights"`
-	WS    []*nn.Param `type:"weights"` // coefficient vectors for scaling
-	B     *nn.Param   `type:"biases"`
+	W     nn.Param   `type:"weights"`
+	WRec  nn.Param   `type:"weights"`
+	WS    []nn.Param `type:"weights"` // coefficient vectors for scaling
+	B     nn.Param   `type:"biases"`
 	order int
 }
 
 // New returns a new model with parameters initialized to zeros.
 func New(in, out, order int) *Model {
-	WS := make([]*nn.Param, order, order)
+	WS := make([]nn.Param, order, order)
 	for i := 0; i < order; i++ {
 		WS[i] = nn.NewParam(mat.NewEmptyVecDense(out))
 	}

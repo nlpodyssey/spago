@@ -27,12 +27,12 @@ type Config struct {
 // Model contains the serializable parameters for an RLA neural network.
 type Model struct {
 	Config
-	Wk *nn.Param `type:"weights"`
-	Bk *nn.Param `type:"biases"`
-	Wv *nn.Param `type:"weights"`
-	Bv *nn.Param `type:"biases"`
-	Wq *nn.Param `type:"weights"`
-	Bq *nn.Param `type:"biases"`
+	Wk nn.Param `type:"weights"`
+	Bk nn.Param `type:"biases"`
+	Wv nn.Param `type:"weights"`
+	Bv nn.Param `type:"biases"`
+	Wq nn.Param `type:"weights"`
+	Bq nn.Param `type:"biases"`
 }
 
 // New returns a new RLA Model, initialized according to the given configuration.

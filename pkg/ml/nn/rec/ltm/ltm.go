@@ -18,10 +18,10 @@ var (
 
 // Model contains the serializable parameters.
 type Model struct {
-	W1    *nn.Param `type:"weights"`
-	W2    *nn.Param `type:"weights"`
-	W3    *nn.Param `type:"weights"`
-	WCell *nn.Param `type:"weights"`
+	W1    nn.Param `type:"weights"`
+	W2    nn.Param `type:"weights"`
+	W3    nn.Param `type:"weights"`
+	WCell nn.Param `type:"weights"`
 }
 
 // New returns a new model with parameters initialized to zeros.

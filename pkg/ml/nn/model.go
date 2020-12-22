@@ -18,19 +18,19 @@ type Model interface {
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func ForEachParam(m Model, callback func(param *Param)) {
+func ForEachParam(m Model, callback func(param Param)) {
 	newParamsTraversal(callback, true).walk(m)
 }
 
 // ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
-func ForEachParamStrict(m Model, callback func(param *Param)) {
+func ForEachParamStrict(m Model, callback func(param Param)) {
 	newParamsTraversal(callback, false).walk(m)
 }
 
 // ParamsIterator is implemented by any value that has the ParamsList method,
 // which should return the list of parameters of one or more models.
 type ParamsIterator interface {
-	ParamsList() []*Param
+	ParamsList() []Param
 }
 
 var _ ParamsIterator = &DefaultParamsIterator{}
@@ -47,10 +47,10 @@ func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
 
 // ParamsList returns a slice with all Param elements from all models held by
 // the DefaultParamsIterator.
-func (i *DefaultParamsIterator) ParamsList() []*Param {
-	params := make([]*Param, 0)
+func (i *DefaultParamsIterator) ParamsList() []Param {
+	params := make([]Param, 0)
 	for _, model := range i.models {
-		ForEachParam(model, func(param *Param) {
+		ForEachParam(model, func(param Param) {
 			params = append(params, param)
 		})
 	}
@@ -60,7 +60,7 @@ func (i *DefaultParamsIterator) ParamsList() []*Param {
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
 // TODO: use ParamsIterator?
 func ZeroGrad(m Model) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		param.ZeroGrad()
 	})
 }
@@ -68,7 +68,7 @@ func ZeroGrad(m Model) {
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 // TODO: use ParamsIterator?
 func ClearSupport(m Model) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		param.ClearPayload()
 	})
 }
@@ -77,7 +77,7 @@ func ClearSupport(m Model) {
 // TODO: use ParamsIterator?
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
-	ForEachParam(model, func(param *Param) {
+	ForEachParam(model, func(param Param) {
 		data = append(data, param.Value().Data()...)
 	})
 	return mat.NewVecDense(data)
@@ -88,7 +88,7 @@ func DumpParamsVector(model Model) *mat.Dense {
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()
 	offset := 0
-	ForEachParam(model, func(param *Param) {
+	ForEachParam(model, func(param Param) {
 		size := param.Value().Size()
 		param.Value().SetData(data[offset : offset+size])
 		offset += size
@@ -122,7 +122,7 @@ func NewParamsSerializer(m Model) *ParamsSerializer {
 // Serialize dumps the params values to the writer.
 // TODO: use ParamsIterator?
 func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		cnt, err2 := mat.MarshalBinaryTo(param.Value(), w)
 		n += cnt
 		if err2 != nil {
@@ -136,7 +136,7 @@ func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
 // Deserialize assigns the params with the values obtained from the reader.
 // TODO: use ParamsIterator?
 func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		cnt, err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
 		n += cnt
 		if err2 != nil {
