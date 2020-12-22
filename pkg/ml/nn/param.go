@@ -107,12 +107,19 @@ type Param interface {
 	MarshalBinary() ([]byte, error)
 	// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
 	UnmarshalBinary(data []byte) error
+	// Graph returns always nil since the "pure" parameter is not associated with any graph.
+	Graph() *ag.Graph
+	// ID returns always -1 since the "pure" parameter is not associated with any graph.
+	ID() int64
+	// TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
+	TimeStep() int64
 }
 
 var (
+	_ Param        = &param{}
 	_ fn.Operand   = &param{}
 	_ ag.GradValue = &param{}
-	_ Param        = &param{}
+	_ ag.Node      = &param{}
 )
 
 type param struct {
@@ -320,6 +327,21 @@ func (r *param) UnmarshalBinary(data []byte) error {
 	value, _, err := mat.NewUnmarshalBinaryFrom(b)
 	r.value = value
 	return err
+}
+
+// Graph returns always nil since the "pure" parameter is not associated with any graph.
+func (r *param) Graph() *ag.Graph {
+	return nil
+}
+
+// ID returns always -1 since the "pure" parameter is not associated with any graph.
+func (r *param) ID() int64 {
+	return -1
+}
+
+// TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
+func (r *param) TimeStep() int64 {
+	return 0
 }
 
 // ParamSerializer allows serialization and deserialization of a single Param.
