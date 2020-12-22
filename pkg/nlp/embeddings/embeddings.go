@@ -124,9 +124,11 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	embedding := nn.NewParam(value)
 	embedding.SetPayload(nn.NewEmptySupport())
 	var buf bytes.Buffer
-	if _, err := (&nn.ParamSerializer{Param: embedding}).Serialize(&buf); err != nil {
+	serializer, err := nn.NewParamSerializer(embedding)
+	if err != nil {
 		log.Fatal(err)
 	}
+	_, err = serializer.Serialize(&buf)
 	if err := m.storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
@@ -176,7 +178,11 @@ func (m *Model) getEmbedding(word string) nn.Param {
 		return nil // embedding not found
 	}
 	embedding := nn.NewParam(nil, nn.SetStorage(m.storage), nn.RequiresGrad(!m.ReadOnly))
-	if _, err := (&nn.ParamSerializer{Param: embedding}).Deserialize(bytes.NewReader(data)); err != nil {
+	serializer, err := nn.NewParamSerializer(embedding)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := serializer.Deserialize(bytes.NewReader(data)); err != nil {
 		log.Fatal(err)
 	}
 	embedding.SetName(word)

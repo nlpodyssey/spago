@@ -7,6 +7,7 @@ package nn
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/pkg/errors"
 	"io"
 	"log"
 	"strings"
@@ -294,7 +295,7 @@ func (r *param) updateStorage() {
 		return
 	}
 	var buf bytes.Buffer
-	if _, err := (&ParamSerializer{Param: r}).Serialize(&buf); err != nil {
+	if _, err := (&ParamSerializer{param: r}).Serialize(&buf); err != nil {
 		log.Fatal(err)
 	}
 	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
@@ -322,14 +323,23 @@ func (r *param) UnmarshalBinary(data []byte) error {
 
 // ParamSerializer allows serialization and deserialization of a single Param.
 type ParamSerializer struct {
-	Param
+	*param
+}
+
+func NewParamSerializer(p Param) (*ParamSerializer, error) {
+	switch p := p.(type) {
+	case *param:
+		return &ParamSerializer{param: p}, nil
+	default:
+		return nil, errors.New("nn: param type not supported for serialization")
+	}
 }
 
 // Serialize dumps the Param to the writer.
 func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 	return paramDataMarshalBinaryTo(&paramData{
-		Value:   s.Value().(*mat.Dense),
-		Payload: s.Payload(),
+		Value:   s.value.(*mat.Dense),
+		Payload: s.payload,
 	}, w)
 }
 
@@ -340,8 +350,8 @@ func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
 	if err != nil {
 		return
 	}
-	s.Param.ReplaceValue(data.Value)
-	s.Param.SetPayload(data.Payload)
+	s.value = data.Value
+	s.payload = data.Payload
 	return
 }
 
