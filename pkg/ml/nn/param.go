@@ -112,6 +112,7 @@ type Param interface {
 var (
 	_ fn.Operand   = &param{}
 	_ ag.GradValue = &param{}
+	_ Param        = &param{}
 )
 
 type param struct {
