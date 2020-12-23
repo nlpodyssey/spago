@@ -66,6 +66,9 @@ func NewEmptySupport() *Payload {
 
 // Param is the interface for a Model parameter.
 type Param interface {
+	ag.Node
+	fn.Operand
+	ag.GradValue
 	// Name returns the params name (can be empty string).
 	Name() string
 	// SetName set the params name (can be empty string).
@@ -74,26 +77,10 @@ type Param interface {
 	Type() ParamsType
 	// SetType set the params type (weights, biases, undefined).
 	SetType(pType ParamsType)
-	// Value returns the value of the delegate itself.
-	Value() mat.Matrix
-	// ReplaceValue replaces the value of the parameter and clears the support structure.
-	ReplaceValue(value mat.Matrix)
-	// ScalarValue returns the the scalar value of the node.
-	// It panics if the value is not a scalar.
-	// Note that it is not possible to start the backward step from a scalar value.
-	ScalarValue() float64
-	// Grad returns the gradients accumulated during the backward pass.
-	Grad() mat.Matrix
-	// PropagateGrad accumulate the gradients
-	PropagateGrad(grad mat.Matrix)
-	// HasGrad returns true if there are accumulated gradients.
-	HasGrad() bool
-	// RequiresGrad returns true if the param requires gradients.
-	RequiresGrad() bool
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
-	// ZeroGrad clears the gradients.
-	ZeroGrad()
+	// ReplaceValue replaces the value of the parameter and clears the support structure.
+	ReplaceValue(value mat.Matrix)
 	// ApplyDelta updates the value of the underlying storage applying the delta.
 	ApplyDelta(delta mat.Matrix)
 	// Payload returns the optimizer support structure (can be nil).
@@ -107,20 +94,9 @@ type Param interface {
 	MarshalBinary() ([]byte, error)
 	// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
 	UnmarshalBinary(data []byte) error
-	// Graph returns always nil since the "pure" parameter is not associated with any graph.
-	Graph() *ag.Graph
-	// ID returns always -1 since the "pure" parameter is not associated with any graph.
-	ID() int64
-	// TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
-	TimeStep() int64
 }
 
-var (
-	_ Param        = &param{}
-	_ fn.Operand   = &param{}
-	_ ag.GradValue = &param{}
-	_ ag.Node      = &param{}
-)
+var _ Param = &param{}
 
 type param struct {
 	name         string
