@@ -58,32 +58,14 @@ type State struct {
 // Processor implements the nn.Processor interface for an RLA Model.
 type Processor struct {
 	nn.BaseProcessor
-	wK     ag.Node
-	bK     ag.Node
-	wV     ag.Node
-	bV     ag.Node
-	wQ     ag.Node
-	bQ     ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		States: nil,
-		wK:     g.NewWrap(m.Wk),
-		bK:     g.NewWrap(m.Bk),
-		wV:     g.NewWrap(m.Wv),
-		bV:     g.NewWrap(m.Bv),
-		wQ:     g.NewWrap(m.Wq),
-		bQ:     g.NewWrap(m.Bq),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -118,12 +100,13 @@ func (p *Processor) LastState() *State {
 }
 
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 
-	key := nn.Affine(g, p.bK, p.wK, x)
-	value := nn.Affine(g, p.bV, p.wV, x)
-	query := nn.Affine(g, p.bQ, p.wQ, x)
+	key := nn.Affine(g, m.Bk, m.Wk, x)
+	value := nn.Affine(g, m.Bv, m.Wv, x)
+	query := nn.Affine(g, m.Bq, m.Wq, x)
 
 	attKey := defaultMappingFunction(g, key)
 	attQuery := defaultMappingFunction(g, query)

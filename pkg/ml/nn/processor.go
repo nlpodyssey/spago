@@ -50,10 +50,21 @@ type Processor interface {
 // BaseProcessor satisfies some methods of the Processor interface.
 // It is meant to be embedded in other processors to reduce the amount of boilerplate code.
 type BaseProcessor struct {
-	Model             Model
+	Model
 	Mode              ProcessingMode
 	Graph             *ag.Graph
 	FullSeqProcessing bool
+}
+
+// NewBaseProcessor returns a processor containing a new instance of the so-called "contextualized" model,
+// in which the parameters are wrapped as graph nodes.
+func NewBaseProcessor(m Model, ctx Context, fullSeqProcessing bool) BaseProcessor {
+	return BaseProcessor{
+		Model:             Contextualize(m, ctx.Graph),
+		Mode:              ctx.Mode,
+		Graph:             ctx.Graph,
+		FullSeqProcessing: fullSeqProcessing,
+	}
 }
 
 // GetModel returns the model the processor belongs to.

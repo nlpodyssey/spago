@@ -41,16 +41,12 @@ type Processor struct {
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		size:             m.TransitionScores.Value().Rows() - 1,
-		transitionScores: nn.Separate(ctx.Graph, ctx.Graph.NewWrap(m.TransitionScores)),
+	p := &Processor{
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
+		size:          m.TransitionScores.Value().Rows() - 1,
 	}
+	p.transitionScores = nn.Separate(ctx.Graph, p.Model.(*Model).TransitionScores)
+	return p
 }
 
 // Forward is not available for the CRF. Use Predict() instead.

@@ -31,9 +31,9 @@ type Config struct {
 
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model struct {
-	Config
-	K []nn.Param `type:"weights"`
-	B []nn.Param `type:"biases"`
+	Config Config
+	K      []nn.Param `type:"weights"`
+	B      []nn.Param `type:"biases"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
@@ -59,32 +59,15 @@ func New(config Config) *Model {
 // Processor implements the nn.Processor interface for a convolution Model.
 type Processor struct {
 	nn.BaseProcessor
-	Config
-	k []ag.Node
-	b []ag.Node
 	// whether to enable the concurrent forward computation on the output channel
 	concurrent bool
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	k := make([]ag.Node, len(m.K))
-	b := make([]ag.Node, len(m.B))
-	for i := range m.K {
-		k[i] = ctx.Graph.NewWrap(m.K[i])
-		b[i] = ctx.Graph.NewWrap(m.B[i])
-	}
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Config:     m.Config,
-		k:          k,
-		b:          b,
-		concurrent: true,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
+		concurrent:    true,
 	}
 }
 
@@ -96,14 +79,16 @@ func (p *Processor) SetConcurrentComputations(value bool) {
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	if p.concurrent && p.OutputChannels > 1 {
+	m := p.Model.(*Model)
+	if p.concurrent && m.Config.OutputChannels > 1 {
 		return p.fwdConcurrent(xs)
 	}
 	return p.fwdSerial(xs)
 }
 
 func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, p.OutputChannels)
+	m := p.Model.(*Model)
+	ys := make([]ag.Node, m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = p.forward(xs, i)
 	}
@@ -111,10 +96,11 @@ func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
 }
 
 func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, p.OutputChannels)
+	m := p.Model.(*Model)
+	ys := make([]ag.Node, m.Config.OutputChannels)
 	var wg sync.WaitGroup
-	wg.Add(p.OutputChannels)
-	for i := 0; i < p.OutputChannels; i++ {
+	wg.Add(m.Config.OutputChannels)
+	for i := 0; i < m.Config.OutputChannels; i++ {
 		go func(i int) {
 			defer wg.Done()
 			ys[i] = p.forward(xs, i)
@@ -125,14 +111,15 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
-	offset := outputChannel * p.InputChannels
+	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node
 	for i := 0; i < len(xs); i++ {
-		if p.Config.Mask == nil || p.Config.Mask[i] == 1 {
-			out = g.Add(out, nn.Conv2D(g, p.k[i+offset], xs[i], p.XStride, p.YStride))
-			out = g.AddScalar(out, p.b[i+offset])
+		if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
+			out = g.Add(out, nn.Conv2D(g, m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+			out = g.AddScalar(out, m.B[i+offset])
 		}
 	}
-	return g.Invoke(p.Activation, out)
+	return g.Invoke(m.Config.Activation, out)
 }

@@ -45,23 +45,12 @@ func New(size int) *Model {
 // Processor implements the nn.Processor interface for a batch normalization Model.
 type Processor struct {
 	nn.BaseProcessor
-	w     ag.Node
-	b     ag.Node
-	model *Model
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		w:     ctx.Graph.NewWrap(m.W),
-		b:     ctx.Graph.NewWrap(m.B),
-		model: m,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
 	}
 }
 
@@ -82,28 +71,31 @@ func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {
 }
 
 func (p *Processor) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = g.Div(p.w, devVector)
+	m := p.Model.(*Model)
+	devVector = g.Div(m.W, devVector)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), p.b)
+		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), m.B)
 	}
 	return ys
 }
 
 func (p *Processor) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
-	momentum := p.model.Momentum.Value().Scalar()
+	m := p.Model.(*Model)
+	momentum := m.Momentum.Value().Scalar()
 
-	p.model.Mean.ReplaceValue(
-		p.model.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))
+	m.Mean.ReplaceValue(
+		m.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))
 
-	p.model.StdDev.ReplaceValue(
-		p.model.StdDev.Value().ProdScalar(momentum).Add(devVector.ProdScalar(1.0 - momentum)))
+	m.StdDev.ReplaceValue(
+		m.StdDev.Value().ProdScalar(momentum).Add(devVector.ProdScalar(1.0 - momentum)))
 }
 
 func (p *Processor) forwardInference(xs []ag.Node) []ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
-	meanVector := g.NewWrapNoGrad(p.model.Mean)
-	devVector := g.NewWrapNoGrad(p.model.StdDev)
+	meanVector := g.NewWrapNoGrad(m.Mean)
+	devVector := g.NewWrapNoGrad(m.StdDev)
 	return p.process(g, xs, devVector, meanVector)
 }
 

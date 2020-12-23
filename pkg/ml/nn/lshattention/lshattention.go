@@ -63,24 +63,17 @@ type Processor struct {
 	scaleFactor float64
 	query       *linear.Processor
 	value       *linear.Processor
-	r           ag.Node
 	Attention   *ContextProb
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		scaleFactor: m.ScaleFactor,
-		query:       m.Query.NewProc(ctx).(*linear.Processor),
-		value:       m.Value.NewProc(ctx).(*linear.Processor),
-		r:           ctx.Graph.NewWrap(m.R),
-		Attention:   nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
+		scaleFactor:   m.ScaleFactor,
+		query:         m.Query.NewProc(ctx).(*linear.Processor),
+		value:         m.Value.NewProc(ctx).(*linear.Processor),
+		Attention:     nil,
 	}
 }
 
@@ -92,7 +85,7 @@ type indexedNodes struct {
 // getHash returns the hash for the dense matrix `x`.
 // Since the hash does not require the use of gradients, it is calculated outside the graph to reduce overhead.
 func (p *Processor) getHash(x *mat.Dense) int {
-	h := x.T().Mul(p.r.Value())
+	h := x.T().Mul(p.Model.(*Model).R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
 	return f64utils.ArgMax(concat.Data())
 }

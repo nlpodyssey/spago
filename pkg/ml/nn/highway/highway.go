@@ -38,26 +38,12 @@ func New(in int, activation ag.OpName) *Model {
 // Processor implements the nn.Processor interface for a highway Model.
 type Processor struct {
 	nn.BaseProcessor
-	wIn ag.Node
-	bIn ag.Node
-	wT  ag.Node
-	bT  ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		wIn: g.NewWrap(m.WIn),
-		bIn: g.NewWrap(m.BIn),
-		wT:  g.NewWrap(m.WT),
-		bT:  g.NewWrap(m.BT),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
 	}
 }
 
@@ -74,10 +60,11 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
 func (p *Processor) forward(x ag.Node) ag.Node {
-	activation := p.Model.(*Model).Activation
+	m := p.Model.(*Model)
+	activation := m.Activation
 	g := p.Graph
-	t := g.Sigmoid(nn.Affine(g, p.bT, p.wT, x))
-	h := g.Invoke(activation, nn.Affine(g, p.bIn, p.wIn, x))
+	t := g.Sigmoid(nn.Affine(g, m.BT, m.WT, x))
+	h := g.Invoke(activation, nn.Affine(g, m.BIn, m.WIn, x))
 	y := g.Add(g.Prod(t, h), g.Prod(g.ReverseSub(t, g.NewScalar(1.0)), x))
 	return y
 }

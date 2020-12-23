@@ -81,46 +81,16 @@ type State struct {
 // Processor implements the nn.Processor interface for an LSTM Model.
 type Processor struct {
 	nn.BaseProcessor
-	wIn      ag.Node
-	wInRec   ag.Node
-	bIn      ag.Node
-	wOut     ag.Node
-	wOutRec  ag.Node
-	bOut     ag.Node
-	wFor     ag.Node
-	wForRec  ag.Node
-	bFor     ag.Node
-	wCand    ag.Node
-	wCandRec ag.Node
-	bCand    ag.Node
-	States   []*State
+	States []*State
 	// whether to use refined gates
 	useRefinedGates bool
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
+		BaseProcessor:   nn.NewBaseProcessor(m, ctx, false),
 		States:          nil,
-		wIn:             g.NewWrap(m.WIn),
-		wInRec:          g.NewWrap(m.WInRec),
-		bIn:             g.NewWrap(m.BIn),
-		wOut:            g.NewWrap(m.WOut),
-		wOutRec:         g.NewWrap(m.WOutRec),
-		bOut:            g.NewWrap(m.BOut),
-		wFor:            g.NewWrap(m.WFor),
-		wForRec:         g.NewWrap(m.WForRec),
-		bFor:            g.NewWrap(m.BFor),
-		wCand:           g.NewWrap(m.WCand),
-		wCandRec:        g.NewWrap(m.WCandRec),
-		bCand:           g.NewWrap(m.BCand),
 		useRefinedGates: m.UseRefinedGates,
 	}
 }
@@ -163,13 +133,14 @@ func (p *Processor) LastState() *State {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.BaseProcessor.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev, cellPrev := p.prev()
-	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	s.OutG = g.Sigmoid(nn.Affine(g, p.bOut, p.wOut, x, p.wOutRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, yPrev))
+	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.OutG = g.Sigmoid(nn.Affine(g, m.BOut, m.WOut, x, m.WOutRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = g.Tanh(nn.Affine(g, m.BCand, m.WCand, x, m.WCandRec, yPrev))
 
 	if p.useRefinedGates {
 		s.InG = g.Prod(s.InG, x)

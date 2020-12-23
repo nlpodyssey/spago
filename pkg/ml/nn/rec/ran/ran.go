@@ -57,36 +57,14 @@ type State struct {
 // Processor implements the nn.Processor interface for a RAN Model.
 type Processor struct {
 	nn.BaseProcessor
-	wIn     ag.Node
-	wInRec  ag.Node
-	bIn     ag.Node
-	wFor    ag.Node
-	wForRec ag.Node
-	bFor    ag.Node
-	wCand   ag.Node
-	bCand   ag.Node
-	States  []*State
+	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		wIn:     g.NewWrap(m.WIn),
-		wInRec:  g.NewWrap(m.WInRec),
-		bIn:     g.NewWrap(m.BIn),
-		wFor:    g.NewWrap(m.WFor),
-		wForRec: g.NewWrap(m.WForRec),
-		bFor:    g.NewWrap(m.BFor),
-		wCand:   g.NewWrap(m.WCand),
-		bCand:   g.NewWrap(m.BCand),
-		States:  nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -126,12 +104,13 @@ func (p *Processor) LastState() *State {
 // c = inG * c + forG * cPrev
 // y = f(c)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev, cPrev := p.prev()
-	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = nn.Affine(g, p.bCand, p.wCand, x)
+	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = nn.Affine(g, m.BCand, m.WCand, x)
 	s.C = g.Prod(s.InG, s.Cand)
 	if cPrev != nil {
 		s.C = g.Add(s.C, g.Prod(s.ForG, cPrev))

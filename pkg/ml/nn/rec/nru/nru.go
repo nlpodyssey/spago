@@ -95,46 +95,16 @@ type Processor struct {
 	nn.BaseProcessor
 	Config
 	SqrtMemK        int
-	wx              ag.Node
-	wh              ag.Node
-	wm              ag.Node
-	b               ag.Node
-	whm2alpha       ag.Node
-	bhm2alpha       ag.Node
-	whm2alphaVec    ag.Node
-	bhm2alphaVec    ag.Node
-	whm2beta        ag.Node
-	bhm2beta        ag.Node
-	whm2betaVec     ag.Node
-	bhm2betaVec     ag.Node
 	hiddenLayerNorm nn.Processor
 	States          []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
+		BaseProcessor:   nn.NewBaseProcessor(m, ctx, false),
 		Config:          m.Config,
 		SqrtMemK:        m.SqrtMemK,
-		wx:              g.NewWrap(m.Wx),
-		wh:              g.NewWrap(m.Wh),
-		wm:              g.NewWrap(m.Wm),
-		b:               g.NewWrap(m.B),
-		whm2alpha:       g.NewWrap(m.Whm2alpha),
-		bhm2alpha:       g.NewWrap(m.Bhm2alpha),
-		whm2alphaVec:    g.NewWrap(m.Whm2alphaVec),
-		bhm2alphaVec:    g.NewWrap(m.Bhm2alphaVec),
-		whm2beta:        g.NewWrap(m.Whm2beta),
-		bhm2beta:        g.NewWrap(m.Bhm2beta),
-		whm2betaVec:     g.NewWrap(m.Whm2betaVec),
-		bhm2betaVec:     g.NewWrap(m.Bhm2betaVec),
 		hiddenLayerNorm: m.HiddenLayerNorm.NewProc(ctx),
 		States:          nil,
 	}
@@ -171,9 +141,10 @@ func (p *Processor) LastState() *State {
 }
 
 func (p *Processor) forward(x ag.Node) *State {
+	m := p.Model.(*Model)
 	g := p.Graph
 	yPrev, mPrev := p.getPrev()
-	h := g.ReLU(p.optLayerNorm(nn.Affine(g, p.b, p.wx, x, p.wh, yPrev, p.wm, mPrev)))
+	h := g.ReLU(p.optLayerNorm(nn.Affine(g, m.B, m.Wx, x, m.Wh, yPrev, m.Wm, mPrev)))
 	hm := g.Concat(h, mPrev)
 	addMemory := p.calcAddMemory(hm)
 	forgetMemory := p.calcForgetMemory(hm)
@@ -200,9 +171,10 @@ func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 }
 
 func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
-	alpha := nn.SeparateVec(g, p.optReLU(nn.Affine(g, p.bhm2alpha, p.whm2alpha, hm)))
-	uAlpha := nn.SplitVec(g, nn.Affine(g, p.bhm2alphaVec, p.whm2alphaVec, hm), 2)
+	alpha := nn.SeparateVec(g, p.optReLU(nn.Affine(g, m.Bhm2alpha, m.Whm2alpha, hm)))
+	uAlpha := nn.SplitVec(g, nn.Affine(g, m.Bhm2alphaVec, m.Whm2alphaVec, hm), 2)
 	uAlphaSecond := uAlpha[1]
 	uAlphaFirst := uAlpha[0]
 	vAlpha := make([]ag.Node, uAlphaFirst.Value().Size())
@@ -224,9 +196,10 @@ func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
 }
 
 func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
-	beta := nn.SeparateVec(g, p.optReLU(nn.Affine(g, p.bhm2beta, p.whm2beta, hm)))
-	uBeta := nn.SplitVec(g, nn.Affine(g, p.bhm2betaVec, p.whm2betaVec, hm), 2)
+	beta := nn.SeparateVec(g, p.optReLU(nn.Affine(g, m.Bhm2beta, m.Whm2beta, hm)))
+	uBeta := nn.SplitVec(g, nn.Affine(g, m.Bhm2betaVec, m.Whm2betaVec, hm), 2)
 	uBetaSecond := uBeta[1]
 	uBetaFirst := uBeta[0]
 	vBeta := make([]ag.Node, uBetaFirst.Value().Size())

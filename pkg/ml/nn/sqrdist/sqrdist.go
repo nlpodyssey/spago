@@ -30,19 +30,12 @@ func New(in, rank int) *Model {
 // Processor implements the nn.Processor interface for an sqrdist Model.
 type Processor struct {
 	nn.BaseProcessor
-	b ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		b: ctx.Graph.NewWrap(m.B),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
 	}
 }
 
@@ -56,7 +49,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
-	bh := g.Mul(p.b, x)
+	bh := g.Mul(m.B, x)
 	return g.Mul(g.T(bh), bh)
 }

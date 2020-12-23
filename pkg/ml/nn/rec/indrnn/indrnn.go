@@ -42,26 +42,14 @@ type State struct {
 // Processor implements the nn.Processor interface for an IndRNN Model.
 type Processor struct {
 	nn.BaseProcessor
-	w      ag.Node
-	wRec   ag.Node
-	b      ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		States: nil,
-		w:      g.NewWrap(m.W),
-		wRec:   g.NewWrap(m.WRec),
-		b:      g.NewWrap(m.B),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -97,11 +85,12 @@ func (p *Processor) LastState() *State {
 
 // y = f(w (dot) x + wRec * yPrev + b)
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	s = new(State)
 	yPrev := p.prev()
-	h := nn.Affine(p.Graph, p.b, p.w, x)
+	h := nn.Affine(p.Graph, m.B, m.W, x)
 	if yPrev != nil {
-		h = p.Graph.Add(h, p.Graph.Prod(p.wRec, yPrev))
+		h = p.Graph.Add(h, p.Graph.Prod(m.WRec, yPrev))
 	}
 	a := p.Model.(*Model).Activation
 	s.Y = p.Graph.Invoke(a, h)

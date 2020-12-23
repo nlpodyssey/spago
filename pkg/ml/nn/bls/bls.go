@@ -60,15 +60,15 @@ func New(c Config) *Model {
 	wz := make([]nn.Param, length)
 	bz := make([]nn.Param, length)
 	for i := 0; i < length; i++ {
-		wz[i] = nn.NewParam(mat.NewEmptyDense(c.FeaturesSize, c.InputSize))
-		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize))
+		wz[i] = nn.NewParam(mat.NewEmptyDense(c.FeaturesSize, c.InputSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
+		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
 	}
 	return &Model{
 		Config: c,
 		Wz:     wz,
 		Bz:     bz,
-		Wh:     nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize)),
-		Bh:     nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize)),
+		Wh:     nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		Bh:     nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
 		W:      nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
 		B:      nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
 	}
@@ -78,53 +78,13 @@ func New(c Config) *Model {
 type Processor struct {
 	nn.BaseProcessor
 	Config
-	wz []ag.Node
-	bz []ag.Node
-	wh ag.Node
-	bh ag.Node
-	w  ag.Node
-	b  ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	length := m.NumOfFeatures
-	wx := make([]ag.Node, length)
-	bx := make([]ag.Node, length)
-	if m.KeepFeaturesParamsFixed {
-		for i := 0; i < length; i++ {
-			wx[i] = g.NewWrapNoGrad(m.Wz[i])
-			bx[i] = g.NewWrapNoGrad(m.Bz[i])
-		}
-	} else {
-		for i := 0; i < length; i++ {
-			wx[i] = g.NewWrap(m.Wz[i])
-			bx[i] = g.NewWrap(m.Bz[i])
-		}
-	}
-	var wh, bh ag.Node
-	if m.KeepEnhancedNodesParamsFixed {
-		wh = g.NewWrapNoGrad(m.Wh)
-		bh = g.NewWrapNoGrad(m.Bh)
-	} else {
-		wh = g.NewWrap(m.Wh)
-		bh = g.NewWrap(m.Bh)
-	}
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		Config: m.Config,
-		wz:     wx,
-		bz:     bx,
-		wh:     wh,
-		bh:     bh,
-		w:      g.NewWrap(m.W),
-		b:      g.NewWrap(m.B),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		Config:        m.Config,
 	}
 }
 
@@ -138,17 +98,19 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
 	z := p.useFeaturesDropout(p.featuresMapping(x))
-	h := p.useEnhancedNodesDropout(g.Invoke(p.EnhancedNodesActivation, nn.Affine(g, p.bh, p.wh, z)))
-	y := g.Invoke(p.OutputActivation, nn.Affine(g, p.b, p.w, g.Concat([]ag.Node{z, h}...)))
+	h := p.useEnhancedNodesDropout(g.Invoke(p.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
+	y := g.Invoke(p.OutputActivation, nn.Affine(g, m.B, m.W, g.Concat([]ag.Node{z, h}...)))
 	return y
 }
 
 func (p *Processor) featuresMapping(x ag.Node) ag.Node {
+	m := p.Model.(*Model)
 	z := make([]ag.Node, p.NumOfFeatures)
 	for i := range z {
-		z[i] = nn.Affine(p.Graph, p.bz[i], p.wz[i], x)
+		z[i] = nn.Affine(p.Graph, m.Bz[i], m.Wz[i], x)
 	}
 	return p.Graph.Invoke(p.FeaturesActivation, p.Graph.Concat(z...))
 }

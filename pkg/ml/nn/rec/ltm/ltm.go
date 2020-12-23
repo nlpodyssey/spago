@@ -47,28 +47,14 @@ type State struct {
 // Processor implements the nn.Processor interface for an LTM Model.
 type Processor struct {
 	nn.BaseProcessor
-	w1     ag.Node
-	w2     ag.Node
-	w3     ag.Node
-	wCell  ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		w1:     g.NewWrap(m.W1),
-		w2:     g.NewWrap(m.W2),
-		w3:     g.NewWrap(m.W3),
-		wCell:  g.NewWrap(m.WCell),
-		States: nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -109,6 +95,7 @@ func (p *Processor) LastState() *State {
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev, cellPrev := p.prev()
@@ -116,14 +103,14 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	if yPrev != nil {
 		h = g.Add(h, yPrev)
 	}
-	s.L1 = g.Sigmoid(g.Mul(p.w1, h))
-	s.L2 = g.Sigmoid(g.Mul(p.w2, h))
-	s.L3 = g.Sigmoid(g.Mul(p.w3, h))
+	s.L1 = g.Sigmoid(g.Mul(m.W1, h))
+	s.L2 = g.Sigmoid(g.Mul(m.W2, h))
+	s.L3 = g.Sigmoid(g.Mul(m.W3, h))
 	s.Cand = g.Prod(s.L1, s.L2)
 	if cellPrev != nil {
 		s.Cand = g.Add(s.Cand, cellPrev)
 	}
-	s.Cell = g.Sigmoid(g.Mul(p.wCell, s.Cand))
+	s.Cell = g.Sigmoid(g.Mul(m.WCell, s.Cand))
 	s.Y = g.Prod(s.Cell, s.L3)
 	return
 }

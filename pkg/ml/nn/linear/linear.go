@@ -50,8 +50,6 @@ const defaultConcurrency = true
 // Processor implements the nn.Processor interface for a linear Model.
 type Processor struct {
 	nn.BaseProcessor
-	w ag.Node
-	b ag.Node
 	// whether to enable the concurrent forward computation
 	concurrent bool
 }
@@ -59,15 +57,8 @@ type Processor struct {
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		w:          ctx.Graph.NewWrap(m.W),
-		b:          ctx.Graph.NewWrap(m.B),
-		concurrent: defaultConcurrency, // TODO: from options
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		concurrent:    defaultConcurrency, // TODO: from options
 	}
 }
 
@@ -109,5 +100,6 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 
 // y = w (dot) x + b
 func (p *Processor) forward(x ag.Node) ag.Node {
-	return nn.Affine(p.Graph, p.b, p.w, x)
+	m := p.Model.(*Model)
+	return nn.Affine(p.Graph, m.B, m.W, x)
 }

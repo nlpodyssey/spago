@@ -56,38 +56,14 @@ type State struct {
 // Processor implements the nn.Processor interface for a GRU Model.
 type Processor struct {
 	nn.BaseProcessor
-	wPart    ag.Node
-	wPartRec ag.Node
-	bPart    ag.Node
-	wRes     ag.Node
-	wResRec  ag.Node
-	bRes     ag.Node
-	wCand    ag.Node
-	wCandRec ag.Node
-	bCand    ag.Node
-	States   []*State
+	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		States:   nil,
-		wPart:    g.NewWrap(m.WPart),
-		wPartRec: g.NewWrap(m.WPartRec),
-		bPart:    g.NewWrap(m.BPart),
-		wRes:     g.NewWrap(m.WRes),
-		wResRec:  g.NewWrap(m.WResRec),
-		bRes:     g.NewWrap(m.BRes),
-		wCand:    g.NewWrap(m.WCand),
-		wCandRec: g.NewWrap(m.WCandRec),
-		bCand:    g.NewWrap(m.BCand),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -126,12 +102,13 @@ func (p *Processor) LastState() *State {
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev := p.prev()
-	s.R = g.Sigmoid(nn.Affine(g, p.bRes, p.wRes, x, p.wResRec, yPrev))
-	s.P = g.Sigmoid(nn.Affine(g, p.bPart, p.wPart, x, p.wPartRec, yPrev))
-	s.C = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, tryProd(g, yPrev, s.R)))
+	s.R = g.Sigmoid(nn.Affine(g, m.BRes, m.WRes, x, m.WResRec, yPrev))
+	s.P = g.Sigmoid(nn.Affine(g, m.BPart, m.WPart, x, m.WPartRec, yPrev))
+	s.C = g.Tanh(nn.Affine(g, m.BCand, m.WCand, x, m.WCandRec, tryProd(g, yPrev, s.R)))
 	s.Y = g.Prod(s.P, s.C)
 	if yPrev != nil {
 		s.Y = g.Add(s.Y, g.Prod(g.ReverseSub(s.P, g.NewScalar(1.0)), yPrev))

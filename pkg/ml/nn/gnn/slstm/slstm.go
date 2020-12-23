@@ -107,31 +107,6 @@ func newGate3(size int) *HyperLinear3 {
 // Processor implements the nn.Processor interface for a Sentence-State LSTM Model.
 type Processor struct {
 	nn.BaseProcessor
-	Config Config
-	// InputGate
-	Wi, Ui, Vi, Bi ag.Node
-	// LeftCellGate
-	Wl, Ul, Vl, Bl ag.Node
-	// RightCellGate
-	Wr, Ur, Vr, Br ag.Node
-	// CellGate
-	Wf, Uf, Vf, Bf ag.Node
-	// SentCellGate
-	Ws, Us, Vs, Bs ag.Node
-	// OutputGate
-	Wo, Uo, Vo, Bo ag.Node
-	// InputActivation
-	Wu, Uu, Vu, Bu ag.Node
-	// NonLocalSentCellGate
-	NLSentWg, NLSentUg, NLSentBg ag.Node
-	// NonLocalInputGate
-	NLSentWf, NLSentUf, NLSentBf ag.Node
-	// NonLocalSentOutputGate
-	NLSentWo, NLSentUo, NLSentBo ag.Node
-	// Start/End Hidden
-	StartH, EndH ag.Node
-	// Values at t0
-	InitValue ag.Node
 	// Shared among all steps
 	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node
 	// Shared among all nodes at the same step
@@ -146,72 +121,15 @@ type Processor struct {
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Config: m.Config,
-
-		Wi: g.NewWrap(m.InputGate.W),
-		Ui: g.NewWrap(m.InputGate.U),
-		Vi: g.NewWrap(m.InputGate.V),
-		Bi: g.NewWrap(m.InputGate.B),
-
-		Wl: g.NewWrap(m.LeftCellGate.W),
-		Ul: g.NewWrap(m.LeftCellGate.U),
-		Vl: g.NewWrap(m.LeftCellGate.V),
-		Bl: g.NewWrap(m.LeftCellGate.B),
-
-		Wr: g.NewWrap(m.RightCellGate.W),
-		Ur: g.NewWrap(m.RightCellGate.U),
-		Vr: g.NewWrap(m.RightCellGate.V),
-		Br: g.NewWrap(m.RightCellGate.B),
-
-		Wf: g.NewWrap(m.CellGate.W),
-		Uf: g.NewWrap(m.CellGate.U),
-		Vf: g.NewWrap(m.CellGate.V),
-		Bf: g.NewWrap(m.CellGate.B),
-
-		Ws: g.NewWrap(m.SentCellGate.W),
-		Us: g.NewWrap(m.SentCellGate.U),
-		Vs: g.NewWrap(m.SentCellGate.V),
-		Bs: g.NewWrap(m.SentCellGate.B),
-
-		Wo: g.NewWrap(m.OutputGate.W),
-		Uo: g.NewWrap(m.OutputGate.U),
-		Vo: g.NewWrap(m.OutputGate.V),
-		Bo: g.NewWrap(m.OutputGate.B),
-
-		Wu: g.NewWrap(m.InputActivation.W),
-		Uu: g.NewWrap(m.InputActivation.U),
-		Vu: g.NewWrap(m.InputActivation.V),
-		Bu: g.NewWrap(m.InputActivation.B),
-
-		NLSentWg: g.NewWrap(m.NonLocalSentCellGate.W),
-		NLSentUg: g.NewWrap(m.NonLocalSentCellGate.U),
-		NLSentBg: g.NewWrap(m.NonLocalSentCellGate.B),
-
-		NLSentWf: g.NewWrap(m.NonLocalInputGate.W),
-		NLSentUf: g.NewWrap(m.NonLocalInputGate.U),
-		NLSentBf: g.NewWrap(m.NonLocalInputGate.B),
-
-		NLSentWo: g.NewWrap(m.NonLocalSentOutputGate.W),
-		NLSentUo: g.NewWrap(m.NonLocalSentOutputGate.U),
-		NLSentBo: g.NewWrap(m.NonLocalSentOutputGate.B),
-
-		StartH:    g.NewWrap(m.StartH),
-		EndH:      g.NewWrap(m.EndH),
-		InitValue: g.NewWrap(m.InitValue),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	steps := p.Config.Steps
+	m := p.Model.(*Model)
+	steps := m.Config.Steps
 	n := len(xs)
 	h := make([][]ag.Node, steps)
 	c := make([][]ag.Node, steps)
@@ -220,15 +138,15 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	h[0] = make([]ag.Node, n)
 	c[0] = make([]ag.Node, n)
 
-	g[0] = p.InitValue
-	cg[0] = p.InitValue
+	g[0] = m.InitValue
+	cg[0] = m.InitValue
 	for i := 0; i < n; i++ {
-		h[0][i] = p.InitValue
-		c[0][i] = p.InitValue
+		h[0][i] = m.InitValue
+		c[0][i] = m.InitValue
 	}
 
 	p.computeUx(xs) // the result is shared among all steps
-	for t := 1; t < p.Config.Steps; t++ {
+	for t := 1; t < m.Config.Steps; t++ {
 		p.computeVg(g[t-1]) // the result is shared among all nodes
 		h[t], c[t] = p.updateHiddenNodes(h[t-1], c[t-1], g[t-1])
 		g[t], cg[t] = p.updateSentenceState(h[t-1], c[t-1], g[t-1])
@@ -238,6 +156,7 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) computeUx(xs []ag.Node) {
+	m := p.Model.(*Model)
 	n := len(xs)
 	p.xUi = make([]ag.Node, n)
 	p.xUl = make([]ag.Node, n)
@@ -252,19 +171,20 @@ func (p *Processor) computeUx(xs []ag.Node) {
 	for i := 0; i < n; i++ {
 		go func(i int) {
 			defer wg.Done()
-			p.xUi[i] = p.Graph.Mul(p.Ui, xs[i])
-			p.xUl[i] = p.Graph.Mul(p.Ul, xs[i])
-			p.xUr[i] = p.Graph.Mul(p.Ur, xs[i])
-			p.xUf[i] = p.Graph.Mul(p.Uf, xs[i])
-			p.xUs[i] = p.Graph.Mul(p.Us, xs[i])
-			p.xUo[i] = p.Graph.Mul(p.Uo, xs[i])
-			p.xUu[i] = p.Graph.Mul(p.Uu, xs[i])
+			p.xUi[i] = p.Graph.Mul(m.InputGate.U, xs[i])
+			p.xUl[i] = p.Graph.Mul(m.LeftCellGate.U, xs[i])
+			p.xUr[i] = p.Graph.Mul(m.RightCellGate.U, xs[i])
+			p.xUf[i] = p.Graph.Mul(m.CellGate.U, xs[i])
+			p.xUs[i] = p.Graph.Mul(m.SentCellGate.U, xs[i])
+			p.xUo[i] = p.Graph.Mul(m.OutputGate.U, xs[i])
+			p.xUu[i] = p.Graph.Mul(m.InputActivation.U, xs[i])
 		}(i)
 	}
 	wg.Wait()
 }
 
 func (p *Processor) computeVg(prevG ag.Node) {
+	m := p.Model.(*Model)
 	var wg sync.WaitGroup
 	wg.Add(7)
 	for i := 0; i < 7; i++ {
@@ -272,19 +192,19 @@ func (p *Processor) computeVg(prevG ag.Node) {
 			defer wg.Done()
 			switch i {
 			case 0:
-				p.ViPrevG = p.Graph.Mul(p.Vi, prevG)
+				p.ViPrevG = p.Graph.Mul(m.InputGate.V, prevG)
 			case 1:
-				p.VlPrevG = p.Graph.Mul(p.Vl, prevG)
+				p.VlPrevG = p.Graph.Mul(m.LeftCellGate.V, prevG)
 			case 2:
-				p.VrPrevG = p.Graph.Mul(p.Vr, prevG)
+				p.VrPrevG = p.Graph.Mul(m.RightCellGate.V, prevG)
 			case 3:
-				p.VfPrevG = p.Graph.Mul(p.Vf, prevG)
+				p.VfPrevG = p.Graph.Mul(m.CellGate.V, prevG)
 			case 4:
-				p.VsPrevG = p.Graph.Mul(p.Vs, prevG)
+				p.VsPrevG = p.Graph.Mul(m.SentCellGate.V, prevG)
 			case 5:
-				p.VoPrevG = p.Graph.Mul(p.Vo, prevG)
+				p.VoPrevG = p.Graph.Mul(m.OutputGate.V, prevG)
 			case 6:
-				p.VuPrevG = p.Graph.Mul(p.Vu, prevG)
+				p.VuPrevG = p.Graph.Mul(m.InputActivation.U, prevG)
 			}
 		}(i)
 	}
@@ -292,6 +212,7 @@ func (p *Processor) computeVg(prevG ag.Node) {
 }
 
 func (p *Processor) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	n := len(prevH)
 	first := 0
@@ -301,26 +222,26 @@ func (p *Processor) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG a
 
 	prevHj, prevCj := func() (ag.Node, ag.Node) {
 		if j < first {
-			return p.StartH, p.StartH
+			return m.StartH, m.StartH
 		}
 		return prevH[j], prevC[j]
 	}()
 
 	prevHk, prevCk := func() (ag.Node, ag.Node) {
 		if k > last {
-			return p.EndH, p.EndH
+			return m.EndH, m.EndH
 		}
 		return prevH[k], prevC[k]
 	}()
 
 	context := g.Concat(prevHj, prevH[i], prevHk)
-	iG := g.Sigmoid(g.Sum(p.Bi, g.Mul(p.Wi, context), p.ViPrevG, p.xUi[i]))
-	lG := g.Sigmoid(g.Sum(p.Bl, g.Mul(p.Wl, context), p.VlPrevG, p.xUl[i]))
-	rG := g.Sigmoid(g.Sum(p.Br, g.Mul(p.Wr, context), p.VrPrevG, p.xUr[i]))
-	fG := g.Sigmoid(g.Sum(p.Bf, g.Mul(p.Wf, context), p.VfPrevG, p.xUf[i]))
-	sG := g.Sigmoid(g.Sum(p.Bs, g.Mul(p.Ws, context), p.VsPrevG, p.xUs[i]))
-	oG := g.Sigmoid(g.Sum(p.Bo, g.Mul(p.Wo, context), p.VoPrevG, p.xUo[i]))
-	uG := g.Tanh(g.Sum(p.Bu, g.Mul(p.Wu, context), p.VuPrevG, p.xUu[i]))
+	iG := g.Sigmoid(g.Sum(m.InputGate.B, g.Mul(m.InputGate.W, context), p.ViPrevG, p.xUi[i]))
+	lG := g.Sigmoid(g.Sum(m.LeftCellGate.B, g.Mul(m.LeftCellGate.W, context), p.VlPrevG, p.xUl[i]))
+	rG := g.Sigmoid(g.Sum(m.RightCellGate.B, g.Mul(m.RightCellGate.W, context), p.VrPrevG, p.xUr[i]))
+	fG := g.Sigmoid(g.Sum(m.CellGate.B, g.Mul(m.CellGate.W, context), p.VfPrevG, p.xUf[i]))
+	sG := g.Sigmoid(g.Sum(m.SentCellGate.B, g.Mul(m.SentCellGate.W, context), p.VsPrevG, p.xUs[i]))
+	oG := g.Sigmoid(g.Sum(m.OutputGate.B, g.Mul(m.OutputGate.W, context), p.VoPrevG, p.xUo[i]))
+	uG := g.Tanh(g.Sum(m.InputActivation.B, g.Mul(m.InputActivation.W, context), p.VuPrevG, p.xUu[i]))
 	c1 := g.Prod(lG, prevCj)
 	c2 := g.Prod(fG, prevC[i])
 	c3 := g.Prod(rG, prevCk)
@@ -348,16 +269,17 @@ func (p *Processor) updateHiddenNodes(prevH []ag.Node, prevC []ag.Node, prevG ag
 }
 
 func (p *Processor) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	n := len(prevH)
 	avgH := g.Mean(prevH)
-	fG := g.Sigmoid(nn.Affine(g, p.NLSentBg, p.NLSentWg, prevG, p.NLSentUg, avgH))
-	oG := g.Sigmoid(nn.Affine(g, p.NLSentBo, p.NLSentWo, prevG, p.NLSentUo, avgH))
+	fG := g.Sigmoid(nn.Affine(g, m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
+	oG := g.Sigmoid(nn.Affine(g, m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
 	hG := make([]ag.Node, n)
-	gG := nn.Affine(g, p.NLSentBf, p.NLSentWf, prevG)
+	gG := nn.Affine(g, m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
-		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(p.NLSentUf, prevH[i])))
+		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}
 
 	var sum ag.Node

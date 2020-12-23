@@ -54,34 +54,14 @@ type State struct {
 // Processor implements the nn.Processor interface for a CFN Model.
 type Processor struct {
 	nn.BaseProcessor
-	wIn     ag.Node
-	wInRec  ag.Node
-	bIn     ag.Node
-	wFor    ag.Node
-	wForRec ag.Node
-	bFor    ag.Node
-	wCand   ag.Node
-	States  []*State
+	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		States:  nil,
-		wIn:     g.NewWrap(m.WIn),
-		wInRec:  g.NewWrap(m.WInRec),
-		bIn:     g.NewWrap(m.BIn),
-		wFor:    g.NewWrap(m.WFor),
-		wForRec: g.NewWrap(m.WForRec),
-		bFor:    g.NewWrap(m.BFor),
-		wCand:   g.NewWrap(m.WCand),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -120,12 +100,13 @@ func (p *Processor) LastState() *State {
 // c = f(wc (dot) x)
 // y = inG * c + f(yPrev) * forG
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev := p.prev()
-	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrev))
-	s.Cand = g.Tanh(g.Mul(p.wCand, x))
+	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = g.Tanh(g.Mul(m.WCand, x))
 	s.Y = g.Prod(s.InG, s.Cand)
 	if yPrev != nil {
 		s.Y = g.Add(s.Y, g.Prod(g.Tanh(yPrev), s.ForG))

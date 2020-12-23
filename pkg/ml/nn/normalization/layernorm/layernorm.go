@@ -36,8 +36,6 @@ func New(size int) *Model {
 // Processor implements the nn.Processor interface for a layer normalization Model.
 type Processor struct {
 	nn.BaseProcessor
-	w   ag.Node
-	b   ag.Node
 	eps ag.Node
 }
 
@@ -45,28 +43,22 @@ type Processor struct {
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		w:   g.NewWrap(m.W),
-		b:   g.NewWrap(m.B),
-		eps: g.Constant(1e-12), // avoid underflow errors
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		eps:           g.Constant(1e-12), // avoid underflow errors
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		mean := g.ReduceMean(x)
 		dev := g.SubScalar(x, mean)
 		stdDev := g.Sqrt(g.Add(g.ReduceMean(g.Square(dev)), p.eps))
-		ys[i] = g.Add(g.Prod(g.DivScalar(dev, stdDev), p.w), p.b)
+		ys[i] = g.Add(g.Prod(g.DivScalar(dev, stdDev), m.W), m.B)
 	}
 	return ys
 }

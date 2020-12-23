@@ -51,34 +51,14 @@ type State struct {
 // Processor implements the nn.Processor interface for an FSMN Model.
 type Processor struct {
 	nn.BaseProcessor
-	order  int
-	w      ag.Node
-	wRec   ag.Node
-	wS     []ag.Node
-	b      ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	wS := make([]ag.Node, len(m.WS))
-	for i, p := range m.WS {
-		wS[i] = g.NewWrap(p)
-	}
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		order:  m.order,
-		States: nil,
-		w:      g.NewWrap(m.W),
-		wRec:   g.NewWrap(m.WRec),
-		wS:     wS,
-		b:      g.NewWrap(m.B),
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -103,23 +83,25 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
-	h := nn.Affine(g, p.b, p.w, x)
+	h := nn.Affine(g, m.B, m.W, x)
 	if len(p.States) > 0 {
-		h = g.Add(h, g.Prod(p.wRec, p.feedback()))
+		h = g.Add(h, g.Prod(m.WRec, p.feedback()))
 	}
 	s.Y = g.ReLU(h)
 	return
 }
 
 func (p *Processor) feedback() ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
 	var y ag.Node
 	n := len(p.States)
-	min := utils.MinInt(p.order, n)
+	min := utils.MinInt(m.order, n)
 	for i := 0; i < min; i++ {
-		scaled := g.Prod(p.wS[i], g.NewWrapNoGrad(p.States[n-1-i].Y))
+		scaled := g.Prod(m.WS[i], g.NewWrapNoGrad(p.States[n-1-i].Y))
 		if y == nil {
 			y = scaled
 		} else {

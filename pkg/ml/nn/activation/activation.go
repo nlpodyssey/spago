@@ -32,31 +32,21 @@ func New(activation ag.OpName, params ...nn.Param) *Model {
 // Processor implements the nn.Processor interface for an activation Model.
 type Processor struct {
 	nn.BaseProcessor
-	params []ag.Node
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	var params []ag.Node
-	for _, param := range m.Params {
-		params = append(params, ctx.Graph.NewWrap(param))
-	}
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		params: params,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	activation := p.Model.(*Model).Activation
+	m := p.Model.(*Model)
+	activation := m.Activation
 	transformed := func(x ag.Node) ag.Node {
-		return p.Graph.Invoke(activation, append([]ag.Node{x}, p.params...)...)
+		return p.Graph.Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).AsNodes()...)...)
 	}
 	return ag.Map(transformed, xs)
 }

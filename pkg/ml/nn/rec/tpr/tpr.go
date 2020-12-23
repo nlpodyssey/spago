@@ -54,36 +54,14 @@ type State struct {
 // Processor implements the nn.Processor interface for a TPR Model.
 type Processor struct {
 	nn.BaseProcessor
-	wInS   ag.Node
-	wInR   ag.Node
-	wRecS  ag.Node
-	wRecR  ag.Node
-	bS     ag.Node
-	bR     ag.Node
-	s      ag.Node
-	r      ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	p := &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		wInS:   g.NewWrap(m.WInS),
-		wInR:   g.NewWrap(m.WInR),
-		wRecS:  g.NewWrap(m.WRecS),
-		wRecR:  g.NewWrap(m.WRecR),
-		bS:     g.NewWrap(m.BS),
-		bR:     g.NewWrap(m.BR),
-		s:      g.NewWrap(m.S),
-		r:      g.NewWrap(m.R),
-		States: nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 	return p
 }
@@ -125,6 +103,7 @@ func (p *Processor) LastState() *State {
 // b = s (dot) rT
 // y = vec(b)
 func (p *Processor) forward(x ag.Node) (st *State) {
+	m := p.Model.(*Model)
 	sPrev := p.LastState()
 	var yPrev ag.Node
 	if sPrev != nil {
@@ -132,10 +111,10 @@ func (p *Processor) forward(x ag.Node) (st *State) {
 	}
 	st = new(State)
 	g := p.Graph
-	st.AR = g.Sigmoid(nn.Affine(g, p.bR, p.wInR, x, p.wRecR, yPrev))
-	st.AS = g.Sigmoid(nn.Affine(g, p.bS, p.wInS, x, p.wRecS, yPrev))
-	st.R = g.Mul(p.r, st.AR)
-	st.S = g.Mul(p.s, st.AS)
+	st.AR = g.Sigmoid(nn.Affine(g, m.BR, m.WInR, x, m.WRecR, yPrev))
+	st.AS = g.Sigmoid(nn.Affine(g, m.BS, m.WInS, x, m.WRecS, yPrev))
+	st.R = g.Mul(m.R, st.AR)
+	st.S = g.Mul(m.S, st.AS)
 	b := g.Mul(st.S, g.T(st.R))
 	st.Y = g.Vec(b)
 	return

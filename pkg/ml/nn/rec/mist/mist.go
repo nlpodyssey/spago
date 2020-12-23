@@ -60,40 +60,14 @@ type State struct {
 // Processor implements the nn.Processor interface for a MIST Model.
 type Processor struct {
 	nn.BaseProcessor
-	nd     int
-	wx     ag.Node
-	wh     ag.Node
-	b      ag.Node
-	wax    ag.Node
-	wah    ag.Node
-	ba     ag.Node
-	wrx    ag.Node
-	wrh    ag.Node
-	br     ag.Node
 	States []*State
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		nd:     m.nd,
-		wx:     g.NewWrap(m.Wx),
-		wh:     g.NewWrap(m.Wh),
-		b:      g.NewWrap(m.B),
-		wax:    g.NewWrap(m.Wax),
-		wah:    g.NewWrap(m.Wah),
-		ba:     g.NewWrap(m.Ba),
-		wrx:    g.NewWrap(m.Wrx),
-		wrh:    g.NewWrap(m.Wrh),
-		br:     g.NewWrap(m.Br),
-		States: nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		States:        nil,
 	}
 }
 
@@ -128,12 +102,13 @@ func (p *Processor) LastState() *State {
 }
 
 func (p *Processor) forward(x ag.Node) (s *State) {
+	m := p.Model.(*Model)
 	g := p.Graph
 	s = new(State)
 	yPrev := p.yPrev()
-	a := g.Softmax(nn.Affine(g, p.ba, p.wax, x, p.wah, yPrev))
-	r := g.Sigmoid(nn.Affine(g, p.br, p.wrx, x, p.wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = g.Tanh(nn.Affine(g, p.b, p.wx, x, p.wh, p.tryProd(r, p.weightHistory(a))))
+	a := g.Softmax(nn.Affine(g, m.Ba, m.Wax, x, m.Wah, yPrev))
+	r := g.Sigmoid(nn.Affine(g, m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
+	s.Y = g.Tanh(nn.Affine(g, m.B, m.Wx, x, m.Wh, p.tryProd(r, p.weightHistory(a))))
 	return
 }
 
@@ -150,7 +125,7 @@ func (p *Processor) weightHistory(a ag.Node) ag.Node {
 	g := p.Graph
 	var sum ag.Node
 	n := len(p.States)
-	for i := 0; i < p.nd; i++ {
+	for i := 0; i < p.Model.(*Model).nd; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
 		if k <= n {
 			sum = g.Add(sum, g.ProdScalar(p.States[n-k].Y, g.AtVec(a, i)))

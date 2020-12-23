@@ -63,23 +63,16 @@ type Processor struct {
 	nn.BaseProcessor
 	ffn       *stack.Processor
 	value     *linear.Processor
-	w         ag.Node
 	Attention *ContextProb
 }
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) NewProc(ctx nn.Context) nn.Processor {
 	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		ffn:       m.FFN.NewProc(ctx).(*stack.Processor),
-		value:     m.Value.NewProc(ctx).(*linear.Processor),
-		w:         ctx.Graph.NewWrap(m.W),
-		Attention: nil,
+		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
+		ffn:           m.FFN.NewProc(ctx).(*stack.Processor),
+		value:         m.Value.NewProc(ctx).(*linear.Processor),
+		Attention:     nil,
 	}
 }
 
@@ -107,10 +100,11 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // extractAttentionWeights returns the attention parameters tailored to the sequence length.
 func (p *Processor) extractAttentionWeights(length int) ag.Node {
+	m := p.Model.(*Model)
 	g := p.Graph
 	attentionWeights := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
-		attentionWeights[i] = g.T(g.RowView(p.w, i))
+		attentionWeights[i] = g.T(g.RowView(m.W, i))
 	}
 	return g.Stack(attentionWeights...)
 }
