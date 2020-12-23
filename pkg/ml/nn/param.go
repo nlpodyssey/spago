@@ -344,6 +344,47 @@ func (r *param) TimeStep() int64 {
 	return 0
 }
 
+// wrappedParam enriches a Param with a Node.
+type wrappedParam struct {
+	Node ag.Node
+	Param
+}
+
+// ID dispatches the call to the Node.
+func (r *wrappedParam) ID() int64 {
+	return r.Node.ID()
+}
+
+// Graph dispatches the call to the Node.
+func (r *wrappedParam) Graph() *ag.Graph {
+	return r.Node.Graph()
+}
+
+// Grad dispatches the call to the Node.
+func (r *wrappedParam) Grad() mat.Matrix {
+	return r.Node.Grad()
+}
+
+// PropagateGrad dispatches the call to the Node.
+func (r *wrappedParam) PropagateGrad(gx mat.Matrix) {
+	r.Node.PropagateGrad(gx)
+}
+
+// HasGrad dispatches the call to the Node.
+func (r *wrappedParam) HasGrad() bool {
+	return r.Node.HasGrad()
+}
+
+// RequiresGrad dispatches the call to the Node.
+func (r *wrappedParam) RequiresGrad() bool {
+	return r.Node.RequiresGrad()
+}
+
+// ZeroGrad dispatches the call to the Node.
+func (r *wrappedParam) ZeroGrad() {
+	r.Node.ZeroGrad()
+}
+
 // ParamSerializer allows serialization and deserialization of a single Param.
 type ParamSerializer struct {
 	*param
