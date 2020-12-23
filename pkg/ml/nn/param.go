@@ -96,6 +96,18 @@ type Param interface {
 	UnmarshalBinary(data []byte) error
 }
 
+// Params extends a slice of Param with AsNodes() method.
+type Params []Param
+
+// AsNodes converts the slice of Param into a slice of ag.Node.
+func (ps Params) AsNodes() []ag.Node {
+	ns := make([]ag.Node, len(ps))
+	for i, p := range ps {
+		ns[i] = p
+	}
+	return ns
+}
+
 var _ Param = &param{}
 
 type param struct {
