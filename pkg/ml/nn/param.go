@@ -344,10 +344,18 @@ func (r *param) TimeStep() int64 {
 	return 0
 }
 
+// wrappedParam returns a new wrappedParam from the param itself.
+func (r *param) wrappedParam(g *ag.Graph) *wrappedParam {
+	if r.requiresGrad {
+		return &wrappedParam{Param: r, Node: g.NewWrap(r)}
+	}
+	return &wrappedParam{Param: r, Node: g.NewWrapNoGrad(r)}
+}
+
 // wrappedParam enriches a Param with a Node.
 type wrappedParam struct {
-	Node ag.Node
 	Param
+	Node ag.Node
 }
 
 // ID dispatches the call to the Node.
