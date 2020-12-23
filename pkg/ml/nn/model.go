@@ -8,9 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"github.com/pkg/errors"
 	"io"
-	"reflect"
 )
 
 // Model contains the serializable parameters.
@@ -20,48 +18,7 @@ type Model interface {
 }
 
 func Contextualize(m Model, g *ag.Graph) Model {
-	orig := reflect.ValueOf(m)
-	if orig.Kind() == reflect.Ptr {
-		orig = orig.Elem()
-	}
-	torig := reflect.TypeOf(m).Elem()
-	dest := reflect.New(torig)
-
-	initContextualizedModel(g, dest.Elem(), orig, torig)
-
-	return dest.Interface().(Model)
-}
-
-func initContextualizedModel(g *ag.Graph, dest, orig reflect.Value, torig reflect.Type) {
-	n := orig.NumField()
-	for i := 0; i < n; i++ {
-		forig, fdest := orig.Field(i), dest.Field(i)
-		tag := torig.Field(i).Tag
-		if tag.Get("type") == "processor" {
-			continue // skip any initialization
-		}
-		switch item := forig.Interface().(type) {
-		case Param:
-			if p, ok := item.(*param); ok {
-				fdest.Set(reflect.ValueOf(p.wrappedParam(g)))
-			} else {
-				panic(errors.New("nn: unexpected implementation of `Param` interface."))
-			}
-		case []Param:
-			dItem := make([]Param, len(item))
-			for j := 0; j < len(item); j++ {
-				if p, ok := item[j].(*param); ok {
-					dItem[j] = p.wrappedParam(g)
-				} else {
-					panic(errors.New("nn: unexpected implementation of `Param` interface."))
-				}
-			}
-			fdest.Set(reflect.ValueOf(dItem))
-		default:
-			// TODO: handle slices, maps and structure of params
-			fdest.Set(forig)
-		}
-	}
+	return newModelContextualizer(g).contextualize(m)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
