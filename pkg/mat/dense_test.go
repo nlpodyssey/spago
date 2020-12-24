@@ -1139,9 +1139,9 @@ func TestDense_SetVec(t *testing.T) {
 		assert.Panics(t, func() { d.SetVec(3, 42) })
 	})
 
-	t.Run("it panics if j >= cols", func(t *testing.T) {
+	t.Run("it panics if it is not a vector", func(t *testing.T) {
 		d := NewEmptyDense(5, 2)
-		assert.Panics(t, func() { d.Set(4, 2, 42) })
+		assert.Panics(t, func() { d.SetVec(3, 42) })
 	})
 }
 
