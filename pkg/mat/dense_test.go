@@ -49,43 +49,75 @@ func TestDense_SubScalarInPlace(t *testing.T) {
 }
 
 func TestDense_Add(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
-	c := a.Add(b)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
+		c := a.Add(b)
 
-	if !floats.EqualApprox(c.Data(), []float64{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(c.Data(), []float64{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		assert.Panics(t, func() { d.Add(other) })
+	})
 }
 
 func TestDense_AddInPlace(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
-	a.AddInPlace(b)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
+		a.AddInPlace(b)
 
-	if !floats.EqualApprox(a.Data(), []float64{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(a.Data(), []float64{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		assert.Panics(t, func() { d.AddInPlace(other) })
+	})
 }
 
 func TestDense_Sub(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
-	c := a.Sub(b)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
+		c := a.Sub(b)
 
-	if !floats.EqualApprox(c.Data(), []float64{-0.3, -0.1, -0.2, -0.7}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(c.Data(), []float64{-0.3, -0.1, -0.2, -0.7}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		assert.Panics(t, func() { d.Sub(other) })
+	})
 }
 
 func TestDense_SubInPlace(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
-	a.SubInPlace(b)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]float64{0.4, 0.3, 0.5, 0.7})
+		a.SubInPlace(b)
 
-	if !floats.EqualApprox(a.Data(), []float64{-0.3, -0.1, -0.2, -0.7}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(a.Data(), []float64{-0.3, -0.1, -0.2, -0.7}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		assert.Panics(t, func() { d.SubInPlace(other) })
+	})
 }
 
 func TestDense_ProdScalar(t *testing.T) {
@@ -473,26 +505,33 @@ func TestNewInitVecDense(t *testing.T) {
 }
 
 func TestDense_Reshape(t *testing.T) {
-	a := NewDense(3, 4, []float64{
-		0.1, 0.2, 0.3, 0.0,
-		0.4, 0.5, -0.6, 0.7,
-		-0.5, 0.8, -0.8, -0.1,
+	t.Run("simple case", func(t *testing.T) {
+		a := NewDense(3, 4, []float64{
+			0.1, 0.2, 0.3, 0.0,
+			0.4, 0.5, -0.6, 0.7,
+			-0.5, 0.8, -0.8, -0.1,
+		})
+
+		b := a.Reshape(4, 3)
+
+		if b.Rows() != 4 || b.Columns() != 3 {
+			t.Error("The rows and columns are not correct")
+		}
+
+		if !floats.EqualApprox(b.Data(), []float64{
+			0.1, 0.2, 0.3,
+			0.0, 0.4, 0.5,
+			-0.6, 0.7, -0.5,
+			0.8, -0.8, -0.1,
+		}, 1.0e-6) {
+			t.Error("The data doesn't match the expected values")
+		}
 	})
 
-	b := a.Reshape(4, 3)
-
-	if b.Rows() != 4 || b.Columns() != 3 {
-		t.Error("The rows and columns are not correct")
-	}
-
-	if !floats.EqualApprox(b.Data(), []float64{
-		0.1, 0.2, 0.3,
-		0.0, 0.4, 0.5,
-		-0.6, 0.7, -0.5,
-		0.8, -0.8, -0.1,
-	}, 1.0e-6) {
-		t.Error("The data doesn't match the expected values")
-	}
+	t.Run("it panics with incompatible size", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		assert.Panics(t, func() { d.Reshape(1, 2) })
+	})
 }
 
 func TestDense_T(t *testing.T) {
@@ -980,37 +1019,51 @@ func TestDense_Minimum(t *testing.T) {
 }
 
 func TestDense_ExtractRow(t *testing.T) {
-	a := NewDense(4, 3, []float64{
-		0.1, 0.2, 0.3,
-		0.4, 0.5, -0.6,
-		-0.5, 0.8, -0.8,
-		-3, -0.3, -0.4,
+	t.Run("simple case", func(t *testing.T) {
+		a := NewDense(4, 3, []float64{
+			0.1, 0.2, 0.3,
+			0.4, 0.5, -0.6,
+			-0.5, 0.8, -0.8,
+			-3, -0.3, -0.4,
+		})
+
+		c := a.ExtractRow(2)
+
+		if !floats.EqualApprox(c.Data(), []float64{
+			-0.5, 0.8, -0.8,
+		}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
 	})
 
-	c := a.ExtractRow(2)
-
-	if !floats.EqualApprox(c.Data(), []float64{
-		-0.5, 0.8, -0.8,
-	}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+	t.Run("it panics if i >= rows", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		assert.Panics(t, func() { d.ExtractRow(2) })
+	})
 }
 
 func TestDense_ExtractColumn(t *testing.T) {
-	a := NewDense(4, 3, []float64{
-		0.1, 0.2, 0.3,
-		0.4, 0.5, -0.6,
-		-0.5, 0.8, -0.8,
-		-3, -0.3, -0.4,
+	t.Run("simple case", func(t *testing.T) {
+		a := NewDense(4, 3, []float64{
+			0.1, 0.2, 0.3,
+			0.4, 0.5, -0.6,
+			-0.5, 0.8, -0.8,
+			-3, -0.3, -0.4,
+		})
+
+		c := a.ExtractColumn(2)
+
+		if !floats.EqualApprox(c.Data(), []float64{
+			0.3, -0.6, -0.8, -0.4,
+		}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
 	})
 
-	c := a.ExtractColumn(2)
-
-	if !floats.EqualApprox(c.Data(), []float64{
-		0.3, -0.6, -0.8, -0.4,
-	}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+	t.Run("it panics if i >= columns", func(t *testing.T) {
+		d := NewEmptyDense(3, 2)
+		assert.Panics(t, func() { d.ExtractColumn(2) })
+	})
 }
 
 func TestDense_Range(t *testing.T) {
@@ -1114,12 +1167,24 @@ func TestDense_Set(t *testing.T) {
 }
 
 func TestDense_AtVec(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	v := a.AtVec(2)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		v := a.AtVec(2)
 
-	if !(v == 0.3) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !(v == 0.3) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if i >= rows", func(t *testing.T) {
+		d := NewEmptyVecDense(3)
+		assert.Panics(t, func() { d.AtVec(3) })
+	})
+
+	t.Run("it panics if it is not a vector", func(t *testing.T) {
+		d := NewEmptyDense(5, 2)
+		assert.Panics(t, func() { d.AtVec(3) })
+	})
 }
 
 func TestDense_SetVec(t *testing.T) {
@@ -1157,29 +1222,80 @@ func TestDense_Sqrt(t *testing.T) {
 }
 
 func TestDense_Apply(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	a.Apply(func(i, j int, v float64) float64 {
-		return -3.0 * (v / 2.0) // the equation is completely arbitrary
-	}, a)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		a.Apply(func(i, j int, v float64) float64 {
+			return -3.0 * (v / 2.0) // the equation is completely arbitrary
+		}, a)
 
-	if !floats.EqualApprox(a.Data(), []float64{
-		-0.15, -0.3, -0.45, 0.0,
-	}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(a.Data(), []float64{
+			-0.15, -0.3, -0.45, 0.0,
+		}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		f := func(i, j int, v float64) float64 {
+			t.Error("the callback function should never be invoked")
+			return 0
+		}
+		assert.Panics(t, func() { d.Apply(f, other) })
+	})
+
+	t.Run("it works with empty matrices", func(t *testing.T) {
+		d := NewEmptyDense(0, 0)
+		other := NewEmptyDense(0, 0)
+		f := func(i, j int, v float64) float64 {
+			t.Error("the callback function should never be invoked")
+			return 0
+		}
+		assert.NotPanics(t, func() { d.Apply(f, other) })
+	})
+
+	t.Run("it works with another Sparse matrix", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewSparse(2, 3, []float64{
+			1, 2, 3,
+			4, 5, 6,
+		})
+		f := func(i, j int, v float64) float64 {
+			return float64((i+1)*10) + float64(j+1) + (v / 10)
+		}
+		d.Apply(f, other)
+		expected := []float64{
+			11.1, 12.2, 13.3,
+			21.4, 22.5, 23.6,
+		}
+		assert.Equal(t, expected, d.Data())
+	})
 }
 
 func TestDense_ApplyWithAlpha(t *testing.T) {
-	a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
-	a.ApplyWithAlpha(func(i, j int, v float64, alpha ...float64) float64 {
-		return -3.0*(v/2.0) + alpha[0] // the equation is completely arbitrary
-	}, a, 2.0)
+	t.Run("simple case", func(t *testing.T) {
+		a := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0})
+		a.ApplyWithAlpha(func(i, j int, v float64, alpha ...float64) float64 {
+			return -3.0*(v/2.0) + alpha[0] // the equation is completely arbitrary
+		}, a, 2.0)
 
-	if !floats.EqualApprox(a.Data(), []float64{
-		1.85, 1.7, 1.55, 2.0,
-	}, 1.0e-6) {
-		t.Error("The result doesn't match the expected values")
-	}
+		if !floats.EqualApprox(a.Data(), []float64{
+			1.85, 1.7, 1.55, 2.0,
+		}, 1.0e-6) {
+			t.Error("The result doesn't match the expected values")
+		}
+	})
+
+	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
+		d := NewEmptyDense(2, 3)
+		other := NewEmptyDense(3, 2)
+		f := func(i, j int, v float64, alpha ...float64) float64 {
+			t.Error("the callback function should never be invoked")
+			return 0
+		}
+		assert.Panics(t, func() { d.ApplyWithAlpha(f, other, 0) })
+	})
 }
 
 func TestDense_Stack(t *testing.T) {
