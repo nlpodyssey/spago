@@ -240,7 +240,7 @@ func (d *Dense) SetVec(i int, v float64) {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
 	}
-	if i >= d.rows {
+	if i >= d.size {
 		panic("mat: 'i' argument out of range.")
 	}
 	d.data[i] = v
