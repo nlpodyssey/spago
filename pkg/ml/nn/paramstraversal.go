@@ -31,7 +31,11 @@ func newParamsTraversal(callback func(param Param), exploreSubModels bool) param
 // walk iterates through all the parameters of m.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead
 func (pt paramsTraversal) walk(m interface{}) {
-	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
+	utils.ForEachField(m, func(field interface{}, name string, rTag reflect.StructTag) {
+		tag, err := parseModuleFieldTag(rTag.Get("spago"))
+		if err != nil {
+			panic(err)
+		}
 		v := reflect.ValueOf(field)
 		switch v.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
@@ -44,7 +48,7 @@ func (pt paramsTraversal) walk(m interface{}) {
 	})
 }
 
-func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag reflect.StructTag) {
+func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag moduleFieldTag) {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
 		return
@@ -57,13 +61,13 @@ func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag ref
 			pt.walk(item)
 		}
 	default:
-		if tag.Get("type") == "params" {
+		if tag.Type == paramsModuleFieldType {
 			pt.walk(item)
 		}
 	}
 }
 
-func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag reflect.StructTag) {
+func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
 	length := v.Len()
 	for i := 0; i < length; i++ {
 		p := v.Index(i)
@@ -76,7 +80,7 @@ func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag reflect.St
 	}
 }
 
-func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag reflect.StructTag) {
+func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
 	mapRange := v.MapRange()
 	for mapRange.Next() {
 		key := ""
@@ -99,10 +103,10 @@ func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag reflect.Stru
 	}
 }
 
-func (pt paramsTraversal) walkParam(item *param, name string, tag reflect.StructTag) {
+func (pt paramsTraversal) walkParam(item *param, name string, tag moduleFieldTag) {
 	if item.Name() == "" {
 		item.SetName(strings.ToLower(name))
 	}
-	item.SetType(ToType(tag.Get("type")))
+	item.SetType(tag.paramType())
 	pt.callback(item)
 }
