@@ -77,6 +77,7 @@ func TestGetDenseWorkspace(t *testing.T) {
 	ReleaseDense(d)
 	d = GetDenseWorkspace(2, 3)
 	assert.Equal(t, []float64{1, 2, 3, 4, 5, 6}, d.Data(), "possible dirty data is not zeroed")
+	ReleaseDense(d)
 }
 
 func TestGetEmptyDenseWorkspace(t *testing.T) {
@@ -90,11 +91,13 @@ func TestGetEmptyDenseWorkspace(t *testing.T) {
 	ReleaseDense(d)
 	d = GetEmptyDenseWorkspace(2, 3)
 	assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, d.Data(), "possible dirty data is zeroed")
+	ReleaseDense(d)
 }
 
 func TestReleaseDense(t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense(3, 4)
+		defer ReleaseDense(d)
 		view := d.View(4, 3)
 		assert.Panics(t, func() { ReleaseDense(view) })
 	})
