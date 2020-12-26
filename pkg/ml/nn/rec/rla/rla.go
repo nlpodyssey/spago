@@ -88,7 +88,7 @@ func (m *Model) LastState() *State {
 }
 
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 
 	key := nn.Affine(g, m.Bk, m.Wk, x)

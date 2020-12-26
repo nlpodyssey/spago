@@ -73,7 +73,7 @@ func (m *Model) LastState() *State {
 
 // y = f(w (dot) x + wRec * yPrev + b)
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	yPrev := m.prev()
 	h := nn.Affine(g, m.B, m.W, x)

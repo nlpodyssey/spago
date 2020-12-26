@@ -89,5 +89,5 @@ func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
 
 // y = w (dot) x + b
 func (m *Model) forward(x ag.Node) ag.Node {
-	return nn.Affine(m.GetGraph(), m.B, m.W, x)
+	return nn.Affine(m.Graph(), m.B, m.W, x)
 }

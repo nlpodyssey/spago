@@ -134,7 +134,7 @@ func (m *Model) LastState() *State {
 // PolicyGradientLogProbActions returns the log probabilities for each action
 // estimated by the policy gradient.
 func (m *Model) PolicyGradientLogProbActions() []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	logPropActions := make([]ag.Node, len(m.States)-1)
 	for i := range logPropActions {
 		st := m.States[i+1] // skip the first state
@@ -151,7 +151,7 @@ func (m *Model) PolicyGradientLogProbActions() []ag.Node {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	yPrev, cellPrev := m.prev()
 	yPrevNew := yPrev

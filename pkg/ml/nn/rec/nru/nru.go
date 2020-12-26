@@ -123,7 +123,7 @@ func (m *Model) LastState() *State {
 }
 
 func (m *Model) forward(x ag.Node) *State {
-	g := m.GetGraph()
+	g := m.Graph()
 	yPrev, mPrev := m.getPrev()
 	h := g.ReLU(m.optLayerNorm(nn.Affine(g, m.B, m.Wx, x, m.Wh, yPrev, m.Wm, mPrev)))
 	hm := g.Concat(h, mPrev)
@@ -137,7 +137,7 @@ func (m *Model) forward(x ag.Node) *State {
 }
 
 func (m *Model) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	diffMemory := make([]ag.Node, m.MemorySize)
 	k := g.NewScalar(float64(m.K))
 	for j := 0; j < m.MemorySize; j++ {
@@ -152,7 +152,7 @@ func (m *Model) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 }
 
 func (m *Model) calcAddMemory(hm ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	alpha := nn.SeparateVec(g, m.optReLU(nn.Affine(g, m.Bhm2alpha, m.Whm2alpha, hm)))
 	uAlpha := nn.SplitVec(g, nn.Affine(g, m.Bhm2alphaVec, m.Whm2alphaVec, hm), 2)
 	uAlphaSecond := uAlpha[1]
@@ -176,7 +176,7 @@ func (m *Model) calcAddMemory(hm ag.Node) []ag.Node {
 }
 
 func (m *Model) calcForgetMemory(hm ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	beta := nn.SeparateVec(g, m.optReLU(nn.Affine(g, m.Bhm2beta, m.Whm2beta, hm)))
 	uBeta := nn.SplitVec(g, nn.Affine(g, m.Bhm2betaVec, m.Whm2betaVec, hm), 2)
 	uBetaSecond := uBeta[1]
@@ -205,8 +205,8 @@ func (m *Model) getPrev() (yPrev, mPrev ag.Node) {
 		yPrev = prev.Y
 		mPrev = prev.Memory
 	} else {
-		yPrev = m.GetGraph().NewVariable(mat.NewEmptyVecDense(m.HiddenSize), false)
-		mPrev = m.GetGraph().NewVariable(mat.NewEmptyVecDense(m.MemorySize), false)
+		yPrev = m.Graph().NewVariable(mat.NewEmptyVecDense(m.HiddenSize), false)
+		mPrev = m.Graph().NewVariable(mat.NewEmptyVecDense(m.MemorySize), false)
 	}
 	return
 }
@@ -220,14 +220,14 @@ func (m *Model) optLayerNorm(x ag.Node) ag.Node {
 
 func (m *Model) optReLU(x ag.Node) ag.Node {
 	if m.UseReLU {
-		return m.GetGraph().ReLU(x)
+		return m.Graph().ReLU(x)
 	}
 	return x
 }
 
 func (m *Model) optReLU2(xs []ag.Node) []ag.Node {
 	if m.UseReLU {
-		return ag.Map(func(x ag.Node) ag.Node { return m.GetGraph().ReLU(x) }, xs)
+		return ag.Map(func(x ag.Node) ag.Node { return m.Graph().ReLU(x) }, xs)
 	}
 	return xs
 }

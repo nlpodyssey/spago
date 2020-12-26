@@ -195,7 +195,7 @@ func (m *Model) getEmbedding(words string) ag.Node {
 	case vector == nil:
 		return m.ZeroEmbedding // must not be nil; important no grad
 	default:
-		return m.GetGraph().NewVariable(vector, false)
+		return m.Graph().NewVariable(vector, false)
 	}
 }
 

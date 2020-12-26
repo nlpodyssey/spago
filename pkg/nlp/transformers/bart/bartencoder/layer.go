@@ -62,7 +62,7 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	}
 	xs = m.SelfAttention.Forward(xs...) //  query=x, key=x, key_padding_mask=encoder_padding_mask
 	// xs = m.Dropout(xs) // config.Dropout
-	xs = add(m.GetGraph(), residual, xs)
+	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
 		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
@@ -75,7 +75,7 @@ func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 		xs = m.LayerNorm.Forward(xs...)
 	}
 	xs = m.FFN.Forward(xs...)
-	xs = add(m.GetGraph(), residual, xs)
+	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
 		xs = m.LayerNorm.Forward(xs...)
 	}
@@ -83,7 +83,7 @@ func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 }
 
 func (m *Layer) copy(xs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	copied := func(x ag.Node) ag.Node {
 		return g.Identity(x)
 	}

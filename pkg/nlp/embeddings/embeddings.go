@@ -220,7 +220,7 @@ func (m *Model) getEmbedding(word string) ag.Node {
 		}
 		return nil
 	default:
-		return m.GetGraph().NewWrap(param)
+		return m.Graph().NewWrap(param)
 	}
 }
 

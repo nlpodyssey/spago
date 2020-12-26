@@ -87,7 +87,7 @@ func (m *Model) LastState() *State {
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	yPrev := m.prev()
 	wx := g.Mul(m.W, x)

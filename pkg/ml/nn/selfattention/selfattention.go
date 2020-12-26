@@ -60,7 +60,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	qs := m.Query.Forward(xs...)
 	ks := m.Key.Forward(xs...)
 	vs := m.Value.Forward(xs...)
-	context, prob := nn.ScaledDotProductAttention(m.GetGraph(), qs, ks, vs, m.ScaleFactor, m.UseCausalMask)
+	context, prob := nn.ScaledDotProductAttention(m.Graph(), qs, ks, vs, m.ScaleFactor, m.UseCausalMask)
 	m.Attention = &ContextProb{
 		Context: context,
 		Prob:    prob,
@@ -73,7 +73,7 @@ func (m *Model) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
 	qsProj := m.Query.Forward(qs...)
 	ksProj := m.Key.Forward(ks...)
 	vsProj := m.Value.Forward(vs...)
-	context, prob := nn.ScaledDotProductAttention(m.GetGraph(), qsProj, ksProj, vsProj, m.ScaleFactor, m.UseCausalMask)
+	context, prob := nn.ScaledDotProductAttention(m.Graph(), qsProj, ksProj, vsProj, m.ScaleFactor, m.UseCausalMask)
 	m.Attention = &ContextProb{
 		Context: context,
 		Prob:    prob,

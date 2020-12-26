@@ -131,7 +131,7 @@ func process(proc *charlm.Model, sequence []string) []ag.Node {
 }
 
 func (m *Model) merge(a, b ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	switch m.MergeMode {
 	case Concat:
 		return g.Concat(a, b)

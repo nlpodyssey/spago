@@ -46,7 +46,7 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 
 // Encode performs the forward step for each input and returns the result.
 func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {
 		embeddings[i] = g.NewWrap(m.Vectors[pos+m.Config.Offset])

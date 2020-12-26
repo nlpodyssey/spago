@@ -42,7 +42,7 @@ func New(scale float64) *Model {
 
 // NewProc returns a new processor to execute the forward step.
 func (m *Model) InitProc() {
-	g := m.GetGraph()
+	g := m.Graph()
 	m.consts = consts{
 		eps: g.Constant(1e-10),
 		one: g.Constant(1.0),
@@ -53,7 +53,7 @@ func (m *Model) InitProc() {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))
@@ -70,14 +70,14 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 func (m *Model) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = m.GetGraph().ReduceMean(x)
+		ys[i] = m.Graph().ReduceMean(x)
 	}
 	return ys
 }
 
 // StdDev computes the standard deviation of the input.
 func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))

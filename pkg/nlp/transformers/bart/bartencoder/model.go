@@ -59,7 +59,7 @@ func New(config bartconfig.Config) *Model {
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
-	ys := add(m.GetGraph(), xs, embedPos)
+	ys := add(m.Graph(), xs, embedPos)
 	ys = m.EmbeddingLayerNorm.Forward(ys...)
 	// ys = m.Dropout(ys)
 

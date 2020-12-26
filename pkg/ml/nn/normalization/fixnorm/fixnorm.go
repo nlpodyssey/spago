@@ -31,7 +31,7 @@ func New() *Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	ys := make([]ag.Node, len(xs))
 	eps := g.NewScalar(1e-10)
 	for i, x := range xs {

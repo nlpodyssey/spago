@@ -49,7 +49,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
 func (m *Model) forward(x ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	t := g.Sigmoid(nn.Affine(g, m.BT, m.WT, x))
 	h := g.Invoke(m.Activation, nn.Affine(g, m.BIn, m.WIn, x))
 	y := g.Add(g.Prod(t, h), g.Prod(g.ReverseSub(t, g.NewScalar(1.0)), x))

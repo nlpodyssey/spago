@@ -81,7 +81,7 @@ func (m *Model) Decode(xs, encoded []ag.Node) []ag.Node {
 func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = m.GetGraph().Add(a[i], b[i])
+		c[i] = m.Graph().Add(a[i], b[i])
 	}
 	return c
 }

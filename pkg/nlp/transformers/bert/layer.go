@@ -29,7 +29,7 @@ type EncoderLayer struct {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
-	subLayer1 := rc.PostNorm(m.GetGraph(), m.MultiHeadAttention.Forward, m.NormAttention.Forward, xs...)
-	subLayer2 := rc.PostNorm(m.GetGraph(), m.FFN.Forward, m.NormFFN.Forward, subLayer1...)
+	subLayer1 := rc.PostNorm(m.Graph(), m.MultiHeadAttention.Forward, m.NormAttention.Forward, xs...)
+	subLayer2 := rc.PostNorm(m.Graph(), m.FFN.Forward, m.NormFFN.Forward, subLayer1...)
 	return subLayer2
 }

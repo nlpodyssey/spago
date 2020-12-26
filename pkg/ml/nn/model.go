@@ -44,10 +44,10 @@ type Model interface{}
 
 // Processor performs the operations on the computational graphs using the model's parameters.
 type Processor interface {
-	// GetGraph returns the computational graph on which the processor operates (can be nil).
-	GetGraph() *ag.Graph
-	// GetMode returns whether the processor is being used for training or inference.
-	GetMode() ProcessingMode
+	// Graph returns the computational graph on which the processor operates (can be nil).
+	Graph() *ag.Graph
+	// Mode returns whether the processor is being used for training or inference.
+	Mode() ProcessingMode
 	// RequiresFullSeq returns whether the processor needs the complete sequence to start processing
 	// (as in the case of BiRNN and other bidirectional models), or not.
 	RequiresFullSeq() bool
@@ -212,13 +212,13 @@ func NewBaseModel(ctx Context, fullSeqProcessing bool) BaseModel {
 	}
 }
 
-// GetMode returns whether the processor is being used for training or inference.
-func (m *BaseModel) GetMode() ProcessingMode {
+// Mode returns whether the processor is being used for training or inference.
+func (m *BaseModel) Mode() ProcessingMode {
 	return m.Ctx.Mode
 }
 
-// GetGraph returns the computational graph on which the processor operates.
-func (m *BaseModel) GetGraph() *ag.Graph {
+// Graph returns the computational graph on which the processor operates.
+func (m *BaseModel) Graph() *ag.Graph {
 	return m.Ctx.Graph
 }
 

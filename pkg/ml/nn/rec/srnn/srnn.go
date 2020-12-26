@@ -91,7 +91,7 @@ func (m *Model) getPrevHY() (ag.Node, ag.Node) {
 }
 
 func (m *Model) forward(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
-	g := m.GetGraph()
+	g := m.Graph()
 	if hPrev != nil {
 		h = g.ReLU(g.Add(b, g.RotateR(hPrev, 1)))
 	} else {
@@ -102,7 +102,7 @@ func (m *Model) forward(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 }
 
 func (m *Model) transformInput(x ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	b := m.FC.Forward(x)[0]
 	if m.Config.MultiHead {
 		sigAlphas := g.Sigmoid(m.FC2.Forward(x)[0])

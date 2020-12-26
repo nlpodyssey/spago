@@ -70,14 +70,14 @@ func (p *Decoder) decodingPart1(xs []ag.Node) []ag.Node {
 	decoding := p.splitVectors(p.DecodingFNN1.Forward(p.addStepEncoding(xs)...))
 	ys := []ag.Node{decoding[0].y0, decoding[0].y1}
 	for i := 1; i < len(xs); i++ {
-		ys[i-1] = mean(p.GetGraph(), ys[i-1], decoding[i].y0)
+		ys[i-1] = mean(p.Graph(), ys[i-1], decoding[i].y0)
 		ys = append(ys, decoding[i].y1)
 	}
 	return ys
 }
 
 func (p *Decoder) addStepEncoding(xs []ag.Node) []ag.Node {
-	g := p.GetGraph()
+	g := p.Graph()
 	stepEncoder := p.StepEncoder
 	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.State.Recursions), false)
 	ys := make([]ag.Node, len(xs))
@@ -90,7 +90,7 @@ func (p *Decoder) addStepEncoding(xs []ag.Node) []ag.Node {
 func (p *Decoder) splitVectors(xs []ag.Node) []struct{ y0, y1 ag.Node } {
 	ys := make([]struct{ y0, y1 ag.Node }, len(xs))
 	for i, x := range xs {
-		lst := nn.SplitVec(p.GetGraph(), x, 2)
+		lst := nn.SplitVec(p.Graph(), x, 2)
 		ys[i] = struct{ y0, y1 ag.Node }{
 			y0: lst[0],
 			y1: lst[1],

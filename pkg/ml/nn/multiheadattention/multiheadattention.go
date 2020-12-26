@@ -54,7 +54,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	headsAttention := make([][]ag.Node, m.NumOfHeads)
 	for h, proc := range m.Attention {
 		headsAttention[h] = proc.Forward(xs...)
@@ -74,7 +74,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // This is a variant of the standard Forward, where you can specify independent
 // sets of queries, keys and values.
 func (m *Model) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	headsAttention := make([][]ag.Node, m.NumOfHeads)
 	for h, proc := range m.Attention {
 		headsAttention[h] = proc.ForwardQKV(qs, ks, vs)

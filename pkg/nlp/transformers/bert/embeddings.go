@@ -60,7 +60,7 @@ func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 }
 
 func (m *Embeddings) InitProc() {
-	m.UnknownEmbedding = m.GetGraph().NewWrap(m.Words.GetStoredEmbedding(wordpiecetokenizer.DefaultUnknownToken))
+	m.UnknownEmbedding = m.Graph().NewWrap(m.Words.GetStoredEmbedding(wordpiecetokenizer.DefaultUnknownToken))
 }
 
 func newPositionEmbeddings(size, maxPositions int) []nn.Param {
@@ -93,8 +93,8 @@ func (m *Embeddings) Encode(words []string) []ag.Node {
 	sequenceIndex := 0
 	for i := 0; i < len(words); i++ {
 		encoded[i] = wordEmbeddings[i]
-		encoded[i] = m.GetGraph().Add(encoded[i], m.GetGraph().NewWrap(m.Position[i]))
-		encoded[i] = m.GetGraph().Add(encoded[i], m.TokenType[sequenceIndex])
+		encoded[i] = m.Graph().Add(encoded[i], m.Graph().NewWrap(m.Position[i]))
+		encoded[i] = m.Graph().Add(encoded[i], m.TokenType[sequenceIndex])
 		if words[i] == wordpiecetokenizer.DefaultSequenceSeparator {
 			sequenceIndex++
 		}

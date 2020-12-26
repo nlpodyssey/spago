@@ -34,7 +34,7 @@ func New(activation ag.OpName, params ...nn.Param) *Model {
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	activation := m.Activation
 	transformed := func(x ag.Node) ag.Node {
-		return m.GetGraph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).AsNodes()...)...)
+		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).AsNodes()...)...)
 	}
 	return ag.Map(transformed, xs)
 }

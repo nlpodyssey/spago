@@ -118,7 +118,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 // Note that the processor remains the same for all batches of the same sequence,
 // so the previous recurrent states are retained for the next prediction.
 func (t *Trainer) trainBatch(proc *Model, batch []string) float64 {
-	g := proc.GetGraph()
+	g := proc.Graph()
 	g.ZeroGrad()
 	prevTimeStep := g.TimeStep()
 	predicted := proc.Predict(batch...)

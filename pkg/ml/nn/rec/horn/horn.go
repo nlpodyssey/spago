@@ -67,7 +67,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	h := nn.Affine(g, append([]ag.Node{m.B, m.W, x}, m.feedback()...)...)
 	s.Y = g.Tanh(h)
@@ -75,7 +75,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 }
 
 func (m *Model) feedback() []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	var ys []ag.Node
 	n := len(m.States)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {

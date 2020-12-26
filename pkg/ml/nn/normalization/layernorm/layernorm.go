@@ -37,7 +37,7 @@ func New(size int) *Model {
 // Forward performs the forward step for each input and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	eps := g.Constant(1e-12) // avoid underflow errors
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {

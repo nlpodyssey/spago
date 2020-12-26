@@ -147,7 +147,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) computeUx(xs []ag.Node) {
-	g := m.GetGraph()
+	g := m.Graph()
 	n := len(xs)
 	m.Support.xUi = make([]ag.Node, n)
 	m.Support.xUl = make([]ag.Node, n)
@@ -175,7 +175,7 @@ func (m *Model) computeUx(xs []ag.Node) {
 }
 
 func (m *Model) computeVg(prevG ag.Node) {
-	g := m.GetGraph()
+	g := m.Graph()
 	var wg sync.WaitGroup
 	wg.Add(7)
 	for i := 0; i < 7; i++ {
@@ -203,7 +203,7 @@ func (m *Model) computeVg(prevG ag.Node) {
 }
 
 func (m *Model) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
-	g := m.GetGraph()
+	g := m.Graph()
 	n := len(prevH)
 	first := 0
 	last := n - 1
@@ -259,7 +259,7 @@ func (m *Model) updateHiddenNodes(prevH []ag.Node, prevC []ag.Node, prevG ag.Nod
 }
 
 func (m *Model) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
-	g := m.GetGraph()
+	g := m.Graph()
 	n := len(prevH)
 	avgH := g.Mean(prevH)
 	fG := g.Sigmoid(nn.Affine(g, m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))

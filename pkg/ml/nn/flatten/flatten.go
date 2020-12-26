@@ -28,7 +28,7 @@ func New() *Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	vectorized := func(x ag.Node) ag.Node {
 		return g.Vec(x)
 	}

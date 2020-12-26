@@ -96,7 +96,7 @@ func (m *Model) forward(x ag.Node) (st *State) {
 		yPrev = sPrev.Y
 	}
 	st = new(State)
-	g := m.GetGraph()
+	g := m.Graph()
 	st.AR = g.Sigmoid(nn.Affine(g, m.BR, m.WInR, x, m.WRecR, yPrev))
 	st.AS = g.Sigmoid(nn.Affine(g, m.BS, m.WInS, x, m.WRecS, yPrev))
 	st.R = g.Mul(m.R, st.AR)

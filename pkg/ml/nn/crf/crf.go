@@ -32,7 +32,7 @@ func New(size int) *Model {
 }
 
 func (m *Model) InitProc() {
-	m.Scores = nn.Separate(m.GetGraph(), m.TransitionScores) // TODO: lazy initialization
+	m.Scores = nn.Separate(m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 
 // Predict performs the forward step for each input and returns the result.
@@ -49,11 +49,11 @@ func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 func (m *Model) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := m.goldScore(emissionScores, target)
 	totalScore := m.totalScore(emissionScores)
-	return m.GetGraph().Sub(totalScore, goldScore)
+	return m.Graph().Sub(totalScore, goldScore)
 }
 
 func (m *Model) goldScore(emissionScores []ag.Node, target []int) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	goldScore := g.At(emissionScores[0], target[0], 0)
 	goldScore = g.Add(goldScore, m.Scores[0][target[0]+1]) // start transition
 	prevIndex := target[0] + 1
@@ -67,7 +67,7 @@ func (m *Model) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 }
 
 func (m *Model) totalScore(predicted []ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
 		totalVector = m.totalScoreStep(totalVector, nn.SeparateVec(g, predicted[i]))
@@ -80,7 +80,7 @@ func (m *Model) totalScore(predicted []ag.Node) ag.Node {
 func (m *Model) totalScoreStart(stepVec ag.Node) []ag.Node {
 	firstTransitionScores := m.Scores[0]
 	scores := make([]ag.Node, m.Size)
-	g := m.GetGraph()
+	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		scores[i] = g.Add(g.AtVec(stepVec, i), firstTransitionScores[i+1])
 	}
@@ -89,7 +89,7 @@ func (m *Model) totalScoreStart(stepVec ag.Node) []ag.Node {
 
 func (m *Model) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	scores := make([]ag.Node, m.Size)
-	g := m.GetGraph()
+	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		vecTrans := g.Add(stepVec[i], m.Scores[i+1][0])
 		scores[i] = g.Add(scores[i], g.Exp(vecTrans))
@@ -99,7 +99,7 @@ func (m *Model) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 
 func (m *Model) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
 	scores := make([]ag.Node, m.Size)
-	g := m.GetGraph()
+	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		nodei := totalVec[i]
 		transitionScores := m.Scores[i+1]

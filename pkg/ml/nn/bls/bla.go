@@ -46,7 +46,7 @@ func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
 		x := g.NewVariable(x, false)
 		m := nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, l.Model).(*Model)
 		for j := 0; j < m.NumOfFeatures; j++ {
-			featuresMap[j] = append(featuresMap[j], nn.Affine(m.GetGraph(), m.Bz[j], m.Wz[j], x).Value())
+			featuresMap[j] = append(featuresMap[j], nn.Affine(m.Graph(), m.Bz[j], m.Wz[j], x).Value())
 		}
 	}
 	x := mat.ConcatH(l.Input...)
@@ -79,7 +79,7 @@ func (l *BroadLearningAlgorithm) log(message string) {
 }
 
 func singleZH(m *Model, x ag.Node) *mat.Dense {
-	g := m.GetGraph()
+	g := m.Graph()
 	z := m.useFeaturesDropout(m.featuresMapping(x))
 	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
 	return g.Concat(z, h).Value().(*mat.Dense)

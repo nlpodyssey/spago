@@ -40,7 +40,7 @@ func (p *Encoder) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (p *Encoder) encodingStep(xs []ag.Node) []ag.Node {
-	g := p.GetGraph()
+	g := p.Graph()
 	stepEncoder := p.StepEncoder
 	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.Recursions), false)
 	size := len(xs)

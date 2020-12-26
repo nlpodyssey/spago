@@ -96,7 +96,7 @@ func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
 }
 
 func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node
 	for i := 0; i < len(xs); i++ {

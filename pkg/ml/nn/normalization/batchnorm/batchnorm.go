@@ -45,14 +45,14 @@ func New(size int) *Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	if m.GetMode() == nn.Training {
+	if m.Mode() == nn.Training {
 		return m.forwardTraining(xs)
 	}
 	return m.forwardInference(xs)
 }
 
 func (m *Model) forwardTraining(xs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	meanVector := m.mean(xs)
 	devVector := m.stdDev(meanVector, xs)
 	m.updateBatchNormParameters(meanVector.Value(), devVector.Value())
@@ -79,7 +79,7 @@ func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
 }
 
 func (m *Model) forwardInference(xs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	meanVector := g.NewWrapNoGrad(m.Mean)
 	devVector := g.NewWrapNoGrad(m.StdDev)
 	return m.process(g, xs, devVector, meanVector)
@@ -87,7 +87,7 @@ func (m *Model) forwardInference(xs []ag.Node) []ag.Node {
 
 // Mean computes the mean of the input.
 func (m *Model) mean(xs []ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = g.Add(sumVector, xs[i])
@@ -97,7 +97,7 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 
 // StdDev computes the standard deviation of the input.
 func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	devVector := g.NewVariable(meanVector.Value().ZerosLike(), false)
 	for _, x := range xs {
 		diffVector := g.Square(g.Sub(meanVector, x))

@@ -90,7 +90,7 @@ func (m *Model) LastState() *State {
 }
 
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	yPrev := m.yPrev()
 	a := g.Softmax(nn.Affine(g, m.Ba, m.Wax, x, m.Wah, yPrev))
@@ -109,7 +109,7 @@ func (m *Model) yPrev() ag.Node {
 }
 
 func (m *Model) weightHistory(a ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	var sum ag.Node
 	n := len(m.States)
 	for i := 0; i < m.NumOfDelays; i++ {
@@ -124,7 +124,7 @@ func (m *Model) weightHistory(a ag.Node) ag.Node {
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
 func (m *Model) tryProd(a, b ag.Node) ag.Node {
 	if a != nil && b != nil {
-		return m.GetGraph().Prod(a, b)
+		return m.Graph().Prod(a, b)
 	}
 	return nil
 }

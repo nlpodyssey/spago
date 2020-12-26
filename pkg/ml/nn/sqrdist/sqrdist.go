@@ -38,7 +38,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) forward(x ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	bh := g.Mul(m.B, x)
 	return g.Mul(g.T(bh), bh)
 }

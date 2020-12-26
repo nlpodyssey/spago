@@ -47,7 +47,7 @@ func (m *Model) Encode(words []string) []ag.Node {
 		if len(encoding) == 1 { // optimization
 			intermediateEncoding[wordIndex] = encoding[0]
 		} else {
-			intermediateEncoding[wordIndex] = m.GetGraph().Concat(encoding...)
+			intermediateEncoding[wordIndex] = m.Graph().Concat(encoding...)
 		}
 	}
 	return m.ProjectionLayer.Forward(intermediateEncoding...)

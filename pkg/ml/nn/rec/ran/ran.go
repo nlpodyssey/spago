@@ -93,7 +93,7 @@ func (m *Model) LastState() *State {
 // c = inG * c + forG * cPrev
 // y = f(c)
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	yPrev, cPrev := m.prev()
 	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))

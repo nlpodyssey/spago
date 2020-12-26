@@ -85,7 +85,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) forward(x ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	z := m.useFeaturesDropout(m.featuresMapping(x))
 	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
 	y := g.Invoke(m.OutputActivation, nn.Affine(g, m.B, m.W, g.Concat([]ag.Node{z, h}...)))
@@ -93,7 +93,7 @@ func (m *Model) forward(x ag.Node) ag.Node {
 }
 
 func (m *Model) featuresMapping(x ag.Node) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	z := make([]ag.Node, m.NumOfFeatures)
 	for i := range z {
 		z[i] = nn.Affine(g, m.Bz[i], m.Wz[i], x)
@@ -102,15 +102,15 @@ func (m *Model) featuresMapping(x ag.Node) ag.Node {
 }
 
 func (m *Model) useFeaturesDropout(x ag.Node) ag.Node {
-	if m.GetMode() == nn.Training && m.FeaturesDropout > 0.0 {
-		return m.GetGraph().Dropout(x, m.FeaturesDropout)
+	if m.Mode() == nn.Training && m.FeaturesDropout > 0.0 {
+		return m.Graph().Dropout(x, m.FeaturesDropout)
 	}
 	return x
 }
 
 func (m *Model) useEnhancedNodesDropout(x ag.Node) ag.Node {
-	if m.GetMode() == nn.Training && m.EnhancedNodesDropout > 0.0 {
-		return m.GetGraph().Dropout(x, m.EnhancedNodesDropout)
+	if m.Mode() == nn.Training && m.EnhancedNodesDropout > 0.0 {
+		return m.Graph().Dropout(x, m.EnhancedNodesDropout)
 	}
 	return x
 }

@@ -61,8 +61,8 @@ func New(config Config) *Model {
 
 // Forward performs the forward step returns the results.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	h := m.copy(xs)            // `h` are the satellite nodes
-	s := m.GetGraph().Mean(xs) // `s` is the relay node
+	h := m.copy(xs)         // `h` are the satellite nodes
+	s := m.Graph().Mean(xs) // `s` is the relay node
 
 	for t := 1; t <= m.Steps; t++ {
 		h = m.updateSatelliteNodes(h, s, xs)
@@ -72,7 +72,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) copy(xs []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = g.Identity(x)
@@ -81,7 +81,7 @@ func (m *Model) copy(xs []ag.Node) []ag.Node {
 }
 
 func (m *Model) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	n := len(prevH)
 	var wg sync.WaitGroup
 	wg.Add(n)
@@ -112,20 +112,20 @@ func (m *Model) satelliteAttention(query ag.Node, context []ag.Node) ag.Node {
 	q := m.Query.Forward(query)
 	ks := m.Key.Forward(context...)
 	vs := m.Value.Forward(context...)
-	return nn.LinearAttention(m.GetGraph(), q, ks, vs, attMappingFunc, 1e-12)[0]
+	return nn.LinearAttention(m.Graph(), q, ks, vs, attMappingFunc, 1e-12)[0]
 }
 
 func (m *Model) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
 	context := append([]ag.Node{prevS}, ht...)
 	s := m.relayAttention(prevS, context)
-	return m.RelayNorm.Forward(m.GetGraph().ReLU(s))[0]
+	return m.RelayNorm.Forward(m.Graph().ReLU(s))[0]
 }
 
 func (m *Model) relayAttention(query ag.Node, context []ag.Node) ag.Node {
 	q := m.RelayQuery.Forward(query)
 	ks := m.RelayKey.Forward(context...)
 	vs := m.RelayValue.Forward(context...)
-	return nn.LinearAttention(m.GetGraph(), q, ks, vs, attMappingFunc, 1e-12)[0]
+	return nn.LinearAttention(m.Graph(), q, ks, vs, attMappingFunc, 1e-12)[0]
 }
 
 func attMappingFunc(g *ag.Graph, x ag.Node) ag.Node {

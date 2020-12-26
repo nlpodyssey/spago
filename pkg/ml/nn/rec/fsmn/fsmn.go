@@ -71,7 +71,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) forward(x ag.Node) (s *State) {
-	g := m.GetGraph()
+	g := m.Graph()
 	s = new(State)
 	h := nn.Affine(g, m.B, m.W, x)
 	if len(m.States) > 0 {
@@ -82,7 +82,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 }
 
 func (m *Model) feedback() ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	var y ag.Node
 	n := len(m.States)
 	min := utils.MinInt(m.Order, n)

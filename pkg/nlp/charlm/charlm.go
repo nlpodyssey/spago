@@ -105,7 +105,7 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 
 func (m *Model) InitProc() {
 	m.UsedEmbeddings = make(map[int]ag.Node)
-	m.UnknownEmbedding = m.GetGraph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
+	m.UnknownEmbedding = m.Graph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
 }
 
 // Predict performs the forward step for each input and returns the result.
@@ -113,7 +113,7 @@ func (m *Model) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	encoding := m.GetEmbeddings(xs)
 	for i, x := range encoding {
-		m.GetGraph().IncTimeStep() // essential for truncated back-propagation
+		m.Graph().IncTimeStep() // essential for truncated back-propagation
 		h := m.RNN.Forward(x)[0]
 		proj := m.UseProjection(h)[0]
 		ys[i] = m.Decoder.Forward(proj)[0]
@@ -144,7 +144,7 @@ func (m *Model) GetEmbeddings(xs []string) []ag.Node {
 			ys[i] = embedding
 			continue
 		}
-		ys[i] = m.GetGraph().NewWrap(m.Embeddings[id])
+		ys[i] = m.Graph().NewWrap(m.Embeddings[id])
 		m.UsedEmbeddings[id] = ys[i]
 	}
 	return ys

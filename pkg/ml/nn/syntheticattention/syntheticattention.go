@@ -62,7 +62,7 @@ func New(config Config) *Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	length := len(xs)
 	context := make([]ag.Node, length)
 	prob := make([]mat.Matrix, length)
@@ -84,7 +84,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 
 // extractAttentionWeights returns the attention parameters tailored to the sequence length.
 func (m *Model) extractAttentionWeights(length int) ag.Node {
-	g := m.GetGraph()
+	g := m.Graph()
 	attentionWeights := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
 		attentionWeights[i] = g.T(g.RowView(m.W, i))
