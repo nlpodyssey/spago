@@ -118,13 +118,13 @@ func TestModelContextualizer(t *testing.T) {
 		type MyStruct struct {
 			A Param
 			X int
-			Z *MyStruct `type:"params"`
+			Z *MyStruct `spago:"type:params"`
 		}
 
 		type TestModel struct {
 			ModelContextualizerBaseModel
 			Foo MyStruct
-			Bar MyStruct `type:"params"`
+			Bar MyStruct `spago:"type:params"`
 		}
 
 		sourceModel := &TestModel{
@@ -182,8 +182,8 @@ func TestModelContextualizer(t *testing.T) {
 		type TestModel struct {
 			ModelContextualizerBaseModel
 			Foo MyStruct
-			Bar MyStruct  `scope:"processor"`
-			Baz *MyStruct `scope:"processor"`
+			Bar MyStruct  `spago:"scope:processor"`
+			Baz *MyStruct `spago:"scope:processor"`
 		}
 
 		sourceModel := &TestModel{
@@ -218,9 +218,9 @@ func TestModelContextualizer(t *testing.T) {
 		type TestModel struct {
 			ModelContextualizerBaseModel
 			Foo []MyStruct
-			Bar []MyStruct `type:"params"`
+			Bar []MyStruct `spago:"type:params"`
 			Baz []*MyStruct
-			Qux []*MyStruct `type:"params"`
+			Qux []*MyStruct `spago:"type:params"`
 		}
 
 		sourceModel := &TestModel{
@@ -254,7 +254,7 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			ModelContextualizerBaseModel
-			Foo []int `type:"params"`
+			Foo []int `spago:"type:params"`
 		}
 
 		sourceModel := &TestModel{
@@ -303,9 +303,9 @@ func TestModelContextualizer(t *testing.T) {
 		type TestModel struct {
 			ModelContextualizerBaseModel
 			Foo map[string]MyStruct
-			Bar map[string]MyStruct `type:"params"`
+			Bar map[string]MyStruct `spago:"type:params"`
 			Baz map[string]*MyStruct
-			Qux map[string]*MyStruct `type:"params"`
+			Qux map[string]*MyStruct `spago:"type:params"`
 		}
 
 		sourceModel := &TestModel{
@@ -339,7 +339,7 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			ModelContextualizerBaseModel
-			Foo map[string]int `type:"params"`
+			Foo map[string]int `spago:"type:params"`
 		}
 
 		sourceModel := &TestModel{

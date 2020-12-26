@@ -21,12 +21,12 @@ var (
 // are independent of each other and they are connected across layers as in the IndRNN.
 type Model struct {
 	nn.BaseModel
-	W      nn.Param   `type:"weights"`
-	WRec   nn.Param   `type:"weights"`
-	WS     []nn.Param `type:"weights"` // coefficient vectors for scaling
-	B      nn.Param   `type:"biases"`
+	W      nn.Param   `spago:"type:weights"`
+	WRec   nn.Param   `spago:"type:weights"`
+	WS     []nn.Param `spago:"type:weights"` // coefficient vectors for scaling
+	B      nn.Param   `spago:"type:biases"`
 	Order  int
-	States []*State `scope:"processor"`
+	States []*State `spago:"scope:processor"`
 }
 
 // New returns a new model with parameters initialized to zeros.

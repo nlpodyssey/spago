@@ -18,14 +18,14 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	W      nn.Param `type:"weights"`
-	WRec   nn.Param `type:"weights"`
-	B      nn.Param `type:"biases"`
-	BPart  nn.Param `type:"biases"`
-	Alpha  nn.Param `type:"weights"`
-	Beta1  nn.Param `type:"weights"`
-	Beta2  nn.Param `type:"weights"`
-	States []*State `scope:"processor"`
+	W      nn.Param `spago:"type:weights"`
+	WRec   nn.Param `spago:"type:weights"`
+	B      nn.Param `spago:"type:biases"`
+	BPart  nn.Param `spago:"type:biases"`
+	Alpha  nn.Param `spago:"type:weights"`
+	Beta1  nn.Param `spago:"type:weights"`
+	Beta2  nn.Param `spago:"type:weights"`
+	States []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the DeltaRNN recurrent network.

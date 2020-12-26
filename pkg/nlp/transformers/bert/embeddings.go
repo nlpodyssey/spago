@@ -34,11 +34,11 @@ type Embeddings struct {
 	nn.BaseModel
 	EmbeddingsConfig
 	Words            *embeddings.Model
-	Position         []nn.Param `type:"weights"` // TODO: stop auto-wrapping
-	TokenType        []nn.Param `type:"weights"`
+	Position         []nn.Param `spago:"type:weights"` // TODO: stop auto-wrapping
+	TokenType        []nn.Param `spago:"type:weights"`
 	Norm             *layernorm.Model
 	Projector        *linear.Model
-	UnknownEmbedding ag.Node `scope:"processor"`
+	UnknownEmbedding ag.Node `spago:"scope:processor"`
 }
 
 // NewEmbeddings returns a new BERT Embeddings model.

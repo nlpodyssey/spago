@@ -27,7 +27,7 @@ type Model struct {
 	Config
 	Storage        kvdb.KeyValueDB
 	UsedEmbeddings sync.Map
-	ZeroEmbedding  nn.Param `type:"weights"`
+	ZeroEmbedding  nn.Param `spago:"type:weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.

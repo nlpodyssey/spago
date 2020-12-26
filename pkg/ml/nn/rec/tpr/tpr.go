@@ -18,15 +18,15 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	WInS   nn.Param `type:"weights"`
-	WInR   nn.Param `type:"weights"`
-	WRecS  nn.Param `type:"weights"`
-	WRecR  nn.Param `type:"weights"`
-	BS     nn.Param `type:"biases"`
-	BR     nn.Param `type:"biases"`
-	S      nn.Param `type:"weights"`
-	R      nn.Param `type:"weights"`
-	States []*State `scope:"processor"`
+	WInS   nn.Param `spago:"type:weights"`
+	WInR   nn.Param `spago:"type:weights"`
+	WRecS  nn.Param `spago:"type:weights"`
+	WRecR  nn.Param `spago:"type:weights"`
+	BS     nn.Param `spago:"type:biases"`
+	BR     nn.Param `spago:"type:biases"`
+	S      nn.Param `spago:"type:weights"`
+	R      nn.Param `spago:"type:weights"`
+	States []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the TPR recurrent network.

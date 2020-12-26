@@ -46,12 +46,12 @@ type Config struct {
 type Model struct {
 	nn.BaseModel
 	Config
-	Wz []nn.Param `type:"weights"`
-	Bz []nn.Param `type:"biases"`
-	Wh nn.Param   `type:"weights"`
-	Bh nn.Param   `type:"biases"`
-	W  nn.Param   `type:"weights"`
-	B  nn.Param   `type:"biases"`
+	Wz []nn.Param `spago:"type:weights"`
+	Bz []nn.Param `spago:"type:biases"`
+	Wh nn.Param   `spago:"type:weights"`
+	Bh nn.Param   `spago:"type:biases"`
+	W  nn.Param   `spago:"type:weights"`
+	B  nn.Param   `spago:"type:biases"`
 }
 
 // New returns a new model with parameters initialized to zeros.

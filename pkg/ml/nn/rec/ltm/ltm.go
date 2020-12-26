@@ -18,11 +18,11 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	W1     nn.Param `type:"weights"`
-	W2     nn.Param `type:"weights"`
-	W3     nn.Param `type:"weights"`
-	WCell  nn.Param `type:"weights"`
-	States []*State `scope:"processor"`
+	W1     nn.Param `spago:"type:weights"`
+	W2     nn.Param `spago:"type:weights"`
+	W3     nn.Param `spago:"type:weights"`
+	WCell  nn.Param `spago:"type:weights"`
+	States []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the LTM recurrent network.

@@ -19,8 +19,8 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	W nn.Param `type:"weights"`
-	B nn.Param `type:"biases"`
+	W nn.Param `spago:"type:weights"`
+	B nn.Param `spago:"type:biases"`
 	// whether to enable the concurrent forward computation
 	ConcurrentComputation bool
 }

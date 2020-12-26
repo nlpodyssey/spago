@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"log"
-	"strings"
 	"sync"
 
 	"github.com/nlpodyssey/spago/pkg/mat"
@@ -38,16 +37,6 @@ var pts = []ParamsType{Weights, Biases, Undefined}
 
 func (t ParamsType) String() string {
 	return [...]string{"weights", "biases", "undefined"}[t] // important lower case
-}
-
-// ToType convert a string to a ParamsType. It returns Undefined if the string doesn't match any ParamsType.
-func ToType(s string) ParamsType {
-	for _, item := range pts {
-		if item.String() == strings.ToLower(s) {
-			return item
-		}
-	}
-	return Undefined
 }
 
 // Payload contains the support data used for example by the optimization methods

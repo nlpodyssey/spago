@@ -26,9 +26,9 @@ type Model struct {
 	nn.BaseModel
 	Config
 	Query     *linear.Model
-	R         nn.Param `type:"weights"`
+	R         nn.Param `spago:"type:weights"`
 	Value     *linear.Model
-	Attention *ContextProb `scope:"processor"`
+	Attention *ContextProb `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a LSH-Attention Model.

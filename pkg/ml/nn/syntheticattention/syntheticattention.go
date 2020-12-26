@@ -26,8 +26,8 @@ type Model struct {
 	Config
 	FFN       *stack.Model
 	Value     *linear.Model
-	W         nn.Param     `type:"weights"`
-	Attention *ContextProb `scope:"processor"`
+	W         nn.Param     `spago:"type:weights"`
+	Attention *ContextProb `spago:"scope:processor"`
 }
 
 // ContextProb is a pair of Context encodings and Prob attention scores.

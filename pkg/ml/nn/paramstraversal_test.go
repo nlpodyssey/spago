@@ -255,7 +255,7 @@ func TestParamsTraversal(t *testing.T) {
 		type TestModel struct {
 			ParamsTraversalBaseModel
 			Ignored []MyStruct
-			S       []MyStruct `type:"params"`
+			S       []MyStruct `spago:"type:params"`
 		}
 
 		m := &TestModel{
@@ -314,8 +314,8 @@ func TestParamsTraversal(t *testing.T) {
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			MS MyStruct  `type:"params"`
-			MP *MyStruct `type:"params"`
+			MS MyStruct  `spago:"type:params"`
+			MP *MyStruct `spago:"type:params"`
 		}
 
 		m := &TestModel{

@@ -22,7 +22,7 @@ var (
 type Model struct {
 	nn.BaseModel
 	Scale  float64
-	consts consts `scope:"processor"`
+	consts consts `spago:"scope:processor"`
 }
 
 type consts struct {
