@@ -405,9 +405,6 @@ func (s *Sparse) ProdScalar(n float64) Matrix {
 // ProdScalarInPlace performs the in-place multiplication between the matrix and
 // the given value, returning the same receiver Sparse matrix.
 func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
-	if n == 0.0 {
-		return NewEmptySparse(s.rows, s.cols)
-	}
 	for i, elem := range s.nzElements {
 		s.nzElements[i] = elem * n
 	}
