@@ -45,9 +45,12 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 	numFields := source.NumField()
 	for fieldIndex := 0; fieldIndex < numFields; fieldIndex++ {
 		sourceField, destField := source.Field(fieldIndex), dest.Field(fieldIndex)
-		tag := sourceType.Field(fieldIndex).Tag
+		tag, err := parseModuleFieldTag(sourceType.Field(fieldIndex).Tag.Get("spago"))
+		if err != nil {
+			panic(err)
+		}
 
-		if tag.Get("scope") == "processor" {
+		if tag.Scope == processorModuleFieldScope {
 			continue // skip any initialization
 		}
 
@@ -78,7 +81,7 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 				if sourceField.Kind() == reflect.Ptr && sourceField.IsNil() {
 					continue
 				}
-				if tag.Get("type") == "params" {
+				if tag.Type == paramsModuleFieldType {
 					destField.Set(reflect.ValueOf(mc.contextualizeStruct(sourceFieldT)))
 				} else {
 					destField.Set(sourceField)
@@ -121,7 +124,7 @@ func (mc modelContextualizer) contextualizeParamSlice(sourceField []Param) []Par
 	return result
 }
 
-func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag reflect.StructTag) reflect.Value {
+func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
 	length := sourceField.Len()
 	result := reflect.MakeSlice(sourceField.Type(), length, length)
 
@@ -130,7 +133,7 @@ func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag 
 
 		switch sourceItem.Kind() {
 		case reflect.Struct, reflect.Ptr:
-			isParams := tag.Get("type") == "params"
+			isParams := tag.Type == paramsModuleFieldType
 			_, isModule := sourceItem.Interface().(Module)
 
 			if isParams || isModule {
@@ -148,11 +151,11 @@ func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag 
 
 var paramInterfaceName = reflect.TypeOf((*Param)(nil)).Elem().Name()
 
-func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag reflect.StructTag) reflect.Value {
+func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
 	sourceType := reflect.TypeOf(sourceValue.Interface())
 	mapValueType := sourceType.Elem()
 
-	if mapValueType.Name() != paramInterfaceName && tag.Get("type") != "params" {
+	if mapValueType.Name() != paramInterfaceName && tag.Type != paramsModuleFieldType {
 		return sourceValue
 	}
 
