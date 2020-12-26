@@ -22,12 +22,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	Config
 	SqrtMemK        int
 	Wx              nn.Param `type:"weights"`
@@ -53,6 +53,13 @@ type Config struct {
 	K            int
 	UseReLU      bool
 	UseLayerNorm bool
+	States       []*State `scope:"processor"`
+}
+
+// State represent a state of the NRU recurrent network.
+type State struct {
+	Y      ag.Node
+	Memory ag.Node
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -63,6 +70,7 @@ func New(config Config) *Model {
 	sqrtMemK := int(math.Sqrt(float64(config.MemorySize * config.K)))
 
 	return &Model{
+		BaseModel:       nn.BaseModel{FullSeqProcessing: false},
 		Wx:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.InputSize)),
 		Wh:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.HiddenSize)),
 		Wm:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.MemorySize)),
@@ -84,47 +92,21 @@ func isExactInt(val float64) bool {
 	return val == float64(int(val))
 }
 
-// State represent a state of the NRU recurrent network.
-type State struct {
-	Y      ag.Node
-	Memory ag.Node
-}
-
-// Processor implements the nn.Processor interface for an NRU Model.
-type Processor struct {
-	nn.BaseProcessor
-	Config
-	SqrtMemK        int
-	hiddenLayerNorm nn.Processor
-	States          []*State
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor:   nn.NewBaseProcessor(m, ctx, false),
-		Config:          m.Config,
-		SqrtMemK:        m.SqrtMemK,
-		hiddenLayerNorm: m.HiddenLayerNorm.NewProc(ctx),
-		States:          nil,
-	}
-}
-
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("nru: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -132,37 +114,36 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
-func (p *Processor) forward(x ag.Node) *State {
-	m := p.Model.(*Model)
-	g := p.Graph
-	yPrev, mPrev := p.getPrev()
-	h := g.ReLU(p.optLayerNorm(nn.Affine(g, m.B, m.Wx, x, m.Wh, yPrev, m.Wm, mPrev)))
+func (m *Model) forward(x ag.Node) *State {
+	g := m.GetGraph()
+	yPrev, mPrev := m.getPrev()
+	h := g.ReLU(m.optLayerNorm(nn.Affine(g, m.B, m.Wx, x, m.Wh, yPrev, m.Wm, mPrev)))
 	hm := g.Concat(h, mPrev)
-	addMemory := p.calcAddMemory(hm)
-	forgetMemory := p.calcForgetMemory(hm)
-	diffMemory := p.calcDiffMemory(addMemory, forgetMemory)
+	addMemory := m.calcAddMemory(hm)
+	forgetMemory := m.calcForgetMemory(hm)
+	diffMemory := m.calcDiffMemory(addMemory, forgetMemory)
 	return &State{
 		Y:      h,
 		Memory: g.Add(mPrev, diffMemory),
 	}
 }
 
-func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
-	g := p.Graph
-	diffMemory := make([]ag.Node, p.MemorySize)
-	k := g.NewScalar(float64(p.K))
-	for j := 0; j < p.MemorySize; j++ {
+func (m *Model) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
+	g := m.GetGraph()
+	diffMemory := make([]ag.Node, m.MemorySize)
+	k := g.NewScalar(float64(m.K))
+	for j := 0; j < m.MemorySize; j++ {
 		var sum ag.Node
-		for i := 0; i < p.K; i++ {
-			l := i*p.MemorySize + j
+		for i := 0; i < m.K; i++ {
+			l := i*m.MemorySize + j
 			sum = g.Add(sum, g.Sub(addMemory[l], forgetMemory[l]))
 		}
 		diffMemory[j] = g.Div(sum, k)
@@ -170,85 +151,83 @@ func (p *Processor) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 	return g.Concat(diffMemory...)
 }
 
-func (p *Processor) calcAddMemory(hm ag.Node) []ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
-	alpha := nn.SeparateVec(g, p.optReLU(nn.Affine(g, m.Bhm2alpha, m.Whm2alpha, hm)))
+func (m *Model) calcAddMemory(hm ag.Node) []ag.Node {
+	g := m.GetGraph()
+	alpha := nn.SeparateVec(g, m.optReLU(nn.Affine(g, m.Bhm2alpha, m.Whm2alpha, hm)))
 	uAlpha := nn.SplitVec(g, nn.Affine(g, m.Bhm2alphaVec, m.Whm2alphaVec, hm), 2)
 	uAlphaSecond := uAlpha[1]
 	uAlphaFirst := uAlpha[0]
 	vAlpha := make([]ag.Node, uAlphaFirst.Value().Size())
-	for i := 0; i < p.SqrtMemK; i++ {
+	for i := 0; i < m.SqrtMemK; i++ {
 		vAlpha[i] = g.ProdScalar(uAlphaSecond, g.AtVec(uAlphaFirst, i))
 	}
-	vAlpha = p.optReLU2(vAlpha)
+	vAlpha = m.optReLU2(vAlpha)
 	vAlpha = normalization(g, vAlpha, 5)
-	addMemory := make([]ag.Node, p.K*p.MemorySize)
-	for i := 0; i < p.K; i++ {
-		for j := 0; j < p.MemorySize; j++ {
-			l := i*p.MemorySize + j
-			ii := l / p.SqrtMemK
-			jj := l % p.SqrtMemK
+	addMemory := make([]ag.Node, m.K*m.MemorySize)
+	for i := 0; i < m.K; i++ {
+		for j := 0; j < m.MemorySize; j++ {
+			l := i*m.MemorySize + j
+			ii := l / m.SqrtMemK
+			jj := l % m.SqrtMemK
 			addMemory[l] = g.Prod(alpha[i], g.AtVec(vAlpha[ii], jj))
 		}
 	}
 	return addMemory
 }
 
-func (p *Processor) calcForgetMemory(hm ag.Node) []ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
-	beta := nn.SeparateVec(g, p.optReLU(nn.Affine(g, m.Bhm2beta, m.Whm2beta, hm)))
+func (m *Model) calcForgetMemory(hm ag.Node) []ag.Node {
+	g := m.GetGraph()
+	beta := nn.SeparateVec(g, m.optReLU(nn.Affine(g, m.Bhm2beta, m.Whm2beta, hm)))
 	uBeta := nn.SplitVec(g, nn.Affine(g, m.Bhm2betaVec, m.Whm2betaVec, hm), 2)
 	uBetaSecond := uBeta[1]
 	uBetaFirst := uBeta[0]
 	vBeta := make([]ag.Node, uBetaFirst.Value().Size())
-	for i := 0; i < p.SqrtMemK; i++ {
+	for i := 0; i < m.SqrtMemK; i++ {
 		vBeta[i] = g.ProdScalar(uBetaSecond, g.AtVec(uBetaFirst, i))
 	}
-	vBeta = p.optReLU2(vBeta)
+	vBeta = m.optReLU2(vBeta)
 	vBeta = normalization(g, vBeta, 5)
-	forgetMemory := make([]ag.Node, p.K*p.MemorySize)
-	for i := 0; i < p.K; i++ {
-		for j := 0; j < p.MemorySize; j++ {
-			l := i*p.MemorySize + j
-			ii := l / p.SqrtMemK
-			jj := l % p.SqrtMemK
+	forgetMemory := make([]ag.Node, m.K*m.MemorySize)
+	for i := 0; i < m.K; i++ {
+		for j := 0; j < m.MemorySize; j++ {
+			l := i*m.MemorySize + j
+			ii := l / m.SqrtMemK
+			jj := l % m.SqrtMemK
 			forgetMemory[l] = g.Prod(beta[i], g.AtVec(vBeta[ii], jj))
 		}
 	}
 	return forgetMemory
 }
 
-func (p *Processor) getPrev() (yPrev, mPrev ag.Node) {
-	prev := p.LastState()
+func (m *Model) getPrev() (yPrev, mPrev ag.Node) {
+	prev := m.LastState()
 	if prev != nil {
 		yPrev = prev.Y
 		mPrev = prev.Memory
 	} else {
-		yPrev = p.Graph.NewVariable(mat.NewEmptyVecDense(p.HiddenSize), false)
-		mPrev = p.Graph.NewVariable(mat.NewEmptyVecDense(p.MemorySize), false)
+		yPrev = m.GetGraph().NewVariable(mat.NewEmptyVecDense(m.HiddenSize), false)
+		mPrev = m.GetGraph().NewVariable(mat.NewEmptyVecDense(m.MemorySize), false)
 	}
 	return
 }
 
-func (p *Processor) optLayerNorm(x ag.Node) ag.Node {
-	if p.UseLayerNorm {
-		return p.hiddenLayerNorm.Forward(x)[0]
+func (m *Model) optLayerNorm(x ag.Node) ag.Node {
+	if m.UseLayerNorm {
+		return m.HiddenLayerNorm.Forward(x)[0]
 	}
 	return x
 }
 
-func (p *Processor) optReLU(x ag.Node) ag.Node {
-	if p.UseReLU {
-		return p.Graph.ReLU(x)
+func (m *Model) optReLU(x ag.Node) ag.Node {
+	if m.UseReLU {
+		return m.GetGraph().ReLU(x)
 	}
 	return x
 }
 
-func (p *Processor) optReLU2(xs []ag.Node) []ag.Node {
-	if p.UseReLU {
-		return ag.Map(func(x ag.Node) ag.Node { return p.Graph.ReLU(x) }, xs)
+func (m *Model) optReLU2(xs []ag.Node) []ag.Node {
+	if m.UseReLU {
+		return ag.Map(func(x ag.Node) ag.Node { return m.GetGraph().ReLU(x) }, xs)
 	}
 	return xs
 }

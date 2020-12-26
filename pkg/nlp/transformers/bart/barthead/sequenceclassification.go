@@ -16,13 +16,13 @@ import (
 )
 
 var (
-	_ nn.Model     = &SequenceClassification{}
-	_ nn.Processor = &SequenceClassificationProcessor{}
+	_ nn.Module = &SequenceClassification{}
 )
 
 // SequenceClassification is a model for sentence-level classification tasks
 // which embeds a BART pre-trained model.
 type SequenceClassification struct {
+	nn.BaseModel
 	BART           *bart.Model
 	Classification *Classification
 }
@@ -30,7 +30,8 @@ type SequenceClassification struct {
 // NewSequenceClassification returns a new SequenceClassification.
 func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
-		BART: bart.New(config, embeddingsPath),
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BART:      bart.New(config, embeddingsPath),
 		Classification: NewClassification(ClassificationConfig{
 			InputSize:     config.DModel,
 			HiddenSize:    config.DModel,
@@ -70,36 +71,15 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	return model, nil
 }
 
-// SequenceClassificationProcessor implements a nn.Processor for a BART SequenceClassification.
-type SequenceClassificationProcessor struct {
-	nn.BaseProcessor
-	BART           *bart.Processor
-	Classification *ClassificationProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
-	return &SequenceClassificationProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		BART:           m.BART.NewProc(ctx).(*bart.Processor),
-		Classification: m.Classification.NewProc(ctx).(*ClassificationProcessor),
-	}
-}
-
 // Predict performs the forward step for each input and returns the result.
-func (p SequenceClassificationProcessor) Predict(inputIds ...int) []ag.Node {
-	transformed := p.BART.Process(inputIds...)
+func (m *SequenceClassification) Predict(inputIds ...int) []ag.Node {
+	transformed := m.BART.Process(inputIds...)
 	sentenceRepresentation := transformed[len(transformed)-1]
-	return p.Classification.Forward(sentenceRepresentation)
+	return m.Classification.Forward(sentenceRepresentation)
 }
 
 // Forward is not implemented for BART SequenceClassificationProcessor (it always panics).
 // You should use Predict instead.
-func (p SequenceClassificationProcessor) Forward(_ ...ag.Node) []ag.Node {
+func (m *SequenceClassification) Forward(_ ...ag.Node) []ag.Node {
 	panic("barthead: Forward() not implemented for SequenceClassification. Use Predict() instead.")
 }

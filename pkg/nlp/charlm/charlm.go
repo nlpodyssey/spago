@@ -28,16 +28,6 @@ const (
 	DefaultUnknownToken = "[UNK]"
 )
 
-// Model implements a Character-level Language Model.
-type Model struct {
-	Config
-	Decoder    *linear.Model
-	Projection *linear.Model
-	RNN        nn.Model
-	Embeddings []nn.Param `type:"weights"`
-	Vocabulary *vocabulary.Vocabulary
-}
-
 // Config provides configuration settings for a Character-level Language Model.
 // TODO: add dropout
 type Config struct {
@@ -47,6 +37,19 @@ type Config struct {
 	OutputSize        int    // use the projection layer when the output size is > 0
 	SequenceSeparator string // empty string is replaced with DefaultSequenceSeparator
 	UnknownToken      string // empty string is replaced with DefaultUnknownToken
+}
+
+// Model implements a Character-level Language Model.
+type Model struct {
+	nn.BaseModel
+	Config
+	Decoder          *linear.Model
+	Projection       *linear.Model
+	RNN              *lstm.Model
+	Embeddings       []nn.Param `type:"weights"` // TODO: no auto wrap!
+	Vocabulary       *vocabulary.Vocabulary
+	UsedEmbeddings   map[int]ag.Node `scope:"processor"`
+	UnknownEmbedding ag.Node         `scope:"processor"`
 }
 
 // New returns a new character-level language Model, initialized according to
@@ -100,84 +103,55 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 	})
 }
 
-// Processor implements the nn.Processor interface for a character-level language Model.
-type Processor struct {
-	nn.BaseProcessor
-	Decoder          *linear.Processor
-	Projection       *linear.Processor
-	RNN              nn.Processor
-	usedEmbeddings   map[int]ag.Node
-	UnknownEmbedding ag.Node
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	p := &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		Decoder: m.Decoder.NewProc(ctx).(*linear.Processor),
-		Projection: func() *linear.Processor {
-			if m.Config.OutputSize > 0 {
-				return m.Projection.NewProc(ctx).(*linear.Processor)
-			}
-			return nil
-		}(),
-		RNN:              m.RNN.NewProc(ctx),
-		usedEmbeddings:   make(map[int]ag.Node),
-		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)]),
-	}
-	return p
+func (m *Model) InitProc() {
+	m.UsedEmbeddings = make(map[int]ag.Node)
+	m.UnknownEmbedding = m.GetGraph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
 }
 
 // Predict performs the forward step for each input and returns the result.
-func (p *Processor) Predict(xs ...string) []ag.Node {
+func (m *Model) Predict(xs ...string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	encoding := p.GetEmbeddings(xs)
+	encoding := m.GetEmbeddings(xs)
 	for i, x := range encoding {
-		p.Graph.IncTimeStep() // essential for truncated back-propagation
-		h := p.RNN.Forward(x)[0]
-		proj := p.UseProjection(h)[0]
-		ys[i] = p.Decoder.Forward(proj)[0]
+		m.GetGraph().IncTimeStep() // essential for truncated back-propagation
+		h := m.RNN.Forward(x)[0]
+		proj := m.UseProjection(h)[0]
+		ys[i] = m.Decoder.Forward(proj)[0]
 	}
 	return ys
 }
 
 // UseProjection performs a linear projection with Processor.Projection model,
 // if available, otherwise returns xs unmodified.
-func (p *Processor) UseProjection(xs ...ag.Node) []ag.Node {
-	if p.Projection == nil {
+func (m *Model) UseProjection(xs ...ag.Node) []ag.Node {
+	if m.Projection == nil {
 		return xs
 	}
-	return p.Projection.Forward(xs...)
+	return m.Projection.Forward(xs...)
 }
 
 // GetEmbeddings transforms the string sequence xs into a sequence of
 // embeddings nodes.
-func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
-	model := p.Model.(*Model)
+func (m *Model) GetEmbeddings(xs []string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, item := range xs {
-		id, ok := model.Vocabulary.ID(item)
+		id, ok := m.Vocabulary.ID(item)
 		if !ok {
-			ys[i] = p.UnknownEmbedding
+			ys[i] = m.UnknownEmbedding
 			continue
 		}
-		if embedding, ok := p.usedEmbeddings[id]; ok {
+		if embedding, ok := m.UsedEmbeddings[id]; ok {
 			ys[i] = embedding
 			continue
 		}
-		ys[i] = p.Graph.NewWrap(model.Embeddings[id])
-		p.usedEmbeddings[id] = ys[i]
+		ys[i] = m.GetGraph().NewWrap(m.Embeddings[id])
+		m.UsedEmbeddings[id] = ys[i]
 	}
 	return ys
 }
 
 // Forward is not implemented for character-level language model Processor
 // (it always panics). You should use Predict instead.
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 	panic("charlm: method not implemented. Use Predict() instead.")
 }

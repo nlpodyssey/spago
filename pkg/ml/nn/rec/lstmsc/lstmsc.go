@@ -18,12 +18,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	PolicyGradient *stack.Model
 	Lambda         float64
 	WIn            nn.Param `type:"weights"`
@@ -38,12 +38,15 @@ type Model struct {
 	WCand          nn.Param `type:"weights"`
 	WCandRec       nn.Param `type:"weights"`
 	BCand          nn.Param `type:"biases"`
+	States         []*State `scope:"processor"`
 }
 
 // New returns a new model with parameters initialized to zeros.
 // Lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
 func New(in, out, k int, lambda float64, intermediate int) *Model {
-	var m Model
+	m := &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+	}
 	m.PolicyGradient = stack.New(
 		linear.New(in+out, intermediate),
 		activation.New(ag.OpTanh),
@@ -55,14 +58,7 @@ func New(in, out, k int, lambda float64, intermediate int) *Model {
 	m.WOut, m.WOutRec, m.BOut = newGateParams(in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams(in, out)
 	m.WCand, m.WCandRec, m.BCand = newGateParams(in, out)
-	return &m
-}
-
-func newGateParams(in, out int) (w, wRec, b nn.Param) {
-	w = nn.NewParam(mat.NewEmptyDense(out, in))
-	wRec = nn.NewParam(mat.NewEmptyDense(out, out))
-	b = nn.NewParam(mat.NewEmptyVecDense(out))
-	return
+	return m
 }
 
 // State represent a state of the LSTM with Dynamic Skip Connections recurrent network.
@@ -77,9 +73,16 @@ type State struct {
 	SkipIndex int
 }
 
+func newGateParams(in, out int) (w, wRec, b nn.Param) {
+	w = nn.NewParam(mat.NewEmptyDense(out, in))
+	wRec = nn.NewParam(mat.NewEmptyDense(out, out))
+	b = nn.NewParam(mat.NewEmptyVecDense(out))
+	return
+}
+
 // Processor implements the nn.Processor interface for an LSTM with Dynamic Skip Connections Model.
 type Processor struct {
-	nn.BaseProcessor
+	nn.BaseModel
 	wIn            ag.Node
 	wInRec         ag.Node
 	bIn            ag.Node
@@ -92,56 +95,27 @@ type Processor struct {
 	wCand          ag.Node
 	wCandRec       ag.Node
 	bCand          ag.Node
-	PolicyGradient *stack.Processor
+	PolicyGradient *stack.Model
 	lambda         ag.Node
 	negLambda      ag.Node
 	States         []*State
 }
 
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		States:         nil,
-		wIn:            g.NewWrap(m.WIn),
-		wInRec:         g.NewWrap(m.WInRec),
-		bIn:            g.NewWrap(m.BIn),
-		wOut:           g.NewWrap(m.WOut),
-		wOutRec:        g.NewWrap(m.WOutRec),
-		bOut:           g.NewWrap(m.BOut),
-		wFor:           g.NewWrap(m.WFor),
-		wForRec:        g.NewWrap(m.WForRec),
-		bFor:           g.NewWrap(m.BFor),
-		wCand:          g.NewWrap(m.WCand),
-		wCandRec:       g.NewWrap(m.WCandRec),
-		bCand:          g.NewWrap(m.BCand),
-		lambda:         g.NewScalar(m.Lambda),
-		negLambda:      g.NewScalar(1.0 - m.Lambda),
-		PolicyGradient: m.PolicyGradient.NewProc(ctx).(*stack.Processor),
-	}
-}
-
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("lstmsc: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -149,21 +123,22 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
 // PolicyGradientLogProbActions returns the log probabilities for each action
 // estimated by the policy gradient.
-func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
-	logPropActions := make([]ag.Node, len(p.States)-1)
+func (m *Model) PolicyGradientLogProbActions() []ag.Node {
+	g := m.GetGraph()
+	logPropActions := make([]ag.Node, len(m.States)-1)
 	for i := range logPropActions {
-		st := p.States[i+1] // skip the first state
-		logPropActions[i] = p.Graph.Log(p.Graph.AtVec(st.Actions, st.SkipIndex))
+		st := m.States[i+1] // skip the first state
+		logPropActions[i] = g.Log(g.AtVec(st.Actions, st.SkipIndex))
 	}
 	return logPropActions
 }
@@ -175,27 +150,29 @@ func (p *Processor) PolicyGradientLogProbActions() []ag.Node {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (p *Processor) forward(x ag.Node) (s *State) {
-	g := p.Graph
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	yPrev, cellPrev := p.prev()
+	yPrev, cellPrev := m.prev()
 	yPrevNew := yPrev
 	cellPrevNew := cellPrev
+	lambda := g.NewScalar(m.Lambda)
+	negLambda := g.NewScalar(1.0 - m.Lambda)
 
 	if yPrev != nil {
-		s.Actions = p.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x)))[0]
+		s.Actions = m.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x)))[0]
 		s.SkipIndex = f64utils.ArgMax(s.Actions.Value().Data())
-		if s.SkipIndex < len(p.States) {
-			kState := p.States[len(p.States)-1-s.SkipIndex]
-			yPrevNew = g.Add(g.ProdScalar(kState.Y, p.lambda), g.ProdScalar(yPrevNew, p.negLambda))
-			cellPrevNew = g.Add(g.ProdScalar(kState.Cell, p.lambda), g.ProdScalar(cellPrevNew, p.negLambda))
+		if s.SkipIndex < len(m.States) {
+			kState := m.States[len(m.States)-1-s.SkipIndex]
+			yPrevNew = g.Add(g.ProdScalar(kState.Y, lambda), g.ProdScalar(yPrevNew, negLambda))
+			cellPrevNew = g.Add(g.ProdScalar(kState.Cell, lambda), g.ProdScalar(cellPrevNew, negLambda))
 		}
 	}
 
-	s.InG = g.Sigmoid(nn.Affine(g, p.bIn, p.wIn, x, p.wInRec, yPrevNew))
-	s.OutG = g.Sigmoid(nn.Affine(g, p.bOut, p.wOut, x, p.wOutRec, yPrevNew))
-	s.ForG = g.Sigmoid(nn.Affine(g, p.bFor, p.wFor, x, p.wForRec, yPrevNew))
-	s.Cand = g.Tanh(nn.Affine(g, p.bCand, p.wCand, x, p.wCandRec, yPrevNew))
+	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrevNew))
+	s.OutG = g.Sigmoid(nn.Affine(g, m.BOut, m.WOut, x, m.WOutRec, yPrevNew))
+	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrevNew))
+	s.Cand = g.Tanh(nn.Affine(g, m.BCand, m.WCand, x, m.WCandRec, yPrevNew))
 	if cellPrevNew != nil {
 		s.Cell = g.Add(g.Prod(s.InG, s.Cand), g.Prod(s.ForG, cellPrevNew))
 	} else {
@@ -205,8 +182,8 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	return
 }
 
-func (p *Processor) prev() (yPrev, cellPrev ag.Node) {
-	s := p.LastState()
+func (m *Model) prev() (yPrev, cellPrev ag.Node) {
+	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
 		cellPrev = s.Cell

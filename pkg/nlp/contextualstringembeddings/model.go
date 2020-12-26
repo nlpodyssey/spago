@@ -17,8 +17,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // MergeType is the enumeration-like type used for the set of merging methods
@@ -38,6 +37,7 @@ const (
 
 // Model contains the serializable parameters for a Contextual String Embeddings model.
 type Model struct {
+	nn.BaseModel
 	LeftToRight *charlm.Model
 	RightToLeft *charlm.Model
 	MergeMode   MergeType
@@ -48,34 +48,12 @@ type Model struct {
 // New returns a new Contextual String Embeddings Model.
 func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
+		BaseModel:   nn.BaseModel{FullSeqProcessing: true},
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
 		MergeMode:   merge,
 		StartMarker: startMarker,
 		EndMarker:   endMarker,
-	}
-}
-
-// Processor implements the nn.Processor interface for a Contextual String Embeddings Model.
-type Processor struct {
-	nn.BaseProcessor
-	mergeMode   MergeType
-	leftToRight *charlm.Processor
-	rightToLeft *charlm.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		mergeMode:   m.MergeMode,
-		leftToRight: m.LeftToRight.NewProc(ctx).(*charlm.Processor),
-		rightToLeft: m.RightToLeft.NewProc(ctx).(*charlm.Processor),
 	}
 }
 
@@ -87,7 +65,7 @@ type wordBoundary struct {
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (p *Processor) Encode(words []string) []ag.Node {
+func (m *Model) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
 	sequence := utils.SplitByRune(text)
@@ -96,20 +74,20 @@ func (p *Processor) Encode(words []string) []ag.Node {
 	var reverseHiddenStates []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
-	m := p.Model.(*Model)
+
 	go func() {
 		defer wg.Done()
-		hiddenStates = process(p.leftToRight, padding(sequence, m.StartMarker, m.EndMarker))
+		hiddenStates = process(m.LeftToRight, padding(sequence, m.StartMarker, m.EndMarker))
 	}()
 	go func() {
 		defer wg.Done()
-		reverseHiddenStates = process(p.rightToLeft, padding(reversed(sequence), m.StartMarker, m.EndMarker))
+		reverseHiddenStates = process(m.RightToLeft, padding(reversed(sequence), m.StartMarker, m.EndMarker))
 	}()
 	wg.Wait()
 
 	out := make([]ag.Node, len(words))
 	for i, boundary := range boundaries {
-		out[i] = p.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
+		out[i] = m.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
 	}
 	return out
 }
@@ -148,13 +126,13 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 	return padded
 }
 
-func process(proc *charlm.Processor, sequence []string) []ag.Node {
+func process(proc *charlm.Model, sequence []string) []ag.Node {
 	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...)...)
 }
 
-func (p *Processor) merge(a, b ag.Node) ag.Node {
-	g := p.Graph
-	switch p.mergeMode {
+func (m *Model) merge(a, b ag.Node) ag.Node {
+	g := m.GetGraph()
+	switch m.MergeMode {
 	case Concat:
 		return g.Concat(a, b)
 	case Sum:
@@ -170,6 +148,6 @@ func (p *Processor) merge(a, b ag.Node) ag.Node {
 
 // Forward is not implemented for Contextual String Embeddings model Processor
 // (it always panics). You should use Encode instead.
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 	panic("contextual string embeddings: method not implemented. Use Encode() instead.")
 }

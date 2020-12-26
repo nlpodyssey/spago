@@ -23,8 +23,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Config provides configuration settings for a BLS Model.
@@ -45,6 +44,7 @@ type Config struct {
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	Config
 	Wz []nn.Param `type:"weights"`
 	Bz []nn.Param `type:"biases"`
@@ -64,67 +64,53 @@ func New(c Config) *Model {
 		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
 	}
 	return &Model{
-		Config: c,
-		Wz:     wz,
-		Bz:     bz,
-		Wh:     nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		Bh:     nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		W:      nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
-		B:      nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
-	}
-}
-
-// Processor implements the nn.Processor interface for a BLS Model.
-type Processor struct {
-	nn.BaseProcessor
-	Config
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		Config:        m.Config,
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		Config:    c,
+		Wz:        wz,
+		Bz:        bz,
+		Wh:        nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		Bh:        nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		W:         nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
+		B:         nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.forward(x)
+		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (p *Processor) forward(x ag.Node) ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
-	z := p.useFeaturesDropout(p.featuresMapping(x))
-	h := p.useEnhancedNodesDropout(g.Invoke(p.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
-	y := g.Invoke(p.OutputActivation, nn.Affine(g, m.B, m.W, g.Concat([]ag.Node{z, h}...)))
+func (m *Model) forward(x ag.Node) ag.Node {
+	g := m.GetGraph()
+	z := m.useFeaturesDropout(m.featuresMapping(x))
+	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
+	y := g.Invoke(m.OutputActivation, nn.Affine(g, m.B, m.W, g.Concat([]ag.Node{z, h}...)))
 	return y
 }
 
-func (p *Processor) featuresMapping(x ag.Node) ag.Node {
-	m := p.Model.(*Model)
-	z := make([]ag.Node, p.NumOfFeatures)
+func (m *Model) featuresMapping(x ag.Node) ag.Node {
+	g := m.GetGraph()
+	z := make([]ag.Node, m.NumOfFeatures)
 	for i := range z {
-		z[i] = nn.Affine(p.Graph, m.Bz[i], m.Wz[i], x)
+		z[i] = nn.Affine(g, m.Bz[i], m.Wz[i], x)
 	}
-	return p.Graph.Invoke(p.FeaturesActivation, p.Graph.Concat(z...))
+	return g.Invoke(m.FeaturesActivation, g.Concat(z...))
 }
 
-func (p *Processor) useFeaturesDropout(x ag.Node) ag.Node {
-	if p.Mode == nn.Training && p.FeaturesDropout > 0.0 {
-		return p.Graph.Dropout(x, p.FeaturesDropout)
+func (m *Model) useFeaturesDropout(x ag.Node) ag.Node {
+	if m.GetMode() == nn.Training && m.FeaturesDropout > 0.0 {
+		return m.GetGraph().Dropout(x, m.FeaturesDropout)
 	}
 	return x
 }
 
-func (p *Processor) useEnhancedNodesDropout(x ag.Node) ag.Node {
-	if p.Mode == nn.Training && p.EnhancedNodesDropout > 0.0 {
-		return p.Graph.Dropout(x, p.EnhancedNodesDropout)
+func (m *Model) useEnhancedNodesDropout(x ag.Node) ag.Node {
+	if m.GetMode() == nn.Training && m.EnhancedNodesDropout > 0.0 {
+		return m.GetGraph().Dropout(x, m.EnhancedNodesDropout)
 	}
 	return x
 }

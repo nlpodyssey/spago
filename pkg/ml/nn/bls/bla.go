@@ -44,10 +44,9 @@ func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
 	for _, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
-		p := l.Model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
-		m := p.Model.(*Model)
-		for j := 0; j < p.NumOfFeatures; j++ {
-			featuresMap[j] = append(featuresMap[j], nn.Affine(p.Graph, m.Bz[j], m.Wz[j], x).Value())
+		m := nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, l.Model).(*Model)
+		for j := 0; j < m.NumOfFeatures; j++ {
+			featuresMap[j] = append(featuresMap[j], nn.Affine(m.GetGraph(), m.Bz[j], m.Wz[j], x).Value())
 		}
 	}
 	x := mat.ConcatH(l.Input...)
@@ -63,8 +62,8 @@ func (l *BroadLearningAlgorithm) zhs() []mat.Matrix {
 	for i, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
-		proc := l.Model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
-		zhs[i] = singleZH(proc, x)
+		m := nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, l.Model).(*Model)
+		zhs[i] = singleZH(m, x)
 	}
 	return zhs
 }
@@ -79,11 +78,11 @@ func (l *BroadLearningAlgorithm) log(message string) {
 	}
 }
 
-func singleZH(p *Processor, x ag.Node) *mat.Dense {
-	m := p.Model.(*Model)
-	z := p.useFeaturesDropout(p.featuresMapping(x))
-	h := p.useEnhancedNodesDropout(p.Graph.Invoke(p.EnhancedNodesActivation, nn.Affine(p.Graph, m.Bh, m.Wh, z)))
-	return p.Graph.Concat([]ag.Node{z, h}...).Value().(*mat.Dense)
+func singleZH(m *Model, x ag.Node) *mat.Dense {
+	g := m.GetGraph()
+	z := m.useFeaturesDropout(m.featuresMapping(x))
+	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
+	return g.Concat(z, h).Value().(*mat.Dense)
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y

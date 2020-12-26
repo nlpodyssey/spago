@@ -17,16 +17,25 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	Config
-	FFN   *stack.Model
-	Value *linear.Model
-	W     nn.Param `type:"weights"`
+	FFN       *stack.Model
+	Value     *linear.Model
+	W         nn.Param     `type:"weights"`
+	Attention *ContextProb `scope:"processor"`
+}
+
+// ContextProb is a pair of Context encodings and Prob attention scores.
+type ContextProb struct {
+	// Context encodings.
+	Context []ag.Node
+	// Prob attention scores.
+	Prob []mat.Matrix
 }
 
 // Config provides configuration settings for a Synthetic Attention Model.
@@ -40,7 +49,8 @@ type Config struct {
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
-		Config: config,
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
 		FFN: stack.New(
 			linear.New(config.InputSize, config.HiddenSize),
 			activation.New(ag.OpReLU),
@@ -50,48 +60,22 @@ func New(config Config) *Model {
 	}
 }
 
-// ContextProb is a pair of Context encodings and Prob attention scores.
-type ContextProb struct {
-	// Context encodings.
-	Context []ag.Node
-	// Prob attention scores.
-	Prob []mat.Matrix
-}
-
-// Processor implements the nn.Processor interface for a Synthetic Attention Model.
-type Processor struct {
-	nn.BaseProcessor
-	ffn       *stack.Processor
-	value     *linear.Processor
-	Attention *ContextProb
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
-		ffn:           m.FFN.NewProc(ctx).(*stack.Processor),
-		value:         m.Value.NewProc(ctx).(*linear.Processor),
-		Attention:     nil,
-	}
-}
-
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	g := p.Graph
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.GetGraph()
 	length := len(xs)
 	context := make([]ag.Node, length)
 	prob := make([]mat.Matrix, length)
-	values := g.Stack(p.value.Forward(xs...)...)
-	rectified := g.Stack(p.ffn.Forward(xs...)...)
-	attentionWeights := p.extractAttentionWeights(length)
+	values := g.Stack(m.Value.Forward(xs...)...)
+	rectified := g.Stack(m.FFN.Forward(xs...)...)
+	attentionWeights := m.extractAttentionWeights(length)
 	mul := g.Mul(attentionWeights, g.T(rectified))
 	for i := 0; i < length; i++ {
 		attProb := g.Softmax(g.ColView(mul, i))
 		context[i] = g.Mul(g.T(attProb), values)
 		prob[i] = attProb.Value()
 	}
-	p.Attention = &ContextProb{
+	m.Attention = &ContextProb{
 		Context: context,
 		Prob:    prob,
 	}
@@ -99,9 +83,8 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // extractAttentionWeights returns the attention parameters tailored to the sequence length.
-func (p *Processor) extractAttentionWeights(length int) ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) extractAttentionWeights(length int) ag.Node {
+	g := m.GetGraph()
 	attentionWeights := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
 		attentionWeights[i] = g.T(g.RowView(m.W, i))

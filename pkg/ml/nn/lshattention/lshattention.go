@@ -18,16 +18,17 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	Config
-	Query *linear.Model
-	R     nn.Param `type:"weights"`
-	Value *linear.Model
+	Query     *linear.Model
+	R         nn.Param `type:"weights"`
+	Value     *linear.Model
+	Attention *ContextProb `scope:"processor"`
 }
 
 // Config provides configuration settings for a LSH-Attention Model.
@@ -39,16 +40,6 @@ type Config struct {
 	ScaleFactor float64
 }
 
-// New returns a new model with parameters initialized to zeros.
-func New(config Config) *Model {
-	return &Model{
-		Config: config,
-		Query:  linear.New(config.InputSize, config.QuerySize),
-		R:      nn.NewParam(mat.NewEmptyDense(config.QuerySize, config.BucketSize)),
-		Value:  linear.New(config.InputSize, config.ValueSize),
-	}
-}
-
 // ContextProb is a pair of Context encodings and Prob attention scores.
 type ContextProb struct {
 	// Context encodings.
@@ -57,23 +48,14 @@ type ContextProb struct {
 	Prob []mat.Matrix
 }
 
-// Processor implements the nn.Processor interface for an LSH-Attention Model.
-type Processor struct {
-	nn.BaseProcessor
-	scaleFactor float64
-	query       *linear.Processor
-	value       *linear.Processor
-	Attention   *ContextProb
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
-		scaleFactor:   m.ScaleFactor,
-		query:         m.Query.NewProc(ctx).(*linear.Processor),
-		value:         m.Value.NewProc(ctx).(*linear.Processor),
-		Attention:     nil,
+// New returns a new model with parameters initialized to zeros.
+func New(config Config) *Model {
+	return &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
+		Query:     linear.New(config.InputSize, config.QuerySize),
+		R:         nn.NewParam(mat.NewEmptyDense(config.QuerySize, config.BucketSize)),
+		Value:     linear.New(config.InputSize, config.ValueSize),
 	}
 }
 
@@ -84,14 +66,14 @@ type indexedNodes struct {
 
 // getHash returns the hash for the dense matrix `x`.
 // Since the hash does not require the use of gradients, it is calculated outside the graph to reduce overhead.
-func (p *Processor) getHash(x *mat.Dense) int {
-	h := x.T().Mul(p.Model.(*Model).R.Value())
+func (m *Model) getHash(x *mat.Dense) int {
+	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
 	return f64utils.ArgMax(concat.Data())
 }
 
 // TODO: implement concurrent computation?
-func (p *Processor) lshScaledDotProductAttention(
+func (m *Model) lshScaledDotProductAttention(
 	g *ag.Graph,
 	q ag.Node,
 	ks,
@@ -126,19 +108,20 @@ func insertNode(m map[int]*indexedNodes, node ag.Node, i, h int) {
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.GetGraph()
 	length := len(xs)
-	qs := p.query.Forward(xs...)
+	qs := m.Query.Forward(xs...)
 	ks := make([]ag.Node, length)
-	vs := p.value.Forward(xs...)
+	vs := m.Value.Forward(xs...)
 	mapk := make(map[int]*indexedNodes)
 	mapv := make(map[int]*indexedNodes)
 
 	// TODO: can it be implemented in a concurrent fashion?
 	for i, q := range qs {
-		norm := p.Graph.Sqrt(p.Graph.ReduceSum(p.Graph.Pow(q, 2.0)))
-		ks[i] = p.Graph.DivScalar(q, norm) // Euclidean norm
-		h := p.getHash(ks[i].Value().(*mat.Dense))
+		norm := g.Sqrt(g.ReduceSum(g.Pow(q, 2.0)))
+		ks[i] = g.DivScalar(q, norm) // Euclidean norm
+		h := m.getHash(ks[i].Value().(*mat.Dense))
 		insertNode(mapk, ks[i], i, h)
 		insertNode(mapv, vs[i], i, h)
 	}
@@ -146,12 +129,12 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 	context := make([]ag.Node, length)
 	prob := make([]mat.Matrix, length)
 	for i, q := range qs {
-		j := p.getHash(q.Value().(*mat.Dense))
-		c, p := p.lshScaledDotProductAttention(p.Graph, q, mapk[j], mapv[j], length, p.scaleFactor)
+		j := m.getHash(q.Value().(*mat.Dense))
+		c, p := m.lshScaledDotProductAttention(g, q, mapk[j], mapv[j], length, m.Config.ScaleFactor)
 		context[i], prob[i] = c, p
 	}
 
-	p.Attention = &ContextProb{
+	m.Attention = &ContextProb{
 		Context: context,
 		Prob:    prob,
 	}

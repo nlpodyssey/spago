@@ -18,38 +18,23 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
-	Wx  nn.Param `type:"weights"`
-	Wh  nn.Param `type:"weights"`
-	B   nn.Param `type:"biases"`
-	Wax nn.Param `type:"weights"`
-	Wah nn.Param `type:"weights"`
-	Ba  nn.Param `type:"biases"`
-	Wrx nn.Param `type:"weights"`
-	Wrh nn.Param `type:"weights"`
-	Br  nn.Param `type:"biases"`
-	nd  int      // number of delays
-}
-
-// New returns a new model with parameters initialized to zeros.
-func New(in, out, numberOfDelays int) *Model {
-	return &Model{
-		Wx:  nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wh:  nn.NewParam(mat.NewEmptyDense(out, out)),
-		B:   nn.NewParam(mat.NewEmptyVecDense(out)),
-		Wax: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wah: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Ba:  nn.NewParam(mat.NewEmptyVecDense(out)),
-		Wrx: nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wrh: nn.NewParam(mat.NewEmptyDense(out, out)),
-		Br:  nn.NewParam(mat.NewEmptyVecDense(out)),
-		nd:  numberOfDelays,
-	}
+	nn.BaseModel
+	Wx          nn.Param `type:"weights"`
+	Wh          nn.Param `type:"weights"`
+	B           nn.Param `type:"biases"`
+	Wax         nn.Param `type:"weights"`
+	Wah         nn.Param `type:"weights"`
+	Ba          nn.Param `type:"biases"`
+	Wrx         nn.Param `type:"weights"`
+	Wrh         nn.Param `type:"weights"`
+	Br          nn.Param `type:"biases"`
+	NumOfDelays int
+	States      []*State `scope:"processor"`
 }
 
 // State represent a state of the MIST recurrent network.
@@ -57,35 +42,38 @@ type State struct {
 	Y ag.Node
 }
 
-// Processor implements the nn.Processor interface for a MIST Model.
-type Processor struct {
-	nn.BaseProcessor
-	States []*State
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		States:        nil,
+// New returns a new model with parameters initialized to zeros.
+func New(in, out, numOfDelays int) *Model {
+	return &Model{
+		BaseModel:   nn.BaseModel{FullSeqProcessing: false},
+		Wx:          nn.NewParam(mat.NewEmptyDense(out, in)),
+		Wh:          nn.NewParam(mat.NewEmptyDense(out, out)),
+		B:           nn.NewParam(mat.NewEmptyVecDense(out)),
+		Wax:         nn.NewParam(mat.NewEmptyDense(out, in)),
+		Wah:         nn.NewParam(mat.NewEmptyDense(out, out)),
+		Ba:          nn.NewParam(mat.NewEmptyVecDense(out)),
+		Wrx:         nn.NewParam(mat.NewEmptyDense(out, in)),
+		Wrh:         nn.NewParam(mat.NewEmptyDense(out, out)),
+		Br:          nn.NewParam(mat.NewEmptyVecDense(out)),
+		NumOfDelays: numOfDelays,
 	}
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("mist: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -93,51 +81,50 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
-func (p *Processor) forward(x ag.Node) (s *State) {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	yPrev := p.yPrev()
+	yPrev := m.yPrev()
 	a := g.Softmax(nn.Affine(g, m.Ba, m.Wax, x, m.Wah, yPrev))
 	r := g.Sigmoid(nn.Affine(g, m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = g.Tanh(nn.Affine(g, m.B, m.Wx, x, m.Wh, p.tryProd(r, p.weightHistory(a))))
+	s.Y = g.Tanh(nn.Affine(g, m.B, m.Wx, x, m.Wh, m.tryProd(r, m.weightHistory(a))))
 	return
 }
 
-func (p *Processor) yPrev() ag.Node {
+func (m *Model) yPrev() ag.Node {
 	var yPrev ag.Node
-	s := p.LastState()
+	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
 	}
 	return yPrev
 }
 
-func (p *Processor) weightHistory(a ag.Node) ag.Node {
-	g := p.Graph
+func (m *Model) weightHistory(a ag.Node) ag.Node {
+	g := m.GetGraph()
 	var sum ag.Node
-	n := len(p.States)
-	for i := 0; i < p.Model.(*Model).nd; i++ {
+	n := len(m.States)
+	for i := 0; i < m.NumOfDelays; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
 		if k <= n {
-			sum = g.Add(sum, g.ProdScalar(p.States[n-k].Y, g.AtVec(a, i)))
+			sum = g.Add(sum, g.ProdScalar(m.States[n-k].Y, g.AtVec(a, i)))
 		}
 	}
 	return sum
 }
 
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
-func (p *Processor) tryProd(a, b ag.Node) ag.Node {
+func (m *Model) tryProd(a, b ag.Node) ag.Node {
 	if a != nil && b != nil {
-		return p.Graph.Prod(a, b)
+		return m.GetGraph().Prod(a, b)
 	}
 	return nil
 }

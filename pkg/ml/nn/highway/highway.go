@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	WIn        nn.Param `type:"weights"`
 	BIn        nn.Param `type:"biases"`
 	WT         nn.Param `type:"weights"`
@@ -27,6 +27,7 @@ type Model struct {
 // New returns a new model with parameters initialized to zeros.
 func New(in int, activation ag.OpName) *Model {
 	return &Model{
+		BaseModel:  nn.BaseModel{FullSeqProcessing: false},
 		WIn:        nn.NewParam(mat.NewEmptyDense(in, in)),
 		BIn:        nn.NewParam(mat.NewEmptyVecDense(in)),
 		WT:         nn.NewParam(mat.NewEmptyDense(in, in)),
@@ -35,23 +36,11 @@ func New(in int, activation ag.OpName) *Model {
 	}
 }
 
-// Processor implements the nn.Processor interface for a highway Model.
-type Processor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-	}
-}
-
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.forward(x)
+		ys[i] = m.forward(x)
 	}
 	return ys
 }
@@ -59,12 +48,10 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 // t = sigmoid(wT (dot) x + bT)
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
-func (p *Processor) forward(x ag.Node) ag.Node {
-	m := p.Model.(*Model)
-	activation := m.Activation
-	g := p.Graph
+func (m *Model) forward(x ag.Node) ag.Node {
+	g := m.GetGraph()
 	t := g.Sigmoid(nn.Affine(g, m.BT, m.WT, x))
-	h := g.Invoke(activation, nn.Affine(g, m.BIn, m.WIn, x))
+	h := g.Invoke(m.Activation, nn.Affine(g, m.BIn, m.WIn, x))
 	y := g.Add(g.Prod(t, h), g.Prod(g.ReverseSub(t, g.NewScalar(1.0)), x))
 	return y
 }

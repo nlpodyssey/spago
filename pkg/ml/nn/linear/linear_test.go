@@ -23,7 +23,10 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := activation.New(ag.OpTanh).NewProc(ctx).Forward(model.NewProc(ctx).Forward(x)[0])[0] // TODO: test linear only
+
+	actProc := nn.NewProc(ctx, activation.New(ag.OpTanh))
+	proc := nn.NewProc(ctx, model)
+	y := actProc.Forward(proc.Forward(x)[0])[0] // TODO: test linear only
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")

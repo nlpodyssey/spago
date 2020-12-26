@@ -14,10 +14,13 @@ import (
 
 func TestModelReLU_Forward(t *testing.T) {
 	g := ag.NewGraph()
+	m := New(ag.OpReLU)
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	p := nn.NewProc(ctx, m)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
-	y := New(ag.OpReLU).NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
+	y := p.Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.1, 0.0, 0.3, 0.0}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")
@@ -33,13 +36,14 @@ func TestModelReLU_Forward(t *testing.T) {
 
 func TestModelSwish_Forward(t *testing.T) {
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	beta := nn.NewParam(mat.NewScalar(2.0))
 	model := New(ag.OpSwish, beta)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x)[0]
+	y := nn.NewProc(ctx, model).Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.0549833997, -0.080262468, 0.1936968919, 0.0}, 1.0e-6) {
 		t.Error("The output doesn't match the expected values")

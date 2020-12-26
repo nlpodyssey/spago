@@ -12,26 +12,17 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
-	W1    nn.Param `type:"weights"`
-	W2    nn.Param `type:"weights"`
-	W3    nn.Param `type:"weights"`
-	WCell nn.Param `type:"weights"`
-}
-
-// New returns a new model with parameters initialized to zeros.
-func New(in int) *Model {
-	return &Model{
-		W1:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		W2:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		W3:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		WCell: nn.NewParam(mat.NewEmptyDense(in, in)),
-	}
+	nn.BaseModel
+	W1     nn.Param `type:"weights"`
+	W2     nn.Param `type:"weights"`
+	W3     nn.Param `type:"weights"`
+	WCell  nn.Param `type:"weights"`
+	States []*State `scope:"processor"`
 }
 
 // State represent a state of the LTM recurrent network.
@@ -44,35 +35,32 @@ type State struct {
 	Y    ag.Node
 }
 
-// Processor implements the nn.Processor interface for an LTM Model.
-type Processor struct {
-	nn.BaseProcessor
-	States []*State
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		States:        nil,
+// New returns a new model with parameters initialized to zeros.
+func New(in int) *Model {
+	return &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		W1:        nn.NewParam(mat.NewEmptyDense(in, in)),
+		W2:        nn.NewParam(mat.NewEmptyDense(in, in)),
+		W3:        nn.NewParam(mat.NewEmptyDense(in, in)),
+		WCell:     nn.NewParam(mat.NewEmptyDense(in, in)),
 	}
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("ltm: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -80,12 +68,12 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
 // l1 = sigmoid(w1 (dot) (x + yPrev))
@@ -94,11 +82,10 @@ func (p *Processor) LastState() *State {
 // c = l1 * l2 + cellPrev
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
-func (p *Processor) forward(x ag.Node) (s *State) {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	yPrev, cellPrev := p.prev()
+	yPrev, cellPrev := m.prev()
 	h := x
 	if yPrev != nil {
 		h = g.Add(h, yPrev)
@@ -115,8 +102,8 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	return
 }
 
-func (p *Processor) prev() (yPrev, cellPrev ag.Node) {
-	s := p.LastState()
+func (m *Model) prev() (yPrev, cellPrev ag.Node) {
+	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
 		cellPrev = s.Cell

@@ -230,10 +230,10 @@ func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[str
 
 	dumpWordEmbeddings(
 		pyTorchParams["bert.embeddings.word_embeddings.weight"],
-		c.model.Embeddings.Word,
+		c.model.Embeddings.Words,
 		c.model.Vocabulary)
 
-	c.model.Embeddings.Word.Close()
+	c.model.Embeddings.Words.Close()
 }
 
 func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
@@ -256,10 +256,10 @@ func dumpWordEmbeddings(source []float64, dest *embeddings.Model, vocabulary *vo
 func mapBertEncoder(model *Encoder) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.NumOfLayers; i++ {
-		layer := model.LayerAt(i)
+		layer := model.Layers[i].(*EncoderLayer)
 		prefixBase := fmt.Sprintf("bert.encoder.layer.%d", i)
 		// Sublayer 1
-		for j := 0; j < model.NumOfAttentionHeads; j++ {
+		for j := 0; j < model.EncoderConfig.NumOfAttentionHeads; j++ {
 			attention := layer.MultiHeadAttention.Attention[j]
 			prefix := fmt.Sprintf("%s.%d.attention.self", prefixBase, j)
 			paramsMap[fmt.Sprintf("%s.query.weight", prefix)] = attention.Query.W.Value()

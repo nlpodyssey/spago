@@ -19,7 +19,7 @@ func (s *ServerForSequenceClassification) classify(text string, text2 string) *C
 
 	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(true))
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*barthead.SequenceClassificationProcessor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
 	logits := proc.Predict(inputIds...)[0]
 	g.Forward()

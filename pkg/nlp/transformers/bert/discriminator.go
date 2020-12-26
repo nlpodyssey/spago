@@ -15,8 +15,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Discriminator{}
-	_ nn.Processor = &DiscriminatorProcessor{}
+	_ nn.Module = &Discriminator{}
 )
 
 // DiscriminatorConfig provides configuration settings for a BERT Discriminator.
@@ -44,23 +43,11 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 	}
 }
 
-// DiscriminatorProcessor implements a nn.Processor for a BERT Discriminator.
-type DiscriminatorProcessor struct {
-	*stack.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Discriminator) NewProc(ctx nn.Context) nn.Processor {
-	return &DiscriminatorProcessor{
-		Processor: m.Model.NewProc(ctx).(*stack.Processor),
-	}
-}
-
 // Discriminate returns 0 or 1 for each encoded element, where 1 means that
 // the word is out of context.
-func (p *DiscriminatorProcessor) Discriminate(encoded []ag.Node) []int {
+func (m *Discriminator) Discriminate(encoded []ag.Node) []int {
 	ys := make([]int, len(encoded))
-	for i, x := range p.Processor.Forward(encoded...) {
+	for i, x := range m.Forward(encoded...) {
 		ys[i] = int(math.Round(float64(f64utils.Sign(x.ScalarValue())+1.0) / 2.0))
 	}
 	return ys

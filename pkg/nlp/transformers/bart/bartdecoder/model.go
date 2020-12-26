@@ -16,12 +16,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model implements a BART decoder.
 type Model struct {
+	nn.BaseModel
 	Config                      bartconfig.Config
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
 	Layers                      *stack.Model
@@ -42,7 +42,8 @@ func New(config bartconfig.Config) *Model {
 		learnedPositionalEmbeddings[i] = nn.NewParam(mat.NewEmptyVecDense(config.DModel))
 	}
 	return &Model{
-		Config: config,
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
 		LearnedPositionalEmbeddings: posembeddings.NewLearnedPositionalEmbeddings(
 			posembeddings.Config{
 				NumEmbeddings: config.VocabSize,
@@ -51,7 +52,7 @@ func New(config bartconfig.Config) *Model {
 				Offset:        config.ExtraPosEmbedding,
 			}),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers: stack.Make(config.DecoderLayers, func(_ int) nn.Model {
+		Layers: stack.Make(config.DecoderLayers, func(_ int) nn.Module {
 			return NewLayer(config)
 			// add LayerDrop to skip layers during training (see https://arxiv.org/abs/1909.11556 for description)
 		}),
@@ -59,61 +60,34 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-// Processor implements the nn.Processor interface for a BART decoder Model.
-type Processor struct {
-	nn.BaseProcessor
-	bartconfig.Config
-	Layers                      *stack.Processor
-	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddingsProcessor
-	EmbeddingLayerNorm          *layernorm.Processor
-	LayerNorm                   *layernorm.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Config:                      m.Config,
-		Layers:                      m.Layers.NewProc(ctx).(*stack.Processor),
-		LearnedPositionalEmbeddings: m.LearnedPositionalEmbeddings.NewProc(ctx).(*posembeddings.LearnedPositionalEmbeddingsProcessor),
-		EmbeddingLayerNorm:          m.EmbeddingLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		LayerNorm:                   m.LayerNorm.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
 // Decode performs the forward step for each input and returns the result.
-func (p *Processor) Decode(xs, encoded []ag.Node) []ag.Node {
-	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
-	ys := p.add(xs, embedPos)
-	ys = p.EmbeddingLayerNorm.Forward(ys...)
-	// ys = p.Dropout(ys)
+func (m *Model) Decode(xs, encoded []ag.Node) []ag.Node {
+	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
+	ys := m.add(xs, embedPos)
+	ys = m.EmbeddingLayerNorm.Forward(ys...)
+	// ys = m.Dropout(ys)
 
-	for _, layer := range p.Layers.Layers {
-		ys = layer.(*LayerProcessor).Process(ys, encoded)
+	for _, layer := range m.Layers.Layers {
+		ys = layer.(*Layer).Process(ys, encoded)
 		// TODO: save all hidden states into the processor to allow a later access
 	}
 
-	if p.FinalLayerNorm {
-		ys = p.LayerNorm.Forward(ys...)
+	if m.Config.FinalLayerNorm {
+		ys = m.LayerNorm.Forward(ys...)
 	}
 	return ys
 }
 
-func (p *Processor) add(a []ag.Node, b []ag.Node) []ag.Node {
+func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = p.Graph.Add(a[i], b[i])
+		c[i] = m.GetGraph().Add(a[i], b[i])
 	}
 	return c
 }
 
 // Forward is not implemented for BART decoder Processor (it always panics).
 // You should use Decode instead.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	panic("bartdecoder: Forward() not implemented; use Decode() instead.")
 }

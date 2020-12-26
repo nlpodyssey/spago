@@ -16,13 +16,14 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.NewProc(ctx, model).(*Model)
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
 	_ = proc.Forward(x)[0]
-	s := proc.(*Processor).LastState()
+	s := proc.LastState()
 
 	if !floats.EqualApprox(s.Cell.Value().Data(), []float64{0.531299, 0.439948, 0.484336, 0.443710}, 1.0e-06) {
 		t.Error("The cell doesn't match the expected values")
@@ -84,7 +85,8 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	g := ag.NewGraph()
 	yPrev := g.NewVariable(mat.NewVecDense([]float64{0.7, 0.6, 0.2, 0.8}), true)
 	cellPrev := g.NewVariable(mat.NewVecDense([]float64{0.574443, 0.425557, 0.401312, 0.524979}), true)
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.NewProc(ctx, model).(*Model)
 	proc.SetInitialState(&State{
 		Cell: cellPrev,
 		Y:    yPrev,
@@ -191,7 +193,8 @@ func newTestModel() *Model {
 func TestModel_ForwardSeq(t *testing.T) { //TODO FIX TEST
 	model := newTestModel2()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.NewProc(ctx, model).(*Model)
 	proc.SetInitialState(&State{
 		Cell: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0}), true),
 		Y:    g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 0.0}), true),

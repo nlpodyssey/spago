@@ -15,13 +15,13 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 	// == Forward
 	x1 := g.NewVariable(mat.NewVecDense([]float64{1.0, 2.0, 0.0, 4.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]float64{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.1091089451, -0.0872871560, 0.0, 0.6982972487}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")

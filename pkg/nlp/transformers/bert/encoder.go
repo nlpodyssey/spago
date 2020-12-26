@@ -23,8 +23,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Encoder{}
-	_ nn.Processor = &EncoderProcessor{}
+	_ nn.Module = &Encoder{}
 )
 
 // EncoderConfig provides configuration parameters for BERT Encoder.
@@ -43,35 +42,13 @@ type Encoder struct {
 	*stack.Model
 }
 
-// LayerAt returns the i-layer model.
-func (m *Encoder) LayerAt(i int) *EncoderLayer {
-	return m.Layers[i].(*EncoderLayer)
-}
-
-// EncoderProcessor implements a nn.Processor for a BERT Encoder.
-type EncoderProcessor struct {
-	*stack.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
-	return &EncoderProcessor{
-		Processor: m.Model.NewProc(ctx).(*stack.Processor),
-	}
-}
-
-// LayerAt returns the i-th processor.
-// It panics if the underlying model is not BERT.
-func (p *EncoderProcessor) LayerAt(i int) *EncoderLayerProcessor {
-	return p.Layers[i].(*EncoderLayerProcessor)
-}
-
 // NewBertEncoder returns a new BERT encoder model composed of a stack of N identical BERT encoder layers.
 func NewBertEncoder(config EncoderConfig) *Encoder {
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(i int) nn.Model {
+		Model: stack.Make(config.NumOfLayers, func(i int) nn.Module {
 			return &EncoderLayer{
+				BaseModel: nn.BaseModel{FullSeqProcessing: true},
 				MultiHeadAttention: multiheadattention.New(
 					config.Size,
 					config.NumOfAttentionHeads,
@@ -109,7 +86,7 @@ func NewAlbertEncoder(config EncoderConfig) *Encoder {
 	}
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Model {
+		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Module {
 			return sharedLayer
 		}),
 	}

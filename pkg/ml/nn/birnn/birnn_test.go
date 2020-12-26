@@ -16,6 +16,7 @@ import (
 func TestModelConcat_Forward(t *testing.T) {
 	model := newTestModel(Concat)
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 
@@ -23,7 +24,7 @@ func TestModelConcat_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.0, -0.7}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{
 		0.187746, -0.50052, 0.109558, -0.005277, -0.084306, -0.628766,
@@ -116,6 +117,7 @@ func TestModelConcat_Forward(t *testing.T) {
 func TestModelSum_Forward(t *testing.T) {
 	model := newTestModel(Sum)
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 
@@ -123,7 +125,7 @@ func TestModelSum_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.0, -0.7}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.182469, -0.584826, -0.519207}, 1.0e-06) {
 		t.Error("The first output doesn't match the expected values")
@@ -141,6 +143,7 @@ func TestModelSum_Forward(t *testing.T) {
 func TestModelAvg_Forward(t *testing.T) {
 	model := newTestModel(Avg)
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 
@@ -148,7 +151,7 @@ func TestModelAvg_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.0, -0.7}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.0912345, -0.292413, -0.2596035}, 1.0e-06) {
 		t.Error("The first output doesn't match the expected values")
@@ -166,6 +169,7 @@ func TestModelAvg_Forward(t *testing.T) {
 func TestModelProd_Forward(t *testing.T) {
 	model := newTestModel(Prod)
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 
@@ -173,7 +177,7 @@ func TestModelProd_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.0, -0.7}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{-0.00099, 0.042197, -0.068886}, 1.0e-06) {
 		t.Error("The first output doesn't match the expected values")

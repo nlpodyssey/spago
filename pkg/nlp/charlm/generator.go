@@ -41,7 +41,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 		prefix = m.model.SequenceSeparator
 	}
 	g := ag.NewGraph()
-	proc := m.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, m.model).(*Model)
 	characters := make([]string, 0)
 	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
 	characters = append(characters, next)
@@ -60,7 +60,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 	return
 }
 
-func (m *Generator) generateNext(proc *Processor, xs ...string) (next string, prob float64) {
+func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob float64) {
 	lastIndex := len(xs) - 1
 	prediction := proc.Predict(xs...)[lastIndex].Value().Data() // keep the last prediction only
 	index := sample(prediction, m.Temperature)

@@ -78,7 +78,7 @@ func (s *Server) encode(text string) *EncodeResponse {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
 	pooled := proc.Pool(encoded)
 	normalized := pooled.Value().(*mat.Dense).Normalize2()

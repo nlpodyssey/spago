@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Predictor{}
-	_ nn.Processor = &PredictorProcessor{}
+	_ nn.Module = &Predictor{}
 )
 
 // PredictorConfig provides configuration settings for a BERT Predictor.
@@ -45,24 +44,12 @@ func NewPredictor(config PredictorConfig) *Predictor {
 	}
 }
 
-// PredictorProcessor implements a nn.Processor for a BERT Predictor.
-type PredictorProcessor struct {
-	*stack.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Predictor) NewProc(ctx nn.Context) nn.Processor {
-	return &PredictorProcessor{
-		Processor: m.Model.NewProc(ctx).(*stack.Processor),
-	}
-}
-
 // PredictMasked performs a masked prediction task. It returns the predictions
 // for indices associated to the masked nodes.
-func (p *PredictorProcessor) PredictMasked(encoded []ag.Node, masked []int) map[int]ag.Node {
+func (m *Predictor) PredictMasked(encoded []ag.Node, masked []int) map[int]ag.Node {
 	predictions := make(map[int]ag.Node)
 	for _, id := range masked {
-		predictions[id] = p.Forward(encoded[id])[0]
+		predictions[id] = m.Forward(encoded[id])[0]
 	}
 	return predictions
 }

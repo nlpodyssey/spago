@@ -78,7 +78,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 		ag.ConcurrentComputations(true),
 	)
 	defer g.Clear()
-	proc := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, t.model).(*Model)
 
 	// Split the text into runes and append the sequence separator
 	sequence := utils.SplitByRune(text)
@@ -117,7 +117,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 // trainBatch performs both the forward step and the truncated back-propagation on a given batch.
 // Note that the processor remains the same for all batches of the same sequence,
 // so the previous recurrent states are retained for the next prediction.
-func (t *Trainer) trainBatch(proc *Processor, batch []string) float64 {
+func (t *Trainer) trainBatch(proc *Model, batch []string) float64 {
 	g := proc.GetGraph()
 	g.ZeroGrad()
 	prevTimeStep := g.TimeStep()

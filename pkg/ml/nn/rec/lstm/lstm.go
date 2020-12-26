@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
+	UseRefinedGates bool
 	WIn             nn.Param `type:"weights"`
 	WInRec          nn.Param `type:"weights"`
 	BIn             nn.Param `type:"biases"`
@@ -30,7 +31,17 @@ type Model struct {
 	WCand           nn.Param `type:"weights"`
 	WCandRec        nn.Param `type:"weights"`
 	BCand           nn.Param `type:"biases"`
-	UseRefinedGates bool
+	States          []*State `scope:"processor"`
+}
+
+// State represent a state of the LSTM recurrent network.
+type State struct {
+	InG  ag.Node
+	OutG ag.Node
+	ForG ag.Node
+	Cand ag.Node
+	Cell ag.Node
+	Y    ag.Node
 }
 
 // Option allows to configure a new Model with your specific needs.
@@ -48,7 +59,9 @@ func SetRefinedGates(value bool) Option {
 
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int, options ...Option) *Model {
-	m := &Model{}
+	m := &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+	}
 	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)
 	m.WOut, m.WOutRec, m.BOut = newGateParams(in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams(in, out)
@@ -68,48 +81,21 @@ func newGateParams(in, out int) (w, wRec, b nn.Param) {
 	return
 }
 
-// State represent a state of the LSTM recurrent network.
-type State struct {
-	InG  ag.Node
-	OutG ag.Node
-	ForG ag.Node
-	Cand ag.Node
-	Cell ag.Node
-	Y    ag.Node
-}
-
-// Processor implements the nn.Processor interface for an LSTM Model.
-type Processor struct {
-	nn.BaseProcessor
-	States []*State
-	// whether to use refined gates
-	useRefinedGates bool
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor:   nn.NewBaseProcessor(m, ctx, false),
-		States:          nil,
-		useRefinedGates: m.UseRefinedGates,
-	}
-}
-
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("lstm: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -117,12 +103,12 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
 // forward computes the results with the following equations:
@@ -132,17 +118,16 @@ func (p *Processor) LastState() *State {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (p *Processor) forward(x ag.Node) (s *State) {
-	m := p.BaseProcessor.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	yPrev, cellPrev := p.prev()
+	yPrev, cellPrev := m.prev()
 	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))
 	s.OutG = g.Sigmoid(nn.Affine(g, m.BOut, m.WOut, x, m.WOutRec, yPrev))
 	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrev))
 	s.Cand = g.Tanh(nn.Affine(g, m.BCand, m.WCand, x, m.WCandRec, yPrev))
 
-	if p.useRefinedGates {
+	if m.UseRefinedGates {
 		s.InG = g.Prod(s.InG, x)
 		s.OutG = g.Prod(s.OutG, x)
 	}
@@ -156,8 +141,8 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	return
 }
 
-func (p *Processor) prev() (yPrev, cellPrev ag.Node) {
-	s := p.LastState()
+func (m *Model) prev() (yPrev, cellPrev ag.Node) {
+	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
 		cellPrev = s.Cell

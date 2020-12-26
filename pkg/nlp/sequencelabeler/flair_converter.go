@@ -179,7 +179,7 @@ func (c *converter) mapTagger(model *birnncrf.Model) {
 }
 
 func (c *converter) mapCharLM(model *charlm.Model, prefix string) {
-	c.mapLSTM(model.RNN.(*lstm.Model), fmt.Sprintf("%slstm.", prefix))
+	c.mapLSTM(model.RNN, fmt.Sprintf("%slstm.", prefix))
 	c.mapLinear(model.Decoder, fmt.Sprintf("%sdecoder.", prefix))
 	if model.Config.OutputSize > 0 {
 		c.mapLinear(model.Projection, fmt.Sprintf("%sprojection.", prefix))

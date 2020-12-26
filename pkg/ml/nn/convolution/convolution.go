@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Config provides configuration settings for a convolution Model.
@@ -31,9 +30,12 @@ type Config struct {
 
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model struct {
+	nn.BaseModel
 	Config Config
 	K      []nn.Param `type:"weights"`
 	B      []nn.Param `type:"biases"`
+	// whether to enable the concurrent forward computation on the output channel
+	Concurrent bool `scope:"processor"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
@@ -50,69 +52,51 @@ func New(config Config) *Model {
 		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1), nn.RequiresGrad(requireGrad))
 	}
 	return &Model{
-		Config: config,
-		K:      kernels,
-		B:      biases,
-	}
-}
-
-// Processor implements the nn.Processor interface for a convolution Model.
-type Processor struct {
-	nn.BaseProcessor
-	// whether to enable the concurrent forward computation on the output channel
-	concurrent bool
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
-		concurrent:    true,
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
+		K:         kernels,
+		B:         biases,
 	}
 }
 
 // SetConcurrentComputations enables or disables the usage of concurrency
 // in the Forward method.
-func (p *Processor) SetConcurrentComputations(value bool) {
-	p.concurrent = value
+func (m *Model) SetConcurrentComputations(value bool) {
+	m.Concurrent = value
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	m := p.Model.(*Model)
-	if p.concurrent && m.Config.OutputChannels > 1 {
-		return p.fwdConcurrent(xs)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	if m.Concurrent && m.Config.OutputChannels > 1 {
+		return m.fwdConcurrent(xs)
 	}
-	return p.fwdSerial(xs)
+	return m.fwdSerial(xs)
 }
 
-func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
-	m := p.Model.(*Model)
+func (m *Model) fwdSerial(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, m.Config.OutputChannels)
 	for i := range ys {
-		ys[i] = p.forward(xs, i)
+		ys[i] = m.forward(xs, i)
 	}
 	return ys
 }
 
-func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
-	m := p.Model.(*Model)
+func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, m.Config.OutputChannels)
 	var wg sync.WaitGroup
 	wg.Add(m.Config.OutputChannels)
 	for i := 0; i < m.Config.OutputChannels; i++ {
 		go func(i int) {
 			defer wg.Done()
-			ys[i] = p.forward(xs, i)
+			ys[i] = m.forward(xs, i)
 		}(i)
 	}
 	wg.Wait()
 	return ys
 }
 
-func (p *Processor) forward(xs []ag.Node, outputChannel int) ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
+	g := m.GetGraph()
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node
 	for i := 0; i < len(xs); i++ {

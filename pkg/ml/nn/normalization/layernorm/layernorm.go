@@ -15,12 +15,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	W nn.Param `type:"weights"`
 	B nn.Param `type:"biases"`
 }
@@ -28,36 +28,22 @@ type Model struct {
 // New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
-		W: nn.NewParam(mat.NewEmptyVecDense(size)),
-		B: nn.NewParam(mat.NewEmptyVecDense(size)),
-	}
-}
-
-// Processor implements the nn.Processor interface for a layer normalization Model.
-type Processor struct {
-	nn.BaseProcessor
-	eps ag.Node
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		eps:           g.Constant(1e-12), // avoid underflow errors
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		W:         nn.NewParam(mat.NewEmptyVecDense(size)),
+		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.GetGraph()
+	eps := g.Constant(1e-12) // avoid underflow errors
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		mean := g.ReduceMean(x)
 		dev := g.SubScalar(x, mean)
-		stdDev := g.Sqrt(g.Add(g.ReduceMean(g.Square(dev)), p.eps))
+		stdDev := g.Sqrt(g.Add(g.ReduceMean(g.Square(dev)), eps))
 		ys[i] = g.Add(g.Prod(g.DivScalar(dev, stdDev), m.W), m.B)
 	}
 	return ys

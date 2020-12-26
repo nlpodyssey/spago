@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &MaxPooling{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &MaxPooling{}
 )
 
 // MaxPooling is a parameter-free model used to instantiate a new Processor.
 type MaxPooling struct {
+	nn.BaseModel
 	Rows    int
 	Columns int
 }
@@ -23,34 +23,18 @@ type MaxPooling struct {
 // NewMax returns a new model.
 func NewMax(rows, columns int) *MaxPooling {
 	return &MaxPooling{
-		Rows:    rows,
-		Columns: columns,
-	}
-}
-
-// Processor implements the nn.Processor interface for a pooling Model.
-type Processor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *MaxPooling) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		Rows:      rows,
+		Columns:   columns,
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 // The max pooling is applied independently to each input.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	m := p.BaseProcessor.Model.(*MaxPooling)
+func (m *MaxPooling) Forward(xs ...ag.Node) []ag.Node {
+	g := m.GetGraph()
 	pooled := func(x ag.Node) ag.Node {
-		return p.Graph.MaxPooling(x, m.Rows, m.Columns)
+		return g.MaxPooling(x, m.Rows, m.Columns)
 	}
 	return ag.Map(pooled, xs)
 }

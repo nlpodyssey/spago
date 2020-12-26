@@ -154,7 +154,7 @@ type worker struct {
 func (w *worker) process(input premiseHypothesisPair) *mat.Dense {
 	g := ag.NewGraph(ag.ConcurrentComputations(true), ag.IncrementalForward(false))
 	defer g.Clear()
-	proc := w.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*barthead.SequenceClassificationProcessor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Predict(inputIds...)[0]
 	g.Forward()

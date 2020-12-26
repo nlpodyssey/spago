@@ -11,46 +11,34 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	B nn.Param `type:"weights"`
 }
 
 // New returns a new model with parameters initialized to zeros.
 func New(in, rank int) *Model {
 	return &Model{
-		B: nn.NewParam(mat.NewEmptyDense(rank, in)),
-	}
-}
-
-// Processor implements the nn.Processor interface for an sqrdist Model.
-type Processor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		B:         nn.NewParam(mat.NewEmptyDense(rank, in)),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.forward(x)
+		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (p *Processor) forward(x ag.Node) ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(x ag.Node) ag.Node {
+	g := m.GetGraph()
 	bh := g.Mul(m.B, x)
 	return g.Mul(g.T(bh), bh)
 }

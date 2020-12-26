@@ -29,12 +29,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model implements a sequence labeling model.
 type Model struct {
+	nn.BaseModel
 	Config          Config
 	EmbeddingsLayer *stackedembeddings.Model
 	TaggerLayer     *birnncrf.Model
@@ -53,7 +53,7 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		UnknownToken:      config.ContextualStringEmbeddings.UnknownToken,
 	}
 
-	wordLevelEmbeddings := make([]nn.Model, 0)
+	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor, 0)
 
 	if config.WordEmbeddings.WordEmbeddingsSize > 0 {
 		wordLevelEmbeddings = append(wordLevelEmbeddings,
@@ -78,8 +78,10 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 
 	return &Model{
-		Config: config,
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
 		EmbeddingsLayer: &stackedembeddings.Model{
+			BaseModel: nn.BaseModel{FullSeqProcessing: true},
 			WordsEncoders: append(
 				wordLevelEmbeddings,
 				contextualstringembeddings.New(
@@ -92,15 +94,15 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 			),
 			ProjectionLayer: linear.New(config.EmbeddingsProjectionInputSize, config.EmbeddingsProjectionOutputSize),
 		},
-		TaggerLayer: &birnncrf.Model{
-			BiRNN: birnn.New(
+		TaggerLayer: birnncrf.New(
+			birnn.New(
 				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
 				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
 				birnn.Concat,
 			),
-			Scorer: linear.New(config.ScorerInputSize, config.ScorerOutputSize),
-			CRF:    crf.New(len(config.Labels)),
-		},
+			linear.New(config.ScorerInputSize, config.ScorerOutputSize),
+			crf.New(len(config.Labels)),
+		),
 		Labels: config.Labels,
 	}
 }
@@ -143,27 +145,6 @@ func (m *Model) LoadParams(path string) {
 	fmt.Println("ok")
 }
 
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		EmbeddingsLayer: m.EmbeddingsLayer.NewProc(ctx).(*stackedembeddings.Processor),
-		TaggerLayer:     m.TaggerLayer.NewProc(ctx).(*birnncrf.Processor),
-	}
-}
-
-// Processor implements the nn.Processor interface for a sequence labeler Model.
-type Processor struct {
-	nn.BaseProcessor
-	EmbeddingsLayer *stackedembeddings.Processor
-	TaggerLayer     *birnncrf.Processor
-}
-
 // TokenLabel associates a tokenizers.StringOffsetsPair to a Label.
 type TokenLabel struct {
 	tokenizers.StringOffsetsPair
@@ -171,16 +152,15 @@ type TokenLabel struct {
 }
 
 // Predict performs the forward step for each input and returns the result.
-func (p *Processor) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
-	model := p.Model.(*Model)
+func (m *Model) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	words := tokenizers.GetStrings(tokens)
-	encodings := p.EmbeddingsLayer.Encode(words)
-	prediction := p.TaggerLayer.Predict(encodings)
+	encodings := m.EmbeddingsLayer.Encode(words)
+	prediction := m.TaggerLayer.Predict(encodings)
 	result := make([]TokenLabel, len(tokens))
 	for i, labelIndex := range prediction {
 		result[i] = TokenLabel{
 			StringOffsetsPair: tokens[i],
-			Label:             model.Labels[labelIndex],
+			Label:             m.Labels[labelIndex],
 		}
 	}
 	return result
@@ -188,12 +168,12 @@ func (p *Processor) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel 
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: it could be more consistent if the targets were the string labels
-func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
-	return p.TaggerLayer.NegativeLogLoss(targets)
+func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
+	return m.TaggerLayer.NegativeLogLoss(emissionScores, targets)
 }
 
 // Forward is not implemented for sequence labeler model Processor (it always panics).
 // You should use Encode instead.
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 	panic("sequencelabeler: Forward() not implemented. Use Predict() instead.")
 }

@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &EncoderLayer{}
-	_ nn.Processor = &EncoderLayerProcessor{}
+	_ nn.Module = &EncoderLayer{}
 )
 
 // EncoderLayer is a BERT Encoder Layer model.
 type EncoderLayer struct {
+	nn.BaseModel
 	MultiHeadAttention *multiheadattention.Model
 	NormAttention      *layernorm.Model
 	FFN                *stack.Model
@@ -27,34 +27,9 @@ type EncoderLayer struct {
 	Index              int // layer index (useful for debugging)
 }
 
-// EncoderLayerProcessor implements a nn.Processor for a BERT EncoderLayer.
-type EncoderLayerProcessor struct {
-	nn.BaseProcessor
-	MultiHeadAttention *multiheadattention.Processor
-	NormAttention      *layernorm.Processor
-	FFN                *stack.Processor
-	NormFFN            *layernorm.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *EncoderLayer) NewProc(ctx nn.Context) nn.Processor {
-	return &EncoderLayerProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		MultiHeadAttention: m.MultiHeadAttention.NewProc(ctx).(*multiheadattention.Processor),
-		NormAttention:      m.NormAttention.NewProc(ctx).(*layernorm.Processor),
-		FFN:                m.FFN.NewProc(ctx).(*stack.Processor),
-		NormFFN:            m.NormFFN.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
 // Forward performs the forward step for each input and returns the result.
-func (p *EncoderLayerProcessor) Forward(xs ...ag.Node) []ag.Node {
-	subLayer1 := rc.PostNorm(p.Graph, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
-	subLayer2 := rc.PostNorm(p.Graph, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)
+func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
+	subLayer1 := rc.PostNorm(m.GetGraph(), m.MultiHeadAttention.Forward, m.NormAttention.Forward, xs...)
+	subLayer2 := rc.PostNorm(m.GetGraph(), m.FFN.Forward, m.NormFFN.Forward, subLayer1...)
 	return subLayer2
 }

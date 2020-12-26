@@ -30,7 +30,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	}
 
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res := proc.Encode([]string{"foo"})[0]
 	if !floats.EqualApprox(res.Value().Data(), wordInContext1.Vector.ZerosLike().Data(), 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
@@ -39,7 +39,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	model.Aggregate([]*WordVectorPair{wordInContext1})
 
 	g = ag.NewGraph()
-	proc = model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc = nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res = proc.Encode([]string{"foo"})[0]
 	if !floats.EqualApprox(res.Value().Data(), wordInContext1.Vector.Data(), 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
@@ -48,7 +48,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	model.Aggregate([]*WordVectorPair{sameWordInContext2})
 
 	g = ag.NewGraph()
-	proc = model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc = nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res = proc.Encode([]string{"foo"})[0]
 	if !floats.EqualApprox(res.Value().Data(), []float64{
 		0.1, 0.2, 0.3, 0.0, 0.4, -0.6, -0.8, 0.7, -0.8, -3, -0.3, -0.9,
@@ -62,7 +62,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	}
 
 	g = ag.NewGraph()
-	proc = model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc = nn.NewProc(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res = proc.Encode([]string{"foo"})[0]
 	if !floats.EqualApprox(res.Value().Data(), []float64{
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

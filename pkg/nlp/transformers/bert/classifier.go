@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Classifier{}
-	_ nn.Processor = &ClassifierProcessor{}
+	_ nn.Module = &Classifier{}
 )
 
 // ClassifierConfig provides configuration settings for a BERT Classifier.
@@ -35,19 +34,7 @@ func NewTokenClassifier(config ClassifierConfig) *Classifier {
 	}
 }
 
-// ClassifierProcessor implements a nn.Processor for a BERT Classifier.
-type ClassifierProcessor struct {
-	*linear.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Classifier) NewProc(ctx nn.Context) nn.Processor {
-	return &ClassifierProcessor{
-		Processor: m.Model.NewProc(ctx).(*linear.Processor),
-	}
-}
-
 // Predict returns the logits.
-func (p *ClassifierProcessor) Predict(xs []ag.Node) []ag.Node {
-	return p.Forward(xs...)
+func (m *Classifier) Predict(xs []ag.Node) []ag.Node {
+	return m.Forward(xs...)
 }

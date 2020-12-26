@@ -15,7 +15,8 @@ import (
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.NewProc(ctx, model).(*Model)
 
 	// == Forward
 	x0 := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)

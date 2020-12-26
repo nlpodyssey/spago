@@ -11,14 +11,58 @@ import (
 	"io"
 )
 
-// Model contains the serializable parameters.
-type Model interface {
-	// NewProc returns a new processor to execute the forward step.
-	NewProc(ctx Context) Processor
+// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.) inside a Processor,
+// depending on whether you're doing training or inference.
+// Failing to set the right mode will yield inconsistent inference results.
+type ProcessingMode int
+
+const (
+	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
+	Training ProcessingMode = iota
+	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
+	Inference
+)
+
+// Context is used to instantiate a processor to operate on a graph, according to the desired ProcessingMode.
+// If a processor contains other sub-processors, you must instantiate them using the same context to make sure
+// you are operating on the same graph and in the same mode.
+type Context struct {
+	// Graph is the computational graph on which the processor(s) operate.
+	Graph *ag.Graph
+	// Mode regulates the different usage of some operations whether you're doing training or inference.
+	Mode ProcessingMode
 }
 
-func Contextualize(m Model, g *ag.Graph) Model {
-	return newModelContextualizer(g).contextualize(m)
+// Module is the main interface defining a neural module, combining the Model and Processor interfaces.
+type Module interface {
+	Model
+	Processor
+}
+
+// Model contains the serializable parameters.
+type Model interface{}
+
+// Processor performs the operations on the computational graphs using the model's parameters.
+type Processor interface {
+	// GetGraph returns the computational graph on which the processor operates (can be nil).
+	GetGraph() *ag.Graph
+	// GetMode returns whether the processor is being used for training or inference.
+	GetMode() ProcessingMode
+	// RequiresFullSeq returns whether the processor needs the complete sequence to start processing
+	// (as in the case of BiRNN and other bidirectional models), or not.
+	RequiresFullSeq() bool
+	// Forward performs the operations on the computational graphs using the model's parameters.
+	// It executes the forward step for each input and returns the result.
+	// Recurrent networks treats the input nodes as a sequence.
+	// Differently, feed-forward networks are stateless so every computation is independent.
+	Forward(xs ...ag.Node) []ag.Node
+	//
+	InitProc()
+}
+
+// NewProc returns a new contextualized model to execute the forward step.
+func NewProc(ctx Context, m Model) Processor {
+	return newModelContextualizer(ctx).contextualize(m)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
@@ -151,3 +195,37 @@ func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
 	})
 	return n, err
 }
+
+// BaseModel satisfies some methods of the Model interface.
+// It is meant to be embedded in other processors to reduce the amount of boilerplate code.
+type BaseModel struct {
+	Ctx               Context
+	FullSeqProcessing bool
+}
+
+// NewBaseModel returns a processor containing a new instance of the so-called "contextualized" model,
+// in which the parameters are wrapped as graph nodes.
+func NewBaseModel(ctx Context, fullSeqProcessing bool) BaseModel {
+	return BaseModel{
+		Ctx:               ctx,
+		FullSeqProcessing: fullSeqProcessing,
+	}
+}
+
+// GetMode returns whether the processor is being used for training or inference.
+func (m *BaseModel) GetMode() ProcessingMode {
+	return m.Ctx.Mode
+}
+
+// GetGraph returns the computational graph on which the processor operates.
+func (m *BaseModel) GetGraph() *ag.Graph {
+	return m.Ctx.Graph
+}
+
+// RequiresFullSeq returns whether the model needs the complete sequence to start processing
+// (as in the case of BiRNN and other bidirectional models), or not.
+func (m *BaseModel) RequiresFullSeq() bool {
+	return m.FullSeqProcessing
+}
+
+func (m *BaseModel) InitProc() {}

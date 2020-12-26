@@ -10,18 +10,22 @@ import (
 )
 
 type modelContextualizer struct {
+	ctx   Context
 	graph *ag.Graph
 }
 
 // newModelContextualizer returns a new modelContextualizer.
-func newModelContextualizer(graph *ag.Graph) modelContextualizer {
+func newModelContextualizer(ctx Context) modelContextualizer {
 	return modelContextualizer{
-		graph: graph,
+		ctx:   ctx,
+		graph: ctx.Graph,
 	}
 }
 
-func (mc modelContextualizer) contextualize(m Model) Model {
-	return mc.contextualizeStruct(m).(Model)
+func (mc modelContextualizer) contextualize(m Model) Processor {
+	p := mc.contextualizeStruct(m).(Processor)
+	p.InitProc()
+	return p
 }
 
 func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interface{} {
@@ -47,11 +51,23 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 			continue // skip any initialization
 		}
 
+		if !sourceField.CanInterface() {
+			continue
+		}
+
 		switch sourceFieldT := sourceField.Interface().(type) {
+		case Context:
+			destField.Set(reflect.ValueOf(mc.ctx))
+		case BaseModel, *BaseModel:
+			destField.Set(reflect.ValueOf(mc.contextualizeStruct(sourceFieldT)))
 		case Param:
-			destField.Set(reflect.ValueOf(mc.contextualizeParam(sourceFieldT)))
+			destField.Set(reflect.ValueOf(mc.contextualizeParam(sourceFieldT.(*param))))
 		case []Param:
 			destField.Set(reflect.ValueOf(mc.contextualizeParamSlice(sourceFieldT)))
+		case Module:
+			destField.Set(reflect.ValueOf(mc.contextualizeModel(sourceFieldT)))
+		case []Module:
+			destField.Set(reflect.ValueOf(mc.contextualizeModelSlice(sourceFieldT)))
 		default:
 			switch sourceField.Kind() {
 			case reflect.Slice:
@@ -79,23 +95,33 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 	return destPointer.Interface()
 }
 
-func (mc modelContextualizer) contextualizeParam(sourceField Param) Param {
-	return sourceField.(*param).wrappedParam(mc.graph)
+func (mc modelContextualizer) contextualizeModel(sourceField Module) Module {
+	p := NewProc(mc.ctx, sourceField)
+	p.InitProc()
+	return p
+}
+
+func (mc modelContextualizer) contextualizeModelSlice(sourceField []Module) []Module {
+	result := make([]Module, len(sourceField))
+	for i := 0; i < len(sourceField); i++ {
+		result[i] = mc.contextualizeModel(sourceField[i])
+	}
+	return result
+}
+
+func (mc modelContextualizer) contextualizeParam(sourceField *param) Param {
+	return sourceField.wrappedParam(mc.graph)
 }
 
 func (mc modelContextualizer) contextualizeParamSlice(sourceField []Param) []Param {
 	result := make([]Param, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
-		result[i] = mc.contextualizeParam(sourceField[i])
+		result[i] = mc.contextualizeParam(sourceField[i].(*param))
 	}
 	return result
 }
 
 func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag reflect.StructTag) reflect.Value {
-	if tag.Get("type") != "params" {
-		return sourceField
-	}
-
 	length := sourceField.Len()
 	result := reflect.MakeSlice(sourceField.Type(), length, length)
 
@@ -104,7 +130,14 @@ func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag 
 
 		switch sourceItem.Kind() {
 		case reflect.Struct, reflect.Ptr:
-			result.Index(i).Set(reflect.ValueOf(mc.contextualizeStruct(sourceItem.Interface())))
+			isParams := tag.Get("type") == "params"
+			_, isModule := sourceItem.Interface().(Module)
+
+			if isParams || isModule {
+				result.Index(i).Set(reflect.ValueOf(mc.contextualizeStruct(sourceItem.Interface())))
+			} else {
+				return sourceField
+			}
 		default:
 			panic(`nn: "params"-tagged slice contains items with unexpected type`)
 		}
@@ -132,7 +165,6 @@ func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag re
 		sourceValue := mapRange.Value()
 
 		var destValue reflect.Value
-
 		if p, isParam := sourceValue.Interface().(*param); isParam {
 			destValue = reflect.ValueOf(mc.contextualizeParam(p))
 		} else if mapValueKind == reflect.Struct || mapValueKind == reflect.Ptr {
@@ -140,7 +172,6 @@ func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag re
 		} else {
 			panic(`nn: "params"-tagged map contains values with unexpected type`)
 		}
-
 		result.SetMapIndex(key, destValue)
 	}
 

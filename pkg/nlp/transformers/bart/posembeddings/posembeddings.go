@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &LearnedPositionalEmbeddings{}
-	_ nn.Processor = &LearnedPositionalEmbeddingsProcessor{}
+	_ nn.Module = &LearnedPositionalEmbeddings{}
 )
 
 // Config provides configuration settings for a LearnedPositionalEmbeddings Model.
@@ -26,8 +25,9 @@ type Config struct {
 // LearnedPositionalEmbeddings contains positional embeddings fine-tuned during
 // the training phase.
 type LearnedPositionalEmbeddings struct {
+	nn.BaseModel
 	Config  Config
-	Vectors []nn.Param
+	Vectors []nn.Param // TODO: no auto wrap
 }
 
 // NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.
@@ -38,40 +38,24 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}
 	return &LearnedPositionalEmbeddings{
-		Config:  config,
-		Vectors: vectors,
-	}
-}
-
-// LearnedPositionalEmbeddingsProcessor implements a nn.Processor for a BART LearnedPositionalEmbeddings.
-type LearnedPositionalEmbeddingsProcessor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *LearnedPositionalEmbeddings) NewProc(ctx nn.Context) nn.Processor {
-	return &LearnedPositionalEmbeddingsProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
+		Vectors:   vectors,
 	}
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (p *LearnedPositionalEmbeddingsProcessor) Encode(positions []int) []ag.Node {
-	m := p.Model.(*LearnedPositionalEmbeddings)
+func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
+	g := m.GetGraph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {
-		embeddings[i] = p.Graph.NewWrap(m.Vectors[pos+m.Config.Offset])
+		embeddings[i] = g.NewWrap(m.Vectors[pos+m.Config.Offset])
 	}
 	return embeddings
 }
 
 // Forward is not implemented for LearnedPositionalEmbeddingsProcessor (it always panics).
 // You should use Process instead.
-func (p LearnedPositionalEmbeddingsProcessor) Forward(xs ...ag.Node) []ag.Node {
+func (m *LearnedPositionalEmbeddings) Forward(_ ...ag.Node) []ag.Node {
 	panic("posembeddings: Forward() not implemented for LearnedPositionalEmbeddings. Use Encode() instead.")
 }

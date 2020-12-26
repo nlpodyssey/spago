@@ -12,32 +12,20 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
-	W     nn.Param `type:"weights"`
-	WRec  nn.Param `type:"weights"`
-	B     nn.Param `type:"biases"`
-	BPart nn.Param `type:"biases"`
-	Alpha nn.Param `type:"weights"`
-	Beta1 nn.Param `type:"weights"`
-	Beta2 nn.Param `type:"weights"`
-}
-
-// New returns a new model with parameters initialized to zeros.
-func New(in, out int) *Model {
-	return &Model{
-		W:     nn.NewParam(mat.NewEmptyDense(out, in)),
-		WRec:  nn.NewParam(mat.NewEmptyDense(out, out)),
-		B:     nn.NewParam(mat.NewEmptyVecDense(out)),
-		BPart: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Alpha: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Beta1: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Beta2: nn.NewParam(mat.NewEmptyVecDense(out)),
-	}
+	nn.BaseModel
+	W      nn.Param `type:"weights"`
+	WRec   nn.Param `type:"weights"`
+	B      nn.Param `type:"biases"`
+	BPart  nn.Param `type:"biases"`
+	Alpha  nn.Param `type:"weights"`
+	Beta1  nn.Param `type:"weights"`
+	Beta2  nn.Param `type:"weights"`
+	States []*State `scope:"processor"`
 }
 
 // State represent a state of the DeltaRNN recurrent network.
@@ -49,35 +37,35 @@ type State struct {
 	Y  ag.Node
 }
 
-// Processor implements the nn.Processor interface for a DeltaRNN Model.
-type Processor struct {
-	nn.BaseProcessor
-	States []*State
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		States:        nil,
+// New returns a new model with parameters initialized to zeros.
+func New(in, out int) *Model {
+	return &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		W:         nn.NewParam(mat.NewEmptyDense(out, in)),
+		WRec:      nn.NewParam(mat.NewEmptyDense(out, out)),
+		B:         nn.NewParam(mat.NewEmptyVecDense(out)),
+		BPart:     nn.NewParam(mat.NewEmptyVecDense(out)),
+		Alpha:     nn.NewParam(mat.NewEmptyVecDense(out)),
+		Beta1:     nn.NewParam(mat.NewEmptyVecDense(out)),
+		Beta2:     nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("deltarnn: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
@@ -85,12 +73,12 @@ func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (p *Processor) LastState() *State {
-	n := len(p.States)
+func (m *Model) LastState() *State {
+	n := len(m.States)
 	if n == 0 {
 		return nil
 	}
-	return p.States[n-1]
+	return m.States[n-1]
 }
 
 // d1 = beta1 * w (dot) x + beta2 * wRec (dot) yPrev
@@ -98,11 +86,10 @@ func (p *Processor) LastState() *State {
 // c = tanh(d1 + d2 + bc)
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
-func (p *Processor) forward(x ag.Node) (s *State) {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	yPrev := p.prev()
+	yPrev := m.prev()
 	wx := g.Mul(m.W, x)
 	if yPrev == nil {
 		s.D1 = g.Prod(m.Beta1, wx)
@@ -120,8 +107,8 @@ func (p *Processor) forward(x ag.Node) (s *State) {
 	return
 }
 
-func (p *Processor) prev() (yPrev ag.Node) {
-	s := p.LastState()
+func (m *Model) prev() (yPrev ag.Node) {
+	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
 	}

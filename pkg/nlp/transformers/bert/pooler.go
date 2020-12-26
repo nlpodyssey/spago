@@ -13,8 +13,7 @@ import (
 )
 
 var (
-	_ nn.Model     = &Pooler{}
-	_ nn.Processor = &PoolerProcessor{}
+	_ nn.Module = &Pooler{}
 )
 
 // PoolerConfig provides configuration settings for a BERT Pooler.
@@ -35,17 +34,5 @@ func NewPooler(config PoolerConfig) *Pooler {
 			linear.New(config.InputSize, config.OutputSize),
 			activation.New(ag.OpTanh),
 		),
-	}
-}
-
-// PoolerProcessor implements a nn.Processor for a BERT Pooler.
-type PoolerProcessor struct {
-	*stack.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Pooler) NewProc(ctx nn.Context) nn.Processor {
-	return &PoolerProcessor{
-		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }

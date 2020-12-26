@@ -15,73 +15,69 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the scaling factor.
 type Model struct {
-	scale float64
+	nn.BaseModel
+	Scale  float64
+	consts consts `scope:"processor"`
 }
 
-// New returns a new model.
-func New(scale float64) *Model {
-	return &Model{scale: scale}
-}
-
-// Processor implements the nn.Processor interface for an AdaNorm Model.
-type Processor struct {
-	nn.BaseProcessor
+type consts struct {
 	eps ag.Node
 	one ag.Node
 	k   ag.Node
 	c   ag.Node
 }
 
+// New returns a new model.
+func New(scale float64) *Model {
+	return &Model{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		Scale:     scale,
+	}
+}
+
 // NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
+func (m *Model) InitProc() {
+	g := m.GetGraph()
+	m.consts = consts{
 		eps: g.Constant(1e-10),
 		one: g.Constant(1.0),
 		k:   g.Constant(0.1),
-		c:   g.Constant(m.scale),
+		c:   g.Constant(m.Scale),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	g := p.Graph
-	meanVectors := p.Mean(xs)
-	devVectors := p.StdDev(meanVectors, xs)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.GetGraph()
+	meanVectors := m.Mean(xs)
+	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))
 
 	for i, x := range xs {
-		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], p.eps))
-		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, p.k), p.one), p.c)
+		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], m.consts.eps))
+		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, m.consts.k), m.consts.one), m.consts.c)
 		zs[i] = g.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }
 
 // Mean computes the mean of the input.
-func (p *Processor) Mean(xs []ag.Node) []ag.Node {
+func (m *Model) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.Graph.ReduceMean(x)
+		ys[i] = m.GetGraph().ReduceMean(x)
 	}
 	return ys
 }
 
 // StdDev computes the standard deviation of the input.
-func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
-	g := p.Graph
+func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+	g := m.GetGraph()
 	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))

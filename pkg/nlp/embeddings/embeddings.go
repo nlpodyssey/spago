@@ -16,19 +16,18 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 var allModels []*Model
 
 // Model implements an embeddings model.
 type Model struct {
+	nn.BaseModel
 	Config
-	storage        kvdb.KeyValueDB
-	mu             sync.Mutex
-	UsedEmbeddings map[string]nn.Param `type:"weights"`
-	ZeroEmbedding  nn.Param            `type:"weights"`
+	Storage        kvdb.KeyValueDB
+	UsedEmbeddings sync.Map
+	ZeroEmbedding  nn.Param `type:"weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -49,13 +48,14 @@ type Config struct {
 // New returns a new embedding model.
 func New(config Config) *Model {
 	m := &Model{
-		Config: config,
-		storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		Config:    config,
+		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		UsedEmbeddings: map[string]nn.Param{},
+		UsedEmbeddings: sync.Map{},
 		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
@@ -65,28 +65,23 @@ func New(config Config) *Model {
 // Close closes the DB underlying the model of the embeddings map.
 // It automatically clears the cache.
 func (m *Model) Close() {
-	_ = m.storage.Close() // explicitly ignore errors here
+	_ = m.Storage.Close() // explicitly ignore errors here
 	m.ClearUsedEmbeddings()
 }
 
 // ClearUsedEmbeddings clears the cache of the used embeddings.
 // Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
 func (m *Model) ClearUsedEmbeddings() {
-	if len(m.UsedEmbeddings) == 0 {
-		return
-	}
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	for _, embedding := range m.UsedEmbeddings {
-		mat.ReleaseDense(embedding.Value().(*mat.Dense))
-	}
-	m.UsedEmbeddings = map[string]nn.Param{}
+	m.UsedEmbeddings.Range(func(key interface{}, value interface{}) bool {
+		m.UsedEmbeddings.Delete(key)
+		return true
+	})
 }
 
 // DropAll clears the cache of used embeddings and drops all the data stored in the DB.
 func (m *Model) DropAll() error {
 	m.ClearUsedEmbeddings()
-	return m.storage.DropAll()
+	return m.Storage.DropAll()
 }
 
 // Close closes the DBs underlying all instantiated embeddings models.
@@ -108,7 +103,7 @@ func ClearUsedEmbeddings() {
 // Count counts how many embeddings are stored in the DB.
 // It invokes log.Fatal in case of reading errors.
 func (m *Model) Count() int {
-	keys, err := m.storage.Keys()
+	keys, err := m.Storage.Keys()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -129,7 +124,7 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 		log.Fatal(err)
 	}
 	_, err = serializer.Serialize(&buf)
-	if err := m.storage.Put([]byte(word), buf.Bytes()); err != nil {
+	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -142,7 +137,7 @@ func (m *Model) SetEmbeddingFromData(word string, data []float64) {
 	m.SetEmbedding(word, vec)
 }
 
-// GetEmbedding returns the parameter (the word embedding) associated with the given word.
+// GetStoredEmbedding returns the parameter (the word embedding) associated with the given word.
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
 //
 // The returned embedding is also cached in m.UsedEmbeddings for two reasons:
@@ -150,34 +145,34 @@ func (m *Model) SetEmbeddingFromData(word string, data []float64) {
 //     - to keep track of used embeddings, should they be optimized.
 //
 // If no embedding is found, nil is returned.
-// It panics in case of storage errors.
-func (m *Model) GetEmbedding(word string) nn.Param {
-	if found := m.getEmbedding(word); found != nil {
+// It panics in case of Storage errors.
+func (m *Model) GetStoredEmbedding(word string) nn.Param {
+	if found := m.getStoredEmbedding(word); found != nil {
 		return found
 	}
-	if found := m.getEmbedding(strings.ToLower(word)); found != nil {
+	if found := m.getStoredEmbedding(strings.ToLower(word)); found != nil {
 		return found
 	}
 	return nil
 }
 
-// getEmbedding returns the parameter (the word embedding) associated with the given word (exact correspondence).
+// getStoredEmbedding returns the parameter (the word embedding) associated with the given word (exact correspondence).
 // The returned embedding is also cached in m.UsedEmbeddings for two reasons:
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
-// It panics in case of storage errors.
-func (m *Model) getEmbedding(word string) nn.Param {
+// It panics in case of Storage errors.
+func (m *Model) getStoredEmbedding(word string) nn.Param {
 	if embedding, ok := m.getUsedEmbedding(word); ok {
 		return embedding
 	}
-	data, ok, err := m.storage.Get([]byte(word))
+	data, ok, err := m.Storage.Get([]byte(word))
 	if err != nil {
 		log.Fatal(err)
 	}
 	if !ok {
 		return nil // embedding not found
 	}
-	embedding := nn.NewParam(nil, nn.SetStorage(m.storage), nn.RequiresGrad(!m.ReadOnly))
+	embedding := nn.NewParam(nil, nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
 	serializer, err := nn.NewParamSerializer(embedding)
 	if err != nil {
 		log.Fatal(err)
@@ -186,74 +181,51 @@ func (m *Model) getEmbedding(word string) nn.Param {
 		log.Fatal(err)
 	}
 	embedding.SetName(word)
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.UsedEmbeddings[word] = embedding // important
+	m.UsedEmbeddings.Store(word, embedding) // important
 	return embedding
 }
 
-func (m *Model) getUsedEmbedding(word string) (embedding nn.Param, ok bool) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	embedding, ok = m.UsedEmbeddings[word]
-	return
-}
-
-// Processor implements the nn.Processor interface for an embeddings Model.
-type Processor struct {
-	nn.BaseProcessor
-	ZeroEmbedding ag.Node
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	var zeroEmbedding ag.Node = nil
-	if m.UseZeroEmbedding {
-		zeroEmbedding = ctx.Graph.NewWrap(m.ZeroEmbedding)
+func (m *Model) getUsedEmbedding(word string) (nn.Param, bool) {
+	if value, ok := m.UsedEmbeddings.Load(word); ok {
+		return value.(nn.Param), true
 	}
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		ZeroEmbedding: zeroEmbedding, // it can be nil
-	}
+	return nil, false
 }
 
 // Encode returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes
 // are nil or the `ZeroEmbedding`, depending on the configuration.
-func (p *Processor) Encode(words []string) []ag.Node {
+func (m *Model) Encode(words []string) []ag.Node {
 	encoding := make([]ag.Node, len(words))
 	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
 	for i, word := range words {
 		if item, ok := cache[word]; ok {
 			encoding[i] = item
 		} else {
-			embedding := p.getEmbedding(word)
+			embedding := m.getEmbedding(word)
 			encoding[i], cache[word] = embedding, embedding
 		}
 	}
 	return encoding
 }
 
-// getEmbedding returns the embedding associated to the word.
+// getStoredEmbedding returns the embedding associated to the word.
 // If no embedding is found, nil or the `ZeroEmbedding` is returned, depending on the model configuration.
-func (p *Processor) getEmbedding(word string) ag.Node {
-	model := p.Model.(*Model)
-	switch param := model.GetEmbedding(word); {
+func (m *Model) getEmbedding(word string) ag.Node {
+	switch param := m.GetStoredEmbedding(word); {
 	case param == nil:
-		return p.ZeroEmbedding // it can be nil
+		if m.Config.UseZeroEmbedding {
+			return m.ZeroEmbedding
+		}
+		return nil
 	default:
-		return p.Graph.NewWrap(param)
+		return m.GetGraph().NewWrap(param)
 	}
 }
 
 // Forward is not implemented for embeddings model Processor (it always panics).
 // You should use Encode instead.
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 	panic("embeddings: p.Forward() not implemented. Use p.Encode() instead.")
 }

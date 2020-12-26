@@ -88,7 +88,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	passageStartIndex := len(origQuestionTokens) + 2 // +2 because of [CLS] and [SEP]

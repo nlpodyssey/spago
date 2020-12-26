@@ -30,8 +30,7 @@ const (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Config provides configuration settings for a BERT Model.
@@ -65,6 +64,7 @@ func LoadConfig(file string) (Config, error) {
 
 // Model implements a BERT model.
 type Model struct {
+	nn.BaseModel
 	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
 	Embeddings      *Embeddings
@@ -80,6 +80,7 @@ type Model struct {
 // NewDefaultBERT returns a new model based on the original BERT architecture.
 func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	return &Model{
+		BaseModel:  nn.BaseModel{FullSeqProcessing: true},
 		Config:     config,
 		Vocabulary: nil,
 		Embeddings: NewEmbeddings(EmbeddingsConfig{
@@ -173,80 +174,47 @@ func LoadModel(modelPath string) (*Model, error) {
 	return model, nil
 }
 
-// Processor implements the nn.Processor interface for a BERT Model.
-type Processor struct {
-	nn.BaseProcessor
-	Embeddings      *EmbeddingsProcessor
-	Encoder         *EncoderProcessor
-	Predictor       *PredictorProcessor
-	Discriminator   *DiscriminatorProcessor
-	Pooler          *PoolerProcessor
-	SeqRelationship *linear.Processor
-	SpanClassifier  *SpanClassifierProcessor
-	Classifier      *ClassifierProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Embeddings:      m.Embeddings.NewProc(ctx).(*EmbeddingsProcessor),
-		Encoder:         m.Encoder.NewProc(ctx).(*EncoderProcessor),
-		Predictor:       m.Predictor.NewProc(ctx).(*PredictorProcessor),
-		Discriminator:   m.Discriminator.NewProc(ctx).(*DiscriminatorProcessor),
-		Pooler:          m.Pooler.NewProc(ctx).(*PoolerProcessor),
-		SeqRelationship: m.SeqRelationship.NewProc(ctx).(*linear.Processor),
-		SpanClassifier:  m.SpanClassifier.NewProc(ctx).(*SpanClassifierProcessor),
-		Classifier:      m.Classifier.NewProc(ctx).(*ClassifierProcessor),
-	}
-}
-
 // Encode transforms a string sequence into an encoded representation.
-func (p *Processor) Encode(tokens []string) []ag.Node {
-	tokensEncoding := p.Embeddings.Encode(tokens)
-	return p.Encoder.Forward(tokensEncoding...)
+func (m *Model) Encode(tokens []string) []ag.Node {
+	tokensEncoding := m.Embeddings.Encode(tokens)
+	return m.Encoder.Forward(tokensEncoding...)
 }
 
 // PredictMasked performs a masked prediction task. It returns the predictions
 // for indices associated to the masked nodes.
-func (p *Processor) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
-	return p.Predictor.PredictMasked(transformed, masked)
+func (m *Model) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
+	return m.Predictor.PredictMasked(transformed, masked)
 }
 
 // Discriminate returns 0 or 1 for each encoded element, where 1 means that
 // the word is out of context.
-func (p *Processor) Discriminate(encoded []ag.Node) []int {
-	return p.Discriminator.Discriminate(encoded)
+func (m *Model) Discriminate(encoded []ag.Node) []int {
+	return m.Discriminator.Discriminate(encoded)
 }
 
 // Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
-func (p *Processor) Pool(transformed []ag.Node) ag.Node {
-	return p.Pooler.Forward(transformed[0])[0]
+func (m *Model) Pool(transformed []ag.Node) ag.Node {
+	return m.Pooler.Forward(transformed[0])[0]
 }
 
 // PredictSeqRelationship predicts if the second sentence in the pair is the
 // subsequent sentence in the original document.
-func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
-	return p.SeqRelationship.Forward(pooled)[0]
+func (m *Model) PredictSeqRelationship(pooled ag.Node) ag.Node {
+	return m.SeqRelationship.Forward(pooled)[0]
 }
 
 // TokenClassification performs a classification for each element in the sequence.
-func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
-	return p.Classifier.Predict(transformed)
+func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
+	return m.Classifier.Predict(transformed)
 }
 
 // SequenceClassification performs a single sentence-level classification,
 // using the pooled CLS token.
-func (p *Processor) SequenceClassification(transformed []ag.Node) ag.Node {
-	return p.Classifier.Predict(p.Pooler.Forward(transformed[0]))[0]
+func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
+	return m.Classifier.Predict(m.Pooler.Forward(transformed[0]))[0]
 }
 
 // Forward is not implemented for BERT model Processor (it always panics).
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(_ ...ag.Node) []ag.Node {
 	panic("bert: method not implemented")
 }

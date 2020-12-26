@@ -17,25 +17,26 @@ import (
 )
 
 var (
-	_ nn.Model     = &bartencoder.Layer{}
-	_ nn.Processor = &bartencoder.LayerProcessor{}
+	_ nn.Module = &bartencoder.Layer{}
 )
 
 // Layer implements a BART decoder layer.
 type Layer struct {
+	nn.BaseModel
 	Config                    bartconfig.Config
 	SelfAttention             *multiheadattention.Model
 	SelfAttentionLayerNorm    *layernorm.Model
 	EncoderAttention          *multiheadattention.Model
 	EncoderAttentionLayerNorm *layernorm.Model
-	FFN                       *stack.Model // FC2(Activation(FC1))
+	FFN                       *stack.Model
 	LayerNorm                 *layernorm.Model
 }
 
 // NewLayer returns a new BART decoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
-		Config: config,
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		Config:    config,
 		SelfAttention: multiheadattention.New(
 			config.DModel,
 			config.DecoderAttentionHeads,
@@ -61,102 +62,72 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
-// LayerProcessor implements the nn.Processor interface for a BART decoder Layer.
-type LayerProcessor struct {
-	nn.BaseProcessor
-	bartconfig.Config
-	SelfAttention             *multiheadattention.Processor
-	SelfAttentionLayerNorm    *layernorm.Processor
-	EncoderAttention          *multiheadattention.Processor
-	EncoderAttentionLayerNorm *layernorm.Processor
-	FFN                       *stack.Processor
-	LayerNorm                 *layernorm.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Layer) NewProc(ctx nn.Context) nn.Processor {
-	return &LayerProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		SelfAttention:             m.SelfAttention.NewProc(ctx).(*multiheadattention.Processor),
-		SelfAttentionLayerNorm:    m.SelfAttentionLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		EncoderAttention:          m.EncoderAttention.NewProc(ctx).(*multiheadattention.Processor),
-		EncoderAttentionLayerNorm: m.EncoderAttentionLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		FFN:                       m.FFN.NewProc(ctx).(*stack.Processor),
-		LayerNorm:                 m.LayerNorm.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
 // Process performs the forward step for each input and returns the result.
-func (p *LayerProcessor) Process(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
-	selfAtt := p.selfAttentionBlock(xs)
-	crossAtt := p.crossAttentionBlock(selfAtt, encoderHiddenStates)
-	out := p.fullyConnectedBlock(crossAtt)
+func (m *Layer) Process(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
+	selfAtt := m.selfAttentionBlock(xs)
+	crossAtt := m.crossAttentionBlock(selfAtt, encoderHiddenStates)
+	out := m.fullyConnectedBlock(crossAtt)
 	return out
 }
 
-func (p *LayerProcessor) selfAttentionBlock(xs []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.SelfAttentionLayerNorm.Forward(xs...)
+func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = p.SelfAttention.Forward(xs...) // query=xs, key=xs, value=xs
-	// xs = p.Dropout(xs)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.SelfAttentionLayerNorm.Forward(xs...)
-	}
-	return xs
-}
-
-func (p *LayerProcessor) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.EncoderAttentionLayerNorm.Forward(xs...)
-	}
-	xs = p.EncoderAttention.ForwardQKV(xs, ex, ex) // query=xs, key=ex, value=ex
-	// xs = p.Dropout(xs)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.EncoderAttentionLayerNorm.Forward(xs...)
+	xs = m.SelfAttention.Forward(xs...) // query=xs, key=xs, value=xs
+	// xs = m.Dropout(xs)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
 
-func (p *LayerProcessor) fullyConnectedBlock(xs []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.LayerNorm.Forward(xs...)
+func (m *Layer) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	xs = p.FFN.Forward(xs...)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.LayerNorm.Forward(xs...)
+	xs = m.EncoderAttention.ForwardQKV(xs, ex, ex) // query=xs, key=ex, value=ex
+	// xs = m.Dropout(xs)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
 
-func (p *LayerProcessor) copy(xs []ag.Node) []ag.Node {
+func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.LayerNorm.Forward(xs...)
+	}
+	xs = m.FFN.Forward(xs...)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.LayerNorm.Forward(xs...)
+	}
+	return xs
+}
+
+func (m *Layer) copy(xs []ag.Node) []ag.Node {
 	copied := func(x ag.Node) ag.Node {
-		return p.Graph.Identity(x)
+		return m.GetGraph().Identity(x)
 	}
 	return ag.Map(copied, xs)
 }
 
-func (p *LayerProcessor) add(a []ag.Node, b []ag.Node) []ag.Node {
+func (m *Layer) add(a []ag.Node, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = p.Graph.Add(a[i], b[i])
+		c[i] = m.GetGraph().Add(a[i], b[i])
 	}
 	return c
 }
 
-// Forward is not implemented for BART decoder LayerProcessor (it always panics).
+// Forward is not implemented for BART decoder Layer (it always panics).
 // You should use Process instead.
-func (p *LayerProcessor) Forward(_ ...ag.Node) []ag.Node {
+func (m *Layer) Forward(_ ...ag.Node) []ag.Node {
 	panic("bertdecoder: Forward() not implemented; use Process() instead.")
 }

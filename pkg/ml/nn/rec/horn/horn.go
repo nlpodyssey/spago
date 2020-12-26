@@ -15,15 +15,21 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
-	W    nn.Param   `type:"weights"`
-	WRec []nn.Param `type:"weights"`
-	B    nn.Param   `type:"biases"`
+	nn.BaseModel
+	W      nn.Param   `type:"weights"`
+	WRec   []nn.Param `type:"weights"`
+	B      nn.Param   `type:"biases"`
+	States []*State   `scope:"processor"`
+}
+
+// State represent a state of the Horn recurrent network.
+type State struct {
+	Y ag.Node
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -33,66 +39,48 @@ func New(in, out, order int) *Model {
 		wRec[i] = nn.NewParam(mat.NewEmptyDense(out, out))
 	}
 	return &Model{
-		W:    nn.NewParam(mat.NewEmptyDense(out, in)),
-		WRec: wRec,
-		B:    nn.NewParam(mat.NewEmptyVecDense(out)),
-	}
-}
-
-// State represent a state of the Horn recurrent network.
-type State struct {
-	Y ag.Node
-}
-
-// Processor implements the nn.Processor interface for a HORN Model.
-type Processor struct {
-	nn.BaseProcessor
-	States []*State
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, false),
-		States:        nil,
+		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		W:         nn.NewParam(mat.NewEmptyDense(out, in)),
+		WRec:      wRec,
+		B:         nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (p *Processor) SetInitialState(state *State) {
-	if len(p.States) > 0 {
+func (m *Model) SetInitialState(state *State) {
+	if len(m.States) > 0 {
 		log.Fatal("horn: the initial state must be set before any input")
 	}
-	p.States = append(p.States, state)
+	m.States = append(m.States, state)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		s := p.forward(x)
-		p.States = append(p.States, s)
+		s := m.forward(x)
+		m.States = append(m.States, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-func (p *Processor) forward(x ag.Node) (s *State) {
-	m := p.Model.(*Model)
+func (m *Model) forward(x ag.Node) (s *State) {
+	g := m.GetGraph()
 	s = new(State)
-	h := nn.Affine(p.Graph, append([]ag.Node{m.B, m.W, x}, p.feedback()...)...)
-	s.Y = p.Graph.Tanh(h)
+	h := nn.Affine(g, append([]ag.Node{m.B, m.W, x}, m.feedback()...)...)
+	s.Y = g.Tanh(h)
 	return
 }
 
-func (p *Processor) feedback() []ag.Node {
-	m := p.Model.(*Model)
+func (m *Model) feedback() []ag.Node {
+	g := m.GetGraph()
 	var ys []ag.Node
-	n := len(p.States)
+	n := len(m.States)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
-		alpha := p.Graph.NewScalar(math.Pow(0.6, float64(i+1)))
-		ys = append(ys, m.WRec[i], p.Graph.ProdScalar(p.States[n-1-i].Y, alpha))
+		alpha := g.NewScalar(math.Pow(0.6, float64(i+1)))
+		ys = append(ys, m.WRec[i], g.ProdScalar(m.States[n-1-i].Y, alpha))
 	}
 	return ys
 }

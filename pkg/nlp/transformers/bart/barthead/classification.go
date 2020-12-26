@@ -10,12 +10,10 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartencoder"
 )
 
 var (
-	_ nn.Model     = &Classification{}
-	_ nn.Processor = &bartencoder.LayerProcessor{}
+	_ nn.Module = &Classification{}
 )
 
 // ClassificationConfig provides configuration settings for a BART head for sentence-level
@@ -44,17 +42,5 @@ func NewClassification(config ClassificationConfig) *Classification {
 			// dropout.New(pooler_dropout),
 			linear.New(config.HiddenSize, config.OutputSize),
 		),
-	}
-}
-
-// ClassificationProcessor implements a nn.Processor for a BERT sentence-level Classification.
-type ClassificationProcessor struct {
-	*stack.Processor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Classification) NewProc(ctx nn.Context) nn.Processor {
-	return &ClassificationProcessor{
-		Processor: m.Model.NewProc(ctx).(*stack.Processor),
 	}
 }

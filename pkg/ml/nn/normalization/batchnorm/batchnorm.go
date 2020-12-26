@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Module = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	W        nn.Param `type:"weights"`
 	B        nn.Param `type:"biases"`
 	Mean     nn.Param `type:"undefined"`
@@ -29,11 +29,12 @@ const defaultMomentum = 0.9
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
-		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
-		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
-		Mean:     nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		StdDev:   nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		Momentum: nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
+		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		W:         nn.NewParam(mat.NewInitVecDense(size, 1.0)),
+		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
+		Mean:      nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		StdDev:    nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		Momentum:  nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
 	}
 }
 
@@ -42,36 +43,23 @@ func New(size int) *Model {
 	return NewWithMomentum(size, defaultMomentum)
 }
 
-// Processor implements the nn.Processor interface for a batch normalization Model.
-type Processor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.NewBaseProcessor(m, ctx, true),
-	}
-}
-
 // Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	if p.Mode == nn.Training {
-		return p.forwardTraining(xs)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	if m.GetMode() == nn.Training {
+		return m.forwardTraining(xs)
 	}
-	return p.forwardInference(xs)
+	return m.forwardInference(xs)
 }
 
-func (p *Processor) forwardTraining(xs []ag.Node) []ag.Node {
-	g := p.Graph
-	meanVector := p.Mean(xs)
-	devVector := p.StdDev(meanVector, xs)
-	p.updateBatchNormParameters(meanVector.Value(), devVector.Value())
-	return p.process(g, xs, devVector, meanVector)
+func (m *Model) forwardTraining(xs []ag.Node) []ag.Node {
+	g := m.GetGraph()
+	meanVector := m.mean(xs)
+	devVector := m.stdDev(meanVector, xs)
+	m.updateBatchNormParameters(meanVector.Value(), devVector.Value())
+	return m.process(g, xs, devVector, meanVector)
 }
 
-func (p *Processor) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	m := p.Model.(*Model)
+func (m *Model) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
 	devVector = g.Div(m.W, devVector)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
@@ -80,8 +68,7 @@ func (p *Processor) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVe
 	return ys
 }
 
-func (p *Processor) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
-	m := p.Model.(*Model)
+func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
 	momentum := m.Momentum.Value().Scalar()
 
 	m.Mean.ReplaceValue(
@@ -91,17 +78,16 @@ func (p *Processor) updateBatchNormParameters(meanVector, devVector mat.Matrix) 
 		m.StdDev.Value().ProdScalar(momentum).Add(devVector.ProdScalar(1.0 - momentum)))
 }
 
-func (p *Processor) forwardInference(xs []ag.Node) []ag.Node {
-	m := p.Model.(*Model)
-	g := p.Graph
+func (m *Model) forwardInference(xs []ag.Node) []ag.Node {
+	g := m.GetGraph()
 	meanVector := g.NewWrapNoGrad(m.Mean)
 	devVector := g.NewWrapNoGrad(m.StdDev)
-	return p.process(g, xs, devVector, meanVector)
+	return m.process(g, xs, devVector, meanVector)
 }
 
 // Mean computes the mean of the input.
-func (p *Processor) Mean(xs []ag.Node) ag.Node {
-	g := p.Graph
+func (m *Model) mean(xs []ag.Node) ag.Node {
+	g := m.GetGraph()
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = g.Add(sumVector, xs[i])
@@ -110,8 +96,8 @@ func (p *Processor) Mean(xs []ag.Node) ag.Node {
 }
 
 // StdDev computes the standard deviation of the input.
-func (p *Processor) StdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
-	g := p.Graph
+func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
+	g := m.GetGraph()
 	devVector := g.NewVariable(meanVector.Value().ZerosLike(), false)
 	for _, x := range xs {
 		diffVector := g.Square(g.Sub(meanVector, x))

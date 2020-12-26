@@ -6,6 +6,7 @@ package nn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"reflect"
 	"testing"
 )
@@ -25,11 +26,13 @@ func (ptt *ParamsTraversalTester) collect(param Param) {
 // ParamsTraversalBaseModel can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake NewProc method.
-type ParamsTraversalBaseModel struct{}
+type ParamsTraversalBaseModel struct {
+	BaseModel
+}
 
-var _ Model = &ParamsTraversalBaseModel{}
+var _ Module = &ParamsTraversalBaseModel{}
 
-func (p ParamsTraversalBaseModel) NewProc(_ Context) Processor {
+func (p ParamsTraversalBaseModel) Forward(_ ...ag.Node) []ag.Node {
 	panic("this should never be called")
 }
 
