@@ -31,7 +31,7 @@ type Model struct {
 	Config
 	Storage       kvdb.KeyValueDB
 	Mu            sync.Mutex
-	ZeroEmbedding nn.Param `type:"weights"`
+	ZeroEmbedding nn.Param `spago:"type:weights"`
 }
 
 // PoolingType is the enumeration-like type used to distinguish different types

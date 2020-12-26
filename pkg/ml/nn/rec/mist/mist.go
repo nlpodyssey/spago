@@ -24,17 +24,17 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	Wx          nn.Param `type:"weights"`
-	Wh          nn.Param `type:"weights"`
-	B           nn.Param `type:"biases"`
-	Wax         nn.Param `type:"weights"`
-	Wah         nn.Param `type:"weights"`
-	Ba          nn.Param `type:"biases"`
-	Wrx         nn.Param `type:"weights"`
-	Wrh         nn.Param `type:"weights"`
-	Br          nn.Param `type:"biases"`
+	Wx          nn.Param `spago:"type:weights"`
+	Wh          nn.Param `spago:"type:weights"`
+	B           nn.Param `spago:"type:biases"`
+	Wax         nn.Param `spago:"type:weights"`
+	Wah         nn.Param `spago:"type:weights"`
+	Ba          nn.Param `spago:"type:biases"`
+	Wrx         nn.Param `spago:"type:weights"`
+	Wrh         nn.Param `spago:"type:weights"`
+	Br          nn.Param `spago:"type:biases"`
 	NumOfDelays int
-	States      []*State `scope:"processor"`
+	States      []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the MIST recurrent network.

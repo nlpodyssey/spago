@@ -32,10 +32,10 @@ type Config struct {
 type Model struct {
 	nn.BaseModel
 	Config Config
-	K      []nn.Param `type:"weights"`
-	B      []nn.Param `type:"biases"`
+	K      []nn.Param `spago:"type:weights"`
+	B      []nn.Param `spago:"type:biases"`
 	// whether to enable the concurrent forward computation on the output channel
-	Concurrent bool `scope:"processor"`
+	Concurrent bool `spago:"scope:processor"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.

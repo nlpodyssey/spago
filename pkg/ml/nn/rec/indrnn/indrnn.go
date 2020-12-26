@@ -18,11 +18,11 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	W          nn.Param  `type:"weights"`
-	WRec       nn.Param  `type:"weights"`
-	B          nn.Param  `type:"biases"`
+	W          nn.Param  `spago:"type:weights"`
+	WRec       nn.Param  `spago:"type:weights"`
+	B          nn.Param  `spago:"type:biases"`
 	Activation ag.OpName // output activation
-	States     []*State  `scope:"processor"`
+	States     []*State  `spago:"scope:processor"`
 }
 
 // State represent a state of the IndRNN recurrent network.

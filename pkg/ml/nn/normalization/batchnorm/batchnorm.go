@@ -17,11 +17,11 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	W        nn.Param `type:"weights"`
-	B        nn.Param `type:"biases"`
-	Mean     nn.Param `type:"undefined"`
-	StdDev   nn.Param `type:"undefined"`
-	Momentum nn.Param `type:"undefined"`
+	W        nn.Param `spago:"type:weights"`
+	B        nn.Param `spago:"type:biases"`
+	Mean     nn.Param `spago:"type:undefined"`
+	StdDev   nn.Param `spago:"type:undefined"`
+	Momentum nn.Param `spago:"type:undefined"`
 }
 
 const defaultMomentum = 0.9

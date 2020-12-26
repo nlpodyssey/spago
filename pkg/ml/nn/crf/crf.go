@@ -18,8 +18,8 @@ var (
 type Model struct {
 	nn.BaseModel
 	Size             int
-	TransitionScores nn.Param    `type:"weights"`
-	Scores           [][]ag.Node `scope:"processor"`
+	TransitionScores nn.Param    `spago:"type:weights"`
+	Scores           [][]ag.Node `spago:"scope:processor"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.

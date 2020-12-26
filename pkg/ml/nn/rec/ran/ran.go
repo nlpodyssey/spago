@@ -18,15 +18,15 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	WIn     nn.Param `type:"weights"`
-	WInRec  nn.Param `type:"weights"`
-	BIn     nn.Param `type:"biases"`
-	WFor    nn.Param `type:"weights"`
-	WForRec nn.Param `type:"weights"`
-	BFor    nn.Param `type:"biases"`
-	WCand   nn.Param `type:"weights"`
-	BCand   nn.Param `type:"biases"`
-	States  []*State `scope:"processor"`
+	WIn     nn.Param `spago:"type:weights"`
+	WInRec  nn.Param `spago:"type:weights"`
+	BIn     nn.Param `spago:"type:biases"`
+	WFor    nn.Param `spago:"type:weights"`
+	WForRec nn.Param `spago:"type:weights"`
+	BFor    nn.Param `spago:"type:biases"`
+	WCand   nn.Param `spago:"type:weights"`
+	BCand   nn.Param `spago:"type:biases"`
+	States  []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the RAN recurrent network.

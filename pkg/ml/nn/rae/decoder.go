@@ -23,7 +23,7 @@ type Decoder struct {
 	DecodingFFN2 nn.Module // decoding part 2
 	DescalingFFN nn.Module
 	StepEncoder  *pe.PositionalEncoder
-	State        State `scope:"processor"`
+	State        State `spago:"scope:processor"`
 }
 
 type State struct {

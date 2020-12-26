@@ -20,7 +20,7 @@ type Encoder struct {
 	ScalingFFN  nn.Module
 	EncodingFFN nn.Module
 	StepEncoder *pe.PositionalEncoder
-	Recursions  int `scope:"processor"`
+	Recursions  int `spago:"scope:processor"`
 }
 
 // GetRecursions returns the number of recursions.

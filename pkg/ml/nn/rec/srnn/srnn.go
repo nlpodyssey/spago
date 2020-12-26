@@ -27,7 +27,7 @@ type Model struct {
 	FC     *stack.Model
 	FC2    *linear.Model
 	FC3    *linear.Model
-	States []*State `scope:"processor"`
+	States []*State `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a SRNN Model.

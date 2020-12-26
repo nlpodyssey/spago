@@ -30,18 +30,18 @@ type Model struct {
 	nn.BaseModel
 	Config
 	SqrtMemK        int
-	Wx              nn.Param `type:"weights"`
-	Wh              nn.Param `type:"weights"`
-	Wm              nn.Param `type:"weights"`
-	B               nn.Param `type:"biases"`
-	Whm2alpha       nn.Param `type:"weights"`
-	Bhm2alpha       nn.Param `type:"biases"`
-	Whm2alphaVec    nn.Param `type:"weights"`
-	Bhm2alphaVec    nn.Param `type:"biases"`
-	Whm2beta        nn.Param `type:"weights"`
-	Bhm2beta        nn.Param `type:"biases"`
-	Whm2betaVec     nn.Param `type:"weights"`
-	Bhm2betaVec     nn.Param `type:"biases"`
+	Wx              nn.Param `spago:"type:weights"`
+	Wh              nn.Param `spago:"type:weights"`
+	Wm              nn.Param `spago:"type:weights"`
+	B               nn.Param `spago:"type:biases"`
+	Whm2alpha       nn.Param `spago:"type:weights"`
+	Bhm2alpha       nn.Param `spago:"type:biases"`
+	Whm2alphaVec    nn.Param `spago:"type:weights"`
+	Bhm2alphaVec    nn.Param `spago:"type:biases"`
+	Whm2beta        nn.Param `spago:"type:weights"`
+	Bhm2beta        nn.Param `spago:"type:biases"`
+	Whm2betaVec     nn.Param `spago:"type:weights"`
+	Bhm2betaVec     nn.Param `spago:"type:biases"`
 	HiddenLayerNorm *layernorm.Model
 }
 
@@ -53,7 +53,7 @@ type Config struct {
 	K            int
 	UseReLU      bool
 	UseLayerNorm bool
-	States       []*State `scope:"processor"`
+	States       []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the NRU recurrent network.

@@ -19,10 +19,10 @@ var (
 type Model struct {
 	nn.BaseModel
 	Config
-	Query     *linear.Model `type:"param"`
-	Key       *linear.Model `type:"param"`
-	Value     *linear.Model `type:"param"`
-	Attention *ContextProb  `scope:"processor"`
+	Query     *linear.Model
+	Key       *linear.Model
+	Value     *linear.Model
+	Attention *ContextProb `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a Self-Attention Model.

@@ -19,19 +19,19 @@ var (
 type Model struct {
 	nn.BaseModel
 	UseRefinedGates bool
-	WIn             nn.Param `type:"weights"`
-	WInRec          nn.Param `type:"weights"`
-	BIn             nn.Param `type:"biases"`
-	WOut            nn.Param `type:"weights"`
-	WOutRec         nn.Param `type:"weights"`
-	BOut            nn.Param `type:"biases"`
-	WFor            nn.Param `type:"weights"`
-	WForRec         nn.Param `type:"weights"`
-	BFor            nn.Param `type:"biases"`
-	WCand           nn.Param `type:"weights"`
-	WCandRec        nn.Param `type:"weights"`
-	BCand           nn.Param `type:"biases"`
-	States          []*State `scope:"processor"`
+	WIn             nn.Param `spago:"type:weights"`
+	WInRec          nn.Param `spago:"type:weights"`
+	BIn             nn.Param `spago:"type:biases"`
+	WOut            nn.Param `spago:"type:weights"`
+	WOutRec         nn.Param `spago:"type:weights"`
+	BOut            nn.Param `spago:"type:biases"`
+	WFor            nn.Param `spago:"type:weights"`
+	WForRec         nn.Param `spago:"type:weights"`
+	BFor            nn.Param `spago:"type:biases"`
+	WCand           nn.Param `spago:"type:weights"`
+	WCandRec        nn.Param `spago:"type:weights"`
+	BCand           nn.Param `spago:"type:biases"`
+	States          []*State `spago:"scope:processor"`
 }
 
 // State represent a state of the LSTM recurrent network.
