@@ -774,7 +774,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 
 // Minimum returns a new matrix containing the element-wise minima.
 func (d *Dense) Minimum(other Matrix) *Dense {
-	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
+	if !SameDims(d, other) {
 		panic("mat: matrix with not compatible size")
 	}
 	out := GetDenseWorkspace(d.rows, d.cols)
