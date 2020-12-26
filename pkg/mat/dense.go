@@ -623,7 +623,6 @@ func (d *Dense) MulT(other Matrix) Matrix {
 		} else {
 			panic("mat: matrices with not compatible size")
 		}
-		return out
 	case *Sparse:
 		panic("mat: matrices not compatible")
 	}
