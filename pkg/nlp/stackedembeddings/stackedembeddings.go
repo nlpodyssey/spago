@@ -22,7 +22,7 @@ type WordsEncoderProcessor interface {
 }
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Module = &Model{}
 )
 
 // Model implements a stacked embeddings model.
