@@ -6,6 +6,7 @@ package mat
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -63,6 +64,40 @@ func TestGetAndRelease(t *testing.T) {
 	if y.data[0] != 0 {
 		t.Errorf("slice data of `y` should be blank")
 	}
+}
+
+func TestGetDenseWorkspace(t *testing.T) {
+	d := GetDenseWorkspace(2, 3)
+
+	assert.Equal(t, 2, d.Rows())
+	assert.Equal(t, 3, d.Columns())
+	assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, d.Data())
+
+	d.SetData([]float64{1, 2, 3, 4, 5, 6})
+	ReleaseDense(d)
+	d = GetDenseWorkspace(2, 3)
+	assert.Equal(t, []float64{1, 2, 3, 4, 5, 6}, d.Data(), "possible dirty data is not zeroed")
+}
+
+func TestGetEmptyDenseWorkspace(t *testing.T) {
+	d := GetEmptyDenseWorkspace(2, 3)
+
+	assert.Equal(t, 2, d.Rows())
+	assert.Equal(t, 3, d.Columns())
+	assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, d.Data())
+
+	d.SetData([]float64{1, 2, 3, 4, 5, 6})
+	ReleaseDense(d)
+	d = GetEmptyDenseWorkspace(2, 3)
+	assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, d.Data(), "possible dirty data is zeroed")
+}
+
+func TestReleaseDense(t *testing.T) {
+	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
+		d := NewEmptyDense(3, 4)
+		view := d.View(4, 3)
+		assert.Panics(t, func() { ReleaseDense(view) })
+	})
 }
 
 func assertLenCap(t *testing.T, slice []float64, l, c int) {
