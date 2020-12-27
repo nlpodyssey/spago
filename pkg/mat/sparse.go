@@ -406,7 +406,8 @@ func (s *Sparse) ProdScalar(n float64) Matrix {
 // the given value, returning the same receiver Sparse matrix.
 func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
 	if n == 0.0 {
-		return NewEmptySparse(s.rows, s.cols)
+		*s = *NewEmptySparse(s.rows, s.cols)
+		return s
 	}
 	for i, elem := range s.nzElements {
 		s.nzElements[i] = elem * n
@@ -424,7 +425,8 @@ func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 		panic("mat: incompatible matrix dimensions.")
 	}
 	if n == 0.0 {
-		return NewEmptySparse(s.rows, s.cols)
+		*s = *NewEmptySparse(s.rows, s.cols)
+		return s
 	}
 	for _, elem := range m.(*Sparse).colsIndex {
 		s.colsIndex = append(s.colsIndex, elem)
@@ -690,10 +692,9 @@ func (s *Sparse) Div(other Matrix) Matrix {
 			}
 		})
 		return out
-	case *Sparse: // return sparse?
+	default: // TODO: return sparse?
 		panic("mat: Not permitted")
 	}
-	return nil
 }
 
 // DivInPlace is currently not implemented for a Sparse matrix (it always panics).
@@ -713,24 +714,23 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 	case *Dense:
 		s.DoNonZero(func(i, j int, v float64) {
 			for k := 0; k < b.cols; k++ {
-				var denseValue = b.data[j*b.cols+k]
-				out.data[i*b.cols+k] += denseValue * v
+				out.data[i*b.cols+k] += v * b.data[j*b.cols+k]
 			}
 		})
-		return out
 	case *Sparse:
-		s.DoNonZero(func(i, j int, v float64) {
-			for k := 0; k < b.cols; k++ {
-				var secondValue float64
-				if b.IsVector() {
-					secondValue = b.AtVec(j)
-				} else {
-					secondValue = b.At(j, k)
+		if b.IsVector() {
+			s.DoNonZero(func(i, j int, v float64) {
+				for k := 0; k < b.cols; k++ {
+					out.data[i*b.cols+k] += v * b.AtVec(j)
 				}
-				out.data[i*b.cols+k] += v * secondValue
-			}
-		})
-		return out
+			})
+		} else {
+			s.DoNonZero(func(i, j int, v float64) {
+				for k := 0; k < b.cols; k++ {
+					out.data[i*b.cols+k] += v * b.At(j, k)
+				}
+			})
+		}
 	}
 	return out
 }
@@ -978,12 +978,11 @@ func (s *Sparse) Maximum(other Matrix) Matrix {
 		panic("mat: matrices with not compatible size")
 	}
 	switch other := other.(type) {
-	case *Dense: // return dense
-		panic("mat: Maximum not implemented between Dense and Sparse matrices")
-	case *Sparse: // return sparse
+	case *Sparse:
 		return s.maximumSparse(other)
+	default:
+		panic("mat: Maximum not implemented between Dense and Sparse matrices")
 	}
-	return nil
 }
 
 // Minimum returns a new Sparse matrix initialized with the element-wise
@@ -995,10 +994,9 @@ func (s *Sparse) Minimum(other Matrix) Matrix {
 		panic("mat: matrices with not compatible size")
 	}
 	switch other := other.(type) {
-	case *Dense: // return dense
-		panic("mat: Minimum not implemented between Dense and Sparse matrices")
-	case *Sparse: // return sparse
+	case *Sparse:
 		return s.minimumSparse(other)
+	default:
+		panic("mat: Minimum not implemented between Dense and Sparse matrices")
 	}
-	return nil
 }

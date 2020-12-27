@@ -124,6 +124,9 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 		log.Fatal(err)
 	}
 	_, err = serializer.Serialize(&buf)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
