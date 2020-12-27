@@ -710,7 +710,6 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 				out.data[i*b.cols+k] += denseValue * v
 			}
 		})
-		return out
 	case *Sparse:
 		s.DoNonZero(func(i, j int, v float64) {
 			for k := 0; k < b.cols; k++ {
@@ -723,7 +722,6 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 				out.data[i*b.cols+k] += v * secondValue
 			}
 		})
-		return out
 	}
 	return out
 }
