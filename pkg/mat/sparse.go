@@ -706,22 +706,23 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 	case *Dense:
 		s.DoNonZero(func(i, j int, v float64) {
 			for k := 0; k < b.cols; k++ {
-				var denseValue = b.data[j*b.cols+k]
-				out.data[i*b.cols+k] += denseValue * v
+				out.data[i*b.cols+k] += v * b.data[j*b.cols+k]
 			}
 		})
 	case *Sparse:
-		s.DoNonZero(func(i, j int, v float64) {
-			for k := 0; k < b.cols; k++ {
-				var secondValue float64
-				if b.IsVector() {
-					secondValue = b.AtVec(j)
-				} else {
-					secondValue = b.At(j, k)
+		if b.IsVector() {
+			s.DoNonZero(func(i, j int, v float64) {
+				for k := 0; k < b.cols; k++ {
+					out.data[i*b.cols+k] += v * b.AtVec(j)
 				}
-				out.data[i*b.cols+k] += v * secondValue
-			}
-		})
+			})
+		} else {
+			s.DoNonZero(func(i, j int, v float64) {
+				for k := 0; k < b.cols; k++ {
+					out.data[i*b.cols+k] += v * b.At(j, k)
+				}
+			})
+		}
 	}
 	return out
 }
