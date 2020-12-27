@@ -684,10 +684,9 @@ func (s *Sparse) Div(other Matrix) Matrix {
 			}
 		})
 		return out
-	case *Sparse: // return sparse?
+	default: // TODO: return sparse?
 		panic("mat: Not permitted")
 	}
-	return nil
 }
 
 // DivInPlace is currently not implemented for a Sparse matrix (it always panics).
