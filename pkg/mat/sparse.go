@@ -986,10 +986,9 @@ func (s *Sparse) Minimum(other Matrix) Matrix {
 		panic("mat: matrices with not compatible size")
 	}
 	switch other := other.(type) {
-	case *Dense: // return dense
-		panic("mat: Minimum not implemented between Dense and Sparse matrices")
-	case *Sparse: // return sparse
+	case *Sparse:
 		return s.minimumSparse(other)
+	default:
+		panic("mat: Minimum not implemented between Dense and Sparse matrices")
 	}
-	return nil
 }
