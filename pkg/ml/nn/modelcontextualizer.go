@@ -99,6 +99,9 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 }
 
 func (mc modelContextualizer) contextualizeModel(sourceField Module) Module {
+	if isNil(sourceField) {
+		return sourceField
+	}
 	p := NewProc(mc.ctx, sourceField)
 	p.InitProc()
 	return p
@@ -127,25 +130,25 @@ func (mc modelContextualizer) contextualizeParamSlice(sourceField []Param) []Par
 func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
 	length := sourceField.Len()
 	result := reflect.MakeSlice(sourceField.Type(), length, length)
+	isParamsTag := tag.Type == paramsModuleFieldType
 
 	for i := 0; i < length; i++ {
 		sourceItem := sourceField.Index(i)
-
 		switch sourceItem.Kind() {
-		case reflect.Struct, reflect.Ptr:
-			isParams := tag.Type == paramsModuleFieldType
+		case reflect.Struct, reflect.Ptr, reflect.Interface:
 			_, isModule := sourceItem.Interface().(Module)
-
-			if isParams || isModule {
+			if isParamsTag || isModule {
 				result.Index(i).Set(reflect.ValueOf(mc.contextualizeStruct(sourceItem.Interface())))
 			} else {
 				return sourceField
 			}
 		default:
-			panic(`nn: "params"-tagged slice contains items with unexpected type`)
+			if isParamsTag {
+				panic(`nn: "params"-tagged slice contains items with unexpected type`)
+			}
+			return sourceField
 		}
 	}
-
 	return result
 }
 
@@ -179,4 +182,8 @@ func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag mo
 	}
 
 	return result
+}
+
+func isNil(a interface{}) bool {
+	return a == nil || (reflect.ValueOf(a).Kind() == reflect.Ptr && reflect.ValueOf(a).IsNil())
 }
