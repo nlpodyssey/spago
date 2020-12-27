@@ -219,6 +219,9 @@ func (m *BaseModel) Mode() ProcessingMode {
 
 // Graph returns the computational graph on which the processor operates.
 func (m *BaseModel) Graph() *ag.Graph {
+	if m.Ctx.Graph == nil {
+		panic("nn: attempting to access Graph on a not contextualized model. Hint: use nn.NewProc().")
+	}
 	return m.Ctx.Graph
 }
 
