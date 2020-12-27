@@ -420,6 +420,10 @@ func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 	if !SameDims(s, m) {
 		panic("mat: incompatible matrix dimensions.")
 	}
+	if n == 0.0 {
+		*s = *NewEmptySparse(s.rows, s.cols)
+		return s
+	}
 	for _, elem := range m.(*Sparse).colsIndex {
 		s.colsIndex = append(s.colsIndex, elem)
 	}
