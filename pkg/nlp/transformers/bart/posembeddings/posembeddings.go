@@ -27,7 +27,7 @@ type Config struct {
 type LearnedPositionalEmbeddings struct {
 	nn.BaseModel
 	Config  Config
-	Vectors []nn.Param // TODO: no auto wrap
+	Vectors []nn.Param `spago:"type:weights;scope:model"`
 }
 
 // NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.

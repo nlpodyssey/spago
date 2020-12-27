@@ -46,7 +46,7 @@ type Model struct {
 	Decoder          *linear.Model
 	Projection       *linear.Model
 	RNN              *lstm.Model
-	Embeddings       []nn.Param `spago:"type:weights"` // TODO: no auto wrap!
+	Embeddings       []nn.Param `spago:"type:weights;scope:model"`
 	Vocabulary       *vocabulary.Vocabulary
 	UsedEmbeddings   map[int]ag.Node `spago:"scope:processor"`
 	UnknownEmbedding ag.Node         `spago:"scope:processor"`

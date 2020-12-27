@@ -24,6 +24,7 @@ type moduleFieldScope uint8
 const (
 	defaultModuleFieldScope moduleFieldScope = iota
 	processorModuleFieldScope
+	modelModuleFieldScope
 )
 
 type moduleFieldTag struct {
@@ -83,6 +84,8 @@ func stringToModuleFieldScope(s string) (moduleFieldScope, error) {
 	switch s {
 	case "processor":
 		return processorModuleFieldScope, nil
+	case "model":
+		return modelModuleFieldScope, nil
 	default:
 		return defaultModuleFieldScope, fmt.Errorf("unexpected model field scope %#v", s)
 	}

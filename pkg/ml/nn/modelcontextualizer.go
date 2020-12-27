@@ -58,6 +58,11 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 			continue
 		}
 
+		if tag.Scope == modelModuleFieldScope {
+			destField.Set(sourceField)
+			continue
+		}
+
 		switch sourceFieldT := sourceField.Interface().(type) {
 		case Context:
 			destField.Set(reflect.ValueOf(mc.ctx))
