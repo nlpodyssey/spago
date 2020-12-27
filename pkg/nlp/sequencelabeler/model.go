@@ -155,7 +155,8 @@ type TokenLabel struct {
 func (m *Model) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
-	prediction := m.TaggerLayer.Predict(encodings)
+	emissionScores := m.TaggerLayer.Forward(encodings...)
+	prediction := m.TaggerLayer.Predict(emissionScores)
 	result := make([]TokenLabel, len(tokens))
 	for i, labelIndex := range prediction {
 		result[i] = TokenLabel{
