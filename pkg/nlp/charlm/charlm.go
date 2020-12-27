@@ -124,10 +124,10 @@ func (m *Model) Predict(xs ...string) []ag.Node {
 // UseProjection performs a linear projection with Processor.Projection model,
 // if available, otherwise returns xs unmodified.
 func (m *Model) UseProjection(xs ...ag.Node) []ag.Node {
-	if m.Projection == nil {
-		return xs
+	if m.Config.OutputSize > 0 {
+		return m.Projection.Forward(xs...)
 	}
-	return m.Projection.Forward(xs...)
+	return xs
 }
 
 // GetEmbeddings transforms the string sequence xs into a sequence of
