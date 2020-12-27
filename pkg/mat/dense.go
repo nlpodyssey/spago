@@ -240,7 +240,7 @@ func (d *Dense) SetVec(i int, v float64) {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
 	}
-	if i >= d.rows {
+	if i >= d.size {
 		panic("mat: 'i' argument out of range.")
 	}
 	d.data[i] = v
@@ -623,7 +623,6 @@ func (d *Dense) MulT(other Matrix) Matrix {
 		} else {
 			panic("mat: matrices with not compatible size")
 		}
-		return out
 	case *Sparse:
 		panic("mat: matrices not compatible")
 	}
@@ -755,7 +754,7 @@ func (d *Dense) Normalize2() *Dense {
 
 // Maximum returns a new matrix containing the element-wise maxima.
 func (d *Dense) Maximum(other Matrix) *Dense {
-	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
+	if !SameDims(d, other) {
 		panic("mat: matrix with not compatible size")
 	}
 	out := GetDenseWorkspace(d.rows, d.cols)
@@ -775,7 +774,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 
 // Minimum returns a new matrix containing the element-wise minima.
 func (d *Dense) Minimum(other Matrix) *Dense {
-	if d.Columns() != other.Columns() && d.Rows() != other.Rows() {
+	if !SameDims(d, other) {
 		panic("mat: matrix with not compatible size")
 	}
 	out := GetDenseWorkspace(d.rows, d.cols)
