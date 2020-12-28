@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 var allModels []*Model
@@ -48,7 +48,7 @@ type Config struct {
 // New returns a new embedding model.
 func New(config Config) *Model {
 	m := &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		Config:    config,
 		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,

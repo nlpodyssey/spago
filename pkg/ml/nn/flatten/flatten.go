@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model is a parameter-free model used to instantiate a new Processor.
@@ -22,7 +22,7 @@ type Model struct {
 // TODO: think about possible configurations
 func New() *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 	}
 }
 

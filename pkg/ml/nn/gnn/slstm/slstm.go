@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // TODO(1): code refactoring using a structure to maintain states.
@@ -83,7 +83,7 @@ type Support struct {
 func New(config Config) *Model {
 	in, out := config.InputSize, config.OutputSize
 	return &Model{
-		BaseModel:              nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:              nn.BaseModel{RCS: true},
 		Config:                 config,
 		InputGate:              newGate4(in, out),
 		LeftCellGate:           newGate4(in, out),

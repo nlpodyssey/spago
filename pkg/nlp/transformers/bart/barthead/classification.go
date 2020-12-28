@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Classification{}
+	_ nn.Model = &Classification{}
 )
 
 // ClassificationConfig provides configuration settings for a BART head for sentence-level

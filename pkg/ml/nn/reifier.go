@@ -5,30 +5,20 @@
 package nn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"reflect"
 )
 
-type modelContextualizer struct {
-	ctx   Context
-	graph *ag.Graph
+type reifier struct {
+	ctx Context
 }
 
-// newModelContextualizer returns a new modelContextualizer.
-func newModelContextualizer(ctx Context) modelContextualizer {
-	return modelContextualizer{
-		ctx:   ctx,
-		graph: ctx.Graph,
-	}
-}
-
-func (mc modelContextualizer) contextualize(m Model) Processor {
-	p := mc.contextualizeStruct(m).(Processor)
-	p.InitProc()
+func (r reifier) reify(m Model) Model {
+	p := r.reifyStruct(m).(Model)
+	p.InitProcessor()
 	return p
 }
 
-func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interface{} {
+func (r reifier) reifyStruct(rawSource interface{}) interface{} {
 	source := reflect.ValueOf(rawSource)
 	sourceType := reflect.TypeOf(rawSource)
 
@@ -65,29 +55,29 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 
 		switch sourceFieldT := sourceField.Interface().(type) {
 		case Context:
-			destField.Set(reflect.ValueOf(mc.ctx))
+			destField.Set(reflect.ValueOf(r.ctx))
 		case BaseModel, *BaseModel:
-			destField.Set(reflect.ValueOf(mc.contextualizeStruct(sourceFieldT)))
+			destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 		case Param:
-			destField.Set(reflect.ValueOf(mc.contextualizeParam(sourceFieldT.(*param))))
+			destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*param))))
 		case []Param:
-			destField.Set(reflect.ValueOf(mc.contextualizeParamSlice(sourceFieldT)))
-		case Module:
-			destField.Set(reflect.ValueOf(mc.contextualizeModel(sourceFieldT)))
-		case []Module:
-			destField.Set(reflect.ValueOf(mc.contextualizeModelSlice(sourceFieldT)))
+			destField.Set(reflect.ValueOf(r.reifyParamSlice(sourceFieldT)))
+		case Model:
+			destField.Set(reflect.ValueOf(r.reifyModel(sourceFieldT)))
+		case []Model:
+			destField.Set(reflect.ValueOf(r.reifyModelSlice(sourceFieldT)))
 		default:
 			switch sourceField.Kind() {
 			case reflect.Slice:
-				destField.Set(mc.contextualizeSlice(sourceField, tag))
+				destField.Set(r.reifySlice(sourceField, tag))
 			case reflect.Map:
-				destField.Set(mc.contextualizeMap(sourceField, tag))
+				destField.Set(r.reifyMap(sourceField, tag))
 			case reflect.Struct, reflect.Ptr:
 				if sourceField.Kind() == reflect.Ptr && sourceField.IsNil() {
 					continue
 				}
 				if tag.Type == paramsModuleFieldType {
-					destField.Set(reflect.ValueOf(mc.contextualizeStruct(sourceFieldT)))
+					destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 				} else {
 					destField.Set(sourceField)
 				}
@@ -103,36 +93,36 @@ func (mc modelContextualizer) contextualizeStruct(rawSource interface{}) interfa
 	return destPointer.Interface()
 }
 
-func (mc modelContextualizer) contextualizeModel(sourceField Module) Module {
+func (r reifier) reifyModel(sourceField Model) Model {
 	if isNil(sourceField) {
 		return sourceField
 	}
-	p := NewProc(mc.ctx, sourceField)
-	p.InitProc()
+	p := Reify(r.ctx, sourceField)
+	p.InitProcessor()
 	return p
 }
 
-func (mc modelContextualizer) contextualizeModelSlice(sourceField []Module) []Module {
-	result := make([]Module, len(sourceField))
+func (r reifier) reifyModelSlice(sourceField []Model) []Model {
+	result := make([]Model, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
-		result[i] = mc.contextualizeModel(sourceField[i])
+		result[i] = r.reifyModel(sourceField[i])
 	}
 	return result
 }
 
-func (mc modelContextualizer) contextualizeParam(sourceField *param) Param {
-	return sourceField.wrappedParam(mc.graph)
+func (r reifier) reifyParam(sourceField *param) Param {
+	return sourceField.wrappedParam(r.ctx.Graph)
 }
 
-func (mc modelContextualizer) contextualizeParamSlice(sourceField []Param) []Param {
+func (r reifier) reifyParamSlice(sourceField []Param) []Param {
 	result := make([]Param, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
-		result[i] = mc.contextualizeParam(sourceField[i].(*param))
+		result[i] = r.reifyParam(sourceField[i].(*param))
 	}
 	return result
 }
 
-func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
+func (r reifier) reifySlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
 	length := sourceField.Len()
 	result := reflect.MakeSlice(sourceField.Type(), length, length)
 	isParamsTag := tag.Type == paramsModuleFieldType
@@ -141,9 +131,9 @@ func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag 
 		sourceItem := sourceField.Index(i)
 		switch sourceItem.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			_, isModule := sourceItem.Interface().(Module)
+			_, isModule := sourceItem.Interface().(Model)
 			if isParamsTag || isModule {
-				result.Index(i).Set(reflect.ValueOf(mc.contextualizeStruct(sourceItem.Interface())))
+				result.Index(i).Set(reflect.ValueOf(r.reifyStruct(sourceItem.Interface())))
 			} else {
 				return sourceField
 			}
@@ -159,7 +149,7 @@ func (mc modelContextualizer) contextualizeSlice(sourceField reflect.Value, tag 
 
 var paramInterfaceName = reflect.TypeOf((*Param)(nil)).Elem().Name()
 
-func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
+func (r reifier) reifyMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
 	sourceType := reflect.TypeOf(sourceValue.Interface())
 	mapValueType := sourceType.Elem()
 
@@ -177,9 +167,9 @@ func (mc modelContextualizer) contextualizeMap(sourceValue reflect.Value, tag mo
 
 		var destValue reflect.Value
 		if p, isParam := sourceValue.Interface().(*param); isParam {
-			destValue = reflect.ValueOf(mc.contextualizeParam(p))
+			destValue = reflect.ValueOf(r.reifyParam(p))
 		} else if mapValueKind == reflect.Struct || mapValueKind == reflect.Ptr {
-			destValue = reflect.ValueOf(mc.contextualizeStruct(sourceValue.Interface()))
+			destValue = reflect.ValueOf(r.reifyStruct(sourceValue.Interface()))
 		} else {
 			panic(`nn: "params"-tagged map contains values with unexpected type`)
 		}

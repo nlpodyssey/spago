@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -51,7 +51,7 @@ type ContextProb struct {
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		Query:     linear.New(config.InputSize, config.QuerySize),
 		R:         nn.NewParam(mat.NewEmptyDense(config.QuerySize, config.BucketSize)),

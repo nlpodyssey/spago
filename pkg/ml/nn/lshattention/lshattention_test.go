@@ -16,7 +16,7 @@ func TestModel_LshAttention(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model)
+	proc := nn.Reify(ctx, model)
 
 	x1 := g.NewVariable(mat.NewVecDense([]float64{0.3, 0.5, -0.8, 0.1, 0.3}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.4, -0.6, -0.2, 0.9}), true)

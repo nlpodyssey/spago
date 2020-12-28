@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ nn.Module = &LearnedPositionalEmbeddings{}
+	_ nn.Model = &LearnedPositionalEmbeddings{}
 )
 
 // Config provides configuration settings for a LearnedPositionalEmbeddings Model.
@@ -38,7 +38,7 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}
 	return &LearnedPositionalEmbeddings{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		Vectors:   vectors,
 	}

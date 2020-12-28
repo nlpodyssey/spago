@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Layer{}
+	_ nn.Model = &Layer{}
 )
 
 // Layer implements a BART encoder layer.
@@ -32,7 +32,7 @@ type Layer struct {
 // NewLayer returns a new BART encoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
-		BaseModel:              nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:              nn.BaseModel{RCS: true},
 		Config:                 config,
 		SelfAttention:          multiheadattention.New(config.DModel, config.EncoderAttentionHeads, false), // TODO: config.AttentionDropout
 		SelfAttentionLayerNorm: layernorm.New(config.DModel),

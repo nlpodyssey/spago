@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Config provides configuration settings for a BLS Model.
@@ -64,7 +64,7 @@ func New(c Config) *Model {
 		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		Config:    c,
 		Wz:        wz,
 		Bz:        bz,

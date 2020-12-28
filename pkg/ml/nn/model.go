@@ -7,11 +7,9 @@ package nn
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/utils"
-	"io"
 )
 
-// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.) inside a Processor,
+// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
 // depending on whether you're doing training or inference.
 // Failing to set the right mode will yield inconsistent inference results.
 type ProcessingMode int
@@ -23,9 +21,7 @@ const (
 	Inference
 )
 
-// Context is used to instantiate a processor to operate on a graph, according to the desired ProcessingMode.
-// If a processor contains other sub-processors, you must instantiate them using the same context to make sure
-// you are operating on the same graph and in the same mode.
+// Context is used to reify a Model (inc. sub-models) to operate on a graph, according to the desired ProcessingMode.
 type Context struct {
 	// Graph is the computational graph on which the processor(s) operate.
 	Graph *ag.Graph
@@ -33,40 +29,39 @@ type Context struct {
 	Mode ProcessingMode
 }
 
-// Module is the main interface defining a neural module, combining the Model and Processor interfaces.
-type Module interface {
-	Model
-	Processor
-}
-
-// Model contains the serializable parameters.
-type Model interface{}
-
-// Processor performs the operations on the computational graphs using the model's parameters.
-type Processor interface {
-	// Graph returns the computational graph on which the processor operates (can be nil).
+// Model is implemented by all neural network architectures.
+// You can assign parameters (i.e. nn.Param) as regular attributes (if any).
+// A Model can also contain other Model(s), allowing to nest them in a tree structure.
+// Through "reification" (i.e. nn.Reify()), a Model operates as a "processor" using the computational graph.
+// The Forward() operation can only be performed on a reified model (a.k.a. processor).
+type Model interface {
+	// Graph returns the computational graph on which the model operates (can be nil).
 	Graph() *ag.Graph
-	// Mode returns whether the processor is being used for training or inference.
+	// Mode returns whether the model is being used for training or inference.
 	Mode() ProcessingMode
-	// RequiresFullSeq returns whether the processor needs the complete sequence to start processing
-	// (as in the case of BiRNN and other bidirectional models), or not.
-	RequiresFullSeq() bool
+	// IsProcessor returns whether the model has been reified (i.e., contextualized to operate
+	// on a graph) and can perform the Forward().
+	IsProcessor() bool
+	// InitProcessor is used to initialize structures and data useful for the Forward().
+	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
+	InitProcessor()
 	// Forward performs the operations on the computational graphs using the model's parameters.
 	// It executes the forward step for each input and returns the result.
 	// Recurrent networks treats the input nodes as a sequence.
 	// Differently, feed-forward networks are stateless so every computation is independent.
+	// It panics if invoked by a not reified model.
 	Forward(xs ...ag.Node) []ag.Node
-	//
-	InitProc()
+	// RequiresCompleteSequence returns whether the model operates on complete sequences
+	// (as in the case of CNN, BiRNN and other bidirectional models).
+	RequiresCompleteSequence() bool
 }
 
-// NewProc returns a new contextualized model to execute the forward step.
-func NewProc(ctx Context, m Model) Processor {
-	return newModelContextualizer(ctx).contextualize(m)
+// Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
+func Reify(ctx Context, m Model) Model {
+	return reifier{ctx: ctx}.reify(m)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead (?)
 func ForEachParam(m Model, callback func(param Param)) {
 	newParamsTraversal(callback, true).walk(m)
 }
@@ -76,38 +71,7 @@ func ForEachParamStrict(m Model, callback func(param Param)) {
 	newParamsTraversal(callback, false).walk(m)
 }
 
-// ParamsIterator is implemented by any value that has the ParamsList method,
-// which should return the list of parameters of one or more models.
-type ParamsIterator interface {
-	ParamsList() []Param
-}
-
-var _ ParamsIterator = &DefaultParamsIterator{}
-
-// DefaultParamsIterator is spaGO default implementation of a ParamsIterator.
-type DefaultParamsIterator struct {
-	models []Model
-}
-
-// NewDefaultParamsIterator returns a new DefaultParamsIterator.
-func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
-	return &DefaultParamsIterator{models: models}
-}
-
-// ParamsList returns a slice with all Param elements from all models held by
-// the DefaultParamsIterator.
-func (i *DefaultParamsIterator) ParamsList() []Param {
-	params := make([]Param, 0)
-	for _, model := range i.models {
-		ForEachParam(model, func(param Param) {
-			params = append(params, param)
-		})
-	}
-	return params
-}
-
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
-// TODO: use ParamsIterator?
 func ZeroGrad(m Model) {
 	ForEachParam(m, func(param Param) {
 		param.ZeroGrad()
@@ -115,7 +79,6 @@ func ZeroGrad(m Model) {
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
-// TODO: use ParamsIterator?
 func ClearSupport(m Model) {
 	ForEachParam(m, func(param Param) {
 		param.ClearPayload()
@@ -123,7 +86,6 @@ func ClearSupport(m Model) {
 }
 
 // DumpParamsVector dumps all params of a Model into a single Dense vector.
-// TODO: use ParamsIterator?
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
 	ForEachParam(model, func(param Param) {
@@ -133,7 +95,6 @@ func DumpParamsVector(model Model) *mat.Dense {
 }
 
 // LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
-// TODO: use ParamsIterator?
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()
 	offset := 0
@@ -153,82 +114,3 @@ func MakeNewModels(n int, callback func(i int) Model) []Model {
 	}
 	return lst
 }
-
-var _ utils.Serializer = &ParamsSerializer{}
-var _ utils.Deserializer = &ParamsSerializer{}
-
-// ParamsSerializer allows serialization and deserialization of all
-// parameters of a given Model.
-type ParamsSerializer struct {
-	Model
-}
-
-// NewParamsSerializer returns a new ParamsSerializer.
-func NewParamsSerializer(m Model) *ParamsSerializer {
-	return &ParamsSerializer{Model: m}
-}
-
-// Serialize dumps the params values to the writer.
-// TODO: use ParamsIterator?
-func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
-	ForEachParam(m, func(param Param) {
-		cnt, err2 := mat.MarshalBinaryTo(param.Value(), w)
-		n += cnt
-		if err2 != nil {
-			err = err2
-			return
-		}
-	})
-	return n, err
-}
-
-// Deserialize assigns the params with the values obtained from the reader.
-// TODO: use ParamsIterator?
-func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
-	ForEachParam(m, func(param Param) {
-		cnt, err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
-		n += cnt
-		if err2 != nil {
-			err = err2
-			return
-		}
-	})
-	return n, err
-}
-
-// BaseModel satisfies some methods of the Model interface.
-// It is meant to be embedded in other processors to reduce the amount of boilerplate code.
-type BaseModel struct {
-	Ctx               Context
-	FullSeqProcessing bool
-}
-
-// NewBaseModel returns a processor containing a new instance of the so-called "contextualized" model,
-// in which the parameters are wrapped as graph nodes.
-func NewBaseModel(ctx Context, fullSeqProcessing bool) BaseModel {
-	return BaseModel{
-		Ctx:               ctx,
-		FullSeqProcessing: fullSeqProcessing,
-	}
-}
-
-// Mode returns whether the processor is being used for training or inference.
-func (m *BaseModel) Mode() ProcessingMode {
-	return m.Ctx.Mode
-}
-
-// Graph returns the computational graph on which the processor operates.
-func (m *BaseModel) Graph() *ag.Graph {
-	if m.Ctx.Graph == nil {
-		panic("nn: attempting to access Graph on a not contextualized model. Hint: use nn.NewProc().")
-	}
-	return m.Ctx.Graph
-}
-
-// RequiresFullSeq returns whether the model needs the complete sequence to start processing
-// (as in the case of BiRNN and other bidirectional models), or not.
-func (m *BaseModel) RequiresFullSeq() bool {
-	return m.FullSeqProcessing
-}
-
-func (m *BaseModel) InitProc() {}

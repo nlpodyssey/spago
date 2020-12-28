@@ -94,7 +94,7 @@ func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) 
 	start := time.Now()
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := nn.NewProc(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	tokenized := basetokenizer.New().Tokenize(text)
 	predicted := proc.Predict(tokenized)
 	if merge {

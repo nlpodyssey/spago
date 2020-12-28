@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -40,7 +40,7 @@ func BiasGrad(enable bool) Option {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int, options ...Option) *Model {
 	model := &Model{
-		BaseModel:             nn.BaseModel{FullSeqProcessing: false},
+		BaseModel:             nn.BaseModel{RCS: false},
 		W:                     nn.NewParam(mat.NewEmptyDense(out, in)),
 		B:                     nn.NewParam(mat.NewEmptyVecDense(out)),
 		ConcurrentComputation: defaultConcurrency,

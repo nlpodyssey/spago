@@ -21,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.NewProc(ctx, model).Forward(x)[0]
+	y := nn.Reify(ctx, model).Forward(x)[0]
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.74, -0.23, 0.11, 0.49, -0.05}, 0.005) {
 		t.Error("The output doesn't match the expected values")
@@ -90,7 +90,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 	proc.SetInitialState(
 		&State{Y: g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.2, -0.3, -0.9, -0.8}), true)},
 	)
@@ -252,7 +252,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 	proc.SetInitialState(
 		&State{Y: g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0}), true)},
 	)

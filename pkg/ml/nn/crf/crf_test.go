@@ -17,7 +17,7 @@ func TestModel_Predict(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -38,7 +38,7 @@ func TestModel_GoldScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -58,7 +58,7 @@ func TestModel_TotalScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -77,7 +77,7 @@ func TestModel_Loss(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.NewProc(ctx, model).(*Model)
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)

@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -45,7 +45,7 @@ type Model struct {
 // Lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
 func New(in, out, k int, lambda float64, intermediate int) *Model {
 	m := &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 	}
 	m.PolicyGradient = stack.New(
 		linear.New(in+out, intermediate),

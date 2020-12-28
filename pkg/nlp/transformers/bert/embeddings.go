@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Embeddings{}
+	_ nn.Model = &Embeddings{}
 )
 
 // EmbeddingsConfig provides configuration settings for BERT Embeddings.
@@ -44,7 +44,7 @@ type Embeddings struct {
 // NewEmbeddings returns a new BERT Embeddings model.
 func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	return &Embeddings{
-		BaseModel:        nn.BaseModel{FullSeqProcessing: false},
+		BaseModel:        nn.BaseModel{RCS: false},
 		EmbeddingsConfig: config,
 		Words: embeddings.New(embeddings.Config{
 			Size:       config.Size,
@@ -59,7 +59,7 @@ func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	}
 }
 
-func (m *Embeddings) InitProc() {
+func (m *Embeddings) InitProcessor() {
 	m.UnknownEmbedding = m.Graph().NewWrap(m.Words.GetStoredEmbedding(wordpiecetokenizer.DefaultUnknownToken))
 }
 

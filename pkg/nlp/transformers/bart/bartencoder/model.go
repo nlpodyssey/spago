@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model implements a BART encoder.
@@ -38,7 +38,7 @@ func New(config bartconfig.Config) *Model {
 	}
 
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		LearnedPositionalEmbeddings: posembeddings.NewLearnedPositionalEmbeddings(
 			posembeddings.Config{
@@ -48,7 +48,7 @@ func New(config bartconfig.Config) *Model {
 				Offset:        config.ExtraPosEmbedding,
 			}),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.Module {
+		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.Model {
 			return NewLayer(config)
 			// add LayerDrop to skip layers during training? (see https://arxiv.org/abs/1909.11556 for description)
 		}),

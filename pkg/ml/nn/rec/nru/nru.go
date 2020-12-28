@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -70,7 +70,7 @@ func New(config Config) *Model {
 	sqrtMemK := int(math.Sqrt(float64(config.MemorySize * config.K)))
 
 	return &Model{
-		BaseModel:       nn.BaseModel{FullSeqProcessing: false},
+		BaseModel:       nn.BaseModel{RCS: false},
 		Wx:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.InputSize)),
 		Wh:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.HiddenSize)),
 		Wm:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.MemorySize)),

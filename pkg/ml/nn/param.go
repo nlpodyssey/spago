@@ -6,58 +6,18 @@ package nn
 
 import (
 	"bytes"
-	"encoding/binary"
-	"github.com/pkg/errors"
-	"io"
 	"log"
 	"sync"
 
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 )
 
-// ParamsType is the enumeration-like type used for the set of parameter
-// (Param) types of a neural network Model.
-type ParamsType int
-
-const (
-	// Weights identifies a Param containing weights.
-	Weights ParamsType = iota
-	// Biases identifies a Param containing biases.
-	Biases
-	// Undefined identifies a generic Param, which cannot be described
-	// with other ParamsType values.
-	Undefined
-)
-
-var pts = []ParamsType{Weights, Biases, Undefined}
-
-func (t ParamsType) String() string {
-	return [...]string{"weights", "biases", "undefined"}[t] // important lower case
-}
-
-// Payload contains the support data used for example by the optimization methods
-type Payload struct {
-	Label int
-	Data  []mat.Matrix
-}
-
-// NewEmptySupport returns an empty support structure, not connected to any optimization method.
-func NewEmptySupport() *Payload {
-	return &Payload{
-		Label: 0, // important set the label to zero
-		Data:  make([]mat.Matrix, 0),
-	}
-}
-
 // Param is the interface for a Model parameter.
 type Param interface {
-	ag.Node
-	fn.Operand
-	ag.GradValue
+	ag.Node // it implies fn.Operand and ag.GradValue too
+
 	// Name returns the params name (can be empty string).
 	Name() string
 	// SetName set the params name (can be empty string).
@@ -85,16 +45,30 @@ type Param interface {
 	UnmarshalBinary(data []byte) error
 }
 
-// Params extends a slice of Param with AsNodes() method.
+// Params extends a slice of Param with Nodes() method.
 type Params []Param
 
-// AsNodes converts the slice of Param into a slice of ag.Node.
-func (ps Params) AsNodes() []ag.Node {
+// Nodes converts the slice of Param into a slice of ag.Node.
+func (ps Params) Nodes() []ag.Node {
 	ns := make([]ag.Node, len(ps))
 	for i, p := range ps {
 		ns[i] = p
 	}
 	return ns
+}
+
+// Payload contains the support data used for example by the optimization methods
+type Payload struct {
+	Label int
+	Data  []mat.Matrix
+}
+
+// NewEmptySupport returns an empty support structure, not connected to any optimization method.
+func NewEmptySupport() *Payload {
+	return &Payload{
+		Label: 0, // important set the label to zero
+		Data:  make([]mat.Matrix, 0),
+	}
 }
 
 var _ Param = &param{}
@@ -324,14 +298,16 @@ func (r *param) TimeStep() int64 {
 // wrappedParam returns a new wrappedParam from the param itself.
 func (r *param) wrappedParam(g *ag.Graph) *wrappedParam {
 	if r.requiresGrad {
-		return &wrappedParam{Param: r, Node: g.NewWrap(r)}
+		return &wrappedParam{param: r, Node: g.NewWrap(r)}
 	}
-	return &wrappedParam{Param: r, Node: g.NewWrapNoGrad(r)}
+	return &wrappedParam{param: r, Node: g.NewWrapNoGrad(r)}
 }
+
+var _ Param = &wrappedParam{}
 
 // wrappedParam enriches a Param with a Node.
 type wrappedParam struct {
-	Param
+	*param
 	Node ag.Node
 }
 
@@ -368,134 +344,4 @@ func (r *wrappedParam) RequiresGrad() bool {
 // ZeroGrad dispatches the call to the Node.
 func (r *wrappedParam) ZeroGrad() {
 	r.Node.ZeroGrad()
-}
-
-// ParamSerializer allows serialization and deserialization of a single Param.
-type ParamSerializer struct {
-	*param
-}
-
-func NewParamSerializer(p Param) (*ParamSerializer, error) {
-	switch p := p.(type) {
-	case *param:
-		return &ParamSerializer{param: p}, nil
-	default:
-		return nil, errors.New("nn: param type not supported for serialization")
-	}
-}
-
-// Serialize dumps the Param to the writer.
-func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
-	return paramDataMarshalBinaryTo(&paramData{
-		Value:   s.value.(*mat.Dense),
-		Payload: s.payload,
-	}, w)
-}
-
-// Deserialize assigns reads a Param the reader.
-func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
-	var data *paramData
-	data, n, err = paramDataUnmarshalBinaryFrom(r)
-	if err != nil {
-		return
-	}
-	s.value = data.Value
-	s.payload = data.Payload
-	return
-}
-
-type paramData struct {
-	Value   *mat.Dense
-	Payload *Payload
-}
-
-func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
-	n, err := mat.MarshalBinaryTo(data.Value, w)
-	if err != nil {
-		return n, err
-	}
-	n2, err := PayloadMarshalBinaryTo(data.Payload, w)
-	n += n2
-	if err != nil {
-		return n, err
-	}
-	return n, err
-}
-
-func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, int, error) {
-	value, n, err := mat.NewUnmarshalBinaryFrom(r)
-	if err != nil {
-		return nil, n, err
-	}
-	supp, n2, err := NewPayloadUnmarshalBinaryFrom(r)
-	n += n2
-	if err != nil {
-		return nil, n, err
-	}
-	return &paramData{Value: value, Payload: supp}, n, err
-}
-
-// PayloadMarshalBinaryTo returns the number of bytes written into w and an error, if any.
-func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
-	h := header{Label: int64(supp.Label), Size: int64(len(supp.Data))}
-	n, err := h.marshalBinaryTo(w)
-	if err != nil {
-		return n, err
-	}
-	nn, err := mat.MarshalBinarySlice(supp.Data, w)
-	n += nn
-	return n, err
-}
-
-// NewPayloadUnmarshalBinaryFrom reads a Payload from the given reader.
-func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
-	var h header
-	n, err := h.unmarshalBinaryFrom(r)
-	if err != nil {
-		return nil, n, err
-	}
-	data := make([]mat.Matrix, h.Size)
-	nn, err := mat.NewUnmarshalBinarySlice(data, r)
-	n = +nn
-	if err != nil {
-		return nil, n, err
-	}
-	supp := &Payload{
-		Label: int(h.Label),
-		Data:  data,
-	}
-	return supp, n, err
-}
-
-type header struct {
-	Label int64
-	Size  int64
-}
-
-var headerSize = binary.Size(header{})
-
-func (s header) marshalBinaryTo(w io.Writer) (int, error) {
-	buf := bytes.NewBuffer(make([]byte, 0, headerSize))
-	err := binary.Write(buf, binary.LittleEndian, s)
-	if err != nil {
-		return 0, err
-	}
-	return w.Write(buf.Bytes())
-}
-
-func (s *header) unmarshalBinary(buf []byte) error {
-	err := binary.Read(bytes.NewReader(buf), binary.LittleEndian, s)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *header) unmarshalBinaryFrom(r io.Reader) (int, error) {
-	buf := make([]byte, headerSize)
-	n, err := utils.ReadFull(r, buf)
-	if err != nil {
-		return n, err
-	}
-	return n, s.unmarshalBinary(buf[:n])
 }

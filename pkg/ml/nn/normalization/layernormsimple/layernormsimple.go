@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model is an empty model used to instantiate a new Processor.
@@ -25,7 +25,7 @@ type Model struct {
 // New returns a new model.
 func New() *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 	}
 }
 

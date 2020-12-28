@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the scaling factor.
@@ -35,13 +35,13 @@ type consts struct {
 // New returns a new model.
 func New(scale float64) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		Scale:     scale,
 	}
 }
 
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) InitProc() {
+// Reify returns a new processor to execute the forward step.
+func (m *Model) InitProcessor() {
 	g := m.Graph()
 	m.consts = consts{
 		eps: g.Constant(1e-10),

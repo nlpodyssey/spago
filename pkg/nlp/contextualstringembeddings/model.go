@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // MergeType is the enumeration-like type used for the set of merging methods
@@ -48,7 +48,7 @@ type Model struct {
 // New returns a new Contextual String Embeddings Model.
 func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
-		BaseModel:   nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:   nn.BaseModel{RCS: true},
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
 		MergeMode:   merge,

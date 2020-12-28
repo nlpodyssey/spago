@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	_ nn.Module = &EncoderLayer{}
+	_ nn.Model = &EncoderLayer{}
 )
 
 // EncoderLayer is a BERT Encoder Layer model.

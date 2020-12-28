@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -28,7 +28,7 @@ type Model struct {
 
 func New(biRNN *birnn.Model, scorer *linear.Model, crf *crf.Model) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		BiRNN:     biRNN,
 		Scorer:    scorer,
 		CRF:       crf,

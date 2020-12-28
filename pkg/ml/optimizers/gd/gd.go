@@ -15,7 +15,7 @@ import (
 type GradientDescent struct {
 	method           Method // optimization method (SGD, AdaGrad, Adam, ...)
 	gradClipper      clipper.GradClipper
-	paramsIterator   nn.ParamsIterator
+	paramsGetter     nn.ParamsGetter
 	paramsToOptimize []nn.Param
 }
 
@@ -41,10 +41,10 @@ func ClipGradByNorm(max, normType float64) Option {
 }
 
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method Method, paramsIterator nn.ParamsIterator, opts ...Option) *GradientDescent {
+func NewOptimizer(method Method, paramsIterator nn.ParamsGetter, opts ...Option) *GradientDescent {
 	optimizer := &GradientDescent{
 		method:           method,
-		paramsIterator:   paramsIterator,
+		paramsGetter:     paramsIterator,
 		paramsToOptimize: make([]nn.Param, 0),
 	}
 	for _, opt := range opts {
@@ -56,7 +56,7 @@ func NewOptimizer(method Method, paramsIterator nn.ParamsIterator, opts ...Optio
 // Optimize optimize the params, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
 func (o *GradientDescent) Optimize() {
-	o.paramsToOptimize = o.paramsIterator.ParamsList()
+	o.paramsToOptimize = o.paramsGetter.Params()
 	if o.paramsToOptimize == nil {
 		return
 	}

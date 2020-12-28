@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Discriminator{}
+	_ nn.Model = &Discriminator{}
 )
 
 // DiscriminatorConfig provides configuration settings for a BERT Discriminator.

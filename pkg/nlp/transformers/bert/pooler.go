@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Pooler{}
+	_ nn.Model = &Pooler{}
 )
 
 // PoolerConfig provides configuration settings for a BERT Pooler.

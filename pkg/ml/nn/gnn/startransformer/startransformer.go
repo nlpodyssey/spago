@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -46,7 +46,7 @@ type Config struct {
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
-		BaseModel:     nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:     nn.BaseModel{RCS: true},
 		Config:        config,
 		Query:         linear.New(config.InputSize, config.QuerySize),
 		Key:           linear.New(config.InputSize, config.KeySize),

@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -41,7 +41,7 @@ type State struct {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int) *Model {
 	m := &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 	}
 	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams(in, out)

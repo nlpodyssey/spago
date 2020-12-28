@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the activation operator and serializable parameters.
@@ -24,7 +24,7 @@ type Model struct {
 // TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
 func New(activation ag.OpName, params ...nn.Param) *Model {
 	return &Model{
-		BaseModel:  nn.BaseModel{FullSeqProcessing: false},
+		BaseModel:  nn.BaseModel{RCS: false},
 		Activation: activation,
 		Params:     params,
 	}
@@ -34,7 +34,7 @@ func New(activation ag.OpName, params ...nn.Param) *Model {
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	activation := m.Activation
 	transformed := func(x ag.Node) ag.Node {
-		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).AsNodes()...)...)
+		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).Nodes()...)...)
 	}
 	return ag.Map(transformed, xs)
 }

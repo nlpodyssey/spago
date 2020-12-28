@@ -27,7 +27,7 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 	scalingHidden := embeddingSize - ((embeddingSize - inputSize) / 2)
 
 	return &Encoder{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		ScalingFFN: stack.New(
 			linear.New(inputSize, scalingHidden),
 			activation.New(ag.OpMish),
@@ -50,7 +50,7 @@ func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decode
 	descalingHidden := embeddingSize - ((embeddingSize - outputSize) / 2)
 
 	return &Decoder{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		DecodingFNN1: stack.New(
 			linear.New(embeddingSize, hiddenSize),
 			layernorm.New(hiddenSize),

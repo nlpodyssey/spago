@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Config provides configuration settings for a RLA Model.
@@ -46,7 +46,7 @@ type State struct {
 // New returns a new RLA Model, initialized according to the given configuration.
 func New(config Config) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		Config:    config,
 		Wk:        nn.NewParam(mat.NewEmptyDense(config.InputSize, config.InputSize)),
 		Bk:        nn.NewParam(mat.NewEmptyVecDense(config.InputSize)),

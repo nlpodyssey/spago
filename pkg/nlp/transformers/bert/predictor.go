@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Predictor{}
+	_ nn.Model = &Predictor{}
 )
 
 // PredictorConfig provides configuration settings for a BERT Predictor.

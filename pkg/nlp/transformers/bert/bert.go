@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Config provides configuration settings for a BERT Model.
@@ -80,7 +80,7 @@ type Model struct {
 // NewDefaultBERT returns a new model based on the original BERT architecture.
 func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	return &Model{
-		BaseModel:  nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:  nn.BaseModel{RCS: true},
 		Config:     config,
 		Vocabulary: nil,
 		Embeddings: NewEmbeddings(EmbeddingsConfig{

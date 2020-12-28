@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -25,13 +25,13 @@ type Model struct {
 // New returns a new convolution Model, initialized according to the given configuration.
 func New(size int) *Model {
 	return &Model{
-		BaseModel:        nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:        nn.BaseModel{RCS: true},
 		Size:             size,
 		TransitionScores: nn.NewParam(mat.NewEmptyDense(size+1, size+1)), // +1 for start and end transitions
 	}
 }
 
-func (m *Model) InitProc() {
+func (m *Model) InitProcessor() {
 	m.Scores = nn.Separate(m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 

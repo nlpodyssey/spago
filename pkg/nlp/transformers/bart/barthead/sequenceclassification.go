@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	_ nn.Module = &SequenceClassification{}
+	_ nn.Model = &SequenceClassification{}
 )
 
 // SequenceClassification is a model for sentence-level classification tasks
@@ -30,7 +30,7 @@ type SequenceClassification struct {
 // NewSequenceClassification returns a new SequenceClassification.
 func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		BART:      bart.New(config, embeddingsPath),
 		Classification: NewClassification(ClassificationConfig{
 			InputSize:     config.DModel,

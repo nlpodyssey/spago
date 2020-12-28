@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -43,7 +43,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 		attention[i] = selfattention.New(attentionConfig)
 	}
 	return &Model{
-		BaseModel:   nn.BaseModel{FullSeqProcessing: true},
+		BaseModel:   nn.BaseModel{RCS: true},
 		Attention:   attention,
 		OutputMerge: linear.New(dk*numOfHeads, dm),
 		NumOfHeads:  numOfHeads,

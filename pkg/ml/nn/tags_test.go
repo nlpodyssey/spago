@@ -39,6 +39,10 @@ func TestValidModuleFieldTagParsing(t *testing.T) {
 			Type:  defaultModuleFieldType,
 			Scope: processorModuleFieldScope,
 		}},
+		{"scope:model", moduleFieldTag{
+			Type:  defaultModuleFieldType,
+			Scope: modelModuleFieldScope,
+		}},
 		{"type:biases;scope:processor", moduleFieldTag{
 			Type:  biasesModuleFieldType,
 			Scope: processorModuleFieldScope,

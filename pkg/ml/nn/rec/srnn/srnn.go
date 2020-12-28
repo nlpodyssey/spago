@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -48,7 +48,7 @@ type State struct {
 
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
-	layers := []nn.Module{
+	layers := []nn.Model{
 		linear.New(config.InputSize, config.HyperSize),
 		layernorm.New(config.HyperSize),
 		activation.New(ag.OpReLU),

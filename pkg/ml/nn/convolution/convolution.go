@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Config provides configuration settings for a convolution Model.
@@ -52,7 +52,7 @@ func New(config Config) *Model {
 		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1), nn.RequiresGrad(requireGrad))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		K:         kernels,
 		B:         biases,

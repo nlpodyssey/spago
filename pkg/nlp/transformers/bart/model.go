@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model implements a BART model.
@@ -33,7 +33,7 @@ type Model struct {
 // New returns a new BART Model.
 func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		Embeddings: embeddings.New(embeddings.Config{
 			Size:       config.DModel,

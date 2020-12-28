@@ -25,12 +25,12 @@ func (ptt *ParamsTraversalTester) collect(param Param) {
 
 // ParamsTraversalBaseModel can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
-// providing a fake NewProc method.
+// providing a fake Reify method.
 type ParamsTraversalBaseModel struct {
 	BaseModel
 }
 
-var _ Module = &ParamsTraversalBaseModel{}
+var _ Model = &ParamsTraversalBaseModel{}
 
 func (p ParamsTraversalBaseModel) Forward(_ ...ag.Node) []ag.Node {
 	panic("this should never be called")

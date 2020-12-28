@@ -11,14 +11,14 @@ import (
 )
 
 var (
-	_ nn.Module = &Encoder{}
+	_ nn.Model = &Encoder{}
 )
 
 // Encoder contains the serializable parameters.
 type Encoder struct {
 	nn.BaseModel
-	ScalingFFN  nn.Module
-	EncodingFFN nn.Module
+	ScalingFFN  nn.Model
+	EncodingFFN nn.Model
 	StepEncoder *pe.PositionalEncoder
 	Recursions  int `spago:"scope:processor"`
 }

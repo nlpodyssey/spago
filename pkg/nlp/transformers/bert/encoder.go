@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Encoder{}
+	_ nn.Model = &Encoder{}
 )
 
 // EncoderConfig provides configuration parameters for BERT Encoder.
@@ -46,9 +46,9 @@ type Encoder struct {
 func NewBertEncoder(config EncoderConfig) *Encoder {
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(i int) nn.Module {
+		Model: stack.Make(config.NumOfLayers, func(i int) nn.Model {
 			return &EncoderLayer{
-				BaseModel: nn.BaseModel{FullSeqProcessing: true},
+				BaseModel: nn.BaseModel{RCS: true},
 				MultiHeadAttention: multiheadattention.New(
 					config.Size,
 					config.NumOfAttentionHeads,
@@ -86,7 +86,7 @@ func NewAlbertEncoder(config EncoderConfig) *Encoder {
 	}
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Module {
+		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Model {
 			return sharedLayer
 		}),
 	}

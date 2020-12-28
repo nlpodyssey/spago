@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Classifier{}
+	_ nn.Model = &Classifier{}
 )
 
 // ClassifierConfig provides configuration settings for a BERT Classifier.

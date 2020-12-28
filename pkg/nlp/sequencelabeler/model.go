@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model implements a sequence labeling model.
@@ -78,10 +78,10 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Config:    config,
 		EmbeddingsLayer: &stackedembeddings.Model{
-			BaseModel: nn.BaseModel{FullSeqProcessing: true},
+			BaseModel: nn.BaseModel{RCS: true},
 			WordsEncoders: append(
 				wordLevelEmbeddings,
 				contextualstringembeddings.New(

@@ -10,35 +10,35 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	Layers []nn.Module
+	Layers []nn.Model
 }
 
 // New returns a new model.
-func New(layers ...nn.Module) *Model {
+func New(layers ...nn.Model) *Model {
 	requireFullSeq := false
 	for _, layer := range layers {
-		if layer.RequiresFullSeq() {
+		if layer.RequiresCompleteSequence() {
 			requireFullSeq = true
 			break
 		}
 	}
 	return &Model{
 		BaseModel: nn.BaseModel{
-			FullSeqProcessing: requireFullSeq,
+			RCS: requireFullSeq,
 		},
 		Layers: layers,
 	}
 }
 
 // Make makes a new model by obtaining each layer with a callback.
-func Make(size int, callback func(i int) nn.Module) *Model {
-	layers := make([]nn.Module, size)
+func Make(size int, callback func(i int) nn.Model) *Model {
+	layers := make([]nn.Model, size)
 	for i := 0; i < size; i++ {
 		layers[i] = callback(i)
 	}
@@ -52,7 +52,7 @@ func (m *Model) LastLayer() nn.Model {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	if m.RequiresFullSeq() {
+	if m.RequiresCompleteSequence() {
 		return m.fullSeqForward(xs)
 	}
 	return m.incrementalForward(xs)

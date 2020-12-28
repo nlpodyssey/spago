@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -39,7 +39,7 @@ func New(in, out, order int) *Model {
 		wRec[i] = nn.NewParam(mat.NewEmptyDense(out, out))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		W:         nn.NewParam(mat.NewEmptyDense(out, in)),
 		WRec:      wRec,
 		B:         nn.NewParam(mat.NewEmptyVecDense(out)),

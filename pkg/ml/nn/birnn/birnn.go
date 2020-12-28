@@ -26,21 +26,21 @@ const (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	Positive  nn.Module // positive time direction a.k.a. left-to-right
-	Negative  nn.Module // negative time direction a.k.a. right-to-left
+	Positive  nn.Model // positive time direction a.k.a. left-to-right
+	Negative  nn.Model // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(positive, negative nn.Module, merge MergeType) *Model {
+func New(positive, negative nn.Model, merge MergeType) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		Positive:  positive,
 		Negative:  negative,
 		MergeMode: merge,

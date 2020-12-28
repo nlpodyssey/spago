@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model implements a variant of the Feedforward Sequential Memory Networks
@@ -36,7 +36,7 @@ func New(in, out, order int) *Model {
 		WS[i] = nn.NewParam(mat.NewEmptyVecDense(out))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		W:         nn.NewParam(mat.NewEmptyDense(out, in)),
 		WRec:      nn.NewParam(mat.NewEmptyVecDense(out)),
 		WS:        WS,

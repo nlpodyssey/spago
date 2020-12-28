@@ -16,13 +16,13 @@ import (
 // WordsEncoderProcessor extends an nn.Processor providing the Encode method to
 // transform a string sequence into an encoded representation.
 type WordsEncoderProcessor interface {
-	nn.Module
+	nn.Model
 	// Encode transforms a string sequence into an encoded representation.
 	Encode([]string) []ag.Node
 }
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model implements a stacked embeddings model.

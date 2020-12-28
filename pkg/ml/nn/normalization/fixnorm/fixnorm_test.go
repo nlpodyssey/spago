@@ -22,7 +22,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := nn.NewProc(ctx, model).Forward(x1, x2, x3)
+	y := nn.Reify(ctx, model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{0.2182178902, 0.4364357805, 0.0, 0.8728715609}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")

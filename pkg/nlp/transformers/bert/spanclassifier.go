@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ nn.Module = &SpanClassifier{}
+	_ nn.Model = &SpanClassifier{}
 )
 
 // SpanClassifierConfig provides configuration settings for a BERT SpanClassifier.

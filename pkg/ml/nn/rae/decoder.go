@@ -13,15 +13,15 @@ import (
 )
 
 var (
-	_ nn.Module = &Decoder{}
+	_ nn.Model = &Decoder{}
 )
 
 // Decoder contains the serializable parameters.
 type Decoder struct {
 	nn.BaseModel
-	DecodingFNN1 nn.Module // decoding part 1
-	DecodingFFN2 nn.Module // decoding part 2
-	DescalingFFN nn.Module
+	DecodingFNN1 nn.Model // decoding part 1
+	DecodingFFN2 nn.Model // decoding part 2
+	DescalingFFN nn.Model
 	StepEncoder  *pe.PositionalEncoder
 	State        State `spago:"scope:processor"`
 }

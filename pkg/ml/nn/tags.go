@@ -27,6 +27,24 @@ const (
 	modelModuleFieldScope
 )
 
+// ParamsType is the enumeration-like type used for the set of parameter
+// (Param) types of a neural network Model.
+type ParamsType uint8
+
+const (
+	// Weights identifies a Param containing weights.
+	Weights ParamsType = iota
+	// Biases identifies a Param containing biases.
+	Biases
+	// Undefined identifies a generic Param, which cannot be described
+	// with other ParamsType values.
+	Undefined
+)
+
+func (t ParamsType) String() string {
+	return [...]string{"weights", "biases", "undefined"}[t] // important lower case
+}
+
 type moduleFieldTag struct {
 	Type  moduleFieldType
 	Scope moduleFieldScope

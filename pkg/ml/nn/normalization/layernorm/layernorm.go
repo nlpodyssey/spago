@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -28,7 +28,7 @@ type Model struct {
 // New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		W:         nn.NewParam(mat.NewEmptyVecDense(size)),
 		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
 	}

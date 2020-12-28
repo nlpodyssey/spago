@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	_ nn.Module = &MaxPooling{}
+	_ nn.Model = &MaxPooling{}
 )
 
 // MaxPooling is a parameter-free model used to instantiate a new Processor.
@@ -23,7 +23,7 @@ type MaxPooling struct {
 // NewMax returns a new model.
 func NewMax(rows, columns int) *MaxPooling {
 	return &MaxPooling{
-		BaseModel: nn.BaseModel{FullSeqProcessing: false},
+		BaseModel: nn.BaseModel{RCS: false},
 		Rows:      rows,
 		Columns:   columns,
 	}

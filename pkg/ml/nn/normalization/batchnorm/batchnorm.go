@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	_ nn.Module = &Model{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
@@ -29,7 +29,7 @@ const defaultMomentum = 0.9
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{FullSeqProcessing: true},
+		BaseModel: nn.BaseModel{RCS: true},
 		W:         nn.NewParam(mat.NewInitVecDense(size, 1.0)),
 		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
 		Mean:      nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),

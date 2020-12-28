@@ -11,17 +11,16 @@ import (
 	"testing"
 )
 
-var _ Model = &ModelContextualizerBaseModel{}
-var _ Processor = &ModelContextualizerBaseModel{}
+var _ Model = &BaseModelTest{}
 
-// ModelContextualizerBaseModel can be used as base Model in tests.
+// BaseModelTest can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
-// providing a fake NewProc method.
-type ModelContextualizerBaseModel struct {
+// providing a fake Forward method.
+type BaseModelTest struct {
 	BaseModel
 }
 
-func (p ModelContextualizerBaseModel) Forward(_ ...ag.Node) []ag.Node {
+func (p BaseModelTest) Forward(_ ...ag.Node) []ag.Node {
 	panic("this should never be called")
 }
 
@@ -32,14 +31,14 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			ID int
 		}
 
 		sourceModel := &TestModel{ID: 42}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel)
+		result := Reify(ctx, sourceModel)
 		assert.IsType(t, &TestModel{}, result)
 		assert.NotSame(t, sourceModel, result)
 		assert.Equal(t, &TestModel{ID: 42}, result)
@@ -49,7 +48,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			A Param
 		}
 
@@ -58,10 +57,9 @@ func TestModelContextualizer(t *testing.T) {
 		sourceModel := &TestModel{
 			A: NewParam(mat.NewScalar(1)).(*param).wrappedParam(g),
 		}
-		mc := newModelContextualizer(ctx)
 
 		assert.Panics(t, func() {
-			mc.contextualize(sourceModel)
+			Reify(ctx, sourceModel)
 		})
 	})
 
@@ -69,7 +67,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			A Param
 			B Param
 		}
@@ -80,19 +78,19 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A)
 		assert.IsType(t, &wrappedParam{}, result.B)
-		assert.Same(t, sourceModel.A, result.A.(*wrappedParam).Param)
-		assert.Same(t, sourceModel.B, result.B.(*wrappedParam).Param)
+		assert.Same(t, sourceModel.A, result.A.(*wrappedParam).param)
+		assert.Same(t, sourceModel.B, result.B.(*wrappedParam).param)
 	})
 
 	t.Run("it contextualizes []Param fields", func(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			A []Param
 		}
 
@@ -104,12 +102,12 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A[0])
 		assert.IsType(t, &wrappedParam{}, result.A[1])
-		assert.Same(t, sourceModel.A[0], result.A[0].(*wrappedParam).Param)
-		assert.Same(t, sourceModel.A[1], result.A[1].(*wrappedParam).Param)
+		assert.Same(t, sourceModel.A[0], result.A[0].(*wrappedParam).param)
+		assert.Same(t, sourceModel.A[1], result.A[1].(*wrappedParam).param)
 	})
 
 	t.Run("it contextualizes tagged nested struct fields", func(t *testing.T) {
@@ -122,7 +120,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo MyStruct
 			Bar MyStruct `spago:"type:params"`
 		}
@@ -149,7 +147,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
@@ -162,8 +160,8 @@ func TestModelContextualizer(t *testing.T) {
 
 		assert.IsType(t, &wrappedParam{}, result.Bar.A)
 		assert.IsType(t, &wrappedParam{}, result.Bar.Z.A)
-		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*wrappedParam).Param)
-		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*wrappedParam).Param)
+		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*wrappedParam).param)
+		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*wrappedParam).param)
 
 		// Be sure X's were copied
 		assert.Equal(t, 11, result.Foo.X)
@@ -180,7 +178,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo MyStruct
 			Bar MyStruct  `spago:"scope:processor"`
 			Baz *MyStruct `spago:"scope:processor"`
@@ -195,7 +193,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.Equal(t, 11, result.Foo.X)
 		assert.Equal(t, 0, result.Bar.X)
@@ -216,7 +214,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo []MyStruct
 			Bar []MyStruct `spago:"type:params"`
 			Baz []*MyStruct
@@ -231,7 +229,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz[0], result.Baz[0])
@@ -253,7 +251,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo []int `spago:"type:params"`
 		}
 
@@ -262,10 +260,9 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		mc := newModelContextualizer(ctx)
 
 		assert.Panics(t, func() {
-			mc.contextualize(sourceModel)
+			Reify(ctx, sourceModel)
 		})
 	})
 
@@ -273,7 +270,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			A map[string]Param
 		}
 
@@ -285,12 +282,12 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A["a"])
 		assert.IsType(t, &wrappedParam{}, result.A["b"])
-		assert.Same(t, sourceModel.A["a"], result.A["a"].(*wrappedParam).Param)
-		assert.Same(t, sourceModel.A["b"], result.A["b"].(*wrappedParam).Param)
+		assert.Same(t, sourceModel.A["a"], result.A["a"].(*wrappedParam).param)
+		assert.Same(t, sourceModel.A["b"], result.A["b"].(*wrappedParam).param)
 	})
 
 	t.Run("it contextualizes tagged maps of structs or pointers", func(t *testing.T) {
@@ -301,7 +298,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo map[string]MyStruct
 			Bar map[string]MyStruct `spago:"type:params"`
 			Baz map[string]*MyStruct
@@ -316,7 +313,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		result := newModelContextualizer(ctx).contextualize(sourceModel).(*TestModel)
+		result := Reify(ctx, sourceModel).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz["c"], result.Baz["c"])
@@ -338,7 +335,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type TestModel struct {
-			ModelContextualizerBaseModel
+			BaseModelTest
 			Foo map[string]int `spago:"type:params"`
 		}
 
@@ -347,10 +344,9 @@ func TestModelContextualizer(t *testing.T) {
 		}
 		g := ag.NewGraph()
 		ctx := Context{Graph: g, Mode: Training}
-		mc := newModelContextualizer(ctx)
 
 		assert.Panics(t, func() {
-			mc.contextualize(sourceModel)
+			Reify(ctx, sourceModel)
 		})
 	})
 }

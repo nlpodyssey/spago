@@ -56,7 +56,7 @@ func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag mod
 	switch itemT := item.(type) {
 	case *param:
 		pt.walkParam(itemT, name, tag)
-	case Module:
+	case Model:
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}

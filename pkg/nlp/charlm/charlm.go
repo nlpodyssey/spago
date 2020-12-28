@@ -103,7 +103,7 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 	})
 }
 
-func (m *Model) InitProc() {
+func (m *Model) InitProcessor() {
 	m.UsedEmbeddings = make(map[int]ag.Node)
 	m.UnknownEmbedding = m.Graph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
 }
