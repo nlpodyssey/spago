@@ -18,7 +18,7 @@ var (
 
 type variable struct {
 	graph        *Graph
-	timeStep     int64
+	timeStep     int
 	id           int64
 	value        mat.Matrix // store the results of a forward evaluation.
 	mu           sync.Mutex // to avoid data race during gradients accumulation
@@ -88,6 +88,6 @@ func (r *variable) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *variable) TimeStep() int64 {
+func (r *variable) TimeStep() int {
 	return r.timeStep
 }

@@ -21,7 +21,7 @@ type Graph struct {
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
 	maxID int64
 	// the time-step is useful to perform truncated back propagation (default 0)
-	curTimeStep int64
+	curTimeStep int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
@@ -188,7 +188,7 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -246,7 +246,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -263,7 +263,7 @@ func (g *Graph) NewWrap(value GradValue) Node {
 		id:        g.newID(),
 		wrapGrad:  true,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -280,7 +280,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 		id:        g.newID(),
 		wrapGrad:  false,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -299,8 +299,8 @@ func Range(fromTimeStep, toTimeStep int) ForwardOption {
 			fromTimeStep, toTimeStep)
 	}
 	return func(f *forwardHandler) {
-		f.fromTimeStep = int64(fromTimeStep)
-		f.toTimeStep = int64(toTimeStep)
+		f.fromTimeStep = fromTimeStep
+		f.toTimeStep = toTimeStep
 	}
 }
 
@@ -341,7 +341,7 @@ type BackwardOption func(*backwardHandler)
 // Truncated Back-Propagation.
 func Truncate(backSteps int) BackwardOption {
 	return func(f *backwardHandler) {
-		f.stopAtTimeStep = f.node.TimeStep() - int64(backSteps)
+		f.stopAtTimeStep = f.node.TimeStep() - backSteps
 	}
 }
 
@@ -437,7 +437,7 @@ func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 
 // IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph) IncTimeStep() {
-	atomic.AddInt64(&g.curTimeStep, 1)
+	g.curTimeStep++
 }
 
 // TimeStep is an integer value associated with the graph, which can be useful

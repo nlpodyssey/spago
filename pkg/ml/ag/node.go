@@ -14,7 +14,7 @@ type Node interface {
 	// ID returns the ID of the node in the graph.
 	ID() int64
 	// TimeStep returns the time-step associated to this node.
-	TimeStep() int64
+	TimeStep() int
 }
 
 // Operands cast a slice of nodes into a slice of operands.

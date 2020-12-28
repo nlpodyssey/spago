@@ -18,7 +18,7 @@ var (
 
 type operator struct {
 	graph        *Graph
-	timeStep     int64
+	timeStep     int
 	id           int64
 	function     fn.Function
 	operands     []Node
@@ -90,7 +90,7 @@ func (r *operator) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *operator) TimeStep() int64 {
+func (r *operator) TimeStep() int {
 	return r.timeStep
 }
 
