@@ -10,7 +10,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"log"
 	"sync"
-	"sync/atomic"
 )
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
@@ -19,7 +18,7 @@ type Graph struct {
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
-	maxID int64
+	maxID int
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
@@ -35,7 +34,7 @@ type Graph struct {
 	// Otherwise the cache must be invalidated and the values recalculated.
 	cache struct {
 		// the maxID when this cache was created.
-		maxID int64
+		maxID int
 		// nodes grouped by height
 		nodesByHeight [][]Node
 		// the nodes height. The index corresponds to the node ID.
@@ -448,8 +447,9 @@ func (g *Graph) TimeStep() int {
 }
 
 // newID generates and returns a new incremental sequential ID.
-func (g *Graph) newID() int64 {
-	return atomic.AddInt64(&g.maxID, 1)
+func (g *Graph) newID() int {
+	g.maxID++
+	return g.maxID
 }
 
 func (g *Graph) groupNodesByHeight() [][]Node {

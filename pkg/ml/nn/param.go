@@ -286,7 +286,7 @@ func (r *param) Graph() *ag.Graph {
 }
 
 // ID returns always -1 since the "pure" parameter is not associated with any graph.
-func (r *param) ID() int64 {
+func (r *param) ID() int {
 	return -1
 }
 
@@ -312,7 +312,7 @@ type wrappedParam struct {
 }
 
 // ID dispatches the call to the Node.
-func (r *wrappedParam) ID() int64 {
+func (r *wrappedParam) ID() int {
 	return r.Node.ID()
 }
 

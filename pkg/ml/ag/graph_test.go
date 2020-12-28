@@ -15,11 +15,11 @@ func TestNewGraph(t *testing.T) {
 	runCommonAssertions := func(t *testing.T, g *Graph) {
 		t.Helper()
 		assert.NotNil(t, g)
-		assert.Equal(t, int64(-1), g.maxID)
+		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
 		assert.Empty(t, g.constants)
-		assert.Equal(t, int64(0), g.cache.maxID)
+		assert.Equal(t, 0, g.cache.maxID)
 		assert.Nil(t, g.cache.nodesByHeight)
 		assert.Nil(t, g.cache.height)
 	}
@@ -93,8 +93,8 @@ func TestGraph_NewVariable(t *testing.T) {
 		b := mat.NewScalar(2)
 		va := g.NewVariable(a, true)
 		vb := g.NewVariable(b, false)
-		assert.Equal(t, int64(0), va.ID())
-		assert.Equal(t, int64(1), vb.ID())
+		assert.Equal(t, 0, va.ID())
+		assert.Equal(t, 1, vb.ID())
 		assert.Equal(t, []Node{va, vb}, g.nodes)
 	})
 }

@@ -19,12 +19,12 @@ type wrapper struct {
 	GradValue
 	graph    *Graph
 	timeStep int
-	id       int64
+	id       int
 	wrapGrad bool
 }
 
 // ID returns the ID of the node in the graph.
-func (r *wrapper) ID() int64 {
+func (r *wrapper) ID() int {
 	return r.id
 }
 
