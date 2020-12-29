@@ -107,13 +107,15 @@ func insertNode(m map[int]*indexedNodes, node ag.Node, i, h int) {
 	element.index = append(element.index, i)
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
+
 	g := m.Graph()
 	length := len(xs)
-	qs := m.Query.Forward(xs...)
+	qs := m.Query.Forward(xs).([]ag.Node)
 	ks := make([]ag.Node, length)
-	vs := m.Value.Forward(xs...)
+	vs := m.Value.Forward(xs).([]ag.Node)
 	mapk := make(map[int]*indexedNodes)
 	mapv := make(map[int]*indexedNodes)
 

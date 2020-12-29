@@ -52,40 +52,28 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
 	g := m.Graph()
 	headsAttention := make([][]ag.Node, m.NumOfHeads)
 	for h, proc := range m.Attention {
-		headsAttention[h] = proc.Forward(xs...)
+		headsAttention[h] = proc.Forward(in).([]ag.Node)
 	}
-	concatHeads := make([]ag.Node, len(xs))
-	for i := 0; i < len(xs); i++ {
-		buf := make([]ag.Node, m.NumOfHeads)
-		for j := 0; j < m.NumOfHeads; j++ {
-			buf[j] = headsAttention[j][i]
-		}
-		concatHeads[i] = g.Concat(buf...)
-	}
-	return m.OutputMerge.Forward(concatHeads...)
-}
 
-// ForwardQKV performs the forward step for each input and returns the result.
-// This is a variant of the standard Forward, where you can specify independent
-// sets of queries, keys and values.
-func (m *Model) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
-	g := m.Graph()
-	headsAttention := make([][]ag.Node, m.NumOfHeads)
-	for h, proc := range m.Attention {
-		headsAttention[h] = proc.ForwardQKV(qs, ks, vs)
+	var queries []ag.Node
+	if attIn, isAttIn := in.(nn.AttentionInput); isAttIn {
+		queries = attIn.Queries
+	} else {
+		queries = nn.ToNodes(in)
 	}
-	concatHeads := make([]ag.Node, len(qs))
-	for i := 0; i < len(qs); i++ {
+
+	concatHeads := make([]ag.Node, len(queries))
+	for i := 0; i < len(queries); i++ {
 		buf := make([]ag.Node, m.NumOfHeads)
 		for j := 0; j < m.NumOfHeads; j++ {
 			buf[j] = headsAttention[j][i]
 		}
 		concatHeads[i] = g.Concat(buf...)
 	}
-	return m.OutputMerge.Forward(concatHeads...)
+	return m.OutputMerge.Forward(concatHeads)
 }

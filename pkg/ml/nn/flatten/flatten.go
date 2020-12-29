@@ -26,11 +26,12 @@ func New() *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
 	g := m.Graph()
 	vectorized := func(x ag.Node) ag.Node {
 		return g.Vec(x)
 	}
+	xs := nn.ToNodes(in)
 	return []ag.Node{g.Concat(ag.Map(vectorized, xs)...)}
 }

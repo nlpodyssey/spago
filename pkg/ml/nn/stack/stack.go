@@ -50,8 +50,9 @@ func (m *Model) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	if m.RequiresCompleteSequence() {
 		return m.fullSeqForward(xs)
 	}
@@ -59,11 +60,11 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) fullSeqForward(xs []ag.Node) []ag.Node {
-	ys := m.Layers[0].Forward(xs...)
+	ys := m.Layers[0].Forward(xs)
 	for i := 1; i < len(m.Layers); i++ {
-		ys = m.Layers[i].Forward(ys...)
+		ys = m.Layers[i].Forward(ys)
 	}
-	return ys
+	return ys.([]ag.Node)
 }
 
 func (m *Model) incrementalForward(xs []ag.Node) []ag.Node {
@@ -77,7 +78,7 @@ func (m *Model) incrementalForward(xs []ag.Node) []ag.Node {
 func (m *Model) singleForward(x ag.Node) ag.Node {
 	y := x
 	for _, layer := range m.Layers {
-		y = layer.Forward(y)[0]
+		y = nn.ToNode(layer.Forward(y))
 	}
 	return y
 }

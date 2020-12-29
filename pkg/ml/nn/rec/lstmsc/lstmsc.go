@@ -110,8 +110,9 @@ func (m *Model) SetInitialState(state *State) {
 	m.States = append(m.States, state)
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		s := m.forward(x)
@@ -160,7 +161,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 	negLambda := g.NewScalar(1.0 - m.Lambda)
 
 	if yPrev != nil {
-		s.Actions = m.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x)))[0]
+		s.Actions = nn.ToNode(m.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x))))
 		s.SkipIndex = f64utils.ArgMax(s.Actions.Value().Data())
 		if s.SkipIndex < len(m.States) {
 			kState := m.States[len(m.States)-1-s.SkipIndex]

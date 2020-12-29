@@ -86,6 +86,12 @@ func newProjector(in, out int) *linear.Model {
 	return linear.New(in, out)
 }
 
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []string only.
+func (m *Embeddings) Forward(in interface{}) interface{} {
+	return m.Encode(in.([]string))
+}
+
 // Encode transforms a string sequence into an encoded representation.
 func (m *Embeddings) Encode(words []string) []ag.Node {
 	encoded := make([]ag.Node, len(words))
@@ -99,7 +105,7 @@ func (m *Embeddings) Encode(words []string) []ag.Node {
 			sequenceIndex++
 		}
 	}
-	return m.useProjection(m.Norm.Forward(encoded...))
+	return m.useProjection(m.Norm.Forward(encoded).([]ag.Node))
 }
 
 func (m *Embeddings) getWordEmbeddings(words []string) []ag.Node {
@@ -119,11 +125,5 @@ func (m *Embeddings) useProjection(xs []ag.Node) []ag.Node {
 	if m.Projector == nil {
 		return xs
 	}
-	return m.Projector.Forward(xs...)
-}
-
-// Forward is not implemented for EmbeddingsProcessor (it always panics). You
-// should use Encode instead.
-func (m *Embeddings) Forward(_ ...ag.Node) []ag.Node {
-	panic("bert: Forward() method not implemented. Use Encode() instead.")
+	return m.Projector.Forward(xs).([]ag.Node)
 }

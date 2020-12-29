@@ -44,18 +44,14 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 	}
 }
 
-// Encode performs the forward step for each input and returns the result.
-func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []int only.
+func (m *LearnedPositionalEmbeddings) Forward(in interface{}) interface{} {
+	positions := in.([]int)
 	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {
 		embeddings[i] = g.NewWrap(m.Vectors[pos+m.Config.Offset])
 	}
 	return embeddings
-}
-
-// Forward is not implemented for LearnedPositionalEmbeddingsProcessor (it always panics).
-// You should use Process instead.
-func (m *LearnedPositionalEmbeddings) Forward(_ ...ag.Node) []ag.Node {
-	panic("posembeddings: Forward() not implemented for LearnedPositionalEmbeddings. Use Encode() instead.")
 }

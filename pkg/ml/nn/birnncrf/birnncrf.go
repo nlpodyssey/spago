@@ -35,14 +35,14 @@ func New(biRNN *birnn.Model, scorer *linear.Model, crf *crf.Model) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	return m.Scorer.Forward(m.BiRNN.Forward(xs...)...)
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	return m.Scorer.Forward(m.BiRNN.Forward(in))
 }
 
 // Predict performs the forward step for each input and returns the result.
 func (m *Model) Predict(emissionScores []ag.Node) []int {
-	return m.CRF.Predict(emissionScores)
+	return m.CRF.Forward(emissionScores).([]int)
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.

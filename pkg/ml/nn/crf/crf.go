@@ -35,14 +35,10 @@ func (m *Model) InitProcessor() {
 	m.Scores = nn.Separate(m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 
-// Predict performs the forward step for each input and returns the result.
-func (m *Model) Predict(emissionScores []ag.Node) []int {
-	return Viterbi(m.TransitionScores.Value(), emissionScores)
-}
-
 // Forward is not available for the CRF. Use Predict() instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("crf: Forward() not available. Use Predict() instead.")
+func (m *Model) Forward(in interface{}) interface{} {
+	emissionScores := nn.ToNodes(in)
+	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.

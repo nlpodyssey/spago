@@ -73,14 +73,14 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 // ScaledDotProductAttention is a self-attention mechanism relating different positions of a single sequence in order to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained from the input sequence.
 // The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(qs))
-	prob = make([]mat.Matrix, len(qs))
-	keys := g.Stack(ks...)
-	values := g.T(g.Stack(vs...))
+func ScaledDotProductAttention(g *ag.Graph, attIn AttentionInput, scaleFactor float64, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
+	context = make([]ag.Node, len(attIn.Queries))
+	prob = make([]mat.Matrix, len(attIn.Queries))
+	keys := g.Stack(attIn.Keys...)
+	values := g.T(g.Stack(attIn.Values...))
 	factor := g.NewScalar(scaleFactor)
-	seqLen := len(qs)
-	for i, q := range qs {
+	seqLen := len(attIn.Queries)
+	for i, q := range attIn.Queries {
 		attScores := g.ProdScalar(g.Mul(keys, q), factor)
 
 		if useCausalMask {
@@ -100,15 +100,15 @@ func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor fl
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(qs))
-	prob = make([]mat.Matrix, len(qs))
-	keys := g.Stack(ks...)
-	values := g.T(g.Stack(vs...))
+func ScaledDotProductAttentionConcurrent(g *ag.Graph, attIn AttentionInput, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
+	context = make([]ag.Node, len(attIn.Queries))
+	prob = make([]mat.Matrix, len(attIn.Queries))
+	keys := g.Stack(attIn.Keys...)
+	values := g.T(g.Stack(attIn.Values...))
 	factor := g.NewScalar(scaleFactor)
 	var wg sync.WaitGroup
-	wg.Add(len(qs))
-	for i, q := range qs {
+	wg.Add(len(attIn.Queries))
+	for i, q := range attIn.Queries {
 		go func(i int, q ag.Node) {
 			defer wg.Done()
 			attScores := g.ProdScalar(g.Mul(keys, q), factor)
@@ -127,21 +127,21 @@ type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
-	context := make([]ag.Node, len(qs))
-	attKeys := make([]ag.Node, len(ks))
+func LinearAttention(g *ag.Graph, attIn AttentionInput, mappingFunction MappingFunc, eps float64) []ag.Node {
+	context := make([]ag.Node, len(attIn.Queries))
+	attKeys := make([]ag.Node, len(attIn.Keys))
 
 	var attKeysSum ag.Node = nil
-	for i := range ks {
-		attKeys[i] = mappingFunction(g, ks[i])
+	for i := range attIn.Keys {
+		attKeys[i] = mappingFunction(g, attIn.Keys[i])
 		attKeysSum = g.Add(attKeysSum, attKeys[i])
 	}
 
 	attKeysT := g.T(g.Stack(attKeys...))
-	kv := g.Mul(attKeysT, g.Stack(vs...))
+	kv := g.Mul(attKeysT, g.Stack(attIn.Values...))
 
-	for i := range qs {
-		attQuery := mappingFunction(g, qs[i])
+	for i := range attIn.Queries {
+		attQuery := mappingFunction(g, attIn.Queries[i])
 		n := g.T(g.Mul(g.T(attQuery), kv))
 		d := g.Dot(attQuery, attKeysSum)
 		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))

@@ -175,6 +175,12 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	return embedding
 }
 
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []string only.
+func (m *Model) Forward(in interface{}) interface{} {
+	return m.Encode(in.([]string))
+}
+
 // Encode returns the embeddings associated with the input words.
 func (m *Model) Encode(words []string) []ag.Node {
 	encoding := make([]ag.Node, len(words))
@@ -197,10 +203,4 @@ func (m *Model) getEmbedding(words string) ag.Node {
 	default:
 		return m.Graph().NewVariable(vector, false)
 	}
-}
-
-// Forward is not implemented for Evolving Pooled Contextualized Embeddings model Processor
-// (it always panics). You should use Encode instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("embeddings: m.Forward() not implemented. Use m.Encode() instead.")
 }

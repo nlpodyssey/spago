@@ -36,5 +36,5 @@ func NewTokenClassifier(config ClassifierConfig) *Classifier {
 
 // Predict returns the logits.
 func (m *Classifier) Predict(xs []ag.Node) []ag.Node {
-	return m.Forward(xs...)
+	return m.Forward(xs).([]ag.Node)
 }

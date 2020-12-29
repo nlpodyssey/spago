@@ -5,11 +5,9 @@
 package rae
 
 import (
-	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"log"
 )
 
 var (
@@ -43,31 +41,30 @@ func (p *Decoder) SetSequenceLength(length int) {
 	p.State.Recursions = maxRecursions
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (p *Decoder) Forward(xs ...ag.Node) []ag.Node {
-	if len(xs) != 1 {
-		panic("rae: the input must be a single node")
-	}
-	if p.State.SequenceLength == 0 {
-		log.Fatal("rae: sequence length must be > 0. Use p.SetSequenceLength().")
-	}
-	if len(xs) != p.State.SequenceLength {
-		panic(fmt.Sprintf("rae: input sequence length is expected to be %d, but got %d", p.State.SequenceLength, len(xs)))
-	}
-	ys := []ag.Node{xs[0]}
+// Forward performs the forward step for each input node and returns the result.
+func (p *Decoder) Forward(in interface{}) interface{} {
+	x := nn.ToNode(in)
+	// TODO: check the following commented code
+	//if p.State.SequenceLength == 0 {
+	//	log.Fatal("rae: sequence length must be > 0. Use p.SetSequenceLength().")
+	//}
+	//if len(xs) != p.State.SequenceLength {
+	//	panic(fmt.Sprintf("rae: input sequence length is expected to be %d, but got %d", p.State.SequenceLength, len(xs)))
+	//}
+	ys := []ag.Node{x}
 	for len(ys) != p.State.SequenceLength {
 		ys = p.decodingStep(ys)
 		p.State.Recursions--
 	}
-	return p.DescalingFFN.Forward(ys...)
+	return p.DescalingFFN.Forward(ys)
 }
 
 func (p *Decoder) decodingStep(xs []ag.Node) []ag.Node {
-	return p.DecodingFFN2.Forward(p.decodingPart1(xs)...)
+	return p.DecodingFFN2.Forward(p.decodingPart1(xs)).([]ag.Node)
 }
 
 func (p *Decoder) decodingPart1(xs []ag.Node) []ag.Node {
-	decoding := p.splitVectors(p.DecodingFNN1.Forward(p.addStepEncoding(xs)...))
+	decoding := p.splitVectors(p.DecodingFNN1.Forward(p.addStepEncoding(xs)).([]ag.Node))
 	ys := []ag.Node{decoding[0].y0, decoding[0].y1}
 	for i := 1; i < len(xs); i++ {
 		ys[i-1] = mean(p.Graph(), ys[i-1], decoding[i].y0)

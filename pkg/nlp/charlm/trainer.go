@@ -121,7 +121,7 @@ func (t *Trainer) trainBatch(proc *Model, batch []string) float64 {
 	g := proc.Graph()
 	g.ZeroGrad()
 	prevTimeStep := g.TimeStep()
-	predicted := proc.Predict(batch...)
+	predicted := proc.Forward(batch).([]ag.Node)
 	targets := targetsIds(batch, t.model.Vocabulary, t.model.UnknownToken)
 	loss := losses.CrossEntropySeq(g, predicted[:len(targets)], targets, true)
 	g.Forward(ag.Range(prevTimeStep+1, -1))

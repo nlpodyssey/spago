@@ -96,7 +96,7 @@ func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) 
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	tokenized := basetokenizer.New().Tokenize(text)
-	predicted := proc.Predict(tokenized)
+	predicted := proc.Forward(tokenized).([]TokenLabel)
 	if merge {
 		predicted = mergeEntities(predicted)
 	}

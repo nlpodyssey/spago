@@ -49,7 +49,7 @@ func NewPredictor(config PredictorConfig) *Predictor {
 func (m *Predictor) PredictMasked(encoded []ag.Node, masked []int) map[int]ag.Node {
 	predictions := make(map[int]ag.Node)
 	for _, id := range masked {
-		predictions[id] = m.Forward(encoded[id])[0]
+		predictions[id] = nn.ToNode(m.Forward(encoded[id]))
 	}
 	return predictions
 }

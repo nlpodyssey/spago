@@ -176,8 +176,8 @@ func LoadModel(modelPath string) (*Model, error) {
 
 // Encode transforms a string sequence into an encoded representation.
 func (m *Model) Encode(tokens []string) []ag.Node {
-	tokensEncoding := m.Embeddings.Encode(tokens)
-	return m.Encoder.Forward(tokensEncoding...)
+	tokensEncoding := m.Embeddings.Forward(tokens)
+	return m.Encoder.Forward(tokensEncoding).([]ag.Node)
 }
 
 // PredictMasked performs a masked prediction task. It returns the predictions
@@ -194,13 +194,13 @@ func (m *Model) Discriminate(encoded []ag.Node) []int {
 
 // Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
 func (m *Model) Pool(transformed []ag.Node) ag.Node {
-	return m.Pooler.Forward(transformed[0])[0]
+	return nn.ToNode(m.Pooler.Forward(transformed[0]))
 }
 
 // PredictSeqRelationship predicts if the second sentence in the pair is the
 // subsequent sentence in the original document.
 func (m *Model) PredictSeqRelationship(pooled ag.Node) ag.Node {
-	return m.SeqRelationship.Forward(pooled)[0]
+	return nn.ToNode(m.SeqRelationship.Forward(pooled))
 }
 
 // TokenClassification performs a classification for each element in the sequence.
@@ -211,10 +211,10 @@ func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
 // SequenceClassification performs a single sentence-level classification,
 // using the pooled CLS token.
 func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
-	return m.Classifier.Predict(m.Pooler.Forward(transformed[0]))[0]
+	return nn.ToNode(m.Classifier.Predict(m.Pooler.Forward(transformed[0]).([]ag.Node)))
 }
 
 // Forward is not implemented for BERT model Processor (it always panics).
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
+func (m *Model) Forward(in interface{}) interface{} {
 	panic("bert: method not implemented")
 }

@@ -34,6 +34,12 @@ type Model struct {
 	ProjectionLayer *linear.Model
 }
 
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []string only.
+func (m *Model) Forward(in interface{}) interface{} {
+	return m.Encode(in.([]string))
+}
+
 // Encode transforms a string sequence into an encoded representation.
 func (m *Model) Encode(words []string) []ag.Node {
 	encodingsPerWord := make([][]ag.Node, len(words))
@@ -50,11 +56,5 @@ func (m *Model) Encode(words []string) []ag.Node {
 			intermediateEncoding[wordIndex] = m.Graph().Concat(encoding...)
 		}
 	}
-	return m.ProjectionLayer.Forward(intermediateEncoding...)
-}
-
-// Forward is not implemented for stacked embedding model Processor (it always panics).
-// You should use Encode instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("stackedembeddings: Forward() not implemented. Use Encode() instead.")
+	return m.ProjectionLayer.Forward(intermediateEncoding).([]ag.Node)
 }

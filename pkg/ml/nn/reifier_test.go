@@ -20,7 +20,7 @@ type BaseModelTest struct {
 	BaseModel
 }
 
-func (p BaseModelTest) Forward(_ ...ag.Node) []ag.Node {
+func (p BaseModelTest) Forward(_ interface{}) interface{} {
 	panic("this should never be called")
 }
 

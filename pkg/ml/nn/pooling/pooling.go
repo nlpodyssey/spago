@@ -29,9 +29,10 @@ func NewMax(rows, columns int) *MaxPooling {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
+// Forward performs the forward step for each input node and returns the result.
 // The max pooling is applied independently to each input.
-func (m *MaxPooling) Forward(xs ...ag.Node) []ag.Node {
+func (m *MaxPooling) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	g := m.Graph()
 	pooled := func(x ag.Node) ag.Node {
 		return g.MaxPooling(x, m.Rows, m.Columns)

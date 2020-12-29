@@ -50,7 +50,7 @@ type Model interface {
 	// Recurrent networks treats the input nodes as a sequence.
 	// Differently, feed-forward networks are stateless so every computation is independent.
 	// It panics if invoked by a not reified model.
-	Forward(xs ...ag.Node) []ag.Node
+	Forward(in interface{}) interface{}
 	// RequiresCompleteSequence returns whether the model operates on complete sequences
 	// (as in the case of CNN, BiRNN and other bidirectional models).
 	RequiresCompleteSequence() bool

@@ -156,7 +156,7 @@ func (w *worker) process(input premiseHypothesisPair) *mat.Dense {
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
-	logits := proc.Predict(inputIds...)[0]
+	logits := nn.ToNode(proc.Forward(inputIds))
 	g.Forward()
 	return g.GetCopiedValue(logits).(*mat.Dense)
 }

@@ -101,8 +101,9 @@ func (m *Model) SetInitialState(state *State) {
 	m.States = append(m.States, state)
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		s := m.forward(x)
@@ -213,7 +214,7 @@ func (m *Model) getPrev() (yPrev, mPrev ag.Node) {
 
 func (m *Model) optLayerNorm(x ag.Node) ag.Node {
 	if m.UseLayerNorm {
-		return m.HiddenLayerNorm.Forward(x)[0]
+		return nn.ToNode(m.HiddenLayerNorm.Forward(x))
 	}
 	return x
 }

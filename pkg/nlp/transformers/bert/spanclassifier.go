@@ -34,7 +34,7 @@ func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
 
 // Classify returns the "span start logits" and "span end logits".
 func (p *SpanClassifier) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
-	for _, y := range p.Forward(xs...) {
+	for _, y := range p.Forward(xs).([]ag.Node) {
 		split := nn.SeparateVec(p.Graph(), y)
 		startLogits = append(startLogits, split[0])
 		endLogits = append(endLogits, split[1])
