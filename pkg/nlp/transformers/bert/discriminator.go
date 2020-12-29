@@ -47,7 +47,7 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 // the word is out of context.
 func (m *Discriminator) Discriminate(encoded []ag.Node) []int {
 	ys := make([]int, len(encoded))
-	for i, x := range m.Forward(encoded...) {
+	for i, x := range m.Forward(encoded).([]ag.Node) {
 		ys[i] = int(math.Round(float64(f64utils.Sign(x.ScalarValue())+1.0) / 2.0))
 	}
 	return ys

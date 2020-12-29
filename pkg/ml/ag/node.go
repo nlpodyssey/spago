@@ -12,9 +12,9 @@ type Node interface {
 	// Graph returns the graph this node belongs to.
 	Graph() *Graph
 	// ID returns the ID of the node in the graph.
-	ID() int64
+	ID() int
 	// TimeStep returns the time-step associated to this node.
-	TimeStep() int64
+	TimeStep() int
 }
 
 // Operands cast a slice of nodes into a slice of operands.

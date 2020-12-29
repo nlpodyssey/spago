@@ -21,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.Reify(ctx, model).Forward(x)[0]
+	y := nn.ToNode(nn.Reify(ctx, model).Forward(x))
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.74, -0.23, 0.11, 0.49, -0.05}, 0.005) {
 		t.Error("The output doesn't match the expected values")
@@ -98,7 +98,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	y := proc.Forward(x)[0]
+	y := nn.ToNode(proc.Forward(x))
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.86, 0.18, -0.24, 0.36, -0.36}, 0.005) {
 		t.Error("The output doesn't match the expected values")

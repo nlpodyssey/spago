@@ -64,6 +64,12 @@ type wordBoundary struct {
 	reverseEndIndex int
 }
 
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []string only.
+func (m *Model) Forward(in interface{}) interface{} {
+	return m.Encode(in.([]string))
+}
+
 // Encode performs the forward step for each input and returns the result.
 func (m *Model) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
@@ -127,7 +133,7 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 }
 
 func process(proc *charlm.Model, sequence []string) []ag.Node {
-	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...)...)
+	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)).([]ag.Node))
 }
 
 func (m *Model) merge(a, b ag.Node) ag.Node {
@@ -144,10 +150,4 @@ func (m *Model) merge(a, b ag.Node) ag.Node {
 	default:
 		panic("contextual string embeddings: invalid merge mode for the ContextualStringEmbeddings")
 	}
-}
-
-// Forward is not implemented for Contextual String Embeddings model Processor
-// (it always panics). You should use Encode instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("contextual string embeddings: method not implemented. Use Encode() instead.")
 }

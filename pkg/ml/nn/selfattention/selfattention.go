@@ -54,26 +54,24 @@ func New(config Config) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
+// Forward performs the forward step for each input node and returns the result.
 // It generates the queries, keys and values from the same input xs.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	qs := m.Query.Forward(xs...)
-	ks := m.Key.Forward(xs...)
-	vs := m.Value.Forward(xs...)
-	context, prob := nn.ScaledDotProductAttention(m.Graph(), qs, ks, vs, m.ScaleFactor, m.UseCausalMask)
-	m.Attention = &ContextProb{
-		Context: context,
-		Prob:    prob,
+//
+// Valid input types: []ag.Node or nn.AttentionInput.
+func (m *Model) Forward(in interface{}) interface{} {
+	attIn, isAttentionInput := in.(nn.AttentionInput)
+	if !isAttentionInput {
+		nodes := nn.ToNodes(in)
+		attIn = nn.AttentionInput{Queries: nodes, Keys: nodes, Values: nodes}
 	}
-	return context
-}
 
-// ForwardQKV performs the forward step for each input and returns the result.
-func (m *Model) ForwardQKV(qs []ag.Node, ks []ag.Node, vs []ag.Node) []ag.Node {
-	qsProj := m.Query.Forward(qs...)
-	ksProj := m.Key.Forward(ks...)
-	vsProj := m.Value.Forward(vs...)
-	context, prob := nn.ScaledDotProductAttention(m.Graph(), qsProj, ksProj, vsProj, m.ScaleFactor, m.UseCausalMask)
+	projAtt := nn.AttentionInput{
+		Queries: m.Query.Forward(attIn.Queries).([]ag.Node),
+		Keys:    m.Key.Forward(attIn.Keys).([]ag.Node),
+		Values:  m.Value.Forward(attIn.Values).([]ag.Node),
+	}
+
+	context, prob := nn.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
 	m.Attention = &ContextProb{
 		Context: context,
 		Prob:    prob,

@@ -28,8 +28,9 @@ func New(in, rank int) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)

@@ -24,7 +24,7 @@ func TestModel_SyntheticAttention(t *testing.T) {
 	x3 := g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.7, 0.2, 0.4}), true)
 
 	// == Forward
-	output := proc.Forward(x1, x2, x3)
+	output := proc.Forward([]ag.Node{x1, x2, x3}).([]ag.Node)
 
 	if !floats.EqualApprox(output[0].Value().Data(), []float64{0.778722, -0.5870107, -0.36687185}, 1.0e-05) {
 		t.Error("The output[0] doesn't match the expected values")

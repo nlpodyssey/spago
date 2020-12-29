@@ -195,6 +195,12 @@ func (m *Model) getUsedEmbedding(word string) (nn.Param, bool) {
 	return nil, false
 }
 
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []string only.
+func (m *Model) Forward(in interface{}) interface{} {
+	return m.Encode(in.([]string))
+}
+
 // Encode returns the embeddings associated with the input words.
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes
@@ -225,10 +231,4 @@ func (m *Model) getEmbedding(word string) ag.Node {
 	default:
 		return m.Graph().NewWrap(param)
 	}
-}
-
-// Forward is not implemented for embeddings model Processor (it always panics).
-// You should use Encode instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("embeddings: p.Forward() not implemented. Use p.Encode() instead.")
 }

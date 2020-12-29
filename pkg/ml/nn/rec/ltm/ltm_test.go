@@ -22,7 +22,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}), true)
-	_ = proc.Forward(x)[0]
+	proc.Forward(x)
 	s := proc.LastState()
 
 	if !floats.EqualApprox(s.Cell.Value().Data(), []float64{0.531299, 0.439948, 0.484336, 0.443710}, 1.0e-06) {

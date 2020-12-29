@@ -40,7 +40,6 @@ func New(scale float64) *Model {
 	}
 }
 
-// Reify returns a new processor to execute the forward step.
 func (m *Model) InitProcessor() {
 	g := m.Graph()
 	m.consts = consts{
@@ -51,8 +50,9 @@ func (m *Model) InitProcessor() {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	g := m.Graph()
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)

@@ -60,14 +60,15 @@ func New(config Config) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	g := m.Graph()
 	length := len(xs)
 	context := make([]ag.Node, length)
 	prob := make([]mat.Matrix, length)
-	values := g.Stack(m.Value.Forward(xs...)...)
-	rectified := g.Stack(m.FFN.Forward(xs...)...)
+	values := g.Stack(m.Value.Forward(xs).([]ag.Node)...)
+	rectified := g.Stack(m.FFN.Forward(xs).([]ag.Node)...)
 	attentionWeights := m.extractAttentionWeights(length)
 	mul := g.Mul(attentionWeights, g.T(rectified))
 	for i := 0; i < length; i++ {

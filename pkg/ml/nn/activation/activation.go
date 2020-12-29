@@ -30,11 +30,11 @@ func New(activation ag.OpName, params ...nn.Param) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
 	activation := m.Activation
 	transformed := func(x ag.Node) ag.Node {
 		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).Nodes()...)...)
 	}
-	return ag.Map(transformed, xs)
+	return ag.Map(transformed, nn.ToNodes(in))
 }

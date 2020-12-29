@@ -6,53 +6,145 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestNewGraph(t *testing.T) {
-	g := NewGraph()
-	if !(g.maxID == -1) {
-		t.Errorf("maxID doesn't match the expected value.")
+	runCommonAssertions := func(t *testing.T, g *Graph) {
+		t.Helper()
+		assert.NotNil(t, g)
+		assert.Equal(t, -1, g.maxID)
+		assert.Equal(t, 0, g.curTimeStep)
+		assert.Nil(t, g.nodes)
+		assert.Empty(t, g.constants)
+		assert.Equal(t, 0, g.cache.maxID)
+		assert.Nil(t, g.cache.nodesByHeight)
+		assert.Nil(t, g.cache.height)
 	}
-	if !(g.curTimeStep == 0) {
-		t.Errorf("curTimeStep doesn't match the expected value.")
-	}
-	if !(g.nodes == nil) {
-		t.Errorf("nodes doesn't match the expected value.")
-	}
+
+	t.Run("without options", func(t *testing.T) {
+		g := NewGraph()
+		runCommonAssertions(t, g)
+		assert.NotNil(t, g.randGen)
+		assert.True(t, g.incrementalForward)
+		assert.False(t, g.concurrentComputations)
+	})
+
+	t.Run("with IncrementalForward(false) options", func(t *testing.T) {
+		g := NewGraph(IncrementalForward(false))
+		runCommonAssertions(t, g)
+		assert.NotNil(t, g.randGen)
+		assert.False(t, g.incrementalForward)
+		assert.False(t, g.concurrentComputations)
+	})
+
+	t.Run("with ConcurrentComputations(true) options", func(t *testing.T) {
+		g := NewGraph(ConcurrentComputations(true))
+		runCommonAssertions(t, g)
+		assert.NotNil(t, g.randGen)
+		assert.True(t, g.incrementalForward)
+		assert.True(t, g.concurrentComputations)
+	})
+
+	t.Run("with Rand option", func(t *testing.T) {
+		r := rand.NewLockedRand(42)
+		g := NewGraph(Rand(r))
+		runCommonAssertions(t, g)
+		assert.Same(t, r, g.randGen)
+		assert.True(t, g.incrementalForward)
+		assert.False(t, g.concurrentComputations)
+	})
+
+	t.Run("with RandSeed options", func(t *testing.T) {
+		r := rand.NewLockedRand(42)
+		g := NewGraph(RandSeed(42))
+		runCommonAssertions(t, g)
+		assert.NotNil(t, g.randGen)
+		assert.Equal(t, r.Int(), g.randGen.Int())
+		assert.True(t, g.incrementalForward)
+		assert.False(t, g.concurrentComputations)
+	})
 }
 
-func TestGraph_TimeStep(t *testing.T) {
+func TestGraph_NewVariable(t *testing.T) {
+	t.Run("with requiresGrad true", func(t *testing.T) {
+		g := NewGraph()
+		s := mat.NewScalar(1)
+		v := g.NewVariable(s, true)
+		assert.NotNil(t, v)
+		assert.Same(t, s, v.Value())
+		assert.True(t, v.RequiresGrad())
+	})
+
+	t.Run("with requiresGrad false", func(t *testing.T) {
+		g := NewGraph()
+		s := mat.NewScalar(1)
+		v := g.NewVariable(s, false)
+		assert.NotNil(t, v)
+		assert.Same(t, s, v.Value())
+		assert.False(t, v.RequiresGrad())
+	})
+
+	t.Run("it assigns the correct ID to the nodes and adds them to the graph", func(t *testing.T) {
+		g := NewGraph()
+		a := mat.NewScalar(1)
+		b := mat.NewScalar(2)
+		va := g.NewVariable(a, true)
+		vb := g.NewVariable(b, false)
+		assert.Equal(t, 0, va.ID())
+		assert.Equal(t, 1, vb.ID())
+		assert.Equal(t, []Node{va, vb}, g.nodes)
+	})
+}
+
+func TestGraph_NewScalar(t *testing.T) {
 	g := NewGraph()
-	if !(g.TimeStep() == 0) {
-		t.Errorf("The graph time-step doesn't match the expected value.")
-	}
-	a := g.NewVariable(mat.NewVecDense([]float64{1.0}), false)
-	if !(a.TimeStep() == 0) {
-		t.Errorf("The node time-step doesn't match the expected value.")
-	}
+	s := g.NewScalar(42)
+	assert.NotNil(t, s)
+	assert.False(t, s.RequiresGrad())
+	v := s.Value()
+	assert.NotNil(t, v)
+	assert.True(t, v.IsScalar())
+	assert.Equal(t, 42.0, v.Scalar())
+}
+
+func TestGraph_Constant(t *testing.T) {
+	g := NewGraph()
+	c := g.Constant(42)
+	assert.NotNil(t, c)
+	assert.False(t, c.RequiresGrad())
+	v := c.Value()
+	assert.NotNil(t, v)
+	assert.True(t, v.IsScalar())
+	assert.Equal(t, 42.0, v.Scalar())
+	assert.Same(t, c, g.Constant(42))
+	assert.NotSame(t, c, g.Constant(43))
+}
+
+func TestGraph_IncTimeStep(t *testing.T) {
+	g := NewGraph()
+	assert.Equal(t, 0, g.TimeStep())
+
 	g.IncTimeStep()
-	if !(g.TimeStep() == 1) {
-		t.Errorf("The graph time-step doesn't match the expected value.")
-	}
-	b := g.NewVariable(mat.NewVecDense([]float64{2.0}), false)
-	if !(b.TimeStep() == 1) {
-		t.Errorf("The node time-step doesn't match the expected value.")
-	}
+	assert.Equal(t, 1, g.TimeStep())
+
 	g.IncTimeStep()
-	if !(g.TimeStep() == 2) {
-		t.Errorf("The graph time-step doesn't match the expected value.")
-	}
-	c := g.NewVariable(mat.NewVecDense([]float64{3.0}), false)
-	if !(c.TimeStep() == 2) {
-		t.Errorf("The node time-step doesn't match the expected value.")
-	}
+	assert.Equal(t, 2, g.TimeStep())
+}
+
+func TestNodesTimeStep(t *testing.T) {
+	g := NewGraph()
+
+	a := g.NewVariable(mat.NewScalar(1), false)
+	assert.Equal(t, 0, a.TimeStep())
+
 	g.IncTimeStep()
-	if !(g.TimeStep() == 3) {
-		t.Errorf("The graph time-step doesn't match the expected value.")
-	}
-	d := g.NewVariable(mat.NewVecDense([]float64{4.0}), false)
-	if !(d.TimeStep() == 3) {
-		t.Errorf("The node time-step doesn't match the expected value.")
-	}
+	b := g.NewVariable(mat.NewScalar(2), false)
+	assert.Equal(t, 1, b.TimeStep())
+
+	g.IncTimeStep()
+	c := g.NewVariable(mat.NewScalar(3), false)
+	assert.Equal(t, 2, c.TimeStep())
 }

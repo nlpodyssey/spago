@@ -6,7 +6,6 @@ package nn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"reflect"
 	"testing"
 )
@@ -32,7 +31,7 @@ type ParamsTraversalBaseModel struct {
 
 var _ Model = &ParamsTraversalBaseModel{}
 
-func (p ParamsTraversalBaseModel) Forward(_ ...ag.Node) []ag.Node {
+func (p ParamsTraversalBaseModel) Forward(_ interface{}) interface{} {
 	panic("this should never be called")
 }
 

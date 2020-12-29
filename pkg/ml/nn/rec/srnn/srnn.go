@@ -69,8 +69,9 @@ func New(config Config) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	ys := make([]ag.Node, len(xs))
 	b := m.transformInputConcurrent(xs)
 	h, _ := m.getPrevHY()
@@ -97,15 +98,15 @@ func (m *Model) forward(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	} else {
 		h = g.ReLU(b)
 	}
-	y = m.FC3.Forward(h)[0]
+	y = nn.ToNode(m.FC3.Forward(h))
 	return
 }
 
 func (m *Model) transformInput(x ag.Node) ag.Node {
 	g := m.Graph()
-	b := m.FC.Forward(x)[0]
+	b := nn.ToNode(m.FC.Forward(x))
 	if m.Config.MultiHead {
-		sigAlphas := g.Sigmoid(m.FC2.Forward(x)[0])
+		sigAlphas := g.Sigmoid(nn.ToNode(m.FC2.Forward(x)))
 		b = g.Prod(b, sigAlphas)
 	}
 	return b

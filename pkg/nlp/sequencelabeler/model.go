@@ -151,11 +151,14 @@ type TokenLabel struct {
 	Label string
 }
 
-// Predict performs the forward step for each input and returns the result.
-func (m *Model) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []tokenizers.StringOffsetsPair.
+// Returned value: []TokenLabel.
+func (m *Model) Forward(in interface{}) interface{} {
+	tokens := in.([]tokenizers.StringOffsetsPair)
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
-	emissionScores := m.TaggerLayer.Forward(encodings...)
+	emissionScores := m.TaggerLayer.Forward(encodings).([]ag.Node)
 	prediction := m.TaggerLayer.Predict(emissionScores)
 	result := make([]TokenLabel, len(tokens))
 	for i, labelIndex := range prediction {
@@ -171,10 +174,4 @@ func (m *Model) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 // TODO: it could be more consistent if the targets were the string labels
 func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
 	return m.TaggerLayer.NegativeLogLoss(emissionScores, targets)
-}
-
-// Forward is not implemented for sequence labeler model Processor (it always panics).
-// You should use Encode instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("sequencelabeler: Forward() not implemented. Use Predict() instead.")
 }

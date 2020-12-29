@@ -34,9 +34,10 @@ func New(size int) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
+// Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	g := m.Graph()
 	eps := g.Constant(1e-12) // avoid underflow errors
 	ys := make([]ag.Node, len(xs))

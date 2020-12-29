@@ -29,6 +29,12 @@ type Model struct {
 	LayerNorm                   *layernorm.Model
 }
 
+// ModelInput is a set of values suitable as input for the forward step of a BART Decoder Model.
+type ModelInput struct {
+	Xs      []ag.Node
+	Encoded []ag.Node
+}
+
 // New returns a new BART decoder Model.
 func New(config bartconfig.Config) *Model {
 	if config.StaticPositionEmbeddings {
@@ -60,20 +66,26 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-// Decode performs the forward step for each input and returns the result.
-func (m *Model) Decode(xs, encoded []ag.Node) []ag.Node {
-	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
-	ys := m.add(xs, embedPos)
-	ys = m.EmbeddingLayerNorm.Forward(ys...)
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: ModelInput.
+func (m *Model) Forward(in interface{}) interface{} {
+	mi := in.(ModelInput)
+	//func (m *Model) Decode(xs, encoded []ag.Node) []ag.Node {
+	embedPos := m.LearnedPositionalEmbeddings.Forward(utils.MakeIndices(len(mi.Xs))).([]ag.Node)
+	ys := m.add(mi.Xs, embedPos)
+	ys = m.EmbeddingLayerNorm.Forward(ys).([]ag.Node)
 	// ys = m.Dropout(ys)
 
 	for _, layer := range m.Layers.Layers {
-		ys = layer.(*Layer).Process(ys, encoded)
+		ys = layer.(*Layer).Forward(LayerInput{
+			Xs:                  ys,
+			EncoderHiddenStates: mi.Encoded,
+		}).([]ag.Node)
 		// TODO: save all hidden states into the processor to allow a later access
 	}
 
 	if m.Config.FinalLayerNorm {
-		ys = m.LayerNorm.Forward(ys...)
+		ys = m.LayerNorm.Forward(ys).([]ag.Node)
 	}
 	return ys
 }
@@ -84,10 +96,4 @@ func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {
 		c[i] = m.Graph().Add(a[i], b[i])
 	}
 	return c
-}
-
-// Forward is not implemented for BART decoder Processor (it always panics).
-// You should use Decode instead.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	panic("bartdecoder: Forward() not implemented; use Decode() instead.")
 }

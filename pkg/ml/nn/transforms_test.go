@@ -109,23 +109,26 @@ func TestConv2DStride2(t *testing.T) {
 
 func TestScaledDotProductAttention(t *testing.T) {
 	g := ag.NewGraph()
-	qs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{1.1, 0.0, 2.3}), true),
-		g.NewVariable(mat.NewVecDense([]float64{2.2, -0.5, 0.3}), true),
-		g.NewVariable(mat.NewVecDense([]float64{3.2, 0.5, 0.4}), true),
-	}
-	ks := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.0, 1.2, 1.3}), true),
-		g.NewVariable(mat.NewVecDense([]float64{4.5, 4.3, 0.2}), true),
-		g.NewVariable(mat.NewVecDense([]float64{2.7, 3.6, 2.1}), true),
-	}
-	vs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{1.2, 2.3, 3.4}), true),
-		g.NewVariable(mat.NewVecDense([]float64{2.2, 8.5, 0.0}), true),
-		g.NewVariable(mat.NewVecDense([]float64{2.3, 6.5, 3.5}), true),
+
+	attIn := AttentionInput{
+		Queries: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{1.1, 0.0, 2.3}), true),
+			g.NewVariable(mat.NewVecDense([]float64{2.2, -0.5, 0.3}), true),
+			g.NewVariable(mat.NewVecDense([]float64{3.2, 0.5, 0.4}), true),
+		},
+		Keys: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{0.0, 1.2, 1.3}), true),
+			g.NewVariable(mat.NewVecDense([]float64{4.5, 4.3, 0.2}), true),
+			g.NewVariable(mat.NewVecDense([]float64{2.7, 3.6, 2.1}), true),
+		},
+		Values: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{1.2, 2.3, 3.4}), true),
+			g.NewVariable(mat.NewVecDense([]float64{2.2, 8.5, 0.0}), true),
+			g.NewVariable(mat.NewVecDense([]float64{2.3, 6.5, 3.5}), true),
+		},
 	}
 
-	context, _ := ScaledDotProductAttention(g, qs, ks, vs, 1.0/math.Sqrt(3), false)
+	context, _ := ScaledDotProductAttention(g, attIn, 1.0/math.Sqrt(3), false)
 
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -144,24 +147,27 @@ func TestScaledDotProductAttention(t *testing.T) {
 //gocyclo:ignore
 func TestScaledDotProductAttention2(t *testing.T) {
 	g := ag.NewGraph()
-	qs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.22, 0.3}), true),
-		g.NewVariable(mat.NewVecDense([]float64{-0.17, 0.24}), true),
-		g.NewVariable(mat.NewVecDense([]float64{-0.15, 0.23}), true),
-	}
-	ks := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{1.66, 0.12}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.88, -0.02}), true),
-		g.NewVariable(mat.NewVecDense([]float64{-0.3, -0.46}), true),
-	}
-	vs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.83, 0.7, -0.25, -0.58}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.0, 0.2, 0.57, -2.08}), true),
-		g.NewVariable(mat.NewVecDense([]float64{-0.07, 0.0, 0.29, 0.5}), true),
+
+	attIn := AttentionInput{
+		Queries: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{0.22, 0.3}), true),
+			g.NewVariable(mat.NewVecDense([]float64{-0.17, 0.24}), true),
+			g.NewVariable(mat.NewVecDense([]float64{-0.15, 0.23}), true),
+		},
+		Keys: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{1.66, 0.12}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.88, -0.02}), true),
+			g.NewVariable(mat.NewVecDense([]float64{-0.3, -0.46}), true),
+		},
+		Values: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{0.83, 0.7, -0.25, -0.58}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.0, 0.2, 0.57, -2.08}), true),
+			g.NewVariable(mat.NewVecDense([]float64{-0.07, 0.0, 0.29, 0.5}), true),
+		},
 	}
 
 	// == Forward
-	context, probs := ScaledDotProductAttention(g, qs, ks, vs, 1.0/math.Sqrt(2), false)
+	context, probs := ScaledDotProductAttention(g, attIn, 1.0/math.Sqrt(2), false)
 
 	if len(context) != 3 {
 		t.Error("The context doesn't have the expected length")
@@ -194,59 +200,62 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	context[2].PropagateGrad(mat.NewVecDense([]float64{-0.6, -0.5, 0.2, -0.9}))
 	g.BackwardAll()
 
-	if !floats.EqualApprox(qs[0].Grad().Data(), []float64{0.291064, 0.090078}, 1.0e-6) {
-		t.Error("qs[0] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Queries[0].Grad().Data(), []float64{0.291064, 0.090078}, 1.0e-6) {
+		t.Error("attIn.Queries[0] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(qs[1].Grad().Data(), []float64{-0.214319, -0.065291}, 1.0e-6) {
-		t.Error("qs[1] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Queries[1].Grad().Data(), []float64{-0.214319, -0.065291}, 1.0e-6) {
+		t.Error("attIn.Queries[1] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(qs[2].Grad().Data(), []float64{0.084357, 0.057063}, 1.0e-6) {
-		t.Error("qs[2] doesn't match the expected values")
-	}
-
-	if !floats.EqualApprox(ks[0].Grad().Data(), []float64{0.06886, -0.025612}, 1.0e-6) {
-		t.Error("ks[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(ks[1].Grad().Data(), []float64{-0.039958, 0.089393}, 1.0e-6) {
-		t.Error("ks[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(ks[2].Grad().Data(), []float64{-0.028902, -0.063781}, 1.0e-6) {
-		t.Error("ks[2] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Queries[2].Grad().Data(), []float64{0.084357, 0.057063}, 1.0e-6) {
+		t.Error("attIn.Queries[2] doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(vs[0].Grad().Data(), []float64{-0.15834, -0.431875, -0.371149, -0.450847}, 1.0e-6) {
-		t.Error("vs[0] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Keys[0].Grad().Data(), []float64{0.06886, -0.025612}, 1.0e-6) {
+		t.Error("attIn.Keys[0] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(vs[1].Grad().Data(), []float64{-0.22708, -0.436103, -0.339456, -0.438166}, 1.0e-6) {
-		t.Error("vs[1] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Keys[1].Grad().Data(), []float64{-0.039958, 0.089393}, 1.0e-6) {
+		t.Error("attIn.Keys[1] doesn't match the expected values")
 	}
-	if !floats.EqualApprox(vs[2].Grad().Data(), []float64{-0.31458, -0.432022, -0.289395, -0.410987}, 1.0e-6) {
-		t.Error("vs[2] doesn't match the expected values")
+	if !floats.EqualApprox(attIn.Keys[2].Grad().Data(), []float64{-0.028902, -0.063781}, 1.0e-6) {
+		t.Error("attIn.Keys[2] doesn't match the expected values")
+	}
+
+	if !floats.EqualApprox(attIn.Values[0].Grad().Data(), []float64{-0.15834, -0.431875, -0.371149, -0.450847}, 1.0e-6) {
+		t.Error("attIn.Values[0] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(attIn.Values[1].Grad().Data(), []float64{-0.22708, -0.436103, -0.339456, -0.438166}, 1.0e-6) {
+		t.Error("attIn.Values[1] doesn't match the expected values")
+	}
+	if !floats.EqualApprox(attIn.Values[2].Grad().Data(), []float64{-0.31458, -0.432022, -0.289395, -0.410987}, 1.0e-6) {
+		t.Error("attIn.Values[2] doesn't match the expected values")
 	}
 }
 
 func TestLinearAttention(t *testing.T) {
 	g := ag.NewGraph()
-	qs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{1.8, 1.35, -1.89}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.08, 1.27, -1.06}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.28, 0.12, -0.67}), true),
-	}
-	ks := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.71, -0.5, -1.58}), true),
-		g.NewVariable(mat.NewVecDense([]float64{1.43, -0.16, 0.49}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.58, -0.27, -0.25}), true),
-	}
-	vs := []ag.Node{
-		g.NewVariable(mat.NewVecDense([]float64{0.88, -1.09, -0.45}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.43, -0.21, -0.75}), true),
-		g.NewVariable(mat.NewVecDense([]float64{0.84, 0.01, 0.01}), true),
+
+	attIn := AttentionInput{
+		Queries: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{1.8, 1.35, -1.89}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.08, 1.27, -1.06}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.28, 0.12, -0.67}), true),
+		},
+		Keys: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{0.71, -0.5, -1.58}), true),
+			g.NewVariable(mat.NewVecDense([]float64{1.43, -0.16, 0.49}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.58, -0.27, -0.25}), true),
+		},
+		Values: []ag.Node{
+			g.NewVariable(mat.NewVecDense([]float64{0.88, -1.09, -0.45}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.43, -0.21, -0.75}), true),
+			g.NewVariable(mat.NewVecDense([]float64{0.84, 0.01, 0.01}), true),
+		},
 	}
 
 	defaultMappingFunction := func(g *ag.Graph, x ag.Node) ag.Node {
 		return g.PositiveELU(x)
 	}
-	output := LinearAttention(g, qs, ks, vs, defaultMappingFunction, 1e-12)
+	output := LinearAttention(g, attIn, defaultMappingFunction, 1e-12)
 
 	if len(output) != 3 {
 		t.Error("The attention doesn't have the expected length")

@@ -47,8 +47,9 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Layer) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Layer) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	selfAtt := m.selfAttentionBlock(xs)
 	out := m.fullyConnectedBlock(selfAtt)
 	// TODO: limit output values if any Inf or NaN
@@ -58,13 +59,13 @@ func (m *Layer) Forward(xs ...ag.Node) []ag.Node {
 func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs...)
+		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
-	xs = m.SelfAttention.Forward(xs...) //  query=x, key=x, key_padding_mask=encoder_padding_mask
+	xs = m.SelfAttention.Forward(xs).([]ag.Node) //  query=x, key=x, key_padding_mask=encoder_padding_mask
 	// xs = m.Dropout(xs) // config.Dropout
 	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs...)
+		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
 	return xs
 }
@@ -72,12 +73,12 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs...)
+		xs = m.LayerNorm.Forward(xs).([]ag.Node)
 	}
-	xs = m.FFN.Forward(xs...)
+	xs = m.FFN.Forward(xs).([]ag.Node)
 	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs...)
+		xs = m.LayerNorm.Forward(xs).([]ag.Node)
 	}
 	return xs
 }

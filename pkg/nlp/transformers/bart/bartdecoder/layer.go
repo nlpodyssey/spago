@@ -32,6 +32,12 @@ type Layer struct {
 	LayerNorm                 *layernorm.Model
 }
 
+// LayerInput is a set of values suitable as input for the forward step of a BART Decoder Layer.
+type LayerInput struct {
+	Xs                  []ag.Node
+	EncoderHiddenStates []ag.Node
+}
+
 // NewLayer returns a new BART decoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
@@ -62,10 +68,12 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
-// Process performs the forward step for each input and returns the result.
-func (m *Layer) Process(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
-	selfAtt := m.selfAttentionBlock(xs)
-	crossAtt := m.crossAttentionBlock(selfAtt, encoderHiddenStates)
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: LayerInput.
+func (m *Layer) Forward(in interface{}) interface{} {
+	li := in.(LayerInput)
+	selfAtt := m.selfAttentionBlock(li.Xs)
+	crossAtt := m.crossAttentionBlock(selfAtt, li.EncoderHiddenStates)
 	out := m.fullyConnectedBlock(crossAtt)
 	return out
 }
@@ -73,13 +81,13 @@ func (m *Layer) Process(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
 func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs...)
+		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
-	xs = m.SelfAttention.Forward(xs...) // query=xs, key=xs, value=xs
+	xs = m.SelfAttention.Forward(xs).([]ag.Node) // query=xs, key=xs, value=xs
 	// xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs...)
+		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
 	return xs
 }
@@ -87,13 +95,17 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 func (m *Layer) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
+		xs = m.EncoderAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
-	xs = m.EncoderAttention.ForwardQKV(xs, ex, ex) // query=xs, key=ex, value=ex
-	// xs = m.Dropout(xs)
+	xs = m.EncoderAttention.Forward(nn.AttentionInput{
+		Queries: xs,
+		Keys:    ex,
+		Values:  ex,
+	}).([]ag.Node)
+	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
+		xs = m.EncoderAttentionLayerNorm.Forward(xs).([]ag.Node)
 	}
 	return xs
 }
@@ -101,12 +113,12 @@ func (m *Layer) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
 func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs...)
+		xs = m.LayerNorm.Forward(xs).([]ag.Node)
 	}
-	xs = m.FFN.Forward(xs...)
+	xs = m.FFN.Forward(xs).([]ag.Node)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs...)
+		xs = m.LayerNorm.Forward(xs).([]ag.Node)
 	}
 	return xs
 }
@@ -124,10 +136,4 @@ func (m *Layer) add(a []ag.Node, b []ag.Node) []ag.Node {
 		c[i] = m.Graph().Add(a[i], b[i])
 	}
 	return c
-}
-
-// Forward is not implemented for BART decoder Layer (it always panics).
-// You should use Process instead.
-func (m *Layer) Forward(_ ...ag.Node) []ag.Node {
-	panic("bertdecoder: Forward() not implemented; use Process() instead.")
 }

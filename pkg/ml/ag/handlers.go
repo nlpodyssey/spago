@@ -11,8 +11,8 @@ import (
 
 type forwardHandler struct {
 	g            *Graph
-	fromTimeStep int64 // default 0
-	toTimeStep   int64 // default -1 (no limit)
+	fromTimeStep int // default 0
+	toTimeStep   int // default -1 (no limit)
 }
 
 func (h *forwardHandler) runSerial() {
@@ -56,7 +56,7 @@ type backwardHandler struct {
 	g              *Graph
 	node           Node
 	outputGrad     mat.Matrix
-	stopAtTimeStep int64 // default -1 (full backward)
+	stopAtTimeStep int // default -1 (full backward)
 }
 
 func (h *backwardHandler) propagateOutputGrad() {

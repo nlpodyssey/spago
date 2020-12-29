@@ -57,8 +57,9 @@ func (m *Model) SetConcurrentComputations(value bool) {
 	m.ConcurrentComputation = value
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	if m.ConcurrentComputation && len(xs) > 1 {
 		return m.fwdConcurrent(xs)
 	}

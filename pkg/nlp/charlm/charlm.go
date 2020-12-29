@@ -108,24 +108,25 @@ func (m *Model) InitProcessor() {
 	m.UnknownEmbedding = m.Graph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
 }
 
-// Predict performs the forward step for each input and returns the result.
-func (m *Model) Predict(xs ...string) []ag.Node {
+// Forward performs the forward step for each input and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := in.([]string)
 	ys := make([]ag.Node, len(xs))
 	encoding := m.GetEmbeddings(xs)
 	for i, x := range encoding {
 		m.Graph().IncTimeStep() // essential for truncated back-propagation
-		h := m.RNN.Forward(x)[0]
-		proj := m.UseProjection(h)[0]
-		ys[i] = m.Decoder.Forward(proj)[0]
+		h := m.RNN.Forward(x).([]ag.Node)
+		proj := nn.ToNode(m.UseProjection(h))
+		ys[i] = nn.ToNode(m.Decoder.Forward(proj))
 	}
 	return ys
 }
 
 // UseProjection performs a linear projection with Processor.Projection model,
 // if available, otherwise returns xs unmodified.
-func (m *Model) UseProjection(xs ...ag.Node) []ag.Node {
+func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
 	if m.Config.OutputSize > 0 {
-		return m.Projection.Forward(xs...)
+		return m.Projection.Forward(xs).([]ag.Node)
 	}
 	return xs
 }
@@ -148,10 +149,4 @@ func (m *Model) GetEmbeddings(xs []string) []ag.Node {
 		m.UsedEmbeddings[id] = ys[i]
 	}
 	return ys
-}
-
-// Forward is not implemented for character-level language model Processor
-// (it always panics). You should use Predict instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("charlm: method not implemented. Use Predict() instead.")
 }

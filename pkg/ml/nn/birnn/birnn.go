@@ -47,23 +47,23 @@ func New(positive, negative nn.Model, merge MergeType) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
 	var pos []ag.Node
 	var neg []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		pos = m.Positive.Forward(xs...)
+		pos = m.Positive.Forward(in).([]ag.Node)
 	}()
 	go func() {
 		defer wg.Done()
-		neg = m.Negative.Forward(reversed(xs)...)
+		neg = m.Negative.Forward(reversed(nn.ToNodes(in))).([]ag.Node)
 	}()
 	wg.Wait()
 	out := make([]ag.Node, len(pos))
-	for i := 0; i < len(xs); i++ {
+	for i := range out {
 		out[i] = m.merge(pos[i], neg[len(out)-1-i])
 	}
 	return out

@@ -28,9 +28,9 @@ func (p *Encoder) GetRecursions() int {
 	return p.Recursions
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (p *Encoder) Forward(xs ...ag.Node) []ag.Node {
-	ys := p.ScalingFFN.Forward(xs...)
+// Forward performs the forward step for each input node and returns the result.
+func (p *Encoder) Forward(in interface{}) interface{} {
+	ys := p.ScalingFFN.Forward(in).([]ag.Node)
 	p.Recursions = 1
 	for len(ys) > 1 {
 		ys = p.encodingStep(ys)
@@ -48,5 +48,5 @@ func (p *Encoder) encodingStep(xs []ag.Node) []ag.Node {
 	for i := 0; i < size-1; i++ {
 		ys[i] = g.Add(g.Concat(xs[i:i+2]...), stepEncoding)
 	}
-	return p.EncodingFFN.Forward(ys...)
+	return p.EncodingFFN.Forward(ys).([]ag.Node)
 }

@@ -118,8 +118,9 @@ func newGate3(size int) *HyperLinear3 {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	steps := m.Config.Steps
 	n := len(xs)
 	h := make([][]ag.Node, steps)

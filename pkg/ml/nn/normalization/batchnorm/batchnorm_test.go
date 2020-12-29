@@ -110,7 +110,7 @@ func TestModel_Forward_Params(t *testing.T) {
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
-			y = nn.Reify(ctx, model).Forward(x...)
+			y = nn.Reify(ctx, model).Forward(x).([]ag.Node)
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -139,7 +139,7 @@ func TestModel_Inference(t *testing.T) {
 	proc := nn.Reify(ctx, model)
 	data := []float64{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense(data), false)
-	y := proc.Forward(x)
+	y := proc.Forward(x).([]ag.Node)
 	require.Equal(t, 1, len(y))
 
 	require.True(t, floats.EqualApprox(y[0].Value().Data(), []float64{1.0, 4.0, 2.0}, 1e-3))
@@ -181,7 +181,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(g, nn.Reify(ctx, model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(g, nn.Reify(ctx, model).Forward([]ag.Node{x1, x2, x3}).([]ag.Node)) // TODO: rewrite tests without activation function
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{1.1828427, 0.2, 0.0, 0.0}, 1.0e-06) {
 		t.Error("The output at position 0 doesn't match the expected values")

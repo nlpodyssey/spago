@@ -71,15 +71,11 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	return model, nil
 }
 
-// Predict performs the forward step for each input and returns the result.
-func (m *SequenceClassification) Predict(inputIds ...int) []ag.Node {
-	transformed := m.BART.Process(inputIds...)
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []int only.
+func (m *SequenceClassification) Forward(in interface{}) interface{} {
+	inputIds := in.([]int)
+	transformed := m.BART.Forward(inputIds).([]ag.Node)
 	sentenceRepresentation := transformed[len(transformed)-1]
-	return m.Classification.Forward(sentenceRepresentation)
-}
-
-// Forward is not implemented for BART SequenceClassificationProcessor (it always panics).
-// You should use Predict instead.
-func (m *SequenceClassification) Forward(_ ...ag.Node) []ag.Node {
-	panic("barthead: Forward() not implemented for SequenceClassification. Use Predict() instead.")
+	return m.Classification.Forward(sentenceRepresentation).([]ag.Node)
 }

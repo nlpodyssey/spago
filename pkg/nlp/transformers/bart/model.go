@@ -51,12 +51,17 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-// Process performs the forward step for each input and returns the result.
-func (m *Model) Process(inputIDs ...int) []ag.Node {
-	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
-	encoderOutput := m.Encoder.Forward(encoderInput...)
-	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput := m.Decoder.Decode(decoderInput, encoderOutput)
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: []int only.
+func (m *Model) Forward(in interface{}) interface{} {
+	inputIDs := in.([]int)
+	encoderInput := m.Embeddings.Forward(intToStringSlice(inputIDs))
+	encoderOutput := m.Encoder.Forward(encoderInput)
+	decoderInput := m.Embeddings.Forward(intToStringSlice(shiftR(inputIDs, 1)))
+	decoderOutput := m.Decoder.Forward(bartdecoder.ModelInput{
+		Xs:      decoderInput.([]ag.Node),
+		Encoded: encoderOutput.([]ag.Node),
+	})
 	return decoderOutput
 }
 
@@ -71,10 +76,4 @@ func intToStringSlice(a []int) []string {
 func shiftR(a []int, i int) []int {
 	x, b := a[:(len(a)-i)], a[(len(a)-i):]
 	return append(b, x...)
-}
-
-// Forward is not implemented for BART model Processor (it always panics).
-// You should use Process instead.
-func (m *Model) Forward(_ ...ag.Node) []ag.Node {
-	panic("bart: Forward() not implemented; use Process() instead.")
 }

@@ -22,7 +22,7 @@ func TestModel_SelfAttention(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]float64{0.8, -0.3, 0.5, 0.3}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]float64{-0.2, 0.7, 0.2, 0.4}), true)
 
-	output := proc.Forward(x1, x2, x3)
+	output := proc.Forward([]ag.Node{x1, x2, x3}).([]ag.Node)
 
 	if !floats.EqualApprox(output[0].Value().Data(), []float64{0.789110, -0.755551, -0.431247}, 1.0e-05) {
 		t.Error("The output doesn't match the expected values")

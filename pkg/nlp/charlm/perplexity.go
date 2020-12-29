@@ -18,7 +18,7 @@ func CalculatePerplexity(m *Model, text string) float64 {
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
 	sequence := utils.SplitByRune(text)
-	prediction := proc.Predict(sequence...)
+	prediction := proc.Forward(sequence).([]ag.Node)
 	targets := targetsIds(sequence, m.Vocabulary, m.UnknownToken)
 	loss := losses.CrossEntropySeq(g, prediction[:len(targets)], targets, true)
 	return g.Exp(loss).ScalarValue() // perplexity

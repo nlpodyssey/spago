@@ -28,7 +28,7 @@ func TestModel_LshAttention(t *testing.T) {
 	x8 := g.NewVariable(mat.NewVecDense([]float64{-0.7, 0.4, 0.3, -0.2, 0.7}), true)
 	x9 := g.NewVariable(mat.NewVecDense([]float64{-0.8, 0.7, 0.3, -0.7, 0.0}), true)
 
-	output := proc.Forward(x1, x2, x3, x4, x5, x6, x7, x8, x9)
+	output := proc.Forward([]ag.Node{x1, x2, x3, x4, x5, x6, x7, x8, x9}).([]ag.Node)
 
 	if !floats.EqualApprox(output[0].Value().Data(), []float64{-0.0996905, 0.7098312, 0.49985933, -1.1750140}, 1.0e-05) {
 		t.Error("The 1st output doesn't match the expected values")

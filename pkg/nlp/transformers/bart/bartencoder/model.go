@@ -56,16 +56,17 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
+	embedPos := m.LearnedPositionalEmbeddings.Forward(utils.MakeIndices(len(xs))).([]ag.Node)
 	ys := add(m.Graph(), xs, embedPos)
-	ys = m.EmbeddingLayerNorm.Forward(ys...)
+	ys = m.EmbeddingLayerNorm.Forward(ys).([]ag.Node)
 	// ys = m.Dropout(ys)
 
-	ys = m.Layers.Forward(ys...)
+	ys = m.Layers.Forward(ys).([]ag.Node)
 	if m.Config.FinalLayerNorm {
-		ys = m.LayerNorm.Forward(ys...)
+		ys = m.LayerNorm.Forward(ys).([]ag.Node)
 	}
 	return ys // TODO: return all hidden states?
 }

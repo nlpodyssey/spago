@@ -60,7 +60,8 @@ func New(config Config) *Model {
 }
 
 // Forward performs the forward step returns the results.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := nn.ToNodes(in)
 	h := m.copy(xs)         // `h` are the satellite nodes
 	s := m.Graph().Mean(xs) // `s` is the relay node
 
@@ -101,7 +102,7 @@ func (m *Model) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []
 			defer wg.Done()
 			context := []ag.Node{prevH[j], prevH[i], prevH[k], residual[i], prevS}
 			h[i] = m.satelliteAttention(prevH[i], context)
-			h[i] = m.SatelliteNorm.Forward(g.ReLU(h[i]))[0]
+			h[i] = nn.ToNode(m.SatelliteNorm.Forward(g.ReLU(h[i])))
 		}(i, j, k)
 	}
 	wg.Wait()
@@ -109,23 +110,27 @@ func (m *Model) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []
 }
 
 func (m *Model) satelliteAttention(query ag.Node, context []ag.Node) ag.Node {
-	q := m.Query.Forward(query)
-	ks := m.Key.Forward(context...)
-	vs := m.Value.Forward(context...)
-	return nn.LinearAttention(m.Graph(), q, ks, vs, attMappingFunc, 1e-12)[0]
+	attIn := nn.AttentionInput{
+		Queries: m.Query.Forward(query).([]ag.Node),
+		Keys:    m.Key.Forward(context).([]ag.Node),
+		Values:  m.Value.Forward(context).([]ag.Node),
+	}
+	return nn.ToNode(nn.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12))
 }
 
 func (m *Model) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
 	context := append([]ag.Node{prevS}, ht...)
 	s := m.relayAttention(prevS, context)
-	return m.RelayNorm.Forward(m.Graph().ReLU(s))[0]
+	return nn.ToNode(m.RelayNorm.Forward(m.Graph().ReLU(s)))
 }
 
 func (m *Model) relayAttention(query ag.Node, context []ag.Node) ag.Node {
-	q := m.RelayQuery.Forward(query)
-	ks := m.RelayKey.Forward(context...)
-	vs := m.RelayValue.Forward(context...)
-	return nn.LinearAttention(m.Graph(), q, ks, vs, attMappingFunc, 1e-12)[0]
+	attIn := nn.AttentionInput{
+		Queries: m.RelayQuery.Forward(query).([]ag.Node),
+		Keys:    m.RelayKey.Forward(context).([]ag.Node),
+		Values:  m.RelayValue.Forward(context).([]ag.Node),
+	}
+	return nn.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12)[0]
 }
 
 func attMappingFunc(g *ag.Graph, x ag.Node) ag.Node {

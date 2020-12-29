@@ -62,7 +62,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 
 func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob float64) {
 	lastIndex := len(xs) - 1
-	prediction := proc.Predict(xs...)[lastIndex].Value().Data() // keep the last prediction only
+	prediction := proc.Forward(xs).([]ag.Node)[lastIndex].Value().Data() // keep the last prediction only
 	index := sample(prediction, m.Temperature)
 	next = m.model.Vocabulary.MustTerm(index)
 	prob = prediction[index]
