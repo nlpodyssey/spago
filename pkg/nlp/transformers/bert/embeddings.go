@@ -58,6 +58,7 @@ func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	}
 }
 
+// InitProcessors initializes the unknown embeddings.
 func (m *Embeddings) InitProcessor() {
 	m.UnknownEmbedding = m.Graph().NewWrap(m.Words.GetStoredEmbedding(wordpiecetokenizer.DefaultUnknownToken))
 }

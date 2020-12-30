@@ -24,6 +24,7 @@ type Decoder struct {
 	State        State `spago:"scope:processor"`
 }
 
+// State contains information used during decoding recursion.
 type State struct {
 	SequenceLength int
 	MaxRecursions  int

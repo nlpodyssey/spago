@@ -55,7 +55,7 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-// Forward performs the forward step for each input node and returns the result.
+// Encode performs the forward step for each input node and returns the result.
 func (m *Model) Encode(xs []ag.Node) []ag.Node {
 	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := add(m.Graph(), xs, embedPos)

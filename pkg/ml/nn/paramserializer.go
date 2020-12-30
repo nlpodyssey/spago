@@ -18,6 +18,8 @@ type ParamSerializer struct {
 	*param
 }
 
+// NewParamSerializer returns a new ParamSerializer.
+// It returns an error if the Param doesn't support serialization.
 func NewParamSerializer(p Param) (*ParamSerializer, error) {
 	switch p := p.(type) {
 	case *param:

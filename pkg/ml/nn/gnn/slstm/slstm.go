@@ -66,6 +66,7 @@ type HyperLinear3 struct {
 	B nn.Param `spago:"type:biases"`
 }
 
+// Support contains nodes used during the forward step.
 type Support struct {
 	// Shared among all steps
 	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node
