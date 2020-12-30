@@ -39,6 +39,7 @@ func New(scale float64) *Model {
 	}
 }
 
+// InitProcessor initializes constants needed by the Forward().
 func (m *Model) InitProcessor() {
 	g := m.Graph()
 	m.consts = consts{

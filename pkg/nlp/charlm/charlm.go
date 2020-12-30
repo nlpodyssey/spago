@@ -103,6 +103,7 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 	})
 }
 
+// InitProcessor initializes embeddings needed by the Forward().
 func (m *Model) InitProcessor() {
 	m.UsedEmbeddings = make(map[int]ag.Node)
 	m.UnknownEmbedding = m.Graph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])

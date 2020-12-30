@@ -70,7 +70,7 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	return model, nil
 }
 
-// Forward performs the forward step for each input and returns the result.
+// Classify performs the classification using the last transformed state.
 func (m *SequenceClassification) Classify(in interface{}) ag.Node {
 	inputIds := in.([]int)
 	transformed := m.BART.Encode(inputIds)

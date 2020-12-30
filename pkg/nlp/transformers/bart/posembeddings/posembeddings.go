@@ -43,8 +43,7 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []int only.
+// Encode performs the forward step for each input and returns the result.
 func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
 	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))

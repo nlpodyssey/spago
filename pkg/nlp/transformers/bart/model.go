@@ -50,8 +50,7 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []int only.
+// Encode performs the forward step for each input and returns the result.
 func (m *Model) Encode(inputIDs []int) []ag.Node {
 	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
 	encoderOutput := m.Encoder.Encode(encoderInput)

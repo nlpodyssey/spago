@@ -26,6 +26,7 @@ type Model struct {
 	CRF    *crf.Model
 }
 
+// New returns a new model with parameters initialized to zeros.
 func New(biRNN *birnn.Model, scorer *linear.Model, crf *crf.Model) *Model {
 	return &Model{
 		BiRNN:  biRNN,

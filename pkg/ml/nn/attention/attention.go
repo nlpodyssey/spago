@@ -19,6 +19,7 @@ type QKV struct {
 	Values  []ag.Node
 }
 
+// ToQKV create a new QKV struct with queries = keys = values = xs.
 func ToQKV(xs []ag.Node) QKV {
 	return QKV{
 		Queries: xs,
