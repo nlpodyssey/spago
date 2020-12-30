@@ -21,17 +21,14 @@ type Model struct {
 // New returns a new model.
 // TODO: think about possible configurations
 func New() *Model {
-	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-	}
+	return &Model{}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	vectorized := func(x ag.Node) ag.Node {
 		return g.Vec(x)
 	}
-	xs := nn.ToNodes(in)
 	return []ag.Node{g.Concat(ag.Map(vectorized, xs)...)}
 }

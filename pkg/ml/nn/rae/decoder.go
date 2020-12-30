@@ -17,9 +17,9 @@ var (
 // Decoder contains the serializable parameters.
 type Decoder struct {
 	nn.BaseModel
-	DecodingFNN1 nn.Model // decoding part 1
-	DecodingFFN2 nn.Model // decoding part 2
-	DescalingFFN nn.Model
+	DecodingFNN1 nn.StandardModel // decoding part 1
+	DecodingFFN2 nn.StandardModel // decoding part 2
+	DescalingFFN nn.StandardModel
 	StepEncoder  *pe.PositionalEncoder
 	State        State `spago:"scope:processor"`
 }
@@ -42,8 +42,7 @@ func (p *Decoder) SetSequenceLength(length int) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (p *Decoder) Forward(in interface{}) interface{} {
-	x := nn.ToNode(in)
+func (p *Decoder) Forward(x ag.Node) []ag.Node {
 	// TODO: check the following commented code
 	//if p.State.SequenceLength == 0 {
 	//	log.Fatal("rae: sequence length must be > 0. Use p.SetSequenceLength().")
@@ -56,15 +55,15 @@ func (p *Decoder) Forward(in interface{}) interface{} {
 		ys = p.decodingStep(ys)
 		p.State.Recursions--
 	}
-	return p.DescalingFFN.Forward(ys)
+	return p.DescalingFFN.Forward(ys...)
 }
 
 func (p *Decoder) decodingStep(xs []ag.Node) []ag.Node {
-	return p.DecodingFFN2.Forward(p.decodingPart1(xs)).([]ag.Node)
+	return p.DecodingFFN2.Forward(p.decodingPart1(xs)...)
 }
 
 func (p *Decoder) decodingPart1(xs []ag.Node) []ag.Node {
-	decoding := p.splitVectors(p.DecodingFNN1.Forward(p.addStepEncoding(xs)).([]ag.Node))
+	decoding := p.splitVectors(p.DecodingFNN1.Forward(p.addStepEncoding(xs)...))
 	ys := []ag.Node{decoding[0].y0, decoding[0].y1}
 	for i := 1; i < len(xs); i++ {
 		ys[i-1] = mean(p.Graph(), ys[i-1], decoding[i].y0)

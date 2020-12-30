@@ -16,7 +16,7 @@ func TestModelReLU_Forward(t *testing.T) {
 	g := ag.NewGraph()
 	m := New(ag.OpReLU)
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	p := nn.Reify(ctx, m)
+	p := nn.Reify(ctx, m).(*Model)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
@@ -40,10 +40,11 @@ func TestModelSwish_Forward(t *testing.T) {
 
 	beta := nn.NewParam(mat.NewScalar(2.0))
 	model := New(ag.OpSwish, beta)
+	p := nn.Reify(ctx, model).(*Model)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
-	y := nn.ToNode(nn.Reify(ctx, model).Forward(x))
+	y := nn.ToNode(p.Forward(x))
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{0.0549833997, -0.080262468, 0.1936968919, 0.0}, 1.0e-6) {
 		t.Error("The output doesn't match the expected values")

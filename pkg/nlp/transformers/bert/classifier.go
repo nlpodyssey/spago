@@ -5,7 +5,6 @@
 package bert
 
 import (
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 )
@@ -32,9 +31,4 @@ func NewTokenClassifier(config ClassifierConfig) *Classifier {
 		Config: config,
 		Model:  linear.New(config.InputSize, len(config.Labels)),
 	}
-}
-
-// Predict returns the logits.
-func (m *Classifier) Predict(xs []ag.Node) []ag.Node {
-	return m.Forward(xs).([]ag.Node)
 }

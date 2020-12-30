@@ -32,15 +32,14 @@ var (
 // Model contains the serializable parameters.
 type Model struct {
 	nn.BaseModel
-	Positive  nn.Model // positive time direction a.k.a. left-to-right
-	Negative  nn.Model // negative time direction a.k.a. right-to-left
+	Positive  nn.StandardModel // positive time direction a.k.a. left-to-right
+	Negative  nn.StandardModel // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(positive, negative nn.Model, merge MergeType) *Model {
+func New(positive, negative nn.StandardModel, merge MergeType) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
 		Positive:  positive,
 		Negative:  negative,
 		MergeMode: merge,
@@ -48,18 +47,18 @@ func New(positive, negative nn.Model, merge MergeType) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	var pos []ag.Node
 	var neg []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		pos = m.Positive.Forward(in).([]ag.Node)
+		pos = m.Positive.Forward(xs...)
 	}()
 	go func() {
 		defer wg.Done()
-		neg = m.Negative.Forward(reversed(nn.ToNodes(in))).([]ag.Node)
+		neg = m.Negative.Forward(reversed(xs)...)
 	}()
 	wg.Wait()
 	out := make([]ag.Node, len(pos))

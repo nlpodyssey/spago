@@ -11,8 +11,6 @@ import "github.com/nlpodyssey/spago/pkg/ml/ag"
 type BaseModel struct {
 	// Context
 	Ctx Context
-	// RCS is an abbreviation for Requires Complete Sequence
-	RCS bool
 }
 
 // Mode returns whether the (reified) model is being used for training or inference.
@@ -27,12 +25,6 @@ func (m *BaseModel) Graph() *ag.Graph {
 		panic("nn: attempting to access Graph on a not reified model. Hint: use nn.Reify(ctx, model).")
 	}
 	return m.Ctx.Graph
-}
-
-// RequiresCompleteSequence returns whether the model operates on complete sequences
-// (as in the case of CNN, BiRNN and other bidirectional models).
-func (m *BaseModel) RequiresCompleteSequence() bool {
-	return m.RCS
 }
 
 // IsProcessor returns whether the model has been reified (i.e., contextualized to operate

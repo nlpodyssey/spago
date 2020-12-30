@@ -52,10 +52,9 @@ func New(config Config) *Model {
 		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1), nn.RequiresGrad(requireGrad))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
-		K:         kernels,
-		B:         biases,
+		Config: config,
+		K:      kernels,
+		B:      biases,
 	}
 }
 
@@ -66,8 +65,7 @@ func (m *Model) SetConcurrentComputations(value bool) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.Concurrent && m.Config.OutputChannels > 1 {
 		return m.fwdConcurrent(xs)
 	}

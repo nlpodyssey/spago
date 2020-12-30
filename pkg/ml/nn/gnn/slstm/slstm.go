@@ -83,7 +83,6 @@ type Support struct {
 func New(config Config) *Model {
 	in, out := config.InputSize, config.OutputSize
 	return &Model{
-		BaseModel:              nn.BaseModel{RCS: true},
 		Config:                 config,
 		InputGate:              newGate4(in, out),
 		LeftCellGate:           newGate4(in, out),
@@ -119,8 +118,7 @@ func newGate3(size int) *HyperLinear3 {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	steps := m.Config.Steps
 	n := len(xs)
 	h := make([][]ag.Node, steps)

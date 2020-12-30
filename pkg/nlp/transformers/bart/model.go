@@ -33,8 +33,7 @@ type Model struct {
 // New returns a new BART Model.
 func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
+		Config: config,
 		Embeddings: embeddings.New(embeddings.Config{
 			Size:       config.DModel,
 			DBPath:     embeddingsStoragePath,
@@ -53,15 +52,11 @@ func (m *Model) Close() {
 
 // Forward performs the forward step for each input and returns the result.
 // Valid input type: []int only.
-func (m *Model) Forward(in interface{}) interface{} {
-	inputIDs := in.([]int)
-	encoderInput := m.Embeddings.Forward(intToStringSlice(inputIDs))
-	encoderOutput := m.Encoder.Forward(encoderInput)
-	decoderInput := m.Embeddings.Forward(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput := m.Decoder.Forward(bartdecoder.ModelInput{
-		Xs:      decoderInput.([]ag.Node),
-		Encoded: encoderOutput.([]ag.Node),
-	})
+func (m *Model) Encode(inputIDs []int) []ag.Node {
+	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
+	encoderOutput := m.Encoder.Encode(encoderInput)
+	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
+	decoderOutput := m.Decoder.Decode(decoderInput, encoderOutput)
 	return decoderOutput
 }
 

@@ -16,8 +16,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
@@ -46,9 +46,8 @@ type Encoder struct {
 func NewBertEncoder(config EncoderConfig) *Encoder {
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(i int) nn.Model {
+		Model: stack.Make(config.NumOfLayers, func(i int) nn.StandardModel {
 			return &EncoderLayer{
-				BaseModel: nn.BaseModel{RCS: true},
 				MultiHeadAttention: multiheadattention.New(
 					config.Size,
 					config.NumOfAttentionHeads,
@@ -86,7 +85,7 @@ func NewAlbertEncoder(config EncoderConfig) *Encoder {
 	}
 	return &Encoder{
 		EncoderConfig: config,
-		Model: stack.Make(config.NumOfLayers, func(_ int) nn.Model {
+		Model: stack.Make(config.NumOfLayers, func(_ int) nn.StandardModel {
 			return sharedLayer
 		}),
 	}

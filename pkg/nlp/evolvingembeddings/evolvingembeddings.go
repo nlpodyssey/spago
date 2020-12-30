@@ -61,8 +61,7 @@ type Config struct {
 // New returns a new embedding Model.
 func New(config Config) *Model {
 	m := &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-		Config:    config,
+		Config: config,
 		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,
 			ReadOnly: false,
@@ -173,12 +172,6 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 		log.Fatal(err)
 	}
 	return embedding
-}
-
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []string only.
-func (m *Model) Forward(in interface{}) interface{} {
-	return m.Encode(in.([]string))
 }
 
 // Encode returns the embeddings associated with the input words.

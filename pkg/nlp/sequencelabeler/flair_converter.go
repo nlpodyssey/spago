@@ -13,7 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
 	"github.com/nlpodyssey/spago/pkg/nlp/contextualstringembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"

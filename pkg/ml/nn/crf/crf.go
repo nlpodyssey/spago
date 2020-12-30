@@ -25,19 +25,18 @@ type Model struct {
 // New returns a new convolution Model, initialized according to the given configuration.
 func New(size int) *Model {
 	return &Model{
-		BaseModel:        nn.BaseModel{RCS: true},
 		Size:             size,
 		TransitionScores: nn.NewParam(mat.NewEmptyDense(size+1, size+1)), // +1 for start and end transitions
 	}
 }
 
+// InitProcessor initializes structures and data useful for the decoding.
 func (m *Model) InitProcessor() {
 	m.Scores = nn.Separate(m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 
-// Forward is not available for the CRF. Use Predict() instead.
-func (m *Model) Forward(in interface{}) interface{} {
-	emissionScores := nn.ToNodes(in)
+// Decode performs viterbi decoding.
+func (m *Model) Decode(emissionScores []ag.Node) []int {
 	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
 

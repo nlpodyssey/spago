@@ -7,7 +7,8 @@ package bert
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
@@ -27,16 +28,17 @@ type EncoderLayer struct {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *EncoderLayer) Forward(in interface{}) interface{} {
-	subLayer1 := m.postNorm(m.MultiHeadAttention, m.NormAttention, nn.ToNodes(in))
-	subLayer2 := m.postNorm(m.FFN, m.NormFFN, subLayer1)
-	return subLayer2
+func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
+	return m.fullyConnectedBlock(m.selfAttentionBlock(xs))
 }
 
-// PostNorm performs post-norm residual connections:
-//    y = Norm(x + F(x))
-func (m *EncoderLayer) postNorm(f nn.Model, norm nn.Model, xs []ag.Node) []ag.Node {
-	return norm.Forward(m.add(xs, f.Forward(xs).([]ag.Node))).([]ag.Node)
+func (m *EncoderLayer) selfAttentionBlock(xs []ag.Node) []ag.Node {
+	selfAtt := m.MultiHeadAttention.Forward(attention.ToQKV(xs))
+	return m.NormAttention.Forward(m.add(xs, selfAtt)...)
+}
+
+func (m *EncoderLayer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
+	return m.NormFFN.Forward(m.add(xs, m.FFN.Forward(xs...))...)
 }
 
 func (m *EncoderLayer) add(a, b []ag.Node) []ag.Node {

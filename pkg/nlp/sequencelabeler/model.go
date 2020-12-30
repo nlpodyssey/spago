@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/crf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
 	"github.com/nlpodyssey/spago/pkg/nlp/contextualstringembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
@@ -78,10 +78,8 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
+		Config: config,
 		EmbeddingsLayer: &stackedembeddings.Model{
-			BaseModel: nn.BaseModel{RCS: true},
 			WordsEncoders: append(
 				wordLevelEmbeddings,
 				contextualstringembeddings.New(
@@ -158,8 +156,7 @@ func (m *Model) Forward(in interface{}) interface{} {
 	tokens := in.([]tokenizers.StringOffsetsPair)
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
-	emissionScores := m.TaggerLayer.Forward(encodings).([]ag.Node)
-	prediction := m.TaggerLayer.Predict(emissionScores)
+	prediction := m.TaggerLayer.Predict(encodings)
 	result := make([]TokenLabel, len(tokens))
 	for i, labelIndex := range prediction {
 		result[i] = TokenLabel{

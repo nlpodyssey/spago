@@ -29,12 +29,11 @@ const defaultMomentum = 0.9
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum float64) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		W:         nn.NewParam(mat.NewInitVecDense(size, 1.0)),
-		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
-		Mean:      nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		StdDev:    nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		Momentum:  nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
+		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
+		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
+		Mean:     nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		StdDev:   nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
+		Momentum: nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
 	}
 }
 
@@ -44,8 +43,7 @@ func New(size int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.Mode() == nn.Training {
 		return m.forwardTraining(xs)
 	}

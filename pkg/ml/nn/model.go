@@ -45,15 +45,21 @@ type Model interface {
 	// InitProcessor is used to initialize structures and data useful for the Forward().
 	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
 	InitProcessor()
-	// Forward performs the operations on the computational graphs using the model's parameters.
-	// It executes the forward step for each input and returns the result.
-	// Recurrent networks treats the input nodes as a sequence.
-	// Differently, feed-forward networks are stateless so every computation is independent.
-	// It panics if invoked by a not reified model.
-	Forward(in interface{}) interface{}
-	// RequiresCompleteSequence returns whether the model operates on complete sequences
-	// (as in the case of CNN, BiRNN and other bidirectional models).
-	RequiresCompleteSequence() bool
+}
+
+// StandardForwarder consists of a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
+// It is called StandardForwarder since this is the most frequent forward method among all implemented neural models.
+type StandardForwarder interface {
+	// Forward executes the forward step for each input and returns the result.
+	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward
+	// networks are stateless so every computation is independent and possibly concurrent.
+	Forward(xs ...ag.Node) []ag.Node
+}
+
+// StandardModel consists of a model that implements StandardForwarder.
+type StandardModel interface {
+	Model
+	StandardForwarder
 }
 
 // Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.

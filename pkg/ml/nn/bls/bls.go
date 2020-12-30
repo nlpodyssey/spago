@@ -64,20 +64,18 @@ func New(c Config) *Model {
 		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
 	}
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-		Config:    c,
-		Wz:        wz,
-		Bz:        bz,
-		Wh:        nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		Bh:        nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		W:         nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
-		B:         nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
+		Config: c,
+		Wz:     wz,
+		Bz:     bz,
+		Wh:     nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		Bh:     nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		W:      nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
+		B:      nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)

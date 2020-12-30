@@ -13,7 +13,6 @@ package rae
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
-	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
@@ -27,7 +26,6 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 	scalingHidden := embeddingSize - ((embeddingSize - inputSize) / 2)
 
 	return &Encoder{
-		BaseModel: nn.BaseModel{RCS: true},
 		ScalingFFN: stack.New(
 			linear.New(inputSize, scalingHidden),
 			activation.New(ag.OpMish),
@@ -50,7 +48,6 @@ func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decode
 	descalingHidden := embeddingSize - ((embeddingSize - outputSize) / 2)
 
 	return &Decoder{
-		BaseModel: nn.BaseModel{RCS: true},
 		DecodingFNN1: stack.New(
 			linear.New(embeddingSize, hiddenSize),
 			layernorm.New(hiddenSize),

@@ -38,8 +38,7 @@ func New(config bartconfig.Config) *Model {
 	}
 
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
+		Config: config,
 		LearnedPositionalEmbeddings: posembeddings.NewLearnedPositionalEmbeddings(
 			posembeddings.Config{
 				NumEmbeddings: config.VocabSize,
@@ -48,7 +47,7 @@ func New(config bartconfig.Config) *Model {
 				Offset:        config.ExtraPosEmbedding,
 			}),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.Model {
+		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel {
 			return NewLayer(config)
 			// add LayerDrop to skip layers during training? (see https://arxiv.org/abs/1909.11556 for description)
 		}),
@@ -57,16 +56,15 @@ func New(config bartconfig.Config) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
-	embedPos := m.LearnedPositionalEmbeddings.Forward(utils.MakeIndices(len(xs))).([]ag.Node)
+func (m *Model) Encode(xs []ag.Node) []ag.Node {
+	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
 	ys := add(m.Graph(), xs, embedPos)
-	ys = m.EmbeddingLayerNorm.Forward(ys).([]ag.Node)
-	// ys = m.Dropout(ys)
+	ys = m.EmbeddingLayerNorm.Forward(ys...)
+	// TODO: ys = m.Dropout(ys)
 
-	ys = m.Layers.Forward(ys).([]ag.Node)
+	ys = m.Layers.Forward(ys...)
 	if m.Config.FinalLayerNorm {
-		ys = m.LayerNorm.Forward(ys).([]ag.Node)
+		ys = m.LayerNorm.Forward(ys...)
 	}
 	return ys // TODO: return all hidden states?
 }

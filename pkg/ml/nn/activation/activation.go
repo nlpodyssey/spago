@@ -24,17 +24,16 @@ type Model struct {
 // TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
 func New(activation ag.OpName, params ...nn.Param) *Model {
 	return &Model{
-		BaseModel:  nn.BaseModel{RCS: false},
 		Activation: activation,
 		Params:     params,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	activation := m.Activation
 	transformed := func(x ag.Node) ag.Node {
 		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).Nodes()...)...)
 	}
-	return ag.Map(transformed, nn.ToNodes(in))
+	return ag.Map(transformed, xs)
 }

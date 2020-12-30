@@ -38,16 +38,14 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}
 	return &LearnedPositionalEmbeddings{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
-		Vectors:   vectors,
+		Config:  config,
+		Vectors: vectors,
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
 // Valid input type: []int only.
-func (m *LearnedPositionalEmbeddings) Forward(in interface{}) interface{} {
-	positions := in.([]int)
+func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
 	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {

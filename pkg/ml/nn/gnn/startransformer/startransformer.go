@@ -11,6 +11,7 @@ package startransformer
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"sync"
@@ -46,7 +47,6 @@ type Config struct {
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
 	return &Model{
-		BaseModel:     nn.BaseModel{RCS: true},
 		Config:        config,
 		Query:         linear.New(config.InputSize, config.QuerySize),
 		Key:           linear.New(config.InputSize, config.KeySize),
@@ -60,8 +60,7 @@ func New(config Config) *Model {
 }
 
 // Forward performs the forward step returns the results.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	h := m.copy(xs)         // `h` are the satellite nodes
 	s := m.Graph().Mean(xs) // `s` is the relay node
 
@@ -110,12 +109,12 @@ func (m *Model) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []
 }
 
 func (m *Model) satelliteAttention(query ag.Node, context []ag.Node) ag.Node {
-	attIn := nn.AttentionInput{
-		Queries: m.Query.Forward(query).([]ag.Node),
-		Keys:    m.Key.Forward(context).([]ag.Node),
-		Values:  m.Value.Forward(context).([]ag.Node),
+	attIn := attention.QKV{
+		Queries: m.Query.Forward(query),
+		Keys:    m.Key.Forward(context...),
+		Values:  m.Value.Forward(context...),
 	}
-	return nn.ToNode(nn.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12))
+	return nn.ToNode(attention.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12))
 }
 
 func (m *Model) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
@@ -125,12 +124,12 @@ func (m *Model) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
 }
 
 func (m *Model) relayAttention(query ag.Node, context []ag.Node) ag.Node {
-	attIn := nn.AttentionInput{
-		Queries: m.RelayQuery.Forward(query).([]ag.Node),
-		Keys:    m.RelayKey.Forward(context).([]ag.Node),
-		Values:  m.RelayValue.Forward(context).([]ag.Node),
+	attIn := attention.QKV{
+		Queries: m.RelayQuery.Forward(query),
+		Keys:    m.RelayKey.Forward(context...),
+		Values:  m.RelayValue.Forward(context...),
 	}
-	return nn.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12)[0]
+	return attention.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12)[0]
 }
 
 func attMappingFunc(g *ag.Graph, x ag.Node) ag.Node {

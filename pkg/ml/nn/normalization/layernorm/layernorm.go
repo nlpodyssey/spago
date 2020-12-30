@@ -28,16 +28,14 @@ type Model struct {
 // New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-		W:         nn.NewParam(mat.NewEmptyVecDense(size)),
-		B:         nn.NewParam(mat.NewEmptyVecDense(size)),
+		W: nn.NewParam(mat.NewEmptyVecDense(size)),
+		B: nn.NewParam(mat.NewEmptyVecDense(size)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	eps := g.Constant(1e-12) // avoid underflow errors
 	ys := make([]ag.Node, len(xs))

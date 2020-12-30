@@ -24,19 +24,11 @@ type Model struct {
 
 // New returns a new model.
 func New() *Model {
-	return &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-	}
-}
-
-// Processor implements the nn.Processor interface for a simple layer normalization Model.
-type Processor struct {
-	nn.BaseModel
+	return &Model{}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	ys := make([]ag.Node, len(xs))
 	eps := g.NewScalar(1e-10)

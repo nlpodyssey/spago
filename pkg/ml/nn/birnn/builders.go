@@ -5,12 +5,12 @@
 package birnn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/cfn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/gru"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ltm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/mist"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ran"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/cfn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/gru"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/ltm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/mist"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/ran"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 

@@ -80,7 +80,6 @@ type Model struct {
 // NewDefaultBERT returns a new model based on the original BERT architecture.
 func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	return &Model{
-		BaseModel:  nn.BaseModel{RCS: true},
 		Config:     config,
 		Vocabulary: nil,
 		Embeddings: NewEmbeddings(EmbeddingsConfig{
@@ -176,8 +175,8 @@ func LoadModel(modelPath string) (*Model, error) {
 
 // Encode transforms a string sequence into an encoded representation.
 func (m *Model) Encode(tokens []string) []ag.Node {
-	tokensEncoding := m.Embeddings.Forward(tokens)
-	return m.Encoder.Forward(tokensEncoding).([]ag.Node)
+	tokensEncoding := m.Embeddings.Encode(tokens)
+	return m.Encoder.Forward(tokensEncoding...)
 }
 
 // PredictMasked performs a masked prediction task. It returns the predictions
@@ -205,13 +204,13 @@ func (m *Model) PredictSeqRelationship(pooled ag.Node) ag.Node {
 
 // TokenClassification performs a classification for each element in the sequence.
 func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
-	return m.Classifier.Predict(transformed)
+	return m.Classifier.Forward(transformed...)
 }
 
 // SequenceClassification performs a single sentence-level classification,
 // using the pooled CLS token.
 func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
-	return nn.ToNode(m.Classifier.Predict(m.Pooler.Forward(transformed[0]).([]ag.Node)))
+	return nn.ToNode(m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
 }
 
 // Forward is not implemented for BERT model Processor (it always panics).

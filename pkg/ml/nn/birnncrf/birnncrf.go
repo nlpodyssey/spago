@@ -28,21 +28,25 @@ type Model struct {
 
 func New(biRNN *birnn.Model, scorer *linear.Model, crf *crf.Model) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: true},
-		BiRNN:     biRNN,
-		Scorer:    scorer,
-		CRF:       crf,
+		BiRNN:  biRNN,
+		Scorer: scorer,
+		CRF:    crf,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	return m.Scorer.Forward(m.BiRNN.Forward(in))
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	return m.Scorer.Forward(m.BiRNN.Forward(xs...)...)
 }
 
-// Predict performs the forward step for each input and returns the result.
-func (m *Model) Predict(emissionScores []ag.Node) []int {
-	return m.CRF.Forward(emissionScores).([]int)
+// Decode performs the viterbi decoding.
+func (m *Model) Decode(emissionScores []ag.Node) []int {
+	return m.CRF.Decode(emissionScores)
+}
+
+// Predict performs Decode(Forward(xs)).
+func (m *Model) Predict(xs []ag.Node) []int {
+	return m.Decode(m.Forward(xs...))
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.

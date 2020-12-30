@@ -21,7 +21,7 @@ func (s *ServerForSequenceClassification) classify(text string, text2 string) *C
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
-	logits := nn.ToNode(proc.Forward(inputIds))
+	logits := proc.Classify(inputIds)
 	g.Forward()
 
 	probs := f64utils.SoftMax(g.GetCopiedValue(logits).Data())

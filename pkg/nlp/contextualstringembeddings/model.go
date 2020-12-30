@@ -48,7 +48,6 @@ type Model struct {
 // New returns a new Contextual String Embeddings Model.
 func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
-		BaseModel:   nn.BaseModel{RCS: true},
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
 		MergeMode:   merge,
@@ -62,12 +61,6 @@ type wordBoundary struct {
 	endIndex int
 	// index of the end of a word in the right-to-left sequence
 	reverseEndIndex int
-}
-
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []string only.
-func (m *Model) Forward(in interface{}) interface{} {
-	return m.Encode(in.([]string))
 }
 
 // Encode performs the forward step for each input and returns the result.
@@ -133,7 +126,7 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 }
 
 func process(proc *charlm.Model, sequence []string) []ag.Node {
-	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)).([]ag.Node))
+	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...))
 }
 
 func (m *Model) merge(a, b ag.Node) ag.Node {

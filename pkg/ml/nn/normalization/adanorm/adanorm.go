@@ -35,8 +35,7 @@ type consts struct {
 // New returns a new model.
 func New(scale float64) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-		Scale:     scale,
+		Scale: scale,
 	}
 }
 
@@ -51,8 +50,7 @@ func (m *Model) InitProcessor() {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)

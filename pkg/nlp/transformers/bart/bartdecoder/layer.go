@@ -8,8 +8,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
@@ -32,17 +33,10 @@ type Layer struct {
 	LayerNorm                 *layernorm.Model
 }
 
-// LayerInput is a set of values suitable as input for the forward step of a BART Decoder Layer.
-type LayerInput struct {
-	Xs                  []ag.Node
-	EncoderHiddenStates []ag.Node
-}
-
 // NewLayer returns a new BART decoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
-		BaseModel: nn.BaseModel{RCS: true},
-		Config:    config,
+		Config: config,
 		SelfAttention: multiheadattention.New(
 			config.DModel,
 			config.DecoderAttentionHeads,
@@ -70,10 +64,9 @@ func NewLayer(config bartconfig.Config) *Layer {
 
 // Forward performs the forward step for each input and returns the result.
 // Valid input type: LayerInput.
-func (m *Layer) Forward(in interface{}) interface{} {
-	li := in.(LayerInput)
-	selfAtt := m.selfAttentionBlock(li.Xs)
-	crossAtt := m.crossAttentionBlock(selfAtt, li.EncoderHiddenStates)
+func (m *Layer) Forward(xs, encoderHiddenStates []ag.Node) []ag.Node {
+	selfAtt := m.selfAttentionBlock(xs)
+	crossAtt := m.crossAttentionBlock(selfAtt, encoderHiddenStates)
 	out := m.fullyConnectedBlock(crossAtt)
 	return out
 }
@@ -81,31 +74,31 @@ func (m *Layer) Forward(in interface{}) interface{} {
 func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.SelfAttention.Forward(xs).([]ag.Node) // query=xs, key=xs, value=xs
-	// xs = m.Dropout(xs)
+	xs = m.SelfAttention.Forward(attention.ToQKV(xs))
+	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
 
-func (m *Layer) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
+func (m *Layer) crossAttentionBlock(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.EncoderAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.EncoderAttention.Forward(nn.AttentionInput{
+	xs = m.EncoderAttention.Forward(attention.QKV{
 		Queries: xs,
-		Keys:    ex,
-		Values:  ex,
-	}).([]ag.Node)
+		Keys:    encoderHiddenStates,
+		Values:  encoderHiddenStates,
+	})
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.EncoderAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
@@ -113,12 +106,12 @@ func (m *Layer) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
 func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs).([]ag.Node)
+		xs = m.LayerNorm.Forward(xs...)
 	}
-	xs = m.FFN.Forward(xs).([]ag.Node)
+	xs = m.FFN.Forward(xs...)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs).([]ag.Node)
+		xs = m.LayerNorm.Forward(xs...)
 	}
 	return xs
 }

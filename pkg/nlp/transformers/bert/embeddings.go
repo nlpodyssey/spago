@@ -44,7 +44,6 @@ type Embeddings struct {
 // NewEmbeddings returns a new BERT Embeddings model.
 func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	return &Embeddings{
-		BaseModel:        nn.BaseModel{RCS: false},
 		EmbeddingsConfig: config,
 		Words: embeddings.New(embeddings.Config{
 			Size:       config.Size,
@@ -86,12 +85,6 @@ func newProjector(in, out int) *linear.Model {
 	return linear.New(in, out)
 }
 
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []string only.
-func (m *Embeddings) Forward(in interface{}) interface{} {
-	return m.Encode(in.([]string))
-}
-
 // Encode transforms a string sequence into an encoded representation.
 func (m *Embeddings) Encode(words []string) []ag.Node {
 	encoded := make([]ag.Node, len(words))
@@ -105,7 +98,7 @@ func (m *Embeddings) Encode(words []string) []ag.Node {
 			sequenceIndex++
 		}
 	}
-	return m.useProjection(m.Norm.Forward(encoded).([]ag.Node))
+	return m.useProjection(m.Norm.Forward(encoded...))
 }
 
 func (m *Embeddings) getWordEmbeddings(words []string) []ag.Node {
@@ -125,5 +118,5 @@ func (m *Embeddings) useProjection(xs []ag.Node) []ag.Node {
 	if m.Projector == nil {
 		return xs
 	}
-	return m.Projector.Forward(xs).([]ag.Node)
+	return m.Projector.Forward(xs...)
 }

@@ -8,8 +8,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
@@ -32,7 +33,6 @@ type Layer struct {
 // NewLayer returns a new BART encoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
-		BaseModel:              nn.BaseModel{RCS: true},
 		Config:                 config,
 		SelfAttention:          multiheadattention.New(config.DModel, config.EncoderAttentionHeads, false), // TODO: config.AttentionDropout
 		SelfAttentionLayerNorm: layernorm.New(config.DModel),
@@ -48,8 +48,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Layer) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Layer) Forward(xs ...ag.Node) []ag.Node {
 	selfAtt := m.selfAttentionBlock(xs)
 	out := m.fullyConnectedBlock(selfAtt)
 	// TODO: limit output values if any Inf or NaN
@@ -59,13 +58,13 @@ func (m *Layer) Forward(in interface{}) interface{} {
 func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.SelfAttention.Forward(xs).([]ag.Node) //  query=x, key=x, key_padding_mask=encoder_padding_mask
-	// xs = m.Dropout(xs) // config.Dropout
+	xs = m.SelfAttention.Forward(attention.ToQKV(xs)) // TODO: key_padding_mask
+	// TODO: xs = m.Dropout(xs) // config.Dropout
 	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.SelfAttentionLayerNorm.Forward(xs).([]ag.Node)
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
@@ -73,12 +72,12 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs).([]ag.Node)
+		xs = m.LayerNorm.Forward(xs...)
 	}
-	xs = m.FFN.Forward(xs).([]ag.Node)
+	xs = m.FFN.Forward(xs...)
 	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
-		xs = m.LayerNorm.Forward(xs).([]ag.Node)
+		xs = m.LayerNorm.Forward(xs...)
 	}
 	return xs
 }

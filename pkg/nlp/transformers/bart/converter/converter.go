@@ -220,7 +220,7 @@ func mapBartEncoder(model *bartencoder.Model) map[string]mat.Matrix {
 func mapBartDecoder(model *bartdecoder.Model) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.Config.DecoderLayers; i++ {
-		layer := model.Layers.Layers[i].(*bartdecoder.Layer)
+		layer := model.Layers[i]
 		prefixBase := fmt.Sprintf("model.decoder.layers.%d", i)
 		// Self Attention
 		for j := 0; j < model.Config.DecoderAttentionHeads; j++ {

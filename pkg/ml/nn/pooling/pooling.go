@@ -23,16 +23,14 @@ type MaxPooling struct {
 // NewMax returns a new model.
 func NewMax(rows, columns int) *MaxPooling {
 	return &MaxPooling{
-		BaseModel: nn.BaseModel{RCS: false},
-		Rows:      rows,
-		Columns:   columns,
+		Rows:    rows,
+		Columns: columns,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // The max pooling is applied independently to each input.
-func (m *MaxPooling) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *MaxPooling) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	pooled := func(x ag.Node) ag.Node {
 		return g.MaxPooling(x, m.Rows, m.Columns)

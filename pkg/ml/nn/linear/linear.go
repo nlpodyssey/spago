@@ -40,7 +40,6 @@ func BiasGrad(enable bool) Option {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int, options ...Option) *Model {
 	model := &Model{
-		BaseModel:             nn.BaseModel{RCS: false},
 		W:                     nn.NewParam(mat.NewEmptyDense(out, in)),
 		B:                     nn.NewParam(mat.NewEmptyVecDense(out)),
 		ConcurrentComputation: defaultConcurrency,
@@ -58,8 +57,7 @@ func (m *Model) SetConcurrentComputations(value bool) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.ConcurrentComputation && len(xs) > 1 {
 		return m.fwdConcurrent(xs)
 	}

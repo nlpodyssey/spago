@@ -56,5 +56,5 @@ func (m *Model) Encode(words []string) []ag.Node {
 			intermediateEncoding[wordIndex] = m.Graph().Concat(encoding...)
 		}
 	}
-	return m.ProjectionLayer.Forward(intermediateEncoding).([]ag.Node)
+	return m.ProjectionLayer.Forward(intermediateEncoding...)
 }

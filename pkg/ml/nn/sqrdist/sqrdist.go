@@ -23,14 +23,12 @@ type Model struct {
 // New returns a new model with parameters initialized to zeros.
 func New(in, rank int) *Model {
 	return &Model{
-		BaseModel: nn.BaseModel{RCS: false},
-		B:         nn.NewParam(mat.NewEmptyDense(rank, in)),
+		B: nn.NewParam(mat.NewEmptyDense(rank, in)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(in interface{}) interface{} {
-	xs := nn.ToNodes(in)
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)

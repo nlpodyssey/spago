@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestModel_Predict(t *testing.T) {
+func TestModel_Decode(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
@@ -25,7 +25,7 @@ func TestModel_Predict(t *testing.T) {
 	w4 := g.NewVariable(mat.NewVecDense([]float64{3.3, -0.9, 2.7, -2.7}), true)
 	w5 := g.NewVariable(mat.NewVecDense([]float64{0.5, 0.2, 0.4, 1.4}), true)
 
-	y := proc.Forward([]ag.Node{w1, w2, w3, w4, w5}).([]int)
+	y := proc.Decode([]ag.Node{w1, w2, w3, w4, w5})
 
 	gold := []int{3, 3, 1, 0, 3}
 

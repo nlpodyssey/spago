@@ -30,8 +30,7 @@ type SequenceClassification struct {
 // NewSequenceClassification returns a new SequenceClassification.
 func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
-		BaseModel: nn.BaseModel{RCS: true},
-		BART:      bart.New(config, embeddingsPath),
+		BART: bart.New(config, embeddingsPath),
 		Classification: NewClassification(ClassificationConfig{
 			InputSize:     config.DModel,
 			HiddenSize:    config.DModel,
@@ -72,10 +71,9 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 }
 
 // Forward performs the forward step for each input and returns the result.
-// Valid input type: []int only.
-func (m *SequenceClassification) Forward(in interface{}) interface{} {
+func (m *SequenceClassification) Classify(in interface{}) ag.Node {
 	inputIds := in.([]int)
-	transformed := m.BART.Forward(inputIds).([]ag.Node)
+	transformed := m.BART.Encode(inputIds)
 	sentenceRepresentation := transformed[len(transformed)-1]
-	return m.Classification.Forward(sentenceRepresentation).([]ag.Node)
+	return nn.ToNode(m.Classification.Forward(sentenceRepresentation))
 }

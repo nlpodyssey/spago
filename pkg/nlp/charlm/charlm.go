@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 )
 
@@ -115,7 +115,7 @@ func (m *Model) Forward(in interface{}) interface{} {
 	encoding := m.GetEmbeddings(xs)
 	for i, x := range encoding {
 		m.Graph().IncTimeStep() // essential for truncated back-propagation
-		h := m.RNN.Forward(x).([]ag.Node)
+		h := m.RNN.Forward(x)
 		proj := nn.ToNode(m.UseProjection(h))
 		ys[i] = nn.ToNode(m.Decoder.Forward(proj))
 	}
@@ -126,7 +126,7 @@ func (m *Model) Forward(in interface{}) interface{} {
 // if available, otherwise returns xs unmodified.
 func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
 	if m.Config.OutputSize > 0 {
-		return m.Projection.Forward(xs).([]ag.Node)
+		return m.Projection.Forward(xs...)
 	}
 	return xs
 }
