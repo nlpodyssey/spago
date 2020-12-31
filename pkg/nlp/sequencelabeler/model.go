@@ -150,10 +150,7 @@ type TokenLabel struct {
 }
 
 // Forward performs the forward step for each input and returns the result.
-// Valid input type: []tokenizers.StringOffsetsPair.
-// Returned value: []TokenLabel.
-func (m *Model) Forward(in interface{}) interface{} {
-	tokens := in.([]tokenizers.StringOffsetsPair)
+func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
 	prediction := m.TaggerLayer.Predict(encodings)
