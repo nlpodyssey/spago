@@ -27,8 +27,6 @@ type Graph struct {
 	constants map[float64]Node
 	// IncrementalForward sets whether to compute the forward during the graph definition (default true).
 	incrementalForward bool
-	// concurrentComputations sets whether to run the forward or backward computations distributing the workload over the available CPUs.
-	concurrentComputations bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise the cache must be invalidated and the values recalculated.
@@ -42,7 +40,16 @@ type Graph struct {
 	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
+	// workingQueue is a channel whose capacity corresponds to the maximum amount of concurrent computation
+	// handled by ConcurrentRun. By default the channel capacity is set to defaultWorkingQueueSize.
+	//
+	// The queue starts empty, then each ConcurrentRun invocation adds an item as soon as it starts (marking a slot as
+	// "busy"), and removes an item once done.
+	workingQueue chan struct{}
 }
+
+// defaultWorkingQueueSize is the default value of Graph.workingQueue on a new Graph.
+const defaultWorkingQueueSize = 1
 
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
@@ -71,12 +78,15 @@ func IncrementalForward(value bool) GraphOption {
 	}
 }
 
-// ConcurrentComputations sets whether to perform the forward and backward computations in concurrent or sequential mode.
-// In the case of concurrent computation all available CPUs are exploited.
-// By default, the forward is executed sequentially.
-func ConcurrentComputations(value bool) GraphOption {
+// ConcurrentComputations sets the maximum number of concurrent computations handled by Graph.ConcurrentRun,
+// which is usually involved in forward and backward steps.
+// The value 1 corresponds to sequential execution.
+func ConcurrentComputations(value int) GraphOption {
+	if value < 1 {
+		panic("ag: ConcurrentComputations value must be greater than zero")
+	}
 	return func(g *Graph) {
-		g.concurrentComputations = value
+		g.workingQueue = make(chan struct{}, value)
 	}
 }
 
@@ -84,12 +94,12 @@ func ConcurrentComputations(value bool) GraphOption {
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opts ...GraphOption) *Graph {
 	g := &Graph{
-		maxID:                  -1,
-		curTimeStep:            0,
-		nodes:                  nil,
-		constants:              map[float64]Node{},
-		incrementalForward:     true,
-		concurrentComputations: false,
+		maxID:              -1,
+		curTimeStep:        0,
+		nodes:              nil,
+		constants:          map[float64]Node{},
+		incrementalForward: true,
+		workingQueue:       make(chan struct{}, defaultWorkingQueueSize),
 	}
 	for _, opt := range opts {
 		opt(g)
@@ -98,6 +108,11 @@ func NewGraph(opts ...GraphOption) *Graph {
 		g.randGen = rand.NewLockedRand(1) // set default random generator
 	}
 	return g
+}
+
+// ConcurrentComputations returns the maximum number of concurrent computations handled by Graph.ConcurrentRun.
+func (g *Graph) ConcurrentComputations() int {
+	return cap(g.workingQueue)
 }
 
 // Clear cleans the graph. This is a destructive operation.
@@ -223,7 +238,8 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	}
 	var value mat.Matrix = nil
 	if g.incrementalForward {
-		value = f.Forward() // the calculation is out of the lock so it can run concurrently with other operators
+		// the calculation is out of the lock so it can run concurrently with other operators
+		g.ConcurrentRun(func() { value = f.Forward() })
 	}
 	requiresGrad := false
 	for _, operand := range operands {
@@ -326,7 +342,7 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 		}
 	}
 
-	if g.concurrentComputations {
+	if g.ConcurrentComputations() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -379,7 +395,7 @@ func (g *Graph) Backward(node Node, opts ...BackwardOption) {
 	if !node.HasGrad() {
 		handler.propagateOutputGrad()
 	}
-	if g.concurrentComputations {
+	if g.ConcurrentComputations() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -395,7 +411,7 @@ func (g *Graph) BackwardAll() {
 		outputGrad:     nil,
 		stopAtTimeStep: -1, // no stop
 	}
-	if g.concurrentComputations {
+	if g.ConcurrentComputations() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -482,4 +498,12 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	g.cache.nodesByHeight = groups
 	g.cache.height = height
 	return groups
+}
+
+// ConcurrentRun waits for a free working slot to be available, then marks a slot as "busy" and executes
+// the given function, releasing the slot at the end.
+func (g *Graph) ConcurrentRun(f func()) {
+	g.workingQueue <- struct{}{}
+	defer func() { <-g.workingQueue }()
+	f()
 }

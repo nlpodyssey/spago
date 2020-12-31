@@ -15,6 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/corpora"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"math"
+	"runtime"
 )
 
 // TrainingConfig provides configuration settings for a Character-level Language Trainer.
@@ -75,7 +76,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 	g := ag.NewGraph(
 		ag.Rand(t.randGen),
 		ag.IncrementalForward(false),
-		ag.ConcurrentComputations(true),
+		ag.ConcurrentComputations(runtime.NumCPU()),
 	)
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Training}, t.model).(*Model)
