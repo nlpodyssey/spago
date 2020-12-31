@@ -212,8 +212,3 @@ func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
 func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
 	return nn.ToNode(m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
 }
-
-// Forward is not implemented for BERT model Processor (it always panics).
-func (m *Model) Forward(in interface{}) interface{} {
-	panic("bert: method not implemented")
-}
