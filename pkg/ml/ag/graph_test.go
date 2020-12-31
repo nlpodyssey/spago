@@ -7,6 +7,7 @@ package ag
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -65,6 +66,12 @@ func TestNewGraph(t *testing.T) {
 		assert.Equal(t, r.Int(), g.randGen.Int())
 		assert.True(t, g.incrementalForward)
 		assert.Equal(t, 1, g.ConcurrentComputations())
+	})
+}
+
+func TestConcurrentComputations(t *testing.T) {
+	t.Run("it panics if value < 1", func(t *testing.T) {
+		assert.Panics(t, func() { ConcurrentComputations(0) })
 	})
 }
 
@@ -147,4 +154,164 @@ func TestNodesTimeStep(t *testing.T) {
 	g.IncTimeStep()
 	c := g.NewVariable(mat.NewScalar(3), false)
 	assert.Equal(t, 2, c.TimeStep())
+}
+
+func TestGraph_Clear(t *testing.T) {
+	t.Run("it resets maxID", func(t *testing.T) {
+		g := NewGraph()
+		g.NewScalar(42)
+		assert.Equal(t, 0, g.maxID)
+		g.Clear()
+		assert.Equal(t, -1, g.maxID)
+	})
+
+	t.Run("it resets curTimeStep", func(t *testing.T) {
+		g := NewGraph()
+		g.NewScalar(42)
+		g.IncTimeStep()
+		assert.Equal(t, 1, g.curTimeStep)
+		g.Clear()
+		assert.Equal(t, 0, g.curTimeStep)
+	})
+
+	t.Run("it resets nodes", func(t *testing.T) {
+		g := NewGraph()
+		g.NewScalar(42)
+		assert.NotNil(t, g.nodes)
+		g.Clear()
+		assert.Nil(t, g.nodes)
+	})
+
+	t.Run("it resets the cache", func(t *testing.T) {
+		g := NewGraph()
+		g.Add(g.NewScalar(1), g.NewScalar(2))
+		g.groupNodesByHeight() // it's just a function which uses the cache
+
+		assert.NotEqual(t, 0, g.cache.maxID)
+		assert.NotNil(t, g.cache.nodesByHeight)
+		assert.NotNil(t, g.cache.height)
+
+		g.Clear()
+
+		assert.Equal(t, -1, g.cache.maxID)
+		assert.Nil(t, g.cache.nodesByHeight)
+		assert.Nil(t, g.cache.height)
+	})
+
+	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
+		g := NewGraph()
+		op := g.Add(
+			g.NewVariable(mat.NewScalar(1), true),
+			g.NewVariable(mat.NewScalar(2), true),
+		)
+		g.Backward(op)
+
+		assert.NotNil(t, op.Value())
+		assert.NotNil(t, op.Grad())
+
+		g.Clear()
+
+		assert.Nil(t, op.Value())
+		assert.Nil(t, op.Grad())
+	})
+
+	t.Run("it works on a graph without nodes", func(t *testing.T) {
+		g := NewGraph()
+		g.Clear()
+		assert.Equal(t, -1, g.maxID)
+		assert.Equal(t, 0, g.curTimeStep)
+		assert.Nil(t, g.nodes)
+	})
+}
+
+func TestGraph_ClearForReuse(t *testing.T) {
+	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
+		g := NewGraph()
+		op := g.Add(
+			g.NewVariable(mat.NewScalar(1), true),
+			g.NewVariable(mat.NewScalar(2), true),
+		)
+		g.Backward(op)
+
+		assert.NotNil(t, op.Value())
+		assert.NotNil(t, op.Grad())
+
+		g.ClearForReuse()
+
+		assert.Nil(t, op.Value())
+		assert.Nil(t, op.Grad())
+	})
+
+	t.Run("it works on a graph without nodes", func(t *testing.T) {
+		g := NewGraph()
+		assert.NotPanics(t, func() { g.ClearForReuse() })
+	})
+}
+
+func TestGraph_ZeroGrad(t *testing.T) {
+	g := NewGraph()
+	v1 := g.NewVariable(mat.NewScalar(1), true)
+	v2 := g.NewVariable(mat.NewScalar(2), true)
+	op := g.Add(v1, v2)
+	g.Backward(op)
+
+	assert.NotNil(t, v1.Grad())
+	assert.NotNil(t, v2.Grad())
+	assert.NotNil(t, op.Grad())
+
+	g.ZeroGrad()
+
+	assert.Nil(t, v1.Grad())
+	assert.Nil(t, v2.Grad())
+	assert.Nil(t, op.Grad())
+}
+
+func TestGraph_NewOperator(t *testing.T) {
+	t.Run("it panics if operands belong to a different Graph", func(t *testing.T) {
+		g1 := NewGraph()
+		g2 := NewGraph()
+		x := g2.NewScalar(42)
+		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt(x), x) })
+	})
+}
+
+func TestGraph_NewWrap(t *testing.T) {
+	s := NewGraph().NewScalar(42)
+	g := NewGraph()
+	g.IncTimeStep()
+
+	result := g.NewWrap(s)
+	assert.IsType(t, &wrapper{}, result)
+	w := result.(*wrapper)
+
+	assert.Same(t, s, w.GradValue)
+	assert.Equal(t, 1, w.timeStep)
+	assert.Same(t, g, w.graph)
+	assert.Equal(t, 0, w.id)
+	assert.True(t, w.wrapGrad)
+}
+
+func TestGraph_NewWrapNoGrad(t *testing.T) {
+	s := NewGraph().NewScalar(42)
+	g := NewGraph()
+	g.IncTimeStep()
+
+	result := g.NewWrapNoGrad(s)
+	assert.IsType(t, &wrapper{}, result)
+	w := result.(*wrapper)
+
+	assert.Same(t, s, w.GradValue)
+	assert.Equal(t, 1, w.timeStep)
+	assert.Same(t, g, w.graph)
+	assert.Equal(t, 0, w.id)
+	assert.False(t, w.wrapGrad)
+}
+
+func TestGraph_Forward(t *testing.T) {
+	g := NewGraph(IncrementalForward(false))
+	op := g.Add(g.NewScalar(40), g.NewScalar(2))
+	assert.Nil(t, op.Value())
+	g.Forward()
+	assert.NotNil(t, op.Value())
+	assert.Equal(t, 42.0, op.Value().Scalar())
 }
