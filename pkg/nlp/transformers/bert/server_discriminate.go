@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -79,7 +80,7 @@ func (s *Server) discriminate(text string) *Response {
 	groupedTokens := wordpiecetokenizer.GroupPieces(origTokens)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)

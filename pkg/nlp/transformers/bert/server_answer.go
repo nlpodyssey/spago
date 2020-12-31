@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -86,7 +87,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 	tokenized := append([]string{cls}, append(tokenizers.GetStrings(origQuestionTokens), sep)...)
 	tokenized = append(tokenized, append(tokenizers.GetStrings(origPassageTokens), sep)...)
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	ctx := nn.Context{Graph: g, Mode: nn.Inference}
 	proc := nn.Reify(ctx, s.model).(*Model)
