@@ -21,11 +21,7 @@ type Model struct {
 	nn.BaseModel
 	W nn.Param `spago:"type:weights"`
 	B nn.Param `spago:"type:biases"`
-	// whether to enable the concurrent forward computation
-	ConcurrentComputation bool
 }
-
-const defaultConcurrency = true
 
 // Option allows to configure a new Model with your specific needs.
 type Option func(*Model)
@@ -40,9 +36,8 @@ func BiasGrad(enable bool) Option {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int, options ...Option) *Model {
 	model := &Model{
-		W:                     nn.NewParam(mat.NewEmptyDense(out, in)),
-		B:                     nn.NewParam(mat.NewEmptyVecDense(out)),
-		ConcurrentComputation: defaultConcurrency,
+		W: nn.NewParam(mat.NewEmptyDense(out, in)),
+		B: nn.NewParam(mat.NewEmptyVecDense(out)),
 	}
 	for _, option := range options {
 		option(model)
@@ -50,15 +45,9 @@ func New(in, out int, options ...Option) *Model {
 	return model
 }
 
-// SetConcurrentComputations enables or disables the usage of concurrency
-// in the Forward method.
-func (m *Model) SetConcurrentComputations(value bool) {
-	m.ConcurrentComputation = value
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	if m.ConcurrentComputation && len(xs) > 1 {
+	if len(xs) > 1 && m.Graph().ConcurrentComputations() > 1 {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)

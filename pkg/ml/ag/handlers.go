@@ -44,7 +44,7 @@ func (h *forwardHandler) runConcurrent() {
 				wg.Add(1)
 				go func(op *operator) {
 					defer wg.Done()
-					op.value = op.function.Forward()
+					h.g.ConcurrentRun(func() { op.value = op.function.Forward() })
 				}(op)
 			}
 		}
@@ -103,7 +103,7 @@ func (h *backwardHandler) runConcurrent() {
 				wg.Add(1)
 				go func(op *operator) {
 					defer wg.Done()
-					op.backward()
+					h.g.ConcurrentRun(func() { op.backward() })
 				}(op)
 			}
 		}

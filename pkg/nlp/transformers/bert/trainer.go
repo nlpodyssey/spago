@@ -22,6 +22,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"runtime"
 )
 
 // TrainingConfig provides configuration settings for a BERT Trainer.
@@ -91,7 +92,7 @@ func (t *Trainer) trainPassage(text string) {
 		return // skip, sequence too long
 	}
 
-	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(true))
+	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Training}, t.model).(*Model)
 

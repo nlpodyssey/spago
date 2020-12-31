@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -92,7 +93,7 @@ func tokensFrom(resp *Response) []*grpcapi.Token {
 
 func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) {
 	start := time.Now()
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	tokenized := basetokenizer.New().Tokenize(text)

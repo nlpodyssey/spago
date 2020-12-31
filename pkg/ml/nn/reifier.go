@@ -40,12 +40,8 @@ func (r reifier) reifyStruct(rawSource interface{}) interface{} {
 			panic(err)
 		}
 
-		if tag.Scope == processorModuleFieldScope {
+		if tag.Scope == processorModuleFieldScope || !sourceField.CanInterface() {
 			continue // skip any initialization
-		}
-
-		if !sourceField.CanInterface() {
-			continue
 		}
 
 		if tag.Scope == modelModuleFieldScope {
@@ -53,44 +49,48 @@ func (r reifier) reifyStruct(rawSource interface{}) interface{} {
 			continue
 		}
 
-		switch sourceFieldT := sourceField.Interface().(type) {
-		case Context:
-			destField.Set(reflect.ValueOf(r.ctx))
-		case BaseModel, *BaseModel:
-			destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
-		case Param:
-			destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*param))))
-		case []Param:
-			destField.Set(reflect.ValueOf(r.reifyParamSlice(sourceFieldT)))
-		case Model:
-			destField.Set(reflect.ValueOf(r.reifyModel(sourceFieldT)))
-		case []Model:
-			destField.Set(reflect.ValueOf(r.reifyModelSlice(sourceFieldT)))
-		default:
-			switch sourceField.Kind() {
-			case reflect.Slice:
-				destField.Set(r.reifySlice(sourceField, tag))
-			case reflect.Map:
-				destField.Set(r.reifyMap(sourceField, tag))
-			case reflect.Struct, reflect.Ptr:
-				if sourceField.Kind() == reflect.Ptr && sourceField.IsNil() {
-					continue
-				}
-				if tag.Type == paramsModuleFieldType {
-					destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
-				} else {
-					destField.Set(sourceField)
-				}
-			default:
-				destField.Set(sourceField)
-			}
-		}
+		r.reifyStructField(sourceField, destField, tag)
 	}
 
 	if !sourceIsPointer {
 		return dest.Interface()
 	}
 	return destPointer.Interface()
+}
+
+func (r reifier) reifyStructField(sourceField, destField reflect.Value, tag moduleFieldTag) {
+	switch sourceFieldT := sourceField.Interface().(type) {
+	case Context:
+		destField.Set(reflect.ValueOf(r.ctx))
+	case BaseModel, *BaseModel:
+		destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
+	case Param:
+		destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*param))))
+	case []Param:
+		destField.Set(reflect.ValueOf(r.reifyParamSlice(sourceFieldT)))
+	case Model:
+		destField.Set(reflect.ValueOf(r.reifyModel(sourceFieldT)))
+	case []Model:
+		destField.Set(reflect.ValueOf(r.reifyModelSlice(sourceFieldT)))
+	default:
+		switch sourceField.Kind() {
+		case reflect.Slice:
+			destField.Set(r.reifySlice(sourceField, tag))
+		case reflect.Map:
+			destField.Set(r.reifyMap(sourceField, tag))
+		case reflect.Struct, reflect.Ptr:
+			if sourceField.Kind() == reflect.Ptr && sourceField.IsNil() {
+				return
+			}
+			if tag.Type == paramsModuleFieldType {
+				destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
+			} else {
+				destField.Set(sourceField)
+			}
+		default:
+			destField.Set(sourceField)
+		}
+	}
 }
 
 func (r reifier) reifyModel(sourceField Model) Model {
