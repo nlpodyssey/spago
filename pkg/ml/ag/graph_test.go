@@ -19,7 +19,7 @@ func TestNewGraph(t *testing.T) {
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
 		assert.Empty(t, g.constants)
-		assert.Equal(t, 0, g.cache.maxID)
+		assert.Equal(t, -1, g.cache.maxID)
 		assert.Nil(t, g.cache.nodesByHeight)
 		assert.Nil(t, g.cache.height)
 	}

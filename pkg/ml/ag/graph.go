@@ -101,6 +101,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 		incrementalForward: true,
 		workingQueue:       make(chan struct{}, defaultWorkingQueueSize),
 	}
+	g.clearCache()
 	for _, opt := range opts {
 		opt(g)
 	}
