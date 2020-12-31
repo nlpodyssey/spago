@@ -34,12 +34,6 @@ type Model struct {
 	ProjectionLayer *linear.Model
 }
 
-// Forward performs the forward step for each input and returns the result.
-// Valid input type: []string only.
-func (m *Model) Forward(in interface{}) interface{} {
-	return m.Encode(in.([]string))
-}
-
 // Encode transforms a string sequence into an encoded representation.
 func (m *Model) Encode(words []string) []ag.Node {
 	encodingsPerWord := make([][]ag.Node, len(words))
