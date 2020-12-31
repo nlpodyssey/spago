@@ -34,8 +34,6 @@ type Model struct {
 	Config Config
 	K      []nn.Param `spago:"type:weights"`
 	B      []nn.Param `spago:"type:biases"`
-	// whether to enable the concurrent forward computation on the output channel
-	Concurrent bool `spago:"scope:processor"`
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
@@ -58,15 +56,9 @@ func New(config Config) *Model {
 	}
 }
 
-// SetConcurrentComputations enables or disables the usage of concurrency
-// in the Forward method.
-func (m *Model) SetConcurrentComputations(value bool) {
-	m.Concurrent = value
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	if m.Concurrent && m.Config.OutputChannels > 1 {
+	if m.Config.OutputChannels > 1 && m.Graph().ConcurrentComputations() > 1 {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
