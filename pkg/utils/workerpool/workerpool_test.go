@@ -23,7 +23,7 @@ func TestWorkerPool(t *testing.T) {
 	workerSleepingDuration := 300 * time.Millisecond
 	//mainProcessSleepingDuration := workerSleepingDuration * 2
 
-	ej := make(ExecutedJobs, 0, 3)
+	ej := make(ExecutedJobs, 0, 4)
 	runCompleted := false
 
 	// Create a new WorkerPool and make it run async
@@ -61,7 +61,6 @@ func TestWorkerPool(t *testing.T) {
 	// After waiting half of a job's duration, we should
 	// be in the middle of the processing of the first
 	// 3 job data items: "foo", "bar", and "baz".
-	// "qux"
 	time.Sleep(workerSleepingDuration / 2)
 
 	mutex.Lock()
@@ -74,7 +73,7 @@ func TestWorkerPool(t *testing.T) {
 
 	ej.AssertIncludesJobData(t, "foo")
 	ej.AssertIncludesJobData(t, "bar")
-	ej.AssertIncludesJobData(t, "foo")
+	ej.AssertIncludesJobData(t, "baz")
 
 	ej.AssertIncludesWorkerID(t, 0)
 	ej.AssertIncludesWorkerID(t, 1)
@@ -85,7 +84,7 @@ func TestWorkerPool(t *testing.T) {
 	mutex.Unlock()
 
 	// Wait for the first 3 jobs to be completed, and
-	// the 4th to be started.
+	// the 4th to be started ("qux").
 	time.Sleep(workerSleepingDuration)
 
 	mutex.Lock()

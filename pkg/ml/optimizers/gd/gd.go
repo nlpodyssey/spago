@@ -8,6 +8,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/clipper"
+	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
+	"runtime"
 	"sync"
 )
 
@@ -17,7 +19,14 @@ type GradientDescent struct {
 	gradClipper      clipper.GradClipper
 	paramsGetter     nn.ParamsGetter
 	paramsToOptimize []nn.Param
+	// processingQueue allows proper handling for computationally heavy operations
+	// such as the params update step.
+	// The default size is defaultProcessingQueueSize.
+	processingQueue processingqueue.ProcessingQueue
 }
+
+// defaultProcessingQueueSize is the default size of GradientDescent.processingQueue on a new optimizer.
+var defaultProcessingQueueSize = runtime.NumCPU()
 
 // Option allows to configure a new GradientDescent with your specific needs.
 type Option func(*GradientDescent)
@@ -40,12 +49,25 @@ func ClipGradByNorm(max, normType float64) Option {
 	}
 }
 
+// ConcurrentComputations sets the maximum number of concurrent computations handled by the GradientDescent
+// for heavy tasks such as the params update steps.
+// The value 1 corresponds to sequential execution.
+func ConcurrentComputations(value int) Option {
+	if value < 1 {
+		panic("gd: ConcurrentComputations value must be greater than zero")
+	}
+	return func(f *GradientDescent) {
+		f.processingQueue = processingqueue.New(value)
+	}
+}
+
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
 func NewOptimizer(method Method, paramsIterator nn.ParamsGetter, opts ...Option) *GradientDescent {
 	optimizer := &GradientDescent{
 		method:           method,
 		paramsGetter:     paramsIterator,
 		paramsToOptimize: make([]nn.Param, 0),
+		processingQueue:  processingqueue.New(defaultProcessingQueueSize),
 	}
 	for _, opt := range opts {
 		opt(optimizer)
@@ -77,19 +99,21 @@ func (o *GradientDescent) updateParamsSerial() {
 }
 
 // updateParams applies the optimization method to all the observed parameters concurrently.
-// TODO: distribute the workload proportionately to the number of available CPUs?
 func (o *GradientDescent) updateParams() {
 	var wg sync.WaitGroup
 	for _, param := range o.paramsToOptimize {
-		if param.HasGrad() {
-			wg.Add(1)
-			go func(param nn.Param) {
-				defer wg.Done()
+		if !param.HasGrad() {
+			continue
+		}
+		wg.Add(1)
+		go func(param nn.Param) {
+			defer wg.Done()
+			o.processingQueue.Run(func() {
 				delta := o.method.Delta(param)
 				param.ApplyDelta(delta)
-				param.ZeroGrad()
-			}(param)
-		}
+			})
+			param.ZeroGrad()
+		}(param)
 	}
 	wg.Wait()
 }
