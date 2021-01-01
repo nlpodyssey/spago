@@ -460,6 +460,12 @@ func (g *Graph) TimeStep() int {
 	return int(g.curTimeStep)
 }
 
+// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
+func (g *Graph) ConcurrentComputations() int {
+	return g.processingQueue.Size()
+}
+
 // newID generates and returns a new incremental sequential ID.
 func (g *Graph) newID() int {
 	g.maxID++

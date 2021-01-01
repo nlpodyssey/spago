@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
@@ -30,7 +31,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.processingQueue.Size())
+		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
 	t.Run("with IncrementalForward(false) option", func(t *testing.T) {
@@ -38,15 +39,20 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.False(t, g.incrementalForward)
-		assert.Equal(t, 1, g.processingQueue.Size())
+		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
-	t.Run("with ConcurrentComputations(2) option", func(t *testing.T) {
-		g := NewGraph(ConcurrentComputations(2))
-		runCommonAssertions(t, g)
-		assert.NotNil(t, g.randGen)
-		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 2, g.processingQueue.Size())
+	t.Run("with ConcurrentComputations option", func(t *testing.T) {
+		for i := 1; i < 4; i++ {
+			size := i
+			t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
+				g := NewGraph(ConcurrentComputations(size))
+				runCommonAssertions(t, g)
+				assert.NotNil(t, g.randGen)
+				assert.True(t, g.incrementalForward)
+				assert.Equal(t, size, g.ConcurrentComputations())
+			})
+		}
 	})
 
 	t.Run("with Rand option", func(t *testing.T) {
@@ -55,7 +61,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.processingQueue.Size())
+		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
 	t.Run("with RandSeed option", func(t *testing.T) {
@@ -65,7 +71,7 @@ func TestNewGraph(t *testing.T) {
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.processingQueue.Size())
+		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 }
 
