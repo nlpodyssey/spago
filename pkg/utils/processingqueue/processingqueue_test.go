@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+func TestNew(t *testing.T) {
+	t.Run("it panics if size is lower than 1", func(t *testing.T) {
+		assert.Panics(t, func() { New(0) })
+		assert.Panics(t, func() { New(-1) })
+	})
+}
+
 func TestProcessingQueue_Run(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode")

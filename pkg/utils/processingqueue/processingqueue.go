@@ -19,7 +19,11 @@ type ProcessingQueue chan emptyStruct
 type emptyStruct struct{}
 
 // New returns a new ProcessingQueue initialized with the given size.
+// It panics if size is lower than 1.
 func New(size int) ProcessingQueue {
+	if size < 1 {
+		panic("processingqueue: ProcessingQueue size must be greater than zero")
+	}
 	return make(ProcessingQueue, size)
 }
 
