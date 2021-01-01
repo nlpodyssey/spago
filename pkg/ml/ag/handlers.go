@@ -34,19 +34,18 @@ func (h *forwardHandler) runConcurrent() {
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
-			if op, ok := node.(*operator); ok {
-				if op.timeStep < h.fromTimeStep {
-					continue
-				}
-				if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
-					continue
-				}
-				wg.Add(1)
-				go func(op *operator) {
-					defer wg.Done()
-					h.g.concurrentRun(func() { op.value = op.function.Forward() })
-				}(op)
+			op, isOperator := node.(*operator)
+			if !isOperator {
+				continue
 			}
+			if op.timeStep < h.fromTimeStep || h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
+				continue
+			}
+			wg.Add(1)
+			h.g.processingQueue.Go(func() {
+				defer wg.Done()
+				op.value = op.function.Forward()
+			})
 		}
 		wg.Wait()
 	}
@@ -96,16 +95,18 @@ func (h *backwardHandler) runConcurrent() {
 			if truncated && node.TimeStep() <= stopAtTimeStep {
 				break
 			}
-			if op, ok := node.(*operator); ok {
-				if op.id > lastNodeIndex {
-					continue
-				}
-				wg.Add(1)
-				go func(op *operator) {
-					defer wg.Done()
-					h.g.concurrentRun(func() { op.backward() })
-				}(op)
+			op, isOperator := node.(*operator)
+			if !isOperator {
+				continue
 			}
+			if op.id > lastNodeIndex {
+				continue
+			}
+			wg.Add(1)
+			h.g.processingQueue.Go(func() {
+				defer wg.Done()
+				op.backward()
+			})
 		}
 		wg.Wait()
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
 	"log"
 	"sync"
 )
@@ -40,16 +41,13 @@ type Graph struct {
 	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
-	// workingQueue is a channel whose capacity corresponds to the maximum amount of concurrent computation
-	// handled by concurrentRun. By default the channel capacity is set to defaultWorkingQueueSize.
-	//
-	// The queue starts empty, then each concurrentRun invocation adds an item as soon as it starts (marking a slot as
-	// "busy"), and removes an item once done.
-	workingQueue chan struct{}
+	// processingQueue allows proper handling for computationally heavy operations
+	// such as forward and backward steps.
+	processingQueue processingqueue.ProcessingQueue
 }
 
-// defaultWorkingQueueSize is the default value of Graph.workingQueue on a new Graph.
-const defaultWorkingQueueSize = 1
+// defaultProcessingQueueSize is the default value of Graph.workingQueue on a new Graph.
+const defaultProcessingQueueSize = 1
 
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
@@ -86,7 +84,7 @@ func ConcurrentComputations(value int) GraphOption {
 		panic("ag: ConcurrentComputations value must be greater than zero")
 	}
 	return func(g *Graph) {
-		g.workingQueue = make(chan struct{}, value)
+		g.processingQueue = processingqueue.New(value)
 	}
 }
 
@@ -99,7 +97,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 		nodes:              nil,
 		constants:          map[float64]Node{},
 		incrementalForward: true,
-		workingQueue:       make(chan struct{}, defaultWorkingQueueSize),
+		processingQueue:    processingqueue.New(defaultProcessingQueueSize),
 	}
 	g.clearCache()
 	for _, opt := range opts {
@@ -109,11 +107,6 @@ func NewGraph(opts ...GraphOption) *Graph {
 		g.randGen = rand.NewLockedRand(1) // set default random generator
 	}
 	return g
-}
-
-// ConcurrentComputations returns the maximum number of concurrent computations handled by Graph.concurrentRun.
-func (g *Graph) ConcurrentComputations() int {
-	return cap(g.workingQueue)
 }
 
 // Clear cleans the graph. This is a destructive operation.
@@ -240,7 +233,9 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	var value mat.Matrix = nil
 	if g.incrementalForward {
 		// the calculation is out of the lock so it can run concurrently with other operators
-		g.concurrentRun(func() { value = f.Forward() })
+		g.processingQueue.Run(func() {
+			value = f.Forward()
+		})
 	}
 	requiresGrad := false
 	for _, operand := range operands {
@@ -343,7 +338,7 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 		}
 	}
 
-	if g.ConcurrentComputations() > 1 {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -396,7 +391,7 @@ func (g *Graph) Backward(node Node, opts ...BackwardOption) {
 	if !node.HasGrad() {
 		handler.propagateOutputGrad()
 	}
-	if g.ConcurrentComputations() > 1 {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -412,7 +407,7 @@ func (g *Graph) BackwardAll() {
 		outputGrad:     nil,
 		stopAtTimeStep: -1, // no stop
 	}
-	if g.ConcurrentComputations() > 1 {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -499,12 +494,4 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	g.cache.nodesByHeight = groups
 	g.cache.height = height
 	return groups
-}
-
-// concurrentRun waits for a free working slot to be available, then marks a slot as "busy" and executes
-// the given function, releasing the slot at the end.
-func (g *Graph) concurrentRun(f func()) {
-	g.workingQueue <- struct{}{}
-	defer func() { <-g.workingQueue }()
-	f()
 }

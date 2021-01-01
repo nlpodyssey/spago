@@ -30,7 +30,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.ConcurrentComputations())
+		assert.Equal(t, 1, g.processingQueue.Size())
 	})
 
 	t.Run("with IncrementalForward(false) option", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.False(t, g.incrementalForward)
-		assert.Equal(t, 1, g.ConcurrentComputations())
+		assert.Equal(t, 1, g.processingQueue.Size())
 	})
 
 	t.Run("with ConcurrentComputations(2) option", func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 2, g.ConcurrentComputations())
+		assert.Equal(t, 2, g.processingQueue.Size())
 	})
 
 	t.Run("with Rand option", func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestNewGraph(t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.ConcurrentComputations())
+		assert.Equal(t, 1, g.processingQueue.Size())
 	})
 
 	t.Run("with RandSeed option", func(t *testing.T) {
@@ -65,7 +65,7 @@ func TestNewGraph(t *testing.T) {
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
 		assert.True(t, g.incrementalForward)
-		assert.Equal(t, 1, g.ConcurrentComputations())
+		assert.Equal(t, 1, g.processingQueue.Size())
 	})
 }
 
