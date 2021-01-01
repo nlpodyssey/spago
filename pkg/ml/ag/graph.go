@@ -41,9 +41,9 @@ type Graph struct {
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
 	// workingQueue is a channel whose capacity corresponds to the maximum amount of concurrent computation
-	// handled by ConcurrentRun. By default the channel capacity is set to defaultWorkingQueueSize.
+	// handled by concurrentRun. By default the channel capacity is set to defaultWorkingQueueSize.
 	//
-	// The queue starts empty, then each ConcurrentRun invocation adds an item as soon as it starts (marking a slot as
+	// The queue starts empty, then each concurrentRun invocation adds an item as soon as it starts (marking a slot as
 	// "busy"), and removes an item once done.
 	workingQueue chan struct{}
 }
@@ -78,7 +78,7 @@ func IncrementalForward(value bool) GraphOption {
 	}
 }
 
-// ConcurrentComputations sets the maximum number of concurrent computations handled by Graph.ConcurrentRun,
+// ConcurrentComputations sets the maximum number of concurrent computations handled by Graph.concurrentRun,
 // which is usually involved in forward and backward steps.
 // The value 1 corresponds to sequential execution.
 func ConcurrentComputations(value int) GraphOption {
@@ -111,7 +111,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 	return g
 }
 
-// ConcurrentComputations returns the maximum number of concurrent computations handled by Graph.ConcurrentRun.
+// ConcurrentComputations returns the maximum number of concurrent computations handled by Graph.concurrentRun.
 func (g *Graph) ConcurrentComputations() int {
 	return cap(g.workingQueue)
 }
@@ -240,7 +240,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	var value mat.Matrix = nil
 	if g.incrementalForward {
 		// the calculation is out of the lock so it can run concurrently with other operators
-		g.ConcurrentRun(func() { value = f.Forward() })
+		g.concurrentRun(func() { value = f.Forward() })
 	}
 	requiresGrad := false
 	for _, operand := range operands {
@@ -501,9 +501,9 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	return groups
 }
 
-// ConcurrentRun waits for a free working slot to be available, then marks a slot as "busy" and executes
+// concurrentRun waits for a free working slot to be available, then marks a slot as "busy" and executes
 // the given function, releasing the slot at the end.
-func (g *Graph) ConcurrentRun(f func()) {
+func (g *Graph) concurrentRun(f func()) {
 	g.workingQueue <- struct{}{}
 	defer func() { <-g.workingQueue }()
 	f()
