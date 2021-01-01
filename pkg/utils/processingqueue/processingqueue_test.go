@@ -87,7 +87,9 @@ func TestProcessingQueue_Run(t *testing.T) {
 	// Wait again, and be sure all jobs completed.
 	time.Sleep(workerSleepingDuration)
 
+	mutex.Lock()
 	ej.AssertCompletedCount(t, 4)
+	mutex.Unlock()
 }
 
 func TestProcessingQueue_Go(t *testing.T) {
@@ -98,15 +100,18 @@ func TestProcessingQueue_Go(t *testing.T) {
 	workerSleepingDuration := 300 * time.Millisecond
 
 	var mutex sync.Mutex // avoid data races in this test
+	var wg sync.WaitGroup
 	ej := make(executedJobs, 0, 4)
 	pq := New(3)
 
 	for i := 0; i < 4; i++ {
+		wg.Add(1)
 		// Be sure to run the goroutines sequentially
 		time.Sleep(workerSleepingDuration / 50)
 
 		index := i
 		pq.Go(func() {
+			defer wg.Done()
 			mutex.Lock()
 			item := &executedJob{
 				index:     index,
@@ -154,15 +159,19 @@ func TestProcessingQueue_Go(t *testing.T) {
 	mutex.Unlock()
 
 	// Wait again, and be sure all jobs completed.
-	time.Sleep(workerSleepingDuration)
+	wg.Wait()
+	time.Sleep(100)
 
+	mutex.Lock()
 	ej.AssertCompletedCount(t, 4)
+	mutex.Unlock()
 }
 
 func TestProcessingQueue_Run_panic(t *testing.T) {
 	pq := New(2)
 	jobsCount := 0
 
+	var mutex sync.Mutex // avoid data races in this test
 	var wg sync.WaitGroup
 
 	for i := 0; i < 4; i++ {
@@ -174,7 +183,9 @@ func TestProcessingQueue_Run_panic(t *testing.T) {
 				wg.Done()
 			}()
 			pq.Run(func() {
+				mutex.Lock()
 				jobsCount++
+				mutex.Unlock()
 				panic("something bad happened")
 			})
 		}()
