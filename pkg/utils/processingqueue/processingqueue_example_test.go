@@ -38,7 +38,7 @@ func ExampleProcessingQueue_Run() {
 	}
 	wg.Wait()
 
-	// Unordered output:
+	// Output:
 	// Before 0
 	// Processing 0
 	// Before 1
@@ -76,7 +76,7 @@ func ExampleProcessingQueue_Go() {
 	}
 	wg.Wait()
 
-	// Unordered output:
+	// Output:
 	// Processing 0
 	// Processing 1
 	// Processed 0
