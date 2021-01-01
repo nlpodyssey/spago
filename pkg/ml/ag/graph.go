@@ -10,6 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
 	"log"
+	"runtime"
 	"sync"
 )
 
@@ -43,11 +44,12 @@ type Graph struct {
 	randGen *rand.LockedRand
 	// processingQueue allows proper handling for computationally heavy operations
 	// such as forward and backward steps.
+	// The default size is defaultProcessingQueueSize.
 	processingQueue processingqueue.ProcessingQueue
 }
 
-// defaultProcessingQueueSize is the default value of Graph.workingQueue on a new Graph.
-const defaultProcessingQueueSize = 1
+// defaultProcessingQueueSize is the default size of Graph.processingQueue on a new Graph.
+var defaultProcessingQueueSize = runtime.NumCPU()
 
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
