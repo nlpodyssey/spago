@@ -184,7 +184,7 @@ func TestProcessingQueue_Run_panic(t *testing.T) {
 }
 
 func TestProcessingQueue_Size(t *testing.T) {
-	for i := 0; i < 4; i++ {
+	for i := 1; i < 4; i++ {
 		size := i
 		t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
 			pq := New(size)
