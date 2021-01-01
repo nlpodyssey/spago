@@ -176,6 +176,16 @@ func TestProcessingQueue_Run_panic(t *testing.T) {
 	assert.Equal(t, 4, jobsCount, "all jobs were executed")
 }
 
+func TestProcessingQueue_Size(t *testing.T) {
+	for i := 0; i < 4; i++ {
+		size := i
+		t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
+			pq := New(size)
+			assert.Equal(t, size, pq.Size())
+		})
+	}
+}
+
 type executedJob struct {
 	index     int
 	completed bool

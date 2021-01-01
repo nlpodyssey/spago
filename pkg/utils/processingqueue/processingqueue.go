@@ -35,3 +35,8 @@ func (pq ProcessingQueue) Run(f func()) {
 func (pq ProcessingQueue) Go(f func()) {
 	go pq.Run(f)
 }
+
+// Size returns the size of the ProcessingQueue.
+func (pq ProcessingQueue) Size() int {
+	return cap(pq)
+}
