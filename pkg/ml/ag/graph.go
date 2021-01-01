@@ -78,8 +78,8 @@ func IncrementalForward(value bool) GraphOption {
 	}
 }
 
-// ConcurrentComputations sets the maximum number of concurrent computations handled by Graph.concurrentRun,
-// which is usually involved in forward and backward steps.
+// ConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
 // The value 1 corresponds to sequential execution.
 func ConcurrentComputations(value int) GraphOption {
 	if value < 1 {
