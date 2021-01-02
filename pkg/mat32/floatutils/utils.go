@@ -2,31 +2,51 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64utils
+package floatutils
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
+	"github.com/nlpodyssey/spago/pkg/mat32/internal"
 	"math"
 	"strconv"
 	"strings"
 )
 
+// EqualApprox returns true if a and b are equal to within reasonable
+// absolute tolerance (hardcoded as 1.0e-04).
+func EqualApprox(a, b float32) bool {
+	return a == b || float32(math.Abs(float64(a-b))) <= 1.0e-04
+}
+
+// SliceEqualApprox returns true if a and b have the same length and EqualApprox
+// is true for each element pair from a and b.
+func SliceEqualApprox(a, b []float32) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, va := range a {
+		if !EqualApprox(va, b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 // Copy creates and return a copy of the given slice.
-func Copy(in []float64) []float64 {
-	out := make([]float64, len(in))
+func Copy(in []float32) []float32 {
+	out := make([]float32, len(in))
 	copy(out, in)
 	return out
 }
 
 // FillFloatSlice fills the given slice's elements with value.
-func FillFloatSlice(slice []float64, value float64) {
+func FillFloatSlice(slice []float32, value float32) {
 	for i := range slice {
 		slice[i] = value
 	}
 }
 
 // Sign returns +1 if a is positive, -1 if a is negative, or 0 if a is 0.
-func Sign(a float64) int {
+func Sign(a float32) int {
 	switch {
 	case a < 0:
 		return -1
@@ -37,7 +57,7 @@ func Sign(a float64) int {
 }
 
 // Max returns the maximum value from the given slice, which MUST NOT be empty.
-func Max(v []float64) (m float64) {
+func Max(v []float32) (m float32) {
 	m = v[len(v)-1]
 	for _, e := range v {
 		if m <= e {
@@ -48,7 +68,7 @@ func Max(v []float64) (m float64) {
 }
 
 // Sum returns the sum of all values from the given slice.
-func Sum(v []float64) (s float64) {
+func Sum(v []float32) (s float32) {
 	for _, e := range v {
 		s += e
 	}
@@ -56,7 +76,7 @@ func Sum(v []float64) (s float64) {
 }
 
 // ArgMinMax finds the indices of min and max arguments.
-func ArgMinMax(v []float64) (imin, imax int) {
+func ArgMinMax(v []float32) (imin, imax int) {
 	if len(v) < 1 {
 		return
 	}
@@ -76,33 +96,33 @@ func ArgMinMax(v []float64) (imin, imax int) {
 }
 
 // ArgMax finds the index of the max argument.
-func ArgMax(v []float64) int {
+func ArgMax(v []float32) int {
 	_, imax := ArgMinMax(v)
 	return imax
 }
 
 // ArgMin finds the index of the min argument.
-func ArgMin(v []float64) int {
+func ArgMin(v []float32) int {
 	imin, _ := ArgMinMax(v)
 	return imin
 }
 
-// MakeFloat64Matrix returns a new 2-dimensional slice.
-func MakeFloat64Matrix(rows, cols int) [][]float64 {
-	matrix := make([][]float64, rows)
+// MakeFloat32Matrix returns a new 2-dimensional slice.
+func MakeFloat32Matrix(rows, cols int) [][]float32 {
+	matrix := make([][]float32, rows)
 	for i := 0; i < rows; i++ {
-		matrix[i] = make([]float64, cols)
+		matrix[i] = make([]float32, cols)
 	}
 	return matrix
 }
 
-// StrToFloat64Slice parses a string representation of a slice of float64 values.
-func StrToFloat64Slice(str string) ([]float64, error) {
+// StrToFloat32Slice parses a string representation of a slice of float32 values.
+func StrToFloat32Slice(str string) ([]float32, error) {
 	spl := strings.Fields(str)
-	data := make([]float64, len(spl))
+	data := make([]float32, len(spl))
 	for i, v := range spl {
-		if num, err := strconv.ParseFloat(v, 64); err == nil {
-			data[i] = num
+		if num, err := strconv.ParseFloat(v, 32); err == nil {
+			data[i] = float32(num)
 		} else {
 			return nil, err
 		}
@@ -111,20 +131,20 @@ func StrToFloat64Slice(str string) ([]float64, error) {
 }
 
 // SoftMax returns the results of the softmax function.
-func SoftMax(v []float64) (sm []float64) {
+func SoftMax(v []float32) (sm []float32) {
 	c := Max(v)
-	var sum float64 = 0
+	var sum float32 = 0
 	for _, e := range v {
-		sum += math.Exp(e - c)
+		sum += float32(math.Exp(float64(e - c)))
 	}
-	sm = make([]float64, len(v))
+	sm = make([]float32, len(v))
 	for i, v := range v {
-		sm[i] = math.Exp(v-c) / sum
+		sm[i] = float32(math.Exp(float64(v-c))) / sum
 	}
 	return sm
 }
 
 // CumSum computes the cumulative sum of src into dst, and returns dst.
-func CumSum(dst, src []float64) []float64 {
-	return f64.CumSum(dst, src)
+func CumSum(dst, src []float32) []float32 {
+	return internal.CumSum(dst, src)
 }

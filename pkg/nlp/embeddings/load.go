@@ -8,7 +8,7 @@ import (
 	"bufio"
 	"github.com/gosuri/uiprogress"
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
 	"os"
@@ -46,7 +46,7 @@ func (m *Model) Load(filename string) {
 		}
 		key := utils.BeforeSpace(line)
 		strVec := utils.AfterSpace(line)
-		data, err := f64utils.StrToFloat64Slice(strVec)
+		data, err := floatutils.StrToFloat64Slice(strVec)
 		if err != nil {
 			log.Fatal(err)
 		}

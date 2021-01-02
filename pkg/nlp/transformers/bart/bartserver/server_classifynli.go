@@ -6,7 +6,7 @@ package bartserver
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
@@ -79,7 +79,7 @@ func (s *ServerForSequenceClassification) classifyNLI(
 		return getScores(logits, entailmentID)
 	}()
 
-	best := f64utils.ArgMax(scores)
+	best := floatutils.ArgMax(scores)
 	class := candidateLabels[best]
 
 	distribution := make([]ClassConfidencePair, len(scores))
@@ -106,7 +106,7 @@ func (s *ServerForSequenceClassification) classifyNLI(
 func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []float64 {
 	scores := make([]float64, len(logits))
 	for i, v := range logits {
-		prob := f64utils.SoftMax([]float64{v.AtVec(entailmentID), v.AtVec(contradictionID)})
+		prob := floatutils.SoftMax([]float64{v.AtVec(entailmentID), v.AtVec(contradictionID)})
 		scores[i] = prob[0]
 	}
 	return scores
@@ -118,7 +118,7 @@ func getScores(logits []*mat.Dense, entailmentID int) []float64 {
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
 	}
-	return f64utils.SoftMax(scores)
+	return floatutils.SoftMax(scores)
 }
 
 func (s *ServerForSequenceClassification) getEntailmentAndContradictionIDs() (

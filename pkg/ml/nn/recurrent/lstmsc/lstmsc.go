@@ -8,7 +8,7 @@ package lstmsc
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -138,7 +138,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 
 	if yPrev != nil {
 		s.Actions = nn.ToNode(m.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x))))
-		s.SkipIndex = f64utils.ArgMax(s.Actions.Value().Data())
+		s.SkipIndex = floatutils.ArgMax(s.Actions.Value().Data())
 		if s.SkipIndex < len(m.States) {
 			kState := m.States[len(m.States)-1-s.SkipIndex]
 			yPrevNew = g.Add(g.ProdScalar(kState.Y, lambda), g.ProdScalar(yPrevNew, negLambda))

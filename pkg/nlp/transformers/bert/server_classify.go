@@ -13,7 +13,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -110,8 +110,8 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	encoded := proc.Encode(tokenized)
 
 	logits := proc.SequenceClassification(encoded)
-	probs := f64utils.SoftMax(logits.Value().Data())
-	best := f64utils.ArgMax(probs)
+	probs := floatutils.SoftMax(logits.Value().Data())
+	best := floatutils.ArgMax(probs)
 	class := s.model.Classifier.Config.Labels[best]
 
 	distribution := make([]ClassConfidencePair, len(probs))

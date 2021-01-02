@@ -5,7 +5,7 @@
 package charlm
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"golang.org/x/exp/rand"
 )
@@ -29,7 +29,7 @@ func sample(prediction []float64, temperature float64) int {
 	for i := range prediction {
 		prediction[i] *= 1.0 / temperature
 	}
-	prediction = f64utils.SoftMax(prediction)
+	prediction = floatutils.SoftMax(prediction)
 	p := rand.Float64() // TODO: use a local random generator?
 	for i, x := range prediction {
 		p -= x

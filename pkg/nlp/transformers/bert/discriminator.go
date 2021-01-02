@@ -5,7 +5,7 @@
 package bert
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -48,7 +48,7 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 func (m *Discriminator) Discriminate(encoded []ag.Node) []int {
 	ys := make([]int, len(encoded))
 	for i, x := range m.Forward(encoded...) {
-		ys[i] = int(math.Round(float64(f64utils.Sign(x.ScalarValue())+1.0) / 2.0))
+		ys[i] = int(math.Round(float64(floatutils.Sign(x.ScalarValue())+1.0) / 2.0))
 	}
 	return ys
 }

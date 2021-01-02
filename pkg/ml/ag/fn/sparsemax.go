@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"math"
 	"sort"
 )
@@ -81,7 +81,7 @@ func sparseMaxCommon(v []float64) (zs []float64, bounds []float64, cumSumInput [
 	}
 
 	cumSumInput = make([]float64, len(zs))
-	f64utils.CumSum(cumSumInput, zs)
+	floatutils.CumSum(cumSumInput, zs)
 
 	k := -1
 	tau = 0.0
@@ -160,7 +160,7 @@ func (s *SparseMaxLoss) Backward(gy mat.Matrix) {
 		gx := mat.GetDenseWorkspace(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
 		gyData := gy.Data()
-		gySum := f64utils.Sum(gyData)
+		gySum := floatutils.Sum(gyData)
 		for i := range gyData {
 			gx.Set(i, 0, gy.At(i, 0)-gySum*sparseMax[i])
 		}

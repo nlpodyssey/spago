@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -89,8 +89,8 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 
 	retTokens := make([]Token, 0)
 	for i, logits := range proc.TokenClassification(avgEncoded) {
-		probs := f64utils.SoftMax(logits.Value().Data())
-		best := f64utils.ArgMax(probs)
+		probs := floatutils.SoftMax(logits.Value().Data())
+		best := floatutils.ArgMax(probs)
 		retTokens = append(retTokens, Token{
 			Text:  groupedTokens[i].String,
 			Start: groupedTokens[i].Offsets.Start,

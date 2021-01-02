@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -128,7 +128,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 		}
 	}
 
-	probs := f64utils.SoftMax(scores)
+	probs := floatutils.SoftMax(scores)
 	answers := make(AnswerSlice, 0)
 	for i, candidate := range candidateAnswers {
 		if probs[i] >= defaultMinConfidence {

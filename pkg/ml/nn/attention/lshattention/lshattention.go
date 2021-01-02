@@ -11,7 +11,7 @@ package lshattention
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -68,7 +68,7 @@ type indexedNodes struct {
 func (m *Model) getHash(x *mat.Dense) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
-	return f64utils.ArgMax(concat.Data())
+	return floatutils.ArgMax(concat.Data())
 }
 
 // TODO: implement concurrent computation?

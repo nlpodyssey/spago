@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -79,7 +79,7 @@ func (s *Server) predict(text string) *Response {
 
 	retTokens := make([]Token, 0)
 	for tokenID, prediction := range proc.PredictMasked(encoded, masked) {
-		bestPredictedWordIndex := f64utils.ArgMax(prediction.Value().Data())
+		bestPredictedWordIndex := floatutils.ArgMax(prediction.Value().Data())
 		word, ok := s.model.Vocabulary.Term(bestPredictedWordIndex)
 		if !ok {
 			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary

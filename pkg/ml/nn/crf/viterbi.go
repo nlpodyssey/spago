@@ -6,7 +6,7 @@ package crf
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"math"
 )
@@ -35,7 +35,7 @@ func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
 	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
-	ys[len(xs)-1] = f64utils.ArgMax(alpha[len(xs)].scores.Data())
+	ys[len(xs)-1] = floatutils.ArgMax(alpha[len(xs)].scores.Data())
 	for i := len(xs) - 2; i >= 0; i-- {
 		ys[i] = alpha[i+1].backpointers[ys[i+1]]
 	}
