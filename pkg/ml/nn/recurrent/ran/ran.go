@@ -115,8 +115,8 @@ func (m *Model) prev() (yPrev, cPrev ag.Node) {
 }
 
 // Importance returns the "importance" score for each element of the processed sequence.
-func (m *Model) Importance() [][]float64 {
-	importance := make([][]float64, len(m.States))
+func (m *Model) Importance() [][]mat.Float {
+	importance := make([][]mat.Float, len(m.States))
 	for i := range importance {
 		importance[i] = m.scores(i)
 	}
@@ -125,9 +125,9 @@ func (m *Model) Importance() [][]float64 {
 
 // importance computes the importance score of the previous states respect to the i-state.
 // The output contains the importance score for each k-previous states.
-func (m *Model) scores(i int) []float64 {
+func (m *Model) scores(i int) []mat.Float {
 	states := m.States
-	scores := make([]float64, len(states))
+	scores := make([]mat.Float, len(states))
 	incForgetProd := states[i].ForG.Value().Clone()
 	for k := i; k >= 0; k-- {
 		inG := states[k].InG.Value()

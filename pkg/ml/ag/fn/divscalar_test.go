@@ -12,7 +12,7 @@ import (
 
 func TestScalarDiv_Forward(t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]float64{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -24,9 +24,9 @@ func TestScalarDiv_Forward(t *testing.T) {
 	f := NewDivScalar(x1, x2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{0.05, 0.1, 0.15, 0}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{0.05, 0.1, 0.15, 0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
 
-	assert.InDeltaSlice(t, []float64{-0.5, 0.25, 0.4, 0.0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{-0.5, 0.25, 0.4, 0.0}, x1.grad.Data(), 1.0e-6)
 }

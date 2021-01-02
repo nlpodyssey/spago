@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
@@ -29,7 +30,7 @@ import (
 type TrainingConfig struct {
 	Seed             uint64
 	BatchSize        int
-	GradientClipping float64
+	GradientClipping mat.Float
 	UpdateMethod     gd.MethodConfig
 	CorpusPath       string
 	ModelPath        string
@@ -40,8 +41,8 @@ type Trainer struct {
 	TrainingConfig
 	randGen       *rand.LockedRand
 	optimizer     *gd.GradientDescent
-	bestLoss      float64
-	lastBatchLoss float64
+	bestLoss      mat.Float
+	lastBatchLoss mat.Float
 	model         *Model
 	countLine     int
 }
@@ -124,7 +125,7 @@ func (t *Trainer) applyMask(tokens []string) (newTokens []string, maskedIds []in
 			newTokens = append(newTokens, word)
 			continue
 		}
-		if t.randGen.Float64() < 0.15 {
+		if t.randGen.Float() < 0.15 {
 			maskedIds = append(maskedIds, id)
 			newTokens = append(newTokens, t.getMaskedForm(word))
 		} else {
@@ -135,12 +136,12 @@ func (t *Trainer) applyMask(tokens []string) (newTokens []string, maskedIds []in
 }
 
 func (t *Trainer) getMaskedForm(orig string) string {
-	prob := t.randGen.Float64()
+	prob := t.randGen.Float()
 	switch {
 	case prob < 0.80:
 		return wordpiecetokenizer.DefaultMaskToken
 	case prob < 0.90:
-		randomID := int(math.Floor(t.randGen.Float64() * float64(t.model.Vocabulary.Size())))
+		randomID := int(math.Floor(float64(t.randGen.Float() * mat.Float(t.model.Vocabulary.Size()))))
 		newWord, _ := t.model.Vocabulary.Term(randomID)
 		return newWord
 	default:

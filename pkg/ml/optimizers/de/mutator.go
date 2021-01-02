@@ -20,11 +20,11 @@ var _ Mutator = &RandomMutation{}
 
 // RandomMutation implements a random mutation operation.
 type RandomMutation struct {
-	Bound float64
+	Bound mat.Float
 }
 
 // NewRandomMutation returns a new RandomMutation.
-func NewRandomMutation(bound float64) *RandomMutation {
+func NewRandomMutation(bound mat.Float) *RandomMutation {
 	return &RandomMutation{
 		Bound: bound,
 	}
@@ -55,12 +55,12 @@ var _ Mutator = &DeglMutation{}
 //   Authors: Pradipta Ghosh, Hamim Zafar, Joydeep Banerjee, Swagatam Das (2011)
 //   (https://www.springerprofessional.de/en/design-of-two-channel-quadrature-mirror-filter-banks-using-diffe/3805398)
 type DeglMutation struct {
-	NeighborhoodRadius float64
-	Bound              float64
+	NeighborhoodRadius mat.Float
+	Bound              mat.Float
 }
 
 // NewDeglMutation returns a new DeglMutation.
-func NewDeglMutation(NeighborhoodRadius, bound float64) *DeglMutation {
+func NewDeglMutation(NeighborhoodRadius, bound mat.Float) *DeglMutation {
 	return &DeglMutation{
 		NeighborhoodRadius: NeighborhoodRadius,
 		Bound:              bound,
@@ -72,8 +72,8 @@ func NewDeglMutation(NeighborhoodRadius, bound float64) *DeglMutation {
 //    L = xi + MutationFactor (bestNeighbor − xi) + MutationFactor (xc − xd)
 //    yi = clip(w * L + (1-w) * G)
 func (m *DeglMutation) Mutate(p *Population) {
-	windowSize := int(float64(len(p.Members)) * m.NeighborhoodRadius)
-	bestIndex, _ := p.FindBest(0, len(p.Members)-1, math.Inf(+1), 0)
+	windowSize := int(mat.Float(len(p.Members)) * m.NeighborhoodRadius)
+	bestIndex, _ := p.FindBest(0, len(p.Members)-1, mat.Float(math.Inf(+1)), 0)
 	for i, member := range p.Members {
 		except := func(r int) bool { return r != i }
 		extracted := rand.GetUniqueRandomInt(2, len(p.Members), except)

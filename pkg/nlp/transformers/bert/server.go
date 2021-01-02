@@ -7,6 +7,8 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	matsort "github.com/nlpodyssey/spago/pkg/mat/sort"
 	"github.com/nlpodyssey/spago/pkg/webui/bertclassification"
 	"net/http"
 	"sort"
@@ -14,7 +16,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
 	"github.com/nlpodyssey/spago/pkg/webui/bertqa"
@@ -91,10 +92,10 @@ const DefaultPredictedLabel = "PREDICTED"
 // Answer represent a single JSON-serializable BERT question-answering answer,
 // used as part of a server's response.
 type Answer struct {
-	Text       string  `json:"text"`
-	Start      int     `json:"start"`
-	End        int     `json:"end"`
-	Confidence float64 `json:"confidence"`
+	Text       string    `json:"text"`
+	Start      int       `json:"start"`
+	End        int       `json:"end"`
+	Confidence mat.Float `json:"confidence"`
 }
 
 // AnswerSlice is a slice of Answer elements, which implements the sort.Interface.
@@ -134,16 +135,16 @@ const defaultMinConfidence = 0.1      // TODO: from options
 const defaultMaxCandidateLogits = 3.0 // TODO: from options
 const defaultMaxAnswers = 3           // TODO: from options
 
-func extractScores(logits []ag.Node) []float64 {
-	scores := make([]float64, len(logits))
+func extractScores(logits []ag.Node) []mat.Float {
+	scores := make([]mat.Float, len(logits))
 	for i, node := range logits {
 		scores[i] = node.ScalarValue()
 	}
 	return scores
 }
 
-func getBestIndices(logits []float64, size int) []int {
-	s := utils.NewFloat64Slice(logits...)
+func getBestIndices(logits []mat.Float, size int) []int {
+	s := matsort.NewFloatSlice(logits...)
 	sort.Sort(sort.Reverse(s))
 	if len(s.Indices) < size {
 		return s.Indices

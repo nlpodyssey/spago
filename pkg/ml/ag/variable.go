@@ -45,7 +45,7 @@ func (r *variable) Value() mat.Matrix {
 // ScalarValue() returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *variable) ScalarValue() float64 {
+func (r *variable) ScalarValue() mat.Float {
 	return r.value.Scalar()
 }
 

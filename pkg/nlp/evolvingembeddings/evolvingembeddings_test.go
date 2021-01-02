@@ -22,11 +22,11 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	})
 	wordInContext1 := &WordVectorPair{
 		Word:   "foo",
-		Vector: mat.NewVecDense([]float64{0.1, 0.2, 0.3, 0.4, 0.5, -0.6, -0.5, 0.8, -0.8, -3, -0.3, -0.4}),
+		Vector: mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4, 0.5, -0.6, -0.5, 0.8, -0.8, -3, -0.3, -0.4}),
 	}
 	sameWordInContext2 := &WordVectorPair{
 		Word:   "foo",
-		Vector: mat.NewVecDense([]float64{0.2, 0.7, 0.5, 0.0, 0.4, 0.5, -0.8, 0.7, -0.3, 0.2, -0.0, -0.9}),
+		Vector: mat.NewVecDense([]mat.Float{0.2, 0.7, 0.5, 0.0, 0.4, 0.5, -0.8, 0.7, -0.3, 0.2, -0.0, -0.9}),
 	}
 
 	g := ag.NewGraph()
@@ -46,7 +46,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	g = ag.NewGraph()
 	proc = nn.Reify(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res = proc.Encode([]string{"foo"})[0]
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.1, 0.2, 0.3, 0.0, 0.4, -0.6, -0.8, 0.7, -0.8, -3, -0.3, -0.9,
 	}, res.Value().Data(), 1.0e-6)
 
@@ -58,7 +58,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	g = ag.NewGraph()
 	proc = nn.Reify(nn.Context{Graph: g, Mode: nn.Training}, model).(*Model)
 	res = proc.Encode([]string{"foo"})[0]
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	}, res.Value().Data(), 1.0e-6)
 }

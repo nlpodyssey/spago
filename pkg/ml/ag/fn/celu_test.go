@@ -12,7 +12,7 @@ import (
 
 func TestCELUForward(t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}),
+		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -25,9 +25,9 @@ func TestCELUForward(t *testing.T) {
 	f := NewCELU(x, alpha)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{0.1, -0.19032516, 0.3, 0}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{0.1, -0.19032516, 0.3, 0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
 
-	assert.InDeltaSlice(t, []float64{-1.0, 0.45241870, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{-1.0, 0.45241870, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }

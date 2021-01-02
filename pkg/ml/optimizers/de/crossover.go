@@ -38,7 +38,7 @@ func (c *BinomialCrossover) Crossover(p *Population) {
 		rn := rand.NewLockedRand(seed.Uint64n(100))
 		k := rn.Intn(size)
 		for i := 0; i < size; i++ {
-			if math.Abs(randomVector.At(i, 0)) > member.CrossoverRate || i == k { // Fixed range trick
+			if mat.Float(math.Abs(float64(randomVector.At(i, 0)))) > member.CrossoverRate || i == k { // Fixed range trick
 				member.DonorVector.SetVec(i, member.TargetVector.AtVec(i))
 			}
 		}

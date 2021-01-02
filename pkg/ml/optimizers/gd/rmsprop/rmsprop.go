@@ -15,13 +15,13 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an RMSProp optimizer.
 type Config struct {
 	gd.MethodConfig
-	LR      float64
-	Epsilon float64
-	Decay   float64
+	LR      mat.Float
+	Epsilon mat.Float
+	Decay   mat.Float
 }
 
 // NewConfig returns a new RMSProp Config.
-func NewConfig(lr, epsilon, decay float64) Config {
+func NewConfig(lr, epsilon, decay mat.Float) Config {
 	return Config{
 		LR:      lr,
 		Epsilon: epsilon,

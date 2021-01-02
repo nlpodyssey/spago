@@ -15,13 +15,13 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an SGD optimizer.
 type Config struct {
 	gd.MethodConfig
-	LR       float64
-	Mu       float64
+	LR       mat.Float
+	Mu       mat.Float
 	Nesterov bool
 }
 
 // NewConfig returns a new SGD Config.
-func NewConfig(lr, momentum float64, nesterov bool) Config {
+func NewConfig(lr, momentum mat.Float, nesterov bool) Config {
 	return Config{
 		LR:       lr,
 		Mu:       momentum,
@@ -34,7 +34,7 @@ var _ gd.Method = &SGD{}
 // SGD implements the SGD gradient descent optimization method.
 type SGD struct {
 	Config
-	Alpha float64
+	Alpha mat.Float
 }
 
 // New returns a new SGD optimizer, initialized according to the given configuration.

@@ -32,7 +32,7 @@ type Config struct {
 	QuerySize     int
 	KeySize       int
 	ValueSize     int
-	ScaleFactor   float64
+	ScaleFactor   mat.Float
 	UseCausalMask bool
 }
 

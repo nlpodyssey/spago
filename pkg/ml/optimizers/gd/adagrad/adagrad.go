@@ -15,12 +15,12 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an AdaGrad optimizer.
 type Config struct {
 	gd.MethodConfig
-	LR      float64
-	Epsilon float64
+	LR      mat.Float
+	Epsilon mat.Float
 }
 
 // NewConfig returns a new AdaGrad Config.
-func NewConfig(lr, epsilon float64) Config {
+func NewConfig(lr, epsilon mat.Float) Config {
 	return Config{
 		LR:      lr,
 		Epsilon: epsilon,

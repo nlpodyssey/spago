@@ -20,7 +20,7 @@ type ViterbiStructure struct {
 // NewViterbiStructure returns a new ViterbiStructure ready to use.
 func NewViterbiStructure(size int) *ViterbiStructure {
 	return &ViterbiStructure{
-		scores:       mat.NewInitVecDense(size, math.Inf(-1)),
+		scores:       mat.NewInitVecDense(size, mat.Float(math.Inf(-1))),
 		backpointers: make([]int, size),
 	}
 }

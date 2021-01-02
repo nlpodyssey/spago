@@ -7,6 +7,7 @@ package bert
 import (
 	"context"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"net/http"
 	"runtime"
 	"sort"
@@ -67,7 +68,7 @@ func answersFrom(resp *QuestionAnsweringResponse) []*grpcapi.Answer {
 			Text:       t.Text,
 			Start:      int32(t.Start),
 			End:        int32(t.End),
-			Confidence: t.Confidence,
+			Confidence: float64(t.Confidence),
 		}
 	}
 
@@ -101,7 +102,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 	endIndices := getBestIndices(extractScores(endLogits), defaultMaxCandidateLogits)
 
 	candidateAnswers := make([]Answer, 0)
-	scores := make([]float64, 0) // the scores are aligned with the candidateAnswers
+	scores := make([]mat.Float, 0) // the scores are aligned with the candidateAnswers
 	for _, startIndex := range startIndices {
 		for _, endIndex := range endIndices {
 			switch {

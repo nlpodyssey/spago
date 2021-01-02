@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/pkg/errors"
 	"reflect"
@@ -241,7 +242,7 @@ func (g *Graph) Identity(x Node) Node {
 }
 
 // Dropout returns a new operator node as a result of the fn.Dropout function.
-func (g *Graph) Dropout(x Node, p float64) Node {
+func (g *Graph) Dropout(x Node, p mat.Float) Node {
 	return g.NewOperator(fn.NewDropout(x, p, g.randGen), x)
 }
 
@@ -372,7 +373,7 @@ func (g *Graph) Square(x Node) Node {
 }
 
 // Pow returns a new operator node as a result of the fn.Pow function.
-func (g *Graph) Pow(x Node, power float64) Node {
+func (g *Graph) Pow(x Node, power mat.Float) Node {
 	return g.NewOperator(fn.NewPow(x, power), x)
 }
 

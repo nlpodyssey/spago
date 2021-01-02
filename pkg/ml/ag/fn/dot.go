@@ -27,7 +27,7 @@ func (r *Dot) Forward() mat.Matrix {
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
-	y := 0.0
+	var y mat.Float = 0.0
 	if r.x1.Value().IsVector() && r.x2.Value().IsVector() {
 		y = r.x1.Value().DotUnitary(r.x2.Value())
 	} else {

@@ -26,7 +26,7 @@ type Graph struct {
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
-	constants map[float64]Node
+	constants map[mat.Float]Node
 	// IncrementalForward sets whether to compute the forward during the graph definition (default true).
 	incrementalForward bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
@@ -97,7 +97,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 		maxID:              -1,
 		curTimeStep:        0,
 		nodes:              nil,
-		constants:          map[float64]Node{},
+		constants:          map[mat.Float]Node{},
 		incrementalForward: true,
 		processingQueue:    processingqueue.New(defaultProcessingQueueSize),
 	}
@@ -205,14 +205,14 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 
 // NewScalar creates a variable node that doesn't require gradients.
 // TODO: Why shouldn't gradient be required by default?
-func (g *Graph) NewScalar(value float64) Node {
+func (g *Graph) NewScalar(value mat.Float) Node {
 	return g.NewVariable(mat.NewScalar(value), false)
 }
 
 // Constant returns a scalar Node that that doesn't require gradients.
 // For the same value, a previously created Node is returned without creating a new one.
 // Useful for example in the case of epsilon and number like 0.0 or 1.0.
-func (g *Graph) Constant(value float64) Node {
+func (g *Graph) Constant(value mat.Float) Node {
 	g.mu2.Lock()
 	defer g.mu2.Unlock()
 	if node, ok := g.constants[value]; ok {

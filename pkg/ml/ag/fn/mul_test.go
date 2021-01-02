@@ -12,7 +12,7 @@ import (
 
 func TestMul_ForwardMatrixMatrix(t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []float64{
+		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -22,7 +22,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 	}
 
 	x2 := &variable{
-		value: mat.NewDense(4, 3, []float64{
+		value: mat.NewDense(4, 3, []mat.Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
@@ -35,25 +35,25 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 	f := NewMul(x1, x2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		-0.22, 0.36, 0.06,
 		0.7, 0.06, 0.0,
 		0.52, -0.59, 0.48,
 	}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewDense(3, 3, []float64{
+	f.Backward(mat.NewDense(3, 3, []mat.Float{
 		0.2, 0.7, 0.5,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 	}))
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.78, 0.53, 0.18, -0.41,
 		0.53, 0.41, 0.13, -0.45,
 		0.12, 0.03, 1.12, 0.33,
 	}, x1.grad.Data(), 1.0e-6)
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.32, -0.12, 0.5,
 		-0.44, 0.9, -0.05,
 		0.54, -0.59, 0.25,
@@ -63,7 +63,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 
 func TestMul_ForwardMatrixVector(t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []float64{
+		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -73,7 +73,7 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 	}
 
 	x2 := &variable{
-		value:        mat.NewVecDense([]float64{-0.8, -0.9, -0.9, 1.0}),
+		value:        mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -81,11 +81,11 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 	f := NewMul(x1, x2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]float64{0.2, -0.6, 0.8}))
+	f.Backward(mat.NewVecDense([]mat.Float{0.2, -0.6, 0.8}))
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		-0.16, -0.18, -0.18, 0.2,
 		0.48, 0.54, 0.54, -0.6,
 		-0.64, -0.72, -0.72, 0.8,
@@ -95,5 +95,5 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 		t.Error("The rows and columns of the resulting x1-gradients are not correct")
 	}
 
-	assert.InDeltaSlice(t, []float64{-0.62, 0.38, -0.22, -0.5}, x2.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{-0.62, 0.38, -0.22, -0.5}, x2.grad.Data(), 1.0e-6)
 }

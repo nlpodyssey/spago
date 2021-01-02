@@ -37,7 +37,7 @@ type Config struct {
 	QuerySize   int
 	ValueSize   int
 	BucketSize  int // num of buckets / 2
-	ScaleFactor float64
+	ScaleFactor mat.Float
 }
 
 // ContextProb is a pair of Context encodings and Prob attention scores.
@@ -78,7 +78,7 @@ func (m *Model) lshScaledDotProductAttention(
 	ks,
 	vs *indexedNodes,
 	length int,
-	scaleFactor float64,
+	scaleFactor mat.Float,
 ) (context ag.Node, prob mat.Matrix) {
 	prob = mat.NewEmptyVecDense(length)
 	keys := g.Stack(ks.node...)

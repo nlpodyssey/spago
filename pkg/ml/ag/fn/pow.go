@@ -13,11 +13,11 @@ var _ Function = &Pow{}
 // Pow is an operator to perform element-wise pow function.
 type Pow struct {
 	x     Operand
-	power float64
+	power mat.Float
 }
 
 // NewPow returns a new Pow Function.
-func NewPow(x Operand, power float64) *Pow {
+func NewPow(x Operand, power mat.Float) *Pow {
 	return &Pow{x: x, power: power}
 }
 

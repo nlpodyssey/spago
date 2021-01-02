@@ -72,7 +72,7 @@ func (s *ServerForSequenceClassification) classifyNLI(
 		multiClass = true
 	}
 
-	scores := func() []float64 {
+	scores := func() []mat.Float {
 		if multiClass {
 			return getMultiClassScores(logits, entailmentID, contradictionID)
 		}
@@ -103,18 +103,18 @@ func (s *ServerForSequenceClassification) classifyNLI(
 }
 
 // getMultiClassScores softmax over the entailment vs. contradiction for each label independently
-func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []float64 {
-	scores := make([]float64, len(logits))
+func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []mat.Float {
+	scores := make([]mat.Float, len(logits))
 	for i, v := range logits {
-		prob := floatutils.SoftMax([]float64{v.AtVec(entailmentID), v.AtVec(contradictionID)})
+		prob := floatutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
 		scores[i] = prob[0]
 	}
 	return scores
 }
 
 // getScores softmax the "entailment" over all candidate labels
-func getScores(logits []*mat.Dense, entailmentID int) []float64 {
-	scores := make([]float64, len(logits))
+func getScores(logits []*mat.Dense, entailmentID int) []mat.Float {
+	scores := make([]mat.Float, len(logits))
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
 	}

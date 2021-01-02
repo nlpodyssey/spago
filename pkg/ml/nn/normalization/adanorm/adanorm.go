@@ -10,6 +10,7 @@
 package adanorm
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -21,7 +22,7 @@ var (
 // Model contains the scaling factor.
 type Model struct {
 	nn.BaseModel
-	Scale  float64
+	Scale  mat.Float
 	consts consts `spago:"scope:processor"`
 }
 
@@ -33,7 +34,7 @@ type consts struct {
 }
 
 // New returns a new model.
-func New(scale float64) *Model {
+func New(scale mat.Float) *Model {
 	return &Model{
 		Scale: scale,
 	}

@@ -25,7 +25,7 @@ var (
 type Model struct {
 	nn.BaseModel
 	PolicyGradient *stack.Model
-	Lambda         float64
+	Lambda         mat.Float
 	WIn            nn.Param `spago:"type:weights"`
 	WInRec         nn.Param `spago:"type:weights"`
 	BIn            nn.Param `spago:"type:biases"`
@@ -43,7 +43,7 @@ type Model struct {
 
 // New returns a new model with parameters initialized to zeros.
 // Lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
-func New(in, out, k int, lambda float64, intermediate int) *Model {
+func New(in, out, k int, lambda mat.Float, intermediate int) *Model {
 	m := &Model{}
 	m.PolicyGradient = stack.New(
 		linear.New(in+out, intermediate),

@@ -7,6 +7,7 @@ package bert
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"net/http"
 	"strings"
 	"time"
@@ -83,7 +84,7 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 			cnt++
 		}
 		if cnt > 1 {
-			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(float64(cnt)))
+			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(mat.Float(cnt)))
 		}
 	}
 

@@ -48,7 +48,7 @@ func (s *Server) SentenceEncoderHandler(w http.ResponseWriter, req *http.Request
 
 // EncodeResponse is a JSON-serializable server response for BERT "encode" requests.
 type EncodeResponse struct {
-	Data []float64 `json:"data"`
+	Data []mat.Float `json:"data"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }

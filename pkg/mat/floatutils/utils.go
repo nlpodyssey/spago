@@ -87,8 +87,8 @@ func ArgMin(v []float64) int {
 	return imin
 }
 
-// MakeFloat64Matrix returns a new 2-dimensional slice.
-func MakeFloat64Matrix(rows, cols int) [][]float64 {
+// MakeFloatMatrix returns a new 2-dimensional slice.
+func MakeFloatMatrix(rows, cols int) [][]float64 {
 	matrix := make([][]float64, rows)
 	for i := 0; i < rows; i++ {
 		matrix[i] = make([]float64, cols)
@@ -96,8 +96,8 @@ func MakeFloat64Matrix(rows, cols int) [][]float64 {
 	return matrix
 }
 
-// StrToFloat64Slice parses a string representation of a slice of float64 values.
-func StrToFloat64Slice(str string) ([]float64, error) {
+// StrToFloatSlice parses a string representation of a slice of float64 values.
+func StrToFloatSlice(str string) ([]float64, error) {
 	spl := strings.Fields(str)
 	data := make([]float64, len(spl))
 	for i, v := range spl {

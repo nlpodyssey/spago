@@ -128,6 +128,11 @@ func (lr *LockedRand) NormFloat32() (n float32) {
 	return
 }
 
+// Float is an alias for Float32.
+func (lr *LockedRand) Float() (n float32) {
+	return lr.Float32()
+}
+
 // Float32 returns, as a float32, a pseudo-random number in [0.0,1.0).
 func (lr *LockedRand) Float32() (n float32) {
 	lr.lk.Lock()

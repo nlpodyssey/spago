@@ -5,6 +5,7 @@
 package multiheadattention
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
@@ -37,7 +38,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 		QuerySize:     dk,
 		KeySize:       dk,
 		ValueSize:     dk,
-		ScaleFactor:   1.0 / math.Sqrt(float64(dk)),
+		ScaleFactor:   1.0 / mat.Float(math.Sqrt(float64(dk))),
 		UseCausalMask: useCausalMask,
 	}
 	for i := 0; i < numOfHeads; i++ {

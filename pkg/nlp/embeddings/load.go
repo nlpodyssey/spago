@@ -46,7 +46,7 @@ func (m *Model) Load(filename string) {
 		}
 		key := utils.BeforeSpace(line)
 		strVec := utils.AfterSpace(line)
-		data, err := floatutils.StrToFloat64Slice(strVec)
+		data, err := floatutils.StrToFloatSlice(strVec)
 		if err != nil {
 			log.Fatal(err)
 		}

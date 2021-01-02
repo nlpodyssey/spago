@@ -38,8 +38,8 @@ type Config struct {
 	OutputActivation             ag.OpName
 	KeepFeaturesParamsFixed      bool
 	KeepEnhancedNodesParamsFixed bool
-	FeaturesDropout              float64
-	EnhancedNodesDropout         float64
+	FeaturesDropout              mat.Float
+	EnhancedNodesDropout         mat.Float
 }
 
 // Model contains the serializable parameters.

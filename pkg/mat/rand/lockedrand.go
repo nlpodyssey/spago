@@ -118,6 +118,11 @@ func (lr *LockedRand) Intn(n int) (r int) {
 	return
 }
 
+// Float is an alias for Float64.
+func (lr *LockedRand) Float() (n float64) {
+	return lr.Float64()
+}
+
 // Float64 returns, as a float64, a pseudo-random number in [0.0,1.0).
 func (lr *LockedRand) Float64() (n float64) {
 	lr.lk.Lock()

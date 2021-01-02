@@ -5,6 +5,7 @@
 package barthead
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -22,7 +23,7 @@ type ClassificationConfig struct {
 	InputSize     int
 	HiddenSize    int
 	OutputSize    int
-	PoolerDropout float64
+	PoolerDropout mat.Float
 }
 
 // Classification is a model for BART head for sentence-level classification tasks.

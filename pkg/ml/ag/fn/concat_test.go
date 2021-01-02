@@ -12,17 +12,17 @@ import (
 
 func TestConcat_Forward(t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]float64{0.1, 0.2, 0.3}),
+		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]float64{0.4, 0.5, 0.6, 0.7}),
+		value:        mat.NewVecDense([]mat.Float{0.4, 0.5, 0.6, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x3 := &variable{
-		value:        mat.NewVecDense([]float64{0.8, 0.9}),
+		value:        mat.NewVecDense([]mat.Float{0.8, 0.9}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -30,11 +30,11 @@ func TestConcat_Forward(t *testing.T) {
 	f := NewConcat([]Operand{x1, x2, x3})
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]float64{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}))
+	f.Backward(mat.NewVecDense([]mat.Float{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}))
 
-	assert.InDeltaSlice(t, []float64{1.0, 2.0, 3.0}, x1.grad.Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []float64{4.0, 5.0, 6.0, 7.0}, x2.grad.Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []float64{8.0, 9.0}, x3.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{1.0, 2.0, 3.0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{4.0, 5.0, 6.0, 7.0}, x2.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{8.0, 9.0}, x3.grad.Data(), 1.0e-6)
 }

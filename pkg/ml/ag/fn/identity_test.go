@@ -12,7 +12,7 @@ import (
 
 func TestIdentity_Forward(t *testing.T) {
 	x := &variable{
-		value: mat.NewDense(3, 4, []float64{
+		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -24,19 +24,19 @@ func TestIdentity_Forward(t *testing.T) {
 	f := NewIdentity(x)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
 	}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewDense(3, 4, []float64{
+	f.Backward(mat.NewDense(3, 4, []mat.Float{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.5,
 	}))
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.5,

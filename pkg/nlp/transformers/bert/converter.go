@@ -146,8 +146,8 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	return nil
 }
 
-func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][]float64 {
-	paramsMap := make(map[string][]float64)
+func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][]mat.Float {
+	paramsMap := make(map[string][]mat.Float)
 	result, err := pytorch.Load(c.pyTorchModelFilename)
 	if err != nil {
 		log.Fatal(err)
@@ -169,7 +169,7 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 	return paramsMap
 }
 
-func (c *huggingFacePreTrainedConverter) enrichHuggingFaceParams(paramsMap map[string][]float64) {
+func (c *huggingFacePreTrainedConverter) enrichHuggingFaceParams(paramsMap map[string][]mat.Float) {
 	for i := 0; i < c.config.NumHiddenLayers; i++ {
 		prefix := fmt.Sprintf("bert.encoder.layer.%d.attention.self", i)
 		queryWeight := paramsMap[fmt.Sprintf("%s.query.weight", prefix)]
@@ -215,7 +215,7 @@ func normalizeParamName(orig string) (normalized string) {
 	return
 }
 
-func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[string][]float64) {
+func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[string][]mat.Float) {
 	assignToParamsList(
 		pyTorchParams["bert.embeddings.position_embeddings.weight"],
 		c.model.Embeddings.Position,
@@ -236,13 +236,13 @@ func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[str
 	c.model.Embeddings.Words.Close()
 }
 
-func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
+func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
 }
 
-func dumpWordEmbeddings(source []float64, dest *embeddings.Model, vocabulary *vocabulary.Vocabulary) {
+func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabulary *vocabulary.Vocabulary) {
 	size := dest.Size
 	for i := 0; i < vocabulary.Size(); i++ {
 		key, _ := vocabulary.Term(i)

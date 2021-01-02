@@ -34,7 +34,7 @@ const (
 
 type converter struct {
 	pathToPyTorchModel string
-	pyTorchParams      map[string][]float64
+	pyTorchParams      map[string][]mat.Float
 	params             map[string]*mappedParam
 	vocabulary         []string
 }
@@ -42,7 +42,7 @@ type converter struct {
 func newConverter(pathToPyTorchModel string) *converter {
 	return &converter{
 		pathToPyTorchModel: pathToPyTorchModel,
-		pyTorchParams:      make(map[string][]float64),
+		pyTorchParams:      make(map[string][]mat.Float),
 		params:             map[string]*mappedParam{},
 		vocabulary:         make([]string, 0),
 	}
@@ -166,7 +166,7 @@ func (c *converter) loadPyTorchParams() {
 	}
 }
 
-func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
+func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}

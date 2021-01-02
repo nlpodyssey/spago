@@ -32,7 +32,7 @@ func ToQKV(xs []ag.Node) QKV {
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor float64, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
+func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor mat.Float, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
 	context = make([]ag.Node, len(attIn.Queries))
 	prob = make([]mat.Matrix, len(attIn.Queries))
 	keys := g.Stack(attIn.Keys...)
@@ -44,9 +44,9 @@ func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor float64, useC
 
 		if useCausalMask {
 			// TODO: use external cache for causal mask?
-			causalMask := make([]float64, seqLen)
+			causalMask := make([]mat.Float, seqLen)
 			for k := i + 1; k < len(causalMask); k++ {
-				causalMask[k] = math.Inf(-1)
+				causalMask[k] = mat.Float(math.Inf(-1))
 			}
 			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense(causalMask), false))
 		}
@@ -59,7 +59,7 @@ func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor float64, useC
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, attIn QKV, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
+func ScaledDotProductAttentionConcurrent(g *ag.Graph, attIn QKV, scaleFactor mat.Float) (context []ag.Node, prob []mat.Matrix) {
 	context = make([]ag.Node, len(attIn.Queries))
 	prob = make([]mat.Matrix, len(attIn.Queries))
 	keys := g.Stack(attIn.Keys...)
@@ -86,7 +86,7 @@ type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(g *ag.Graph, attIn QKV, mappingFunction MappingFunc, eps float64) []ag.Node {
+func LinearAttention(g *ag.Graph, attIn QKV, mappingFunction MappingFunc, eps mat.Float) []ag.Node {
 	context := make([]ag.Node, len(attIn.Queries))
 	attKeys := make([]ag.Node, len(attIn.Keys))
 

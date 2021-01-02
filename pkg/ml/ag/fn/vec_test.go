@@ -12,7 +12,7 @@ import (
 
 func TestVec_Forward(t *testing.T) {
 	x := &variable{
-		value: mat.NewDense(3, 4, []float64{
+		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -24,7 +24,7 @@ func TestVec_Forward(t *testing.T) {
 	f := NewVec(x)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
@@ -35,13 +35,13 @@ func TestVec_Forward(t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	f.Backward(mat.NewVecDense([]float64{
+	f.Backward(mat.NewVecDense([]mat.Float{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 		0.8, -0.8, -0.1}))
 
-	assert.InDeltaSlice(t, []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,

@@ -37,7 +37,7 @@ func (r *ProdScalar) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
-		gx := 0.0
+		var gx mat.Float = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
 				gx += gy.At(i, j) * r.x1.Value().At(i, j)

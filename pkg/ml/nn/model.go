@@ -93,7 +93,7 @@ func ClearSupport(m Model) {
 
 // DumpParamsVector dumps all params of a Model into a single Dense vector.
 func DumpParamsVector(model Model) *mat.Dense {
-	data := make([]float64, 0)
+	data := make([]mat.Float, 0)
 	ForEachParam(model, func(param Param) {
 		data = append(data, param.Value().Data()...)
 	})

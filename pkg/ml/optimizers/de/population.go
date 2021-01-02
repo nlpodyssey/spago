@@ -19,7 +19,7 @@ type Population struct {
 
 // NewRandomPopulation returns a new Population with members initialized randomly
 // according to the given configuration.
-func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndGen *rand.LockedRand, initHyperParams MemberHyperParams) *Population {
+func NewRandomPopulation(populationSize int, vectorSize int, bound mat.Float, rndGen *rand.LockedRand, initHyperParams MemberHyperParams) *Population {
 	members := make([]*Member, populationSize)
 	for i := 0; i < populationSize; i++ {
 		vector := mat.NewEmptyVecDense(vectorSize)
@@ -33,7 +33,7 @@ func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndG
 }
 
 // FindBest finds the best member from the Population.
-func (p *Population) FindBest(lowIndex, highIndex int, upperBound float64, initArgMin int) (argMin int, minScore float64) {
+func (p *Population) FindBest(lowIndex, highIndex int, upperBound mat.Float, initArgMin int) (argMin int, minScore mat.Float) {
 	minScore = upperBound
 	argMin = initArgMin
 	for i := lowIndex; i <= highIndex; i++ {
@@ -47,13 +47,13 @@ func (p *Population) FindBest(lowIndex, highIndex int, upperBound float64, initA
 }
 
 // FindBestNeighbor finds the best neighbor member from the Population.
-func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minScore float64) {
+func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minScore mat.Float) {
 	size := len(p.Members)
 	if 2*windowSize > size {
 		panic("crossover: K must be less than population size")
 	}
 	argMin = 0
-	minScore = math.Inf(1)
+	minScore = mat.Float(math.Inf(1))
 	lowIndex := index - windowSize
 	highIndex := index + windowSize
 	if lowIndex < 0 {

@@ -47,7 +47,7 @@ func NewAxialPositionalEncoder(size, d, length, width, height int) *AxialPositio
 
 // EncodingAt returns the positional encoding at the given position.
 func (r *AxialPositionalEncoder) EncodingAt(pos int) *mat.Dense {
-	data := make([]float64, r.Size)
+	data := make([]mat.Float, r.Size)
 	for i := 0; i < r.D; i++ {
 		data[i] = r.cache[pos%r.Width].Data()[i]
 	}

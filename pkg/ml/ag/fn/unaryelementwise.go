@@ -13,8 +13,8 @@ var _ Function = &UnaryElementwise{}
 // UnaryElementwise is a single-input element-wise function.
 type UnaryElementwise struct {
 	x  Operand
-	f  func(i, j int, v float64) float64 // function
-	df func(i, j int, v float64) float64 // derivative
+	f  func(i, j int, v mat.Float) mat.Float // function
+	df func(i, j int, v mat.Float) mat.Float // derivative
 }
 
 // Forward computes the output of this node.

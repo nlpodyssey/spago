@@ -34,10 +34,10 @@ func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	}
 	// pre-compute the encoding for each position, calculating it in natural log-space
 	for pos := 0; pos < length; pos++ {
-		data := make([]float64, size, size)
+		data := make([]mat.Float, size, size)
 		for i := 0; i < size-1; i += 2 {
-			data[i] = math.Sin(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
-			data[i+1] = math.Cos(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
+			data[i] = mat.Float(math.Sin(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size))))
+			data[i+1] = mat.Float(math.Cos(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size))))
 		}
 		pe.cache[pos] = mat.NewVecDense(data)
 	}

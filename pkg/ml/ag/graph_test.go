@@ -120,7 +120,7 @@ func TestGraph_NewScalar(t *testing.T) {
 	v := s.Value()
 	assert.NotNil(t, v)
 	assert.True(t, v.IsScalar())
-	assert.Equal(t, 42.0, v.Scalar())
+	assert.Equal(t, mat.Float(42.0), v.Scalar())
 }
 
 func TestGraph_Constant(t *testing.T) {
@@ -131,7 +131,7 @@ func TestGraph_Constant(t *testing.T) {
 	v := c.Value()
 	assert.NotNil(t, v)
 	assert.True(t, v.IsScalar())
-	assert.Equal(t, 42.0, v.Scalar())
+	assert.Equal(t, mat.Float(42.0), v.Scalar())
 	assert.Same(t, c, g.Constant(42))
 	assert.NotSame(t, c, g.Constant(43))
 }
@@ -319,5 +319,5 @@ func TestGraph_Forward(t *testing.T) {
 	assert.Nil(t, op.Value())
 	g.Forward()
 	assert.NotNil(t, op.Value())
-	assert.Equal(t, 42.0, op.Value().Scalar())
+	assert.Equal(t, mat.Float(42.0), op.Value().Scalar())
 }

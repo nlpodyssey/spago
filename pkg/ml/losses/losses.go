@@ -5,6 +5,7 @@
 package losses
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
@@ -56,12 +57,12 @@ func Norm2Quantization(g *ag.Graph, x ag.Node) ag.Node {
 
 // OneHotQuantization is a loss function that pushes towards the x vector to be 1-hot.
 // q is the quantization regularizer weight (suggested  0.00001).
-func OneHotQuantization(g *ag.Graph, x ag.Node, q float64) ag.Node {
+func OneHotQuantization(g *ag.Graph, x ag.Node, q mat.Float) ag.Node {
 	return g.ProdScalar(g.Add(ZeroOneQuantization(g, x), Norm2Quantization(g, x)), g.NewScalar(q))
 }
 
 // Distance is a loss function that calculates the distance between target and x.
-func Distance(g *ag.Graph, x ag.Node, target float64) ag.Node {
+func Distance(g *ag.Graph, x ag.Node, target mat.Float) ag.Node {
 	return g.Abs(g.Sub(g.NewScalar(target), x))
 }
 
@@ -72,7 +73,7 @@ func MSESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 		loss = g.Add(loss, MSE(g, predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+		return g.DivScalar(loss, g.NewScalar(mat.Float(len(predicted))))
 	}
 	return loss
 }
@@ -84,7 +85,7 @@ func MAESeq(g *ag.Graph, predicted []ag.Node, target []ag.Node, reduceMean bool)
 		loss = g.Add(loss, MAE(g, predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+		return g.DivScalar(loss, g.NewScalar(mat.Float(len(predicted))))
 	}
 	return loss
 }
@@ -96,7 +97,7 @@ func CrossEntropySeq(g *ag.Graph, predicted []ag.Node, target []int, reduceMean 
 		loss = g.Add(loss, CrossEntropy(g, predicted[i], target[i]))
 	}
 	if reduceMean {
-		return g.DivScalar(loss, g.NewScalar(float64(len(predicted))))
+		return g.DivScalar(loss, g.NewScalar(mat.Float(len(predicted))))
 	}
 	return loss
 }

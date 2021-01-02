@@ -7,7 +7,6 @@ package fn
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"math"
 )
 
 var _ Function = &MaxPooling{}
@@ -47,18 +46,18 @@ func (r *MaxPooling) Forward() mat.Matrix {
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Columns(); col++ {
-			max := math.SmallestNonzeroFloat64
+			maximum := mat.SmallestNonzeroFloat
 			for i := row * r.rows; i < (row*r.rows)+r.rows; i++ {
 				for j := col * r.cols; j < (col*r.cols)+r.rows; j++ {
 					val := r.x.Value().At(i, j)
-					if val > max {
-						max = val
+					if val > maximum {
+						maximum = val
 						r.argmaxI[row][col] = i
 						r.argmaxJ[row][col] = j
 					}
 				}
 			}
-			r.y.Set(row, col, max)
+			r.y.Set(row, col, maximum)
 		}
 	}
 
