@@ -6,8 +6,8 @@ package ag
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/stretchr/testify/assert"
 	"testing"

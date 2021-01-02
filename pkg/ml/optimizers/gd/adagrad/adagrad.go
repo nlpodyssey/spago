@@ -5,7 +5,7 @@
 package adagrad
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )

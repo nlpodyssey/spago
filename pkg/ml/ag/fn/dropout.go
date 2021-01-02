@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"github.com/nlpodyssey/spago/pkg/mat/rand/bernulli"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand/bernulli"
 )
 
 var _ Function = &Dropout{}

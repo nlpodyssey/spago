@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
-	matsort "github.com/nlpodyssey/spago/pkg/mat/sort"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
 	"math"
 	"sort"
 )

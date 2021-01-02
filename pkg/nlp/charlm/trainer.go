@@ -6,8 +6,8 @@ package charlm
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"

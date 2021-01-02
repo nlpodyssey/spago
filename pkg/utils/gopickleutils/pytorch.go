@@ -6,7 +6,7 @@ package gopickleutils
 
 import (
 	"github.com/nlpodyssey/gopickle/pytorch"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 // GetData returns the data of a PyTorch tensor as a mat.Float slice.

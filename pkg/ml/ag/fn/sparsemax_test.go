@@ -4,7 +4,7 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

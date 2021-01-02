@@ -5,7 +5,7 @@
 package nn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"reflect"
 	"testing"
 )

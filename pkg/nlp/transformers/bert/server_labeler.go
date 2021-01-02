@@ -7,12 +7,12 @@ package bert
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"

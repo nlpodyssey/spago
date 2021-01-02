@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"

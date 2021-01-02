@@ -5,7 +5,7 @@
 package de
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"testing"
 )
 

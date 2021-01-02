@@ -5,10 +5,10 @@
 package initializers
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"github.com/nlpodyssey/spago/pkg/mat/rand/normal"
-	"github.com/nlpodyssey/spago/pkg/mat/rand/uniform"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand/normal"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand/uniform"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"math"
 )

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"

@@ -4,7 +4,7 @@
 
 package ag
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
 
 // GradValue extends the fn.Operand interface providing more convenient methods
 // to handle gradients in the context of automatic differentiation.

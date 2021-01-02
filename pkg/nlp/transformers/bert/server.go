@@ -7,8 +7,8 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/nlpodyssey/spago/pkg/mat"
-	matsort "github.com/nlpodyssey/spago/pkg/mat/sort"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
 	"github.com/nlpodyssey/spago/pkg/webui/bertclassification"
 	"net/http"
 	"sort"

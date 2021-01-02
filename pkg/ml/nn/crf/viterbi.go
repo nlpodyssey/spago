@@ -5,8 +5,8 @@
 package crf
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"math"
 )

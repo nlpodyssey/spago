@@ -5,9 +5,9 @@
 package charlm
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/floatutils"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 )
 

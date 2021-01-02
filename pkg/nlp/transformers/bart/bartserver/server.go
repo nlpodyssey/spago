@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"

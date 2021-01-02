@@ -5,7 +5,7 @@
 package pe
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 // AxialPositionalEncoder uses part of the original encodings to save memory space.

@@ -7,7 +7,7 @@ package bert
 import (
 	"context"
 	"encoding/json"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"net/http"
 	"runtime"

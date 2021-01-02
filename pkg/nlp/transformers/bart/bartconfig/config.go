@@ -6,7 +6,7 @@ package bartconfig
 
 import (
 	"encoding/json"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"os"
 )
 

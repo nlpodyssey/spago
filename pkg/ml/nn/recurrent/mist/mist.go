@@ -10,7 +10,7 @@ by Di Pietro et al., 2018 (https://arxiv.org/pdf/1702.07805.pdf).
 package mist
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"

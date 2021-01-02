@@ -4,7 +4,7 @@
 
 package stats
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
 
 // MovingAvg provides a convenient way to calculate the moving average by adding value incrementally.
 type MovingAvg struct {
