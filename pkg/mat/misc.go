@@ -29,7 +29,7 @@ func VectorsOfSameSize(a, b Matrix) bool {
 // Sqrt returns a new matrix filled with the sqrt of the values of the input matrix.
 func Sqrt(m Matrix) Matrix {
 	buf := m.ZerosLike()
-	buf.Apply(func(i, j int, v float64) float64 {
+	buf.Apply(func(i, j int, v Float) Float {
 		return math.Sqrt(v)
 	}, m)
 	return buf
@@ -47,7 +47,7 @@ func Print(a Matrix) {
 }
 
 // Cosine returns the cosine similarity between two not normalized vectors.
-func Cosine(x, y Matrix) float64 {
+func Cosine(x, y Matrix) Float {
 	d := x.DotUnitary(y)
 	xNorm := x.Norm(2.0)
 	yNorm := y.Norm(2.0)

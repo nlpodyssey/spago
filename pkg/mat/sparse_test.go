@@ -19,7 +19,7 @@ func TestNewSparse(t *testing.T) {
 		if !reflect.DeepEqual(s.nnzRow, []int{0, 2, 4, 7, 8, 8, 9, 10}) {
 			t.Error("The result doesn't match the expected values")
 		}
-		if !reflect.DeepEqual(s.nzElements, []float64{10.0, 20.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0}) {
+		if !reflect.DeepEqual(s.nzElements, []Float{10.0, 20.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 		if !reflect.DeepEqual(s.colsIndex, []int{0, 1, 1, 3, 2, 3, 4, 5, 2, 2}) {
@@ -32,19 +32,19 @@ func TestNewSparse(t *testing.T) {
 	})
 
 	t.Run("it panics with an invalid elements size", func(t *testing.T) {
-		assert.Panics(t, func() { NewSparse(2, 3, []float64{1}) })
+		assert.Panics(t, func() { NewSparse(2, 3, []Float{1}) })
 	})
 }
 
 func TestNewSparseFromMap(t *testing.T) {
-	s := NewSparseFromMap(3, 4, map[Coordinate]float64{
+	s := NewSparseFromMap(3, 4, map[Coordinate]Float{
 		{I: 0, J: 0}: 1,
 		{I: 1, J: 1}: 2,
 		{I: 2, J: 3}: 3,
 	})
 	assert.Equal(t, 3, s.Rows())
 	assert.Equal(t, 4, s.Columns())
-	expectedData := []float64{
+	expectedData := []Float{
 		1, 0, 0, 0,
 		0, 2, 0, 0,
 		0, 0, 0, 3,
@@ -59,7 +59,7 @@ func TestSparse_NewVecSparse(t *testing.T) {
 		if !reflect.DeepEqual(s.nnzRow, []int{0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3}) {
 			t.Error("The result doesn't match the expected values")
 		}
-		if !reflect.DeepEqual(s.nzElements, []float64{10.0, 3.0, 4.0}) {
+		if !reflect.DeepEqual(s.nzElements, []Float{10.0, 3.0, 4.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 		if !reflect.DeepEqual(s.colsIndex, []int{0, 0, 0}) {
@@ -78,7 +78,7 @@ func TestSparse_NewEmptySparse(t *testing.T) {
 	if !reflect.DeepEqual(s.nnzRow, []int{0, 0, 0, 0, 0, 0, 0, 0}) {
 		t.Error("The result doesn't match the expected values")
 	}
-	if !reflect.DeepEqual(s.nzElements, []float64{}) {
+	if !reflect.DeepEqual(s.nzElements, []Float{}) {
 		t.Error("The result doesn't match the expected values")
 	}
 	if !reflect.DeepEqual(s.colsIndex, []int{}) {
@@ -91,7 +91,7 @@ func TestSparse_NewEmptyVecSparse(t *testing.T) {
 	if !reflect.DeepEqual(s.nnzRow, []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
 		t.Error("The result doesn't match the expected values")
 	}
-	if !reflect.DeepEqual(s.nzElements, []float64{}) {
+	if !reflect.DeepEqual(s.nzElements, []Float{}) {
 		t.Error("The result doesn't match the expected values")
 	}
 	if !reflect.DeepEqual(s.colsIndex, []int{}) {
@@ -112,7 +112,7 @@ func TestSparse_ToDense(t *testing.T) {
 	elements := newTestData()
 	s := NewSparse(7, 6, elements)
 	d := s.ToDense()
-	if !floats.EqualApprox(d.Data(), []float64{
+	if !floats.EqualApprox(d.Data(), []Float{
 		10.0, 20.0, 0.0, 0.0, 0.0, 0.0,
 		0.0, 30.0, 0.0, 4.0, 0.0, 0.0,
 		0.0, 0.0, 50.0, 60.0, 70.0, 0.0,
@@ -129,7 +129,7 @@ func TestSparse_Data(t *testing.T) {
 	elements := newTestData()
 	s := NewSparse(7, 6, elements)
 	d := s.Data()
-	if !floats.EqualApprox(d, []float64{
+	if !floats.EqualApprox(d, []Float{
 		10.0, 20.0, 0.0, 0.0, 0.0, 0.0,
 		0.0, 30.0, 0.0, 4.0, 0.0, 0.0,
 		0.0, 0.0, 50.0, 60.0, 70.0, 0.0,
@@ -149,7 +149,7 @@ func TestSparse_Clone(t *testing.T) {
 	if !reflect.DeepEqual(d.nnzRow, []int{0, 2, 4, 7, 8, 8, 9, 10}) {
 		t.Error("The result doesn't match the expected values")
 	}
-	if !reflect.DeepEqual(d.nzElements, []float64{10.0, 20.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0}) {
+	if !reflect.DeepEqual(d.nzElements, []Float{10.0, 20.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0}) {
 		t.Error("The result doesn't match the expected values")
 	}
 	if !reflect.DeepEqual(d.colsIndex, []int{0, 1, 1, 3, 2, 3, 4, 5, 2, 2}) {
@@ -169,7 +169,7 @@ func TestSparse_Copy(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !reflect.DeepEqual(s.nzElements, []float64{20.0, 8.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 25.0, 90.0, 100.0}) {
+		if !reflect.DeepEqual(s.nzElements, []Float{20.0, 8.0, 30.0, 4.0, 50.0, 60.0, 70.0, 80.0, 25.0, 90.0, 100.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -195,7 +195,7 @@ func TestSparse_OneHotSparse(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		s := OneHotSparse(10, 8)
 
-		if !floats.EqualApprox(s.Data(), []float64{
+		if !floats.EqualApprox(s.Data(), []Float{
 			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
 		}, 1.0e-6) {
 			t.Error("The data doesn't match the expected values")
@@ -216,7 +216,7 @@ func TestSparse_NewZeros(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !reflect.DeepEqual(s.nzElements, []float64{}) {
+	if !reflect.DeepEqual(s.nzElements, []Float{}) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -294,7 +294,7 @@ func TestSparse_ProdScalar(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !reflect.DeepEqual(d.nzElements, []float64{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
+		if !reflect.DeepEqual(d.nzElements, []Float{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -304,14 +304,14 @@ func TestSparse_ProdScalar(t *testing.T) {
 	})
 
 	t.Run("n == 0", func(t *testing.T) {
-		s := NewSparse(2, 3, []float64{
+		s := NewSparse(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
 		result := s.ProdScalar(0)
 		assert.Equal(t, 2, result.Rows())
 		assert.Equal(t, 3, result.Columns())
-		assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, result.Data())
+		assert.Equal(t, []Float{0, 0, 0, 0, 0, 0}, result.Data())
 	})
 }
 
@@ -326,7 +326,7 @@ func TestSparse_ProdScalarInPlace(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !reflect.DeepEqual(d.nzElements, []float64{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
+	if !reflect.DeepEqual(d.nzElements, []Float{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -346,7 +346,7 @@ func TestSparse_ProdMatrixScalarInPlace(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !reflect.DeepEqual(d.nzElements, []float64{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
+		if !reflect.DeepEqual(d.nzElements, []Float{30.0, 60.0, 90.0, 12.0, 150.0, 180.0, 210.0, 240.0, 270.0, 300.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -373,7 +373,7 @@ func TestSparse_AddScalar(t *testing.T) {
 	s := NewSparse(3, 4, newTestDataD())
 	r := s.AddScalar(0.5)
 
-	if !floats.EqualApprox(r.Data(), []float64{
+	if !floats.EqualApprox(r.Data(), []Float{
 		0.5, 0.7, 0.5, 0.5,
 		0.5, 0.8, 0.5, 0.3,
 		0.5, 0.5, 0.0, 0.5}, 1.0e-6) {
@@ -386,7 +386,7 @@ func TestSparse_SubScalar(t *testing.T) {
 	s := NewSparse(3, 4, newTestDataD())
 	r := s.SubScalar(0.5)
 
-	if !floats.EqualApprox(r.Data(), []float64{
+	if !floats.EqualApprox(r.Data(), []Float{
 		-0.5, -0.3, -0.5, -0.5,
 		-0.5, -0.2, -0.5, -0.7,
 		-0.5, -0.5, -1.0, -0.5}, 1.0e-6) {
@@ -397,7 +397,7 @@ func TestSparse_SubScalar(t *testing.T) {
 func TestSparse_Add(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		// sparse dense
-		d := NewDense(3, 4, []float64{
+		d := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -405,7 +405,7 @@ func TestSparse_Add(t *testing.T) {
 		s := NewSparse(3, 4, newTestDataD())
 		r := s.Add(d)
 
-		if !floats.EqualApprox(r.Data(), []float64{
+		if !floats.EqualApprox(r.Data(), []Float{
 			0.1, 0.4, 0.3, 0.0,
 			0.4, 0.8, -0.6, 0.5,
 			-0.5, 0.8, -1.3, -0.1}, 1.0e-6) {
@@ -421,7 +421,7 @@ func TestSparse_Add(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !reflect.DeepEqual(u.nzElements, []float64{0.2, 0.3, -0.4, 2.0, -0.5, 1.0}) {
+		if !reflect.DeepEqual(u.nzElements, []Float{0.2, 0.3, -0.4, 2.0, -0.5, 1.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -439,7 +439,7 @@ func TestSparse_Add(t *testing.T) {
 
 func TestSparse_Sub(t *testing.T) {
 	t.Run("sparse - dense", func(t *testing.T) {
-		d := NewDense(3, 4, []float64{
+		d := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -447,7 +447,7 @@ func TestSparse_Sub(t *testing.T) {
 		s := NewSparse(3, 4, newTestDataD())
 		r := s.Sub(d)
 
-		if !floats.EqualApprox(r.Data(), []float64{
+		if !floats.EqualApprox(r.Data(), []Float{
 			-0.1, 0.0, -0.3, 0.0,
 			-0.4, -0.2, 0.6, -0.9,
 			0.5, -0.8, 0.3, 0.1}, 1.0e-6) {
@@ -464,7 +464,7 @@ func TestSparse_Sub(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !reflect.DeepEqual(u.nzElements, []float64{0.2, -0.3, 0.6, -2.0, -0.5, -1.0}) {
+		if !reflect.DeepEqual(u.nzElements, []Float{0.2, -0.3, 0.6, -2.0, -0.5, -1.0}) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -482,22 +482,22 @@ func TestSparse_Sub(t *testing.T) {
 
 func TestSparse_SubInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewVecSparse([]float64{10, 20, 30})
-		other := NewVecSparse([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{10, 20, 30})
+		other := NewVecSparse([]Float{1, 2, 3})
 		s.SubInPlace(other)
-		assert.Equal(t, []float64{9, 18, 27}, s.Data())
+		assert.Equal(t, []Float{9, 18, 27}, s.Data())
 	})
 
 	t.Run("it panics the other matrix is Dense", func(t *testing.T) {
-		s := NewVecSparse([]float64{10, 20, 30})
-		other := NewVecDense([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{10, 20, 30})
+		other := NewVecDense([]Float{1, 2, 3})
 		assert.Panics(t, func() { s.SubInPlace(other) })
 	})
 }
 
 func TestSparse_Prod(t *testing.T) {
 	t.Run("sparse x dense", func(t *testing.T) {
-		d := NewDense(3, 4, []float64{
+		d := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -509,7 +509,7 @@ func TestSparse_Prod(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !floats.EqualApprox(r.nzElements, []float64{0.04, 0.15, -0.14, 0.4}, 1.0e-6) {
+		if !floats.EqualApprox(r.nzElements, []Float{0.04, 0.15, -0.14, 0.4}, 1.0e-6) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -527,7 +527,7 @@ func TestSparse_Prod(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !floats.EqualApprox(u.nzElements, []float64{-0.09, 0.04}, 1e-06) {
+		if !floats.EqualApprox(u.nzElements, []Float{-0.09, 0.04}, 1e-06) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -545,22 +545,22 @@ func TestSparse_Prod(t *testing.T) {
 
 func TestSparse_ProdInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewVecSparse([]float64{10, 20, 30})
-		other := NewVecSparse([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{10, 20, 30})
+		other := NewVecSparse([]Float{1, 2, 3})
 		s.ProdInPlace(other)
-		assert.Equal(t, []float64{10, 40, 90}, s.Data())
+		assert.Equal(t, []Float{10, 40, 90}, s.Data())
 	})
 
 	t.Run("it panics the other matrix is Dense", func(t *testing.T) {
-		s := NewVecSparse([]float64{10, 20, 30})
-		other := NewVecDense([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{10, 20, 30})
+		other := NewVecDense([]Float{1, 2, 3})
 		assert.Panics(t, func() { s.ProdInPlace(other) })
 	})
 }
 
 func TestSparse_Div(t *testing.T) {
 	t.Run("sparse / dense", func(t *testing.T) {
-		d := NewDense(3, 4, []float64{
+		d := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -572,7 +572,7 @@ func TestSparse_Div(t *testing.T) {
 			t.Error("The result doesn't match the expected values")
 		}
 
-		if !floats.EqualApprox(r.nzElements, []float64{1.0, 0.6, -0.285714, 0.625}, 1.0e-6) {
+		if !floats.EqualApprox(r.nzElements, []Float{1.0, 0.6, -0.285714, 0.625}, 1.0e-6) {
 			t.Error("The result doesn't match the expected values")
 		}
 
@@ -582,21 +582,21 @@ func TestSparse_Div(t *testing.T) {
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
-		s := NewSparse(2, 3, []float64{1, 2, 3, 4, 5, 6})
-		other := NewSparse(3, 2, []float64{1, 2, 3, 4, 5, 6})
+		s := NewSparse(2, 3, []Float{1, 2, 3, 4, 5, 6})
+		other := NewSparse(3, 2, []Float{1, 2, 3, 4, 5, 6})
 		assert.Panics(t, func() { s.Div(other) })
 	})
 
 	t.Run("it panics if the other matrix is Sparse", func(t *testing.T) {
-		s := NewSparse(2, 3, []float64{1, 2, 3, 4, 5, 6})
-		other := NewSparse(2, 3, []float64{1, 2, 3, 4, 5, 6})
+		s := NewSparse(2, 3, []Float{1, 2, 3, 4, 5, 6})
+		other := NewSparse(2, 3, []Float{1, 2, 3, 4, 5, 6})
 		assert.Panics(t, func() { s.Div(other) })
 	})
 }
 
 func TestSparse_Mul(t *testing.T) {
 	t.Run("sparse x dense", func(t *testing.T) {
-		b := NewDense(4, 3, []float64{
+		b := NewDense(4, 3, []Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
@@ -605,7 +605,7 @@ func TestSparse_Mul(t *testing.T) {
 		s := NewSparse(3, 4, newTestDataD())
 		r := s.Mul(b)
 
-		if !floats.EqualApprox(r.Data(), []float64{
+		if !floats.EqualApprox(r.Data(), []Float{
 			0.0, 0.08, 0.1,
 			-0.04, 0.12, 0.33,
 			0.4, -0.35, 0.15,
@@ -619,7 +619,7 @@ func TestSparse_Mul(t *testing.T) {
 		s2 := NewSparse(4, 3, newTestDataF())
 		u := s1.Mul(s2)
 
-		if !floats.EqualApprox(u.Data(), []float64{
+		if !floats.EqualApprox(u.Data(), []Float{
 			0.04, 0.0, 0.0,
 			0.08, 0.0, -0.04,
 			0.0, 0.0, -0.45,
@@ -629,15 +629,15 @@ func TestSparse_Mul(t *testing.T) {
 	})
 
 	t.Run("sparse x sparse vector", func(t *testing.T) {
-		s := NewSparse(2, 3, []float64{
+		s := NewSparse(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
-		other := NewSparse(3, 1, []float64{10, 20, 30})
+		other := NewSparse(3, 1, []Float{10, 20, 30})
 		result := s.Mul(other)
 		assert.Equal(t, 2, result.Rows())
 		assert.Equal(t, 1, result.Columns())
-		assert.Equal(t, []float64{140, 320}, result.Data())
+		assert.Equal(t, []Float{140, 320}, result.Data())
 	})
 
 	t.Run("it panics with incompatible dimensions", func(t *testing.T) {
@@ -649,8 +649,8 @@ func TestSparse_Mul(t *testing.T) {
 
 func TestSparse_DotUnitary(t *testing.T) {
 	t.Run("sparse | dense", func(t *testing.T) {
-		c := NewVecDense([]float64{0.1, 0.2, 0.3, 0.0, 0.4, 0.8})
-		d := NewSparse(1, 6, []float64{0.0, 0.0, 0.0, 0.7, 0.1, 0.0})
+		c := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0, 0.4, 0.8})
+		d := NewSparse(1, 6, []Float{0.0, 0.0, 0.0, 0.7, 0.1, 0.0})
 		u := d.DotUnitary(c)
 
 		if !floats.EqualWithinAbs(u, 0.04, 1e-06) {
@@ -659,8 +659,8 @@ func TestSparse_DotUnitary(t *testing.T) {
 	})
 
 	t.Run("sparse | sparse", func(t *testing.T) {
-		e := NewSparse(1, 6, []float64{0.0, 0.0, 0.3, 0.0, 0.9, 0.0})
-		f := NewSparse(1, 6, []float64{0.0, 0.0, 0.0, 0.7, 0.1, 0.0})
+		e := NewSparse(1, 6, []Float{0.0, 0.0, 0.3, 0.0, 0.9, 0.0})
+		f := NewSparse(1, 6, []Float{0.0, 0.0, 0.0, 0.7, 0.1, 0.0})
 		v := e.DotUnitary(f)
 
 		if !floats.EqualWithinAbs(v, 0.09, 1e-06) {
@@ -684,7 +684,7 @@ func TestSparse_Transpose(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(r.nzElements, []float64{0.2, 0.3, -0.5, -0.2}, 1.0e-6) {
+	if !floats.EqualApprox(r.nzElements, []Float{0.2, 0.3, -0.5, -0.2}, 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -704,7 +704,7 @@ func TestSparse_Pow(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(d.nzElements, []float64{0.008, 0.027, -0.008, -0.125}, 1.0e-6) {
+	if !floats.EqualApprox(d.nzElements, []Float{0.008, 0.027, -0.008, -0.125}, 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -724,7 +724,7 @@ func TestSparse_Sqrt(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(d.nzElements, []float64{0.447213, 0.547722, 0.447213, 0.547722}, 1.0e-6) {
+	if !floats.EqualApprox(d.nzElements, []Float{0.447213, 0.547722, 0.447213, 0.547722}, 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -744,7 +744,7 @@ func TestSparse_Abs(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(d.nzElements, []float64{0.2, 0.3, 0.2, 0.5}, 1.0e-6) {
+	if !floats.EqualApprox(d.nzElements, []Float{0.2, 0.3, 0.2, 0.5}, 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -764,7 +764,7 @@ func TestSparse_Clip(t *testing.T) {
 		t.Error("The result doesn't match the expected values")
 	}
 
-	if !floats.EqualApprox(s.nzElements, []float64{0.2, 0.2, 0.1, 0.1}, 1.0e-6) {
+	if !floats.EqualApprox(s.nzElements, []Float{0.2, 0.2, 0.1, 0.1}, 1.0e-6) {
 		t.Error("The result doesn't match the expected values")
 	}
 
@@ -816,13 +816,13 @@ func TestSparse_Apply(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		elements := newTestDataD()
 		s := NewSparse(3, 4, elements)
-		s.Apply(func(i, j int, v float64) float64 {
+		s.Apply(func(i, j int, v Float) Float {
 			return math.Sin(v)
 		}, s)
 		if !reflect.DeepEqual(s.nnzRow, []int{0, 1, 3, 4}) {
 			t.Error("The result doesn't match the expected values")
 		}
-		if !floats.EqualApprox(s.nzElements, []float64{0.198669, 0.29552, -0.198669, -0.479425}, 1.0e-5) {
+		if !floats.EqualApprox(s.nzElements, []Float{0.198669, 0.29552, -0.198669, -0.479425}, 1.0e-5) {
 			t.Error("The result doesn't match the expected values")
 		}
 		if !reflect.DeepEqual(s.colsIndex, []int{1, 1, 3, 2}) {
@@ -833,7 +833,7 @@ func TestSparse_Apply(t *testing.T) {
 	t.Run("it panics if the other matrix is Dense", func(t *testing.T) {
 		s := NewEmptySparse(2, 3)
 		other := NewEmptyDense(2, 3)
-		f := func(i, j int, v float64) float64 {
+		f := func(i, j int, v Float) Float {
 			t.Error("the callback function should never be invoked")
 			return 0
 		}
@@ -849,7 +849,7 @@ func TestSparse_Maximum(t *testing.T) {
 		if !reflect.DeepEqual(u.nnzRow, []int{0, 2, 4, 6}) {
 			t.Error("The result doesn't match the expected values")
 		}
-		if !floats.EqualApprox(u.nzElements, []float64{0.2, 0.3, 0.3, -0.2, 2.0, 1.0}, 1e-06) {
+		if !floats.EqualApprox(u.nzElements, []Float{0.2, 0.3, 0.3, -0.2, 2.0, 1.0}, 1e-06) {
 			t.Error("The result doesn't match the expected values")
 		}
 		if !reflect.DeepEqual(u.colsIndex, []int{1, 3, 1, 3, 0, 3}) {
@@ -878,7 +878,7 @@ func TestSparse_Minimum(t *testing.T) {
 		if !reflect.DeepEqual(u.nnzRow, []int{0, 0, 2, 3}) {
 			t.Error("The result doesn't match the expected values")
 		}
-		if !floats.EqualApprox(u.nzElements, []float64{-0.3, -0.2, -0.5}, 1e-06) {
+		if !floats.EqualApprox(u.nzElements, []Float{-0.3, -0.2, -0.5}, 1e-06) {
 			t.Error("The result doesn't match the expected values")
 		}
 		if !reflect.DeepEqual(u.colsIndex, []int{1, 3, 2}) {
@@ -900,7 +900,7 @@ func TestSparse_Minimum(t *testing.T) {
 }
 
 func TestSparse_ZerosLike(t *testing.T) {
-	a := NewSparse(2, 3, []float64{
+	a := NewSparse(2, 3, []Float{
 		1, 2, 3,
 		4, 5, 6,
 	})
@@ -909,7 +909,7 @@ func TestSparse_ZerosLike(t *testing.T) {
 
 	assert.Equal(t, 2, b.Rows())
 	assert.Equal(t, 3, b.Columns())
-	assert.Equal(t, []float64{0, 0, 0, 0, 0, 0}, b.Data())
+	assert.Equal(t, []Float{0, 0, 0, 0, 0, 0}, b.Data())
 }
 
 func TestSparse_OnesLike(t *testing.T) {
@@ -940,7 +940,7 @@ func TestSparse_IsScalar(t *testing.T) {
 
 func TestSparse_Scalar(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewSparse(1, 1, []float64{42})
+		s := NewSparse(1, 1, []Float{42})
 		assert.Equal(t, s.Scalar(), 42.0)
 	})
 
@@ -964,7 +964,7 @@ func TestSparse_Set(t *testing.T) {
 
 func TestSparse_At(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewSparse(2, 3, []float64{
+		s := NewSparse(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
@@ -996,7 +996,7 @@ func TestSparse_SetVec(t *testing.T) {
 
 func TestSparse_AtVec(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewVecSparse([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{1, 2, 3})
 		assert.Equal(t, 1.0, s.AtVec(0))
 		assert.Equal(t, 2.0, s.AtVec(1))
 		assert.Equal(t, 3.0, s.AtVec(2))
@@ -1024,7 +1024,7 @@ func TestSparse_ApplyWithAlpha(t *testing.T) {
 	t.Run("it always panics", func(t *testing.T) {
 		s := NewEmptySparse(2, 3)
 		other := NewEmptyDense(2, 3)
-		f := func(i, j int, v float64, alpha ...float64) float64 {
+		f := func(i, j int, v Float, alpha ...Float) Float {
 			t.Error("the callback function should never be invoked")
 			return 0
 		}
@@ -1048,11 +1048,11 @@ func TestSparse_SubScalarInPlace(t *testing.T) {
 
 func TestSparse_AddInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		s := NewVecSparse([]float64{0.1, 0.2, 0.3, 0.0})
-		other := NewVecSparse([]float64{0.4, 0.3, 0.5, 0.7})
+		s := NewVecSparse([]Float{0.1, 0.2, 0.3, 0.0})
+		other := NewVecSparse([]Float{0.4, 0.3, 0.5, 0.7})
 		s.AddInPlace(other)
 
-		if !floats.EqualApprox(s.Data(), []float64{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
+		if !floats.EqualApprox(s.Data(), []Float{0.5, 0.5, 0.8, 0.7}, 1.0e-6) {
 			t.Error("The result doesn't match the expected values")
 		}
 	})
@@ -1066,29 +1066,29 @@ func TestSparse_AddInPlace(t *testing.T) {
 
 func TestSparse_DivInPlace(t *testing.T) {
 	t.Run("it always panics", func(t *testing.T) {
-		s := NewVecSparse([]float64{1, 2, 3})
-		other := NewVecDense([]float64{1, 2, 3})
+		s := NewVecSparse([]Float{1, 2, 3})
+		other := NewVecDense([]Float{1, 2, 3})
 		assert.Panics(t, func() { s.DivInPlace(other) })
 	})
 }
 
 func TestSparse_String(t *testing.T) {
-	d := NewVecSparse([]float64{1, 2, 3})
+	d := NewVecSparse([]Float{1, 2, 3})
 	assert.Equal(t, "[1 2 3]", d.String())
 }
 
 func TestSparse_SetData(t *testing.T) {
 	t.Run("it always panics", func(t *testing.T) {
 		s := NewEmptySparse(2, 3)
-		assert.Panics(t, func() { s.SetData([]float64{1, 2, 3, 4, 5, 6}) })
+		assert.Panics(t, func() { s.SetData([]Float{1, 2, 3, 4, 5, 6}) })
 	})
 }
 
 ///////////////////
 //  Testing data
 ///////////////////
-func newTestData() []float64 {
-	out := []float64{
+func newTestData() []Float {
+	out := []Float{
 		10.0, 20.0, 0.0, 0.0, 0.0, 0.0,
 		0.0, 30.0, 0.0, 4.0, 0.0, 0.0,
 		0.0, 0.0, 50.0, 60.0, 70.0, 0.0,
@@ -1101,8 +1101,8 @@ func newTestData() []float64 {
 }
 
 // Testing data
-func newTestData2() []float64 {
-	out := []float64{
+func newTestData2() []Float {
+	out := []Float{
 		0.0, 20.0, 0.0, 0.0, 0.0, 8.0,
 		0.0, 30.0, 0.0, 4.0, 0.0, 0.0,
 		0.0, 0.0, 50.0, 60.0, 70.0, 0.0,
@@ -1115,8 +1115,8 @@ func newTestData2() []float64 {
 }
 
 // Testing data
-func newTestDataD() []float64 {
-	out := []float64{
+func newTestDataD() []Float {
+	out := []Float{
 		0.0, 0.2, 0.0, 0.0,
 		0.0, 0.3, 0.0, -0.2,
 		0.0, 0.0, -0.5, 0.0,
@@ -1124,8 +1124,8 @@ func newTestDataD() []float64 {
 	return out
 }
 
-func newTestDataE() []float64 {
-	out := []float64{
+func newTestDataE() []Float {
+	out := []Float{
 		0.0, 0.0, 0.0, 0.3,
 		0.0, -0.3, 0.0, -0.2,
 		2.0, 0.0, 0.0, 1.0,
@@ -1133,8 +1133,8 @@ func newTestDataE() []float64 {
 	return out
 }
 
-func newTestDataF() []float64 {
-	out := []float64{
+func newTestDataF() []Float {
+	out := []Float{
 		0.0, 0.3, 0.0,
 		0.2, 0.0, 0.0,
 		0.0, 0.0, 0.9,
@@ -1143,8 +1143,8 @@ func newTestDataF() []float64 {
 	return out
 }
 
-func newTestDataG() []float64 {
-	out := []float64{
+func newTestDataG() []Float {
+	out := []Float{
 		0.0, 0.2, 0.0, 0.0,
 		0.0, 0.3, 0.0, 0.2,
 		0.0, 0.0, 0.3, 0.0,
@@ -1152,8 +1152,8 @@ func newTestDataG() []float64 {
 	return out
 }
 
-func newTestDataVec() []float64 {
-	out := []float64{
+func newTestDataVec() []Float {
+	out := []Float{
 		10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 0.0, 4.0, 0.0, 0.0,
 	}
 	return out

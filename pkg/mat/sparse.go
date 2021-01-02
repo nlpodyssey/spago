@@ -11,19 +11,19 @@ import (
 
 var _ Matrix = &Sparse{}
 
-// Sparse is the implementation of a sparse matrix that uses float64 as data type.
+// Sparse is the implementation of a sparse matrix that uses Float as data type.
 type Sparse struct {
 	rows       int
 	cols       int
-	size       int       // rows*cols
-	nzElements []float64 // A vector
-	nnzRow     []int     // IA vector
-	colsIndex  []int     // JA vector
+	size       int     // rows*cols
+	nzElements []Float // A vector
+	nnzRow     []int   // IA vector
+	colsIndex  []int   // JA vector
 }
 
 // NewSparse returns a new rows x cols sparse matrix populated with a copy of the non-zero elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptySparse to initialize an empty matrix.
-func NewSparse(rows, cols int, elements []float64) *Sparse {
+func NewSparse(rows, cols int, elements []Float) *Sparse {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptySparse() instead.")
 	}
@@ -35,7 +35,7 @@ func NewSparse(rows, cols int, elements []float64) *Sparse {
 
 // NewVecSparse returns a new column sparse vector populated with the non-zero elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyVecSparse to initialize an empty matrix.
-func NewVecSparse(elements []float64) *Sparse {
+func NewVecSparse(elements []Float) *Sparse {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyVecSparse() instead.")
 	}
@@ -49,11 +49,11 @@ func NewEmptyVecSparse(size int) *Sparse {
 
 // NewEmptySparse returns a new rows x cols Sparse matrix.
 func NewEmptySparse(rows, cols int) *Sparse {
-	return newSparse(rows, cols, make([]float64, rows*cols))
+	return newSparse(rows, cols, make([]Float, rows*cols))
 }
 
-func newSparse(rows, cols int, elements []float64) *Sparse {
-	nzElements := make([]float64, 0)
+func newSparse(rows, cols int, elements []Float) *Sparse {
+	nzElements := make([]Float, 0)
 	nnzRow := make([]int, rows+1)
 	colsIndex := make([]int, 0)
 	k := 0
@@ -85,8 +85,8 @@ type Coordinate struct {
 }
 
 // NewSparseFromMap creates a new Sparse matrix from a raw map of values.
-func NewSparseFromMap(rows, cols int, elements map[Coordinate]float64) *Sparse {
-	nzElements := make([]float64, 0)
+func NewSparseFromMap(rows, cols int, elements map[Coordinate]Float) *Sparse {
+	nzElements := make([]Float, 0)
 	nnzRow := make([]int, rows+1)
 	colsIndex := make([]int, 0)
 	nnz := 0
@@ -127,8 +127,8 @@ func OneHotSparse(size int, oneAt int) *Sparse {
 }
 
 // Sparsity returns the sparsity of the Sparse matrix.
-func (s *Sparse) Sparsity() float64 {
-	return float64(s.size-len(s.nzElements)) / float64(s.size)
+func (s *Sparse) Sparsity() Float {
+	return Float(s.size-len(s.nzElements)) / Float(s.size)
 }
 
 // ToDense transforms a Sparse matrix into a new Dense matrix.
@@ -176,7 +176,7 @@ func (s *Sparse) Copy(other Matrix) {
 
 // Zeros sets all the values of the matrix to zero.
 func (s *Sparse) Zeros() {
-	s.nzElements = make([]float64, 0)
+	s.nzElements = make([]Float, 0)
 	s.nnzRow = make([]int, s.rows+1)
 	s.nnzRow[0] = 0
 	s.colsIndex = make([]int, 0)
@@ -209,8 +209,8 @@ func (s *Sparse) LastIndex() int {
 }
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional slice of values.
-func (s *Sparse) Data() []float64 {
-	out := make([]float64, s.rows*s.cols)
+func (s *Sparse) Data() []Float {
+	out := make([]Float, s.rows*s.cols)
 	for i := 0; i < s.rows; i++ {
 		for elem := s.nnzRow[i]; elem < s.nnzRow[i+1]; elem++ {
 			out[i*s.cols+s.colsIndex[elem]] = s.nzElements[elem]
@@ -231,7 +231,7 @@ func (s *Sparse) IsScalar() bool {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (s *Sparse) Scalar() float64 {
+func (s *Sparse) Scalar() Float {
 	if !s.IsScalar() {
 		panic("mat: expected scalar but the matrix contains more elements.")
 	}
@@ -243,13 +243,13 @@ func (s *Sparse) Scalar() float64 {
 
 // Set sets the value v at row i and column j.
 // It panics if the given indices are out of range.
-func (s *Sparse) Set(i int, j int, v float64) {
+func (s *Sparse) Set(i int, j int, v Float) {
 	panic("mat: Set not implemented for Sparse matrices")
 }
 
 // At returns the value at row i and column j.
 // It panics if the given indices are out of range.
-func (s *Sparse) At(i int, j int) float64 {
+func (s *Sparse) At(i int, j int) Float {
 	if i >= s.rows {
 		panic("mat: 'i' argument out of range.")
 	}
@@ -265,13 +265,13 @@ func (s *Sparse) At(i int, j int) float64 {
 }
 
 // SetVec is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SetVec(i int, v float64) {
+func (s *Sparse) SetVec(i int, v Float) {
 	panic("mat: SetVec not implemented for Sparse matrices")
 }
 
 // AtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector.
-func (s *Sparse) AtVec(i int) float64 {
+func (s *Sparse) AtVec(i int) Float {
 	if !(s.IsVector()) {
 		panic("mat: expected vector")
 	}
@@ -295,7 +295,7 @@ func (s *Sparse) AtVec(i int) float64 {
 
 // DoNonZero calls a function for each non-zero element of the matrix.
 // The parameters of the function are the element indices and its value.
-func (s *Sparse) DoNonZero(fn func(i, j int, v float64)) {
+func (s *Sparse) DoNonZero(fn func(i, j int, v Float)) {
 	for i := 0; i < s.rows; i++ {
 		for elem := s.nnzRow[i]; elem < s.nnzRow[i+1]; elem++ {
 			j := s.colsIndex[elem]
@@ -309,7 +309,7 @@ func (s *Sparse) DoNonZero(fn func(i, j int, v float64)) {
 func (s *Sparse) T() Matrix {
 	// Convert CSR to CSC
 	out := NewEmptySparse(s.cols, s.rows)
-	out.nzElements = make([]float64, len(s.nzElements))
+	out.nzElements = make([]Float, len(s.nzElements))
 	out.colsIndex = make([]int, len(s.nzElements))
 
 	for _, c := range s.colsIndex {
@@ -322,7 +322,7 @@ func (s *Sparse) T() Matrix {
 		nnz += temp
 	}
 	out.nnzRow[s.cols] = len(s.nzElements)
-	s.DoNonZero(func(i, j int, v float64) {
+	s.DoNonZero(func(i, j int, v Float) {
 		var destination = out.nnzRow[j]
 		out.nzElements[destination] = v
 		out.colsIndex[destination] = i
@@ -344,7 +344,7 @@ func (s *Sparse) Reshape(r, c int) Matrix {
 
 // Apply executes the unary function fn.
 // Important: apply to Functions such that f(0) = 0 (i.e. Sin, Tan)
-func (s *Sparse) Apply(fn func(i, j int, v float64) float64, a Matrix) {
+func (s *Sparse) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 	if _, ok := a.(*Sparse); !ok {
 		panic("mat: incompatible matrix types.")
 	}
@@ -354,15 +354,15 @@ func (s *Sparse) Apply(fn func(i, j int, v float64) float64, a Matrix) {
 }
 
 // ApplyWithAlpha is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) ApplyWithAlpha(fn func(i, j int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64) {
+func (s *Sparse) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float) {
 	panic("mat: ApplyWithAlpha not implemented for Sparse matrices")
 }
 
 // AddScalar performs the addition between the matrix and the given value,
 // returning a new Dense matrix.
-func (s *Sparse) AddScalar(n float64) Matrix {
+func (s *Sparse) AddScalar(n Float) Matrix {
 	out := NewInitDense(s.rows, s.cols, n)
-	s.DoNonZero(func(i, j int, v float64) {
+	s.DoNonZero(func(i, j int, v Float) {
 		out.Data()[i*s.cols+j] += v
 	})
 
@@ -370,28 +370,28 @@ func (s *Sparse) AddScalar(n float64) Matrix {
 }
 
 // AddScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) AddScalarInPlace(n float64) Matrix {
+func (s *Sparse) AddScalarInPlace(n Float) Matrix {
 	panic("mat: AddScalarInPlace not implemented for Sparse matrices")
 }
 
 // SubScalar performs a subtraction between the matrix and the given value,
 // returning a new Dense matrix.
-func (s *Sparse) SubScalar(n float64) Matrix {
+func (s *Sparse) SubScalar(n Float) Matrix {
 	out := NewInitDense(s.rows, s.cols, -n)
-	s.DoNonZero(func(i, j int, v float64) {
+	s.DoNonZero(func(i, j int, v Float) {
 		out.Data()[i*s.cols+j] += v
 	})
 	return out
 }
 
 // SubScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SubScalarInPlace(n float64) Matrix {
+func (s *Sparse) SubScalarInPlace(n Float) Matrix {
 	panic("mat: SubScalarInPlace not implemented for Sparse matrices")
 }
 
 // ProdScalar returns the multiplication between the matrix and the given value,
 // returning a new Sparse matrix.
-func (s *Sparse) ProdScalar(n float64) Matrix {
+func (s *Sparse) ProdScalar(n Float) Matrix {
 	out := s.Clone().(*Sparse) // TODO: find a better alternative to s.Clone()
 	if n == 0.0 {
 		return NewEmptySparse(s.rows, s.cols)
@@ -404,7 +404,7 @@ func (s *Sparse) ProdScalar(n float64) Matrix {
 
 // ProdScalarInPlace performs the in-place multiplication between the matrix and
 // the given value, returning the same receiver Sparse matrix.
-func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
+func (s *Sparse) ProdScalarInPlace(n Float) Matrix {
 	if n == 0.0 {
 		*s = *NewEmptySparse(s.rows, s.cols)
 		return s
@@ -417,7 +417,7 @@ func (s *Sparse) ProdScalarInPlace(n float64) Matrix {
 
 // ProdMatrixScalarInPlace multiplies the given matrix with the value, storing the
 // result in the receiver, and returning the same receiver Sparse matrix.
-func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
+func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n Float) Matrix {
 	if _, ok := m.(*Sparse); !ok {
 		panic("mat: incompatible matrix types.")
 	}
@@ -569,7 +569,7 @@ func (s *Sparse) Add(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Dense: // return dense
 		out := other.Clone()
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			out.Data()[i*s.cols+j] += v
 		})
 		return out
@@ -605,7 +605,7 @@ func (s *Sparse) Sub(other Matrix) Matrix {
 	switch other := other.(type) {
 	case *Dense: // return dense (not recommended)
 		out := other.ProdScalar(-1.0)
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			out.Data()[i*s.cols+j] += v
 		})
 		return out
@@ -642,7 +642,7 @@ func (s *Sparse) Prod(other Matrix) Matrix {
 	case *Dense: // return sparse
 		out := NewEmptySparse(other.rows, other.cols)
 		copy(out.nnzRow, s.nnzRow)
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			var product = v * other.Data()[i*other.cols+j]
 			if product != 0.0 {
 				out.nzElements = append(out.nzElements, product)
@@ -684,7 +684,7 @@ func (s *Sparse) Div(other Matrix) Matrix {
 	case *Dense: // return sparse?
 		out := NewEmptySparse(other.rows, other.cols)
 		copy(out.nnzRow, s.nnzRow)
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			var division = v / other.Data()[i*other.cols+j]
 			if division != 0.0 {
 				out.nzElements = append(out.nzElements, division)
@@ -712,20 +712,20 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 
 	switch b := other.(type) {
 	case *Dense:
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			for k := 0; k < b.cols; k++ {
 				out.data[i*b.cols+k] += v * b.data[j*b.cols+k]
 			}
 		})
 	case *Sparse:
 		if b.IsVector() {
-			s.DoNonZero(func(i, j int, v float64) {
+			s.DoNonZero(func(i, j int, v Float) {
 				for k := 0; k < b.cols; k++ {
 					out.data[i*b.cols+k] += v * b.AtVec(j)
 				}
 			})
 		} else {
-			s.DoNonZero(func(i, j int, v float64) {
+			s.DoNonZero(func(i, j int, v Float) {
 				for k := 0; k < b.cols; k++ {
 					out.data[i*b.cols+k] += v * b.At(j, k)
 				}
@@ -736,14 +736,14 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 }
 
 // DotUnitary returns the dot product of two vectors.
-func (s *Sparse) DotUnitary(other Matrix) float64 {
+func (s *Sparse) DotUnitary(other Matrix) Float {
 	if s.Size() != other.Size() {
 		panic("mat: incompatible sizes.")
 	}
 	sum := 0.0
 	switch b := other.(type) {
 	case *Dense:
-		s.DoNonZero(func(i, j int, v float64) {
+		s.DoNonZero(func(i, j int, v Float) {
 			sum += b.Data()[i*b.cols+j] * v
 		})
 	case *Sparse:
@@ -764,7 +764,7 @@ func (s *Sparse) DotUnitary(other Matrix) float64 {
 
 // Pow returns a new matrix, applying the power function with given exponent to all elements
 // of the matrix.
-func (s *Sparse) Pow(power float64) Matrix {
+func (s *Sparse) Pow(power Float) Matrix {
 	out := s.Clone().(*Sparse) // TODO: find a better alternative to s.Clone()
 	for i := 0; i < len(s.nzElements); i++ {
 		out.nzElements[i] = math.Pow(out.nzElements[i], power)
@@ -773,7 +773,7 @@ func (s *Sparse) Pow(power float64) Matrix {
 }
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
-func (s *Sparse) Norm(pow float64) float64 {
+func (s *Sparse) Norm(pow Float) Float {
 	sum := 0.0
 	for i := 0; i < len(s.nzElements); i++ {
 		sum += math.Pow(s.nzElements[i], pow)
@@ -792,7 +792,7 @@ func (s *Sparse) Sqrt() Matrix {
 }
 
 // ClipInPlace clips in place each value of the matrix.
-func (s *Sparse) ClipInPlace(min, max float64) Matrix {
+func (s *Sparse) ClipInPlace(min, max Float) Matrix {
 	for i := 0; i < len(s.nzElements); i++ {
 		if s.nzElements[i] < min {
 			s.nzElements[i] = min
@@ -813,7 +813,7 @@ func (s *Sparse) Abs() Matrix {
 }
 
 // Sum returns the sum of all values of the matrix.
-func (s *Sparse) Sum() float64 {
+func (s *Sparse) Sum() Float {
 	sum := 0.0
 	for i := 0; i < len(s.nzElements); i++ {
 		sum += s.nzElements[i]
@@ -822,7 +822,7 @@ func (s *Sparse) Sum() float64 {
 }
 
 // Max returns the maximum value of the matrix.
-func (s *Sparse) Max() float64 {
+func (s *Sparse) Max() Float {
 	max := math.Inf(-1)
 	for _, v := range s.nzElements {
 		if v > max {
@@ -833,7 +833,7 @@ func (s *Sparse) Max() float64 {
 }
 
 // Min returns the minimum value of the matrix.
-func (s *Sparse) Min() float64 {
+func (s *Sparse) Min() Float {
 	min := math.Inf(1)
 	for _, v := range s.nzElements {
 		if v < min {
@@ -849,7 +849,7 @@ func (s *Sparse) String() string {
 }
 
 // SetData is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SetData(data []float64) {
+func (s *Sparse) SetData(data []Float) {
 	panic("mat: SetData not implemented for Sparse matrices")
 }
 

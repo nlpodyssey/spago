@@ -95,7 +95,7 @@ func NewUnmarshalBinaryFrom(r io.Reader) (*Dense, int, error) {
 		return nil, n, errTooBig
 	}
 
-	data := make([]float64, rows*cols)
+	data := make([]Float, rows*cols)
 	var b [8]byte
 	for i := range data {
 		nn, err := utils.ReadFull(r, b[:])

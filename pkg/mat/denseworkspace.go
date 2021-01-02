@@ -34,7 +34,7 @@ func init() {
 				rows:     -1,
 				cols:     -1,
 				size:     -1,
-				data:     make([]float64, length),
+				data:     make([]Float, length),
 				viewOf:   nil,
 				fromPool: true,
 			}
@@ -110,7 +110,7 @@ func bits(v uint64) byte {
 }
 
 // zero zeros the given slice's elements.
-func zero(f []float64) {
+func zero(f []Float) {
 	for i := range f {
 		f[i] = 0.0
 	}
