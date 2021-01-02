@@ -6,7 +6,7 @@ package de
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -15,18 +15,21 @@ func TestCrossover(t *testing.T) {
 	crossover := NewBinomialCrossover(rand.NewLockedRand(0))
 	crossover.Crossover(population)
 
-	if !floats.EqualApprox(population.Members[0].DonorVector.Data(),
-		[]float64{0.5, 1.2, 0.3, 1.2, 0.1, 0.4, -2.6, 0.3}, 0.0001) {
-		t.Error("Donor vector doesn't match expected values")
-	}
-	if !floats.EqualApprox(population.Members[1].DonorVector.Data(),
-		[]float64{-0.4, 0.9, 1.8, 1.2, 3.6, 1.4, -2.0, -1.8}, 0.0001) {
-		t.Error("Donor vector doesn't match expected values")
-	}
-	if !floats.EqualApprox(population.Members[2].DonorVector.Data(),
-		[]float64{3.0, 0.2, 0.9, 0.1, 0.6, 1.4, 1.5, 1.7}, 0.0001) {
-		t.Error("Donor vector doesn't match expected values")
-	}
+	assert.InDeltaSlice(t,
+		[]float64{0.5, 1.2, 0.3, 1.2, 0.1, 0.4, -2.6, 0.3},
+		population.Members[0].DonorVector.Data(),
+		0.0001,
+	)
+	assert.InDeltaSlice(t,
+		[]float64{-0.4, 0.9, 1.8, 1.2, 3.6, 1.4, -2.0, -1.8},
+		population.Members[1].DonorVector.Data(),
+		0.0001,
+	)
+	assert.InDeltaSlice(t,
+		[]float64{3.0, 0.2, 0.9, 0.1, 0.6, 1.4, 1.5, 1.7},
+		population.Members[2].DonorVector.Data(),
+		0.0001,
+	)
 }
 
 func newTestCrossover() *Population {

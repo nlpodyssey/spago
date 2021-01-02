@@ -6,7 +6,7 @@ package adagrad
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -19,9 +19,7 @@ func Test_Update(t *testing.T) {
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
-	if !floats.EqualApprox(params.Data(), []float64{0.399331, 0.399258, 0.499569, 0.999, 0.799782}, 1.0e-6) {
-		t.Error("The updated params don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.399331, 0.399258, 0.499569, 0.999, 0.799782}, params.Data(), 1.0e-6)
 }
 
 func Test_Update2(t *testing.T) {
@@ -48,21 +46,17 @@ func Test_Update2(t *testing.T) {
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
-	if !floats.EqualApprox(supp[m].Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.25, 0.09, 0.01,
 		0.36, 0.16, 1,
 		0.25, 0.36, 0.01,
-	}, 1.0e-6) {
-		t.Error("The moments don't match the expected values (first iteration)")
-	}
+	}, supp[m].Data(), 1.0e-6)
 
-	if !floats.EqualApprox(params.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		1.39900000002, 1.29900000003333, 0.0009999999,
 		-0.799000000016667, 0.160999999975, 0.65099999999,
 		0.69900000002, -0.399000000016667, 0.1990000001,
-	}, 1.0e-6) {
-		t.Error("The updated params don't match the expected values (first iteration)")
-	}
+	}, params.Data(), 1.0e-6)
 
 	// === Second iteration
 
@@ -74,19 +68,15 @@ func Test_Update2(t *testing.T) {
 
 	params.SubInPlace(updater.calcDelta(grads2, supp))
 
-	if !floats.EqualApprox(supp[m].Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.74, 0.2836, 0.4456,
 		0.6736, 0.32, 2.96,
 		0.4436, 2.4336, 5.9636,
-	}, 1.0e-6) {
-		t.Error("The moments don't match the expected values (second iteration)")
-	}
+	}, supp[m].Data(), 1.0e-6)
 
-	if !floats.EqualApprox(params.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		1.39818626655825, 1.29817377270604, 0.001988715389413,
 		-0.798317681774621, 0.160292893206313, 0.650186266523523,
 		0.698339372135027, -0.399923076933827, 0.198000838875607,
-	}, 1.0e-5) {
-		t.Error("The updated params don't match the expected values (second iteration)")
-	}
+	}, params.Data(), 1.0e-5)
 }

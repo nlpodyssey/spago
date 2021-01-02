@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -19,15 +19,11 @@ func TestAbs_Forward(t *testing.T) {
 	f := NewAbs(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.1, 0.2, 0.3, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-1.0, -0.5, 0.8, 0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.0, -0.5, 0.8, 0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestSafeLog_Forward(t *testing.T) {
@@ -39,15 +35,11 @@ func TestSafeLog_Forward(t *testing.T) {
 	f := NewLog(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{-2.3025855, -1.6094379, -1.203972, -18.420680}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-2.3025855, -1.6094379, -1.203972, -18.420680}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-10.0, 2.5, 2.6666666666, 0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-10.0, 2.5, 2.6666666666, 0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestTan_Forward(t *testing.T) {
@@ -59,15 +51,11 @@ func TestTan_Forward(t *testing.T) {
 	f := NewTan(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.1003346, 0.20271, 0.3093362, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.1003346, 0.20271, 0.3093362, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-1.01006704, 0.52054567, 0.87655113, 0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.01006704, 0.52054567, 0.87655113, 0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestTanh_Forward(t *testing.T) {
@@ -79,15 +67,11 @@ func TestTanh_Forward(t *testing.T) {
 	f := NewTanh(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.09966799, 0.19737532, 0.29131261, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.09966799, 0.19737532, 0.29131261, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.99006629, 0.4805214, 0.73210956, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.99006629, 0.4805214, 0.73210956, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestSigmoid_Forward(t *testing.T) {
@@ -99,15 +83,11 @@ func TestSigmoid_Forward(t *testing.T) {
 	f := NewSigmoid(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.5249791, 0.54983399, 0.574442516, 0.5}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.5249791, 0.54983399, 0.574442516, 0.5}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.24937604, 0.12375828, 0.195566649, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.24937604, 0.12375828, 0.195566649, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestHardSigmoid_Forward(t *testing.T) {
@@ -119,15 +99,11 @@ func TestHardSigmoid_Forward(t *testing.T) {
 	f := NewHardSigmoid(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.52, 0.54, 0.56, 0.5}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.52, 0.54, 0.56, 0.5}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.2, 0.1, 0.16, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.2, 0.1, 0.16, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestHardTanh_Forward(t *testing.T) {
@@ -139,15 +115,11 @@ func TestHardTanh_Forward(t *testing.T) {
 	f := NewHardTanh(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.1, 0.2, 0.3, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-1.0, 0.5, 0.8, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.0, 0.5, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestRelu_Forward(t *testing.T) {
@@ -159,15 +131,11 @@ func TestRelu_Forward(t *testing.T) {
 	f := NewReLU(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.1, 0.0, 0.3, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.1, 0.0, 0.3, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-1.0, 0.0, 0.8, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.0, 0.0, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewSoftsignForward(t *testing.T) {
@@ -179,15 +147,11 @@ func TestNewSoftsignForward(t *testing.T) {
 	f := NewSoftsign(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.09090909, 0.16666666, 0.23076923, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.09090909, 0.16666666, 0.23076923, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.82644628, 0.347222222, 0.473372781, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.82644628, 0.347222222, 0.473372781, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewCosForward(t *testing.T) {
@@ -199,15 +163,11 @@ func TestNewCosForward(t *testing.T) {
 	f := NewCos(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.9950041, 0.9800665, 0.9553364, 1.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.9950041, 0.9800665, 0.9553364, 1.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{0.09983341, -0.09933466, -0.23641616, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.09983341, -0.09933466, -0.23641616, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewSinForward(t *testing.T) {
@@ -219,15 +179,11 @@ func TestNewSinForward(t *testing.T) {
 	f := NewSin(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.09983341, 0.19866933, 0.2955202, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.09983341, 0.19866933, 0.2955202, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.99500416, 0.49003328, 0.7642691, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.99500416, 0.49003328, 0.7642691, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewExpForward(t *testing.T) {
@@ -239,15 +195,11 @@ func TestNewExpForward(t *testing.T) {
 	f := NewExp(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{1.10517091, 1.22140275, 1.3498588, 1.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{1.10517091, 1.22140275, 1.3498588, 1.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-1.1051709, 0.6107013, 1.07988704, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.1051709, 0.6107013, 1.07988704, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewNegForward(t *testing.T) {
@@ -259,15 +211,11 @@ func TestNewNegForward(t *testing.T) {
 	f := NewNeg(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{-0.1, -0.2, -0.3, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.1, -0.2, -0.3, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{1.0, -0.5, -0.8, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{1.0, -0.5, -0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewReciprocalForward(t *testing.T) {
@@ -279,15 +227,11 @@ func TestNewReciprocalForward(t *testing.T) {
 	f := NewReciprocal(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{10.0, 5.0, 3.33333333, -10}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{10.0, 5.0, 3.33333333, -10}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{100.0, -12.5, -8.88888888, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{100.0, -12.5, -8.88888888, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewMishForward(t *testing.T) {
@@ -299,15 +243,11 @@ func TestNewMishForward(t *testing.T) {
 	f := NewMish(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.0631794175, 0.1325990019, 0.2080013723, -0.0567885752}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.0631794175, 0.1325990019, 0.2080013723, -0.0567885752}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{-0.6633368208, 0.3623122702, 0.6262618396, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.6633368208, 0.3623122702, 0.6262618396, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
 func TestNewGELUForward(t *testing.T) {
@@ -319,13 +259,9 @@ func TestNewGELUForward(t *testing.T) {
 	f := NewGELU(x)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{0.5, 0.579522, 0.507979, 0.420478, 0.492021, 1.082964, 1.0, -0.082964, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.5, 0.579522, 0.507979, 0.420478, 0.492021, 1.082964, 1.0, -0.082964, 0.0}, x.grad.Data(), 1.0e-6)
 }

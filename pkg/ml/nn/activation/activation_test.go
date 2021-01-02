@@ -8,7 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -22,16 +22,12 @@ func TestModelReLU_Forward(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
 	y := nn.ToNode(p.Forward(x))
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{0.1, 0.0, 0.3, 0.0}, 1.0e-05) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.1, 0.0, 0.3, 0.0}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
 	g.Backward(y, ag.OutputGrad(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0})))
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{-1.0, 0.0, 0.8, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-1.0, 0.0, 0.8, 0.0}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestModelSwish_Forward(t *testing.T) {
@@ -46,18 +42,11 @@ func TestModelSwish_Forward(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, -0.2, 0.3, 0.0}), true)
 	y := nn.ToNode(p.Forward(x))
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{0.0549833997, -0.080262468, 0.1936968919, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Value().Data(), 1.0e-6)
 
 	// == Backward
 	g.Backward(y, ag.OutputGrad(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0})))
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.5993373119, 0.1526040208, 0.6263414804, 0.0}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
-
-	if !floats.EqualApprox(beta.Grad().Data(), []float64{0.0188025145}, 1.0e-6) {
-		t.Error("The beta-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.5993373119, 0.1526040208, 0.6263414804, 0.0}, x.Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.0188025145}, beta.Grad().Data(), 1.0e-6)
 }

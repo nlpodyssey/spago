@@ -8,8 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"gonum.org/v1/gonum/floats"
-	"reflect"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -29,9 +28,7 @@ func TestModel_Decode(t *testing.T) {
 
 	gold := []int{3, 3, 1, 0, 3}
 
-	if !reflect.DeepEqual(y, gold) {
-		t.Error("Predictions don't match the expected values")
-	}
+	assert.Equal(t, gold, y)
 }
 
 func TestModel_GoldScore(t *testing.T) {
@@ -49,9 +46,7 @@ func TestModel_GoldScore(t *testing.T) {
 	gold := []int{0, 0, 1, 0, 3}
 	y := proc.goldScore([]ag.Node{w1, w2, w3, w4, w5}, gold)
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{14.27}, 0.000001) {
-		t.Error("Predictions don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{14.27}, y.Value().Data(), 0.000001)
 }
 
 func TestModel_TotalScore(t *testing.T) {
@@ -68,9 +63,7 @@ func TestModel_TotalScore(t *testing.T) {
 
 	y := proc.totalScore([]ag.Node{w1, w2, w3, w4, w5})
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{16.64258452}, 0.000001) {
-		t.Error("Total score doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{16.64258452}, y.Value().Data(), 0.000001)
 }
 
 func TestModel_Loss(t *testing.T) {
@@ -89,9 +82,7 @@ func TestModel_Loss(t *testing.T) {
 	loss := proc.NegativeLogLoss([]ag.Node{w1, w2, w3, w4, w5}, gold)
 
 	g.Backward(loss)
-	if !floats.EqualApprox(loss.Value().Data(), []float64{2.37258452}, 0.000001) {
-		t.Error("Total score doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{2.37258452}, loss.Value().Data(), 0.000001)
 }
 
 func newTestModel() *Model {

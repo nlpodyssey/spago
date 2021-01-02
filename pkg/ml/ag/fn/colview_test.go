@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -24,11 +24,9 @@ func TestCol_Forward(t *testing.T) {
 	f := NewColView(x, 2)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.3, -0.6, -0.8,
-	}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	}, y.Data(), 1.0e-6)
 
 	if y.Rows() != 1 || y.Columns() != 3 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
@@ -38,11 +36,9 @@ func TestCol_Forward(t *testing.T) {
 		0.1, 0.2, -0.8,
 	}))
 
-	if !floats.EqualApprox(x.grad.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.0, 0.0, 0.1, 0.0,
 		0.0, 0.0, 0.2, 0.0,
 		0.0, 0.0, -0.8, 0.0,
-	}, 1.0e-6) {
-		t.Error("The x-gradients don't match the expected values")
-	}
+	}, x.grad.Data(), 1.0e-6)
 }

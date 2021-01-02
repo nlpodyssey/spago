@@ -7,7 +7,7 @@ package losses
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -17,15 +17,11 @@ func TestMSELoss(t *testing.T) {
 	y := g.NewVariable(mat.NewVecDense([]float64{0.3, 0.2, 0.1, 0.0}), false)
 	loss := MSE(g, x, y, false)
 
-	if !equalApprox(loss.Value().Scalar(), 0.1) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 0.1, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.3, -0.1, 0.1, 0.3}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.3, -0.1, 0.1, 0.3}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestNLLLoss(t *testing.T) {
@@ -34,15 +30,11 @@ func TestNLLLoss(t *testing.T) {
 	y := g.NewVariable(mat.NewVecDense([]float64{0.0, 0.0, 1.0, 0.0}), false)
 	loss := NLL(g, g.Softmax(x), y)
 
-	if !equalApprox(loss.Value().Scalar(), 1.609438) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 1.609438, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{0.0, 0.1, -0.8, 0.7}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.0, 0.1, -0.8, 0.7}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestCrossEntropyLoss(t *testing.T) {
@@ -50,15 +42,11 @@ func TestCrossEntropyLoss(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{-500, 0, 0.693147, 1.94591}), true)
 	loss := CrossEntropy(g, x, 2)
 
-	if !equalApprox(loss.Value().Scalar(), 1.609438) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 1.609438, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{0.0, 0.1, -0.8, 0.7}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.0, 0.1, -0.8, 0.7}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestZeroOneQuantization(t *testing.T) {
@@ -66,15 +54,11 @@ func TestZeroOneQuantization(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := ZeroOneQuantization(g, x)
 
-	if !equalApprox(loss.Value().Scalar(), 2.209) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 2.209, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{0.144, 0.192, 0.0, 0.096, -7.488, 0.168}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.144, 0.192, 0.0, 0.096, -7.488, 0.168}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestNorm2Quantization(t *testing.T) {
@@ -82,15 +66,11 @@ func TestNorm2Quantization(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := Norm2Quantization(g, x)
 
-	if !equalApprox(loss.Value().Scalar(), 0.8836) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 0.8836, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{0.376, 0.752, 3.76, 1.504, -3.008, 1.128}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.376, 0.752, 3.76, 1.504, -3.008, 1.128}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestOneHotQuantization(t *testing.T) {
@@ -98,15 +78,11 @@ func TestOneHotQuantization(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := OneHotQuantization(g, x, 0.1)
 
-	if !equalApprox(loss.Value().Scalar(), 0.30926) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 0.30926, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{0.052, 0.0944, 0.376, 0.16, -1.0496, 0.1296}, 1.0e-6) {
-		t.Error("The gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.052, 0.0944, 0.376, 0.16, -1.0496, 0.1296}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestMSESeqLoss(t *testing.T) {
@@ -117,20 +93,15 @@ func TestMSESeqLoss(t *testing.T) {
 	y2 := g.NewVariable(mat.NewVecDense([]float64{0.3, 0.2, 0.1, 0.0}), false)
 	loss := MSESeq(g, []ag.Node{x1, x2}, []ag.Node{y1, y2}, true)
 
-	if !equalApprox(loss.Value().Scalar(), 0.1) {
-		t.Error("The loss doesn't match the expected value")
-	}
+	assertEqualApprox(t, 0.1, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	if !floats.EqualApprox(x1.Grad().Data(), []float64{-0.15, -0.05, 0.05, 0.15}, 1.0e-6) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
-	if !floats.EqualApprox(x2.Grad().Data(), []float64{-0.15, -0.05, 0.05, 0.15}, 1.0e-6) {
-		t.Error("The x2-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.15, -0.05, 0.05, 0.15}, x1.Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.15, -0.05, 0.05, 0.15}, x2.Grad().Data(), 1.0e-6)
 }
 
-func equalApprox(a, b float64) bool {
-	return floats.EqualWithinAbsOrRel(a, b, 1.0e-06, 1.0e-06)
+func assertEqualApprox(t *testing.T, expected, actual float64) {
+	t.Helper()
+	assert.InDelta(t, expected, actual, 1.0e-06)
 }

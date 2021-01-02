@@ -8,7 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -21,23 +21,15 @@ func TestModel_Forward(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]float64{0.4, 0.8, -0.7, -0.5}), true)
 	y := nn.ToNode(nn.Reify(ctx, model).(*Model).Forward(x))
 
-	if !floats.EqualApprox(y.Value().Data(), []float64{1.157863, 0.2, -0.561554, -0.444658}, 1.0e-06) {
-		t.Error("The output at position 0 doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{1.157863, 0.2, -0.561554, -0.444658}, y.Value().Data(), 1.0e-06)
 
 	// == Backward
 	y.PropagateGrad(mat.NewVecDense([]float64{-1.0, -0.2, 0.4, 0.6}))
 	g.BackwardAll()
 
-	if !floats.EqualApprox(x.Grad().Data(), []float64{-0.496261, 0.280677, -0.408772, 0.624355}, 1.0e-06) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
-	if !floats.EqualApprox(model.W.Grad().Data(), []float64{-0.644658, -0.257863, -0.45126, -0.483493}, 1.0e-06) {
-		t.Error("The W-gradients don't match the expected values")
-	}
-	if !floats.EqualApprox(model.B.Grad().Data(), []float64{-1.0, -0.2, 0.4, 0.6}, 1.0e-06) {
-		t.Error("The B-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.496261, 0.280677, -0.408772, 0.624355}, x.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{-0.644658, -0.257863, -0.45126, -0.483493}, model.W.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{-1.0, -0.2, 0.4, 0.6}, model.B.Grad().Data(), 1.0e-06)
 }
 
 func newTestModel() *Model {

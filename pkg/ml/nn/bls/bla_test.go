@@ -6,7 +6,7 @@ package bls
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -28,14 +28,12 @@ func Test_ridgeRegression(t *testing.T) {
 
 	b := ridgeRegression(x, y, 0.9)
 
-	if !floats.EqualApprox(b.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.13276582, 0.3392879,
 		0.13017280, -0.101273,
 		-0.3292762, 0.1246170,
 		-0.2256778, 0.0004106,
-	}, 1.0e-5) {
-		t.Error("The data doesn't match the expected values")
-	}
+	}, b.Data(), 1.0e-5)
 }
 
 func Test_admn(t *testing.T) {
@@ -56,11 +54,9 @@ func Test_admn(t *testing.T) {
 
 	b := admn(a, xaugm, 0.001, 2)
 
-	if !floats.EqualApprox(b.Data(), []float64{
+	assert.InDeltaSlice(t, []float64{
 		0.15778322, 0.4546243,
 		0.05815867, -0.169100,
 		-0.5242062, 0.2030716,
-	}, 1.0e-5) {
-		t.Error("The data doesn't match the expected values")
-	}
+	}, b.Data(), 1.0e-5)
 }

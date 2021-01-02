@@ -7,7 +7,7 @@ package attention
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
 )
@@ -38,15 +38,9 @@ func TestScaledDotProductAttention(t *testing.T) {
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
 	}
-	if !floats.EqualApprox(context[0].Value().Data(), []float64{2.22875441063165, 6.68411289826994, 2.82497984315079}, 1.0e-6) {
-		t.Error("Attention[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(context[1].Value().Data(), []float64{2.20637295180029, 8.15650999969648, 0.539678848469417}, 1.0e-6) {
-		t.Error("Attention[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(context[2].Value().Data(), []float64{2.20423303670527, 8.41210390591632, 0.152898186332002}, 1.0e-6) {
-		t.Error("Attention[2] doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{2.22875441063165, 6.68411289826994, 2.82497984315079}, context[0].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{2.20637295180029, 8.15650999969648, 0.539678848469417}, context[1].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{2.20423303670527, 8.41210390591632, 0.152898186332002}, context[2].Value().Data(), 1.0e-6)
 }
 
 //gocyclo:ignore
@@ -80,24 +74,12 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	if len(probs) != 3 {
 		t.Error("The probs doesn't have the expected length")
 	}
-	if !floats.EqualApprox(context[0].Value().Data(), []float64{0.312291, 0.347165, 0.170855, -0.813202}, 1.0e-6) {
-		t.Error("Context[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(context[1].Value().Data(), []float64{0.232861, 0.284047, 0.21555, -0.694914}, 1.0e-6) {
-		t.Error("Context[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(context[2].Value().Data(), []float64{0.236194, 0.28672, 0.21373, -0.700304}, 1.0e-6) {
-		t.Error("Context[2] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(probs[0].Data(), []float64{0.398142, 0.342329, 0.259529}, 1.0e-6) {
-		t.Error("Probs[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(probs[1].Data(), []float64{0.310603, 0.333125, 0.356272}, 1.0e-6) {
-		t.Error("Probs[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(probs[2].Data(), []float64{0.314262, 0.333682, 0.352055}, 1.0e-6) {
-		t.Error("Probs[2] doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.312291, 0.347165, 0.170855, -0.813202}, context[0].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.232861, 0.284047, 0.21555, -0.694914}, context[1].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.236194, 0.28672, 0.21373, -0.700304}, context[2].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.398142, 0.342329, 0.259529}, probs[0].Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.310603, 0.333125, 0.356272}, probs[1].Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.314262, 0.333682, 0.352055}, probs[2].Data(), 1.0e-6)
 
 	// == Backward
 	context[0].PropagateGrad(mat.NewVecDense([]float64{0.7, -0.3, -0.7, -0.5}))
@@ -105,35 +87,17 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	context[2].PropagateGrad(mat.NewVecDense([]float64{-0.6, -0.5, 0.2, -0.9}))
 	g.BackwardAll()
 
-	if !floats.EqualApprox(attIn.Queries[0].Grad().Data(), []float64{0.291064, 0.090078}, 1.0e-6) {
-		t.Error("attIn.Queries[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Queries[1].Grad().Data(), []float64{-0.214319, -0.065291}, 1.0e-6) {
-		t.Error("attIn.Queries[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Queries[2].Grad().Data(), []float64{0.084357, 0.057063}, 1.0e-6) {
-		t.Error("attIn.Queries[2] doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.291064, 0.090078}, attIn.Queries[0].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.214319, -0.065291}, attIn.Queries[1].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.084357, 0.057063}, attIn.Queries[2].Grad().Data(), 1.0e-6)
 
-	if !floats.EqualApprox(attIn.Keys[0].Grad().Data(), []float64{0.06886, -0.025612}, 1.0e-6) {
-		t.Error("attIn.Keys[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Keys[1].Grad().Data(), []float64{-0.039958, 0.089393}, 1.0e-6) {
-		t.Error("attIn.Keys[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Keys[2].Grad().Data(), []float64{-0.028902, -0.063781}, 1.0e-6) {
-		t.Error("attIn.Keys[2] doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.06886, -0.025612}, attIn.Keys[0].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.039958, 0.089393}, attIn.Keys[1].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.028902, -0.063781}, attIn.Keys[2].Grad().Data(), 1.0e-6)
 
-	if !floats.EqualApprox(attIn.Values[0].Grad().Data(), []float64{-0.15834, -0.431875, -0.371149, -0.450847}, 1.0e-6) {
-		t.Error("attIn.Values[0] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Values[1].Grad().Data(), []float64{-0.22708, -0.436103, -0.339456, -0.438166}, 1.0e-6) {
-		t.Error("attIn.Values[1] doesn't match the expected values")
-	}
-	if !floats.EqualApprox(attIn.Values[2].Grad().Data(), []float64{-0.31458, -0.432022, -0.289395, -0.410987}, 1.0e-6) {
-		t.Error("attIn.Values[2] doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.15834, -0.431875, -0.371149, -0.450847}, attIn.Values[0].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.22708, -0.436103, -0.339456, -0.438166}, attIn.Values[1].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{-0.31458, -0.432022, -0.289395, -0.410987}, attIn.Values[2].Grad().Data(), 1.0e-6)
 }
 
 func TestLinearAttention(t *testing.T) {
@@ -165,13 +129,7 @@ func TestLinearAttention(t *testing.T) {
 	if len(output) != 3 {
 		t.Error("The attention doesn't have the expected length")
 	}
-	if !floats.EqualApprox(output[0].Value().Data(), []float64{0.68021652, -0.39977211, -0.44051976}, 1.0e-05) {
-		t.Error("The output doesn't match the expected values")
-	}
-	if !floats.EqualApprox(output[1].Value().Data(), []float64{0.678651, -0.38249578, -0.43479299}, 1.0e-05) {
-		t.Error("The output doesn't match the expected values")
-	}
-	if !floats.EqualApprox(output[2].Value().Data(), []float64{0.6720585, -0.38117003, -0.44469679}, 1.0e-05) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.68021652, -0.39977211, -0.44051976}, output[0].Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []float64{0.678651, -0.38249578, -0.43479299}, output[1].Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []float64{0.6720585, -0.38117003, -0.44469679}, output[2].Value().Data(), 1.0e-05)
 }

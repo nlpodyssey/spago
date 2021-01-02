@@ -5,6 +5,7 @@
 package batchnorm
 
 import (
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -15,7 +16,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/stretchr/testify/require"
-	"gonum.org/v1/gonum/floats"
 )
 
 func TestModel_Forward_Params(t *testing.T) {
@@ -116,15 +116,11 @@ func TestModel_Forward_Params(t *testing.T) {
 		require.Equal(t, len(x), len(y))
 
 		for i, v := range model.Mean.Value().Data() {
-			if !floats.EqualWithinAbs(v, tt.expectedAvg, 1e-1) {
-				t.Fatalf("Momentum %f Mean %d: expected zero, go %f", tt.momentum, i, v)
-			}
+			assert.InDeltaf(t, tt.expectedAvg, v, 1e-1, "Momentum %f Mean %d: expected zero, go %f", tt.momentum, i, v)
 		}
 
 		for i, v := range model.StdDev.Value().Data() {
-			if !floats.EqualWithinAbs(v, tt.expectedStdDev, 1e-1) {
-				t.Fatalf("Momentum %f StdDev %d: expected %f, got %f", tt.momentum, i, tt.expectedStdDev, v)
-			}
+			assert.InDeltaf(t, tt.expectedStdDev, v, 1e-1, "Momentum %f StdDev %d: expected %f, got %f", tt.momentum, i, tt.expectedStdDev, v)
 		}
 	}
 }
@@ -141,9 +137,7 @@ func TestModel_Inference(t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense(data), false)
 	y := proc.(*Model).Forward(x)
 	require.Equal(t, 1, len(y))
-
-	require.True(t, floats.EqualApprox(y[0].Value().Data(), []float64{1.0, 4.0, 2.0}, 1e-3))
-
+	assert.InDeltaSlice(t, []float64{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
 
 func Test_Serialize(t *testing.T) {
@@ -183,17 +177,9 @@ func TestModel_Forward(t *testing.T) {
 
 	y := rectify(g, nn.Reify(ctx, model).(*Model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
-	if !floats.EqualApprox(y[0].Value().Data(), []float64{1.1828427, 0.2, 0.0, 0.0}, 1.0e-06) {
-		t.Error("The output at position 0 doesn't match the expected values")
-	}
-
-	if !floats.EqualApprox(y[1].Value().Data(), []float64{0.334314, 0.2, 0.0, 0.0}, 1.0e-06) {
-		t.Error("The output at position 1 doesn't match the expected values")
-	}
-
-	if !floats.EqualApprox(y[2].Value().Data(), []float64{1.1828427, 0.2, 0.0, 1.302356}, 1.0e-06) {
-		t.Error("The output at position 2 doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{1.1828427, 0.2, 0.0, 1.302356}, y[2].Value().Data(), 1.0e-06)
 
 	// == Backward
 
@@ -202,25 +188,11 @@ func TestModel_Forward(t *testing.T) {
 	y[2].PropagateGrad(mat.NewVecDense([]float64{0.3, -0.4, 0.7, -0.8}))
 	g.BackwardAll()
 
-	if !floats.EqualApprox(x1.Grad().Data(), []float64{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, 1.0e-06) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
-
-	if !floats.EqualApprox(x2.Grad().Data(), []float64{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, 1.0e-06) {
-		t.Error("The x2-gradients don't match the expected values")
-	}
-
-	if !floats.EqualApprox(x3.Grad().Data(), []float64{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, 1.0e-06) {
-		t.Error("The x3-gradients don't match the expected values")
-	}
-
-	if !floats.EqualApprox(model.B.Grad().Data(), []float64{-1.0, -0.5, 0.0, -0.8}, 1.0e-06) {
-		t.Error("The biases B doesn't match the expected values")
-	}
-
-	if !floats.EqualApprox(model.W.Grad().Data(), []float64{-0.070710, -0.475556, 0.0, -1.102356}, 1.0e-06) {
-		t.Error("The weights W doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, x3.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{-1.0, -0.5, 0.0, -0.8}, model.B.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []float64{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-06)
 }
 
 func rectify(g *ag.Graph, xs []ag.Node) []ag.Node {

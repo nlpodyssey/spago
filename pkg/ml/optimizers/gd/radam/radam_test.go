@@ -6,7 +6,7 @@ package radam
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -27,9 +27,7 @@ func TestRAdam_DeltaTimeStep1(t *testing.T) {
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
-	if !floats.EqualApprox(params.Data(), []float64{0.399772, 0.399605, 0.499815, 0.995625, 0.799866}, 1.0e-6) {
-		t.Error("The updated params don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.399772, 0.399605, 0.499815, 0.995625, 0.799866}, params.Data(), 1.0e-6)
 }
 
 func TestRAdam_DeltaTimeStep6(t *testing.T) {
@@ -57,7 +55,5 @@ func TestRAdam_DeltaTimeStep6(t *testing.T) {
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
-	if !floats.EqualApprox(params.Data(), []float64{0.399997, 0.399995, 0.499998, 0.999941, 0.799998}, 1.0e-6) {
-		t.Error("The updated params don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.399997, 0.399995, 0.499998, 0.999941, 0.799998}, params.Data(), 1.0e-6)
 }

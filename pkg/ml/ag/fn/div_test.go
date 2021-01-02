@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -25,17 +25,10 @@ func TestDiv_Forward(t *testing.T) {
 	f := NewDiv(x1, x2)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{0.25, 0.6666666666, 0.6, 0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{0.25, 0.6666666666, 0.6, 0.0}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x1.grad.Data(), []float64{-2.5, 1.6666666666666, 1.6, 0}, 1.0e-6) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
-
-	if !floats.EqualApprox(x2.grad.Data(), []float64{0.625, -1.11111111111111, -0.96, 0}, 1.0e-6) {
-		t.Error("The x2-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []float64{-2.5, 1.6666666666666, 1.6, 0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []float64{0.625, -1.11111111111111, -0.96, 0}, x2.grad.Data(), 1.0e-6)
 }
