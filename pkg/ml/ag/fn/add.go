@@ -15,6 +15,7 @@ type Add struct {
 	x2 Operand
 }
 
+// NewAdd returns a new Add Function.
 func NewAdd(x1, x2 Operand) *Add {
 	return &Add{x1: x1, x2: x2}
 }
@@ -33,6 +34,7 @@ func (r *Add) Forward() mat.Matrix {
 	return x1v.Add(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Add) Backward(gy mat.Matrix) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()

@@ -13,6 +13,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/webui/ner"
 )
 
+// Server is the spaGO built-in implementation of HTTP and gRPC server for
+// sequence labeling.
 type Server struct {
 	model *Model
 
@@ -20,12 +22,14 @@ type Server struct {
 	grpcapi.UnimplementedSequenceLabelerServer
 }
 
+// NewServer returns a new Server.
 func NewServer(model *Model) *Server {
 	return &Server{
 		model: model,
 	}
 }
 
+// Start starts the HTTP and gRPC servers.
 func (s *Server) Start(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ner-ui", ner.Handler)

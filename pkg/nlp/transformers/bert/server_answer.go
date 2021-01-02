@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 )
 
+// QaHandler is the HTTP server handler function for BERT question-answering requests.
 func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
@@ -85,9 +87,10 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 	tokenized := append([]string{cls}, append(tokenizers.GetStrings(origQuestionTokens), sep)...)
 	tokenized = append(tokenized, append(tokenizers.GetStrings(origPassageTokens), sep)...)
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	ctx := nn.Context{Graph: g, Mode: nn.Inference}
+	proc := nn.Reify(ctx, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	passageStartIndex := len(origQuestionTokens) + 2 // +2 because of [CLS] and [SEP]

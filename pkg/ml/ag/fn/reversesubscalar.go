@@ -14,6 +14,7 @@ type ReverseSubScalar struct {
 	x2 Operand // scalar
 }
 
+// NewReverseSubScalar returns a new ReverseSubScalar Function.
 func NewReverseSubScalar(x1, x2 Operand) *ReverseSubScalar {
 	return &ReverseSubScalar{x1: x1, x2: x2}
 }
@@ -23,6 +24,7 @@ func (r *ReverseSubScalar) Forward() mat.Matrix {
 	return mat.NewInitDense(r.x1.Value().Rows(), r.x1.Value().Columns(), r.x2.Value().Scalar()).Sub(r.x1.Value())
 }
 
+// Backward computes the backward pass.
 func (r *ReverseSubScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

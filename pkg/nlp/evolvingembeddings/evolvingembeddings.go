@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package evolvingembeddings provides s word embedding model that evolves by dynamically
+// Package evolvingembeddings provides a word embedding model that evolves by dynamically
 // aggregating contextual embeddings over time during inference.
 // See "Pooled Contextualized Embeddings" by Akbik et al., 2019
 // https://www.aclweb.org/anthology/papers/N/N19/N19-1078/
@@ -20,27 +20,33 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
 var allModels []*Model
 
+// Model implements an Evolving Pooled Contextualized Embeddings model.
 type Model struct {
+	nn.BaseModel
 	Config
-	storage       kvdb.KeyValueDB
-	mu            sync.Mutex
-	ZeroEmbedding *nn.Param `type:"weights"`
+	Storage       kvdb.KeyValueDB
+	Mu            sync.Mutex
+	ZeroEmbedding nn.Param `spago:"type:weights"`
 }
 
+// PoolingType is the enumeration-like type used to distinguish different types
+// of pooling operations for an Evolving Pooled Contextualized Embeddings Model.
 type PoolingType int
 
 const (
+	// Max identifies the maximum pooling operation function.
 	Max PoolingType = iota
+	// Min identifies the minimum pooling operation function.
 	Min
 	// TODO: Avg
 )
 
+// Config provides configuration settings for an Evolving Pooled Contextualized Embeddings Model.
 type Config struct {
 	// Size of the embedding vectors.
 	Size int
@@ -48,33 +54,33 @@ type Config struct {
 	PoolingOperation PoolingType
 	// The path to DB on the drive
 	DBPath string
-	// Whether to force the deletion of any existing DB to start with an empty embeddings map.
+	// Whether to force the deletion of any existing DB to start with an empty embeddings mam.
 	ForceNewDB bool
 }
 
-// New returns a new embedding model.
+// New returns a new embedding Model.
 func New(config Config) *Model {
 	m := &Model{
 		Config: config,
-		storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
+		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,
 			ReadOnly: false,
 			ForceNew: config.ForceNewDB,
 		}),
-		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size)),
+		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
-	nn.RequiresGrad(false)(m.ZeroEmbedding)
 	allModels = append(allModels, m)
 	return m
 }
 
-// Close closes the DB underlying the model of the embeddings map.
+// Close closes the DB underlying the model of the embeddings mam.
 func (m *Model) Close() {
-	_ = m.storage.Close() // explicitly ignore errors here
+	_ = m.Storage.Close() // explicitly ignore errors here
 }
 
+// DropAll drops all the data stored in the DB.
 func (m *Model) DropAll() error {
-	return m.storage.DropAll()
+	return m.Storage.DropAll()
 }
 
 // Close closes the DBs underlying all instantiated embeddings models.
@@ -84,24 +90,28 @@ func Close() {
 	}
 }
 
+// Count counts how many embeddings are stored in the DB.
+// It invokes log.Fatal in case of reading errors.
 func (m *Model) Count() int {
-	keys, err := m.storage.Keys()
+	keys, err := m.Storage.Keys()
 	if err != nil {
 		log.Fatal(err)
 	}
 	return len(keys)
 }
 
+// WordVectorPair associates a Vector to a Word.
 type WordVectorPair struct {
 	Word   string
 	Vector *mat.Dense
 }
 
+// Aggregate performs a pooling operation over the list of WordVectorPair elements.
 func (m *Model) Aggregate(list []*WordVectorPair) {
 	for _, item := range list {
 		word := item.Word
 		vector := item.Vector
-		if found := m.getEmbedding(word); found == nil {
+		if found := m.getStorageEmbedding(word); found == nil {
 			m.setEmbedding(word, vector)
 		} else {
 			m.setEmbedding(word, m.pooling(found, vector))
@@ -127,7 +137,7 @@ func (m *Model) setEmbedding(word string, value *mat.Dense) {
 	if _, err := mat.MarshalBinaryTo(value, &buf); err != nil {
 		log.Fatal(err)
 	}
-	if err := m.storage.Put([]byte(word), buf.Bytes()); err != nil {
+	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -135,8 +145,8 @@ func (m *Model) setEmbedding(word string, value *mat.Dense) {
 // getEmbedding returns the vector (the word embedding) associated with the given word.
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
 // If no embedding is found, nil is returned.
-// It panics in case of storage errors.
-func (m *Model) getEmbedding(word string) *mat.Dense {
+// It panics in case of Storage errors.
+func (m *Model) getStorageEmbedding(word string) *mat.Dense {
 	if found := m.getEmbeddingExactMatch(word); found != nil {
 		return found
 	}
@@ -148,9 +158,9 @@ func (m *Model) getEmbedding(word string) *mat.Dense {
 
 // getEmbeddingExactMatch returns the vector (the word embedding) associated with the given word (exact correspondence).
 // If no embedding is found, nil is returned.
-// It panics in case of storage errors.
+// It panics in case of Storage errors.
 func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
-	data, ok, err := m.storage.Get([]byte(word))
+	data, ok, err := m.Storage.Get([]byte(word))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -164,48 +174,26 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	return embedding
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	ZeroEmbedding ag.Node
-}
-
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		ZeroEmbedding: ag.NewWrapNoGrad(m.ZeroEmbedding),
-	}
-}
-
 // Encode returns the embeddings associated with the input words.
-func (p *Processor) Encode(words []string) []ag.Node {
+func (m *Model) Encode(words []string) []ag.Node {
 	encoding := make([]ag.Node, len(words))
 	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
 	for i, word := range words {
 		if item, ok := cache[word]; ok {
 			encoding[i] = item
 		} else {
-			embedding := p.getEmbedding(word)
+			embedding := m.getEmbedding(word)
 			encoding[i], cache[word] = embedding, embedding
 		}
 	}
 	return encoding
 }
 
-func (p *Processor) getEmbedding(words string) ag.Node {
-	model := p.Model.(*Model)
-	switch vector := model.getEmbedding(words); {
+func (m *Model) getEmbedding(words string) ag.Node {
+	switch vector := m.getStorageEmbedding(words); {
 	case vector == nil:
-		return p.Graph.NewWrapNoGrad(p.ZeroEmbedding) // must not be nil; important no grad
+		return m.ZeroEmbedding // must not be nil; important no grad
 	default:
-		return p.Graph.NewVariable(vector, false)
+		return m.Graph().NewVariable(vector, false)
 	}
-}
-
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("embeddings: p.Forward() not implemented. Use p.Encode() instead.")
 }

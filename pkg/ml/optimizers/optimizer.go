@@ -4,6 +4,7 @@
 
 package optimizers
 
+// Optimizer is implemented by any value that has the Optimize method.
 type Optimizer interface {
 	Optimize()
 }

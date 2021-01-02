@@ -16,6 +16,7 @@ type Provider interface {
 	Vocabulary() *Vocabulary
 }
 
+// Vocabulary is a vocabulary of term/ID associations.
 type Vocabulary struct {
 	maxID   int64
 	terms   map[string]int

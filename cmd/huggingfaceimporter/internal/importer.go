@@ -17,10 +17,17 @@ import (
 )
 
 const (
+	// DefaultModelsURL can be used as value for ImporterArgs.ModelsURL to
+	// download models from Hugging Face website.
 	DefaultModelsURL = "https://huggingface.co/models"
-	LocalModelsURL   = "local"
-	DefaultRepoPath  = "~/.spago/"
-	CacheFileName    = "huggingface-co-cache.json"
+	// LocalModelsURL can be used as value for ImporterArgs.ModelsURL for
+	// using local models only (preventing download from Hugging Face website).
+	LocalModelsURL = "local"
+	// DefaultRepoPath is the default base path for all locally stored models.
+	DefaultRepoPath = "~/.spago/"
+	// CacheFileName is the name of the JSON file where the Hugging Face Importer
+	// should store cache data.
+	CacheFileName = "huggingface-co-cache.json"
 )
 
 // ImporterArgs contain args for the import command (default)
@@ -86,8 +93,11 @@ func (a *ImporterArgs) RunImporter() error {
 		return err
 	}
 
-	if err := a.ConfigureInteractive(repo); err != nil {
-		return err
+	// Run interactive model selection if a model is not already set.
+	if a.Model == "" {
+		if err := a.ConfigureInteractive(repo); err != nil {
+			return err
+		}
 	}
 
 	writeMsg("Downloading dataset...")

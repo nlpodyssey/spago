@@ -1,10 +1,11 @@
-![alt text](https://github.com/nlpodyssey/spago/blob/main/assets/spago_logo.png)
+![alt text](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/spago_logo.png)
 
 ![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
 [![codecov](https://codecov.io/gh/nlpodyssey/spago/branch/main/graph/badge.svg)](https://codecov.io/gh/nlpodyssey/spago)
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
-![Unstable](https://github.com/nlpodyssey/spago/blob/main/assets/stability-unstable-yellow.svg)
+![Unstable](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/stability-unstable-yellow.svg)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 
 <p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
@@ -164,9 +165,19 @@ spaGO is a personal project that is part of the open-source [NLP Odyssey](https:
 
 I appreciate contributions of all kinds. I especially want to thank spaGO fiscal sponsors who contribute to ongoing project maintenance.
 
-![Faire.ai logo](https://github.com/nlpodyssey/spago/blob/main/assets/sponsors/faire_ai_logo.png)
+![Faire.ai logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/faire_ai_logo.png)
 
 > Our aim is simplifying people's life by making lending easy, fast and accessible, leveraging Open Banking and Artificial Intelligence.
 > https://www.faire.ai/
+
+![Hype logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/hype_design_logo.png)
+
+> We work on Artificial Intelligence based hardware and software systems, declining them in areas such as Energy Management, Personal Safety, E-Health and Sports equipment.
+> https://hype-design.it/
+
+![BoxxApps logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/boxxapps_logo.png)
+
+> Professional services in the IT sector for Local Administrations, Enterprises and Local Authorities.
+> https://www.boxxapps.com/
 
 See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.

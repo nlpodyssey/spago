@@ -17,6 +17,7 @@ type ELU struct {
 	alpha Operand // scalar
 }
 
+// NewELU returns a new ELU Function.
 func NewELU(x, alpha Operand) *ELU {
 	return &ELU{x: x, alpha: alpha}
 }
@@ -28,6 +29,7 @@ func (r *ELU) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *ELU) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

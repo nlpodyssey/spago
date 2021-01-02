@@ -5,15 +5,16 @@
 package birnn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/cfn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/gru"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ltm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/mist"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/ran"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/cfn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/gru"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/ltm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/mist"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/ran"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
+// NewBiLSTM returns a new Bidirectional LSTM Model.
 func NewBiLSTM(input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  lstm.New(input, hidden),
@@ -22,6 +23,7 @@ func NewBiLSTM(input, hidden int, merge MergeType) *Model {
 	}
 }
 
+// NewBiGRU returns a new Bidirectional GRU Model.
 func NewBiGRU(input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  gru.New(input, hidden),
@@ -30,6 +32,7 @@ func NewBiGRU(input, hidden int, merge MergeType) *Model {
 	}
 }
 
+// NewBiRAN returns a new Bidirectional RAN Model.
 func NewBiRAN(input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  ran.New(input, hidden),
@@ -38,6 +41,7 @@ func NewBiRAN(input, hidden int, merge MergeType) *Model {
 	}
 }
 
+// NewBiCFN returns a new Bidirectional CFN Model.
 func NewBiCFN(input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  cfn.New(input, hidden),
@@ -46,6 +50,7 @@ func NewBiCFN(input, hidden int, merge MergeType) *Model {
 	}
 }
 
+// NewBiLTM returns a new Bidirectional LTM Model.
 func NewBiLTM(input int, merge MergeType) *Model {
 	return &Model{
 		Positive:  ltm.New(input),
@@ -54,6 +59,7 @@ func NewBiLTM(input int, merge MergeType) *Model {
 	}
 }
 
+// NewBiMIST returns a new Bidirectional MIST Model.
 func NewBiMIST(input, hidden, numberOfDelays int, merge MergeType) *Model {
 	return &Model{
 		Positive:  mist.New(input, hidden, numberOfDelays),
@@ -62,6 +68,7 @@ func NewBiMIST(input, hidden, numberOfDelays int, merge MergeType) *Model {
 	}
 }
 
+// NewBiBiLSTM returns a new Bidirectional BiLSTM Model.
 func NewBiBiLSTM(input, hidden int, merge MergeType) *stack.Model {
 	return stack.New(
 		NewBiLSTM(input, hidden, Concat),

@@ -13,9 +13,11 @@ import (
 	"testing"
 )
 
-func TestModel_Predict(t *testing.T) {
+func TestModel_Decode(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -23,7 +25,7 @@ func TestModel_Predict(t *testing.T) {
 	w4 := g.NewVariable(mat.NewVecDense([]float64{3.3, -0.9, 2.7, -2.7}), true)
 	w5 := g.NewVariable(mat.NewVecDense([]float64{0.5, 0.2, 0.4, 1.4}), true)
 
-	y := model.Predict([]ag.Node{w1, w2, w3, w4, w5})
+	y := proc.Decode([]ag.Node{w1, w2, w3, w4, w5})
 
 	gold := []int{3, 3, 1, 0, 3}
 
@@ -35,7 +37,8 @@ func TestModel_Predict(t *testing.T) {
 func TestModel_GoldScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -44,7 +47,7 @@ func TestModel_GoldScore(t *testing.T) {
 	w5 := g.NewVariable(mat.NewVecDense([]float64{0.5, 0.2, 0.4, 1.4}), true)
 
 	gold := []int{0, 0, 1, 0, 3}
-	y := proc.(*Processor).goldScore([]ag.Node{w1, w2, w3, w4, w5}, gold)
+	y := proc.goldScore([]ag.Node{w1, w2, w3, w4, w5}, gold)
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{14.27}, 0.000001) {
 		t.Error("Predictions don't match the expected values")
@@ -54,7 +57,8 @@ func TestModel_GoldScore(t *testing.T) {
 func TestModel_TotalScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -62,7 +66,7 @@ func TestModel_TotalScore(t *testing.T) {
 	w4 := g.NewVariable(mat.NewVecDense([]float64{3.3, -0.9, 2.7, -2.7}), true)
 	w5 := g.NewVariable(mat.NewVecDense([]float64{0.5, 0.2, 0.4, 1.4}), true)
 
-	y := proc.(*Processor).totalScore([]ag.Node{w1, w2, w3, w4, w5})
+	y := proc.totalScore([]ag.Node{w1, w2, w3, w4, w5})
 
 	if !floats.EqualApprox(y.Value().Data(), []float64{16.64258452}, 0.000001) {
 		t.Error("Total score doesn't match the expected values")
@@ -72,7 +76,8 @@ func TestModel_TotalScore(t *testing.T) {
 func TestModel_Loss(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := model.NewProc(nn.Context{Graph: g, Mode: nn.Training})
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
+	proc := nn.Reify(ctx, model).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]float64{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]float64{2.0, -3.5, 0.1, 2.0}), true)
@@ -81,7 +86,7 @@ func TestModel_Loss(t *testing.T) {
 	w5 := g.NewVariable(mat.NewVecDense([]float64{0.5, 0.2, 0.4, 1.4}), true)
 
 	gold := []int{0, 0, 1, 0, 3}
-	loss := proc.(*Processor).NegativeLogLoss([]ag.Node{w1, w2, w3, w4, w5}, gold)
+	loss := proc.NegativeLogLoss([]ag.Node{w1, w2, w3, w4, w5}, gold)
 
 	g.Backward(loss)
 	if !floats.EqualApprox(loss.Value().Data(), []float64{2.37258452}, 0.000001) {

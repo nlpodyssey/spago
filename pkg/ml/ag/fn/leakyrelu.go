@@ -17,6 +17,7 @@ type LeakyReLU struct {
 	alpha Operand // scalar
 }
 
+// NewLeakyReLU returns a new LeakyReLU Function.
 func NewLeakyReLU(x, alpha Operand) *LeakyReLU {
 	return &LeakyReLU{x: x, alpha: alpha}
 }
@@ -28,6 +29,7 @@ func (r *LeakyReLU) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *LeakyReLU) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

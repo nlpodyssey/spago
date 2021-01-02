@@ -15,24 +15,20 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 )
 
 const (
+	// DefaultSequenceSeparator is the default sequence separator value for the
+	// character-level language model.
 	DefaultSequenceSeparator = "[SEP]"
-	DefaultUnknownToken      = "[UNK]"
+	// DefaultUnknownToken is the default unknown token value for the
+	// character-level language model.
+	DefaultUnknownToken = "[UNK]"
 )
 
-type Model struct {
-	Config
-	Decoder    *linear.Model
-	Projection *linear.Model
-	RNN        nn.Model
-	Embeddings []*nn.Param `type:"weights"`
-	Vocabulary *vocabulary.Vocabulary
-}
-
+// Config provides configuration settings for a Character-level Language Model.
 // TODO: add dropout
 type Config struct {
 	VocabularySize    int
@@ -43,6 +39,21 @@ type Config struct {
 	UnknownToken      string // empty string is replaced with DefaultUnknownToken
 }
 
+// Model implements a Character-level Language Model.
+type Model struct {
+	nn.BaseModel
+	Config
+	Decoder          *linear.Model
+	Projection       *linear.Model
+	RNN              *lstm.Model
+	Embeddings       []nn.Param `spago:"type:weights;scope:model"`
+	Vocabulary       *vocabulary.Vocabulary
+	UsedEmbeddings   map[int]ag.Node `spago:"scope:processor"`
+	UnknownEmbedding ag.Node         `spago:"scope:processor"`
+}
+
+// New returns a new character-level language Model, initialized according to
+// the given configuration.
 func New(config Config) *Model {
 	if config.SequenceSeparator == "" {
 		config.SequenceSeparator = DefaultSequenceSeparator
@@ -72,16 +83,17 @@ func New(config Config) *Model {
 	}
 }
 
-func newEmptyEmbeddings(vocabularySize, embeddingSize int) []*nn.Param {
-	embeddings := make([]*nn.Param, vocabularySize)
+func newEmptyEmbeddings(vocabularySize, embeddingSize int) []nn.Param {
+	embeddings := make([]nn.Param, vocabularySize)
 	for i := range embeddings {
 		embeddings[i] = nn.NewParam(mat.NewEmptyVecDense(embeddingSize))
 	}
 	return embeddings
 }
 
+// Initialize initializes the Model m using the given random generator.
 func Initialize(m *Model, rndGen *rand.LockedRand) {
-	nn.ForEachParam(m, func(param *nn.Param) {
+	nn.ForEachParam(m, func(param nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1, rndGen)
 		} else if param.Type() == nn.Biases && param.Name() == "bfor" {
@@ -91,75 +103,51 @@ func Initialize(m *Model, rndGen *rand.LockedRand) {
 	})
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	Decoder          *linear.Processor
-	Projection       *linear.Processor
-	RNN              nn.Processor
-	usedEmbeddings   map[int]ag.Node
-	UnknownEmbedding ag.Node
+// InitProcessor initializes embeddings needed by the Forward().
+func (m *Model) InitProcessor() {
+	m.UsedEmbeddings = make(map[int]ag.Node)
+	m.UnknownEmbedding = m.Graph().NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)])
 }
 
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	p := &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		Decoder: m.Decoder.NewProc(ctx).(*linear.Processor),
-		Projection: func() *linear.Processor {
-			if m.Config.OutputSize > 0 {
-				return m.Projection.NewProc(ctx).(*linear.Processor)
-			}
-			return nil
-		}(),
-		RNN:              m.RNN.NewProc(ctx),
-		usedEmbeddings:   make(map[int]ag.Node),
-		UnknownEmbedding: ctx.Graph.NewWrap(m.Embeddings[m.Vocabulary.MustID(m.UnknownToken)]),
-	}
-	return p
-}
-
-func (p *Processor) Predict(xs ...string) []ag.Node {
+// Forward performs the forward step for each input and returns the result.
+func (m *Model) Forward(in interface{}) interface{} {
+	xs := in.([]string)
 	ys := make([]ag.Node, len(xs))
-	encoding := p.GetEmbeddings(xs)
+	encoding := m.GetEmbeddings(xs)
 	for i, x := range encoding {
-		p.Graph.IncTimeStep() // essential for truncated back-propagation
-		h := p.RNN.Forward(x)[0]
-		proj := p.UseProjection(h)[0]
-		ys[i] = p.Decoder.Forward(proj)[0]
+		m.Graph().IncTimeStep() // essential for truncated back-propagation
+		h := m.RNN.Forward(x)
+		proj := nn.ToNode(m.UseProjection(h))
+		ys[i] = nn.ToNode(m.Decoder.Forward(proj))
 	}
 	return ys
 }
 
-func (p *Processor) UseProjection(xs ...ag.Node) []ag.Node {
-	if p.Projection == nil {
-		return xs
+// UseProjection performs a linear projection with Processor.Projection model,
+// if available, otherwise returns xs unmodified.
+func (m *Model) UseProjection(xs []ag.Node) []ag.Node {
+	if m.Config.OutputSize > 0 {
+		return m.Projection.Forward(xs...)
 	}
-	return p.Projection.Forward(xs...)
+	return xs
 }
 
-func (p *Processor) GetEmbeddings(xs []string) []ag.Node {
-	model := p.Model.(*Model)
+// GetEmbeddings transforms the string sequence xs into a sequence of
+// embeddings nodes.
+func (m *Model) GetEmbeddings(xs []string) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, item := range xs {
-		id, ok := model.Vocabulary.ID(item)
+		id, ok := m.Vocabulary.ID(item)
 		if !ok {
-			ys[i] = p.UnknownEmbedding
+			ys[i] = m.UnknownEmbedding
 			continue
 		}
-		if embedding, ok := p.usedEmbeddings[id]; ok {
+		if embedding, ok := m.UsedEmbeddings[id]; ok {
 			ys[i] = embedding
 			continue
 		}
-		ys[i] = p.Graph.NewWrap(model.Embeddings[id])
-		p.usedEmbeddings[id] = ys[i]
+		ys[i] = m.Graph().NewWrap(m.Embeddings[id])
+		m.UsedEmbeddings[id] = ys[i]
 	}
 	return ys
-}
-
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("charlm: method not implemented. Use Predict() instead.")
 }

@@ -16,6 +16,7 @@ type Sub struct {
 	x2 Operand
 }
 
+// NewSub returns a new Sub Function.
 func NewSub(x1, x2 Operand) *Sub {
 	return &Sub{x1: x1, x2: x2}
 }
@@ -30,6 +31,7 @@ func (r *Sub) Forward() mat.Matrix {
 	return x1v.Sub(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Sub) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()

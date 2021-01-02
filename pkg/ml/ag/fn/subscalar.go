@@ -16,6 +16,7 @@ type SubScalar struct {
 	x2 Operand // scalar
 }
 
+// NewSubScalar returns a new SubScalar Function.
 func NewSubScalar(x1, x2 Operand) *SubScalar {
 	return &SubScalar{x1: x1, x2: x2}
 }
@@ -25,6 +26,7 @@ func (r *SubScalar) Forward() mat.Matrix {
 	return r.x1.Value().SubScalar(r.x2.Value().Scalar())
 }
 
+// Backward computes the backward pass.
 func (r *SubScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

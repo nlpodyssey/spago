@@ -10,6 +10,8 @@ import (
 	"os"
 )
 
+// KeyValueDB is an interface implemented by key-value databases which spaGO
+// can use.
 type KeyValueDB interface {
 	Put(key []byte, value []byte) error
 	Get(key []byte) ([]byte, bool, error)
@@ -18,12 +20,14 @@ type KeyValueDB interface {
 	Close() error
 }
 
+// Config provides configuration parameters for KeyValueDB.
 type Config struct {
 	Path     string
 	ReadOnly bool
 	ForceNew bool
 }
 
+// NewDefaultKeyValueDB returns a new KeyValueDB.
 func NewDefaultKeyValueDB(config Config) KeyValueDB {
 	if config.ForceNew {
 		err := os.RemoveAll(config.Path)
@@ -53,6 +57,8 @@ type badgerBackend struct {
 	db *badger.DB
 }
 
+// Close closes the underlying DB.
+// It's crucial to call it to ensure all the pending updates make their way to disk.
 func (m *badgerBackend) Close() error {
 	return m.db.Close()
 }

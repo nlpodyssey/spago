@@ -10,10 +10,12 @@ import (
 
 var _ Function = &Vec{}
 
+// Vec is a Function to reshape an matrix-operand into a column vector.
 type Vec struct {
 	x Operand
 }
 
+// NewVec returns a new Vec Function.
 func NewVec(x Operand) *Vec {
 	return &Vec{x: x}
 }
@@ -23,6 +25,7 @@ func (r *Vec) Forward() mat.Matrix {
 	return r.x.Value().Reshape(r.x.Value().Size(), 1)
 }
 
+// Backward computes the backward pass.
 func (r *Vec) Backward(gy mat.Matrix) {
 	if !(gy.IsVector() && mat.SameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

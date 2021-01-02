@@ -5,10 +5,8 @@
 package nn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"math"
-	"sync"
 )
 
 // Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
@@ -70,84 +68,6 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 	return g.Reshape(g.Concat(outList...), dimx, dimy)
 }
 
-// ScaledDotProductAttention is a self-attention mechanism relating different positions of a single sequence in order to compute a representation of the same sequence.
-// This method requires that the query, the key and the value vectors have already been obtained from the input sequence.
-// The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(qs))
-	prob = make([]mat.Matrix, len(qs))
-	keys := g.Stack(ks...)
-	values := g.T(g.Stack(vs...))
-	factor := g.NewScalar(scaleFactor)
-	seqLen := len(qs)
-	for i, q := range qs {
-		attScores := g.ProdScalar(g.Mul(keys, q), factor)
-
-		if useCausalMask {
-			// TODO: use external cache for causal mask?
-			causalMask := make([]float64, seqLen)
-			for k := i + 1; k < len(causalMask); k++ {
-				causalMask[k] = math.Inf(-1)
-			}
-			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense(causalMask), false))
-		}
-
-		attProb := g.Softmax(attScores)
-		context[i] = g.Mul(values, attProb)
-		prob[i] = attProb.Value()
-	}
-	return
-}
-
-// ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, qs, ks, vs []ag.Node, scaleFactor float64) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(qs))
-	prob = make([]mat.Matrix, len(qs))
-	keys := g.Stack(ks...)
-	values := g.T(g.Stack(vs...))
-	factor := g.NewScalar(scaleFactor)
-	var wg sync.WaitGroup
-	wg.Add(len(qs))
-	for i, q := range qs {
-		go func(i int, q ag.Node) {
-			defer wg.Done()
-			attScores := g.ProdScalar(g.Mul(keys, q), factor)
-			attProb := g.Softmax(attScores)
-			context[i] = g.Mul(values, attProb)
-			prob[i] = attProb.Value()
-		}(i, q)
-	}
-	wg.Wait()
-	return
-}
-
-type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
-
-// LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
-// It operates with O(N) complexity, where N is the sequence length.
-// Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(g *ag.Graph, qs, ks, vs []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
-	context := make([]ag.Node, len(qs))
-	attKeys := make([]ag.Node, len(ks))
-
-	var attKeysSum ag.Node = nil
-	for i := range ks {
-		attKeys[i] = mappingFunction(g, ks[i])
-		attKeysSum = g.Add(attKeysSum, attKeys[i])
-	}
-
-	attKeysT := g.T(g.Stack(attKeys...))
-	kv := g.Mul(attKeysT, g.Stack(vs...))
-
-	for i := range qs {
-		attQuery := mappingFunction(g, qs[i])
-		n := g.T(g.Mul(g.T(attQuery), kv))
-		d := g.Dot(attQuery, attKeysSum)
-		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))
-	}
-	return context
-}
-
 // Separate returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
 func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
@@ -175,6 +95,8 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 	return ys
 }
 
+// SplitVec splits the x Node into multiple chunks.
+// It panics if the x Node is not a vector.
 // TODO: optimize, this is extremely inefficient!
 func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
 	size := int(math.Ceil(float64(x.Value().Size()) / float64(chunks)))

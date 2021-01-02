@@ -28,7 +28,7 @@ type BartApp struct {
 	multiClass     bool
 }
 
-// NewBartApp returns BartApp objects. The app can be used as both a client and a server.
+// NewBartApp returns a new BartApp object, which can be used as either client or server.
 func NewBartApp() *BartApp {
 	app := &BartApp{
 		App: cli.NewApp(),

@@ -12,10 +12,13 @@ import (
 	"math"
 )
 
+// Population represents the population.
 type Population struct {
 	Members []*Member
 }
 
+// NewRandomPopulation returns a new Population with members initialized randomly
+// according to the given configuration.
 func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndGen *rand.LockedRand, initHyperParams MemberHyperParams) *Population {
 	members := make([]*Member, populationSize)
 	for i := 0; i < populationSize; i++ {
@@ -29,6 +32,7 @@ func NewRandomPopulation(populationSize int, vectorSize int, bound float64, rndG
 	}
 }
 
+// FindBest finds the best member from the Population.
 func (p *Population) FindBest(lowIndex, highIndex int, upperBound float64, initArgMin int) (argMin int, minScore float64) {
 	minScore = upperBound
 	argMin = initArgMin
@@ -42,6 +46,7 @@ func (p *Population) FindBest(lowIndex, highIndex int, upperBound float64, initA
 	return
 }
 
+// FindBestNeighbor finds the best neighbor member from the Population.
 func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minScore float64) {
 	size := len(p.Members)
 	if 2*windowSize > size {

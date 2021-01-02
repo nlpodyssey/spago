@@ -16,6 +16,7 @@ type Pow struct {
 	power float64
 }
 
+// NewPow returns a new Pow Function.
 func NewPow(x Operand, power float64) *Pow {
 	return &Pow{x: x, power: power}
 }
@@ -25,6 +26,7 @@ func (r *Pow) Forward() mat.Matrix {
 	return r.x.Value().Pow(r.power)
 }
 
+// Backward computes the backward pass.
 func (r *Pow) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

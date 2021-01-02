@@ -44,9 +44,9 @@ func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
-		cli := grpcapi.NewBERTClient(conn)
+		client := grpcapi.NewBERTClient(conn)
 
-		resp, err := cli.Answer(context.Background(), &grpcapi.AnswerRequest{
+		resp, err := client.Answer(context.Background(), &grpcapi.AnswerRequest{
 			Passage:  app.passage,
 			Question: app.question,
 		})

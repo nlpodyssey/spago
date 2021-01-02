@@ -11,20 +11,24 @@ import (
 	"math"
 )
 
+// Crossover is implemented by values that provides crossover operations.
 type Crossover interface {
 	Crossover(p *Population)
 }
 
 var _ Crossover = &BinomialCrossover{}
 
+// BinomialCrossover implements a binomial crossover operation.
 type BinomialCrossover struct {
 	rndGen *rand.LockedRand
 }
 
+// NewBinomialCrossover returns a new BinomialCrossover.
 func NewBinomialCrossover(rndGen *rand.LockedRand) *BinomialCrossover {
 	return &BinomialCrossover{rndGen: rndGen}
 }
 
+// Crossover performs the crossover operation over the p population.
 func (c *BinomialCrossover) Crossover(p *Population) {
 	seed := rand.NewLockedRand(0)
 	for _, member := range p.Members {

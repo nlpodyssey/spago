@@ -36,6 +36,7 @@ func (r *ColView) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *ColView) Backward(gy mat.Matrix) {
 	if !(r.x.Value().Rows() == gy.Size()) {
 		panic("fn: matrices with not compatible size")

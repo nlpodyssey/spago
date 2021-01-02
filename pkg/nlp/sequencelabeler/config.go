@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+// Config provides configuration settings for a sequence labeling Model.
 type Config struct {
 	ModelFilename                  string                     `json:"model_filename"`
 	WordEmbeddings                 WordEmbeddingsConfig       `json:"word_embeddings"`
@@ -24,6 +25,8 @@ type Config struct {
 	Labels                         []string                   `json:"labels"`
 }
 
+// ContextualEmbeddingsConfig provides contextual embeddings configuration settings
+// for a sequence labeling Model.
 type ContextualEmbeddingsConfig struct {
 	VocabularySize     int    `json:"vocabulary_size"`
 	EmbeddingSize      int    `json:"embedding_size"`
@@ -34,11 +37,14 @@ type ContextualEmbeddingsConfig struct {
 	VocabularyFilename string `json:"vocabulary_filename"`
 }
 
+// WordEmbeddingsConfig provides word embeddings configuration settings
+// for a sequence labeling Model.
 type WordEmbeddingsConfig struct {
 	WordEmbeddingsFilename string `json:"embeddings_filename"`
 	WordEmbeddingsSize     int    `json:"embeddings_size"`
 }
 
+// LoadConfig loads a sequence labeling model Config from file.
 func LoadConfig(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)

@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	_ nn.Model     = &LearnedPositionalEmbeddings{}
-	_ nn.Processor = &LearnedPositionalEmbeddingsProcessor{}
+	_ nn.Model = &LearnedPositionalEmbeddings{}
 )
 
+// Config provides configuration settings for a LearnedPositionalEmbeddings Model.
 type Config struct {
 	NumEmbeddings int
 	EmbeddingDim  int
@@ -22,14 +22,18 @@ type Config struct {
 	Offset        int
 }
 
+// LearnedPositionalEmbeddings contains positional embeddings fine-tuned during
+// the training phase.
 type LearnedPositionalEmbeddings struct {
+	nn.BaseModel
 	Config  Config
-	Vectors []*nn.Param
+	Vectors []nn.Param `spago:"type:weights;scope:model"`
 }
 
+// NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.
 // TODO: PaddingIDX
 func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings {
-	vectors := make([]*nn.Param, config.NumEmbeddings+config.Offset)
+	vectors := make([]nn.Param, config.NumEmbeddings+config.Offset)
 	for i := 0; i < len(vectors); i++ {
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}
@@ -39,30 +43,12 @@ func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings 
 	}
 }
 
-type LearnedPositionalEmbeddingsProcessor struct {
-	nn.BaseProcessor
-}
-
-func (m *LearnedPositionalEmbeddings) NewProc(ctx nn.Context) nn.Processor {
-	return &LearnedPositionalEmbeddingsProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-	}
-}
-
-func (p *LearnedPositionalEmbeddingsProcessor) Encode(positions []int) []ag.Node {
-	m := p.Model.(*LearnedPositionalEmbeddings)
+// Encode performs the forward step for each input and returns the result.
+func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
+	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {
-		embeddings[i] = p.Graph.NewWrap(m.Vectors[pos+m.Config.Offset])
+		embeddings[i] = g.NewWrap(m.Vectors[pos+m.Config.Offset])
 	}
 	return embeddings
-}
-
-func (p LearnedPositionalEmbeddingsProcessor) Forward(xs ...ag.Node) []ag.Node {
-	panic("posembeddings: Forward() not implemented for LearnedPositionalEmbeddings. Use Encode() instead.")
 }

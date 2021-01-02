@@ -16,6 +16,7 @@ type AddScalar struct {
 	x2 Operand // scalar
 }
 
+// NewAddScalar returns a new AddScalar Function.
 func NewAddScalar(x1, x2 Operand) *AddScalar {
 	return &AddScalar{x1: x1, x2: x2}
 }
@@ -26,6 +27,7 @@ func (r *AddScalar) Forward() mat.Matrix {
 	return r.x1.Value().AddScalar(r.x2.Value().Scalar())
 }
 
+// Backward computes the backward pass.
 func (r *AddScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

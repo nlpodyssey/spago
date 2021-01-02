@@ -20,15 +20,18 @@ type SparseMax struct {
 var _ Function = &SparseMax{}
 var _ Function = &SparseMaxLoss{}
 
+// NewSparseMax returns a new SparseMax Function.
 func NewSparseMax(x Operand) *SparseMax {
 	return &SparseMax{x: x}
 }
 
+// Forward computes the output of the function.
 func (s *SparseMax) Forward() mat.Matrix {
 	s.y = mat.NewVecDense(sparseMax(translateInput(s.x.Value().Data())))
 	return s.y
 }
 
+// Backward computes the backward pass.
 func (s *SparseMax) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		output := s.y.Data()
@@ -105,12 +108,14 @@ func sparseMax(v []float64) []float64 {
 	return zs
 }
 
+// SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss struct {
 	x   Operand
 	tau float64    // computed during the forward pass
 	y   mat.Matrix // computed during forward pass
 }
 
+// NewSparseMaxLoss returns a new SparseMaxLoss Function.
 func NewSparseMaxLoss(x Operand) *SparseMaxLoss {
 	return &SparseMaxLoss{x: x}
 }
@@ -135,6 +140,8 @@ func sparseMaxLoss(v []float64) ([]float64, float64) {
 	}
 	return zs, tau
 }
+
+// Forward computes the output of the function.
 func (s *SparseMaxLoss) Forward() mat.Matrix {
 	output, tau := sparseMaxLoss(s.x.Value().Data())
 	s.y = mat.NewVecDense(output)
@@ -142,6 +149,7 @@ func (s *SparseMaxLoss) Forward() mat.Matrix {
 	return s.y
 }
 
+// Backward computes the backward pass.
 func (s *SparseMaxLoss) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		input := s.x.Value().Data()

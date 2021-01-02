@@ -20,6 +20,7 @@ import (
 	"math"
 )
 
+// NewDefaultEncoder returns a new RAE Encoder.
 func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder {
 	hiddenSize := int(math.Round(1.5 * float64(embeddingSize)))
 	scalingHidden := embeddingSize - ((embeddingSize - inputSize) / 2)
@@ -41,6 +42,7 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 	}
 }
 
+// NewDefaultDecoder returns a new RAE Decoder.
 func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decoder {
 	hiddenSize := int(math.Round(1.5 * float64(embeddingSize)))
 	descalingHidden := embeddingSize - ((embeddingSize - outputSize) / 2)

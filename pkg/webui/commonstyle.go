@@ -6,6 +6,7 @@ package webui
 
 import "html/template"
 
+// CommonStyle provides common CSS rules shared among all web-UI pages.
 const CommonStyle template.CSS = `
 html,
 body {

@@ -8,13 +8,15 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
-// Uniform represents a continuous uniform distribution (https://en.wikipedia.org/wiki/Uniform_distribution_%28continuous%29).
+// Uniform is a source of uniformly distributed random numbers.
+// See: https://en.wikipedia.org/wiki/Continuous_uniform_distribution.
 type Uniform struct {
 	Min       float64
 	Max       float64
 	generator *rand.LockedRand
 }
 
+// New returns a new Normal, initialized with the given min and max parameters.
 func New(min, max float64, generator *rand.LockedRand) *Uniform {
 	return &Uniform{
 		Min:       min,

@@ -103,6 +103,7 @@ var gerTests = []struct {
 	},
 }
 
+//gocyclo:ignore
 func TestGer(t *testing.T) {
 	const (
 		xGdVal, yGdVal, aGdVal = -0.5, 1.5, 10

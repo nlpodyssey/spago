@@ -9,6 +9,8 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+// ShuffleInPlace pseudo-randomizes the order of elements, modifying the
+// given slice in-place.
 func ShuffleInPlace(xs []int, generator *LockedRand) []int {
 	swap := func(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
 	if generator != nil {

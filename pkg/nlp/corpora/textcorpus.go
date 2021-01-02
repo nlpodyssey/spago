@@ -13,20 +13,28 @@ import (
 	"os"
 )
 
+// TextCorpusIterator is implemented by any value that has the ForEachLine method.
 type TextCorpusIterator interface {
+	// ForEachLine calls the callback for each line of a corpus.
+	// The index of the first line is 1.
 	ForEachLine(callback func(i int, line string))
 }
 
 var _ TextCorpusIterator = &GZipCorpusIterator{}
 
+// GZipCorpusIterator implements the TextCorpusIterator interface for
+// gzip-compressed corpus files.
 type GZipCorpusIterator struct {
 	CorpusPath string
 }
 
+// NewGZipCorpusIterator returns a new GZipCorpusIterator.
 func NewGZipCorpusIterator(corpusPath string) *GZipCorpusIterator {
 	return &GZipCorpusIterator{CorpusPath: corpusPath}
 }
 
+// ForEachLine calls the callback for each line of each regular file from
+// the gzip archive.
 func (c *GZipCorpusIterator) ForEachLine(callback func(i int, text string)) {
 	f, err := os.Open(c.CorpusPath)
 	if err != nil {

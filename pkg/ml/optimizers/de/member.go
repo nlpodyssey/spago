@@ -26,6 +26,7 @@ type Member struct {
 	ValidationScore float64
 }
 
+// MemberHyperParams contains the hyper-parameters of a Member.
 type MemberHyperParams struct {
 	// Differential weight (default 0.5)
 	MutationFactor float64
@@ -35,8 +36,8 @@ type MemberHyperParams struct {
 	WeightFactor float64
 }
 
-// l = 0.1
-// u = 0.9
+// MutateHyperParams mutates the hyper-parameters according to l and u.
+// Suggested values: l = 0.1, u = 0.9.
 func (a *MemberHyperParams) MutateHyperParams(l, u float64) {
 	if rand.Float64() < 0.1 {
 		a.MutationFactor = l + rand.Float64()*u

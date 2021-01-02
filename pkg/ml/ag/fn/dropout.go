@@ -21,6 +21,7 @@ type Dropout struct {
 	mask    mat.Matrix // filled during the forward
 }
 
+// NewDropout returns a new Dropout Function.
 func NewDropout(x Operand, p float64, randGen *rand.LockedRand) *Dropout {
 	return &Dropout{
 		x:       x,
@@ -42,6 +43,7 @@ func (r *Dropout) Forward() mat.Matrix {
 	return r.x.Value().Prod(r.mask)
 }
 
+// Backward computes the backward pass.
 func (r *Dropout) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

@@ -15,9 +15,10 @@ import (
 // The output of the language model is directly compared to the expected targets extracted from the input itself.
 func CalculatePerplexity(m *Model, text string) float64 {
 	g := ag.NewGraph()
-	proc := m.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	defer g.Clear()
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
 	sequence := utils.SplitByRune(text)
-	prediction := proc.Predict(sequence...)
+	prediction := proc.Forward(sequence).([]ag.Node)
 	targets := targetsIds(sequence, m.Vocabulary, m.UnknownToken)
 	loss := losses.CrossEntropySeq(g, prediction[:len(targets)], targets, true)
 	return g.Exp(loss).ScalarValue() // perplexity

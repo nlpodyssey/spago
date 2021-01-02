@@ -4,6 +4,7 @@
 
 package utils
 
+// MinInt returns the minimum value between a and b.
 func MinInt(a, b int) int {
 	if a < b {
 		return a
@@ -11,6 +12,7 @@ func MinInt(a, b int) int {
 	return b
 }
 
+// SumInt returns the sum of all values from v.
 func SumInt(v []int) (s int) {
 	for _, e := range v {
 		s += e
@@ -18,6 +20,7 @@ func SumInt(v []int) (s int) {
 	return
 }
 
+// ReverseIntSlice returns a reversed version of the given slice.
 func ReverseIntSlice(lst []int) []int {
 	r := make([]int, len(lst))
 	copy(r, lst)
@@ -28,6 +31,8 @@ func ReverseIntSlice(lst []int) []int {
 	return r
 }
 
+// MakeIndices returns a slice of the given size, where each element has
+// the same value of its own index position.
 func MakeIndices(size int) []int {
 	indices := make([]int, size)
 	for i := range indices {
@@ -36,6 +41,7 @@ func MakeIndices(size int) []int {
 	return indices
 }
 
+// MakeIntMatrix returns a new 2-dimensional slice of int.
 func MakeIntMatrix(rows, cols int) [][]int {
 	matrix := make([][]int, rows)
 	for i := 0; i < rows; i++ {
@@ -54,6 +60,7 @@ func ContainsInt(lst []int, x int) bool {
 	return false
 }
 
+// GetNeighborsIndices returns the indices of the (circular) neighbours at position index.
 func GetNeighborsIndices(size, index, windowSize int) []int {
 	low := index - windowSize
 	high := index + windowSize

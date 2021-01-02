@@ -15,6 +15,7 @@ type ReduceMean struct {
 	x Operand
 }
 
+// NewReduceMean returns a new ReduceMean Function.
 func NewReduceMean(x Operand) *ReduceMean {
 	return &ReduceMean{x: x}
 }
@@ -24,6 +25,7 @@ func (r *ReduceMean) Forward() mat.Matrix {
 	return mat.NewScalar(r.x.Value().Sum() / float64(r.x.Value().Size()))
 }
 
+// Backward computes the backward pass.
 func (r *ReduceMean) Backward(gy mat.Matrix) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")

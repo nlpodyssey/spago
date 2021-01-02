@@ -13,22 +13,23 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
-	W *nn.Param `type:"weights"`
-	B *nn.Param `type:"biases"`
+	nn.BaseModel
+	W nn.Param `spago:"type:weights"`
+	B nn.Param `spago:"type:biases"`
 }
 
+// Option allows to configure a new Model with your specific needs.
 type Option func(*Model)
 
 // BiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).
 func BiasGrad(enable bool) Option {
 	return func(m *Model) {
-		nn.RequiresGrad(enable)(m.B)
+		m.B.SetRequiresGrad(enable)
 	}
 }
 
@@ -44,59 +45,30 @@ func New(in, out int, options ...Option) *Model {
 	return model
 }
 
-const defaultConcurrency = true
-
-type Processor struct {
-	nn.BaseProcessor
-	w ag.Node
-	b ag.Node
-	// whether to enable the concurrent forward computation
-	concurrent bool
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		w:          ctx.Graph.NewWrap(m.W),
-		b:          ctx.Graph.NewWrap(m.B),
-		concurrent: defaultConcurrency, // TODO: from options
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	if len(xs) > 1 && m.Graph().ConcurrentComputations() > 1 {
+		return m.fwdConcurrent(xs)
 	}
+	return m.fwdSerial(xs)
 }
 
-func (p *Processor) SetConcurrentComputations(value bool) {
-	p.concurrent = value
-}
-
-// Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	if p.concurrent && len(xs) > 1 {
-		return p.fwdConcurrent(xs)
-	}
-	return p.fwdSerial(xs)
-}
-
-func (p *Processor) fwdSerial(xs []ag.Node) []ag.Node {
+func (m *Model) fwdSerial(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.forward(x)
+		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
+func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	var wg sync.WaitGroup
 	wg.Add(len(xs))
 	for i := range xs {
 		go func(i int) {
 			defer wg.Done()
-			ys[i] = p.forward(xs[i])
+			ys[i] = m.forward(xs[i])
 		}(i)
 	}
 	wg.Wait()
@@ -104,6 +76,6 @@ func (p *Processor) fwdConcurrent(xs []ag.Node) []ag.Node {
 }
 
 // y = w (dot) x + b
-func (p *Processor) forward(x ag.Node) ag.Node {
-	return nn.Affine(p.Graph, p.b, p.w, x)
+func (m *Model) forward(x ag.Node) ag.Node {
+	return nn.Affine(m.Graph(), m.B, m.W, x)
 }

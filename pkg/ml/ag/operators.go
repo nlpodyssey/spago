@@ -10,69 +10,134 @@ import (
 	"reflect"
 )
 
+// OpName is the enumeration-like type used for the set of operators supported
+// by spaGO.
 type OpName int
 
 const (
+	// OpIdentity identifies the Graph.Identity operator.
 	OpIdentity OpName = iota
+	// OpDropout identifies the Graph.Dropout operator.
 	OpDropout
+	// OpAtVec identifies the Graph.AtVec operator.
 	OpAtVec
+	// OpAt identifies the Graph.At operator.
 	OpAt
+	// OpAdd identifies the Graph.Add operator.
 	OpAdd
+	// OpSub identifies the Graph.Sub operator.
 	OpSub
+	// OpSubScalar identifies the Graph.SubScalar operator.
 	OpSubScalar
+	// OpAddScalar identifies the Graph.AddScalar operator.
 	OpAddScalar
+	// OpReverseSub identifies the Graph.ReverseSub operator.
 	OpReverseSub
+	// OpProd identifies the Graph.Prod operator.
 	OpProd
+	// OpDiv identifies the Graph.Div operator.
 	OpDiv
+	// OpProdScalar identifies the Graph.ProdScalar operator.
 	OpProdScalar
+	// OpDivScalar identifies the Graph.DivScalar operator.
 	OpDivScalar
+	// OpMul identifies the Graph.Mul operator.
 	OpMul
+	// OpDot identifies the Graph.Dot operator.
 	OpDot
+	// OpReshape identifies the Graph.Reshape operator.
 	OpReshape
+	// OpMaxPooling identifies the Graph.MaxPooling operator.
 	OpMaxPooling
+	// OpView identifies the Graph.View operator.
 	OpView
+	// OpRowView identifies the Graph.RowView operator.
 	OpRowView
+	// OpColView identifies the Graph.ColView operator.
 	OpColView
+	// OpVec identifies the Graph.Vec operator.
 	OpVec
+	// OpRotateR identifies the Graph.RotateR operator.
+	OpRotateR
+	// OpT identifies the Graph.T operator.
 	OpT
+	// OpSquare identifies the Graph.Square operator.
 	OpSquare
+	// OpPow identifies the Graph.Pow operator.
 	OpPow
+	// OpSqrt identifies the Graph.Sqrt operator.
 	OpSqrt
+	// OpTan identifies the Graph.Tan operator.
 	OpTan
+	// OpTanh identifies the Graph.Tanh operator.
 	OpTanh
+	// OpSigmoid identifies the Graph.Sigmoid operator.
 	OpSigmoid
+	// OpHardSigmoid identifies the Graph.HardSigmoid operator.
 	OpHardSigmoid
+	// OpHardTanh identifies the Graph.HardTanh operator.
 	OpHardTanh
+	// OpSoftsign identifies the Graph.Softsign operator.
 	OpSoftsign
+	// OpReLU identifies the Graph.ReLU operator.
 	OpReLU
-	OpCeLU
-	OpGeLU
+	// OpCELU identifies the Graph.CELU operator.
+	OpCELU
+	// OpGELU identifies the Graph.GELU operator.
+	OpGELU
+	// OpELU identifies the Graph.ELU operator.
 	OpELU
+	// OpPositiveELU identifies the Graph.PositiveELU operator.
 	OpPositiveELU
+	// OpSwish identifies the Graph.Swish operator.
 	OpSwish
+	// OpMish identifies the Graph.Mish operator.
 	OpMish
+	// OpLeakyReLU identifies the Graph.LeakyReLU operator.
 	OpLeakyReLU
-	OpSeLU
+	// OpSELU identifies the Graph.SELU operator.
+	OpSELU
+	// OpSoftPlus identifies the Graph.SoftPlus operator.
 	OpSoftPlus
+	// OpSoftShrink identifies the Graph.SoftShrink operator.
 	OpSoftShrink
+	// OpThreshold identifies the Graph.Threshold operator.
 	OpThreshold
+	// OpSoftmax identifies the Graph.Softmax operator.
 	OpSoftmax
+	// OpSparseMax identifies the Graph.SparseMax operator.
 	OpSparseMax
+	// OpSparseMaxLoss identifies the Graph.SparseMaxLoss operator.
 	OpSparseMaxLoss
+	// OpSin identifies the Graph.Sin operator.
 	OpSin
+	// OpCos identifies the Graph.Cos operator.
 	OpCos
+	// OpExp identifies the Graph.Exp operator.
 	OpExp
+	// OpLog identifies the Graph.Log operator.
 	OpLog
+	// OpAbs identifies the Graph.Abs operator.
 	OpAbs
+	// OpNeg identifies the Graph.Neg operator.
 	OpNeg
+	// OpReciprocal identifies the Graph.Reciprocal operator.
 	OpReciprocal
+	// OpMax identifies the Graph.Max operator.
 	OpMax
+	// OpMin identifies the Graph.Min operator.
 	OpMin
+	// OpReduceSum identifies the Graph.ReduceSum operator.
 	OpReduceSum
+	// OpReduceMean identifies the Graph.ReduceMean operator.
 	OpReduceMean
+	// OpMean identifies the Graph.Mean operator.
 	OpMean
+	// OpSum identifies the Graph.Sum operator.
 	OpSum
+	// OpConcat identifies the Graph.Concat operator.
 	OpConcat
+	// OpStack identifies the Graph.Stack operator.
 	OpStack
 )
 
@@ -98,6 +163,7 @@ var opNameToMethodName = map[OpName]string{
 	OpRowView:       "RowView",
 	OpColView:       "ColView",
 	OpVec:           "Vec",
+	OpRotateR:       "RotateR",
 	OpT:             "T",
 	OpSquare:        "Square",
 	OpPow:           "Pow",
@@ -109,14 +175,14 @@ var opNameToMethodName = map[OpName]string{
 	OpHardTanh:      "HardTanh",
 	OpSoftsign:      "Softsign",
 	OpReLU:          "ReLU",
-	OpCeLU:          "CeLU",
-	OpGeLU:          "GeLU",
+	OpCELU:          "CELU",
+	OpGELU:          "GELU",
 	OpELU:           "ELU",
 	OpPositiveELU:   "PositiveELU",
 	OpSwish:         "Swish",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
-	OpSeLU:          "SeLU",
+	OpSELU:          "SELU",
 	OpSoftPlus:      "SoftPlus",
 	OpSoftShrink:    "SoftShrink",
 	OpThreshold:     "Threshold",
@@ -279,6 +345,12 @@ func (g *Graph) RowView(x Node, row int) Node {
 	return g.NewOperator(fn.NewRowView(x, row), x)
 }
 
+// RotateR performs the right circular shift.
+// `i` is the number of places by which the elements are shifted.
+func (g *Graph) RotateR(x Node, i int) Node {
+	return g.NewOperator(fn.NewRotateR(x, i), x)
+}
+
 // ColView returns a new operator node as a result of the fn.ColView function.
 func (g *Graph) ColView(x Node, column int) Node {
 	return g.NewOperator(fn.NewColView(x, column), x)
@@ -344,14 +416,14 @@ func (g *Graph) ReLU(x Node) Node {
 	return g.NewOperator(fn.NewReLU(x), x)
 }
 
-// CeLU returns a new operator node as a result of the fn.CeLU function.
-func (g *Graph) CeLU(x Node, alpha Node) Node {
-	return g.NewOperator(fn.NewCeLU(x, alpha), x, alpha)
+// CELU returns a new operator node as a result of the fn.CELU function.
+func (g *Graph) CELU(x Node, alpha Node) Node {
+	return g.NewOperator(fn.NewCELU(x, alpha), x, alpha)
 }
 
-// GeLU returns a new operator node as a result of the fn.GeLU function.
-func (g *Graph) GeLU(x Node) Node {
-	return g.NewOperator(fn.NewGeLU(x), x)
+// GELU returns a new operator node as a result of the fn.GELU function.
+func (g *Graph) GELU(x Node) Node {
+	return g.NewOperator(fn.NewGELU(x), x)
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
@@ -374,9 +446,9 @@ func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)
 }
 
-// SeLU returns a new operator node as a result of the fn.SeLU function.
-func (g *Graph) SeLU(x Node, alpha Node, scale Node) Node {
-	return g.NewOperator(fn.NewSeLU(x, alpha, scale), x, alpha, scale)
+// SELU returns a new operator node as a result of the fn.SELU function.
+func (g *Graph) SELU(x Node, alpha Node, scale Node) Node {
+	return g.NewOperator(fn.NewSELU(x, alpha, scale), x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.

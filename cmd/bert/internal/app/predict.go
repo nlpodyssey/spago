@@ -39,9 +39,9 @@ func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
-		cli := grpcapi.NewBERTClient(conn)
+		client := grpcapi.NewBERTClient(conn)
 
-		resp, err := cli.Predict(context.Background(), &grpcapi.PredictRequest{
+		resp, err := client.Predict(context.Background(), &grpcapi.PredictRequest{
 			Text: app.requestText,
 		})
 

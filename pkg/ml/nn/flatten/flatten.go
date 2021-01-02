@@ -10,12 +10,13 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
 // Model is a parameter-free model used to instantiate a new Processor.
-type Model struct{}
+type Model struct {
+	nn.BaseModel
+}
 
 // New returns a new model.
 // TODO: think about possible configurations
@@ -23,26 +24,11 @@ func New() *Model {
 	return &Model{}
 }
 
-type Processor struct {
-	nn.BaseProcessor
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-	}
-}
-
-// Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.Graph()
 	vectorized := func(x ag.Node) ag.Node {
-		return p.Graph.Vec(x)
+		return g.Vec(x)
 	}
-	return []ag.Node{p.Graph.Concat(ag.Map(vectorized, xs)...)}
+	return []ag.Node{g.Concat(ag.Map(vectorized, xs)...)}
 }

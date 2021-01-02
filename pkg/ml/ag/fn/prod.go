@@ -16,10 +16,12 @@ type Prod struct {
 	x2 Operand
 }
 
+// NewProd returns a new Prod Function.
 func NewProd(x1, x2 Operand) *Prod {
 	return &Prod{x1: x1, x2: x2}
 }
 
+// NewSquare returns a new Prod Function with both operands set to the given value x.
 func NewSquare(x Operand) *Prod {
 	return &Prod{x1: x, x2: x}
 }
@@ -34,6 +36,7 @@ func (r *Prod) Forward() mat.Matrix {
 	return x1v.Prod(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Prod) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()

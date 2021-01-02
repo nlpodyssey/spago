@@ -11,18 +11,19 @@ package startransformer
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"sync"
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	Config
 	Query         *linear.Model
 	Key           *linear.Model
@@ -34,6 +35,7 @@ type Model struct {
 	RelayNorm     *layernorm.Model
 }
 
+// Config provides configuration settings for a Star-Transformer Model.
 type Config struct {
 	InputSize int
 	QuerySize int
@@ -57,61 +59,29 @@ func New(config Config) *Model {
 	}
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	query         *linear.Processor
-	key           *linear.Processor
-	value         *linear.Processor
-	relayQuery    *linear.Processor
-	relayKey      *linear.Processor
-	relayValue    *linear.Processor
-	satelliteNorm *layernorm.Processor
-	relayNorm     *layernorm.Processor
-	Steps         int
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Steps:         m.Config.Steps,
-		query:         m.Query.NewProc(ctx).(*linear.Processor),
-		key:           m.Key.NewProc(ctx).(*linear.Processor),
-		value:         m.Value.NewProc(ctx).(*linear.Processor),
-		relayQuery:    m.RelayQuery.NewProc(ctx).(*linear.Processor),
-		relayKey:      m.RelayKey.NewProc(ctx).(*linear.Processor),
-		relayValue:    m.RelayValue.NewProc(ctx).(*linear.Processor),
-		satelliteNorm: m.SatelliteNorm.NewProc(ctx).(*layernorm.Processor),
-		relayNorm:     m.RelayNorm.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
 // Forward performs the forward step returns the results.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	h := p.copy(xs)       // `h` are the satellite nodes
-	s := p.Graph.Mean(xs) // `s` is the relay node
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	h := m.copy(xs)         // `h` are the satellite nodes
+	s := m.Graph().Mean(xs) // `s` is the relay node
 
-	for t := 1; t <= p.Steps; t++ {
-		h = p.updateSatelliteNodes(h, s, xs)
-		s = p.updateRelayNode(s, h)
+	for t := 1; t <= m.Steps; t++ {
+		h = m.updateSatelliteNodes(h, s, xs)
+		s = m.updateRelayNode(s, h)
 	}
 	return append(h, s)
 }
 
-func (p *Processor) copy(xs []ag.Node) []ag.Node {
+func (m *Model) copy(xs []ag.Node) []ag.Node {
+	g := m.Graph()
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.Graph.Identity(x)
+		ys[i] = g.Identity(x)
 	}
 	return ys
 }
 
-func (p *Processor) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []ag.Node) []ag.Node {
+func (m *Model) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residual []ag.Node) []ag.Node {
+	g := m.Graph()
 	n := len(prevH)
 	var wg sync.WaitGroup
 	wg.Add(n)
@@ -130,32 +100,36 @@ func (p *Processor) updateSatelliteNodes(prevH []ag.Node, prevS ag.Node, residua
 		go func(i, j, k int) {
 			defer wg.Done()
 			context := []ag.Node{prevH[j], prevH[i], prevH[k], residual[i], prevS}
-			h[i] = p.satelliteAttention(prevH[i], context)
-			h[i] = p.satelliteNorm.Forward(p.Graph.ReLU(h[i]))[0]
+			h[i] = m.satelliteAttention(prevH[i], context)
+			h[i] = nn.ToNode(m.SatelliteNorm.Forward(g.ReLU(h[i])))
 		}(i, j, k)
 	}
 	wg.Wait()
 	return h
 }
 
-func (p *Processor) satelliteAttention(query ag.Node, context []ag.Node) ag.Node {
-	q := p.query.Forward(query)
-	ks := p.key.Forward(context...)
-	vs := p.value.Forward(context...)
-	return nn.LinearAttention(p.Graph, q, ks, vs, attMappingFunc, 1e-12)[0]
+func (m *Model) satelliteAttention(query ag.Node, context []ag.Node) ag.Node {
+	attIn := attention.QKV{
+		Queries: m.Query.Forward(query),
+		Keys:    m.Key.Forward(context...),
+		Values:  m.Value.Forward(context...),
+	}
+	return nn.ToNode(attention.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12))
 }
 
-func (p *Processor) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
+func (m *Model) updateRelayNode(prevS ag.Node, ht []ag.Node) ag.Node {
 	context := append([]ag.Node{prevS}, ht...)
-	s := p.relayAttention(prevS, context)
-	return p.relayNorm.Forward(p.Graph.ReLU(s))[0]
+	s := m.relayAttention(prevS, context)
+	return nn.ToNode(m.RelayNorm.Forward(m.Graph().ReLU(s)))
 }
 
-func (p *Processor) relayAttention(query ag.Node, context []ag.Node) ag.Node {
-	q := p.relayQuery.Forward(query)
-	ks := p.relayKey.Forward(context...)
-	vs := p.relayValue.Forward(context...)
-	return nn.LinearAttention(p.Graph, q, ks, vs, attMappingFunc, 1e-12)[0]
+func (m *Model) relayAttention(query ag.Node, context []ag.Node) ag.Node {
+	attIn := attention.QKV{
+		Queries: m.RelayQuery.Forward(query),
+		Keys:    m.RelayKey.Forward(context...),
+		Values:  m.RelayValue.Forward(context...),
+	}
+	return attention.LinearAttention(m.Graph(), attIn, attMappingFunc, 1e-12)[0]
 }
 
 func attMappingFunc(g *ag.Graph, x ag.Node) ag.Node {

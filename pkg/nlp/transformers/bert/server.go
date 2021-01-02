@@ -58,11 +58,13 @@ func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
 
+// Body is the JSON-serializable expected request body for various BERT server requests.
 type Body struct {
 	Text  string `json:"text"`
 	Text2 string `json:"text2"`
 }
 
+// QABody is the JSON-serializable expected request body for BERT question-answering server requests.
 type QABody struct {
 	Question string `json:"question"`
 	Passage  string `json:"passage"`
@@ -74,10 +76,20 @@ func pad(words []string) []string {
 	return append([]string{leftPad}, append(words, rightPad)...)
 }
 
+// DefaultRealLabel is the default value for the real label used for BERT
+// "discriminate" server requests.
 const DefaultRealLabel = "REAL"
+
+// DefaultFakeLabel is the default value for the fake label used for BERT
+// "discriminate" server requests.
 const DefaultFakeLabel = "FAKE"
+
+// DefaultPredictedLabel is the default value for the predicted label used for BERT
+// "predict" server requests.
 const DefaultPredictedLabel = "PREDICTED"
 
+// Answer represent a single JSON-serializable BERT question-answering answer,
+// used as part of a server's response.
 type Answer struct {
 	Text       string  `json:"text"`
 	Start      int     `json:"start"`
@@ -85,13 +97,32 @@ type Answer struct {
 	Confidence float64 `json:"confidence"`
 }
 
+// AnswerSlice is a slice of Answer elements, which implements the sort.Interface.
 type AnswerSlice []Answer
 
-func (p AnswerSlice) Len() int           { return len(p) }
-func (p AnswerSlice) Less(i, j int) bool { return p[i].Confidence < p[j].Confidence }
-func (p AnswerSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-func (p AnswerSlice) Sort()              { sort.Sort(p) }
+// Len returns the length of the slice.
+func (p AnswerSlice) Len() int {
+	return len(p)
+}
 
+// Less returns true if the Answer.Confidence of the element at position i is
+// lower than the one of the element at position j.
+func (p AnswerSlice) Less(i, j int) bool {
+	return p[i].Confidence < p[j].Confidence
+}
+
+// Swap swaps the elements at positions i and j.
+func (p AnswerSlice) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+// Sort sorts the AnswerSlice's elements by Answer.Confidence.
+func (p AnswerSlice) Sort() {
+	sort.Sort(p)
+}
+
+// QuestionAnsweringResponse is the JSON-serializable structure for BERT
+// question-answering server response.
 type QuestionAnsweringResponse struct {
 	Answers AnswerSlice `json:"answers"`
 	// Took is the number of milliseconds it took the server to execute the request.
@@ -120,12 +151,14 @@ func getBestIndices(logits []float64, size int) []int {
 	return s.Indices[:size]
 }
 
+// Response is the JSON-serializable server response for various BERT-related requests.
 type Response struct {
 	Tokens []Token `json:"tokens"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
 
+// Token is a JSON-serializable labeled text token.
 type Token struct {
 	Text  string `json:"text"`
 	Start int    `json:"start"`
@@ -133,6 +166,7 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+// Dump serializes the given value to JSON.
 func Dump(value interface{}, pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
 	enc := json.NewEncoder(buf)

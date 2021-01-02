@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
+	"runtime"
 	"sort"
 	"strconv"
 	"time"
@@ -17,11 +18,11 @@ import (
 func (s *ServerForSequenceClassification) classify(text string, text2 string) *ClassifyResponse {
 	start := time.Now()
 
-	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(true))
+	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*barthead.SequenceClassificationProcessor)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
-	logits := proc.Predict(inputIds...)[0]
+	logits := proc.Classify(inputIds)
 	g.Forward()
 
 	probs := f64utils.SoftMax(g.GetCopiedValue(logits).Data())

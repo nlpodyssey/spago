@@ -11,62 +11,42 @@ import (
 )
 
 var (
-	_ nn.Model     = &Encoder{}
-	_ nn.Processor = &EncoderProcessor{}
+	_ nn.Model = &Encoder{}
 )
 
 // Encoder contains the serializable parameters.
 type Encoder struct {
-	ScalingFFN  nn.Model
-	EncodingFFN nn.Model
+	nn.BaseModel
+	ScalingFFN  nn.StandardModel
+	EncodingFFN nn.StandardModel
 	StepEncoder *pe.PositionalEncoder
+	Recursions  int `spago:"scope:processor"`
 }
 
-type EncoderProcessor struct {
-	nn.BaseProcessor
-	ffn1       nn.Processor
-	ffn2       nn.Processor
-	recursions int
+// GetRecursions returns the number of recursions.
+func (p *Encoder) GetRecursions() int {
+	return p.Recursions
 }
 
-// NewProc returns a new processor to execute the forward step.
-func (m *Encoder) NewProc(ctx nn.Context) nn.Processor {
-	return &EncoderProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		ffn1:       m.ScalingFFN.NewProc(ctx),
-		ffn2:       m.EncodingFFN.NewProc(ctx),
-		recursions: 0,
-	}
-}
-
-func (p *EncoderProcessor) GetRecursions() int {
-	return p.recursions
-}
-
-// Forward performs the forward step for each input and returns the result.
-func (p *EncoderProcessor) Forward(xs ...ag.Node) []ag.Node {
-	ys := p.ffn1.Forward(xs...)
-	p.recursions = 1
+// Forward performs the forward step for each input node and returns the result.
+func (p *Encoder) Forward(xs ...ag.Node) []ag.Node {
+	ys := p.ScalingFFN.Forward(xs...)
+	p.Recursions = 1
 	for len(ys) > 1 {
 		ys = p.encodingStep(ys)
-		p.recursions++
+		p.Recursions++
 	}
 	return ys
 }
 
-func (p *EncoderProcessor) encodingStep(xs []ag.Node) []ag.Node {
-	g := p.Graph
-	stepEncoder := p.Model.(*Encoder).StepEncoder
-	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.recursions), false)
+func (p *Encoder) encodingStep(xs []ag.Node) []ag.Node {
+	g := p.Graph()
+	stepEncoder := p.StepEncoder
+	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.Recursions), false)
 	size := len(xs)
 	ys := make([]ag.Node, size-1)
 	for i := 0; i < size-1; i++ {
 		ys[i] = g.Add(g.Concat(xs[i:i+2]...), stepEncoding)
 	}
-	return p.ffn2.Forward(ys...)
+	return p.EncodingFFN.Forward(ys...)
 }

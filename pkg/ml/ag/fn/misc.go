@@ -8,6 +8,7 @@ import (
 	"math"
 )
 
+// NewTan returns a new UnaryElementwise tangent function.
 func NewTan(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -16,6 +17,7 @@ func NewTan(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewTanh returns a new UnaryElementwise hyperbolic tangent function.
 func NewTanh(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -24,6 +26,7 @@ func NewTanh(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSigmoid returns a new UnaryElementwise sigmoid function.
 func NewSigmoid(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -32,6 +35,7 @@ func NewSigmoid(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewHardSigmoid returns a new UnaryElementwise hard sigmoid function.
 func NewHardSigmoid(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -40,6 +44,7 @@ func NewHardSigmoid(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewHardTanh returns a new UnaryElementwise hard hyperbolic tangent function.
 func NewHardTanh(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -48,6 +53,7 @@ func NewHardTanh(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewReLU returns a new UnaryElementwise Rectified Linear Unit (ReLU) function.
 func NewReLU(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -56,6 +62,7 @@ func NewReLU(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSoftsign returns a new UnaryElementwise softsign function.
 func NewSoftsign(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -64,6 +71,7 @@ func NewSoftsign(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewCos returns a new UnaryElementwise cosine function.
 func NewCos(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -72,6 +80,7 @@ func NewCos(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSin returns a new UnaryElementwise sine function.
 func NewSin(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -80,6 +89,7 @@ func NewSin(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewExp returns a new UnaryElementwise base-e exponential function.
 func NewExp(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -88,6 +98,7 @@ func NewExp(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewLog returns a new UnaryElementwise natural logarithm function.
 func NewLog(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -96,6 +107,7 @@ func NewLog(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewNeg returns a new UnaryElementwise f(x) = -x function.
 func NewNeg(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -104,6 +116,7 @@ func NewNeg(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewReciprocal returns a new UnaryElementwise reciprocal function.
 func NewReciprocal(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -112,6 +125,7 @@ func NewReciprocal(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewAbs returns a new UnaryElementwise absolute value function.
 func NewAbs(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -120,6 +134,13 @@ func NewAbs(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewMish returns a new UnaryElementwise Mish function.
+//
+// Mish is a self-regularized non-monotonic activation function which can be
+// mathematically defined as f(x) = x * tanh(softplus(x)).
+//
+// Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function"
+// by Diganta Misra, 2019 (https://arxiv.org/pdf/1908.08681.pdf)
 func NewMish(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
@@ -128,7 +149,8 @@ func NewMish(x Operand) *UnaryElementwise {
 	}
 }
 
-func NewGeLU(x Operand) *UnaryElementwise {
+// NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
+func NewGELU(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
 		f:  gelu,
@@ -136,6 +158,7 @@ func NewGeLU(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSqrt returns a new UnaryElementwise square root function.
 func NewSqrt(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,

@@ -2,7 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun, Zhiyuan Zhang, Guangxiang Zhao, Junyang Lin (2019).
+// Package adanorm implements the Adaptive Normalization (AdaNorm) method.
+//
+// Reference: "Understanding and Improving Layer Normalization" by Jingjing Xu, Xu Sun,
+// Zhiyuan Zhang,Guangxiang Zhao, Junyang Lin (2019).
 // (https://papers.nips.cc/paper/8689-understanding-and-improving-layer-normalization.pdf)
 package adanorm
 
@@ -12,70 +15,68 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
 // Model contains the scaling factor.
 type Model struct {
-	scale float64
+	nn.BaseModel
+	Scale  float64
+	consts consts `spago:"scope:processor"`
 }
 
-// New returns a new model.
-func New(scale float64) *Model {
-	return &Model{scale: scale}
-}
-
-type Processor struct {
-	nn.BaseProcessor
+type consts struct {
 	eps ag.Node
 	one ag.Node
 	k   ag.Node
 	c   ag.Node
 }
 
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	g := ctx.Graph
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		eps: g.Constant(1e-10),
-		one: g.Constant(1.0),
-		k:   g.Constant(0.1),
-		c:   g.Constant(m.scale),
+// New returns a new model.
+func New(scale float64) *Model {
+	return &Model{
+		Scale: scale,
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (p *Processor) Forward(xs ...ag.Node) []ag.Node {
-	g := p.Graph
-	meanVectors := p.Mean(xs)
-	devVectors := p.StdDev(meanVectors, xs)
+// InitProcessor initializes constants needed by the Forward().
+func (m *Model) InitProcessor() {
+	g := m.Graph()
+	m.consts = consts{
+		eps: g.Constant(1e-10),
+		one: g.Constant(1.0),
+		k:   g.Constant(0.1),
+		c:   g.Constant(m.Scale),
+	}
+}
+
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	g := m.Graph()
+	meanVectors := m.Mean(xs)
+	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))
 
 	for i, x := range xs {
-		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], p.eps))
-		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, p.k), p.one), p.c)
+		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], m.consts.eps))
+		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, m.consts.k), m.consts.one), m.consts.c)
 		zs[i] = g.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }
 
-func (p *Processor) Mean(xs []ag.Node) []ag.Node {
+// Mean computes the mean of the input.
+func (m *Model) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = p.Graph.ReduceMean(x)
+		ys[i] = m.Graph().ReduceMean(x)
 	}
 	return ys
 }
 
-func (p *Processor) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
-	g := p.Graph
+// StdDev computes the standard deviation of the input.
+func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+	g := m.Graph()
 	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))

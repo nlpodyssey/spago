@@ -10,6 +10,7 @@ import (
 
 var _ Function = &View{}
 
+// View is a function to extract a portion of a matrix.
 type View struct {
 	x  Operand
 	sx int
@@ -18,6 +19,7 @@ type View struct {
 	ly int // y length
 }
 
+// NewView returns a new View Function.
 func NewView(x Operand, sx, sy, lx, ly int) *View {
 	return &View{x: x, sx: sx, sy: sy, lx: lx, ly: ly}
 }
@@ -33,6 +35,7 @@ func (r *View) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *View) Backward(gy mat.Matrix) {
 	if !(gy.Rows() == r.lx && gy.Columns() == r.ly) {
 		panic("fn: matrices with not compatible size")

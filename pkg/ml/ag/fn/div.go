@@ -16,6 +16,7 @@ type Div struct {
 	x2 Operand
 }
 
+// NewDiv returns a new Div Function.
 func NewDiv(x1, x2 Operand) *Div {
 	return &Div{x1: x1, x2: x2}
 }
@@ -30,6 +31,7 @@ func (r *Div) Forward() mat.Matrix {
 	return x1v.Div(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Div) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()

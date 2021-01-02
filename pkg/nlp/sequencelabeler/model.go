@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package sequencelabeler provides an implementation of a sequence labeling
-//architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
+// architecture composed by Embeddings -> BiRNN -> Scorer -> CRF.
 package sequencelabeler
 
 import (
@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/crf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
 	"github.com/nlpodyssey/spago/pkg/nlp/contextualstringembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
@@ -29,11 +29,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
+// Model implements a sequence labeling model.
 type Model struct {
+	nn.BaseModel
 	Config          Config
 	EmbeddingsLayer *stackedembeddings.Model
 	TaggerLayer     *birnncrf.Model
@@ -52,7 +53,7 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		UnknownToken:      config.ContextualStringEmbeddings.UnknownToken,
 	}
 
-	wordLevelEmbeddings := make([]nn.Model, 0)
+	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor, 0)
 
 	if config.WordEmbeddings.WordEmbeddingsSize > 0 {
 		wordLevelEmbeddings = append(wordLevelEmbeddings,
@@ -91,19 +92,20 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 			),
 			ProjectionLayer: linear.New(config.EmbeddingsProjectionInputSize, config.EmbeddingsProjectionOutputSize),
 		},
-		TaggerLayer: &birnncrf.Model{
-			BiRNN: birnn.New(
+		TaggerLayer: birnncrf.New(
+			birnn.New(
 				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
 				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
 				birnn.Concat,
 			),
-			Scorer: linear.New(config.ScorerInputSize, config.ScorerOutputSize),
-			CRF:    crf.New(len(config.Labels)),
-		},
+			linear.New(config.ScorerInputSize, config.ScorerOutputSize),
+			crf.New(len(config.Labels)),
+		),
 		Labels: config.Labels,
 	}
 }
 
+// LoadVocabulary loads a vocabulary from file.
 func (m *Model) LoadVocabulary(path string) {
 	var terms []string
 	file, err := os.Open(filepath.Join(path, m.Config.ContextualStringEmbeddings.VocabularyFilename))
@@ -130,6 +132,7 @@ func (m *Model) LoadVocabulary(path string) {
 	l2rCharLM.Vocabulary, r2lCharLM.Vocabulary = vocab, vocab
 }
 
+// LoadParams load Model parameters from file.
 func (m *Model) LoadParams(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
@@ -140,50 +143,29 @@ func (m *Model) LoadParams(path string) {
 	fmt.Println("ok")
 }
 
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		EmbeddingsLayer: m.EmbeddingsLayer.NewProc(ctx).(*stackedembeddings.Processor),
-		TaggerLayer:     m.TaggerLayer.NewProc(ctx).(*birnncrf.Processor),
-	}
-}
-
-type Processor struct {
-	nn.BaseProcessor
-	EmbeddingsLayer *stackedembeddings.Processor
-	TaggerLayer     *birnncrf.Processor
-}
-
+// TokenLabel associates a tokenizers.StringOffsetsPair to a Label.
 type TokenLabel struct {
 	tokenizers.StringOffsetsPair
 	Label string
 }
 
-func (p *Processor) Predict(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
-	model := p.Model.(*Model)
+// Forward performs the forward step for each input and returns the result.
+func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	words := tokenizers.GetStrings(tokens)
-	encodings := p.EmbeddingsLayer.Encode(words)
-	prediction := p.TaggerLayer.Predict(encodings)
+	encodings := m.EmbeddingsLayer.Encode(words)
+	prediction := m.TaggerLayer.Predict(encodings)
 	result := make([]TokenLabel, len(tokens))
 	for i, labelIndex := range prediction {
 		result[i] = TokenLabel{
 			StringOffsetsPair: tokens[i],
-			Label:             model.Labels[labelIndex],
+			Label:             m.Labels[labelIndex],
 		}
 	}
 	return result
 }
 
+// NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: it could be more consistent if the targets were the string labels
-func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
-	return p.TaggerLayer.NegativeLogLoss(targets)
-}
-
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("sequencetagger: method not implemented. Use Predict() instead.")
+func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
+	return m.TaggerLayer.NegativeLogLoss(emissionScores, targets)
 }

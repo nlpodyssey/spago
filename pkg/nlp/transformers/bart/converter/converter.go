@@ -30,6 +30,8 @@ import (
 
 const defaultHuggingFaceModelFile = "pytorch_model.bin"
 
+// ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BART
+// transformer model to a corresponding spaGO model.
 func ConvertHuggingFacePreTrained(modelPath string) error {
 	configFilename, err := exists(path.Join(modelPath, bartconfig.DefaultConfigurationFile))
 	if err != nil {
@@ -218,7 +220,7 @@ func mapBartEncoder(model *bartencoder.Model) map[string]mat.Matrix {
 func mapBartDecoder(model *bartdecoder.Model) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.Config.DecoderLayers; i++ {
-		layer := model.Layers.Layers[i].(*bartdecoder.Layer)
+		layer := model.Layers[i]
 		prefixBase := fmt.Sprintf("model.decoder.layers.%d", i)
 		// Self Attention
 		for j := 0; j < model.Config.DecoderAttentionHeads; j++ {
@@ -277,7 +279,7 @@ func mapClassificationHead(model *barthead.Classification) map[string]mat.Matrix
 	return paramsMap
 }
 
-func assignToParamsList(source []float64, dest []*nn.Param, rows, cols int) {
+func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}

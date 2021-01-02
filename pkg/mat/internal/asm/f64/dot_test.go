@@ -89,6 +89,7 @@ func TestDotUnitary(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func TestDotInc(t *testing.T) {
 	for i, test := range []struct {
 		xData []float64

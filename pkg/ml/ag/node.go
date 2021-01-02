@@ -6,14 +6,15 @@ package ag
 
 import "github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 
+// Node is implemented by any value that can represent a node of a Graph.
 type Node interface {
 	GradValue
 	// Graph returns the graph this node belongs to.
 	Graph() *Graph
 	// ID returns the ID of the node in the graph.
-	ID() int64
-	//
-	getTimeStep() int64
+	ID() int
+	// TimeStep returns the time-step associated to this node.
+	TimeStep() int
 }
 
 // Operands cast a slice of nodes into a slice of operands.

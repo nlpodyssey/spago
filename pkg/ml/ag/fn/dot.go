@@ -15,6 +15,7 @@ type Dot struct {
 	x2 Operand
 }
 
+// NewDot returns a new Dot Function.
 func NewDot(x1, x2 Operand) *Dot {
 	return &Dot{x1: x1, x2: x2}
 }
@@ -39,6 +40,7 @@ func (r *Dot) Forward() mat.Matrix {
 	return mat.NewScalar(y)
 }
 
+// Backward computes the backward pass.
 func (r *Dot) Backward(gy mat.Matrix) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")

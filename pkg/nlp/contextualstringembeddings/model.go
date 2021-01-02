@@ -17,20 +17,27 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
+// MergeType is the enumeration-like type used for the set of merging methods
+// which a Contextual String Embeddings model Processor can perform.
 type MergeType int
 
 const (
-	Concat MergeType = iota // The outputs are concatenated together (the default)
-	Sum                     // The outputs are added together
-	Prod                    // The outputs are multiplied element-wise together
-	Avg                     // The average of the outputs is taken
+	// Concat merging method: the outputs are concatenated together (the default)
+	Concat MergeType = iota
+	// Sum merging method: the outputs are added together
+	Sum
+	// Prod merging method: the outputs multiplied element-wise together
+	Prod
+	// Avg merging method: the average of the outputs is taken
+	Avg
 )
 
+// Model contains the serializable parameters for a Contextual String Embeddings model.
 type Model struct {
+	nn.BaseModel
 	LeftToRight *charlm.Model
 	RightToLeft *charlm.Model
 	MergeMode   MergeType
@@ -38,6 +45,7 @@ type Model struct {
 	EndMarker   rune
 }
 
+// New returns a new Contextual String Embeddings Model.
 func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
 	return &Model{
 		LeftToRight: leftToRight,
@@ -48,27 +56,6 @@ func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, e
 	}
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	mergeMode   MergeType
-	leftToRight *charlm.Processor
-	rightToLeft *charlm.Processor
-}
-
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		mergeMode:   m.MergeMode,
-		leftToRight: m.LeftToRight.NewProc(ctx).(*charlm.Processor),
-		rightToLeft: m.RightToLeft.NewProc(ctx).(*charlm.Processor),
-	}
-}
-
 type wordBoundary struct {
 	// index of the end of a word in the left-to-right sequence
 	endIndex int
@@ -76,7 +63,8 @@ type wordBoundary struct {
 	reverseEndIndex int
 }
 
-func (p Processor) Encode(words []string) []ag.Node {
+// Encode performs the forward step for each input and returns the result.
+func (m *Model) Encode(words []string) []ag.Node {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
 	sequence := utils.SplitByRune(text)
@@ -85,20 +73,20 @@ func (p Processor) Encode(words []string) []ag.Node {
 	var reverseHiddenStates []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
-	m := p.Model.(*Model)
+
 	go func() {
 		defer wg.Done()
-		hiddenStates = process(p.leftToRight, padding(sequence, m.StartMarker, m.EndMarker))
+		hiddenStates = process(m.LeftToRight, padding(sequence, m.StartMarker, m.EndMarker))
 	}()
 	go func() {
 		defer wg.Done()
-		reverseHiddenStates = process(p.rightToLeft, padding(reversed(sequence), m.StartMarker, m.EndMarker))
+		reverseHiddenStates = process(m.RightToLeft, padding(reversed(sequence), m.StartMarker, m.EndMarker))
 	}()
 	wg.Wait()
 
 	out := make([]ag.Node, len(words))
 	for i, boundary := range boundaries {
-		out[i] = p.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
+		out[i] = m.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
 	}
 	return out
 }
@@ -137,13 +125,13 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 	return padded
 }
 
-func process(proc *charlm.Processor, sequence []string) []ag.Node {
-	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...)...)
+func process(proc *charlm.Model, sequence []string) []ag.Node {
+	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...))
 }
 
-func (p *Processor) merge(a, b ag.Node) ag.Node {
-	g := p.Graph
-	switch p.mergeMode {
+func (m *Model) merge(a, b ag.Node) ag.Node {
+	g := m.Graph()
+	switch m.MergeMode {
 	case Concat:
 		return g.Concat(a, b)
 	case Sum:
@@ -155,8 +143,4 @@ func (p *Processor) merge(a, b ag.Node) ag.Node {
 	default:
 		panic("contextual string embeddings: invalid merge mode for the ContextualStringEmbeddings")
 	}
-}
-
-func (p Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("contextual string embeddings: method not implemented. Use Encode() instead.")
 }

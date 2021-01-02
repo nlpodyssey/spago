@@ -7,18 +7,19 @@ package bert
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rc"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
 var (
-	_ nn.Model     = &EncoderLayer{}
-	_ nn.Processor = &EncoderLayerProcessor{}
+	_ nn.Model = &EncoderLayer{}
 )
 
+// EncoderLayer is a BERT Encoder Layer model.
 type EncoderLayer struct {
+	nn.BaseModel
 	MultiHeadAttention *multiheadattention.Model
 	NormAttention      *layernorm.Model
 	FFN                *stack.Model
@@ -26,31 +27,24 @@ type EncoderLayer struct {
 	Index              int // layer index (useful for debugging)
 }
 
-type EncoderLayerProcessor struct {
-	nn.BaseProcessor
-	MultiHeadAttention *multiheadattention.Processor
-	NormAttention      *layernorm.Processor
-	FFN                *stack.Processor
-	NormFFN            *layernorm.Processor
+// Forward performs the forward step for each input node and returns the result.
+func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
+	return m.fullyConnectedBlock(m.selfAttentionBlock(xs))
 }
 
-func (m *EncoderLayer) NewProc(ctx nn.Context) nn.Processor {
-	return &EncoderLayerProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		MultiHeadAttention: m.MultiHeadAttention.NewProc(ctx).(*multiheadattention.Processor),
-		NormAttention:      m.NormAttention.NewProc(ctx).(*layernorm.Processor),
-		FFN:                m.FFN.NewProc(ctx).(*stack.Processor),
-		NormFFN:            m.NormFFN.NewProc(ctx).(*layernorm.Processor),
+func (m *EncoderLayer) selfAttentionBlock(xs []ag.Node) []ag.Node {
+	selfAtt := m.MultiHeadAttention.Forward(attention.ToQKV(xs))
+	return m.NormAttention.Forward(m.add(xs, selfAtt)...)
+}
+
+func (m *EncoderLayer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
+	return m.NormFFN.Forward(m.add(xs, m.FFN.Forward(xs...))...)
+}
+
+func (m *EncoderLayer) add(a, b []ag.Node) []ag.Node {
+	c := make([]ag.Node, len(a))
+	for i := 0; i < len(a); i++ {
+		c[i] = m.Graph().Add(a[i], b[i])
 	}
-}
-
-func (p *EncoderLayerProcessor) Forward(xs ...ag.Node) []ag.Node {
-	subLayer1 := rc.PostNorm(p.Graph, p.MultiHeadAttention.Forward, p.NormAttention.Forward, xs...)
-	subLayer2 := rc.PostNorm(p.Graph, p.FFN.Forward, p.NormFFN.Forward, subLayer1...)
-	return subLayer2
+	return c
 }

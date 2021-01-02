@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -17,11 +18,13 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 )
 
+// OptionsType provides JSON-serializable options for the sequence labeling Server.
 type OptionsType struct {
 	MergeEntities     bool `json:"mergeEntities"`     // default false
 	FilterNotEntities bool `json:"filterNotEntities"` // default false
 }
 
+// Body provides JSON-serializable parameters for sequence labeling Server requests.
 type Body struct {
 	Options OptionsType `json:"options"`
 	Text    string      `json:"text"`
@@ -90,11 +93,11 @@ func tokensFrom(resp *Response) []*grpcapi.Token {
 
 func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) {
 	start := time.Now()
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	tokenized := basetokenizer.New().Tokenize(text)
-	predicted := proc.Predict(tokenized)
+	predicted := proc.Forward(tokenized)
 	if merge {
 		predicted = mergeEntities(predicted)
 	}
@@ -114,12 +117,15 @@ func prepareResponse(tokens []TokenLabel, took time.Duration) *Response {
 	return &Response{Tokens: newTokens, Took: took.Milliseconds()}
 }
 
+// Response provides JSON-serializable parameters for sequence labeling Server responses.
 type Response struct {
 	Tokens []Token `json:"tokens"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
 
+// Token provides JSON-serializable parameters for a single token of sequence
+// labeling Server responses.
 type Token struct {
 	Text  string `json:"text"`
 	Start int    `json:"start"`
@@ -127,6 +133,7 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+// Dump serializes the Response to JSON.
 func (r *Response) Dump(pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
 	enc := json.NewEncoder(buf)

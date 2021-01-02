@@ -13,7 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/rec/lstm"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
 	"github.com/nlpodyssey/spago/pkg/nlp/contextualstringembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
@@ -166,7 +166,7 @@ func (c *converter) loadPyTorchParams() {
 	}
 }
 
-func assignToParamsList(source []float64, dest []*nn.Param, rows, cols int) {
+func assignToParamsList(source []float64, dest []nn.Param, rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
@@ -179,7 +179,7 @@ func (c *converter) mapTagger(model *birnncrf.Model) {
 }
 
 func (c *converter) mapCharLM(model *charlm.Model, prefix string) {
-	c.mapLSTM(model.RNN.(*lstm.Model), fmt.Sprintf("%slstm.", prefix))
+	c.mapLSTM(model.RNN, fmt.Sprintf("%slstm.", prefix))
 	c.mapLinear(model.Decoder, fmt.Sprintf("%sdecoder.", prefix))
 	if model.Config.OutputSize > 0 {
 		c.mapLinear(model.Projection, fmt.Sprintf("%sprojection.", prefix))

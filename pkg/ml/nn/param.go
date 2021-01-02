@@ -6,47 +6,56 @@ package nn
 
 import (
 	"bytes"
-	"encoding/binary"
-	"io"
 	"log"
-	"strings"
 	"sync"
 
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 )
 
-type ParamsType int
+// Param is the interface for a Model parameter.
+type Param interface {
+	ag.Node // it implies fn.Operand and ag.GradValue too
 
-const (
-	Weights ParamsType = iota
-	Biases
-	Undefined
-)
-
-var pts = []ParamsType{Weights, Biases, Undefined}
-
-func (t ParamsType) String() string {
-	return [...]string{"weights", "biases", "undefined"}[t] // important lower case
+	// Name returns the params name (can be empty string).
+	Name() string
+	// SetName set the params name (can be empty string).
+	SetName(name string)
+	// Type returns the params type (weights, biases, undefined).
+	Type() ParamsType
+	// SetType set the params type (weights, biases, undefined).
+	SetType(pType ParamsType)
+	// SetRequiresGrad set whether the param requires gradient, or not.
+	SetRequiresGrad(value bool)
+	// ReplaceValue replaces the value of the parameter and clears the support structure.
+	ReplaceValue(value mat.Matrix)
+	// ApplyDelta updates the value of the underlying storage applying the delta.
+	ApplyDelta(delta mat.Matrix)
+	// Payload returns the optimizer support structure (can be nil).
+	Payload() *Payload
+	// SetPayload is a thread safe operation to set the given Payload on the
+	// receiver Param.
+	SetPayload(payload *Payload)
+	// ClearPayload clears the support structure.
+	ClearPayload()
+	// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
+	MarshalBinary() ([]byte, error)
+	// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
+	UnmarshalBinary(data []byte) error
 }
 
-// ToType convert a string to a ParamsType. It returns Undefined if the string doesn't match any ParamsType.
-func ToType(s string) ParamsType {
-	for _, item := range pts {
-		if item.String() == strings.ToLower(s) {
-			return item
-		}
+// Params extends a slice of Param with Nodes() method.
+type Params []Param
+
+// Nodes converts the slice of Param into a slice of ag.Node.
+func (ps Params) Nodes() []ag.Node {
+	ns := make([]ag.Node, len(ps))
+	for i, p := range ps {
+		ns[i] = p
 	}
-	return Undefined
+	return ns
 }
-
-var (
-	_ fn.Operand   = &Param{}
-	_ ag.GradValue = &Param{}
-)
 
 // Payload contains the support data used for example by the optimization methods
 type Payload struct {
@@ -62,7 +71,9 @@ func NewEmptySupport() *Payload {
 	}
 }
 
-type Param struct {
+var _ Param = &param{}
+
+type param struct {
 	name         string
 	pType        ParamsType // lazy initialization
 	mu           sync.Mutex // to avoid data race
@@ -74,23 +85,28 @@ type Param struct {
 	storage      kvdb.KeyValueDB // default nil
 }
 
-type ParamOption func(*Param)
+// ParamOption allows to configure a new Param with your specific needs.
+type ParamOption func(*param)
 
+// RequiresGrad is an option to specify whether a Param should be trained or not.
 func RequiresGrad(value bool) ParamOption {
-	return func(p *Param) {
+	return func(p *param) {
 		p.requiresGrad = value
 	}
 }
 
+// SetStorage is an option to specify a kvdb.KeyValueDB storage.
+// This is useful, for example, for a memory-efficient embeddings
+// Param implementation.
 func SetStorage(storage kvdb.KeyValueDB) ParamOption {
-	return func(p *Param) {
+	return func(p *param) {
 		p.storage = storage
 	}
 }
 
 // NewParam returns a new param.
-func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
-	p := &Param{
+func NewParam(value mat.Matrix, opts ...ParamOption) Param {
+	p := &param{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
@@ -107,32 +123,32 @@ func NewParam(value mat.Matrix, opts ...ParamOption) *Param {
 }
 
 // SetName set the params name (can be empty string).
-func (r *Param) SetName(name string) {
+func (r *param) SetName(name string) {
 	r.name = name
 }
 
 // SetType set the params type (weights, biases, undefined).
-func (r *Param) SetType(name string) {
-	r.name = name
+func (r *param) SetType(pType ParamsType) {
+	r.pType = pType
 }
 
 // Name returns the params name (can be empty string).
-func (r *Param) Name() string {
+func (r *param) Name() string {
 	return r.name
 }
 
 // Type returns the params type (weights, biases, undefined).
-func (r *Param) Type() ParamsType {
+func (r *param) Type() ParamsType {
 	return r.pType
 }
 
 // Value returns the value of the delegate itself.
-func (r *Param) Value() mat.Matrix {
+func (r *param) Value() mat.Matrix {
 	return r.value
 }
 
 // ReplaceValue replaces the value of the parameter and clears the support structure.
-func (r *Param) ReplaceValue(value mat.Matrix) {
+func (r *param) ReplaceValue(value mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.value = value
@@ -145,17 +161,17 @@ func (r *Param) ReplaceValue(value mat.Matrix) {
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Param) ScalarValue() float64 {
+func (r *param) ScalarValue() float64 {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Param) Grad() mat.Matrix {
+func (r *param) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulate the gradients
-func (r *Param) PropagateGrad(grad mat.Matrix) {
+func (r *param) PropagateGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}
@@ -169,17 +185,22 @@ func (r *Param) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Param) HasGrad() bool {
+func (r *param) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the param requires gradients.
-func (r *Param) RequiresGrad() bool {
+func (r *param) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
+// RequiresGrad is an option to specify whether a Param should be trained or not.
+func (r *param) SetRequiresGrad(value bool) {
+	r.requiresGrad = value
+}
+
 // ZeroGrad clears the gradients.
-func (r *Param) ZeroGrad() {
+func (r *param) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
@@ -191,7 +212,7 @@ func (r *Param) ZeroGrad() {
 }
 
 // ApplyDelta updates the value of the underlying storage applying the delta.
-func (r *Param) ApplyDelta(delta mat.Matrix) {
+func (r *param) ApplyDelta(delta mat.Matrix) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.Value().SubInPlace(delta)
@@ -201,13 +222,15 @@ func (r *Param) ApplyDelta(delta mat.Matrix) {
 }
 
 // Payload returns the optimizer support structure (can be nil).
-func (r *Param) Payload() *Payload {
+func (r *param) Payload() *Payload {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.payload
 }
 
-func (r *Param) SetPayload(payload *Payload) {
+// SetPayload is a thread safe operation to set the given Payload on the
+// receiver Param.
+func (r *param) SetPayload(payload *Payload) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.payload = payload
@@ -217,7 +240,7 @@ func (r *Param) SetPayload(payload *Payload) {
 }
 
 // ClearPayload clears the support structure.
-func (r *Param) ClearPayload() {
+func (r *param) ClearPayload() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.payload = nil
@@ -226,12 +249,12 @@ func (r *Param) ClearPayload() {
 	}
 }
 
-func (r *Param) updateStorage() {
+func (r *param) updateStorage() {
 	if r.storage == nil {
 		return
 	}
 	var buf bytes.Buffer
-	if _, err := (&ParamSerializer{Param: r}).Serialize(&buf); err != nil {
+	if _, err := (&ParamSerializer{param: r}).Serialize(&buf); err != nil {
 		log.Fatal(err)
 	}
 	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
@@ -240,7 +263,7 @@ func (r *Param) updateStorage() {
 }
 
 // MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
-func (r *Param) MarshalBinary() ([]byte, error) {
+func (r *param) MarshalBinary() ([]byte, error) {
 	var b bytes.Buffer
 	_, err := mat.MarshalBinaryTo(r.value, &b)
 	if err != nil {
@@ -250,126 +273,75 @@ func (r *Param) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
-func (r *Param) UnmarshalBinary(data []byte) error {
+func (r *param) UnmarshalBinary(data []byte) error {
 	b := bytes.NewBuffer(data)
 	value, _, err := mat.NewUnmarshalBinaryFrom(b)
 	r.value = value
 	return err
 }
 
-type ParamSerializer struct {
-	*Param
-}
-
-func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
-	return paramDataMarshalBinaryTo(&paramData{
-		Value:   s.value.(*mat.Dense),
-		Payload: s.payload,
-	}, w)
-}
-
-func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
-	var data *paramData
-	data, n, err = paramDataUnmarshalBinaryFrom(r)
-	if err != nil {
-		return
-	}
-	s.Param.value = data.Value
-	s.Param.payload = data.Payload
-	return
-}
-
-type paramData struct {
-	Value   *mat.Dense
-	Payload *Payload
-}
-
-func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
-	n, err := mat.MarshalBinaryTo(data.Value, w)
-	if err != nil {
-		return n, err
-	}
-	n2, err := PayloadMarshalBinaryTo(data.Payload, w)
-	n += n2
-	if err != nil {
-		return n, err
-	}
-	return n, err
-}
-
-func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, int, error) {
-	value, n, err := mat.NewUnmarshalBinaryFrom(r)
-	if err != nil {
-		return nil, n, err
-	}
-	supp, n2, err := NewPayloadUnmarshalBinaryFrom(r)
-	n += n2
-	if err != nil {
-		return nil, n, err
-	}
-	return &paramData{Value: value, Payload: supp}, n, err
-}
-
-// PayloadMarshalBinaryTo returns the number of bytes written into w and an error, if any.
-func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
-	h := header{Label: int64(supp.Label), Size: int64(len(supp.Data))}
-	n, err := h.marshalBinaryTo(w)
-	if err != nil {
-		return n, err
-	}
-	nn, err := mat.MarshalBinarySlice(supp.Data, w)
-	n += nn
-	return n, err
-}
-
-func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
-	var h header
-	n, err := h.unmarshalBinaryFrom(r)
-	if err != nil {
-		return nil, n, err
-	}
-	data := make([]mat.Matrix, h.Size)
-	nn, err := mat.NewUnmarshalBinarySlice(data, r)
-	n = +nn
-	if err != nil {
-		return nil, n, err
-	}
-	supp := &Payload{
-		Label: int(h.Label),
-		Data:  data,
-	}
-	return supp, n, err
-}
-
-type header struct {
-	Label int64
-	Size  int64
-}
-
-var headerSize = binary.Size(header{})
-
-func (s header) marshalBinaryTo(w io.Writer) (int, error) {
-	buf := bytes.NewBuffer(make([]byte, 0, headerSize))
-	err := binary.Write(buf, binary.LittleEndian, s)
-	if err != nil {
-		return 0, err
-	}
-	return w.Write(buf.Bytes())
-}
-
-func (s *header) unmarshalBinary(buf []byte) error {
-	err := binary.Read(bytes.NewReader(buf), binary.LittleEndian, s)
-	if err != nil {
-		return err
-	}
+// Graph returns always nil since the "pure" parameter is not associated with any graph.
+func (r *param) Graph() *ag.Graph {
 	return nil
 }
 
-func (s *header) unmarshalBinaryFrom(r io.Reader) (int, error) {
-	buf := make([]byte, headerSize)
-	n, err := utils.ReadFull(r, buf)
-	if err != nil {
-		return n, err
+// ID returns always -1 since the "pure" parameter is not associated with any graph.
+func (r *param) ID() int {
+	return -1
+}
+
+// TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
+func (r *param) TimeStep() int {
+	return 0
+}
+
+// wrappedParam returns a new wrappedParam from the param itself.
+func (r *param) wrappedParam(g *ag.Graph) *wrappedParam {
+	if r.requiresGrad {
+		return &wrappedParam{param: r, Node: g.NewWrap(r)}
 	}
-	return n, s.unmarshalBinary(buf[:n])
+	return &wrappedParam{param: r, Node: g.NewWrapNoGrad(r)}
+}
+
+var _ Param = &wrappedParam{}
+
+// wrappedParam enriches a Param with a Node.
+type wrappedParam struct {
+	*param
+	Node ag.Node
+}
+
+// ID dispatches the call to the Node.
+func (r *wrappedParam) ID() int {
+	return r.Node.ID()
+}
+
+// Graph dispatches the call to the Node.
+func (r *wrappedParam) Graph() *ag.Graph {
+	return r.Node.Graph()
+}
+
+// Grad dispatches the call to the Node.
+func (r *wrappedParam) Grad() mat.Matrix {
+	return r.Node.Grad()
+}
+
+// PropagateGrad dispatches the call to the Node.
+func (r *wrappedParam) PropagateGrad(gx mat.Matrix) {
+	r.Node.PropagateGrad(gx)
+}
+
+// HasGrad dispatches the call to the Node.
+func (r *wrappedParam) HasGrad() bool {
+	return r.Node.HasGrad()
+}
+
+// RequiresGrad dispatches the call to the Node.
+func (r *wrappedParam) RequiresGrad() bool {
+	return r.Node.RequiresGrad()
+}
+
+// ZeroGrad dispatches the call to the Node.
+func (r *wrappedParam) ZeroGrad() {
+	r.Node.ZeroGrad()
 }

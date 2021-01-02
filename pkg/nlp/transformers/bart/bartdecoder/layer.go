@@ -8,8 +8,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"github.com/nlpodyssey/spago/pkg/ml/nn/multiheadattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
@@ -17,20 +18,22 @@ import (
 )
 
 var (
-	_ nn.Model     = &bartencoder.Layer{}
-	_ nn.Processor = &bartencoder.LayerProcessor{}
+	_ nn.Model = &bartencoder.Layer{}
 )
 
+// Layer implements a BART decoder layer.
 type Layer struct {
+	nn.BaseModel
 	Config                    bartconfig.Config
 	SelfAttention             *multiheadattention.Model
 	SelfAttentionLayerNorm    *layernorm.Model
 	EncoderAttention          *multiheadattention.Model
 	EncoderAttentionLayerNorm *layernorm.Model
-	FFN                       *stack.Model // FC2(Activation(FC1))
+	FFN                       *stack.Model
 	LayerNorm                 *layernorm.Model
 }
 
+// NewLayer returns a new BART decoder Layer.
 func NewLayer(config bartconfig.Config) *Layer {
 	return &Layer{
 		Config: config,
@@ -50,7 +53,7 @@ func NewLayer(config bartconfig.Config) *Layer {
 		EncoderAttentionLayerNorm: layernorm.New(config.DModel),
 		FFN: stack.New(
 			linear.New(config.DModel, config.DecoderFFNDim),
-			activation.New(ag.OpGeLU), // TODO: config.ActivationFunction
+			activation.New(ag.OpGELU), // TODO: config.ActivationFunction
 			// dropout.New(config.ActivationDropout)
 			linear.New(config.DecoderFFNDim, config.DModel),
 			// dropout.New(config.Dropout)
@@ -59,97 +62,71 @@ func NewLayer(config bartconfig.Config) *Layer {
 	}
 }
 
-type LayerProcessor struct {
-	nn.BaseProcessor
-	bartconfig.Config
-	SelfAttention             *multiheadattention.Processor
-	SelfAttentionLayerNorm    *layernorm.Processor
-	EncoderAttention          *multiheadattention.Processor
-	EncoderAttentionLayerNorm *layernorm.Processor
-	FFN                       *stack.Processor
-	LayerNorm                 *layernorm.Processor
-}
-
-func (m *Layer) NewProc(ctx nn.Context) nn.Processor {
-	return &LayerProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		SelfAttention:             m.SelfAttention.NewProc(ctx).(*multiheadattention.Processor),
-		SelfAttentionLayerNorm:    m.SelfAttentionLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		EncoderAttention:          m.EncoderAttention.NewProc(ctx).(*multiheadattention.Processor),
-		EncoderAttentionLayerNorm: m.EncoderAttentionLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		FFN:                       m.FFN.NewProc(ctx).(*stack.Processor),
-		LayerNorm:                 m.LayerNorm.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
-func (p *LayerProcessor) Process(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
-	selfAtt := p.selfAttentionBlock(xs)
-	crossAtt := p.crossAttentionBlock(selfAtt, encoderHiddenStates)
-	out := p.fullyConnectedBlock(crossAtt)
+// Forward performs the forward step for each input and returns the result.
+// Valid input type: LayerInput.
+func (m *Layer) Forward(xs, encoderHiddenStates []ag.Node) []ag.Node {
+	selfAtt := m.selfAttentionBlock(xs)
+	crossAtt := m.crossAttentionBlock(selfAtt, encoderHiddenStates)
+	out := m.fullyConnectedBlock(crossAtt)
 	return out
 }
 
-func (p *LayerProcessor) selfAttentionBlock(xs []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.SelfAttentionLayerNorm.Forward(xs...)
+func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = p.SelfAttention.Forward(xs...) // query=xs, key=xs, value=xs
-	// xs = p.Dropout(xs)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.SelfAttentionLayerNorm.Forward(xs...)
-	}
-	return xs
-}
-
-func (p *LayerProcessor) crossAttentionBlock(xs []ag.Node, ex []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.EncoderAttentionLayerNorm.Forward(xs...)
-	}
-	xs = p.EncoderAttention.ForwardQKV(xs, ex, ex) // query=xs, key=ex, value=ex
-	// xs = p.Dropout(xs)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.EncoderAttentionLayerNorm.Forward(xs...)
+	xs = m.SelfAttention.Forward(attention.ToQKV(xs))
+	// TODO: xs = m.Dropout(xs)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
 
-func (p *LayerProcessor) fullyConnectedBlock(xs []ag.Node) []ag.Node {
-	residual := p.copy(xs)
-	if p.NormalizeBefore {
-		xs = p.LayerNorm.Forward(xs...)
+func (m *Layer) crossAttentionBlock(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	xs = p.FFN.Forward(xs...)
-	xs = p.add(residual, xs)
-	if !p.NormalizeBefore {
-		xs = p.LayerNorm.Forward(xs...)
+	xs = m.EncoderAttention.Forward(attention.QKV{
+		Queries: xs,
+		Keys:    encoderHiddenStates,
+		Values:  encoderHiddenStates,
+	})
+	// TODO: xs = m.Dropout(xs)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
 	return xs
 }
 
-func (p *LayerProcessor) copy(xs []ag.Node) []ag.Node {
+func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {
+	residual := m.copy(xs)
+	if m.Config.NormalizeBefore {
+		xs = m.LayerNorm.Forward(xs...)
+	}
+	xs = m.FFN.Forward(xs...)
+	xs = m.add(residual, xs)
+	if !m.Config.NormalizeBefore {
+		xs = m.LayerNorm.Forward(xs...)
+	}
+	return xs
+}
+
+func (m *Layer) copy(xs []ag.Node) []ag.Node {
 	copied := func(x ag.Node) ag.Node {
-		return p.Graph.Identity(x)
+		return m.Graph().Identity(x)
 	}
 	return ag.Map(copied, xs)
 }
 
-func (p *LayerProcessor) add(a []ag.Node, b []ag.Node) []ag.Node {
+func (m *Layer) add(a []ag.Node, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = p.Graph.Add(a[i], b[i])
+		c[i] = m.Graph().Add(a[i], b[i])
 	}
 	return c
-}
-
-func (p *LayerProcessor) Forward(_ ...ag.Node) []ag.Node {
-	panic("bertdecoder: Forward() not implemented; use Process() instead.")
 }

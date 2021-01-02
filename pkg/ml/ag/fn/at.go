@@ -17,6 +17,7 @@ type At struct {
 	j int
 }
 
+// NewAt returns a new At Function.
 func NewAt(x Operand, i int, j int) *At {
 	return &At{x: x, i: i, j: j}
 }
@@ -26,6 +27,7 @@ func (r *At) Forward() mat.Matrix {
 	return mat.NewScalar(r.x.Value().At(r.i, r.j))
 }
 
+// Backward computes the backward pass.
 func (r *At) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := mat.NewEmptyDense(r.x.Value().Dims())

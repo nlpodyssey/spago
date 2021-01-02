@@ -16,6 +16,7 @@ type Concat struct {
 	ySize int
 }
 
+// NewConcat returns a new Concat Function.
 func NewConcat(xs []Operand) *Concat {
 	return &Concat{
 		xs:    xs,
@@ -35,6 +36,7 @@ func (r *Concat) Forward() mat.Matrix {
 	return mat.ConcatV(ms...)
 }
 
+// Backward computes the backward pass.
 func (r *Concat) Backward(gy mat.Matrix) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")

@@ -18,8 +18,8 @@ var (
 
 type operator struct {
 	graph        *Graph
-	timeStep     int64
-	id           int64
+	timeStep     int
+	id           int
 	function     fn.Function
 	operands     []Node
 	value        mat.Matrix // store the results of a forward evaluation
@@ -30,7 +30,7 @@ type operator struct {
 }
 
 // ID returns the ID of the node in the graph.
-func (r *operator) ID() int64 {
+func (r *operator) ID() int {
 	return r.id
 }
 
@@ -90,7 +90,7 @@ func (r *operator) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *operator) getTimeStep() int64 {
+func (r *operator) TimeStep() int {
 	return r.timeStep
 }
 

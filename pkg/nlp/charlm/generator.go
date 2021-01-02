@@ -11,17 +11,20 @@ import (
 	"strings"
 )
 
+// Generator is a character-level language model text generator.
 type Generator struct {
 	GeneratorConfig
 	model *Model
 }
 
+// GeneratorConfig provides configuration settings for a Character-level Language Model Generator.
 type GeneratorConfig struct {
 	MaxCharacters int
 	StopAtEOS     bool
 	Temperature   float64
 }
 
+// NewGenerator returns a new Generator.
 func NewGenerator(model *Model, config GeneratorConfig) *Generator {
 	return &Generator{
 		GeneratorConfig: config,
@@ -38,7 +41,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 		prefix = m.model.SequenceSeparator
 	}
 	g := ag.NewGraph()
-	proc := m.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m.model).(*Model)
 	characters := make([]string, 0)
 	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
 	characters = append(characters, next)
@@ -57,9 +60,9 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 	return
 }
 
-func (m *Generator) generateNext(proc *Processor, xs ...string) (next string, prob float64) {
+func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob float64) {
 	lastIndex := len(xs) - 1
-	prediction := proc.Predict(xs...)[lastIndex].Value().Data() // keep the last prediction only
+	prediction := proc.Forward(xs).([]ag.Node)[lastIndex].Value().Data() // keep the last prediction only
 	index := sample(prediction, m.Temperature)
 	next = m.model.Vocabulary.MustTerm(index)
 	prob = prediction[index]

@@ -16,15 +16,18 @@ import (
 )
 
 var (
-	_ nn.Model     = &SequenceClassification{}
-	_ nn.Processor = &SequenceClassificationProcessor{}
+	_ nn.Model = &SequenceClassification{}
 )
 
+// SequenceClassification is a model for sentence-level classification tasks
+// which embeds a BART pre-trained model.
 type SequenceClassification struct {
+	nn.BaseModel
 	BART           *bart.Model
 	Classification *Classification
 }
 
+// NewSequenceClassification returns a new SequenceClassification.
 func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
 		BART: bart.New(config, embeddingsPath),
@@ -37,10 +40,12 @@ func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) 
 	}
 }
 
+// Close closes the BART model's embeddings DB.
 func (m *SequenceClassification) Close() {
 	m.BART.Close()
 }
 
+// LoadModelForSequenceClassification loads a SequenceClassification model from file.
 func LoadModelForSequenceClassification(modelPath string) (*SequenceClassification, error) {
 	configFilename := path.Join(modelPath, bartconfig.DefaultConfigurationFile)
 	embeddingsPath := path.Join(modelPath, bartconfig.DefaultEmbeddingsStorage)
@@ -65,31 +70,10 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	return model, nil
 }
 
-type SequenceClassificationProcessor struct {
-	nn.BaseProcessor
-	BART           *bart.Processor
-	Classification *ClassificationProcessor
-}
-
-func (m *SequenceClassification) NewProc(ctx nn.Context) nn.Processor {
-	return &SequenceClassificationProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		BART:           m.BART.NewProc(ctx).(*bart.Processor),
-		Classification: m.Classification.NewProc(ctx).(*ClassificationProcessor),
-	}
-}
-
-func (p SequenceClassificationProcessor) Predict(inputIds ...int) []ag.Node {
-	transformed := p.BART.Process(inputIds...)
+// Classify performs the classification using the last transformed state.
+func (m *SequenceClassification) Classify(in interface{}) ag.Node {
+	inputIds := in.([]int)
+	transformed := m.BART.Encode(inputIds)
 	sentenceRepresentation := transformed[len(transformed)-1]
-	return p.Classification.Forward(sentenceRepresentation)
-}
-
-func (p SequenceClassificationProcessor) Forward(_ ...ag.Node) []ag.Node {
-	panic("barthead: Forward() not implemented for SequenceClassification. Use Predict() instead.")
+	return nn.ToNode(m.Classification.Forward(sentenceRepresentation))
 }

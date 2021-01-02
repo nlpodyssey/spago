@@ -12,6 +12,7 @@ import (
 
 var _ gd.MethodConfig = &Config{}
 
+// Config provides configuration settings for an SGD optimizer.
 type Config struct {
 	gd.MethodConfig
 	LR       float64
@@ -19,6 +20,7 @@ type Config struct {
 	Nesterov bool
 }
 
+// NewConfig returns a new SGD Config.
 func NewConfig(lr, momentum float64, nesterov bool) Config {
 	return Config{
 		LR:       lr,
@@ -29,15 +31,18 @@ func NewConfig(lr, momentum float64, nesterov bool) Config {
 
 var _ gd.Method = &SGD{}
 
+// SGD implements the SGD gradient descent optimization method.
 type SGD struct {
 	Config
 	Alpha float64
 }
 
+// New returns a new SGD optimizer, initialized according to the given configuration.
 func New(c Config) *SGD {
 	return &SGD{Config: c, Alpha: c.LR}
 }
 
+// Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *SGD) Label() int {
 	return gd.SGD
 }
@@ -49,6 +54,7 @@ const (
 	vTmp  int = 3
 )
 
+// NewSupport returns a new support structure with the given dimensions.
 func (o *SGD) NewSupport(r, c int) *nn.Payload {
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
@@ -77,7 +83,8 @@ func (o *SGD) NewSupport(r, c int) *nn.Payload {
 	}
 }
 
-func (o *SGD) Delta(param *nn.Param) mat.Matrix {
+// Delta returns the difference between the current params and where the method wants it to be.
+func (o *SGD) Delta(param nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 

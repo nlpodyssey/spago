@@ -14,6 +14,7 @@ type item struct {
 	offset int
 }
 
+// Decode is the FOFE decoding function.
 func Decode(alpha float64, z *mat.Sparse) []int {
 	if alpha <= 0 || alpha > 0.5 {
 		panic("fofe: alpha doesn't satisfy 0 < alpha ≤ 0.5")

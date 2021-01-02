@@ -15,6 +15,7 @@ type Min struct {
 	x2 Operand
 }
 
+// NewMin returns a new Min Function.
 func NewMin(x1, x2 Operand) *Min {
 	return &Min{x1: x1, x2: x2}
 }
@@ -29,6 +30,7 @@ func (r *Min) Forward() mat.Matrix {
 	return x1v.Minimum(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Min) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()

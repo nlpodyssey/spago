@@ -8,9 +8,10 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
 	"log"
+	"runtime"
 	"sync"
-	"sync/atomic"
 )
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
@@ -19,23 +20,21 @@ type Graph struct {
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
-	maxID int64
+	maxID int
 	// the time-step is useful to perform truncated back propagation (default 0)
-	curTimeStep int64
+	curTimeStep int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	nodes []Node
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[float64]Node
 	// IncrementalForward sets whether to compute the forward during the graph definition (default true).
 	incrementalForward bool
-	// concurrentComputations sets whether to run the forward or backward computations distributing the workload over the available CPUs.
-	concurrentComputations bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise the cache must be invalidated and the values recalculated.
 	cache struct {
 		// the maxID when this cache was created.
-		maxID int64
+		maxID int
 		// nodes grouped by height
 		nodesByHeight [][]Node
 		// the nodes height. The index corresponds to the node ID.
@@ -43,7 +42,14 @@ type Graph struct {
 	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand
+	// processingQueue allows proper handling for computationally heavy operations
+	// such as forward and backward steps.
+	// The default size is defaultProcessingQueueSize.
+	processingQueue processingqueue.ProcessingQueue
 }
+
+// defaultProcessingQueueSize is the default size of Graph.processingQueue on a new Graph.
+var defaultProcessingQueueSize = runtime.NumCPU()
 
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption func(*Graph)
@@ -72,12 +78,15 @@ func IncrementalForward(value bool) GraphOption {
 	}
 }
 
-// ConcurrentComputations sets whether to perform the forward and backward computations in concurrent or sequential mode.
-// In the case of concurrent computation all available CPUs are exploited.
-// By default, the forward is executed sequentially.
-func ConcurrentComputations(value bool) GraphOption {
+// ConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
+// The value 1 corresponds to sequential execution.
+func ConcurrentComputations(value int) GraphOption {
+	if value < 1 {
+		panic("ag: ConcurrentComputations value must be greater than zero")
+	}
 	return func(g *Graph) {
-		g.concurrentComputations = value
+		g.processingQueue = processingqueue.New(value)
 	}
 }
 
@@ -85,13 +94,14 @@ func ConcurrentComputations(value bool) GraphOption {
 // It can take an optional random generator of type rand.Rand.
 func NewGraph(opts ...GraphOption) *Graph {
 	g := &Graph{
-		maxID:                  -1,
-		curTimeStep:            0,
-		nodes:                  nil,
-		constants:              map[float64]Node{},
-		incrementalForward:     true,
-		concurrentComputations: false,
+		maxID:              -1,
+		curTimeStep:        0,
+		nodes:              nil,
+		constants:          map[float64]Node{},
+		incrementalForward: true,
+		processingQueue:    processingqueue.New(defaultProcessingQueueSize),
 	}
+	g.clearCache()
 	for _, opt := range opts {
 		opt(g)
 	}
@@ -188,7 +198,7 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -224,7 +234,10 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 	}
 	var value mat.Matrix = nil
 	if g.incrementalForward {
-		value = f.Forward() // the calculation is out of the lock so it can run concurrently with other operators
+		// the calculation is out of the lock so it can run concurrently with other operators
+		g.processingQueue.Run(func() {
+			value = f.Forward()
+		})
 	}
 	requiresGrad := false
 	for _, operand := range operands {
@@ -246,11 +259,13 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
+// NewWrap creates a new wrapper Node for the given value, attaching it to
+// the graph.
 func (g *Graph) NewWrap(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -261,11 +276,13 @@ func (g *Graph) NewWrap(value GradValue) Node {
 		id:        g.newID(),
 		wrapGrad:  true,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
 
+// NewWrapNoGrad is similar to NewWrap, but it disables automatic
+// differentiation on the new node.
 func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -276,7 +293,7 @@ func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 		id:        g.newID(),
 		wrapGrad:  false,
 	}
-	// the new id is sequential so this the append is fine
+	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -295,8 +312,8 @@ func Range(fromTimeStep, toTimeStep int) ForwardOption {
 			fromTimeStep, toTimeStep)
 	}
 	return func(f *forwardHandler) {
-		f.fromTimeStep = int64(fromTimeStep)
-		f.toTimeStep = int64(toTimeStep)
+		f.fromTimeStep = fromTimeStep
+		f.toTimeStep = toTimeStep
 	}
 }
 
@@ -323,7 +340,7 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 		}
 	}
 
-	if g.concurrentComputations {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -333,12 +350,16 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 // BackwardOption allows to adapt the Backward() to your specific needs.
 type BackwardOption func(*backwardHandler)
 
+// Truncate is an option that sets the number of back steps for the
+// Truncated Back-Propagation.
 func Truncate(backSteps int) BackwardOption {
 	return func(f *backwardHandler) {
-		f.stopAtTimeStep = f.node.getTimeStep() - int64(backSteps)
+		f.stopAtTimeStep = f.node.TimeStep() - backSteps
 	}
 }
 
+// OutputGrad is an option that sets the output gradients which are the starting
+// point for the back-propagation (Backward).
 func OutputGrad(grad mat.Matrix) BackwardOption {
 	return func(f *backwardHandler) {
 		f.outputGrad = grad
@@ -372,7 +393,7 @@ func (g *Graph) Backward(node Node, opts ...BackwardOption) {
 	if !node.HasGrad() {
 		handler.propagateOutputGrad()
 	}
-	if g.concurrentComputations {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -388,7 +409,7 @@ func (g *Graph) BackwardAll() {
 		outputGrad:     nil,
 		stopAtTimeStep: -1, // no stop
 	}
-	if g.concurrentComputations {
+	if g.processingQueue.Size() > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -417,6 +438,8 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 	return node.Grad().Clone()
 }
 
+// ReplaceValue replaces the current value of a variable Node with the given value.
+// It panics if node is not a variable.
 func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	if node, ok := node.(*variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
@@ -425,17 +448,28 @@ func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
 	}
 }
 
+// IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph) IncTimeStep() {
-	atomic.AddInt64(&g.curTimeStep, 1)
+	g.curTimeStep++
 }
 
+// TimeStep is an integer value associated with the graph, which can be useful
+// to perform truncated back propagation. This value is 0 for a new Graph, and
+// can be incremented calling IncTimeStep.
 func (g *Graph) TimeStep() int {
 	return int(g.curTimeStep)
 }
 
+// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
+func (g *Graph) ConcurrentComputations() int {
+	return g.processingQueue.Size()
+}
+
 // newID generates and returns a new incremental sequential ID.
-func (g *Graph) newID() int64 {
-	return atomic.AddInt64(&g.maxID, 1)
+func (g *Graph) newID() int {
+	g.maxID++
+	return g.maxID
 }
 
 func (g *Graph) groupNodesByHeight() [][]Node {

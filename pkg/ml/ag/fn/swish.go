@@ -19,6 +19,7 @@ type Swish struct {
 	beta Operand // scalar
 }
 
+// NewSwish returns a new Swish Function.
 func NewSwish(x, beta Operand) *Swish {
 	return &Swish{x: x, beta: beta}
 }
@@ -30,6 +31,7 @@ func (r *Swish) Forward() mat.Matrix {
 	return y
 }
 
+// Backward computes the backward pass.
 func (r *Swish) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

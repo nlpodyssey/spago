@@ -25,6 +25,7 @@ const (
 // where A is an m×k or k×m dense matrix, B is an n×k or k×n dense matrix, C is
 // an m×n matrix, and alpha and beta are scalars. tA and tB specify whether A or
 // B are transposed.
+//gocyclo:ignore
 func Dgemm(aTrans, bTrans bool, m, n, k int, alpha float64, a []float64, lda int, b []float64, ldb int, beta float64, c []float64, ldc int) {
 	if m < 0 {
 		panic("dgemm: invalid m < 0")

@@ -16,6 +16,7 @@ type ProdScalar struct {
 	x2 Operand // scalar
 }
 
+// NewProdScalar returns a new ProdScalar Function.
 func NewProdScalar(x1, x2 Operand) *ProdScalar {
 	return &ProdScalar{x1: x1, x2: x2}
 }
@@ -25,6 +26,7 @@ func (r *ProdScalar) Forward() mat.Matrix {
 	return r.x1.Value().ProdScalar(r.x2.Value().Scalar())
 }
 
+// Backward computes the backward pass.
 func (r *ProdScalar) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")

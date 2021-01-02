@@ -10,8 +10,11 @@ import (
 )
 
 const (
+	// DefaultConfigurationFile is the default BART JSON configuration filename.
 	DefaultConfigurationFile = "config.json"
-	DefaultModelFile         = "spago_model.bin"
+	// DefaultModelFile is the default BART spaGO model filename.
+	DefaultModelFile = "spago_model.bin"
+	// DefaultEmbeddingsStorage is the default directory name for BART model's embedding storage.
 	DefaultEmbeddingsStorage = "embeddings_storage"
 )
 
@@ -59,6 +62,7 @@ type Config struct {
 	Training                   bool              `json:"training"` // Custom for spaGO
 }
 
+// Load loads a BART model Config from file.
 func Load(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)

@@ -38,6 +38,8 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
 	}
 }
 
+// Normal fills the input matrix with random samples from a normal (Gaussian)
+// distribution.
 func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
@@ -79,6 +81,10 @@ func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	}
 }
 
+// XavierNormal fills the input matrix with values according to the method
+// described in "Understanding the difficulty of training deep feedforward
+// neural networks" - Glorot, X. & Bengio, Y. (2010), using a normal
+// distribution.
 func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
 	std := gain * math.Sqrt(2.0/float64(rows+cols))
@@ -90,6 +96,10 @@ func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	}
 }
 
+// Achlioptas fills the input matrix with values according to the mthod
+// described on "Database-friendly random projections: Johnson-Lindenstrauss
+// with binary coins", by Dimitris Achlioptas 2001
+// (https://core.ac.uk/download/pdf/82724427.pdf)
 func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := 1.0 / 6.0

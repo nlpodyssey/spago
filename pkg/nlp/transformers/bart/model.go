@@ -17,13 +17,20 @@ import (
 	"strconv"
 )
 
+var (
+	_ nn.Model = &Model{}
+)
+
+// Model implements a BART model.
 type Model struct {
+	nn.BaseModel
 	Config     bartconfig.Config
 	Embeddings *embeddings.Model
 	Encoder    *bartencoder.Model
 	Decoder    *bartdecoder.Model
 }
 
+// New returns a new BART Model.
 func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	return &Model{
 		Config: config,
@@ -38,37 +45,17 @@ func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 	}
 }
 
+// Close closes the BART model's embeddings DB.
 func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	bartconfig.Config
-	Embeddings *embeddings.Processor
-	Encoder    *bartencoder.Processor
-	Decoder    *bartdecoder.Processor
-}
-
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Embeddings: m.Embeddings.NewProc(ctx).(*embeddings.Processor),
-		Encoder:    m.Encoder.NewProc(ctx).(*bartencoder.Processor),
-		Decoder:    m.Decoder.NewProc(ctx).(*bartdecoder.Processor),
-	}
-}
-
-func (p *Processor) Process(inputIDs ...int) []ag.Node {
-	encoderInput := p.Embeddings.Encode(intToStringSlice(inputIDs))
-	encoderOutput := p.Encoder.Forward(encoderInput...)
-	decoderInput := p.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput := p.Decoder.Decode(decoderInput, encoderOutput)
+// Encode performs the forward step for each input and returns the result.
+func (m *Model) Encode(inputIDs []int) []ag.Node {
+	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
+	encoderOutput := m.Encoder.Encode(encoderInput)
+	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
+	decoderOutput := m.Decoder.Decode(decoderInput, encoderOutput)
 	return decoderOutput
 }
 
@@ -83,8 +70,4 @@ func intToStringSlice(a []int) []string {
 func shiftR(a []int, i int) []int {
 	x, b := a[:(len(a)-i)], a[(len(a)-i):]
 	return append(b, x...)
-}
-
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("bart: Forward() not implemented; use Process() instead.")
 }

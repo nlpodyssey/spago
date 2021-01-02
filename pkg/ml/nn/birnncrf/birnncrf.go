@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package birnncrf provides an implementation of a Bidirectional Recurrent Neural Network (BiRNN)
-// with a Conditional Random Fields (CRF) on top.
+// with a Conditional Random Fields (CRF) on tom.
 package birnncrf
 
 import (
@@ -14,49 +14,44 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 )
 
+var (
+	_ nn.Model = &Model{}
+)
+
 // Model contains the serializable parameters.
 type Model struct {
+	nn.BaseModel
 	BiRNN  *birnn.Model
 	Scorer *linear.Model
 	CRF    *crf.Model
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	biRNN      *birnn.Processor
-	scorer     *linear.Processor
-	lastScores []ag.Node
-}
-
-// NewProc returns a new processor to execute the forward step.
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		biRNN:      m.BiRNN.NewProc(ctx).(*birnn.Processor),
-		scorer:     m.Scorer.NewProc(ctx).(*linear.Processor),
-		lastScores: nil, // lazy initialized
+// New returns a new model with parameters initialized to zeros.
+func New(biRNN *birnn.Model, scorer *linear.Model, crf *crf.Model) *Model {
+	return &Model{
+		BiRNN:  biRNN,
+		Scorer: scorer,
+		CRF:    crf,
 	}
 }
 
-// Forward performs the forward step for each input and returns the result.
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
-	features := p.biRNN.Forward(xs...)
-	return p.scorer.Forward(features...)
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+	return m.Scorer.Forward(m.BiRNN.Forward(xs...)...)
 }
 
-func (p *Processor) Predict(xs []ag.Node) []int {
-	p.lastScores = p.Forward(xs...)
-	return p.Model.(*Model).CRF.Predict(p.lastScores)
+// Decode performs the viterbi decoding.
+func (m *Model) Decode(emissionScores []ag.Node) []int {
+	return m.CRF.Decode(emissionScores)
 }
 
+// Predict performs Decode(Forward(xs)).
+func (m *Model) Predict(xs []ag.Node) []int {
+	return m.Decode(m.Forward(xs...))
+}
+
+// NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: the CRF backward tests are still missing
-func (p *Processor) NegativeLogLoss(targets []int) ag.Node {
-	decoder := p.Model.(*Model).CRF.NewProc(
-		nn.Context{Graph: p.Graph, Mode: p.Mode}).(*crf.Processor)
-	return decoder.NegativeLogLoss(p.lastScores, targets)
+func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
+	return m.CRF.NegativeLogLoss(emissionScores, targets)
 }

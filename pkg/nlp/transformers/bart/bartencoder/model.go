@@ -15,11 +15,12 @@ import (
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
+// Model implements a BART encoder.
 type Model struct {
+	nn.BaseModel
 	Config                      bartconfig.Config
 	Layers                      *stack.Model
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
@@ -27,6 +28,7 @@ type Model struct {
 	LayerNorm                   *layernorm.Model
 }
 
+// New returns a new BART encoder Model.
 func New(config bartconfig.Config) *Model {
 	if config.StaticPositionEmbeddings {
 		panic("bart: static position embeddings not implemented.")
@@ -45,7 +47,7 @@ func New(config bartconfig.Config) *Model {
 				Offset:        config.ExtraPosEmbedding,
 			}),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.Model {
+		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel {
 			return NewLayer(config)
 			// add LayerDrop to skip layers during training? (see https://arxiv.org/abs/1909.11556 for description)
 		}),
@@ -53,48 +55,24 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	bartconfig.Config
-	Layers                      *stack.Processor
-	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddingsProcessor
-	EmbeddingLayerNorm          *layernorm.Processor
-	LayerNorm                   *layernorm.Processor
-}
+// Encode performs the forward step for each input node and returns the result.
+func (m *Model) Encode(xs []ag.Node) []ag.Node {
+	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
+	ys := add(m.Graph(), xs, embedPos)
+	ys = m.EmbeddingLayerNorm.Forward(ys...)
+	// TODO: ys = m.Dropout(ys)
 
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Config:                      m.Config,
-		Layers:                      m.Layers.NewProc(ctx).(*stack.Processor),
-		LearnedPositionalEmbeddings: m.LearnedPositionalEmbeddings.NewProc(ctx).(*posembeddings.LearnedPositionalEmbeddingsProcessor),
-		EmbeddingLayerNorm:          m.EmbeddingLayerNorm.NewProc(ctx).(*layernorm.Processor),
-		LayerNorm:                   m.LayerNorm.NewProc(ctx).(*layernorm.Processor),
-	}
-}
-
-func (p Processor) Forward(xs ...ag.Node) []ag.Node {
-	embedPos := p.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
-	ys := p.add(xs, embedPos)
-	ys = p.EmbeddingLayerNorm.Forward(ys...)
-	// ys = p.Dropout(ys)
-
-	ys = p.Layers.Forward(ys...)
-	if p.FinalLayerNorm {
-		ys = p.LayerNorm.Forward(ys...)
+	ys = m.Layers.Forward(ys...)
+	if m.Config.FinalLayerNorm {
+		ys = m.LayerNorm.Forward(ys...)
 	}
 	return ys // TODO: return all hidden states?
 }
 
-func (p *Processor) add(a []ag.Node, b []ag.Node) []ag.Node {
+func add(g *ag.Graph, a []ag.Node, b []ag.Node) []ag.Node {
 	c := make([]ag.Node, len(a))
 	for i := 0; i < len(a); i++ {
-		c[i] = p.Graph.Add(a[i], b[i])
+		c[i] = g.Add(a[i], b[i])
 	}
 	return c
 }

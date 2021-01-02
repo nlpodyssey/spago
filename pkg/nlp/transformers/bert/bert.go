@@ -19,17 +19,21 @@ import (
 )
 
 const (
+	// DefaultConfigurationFile is the default BERT JSON configuration filename.
 	DefaultConfigurationFile = "config.json"
-	DefaultVocabularyFile    = "vocab.txt"
-	DefaultModelFile         = "spago_model.bin"
+	// DefaultVocabularyFile is the default BERT model's vocabulary filename.
+	DefaultVocabularyFile = "vocab.txt"
+	// DefaultModelFile is the default BERT spaGO model filename.
+	DefaultModelFile = "spago_model.bin"
+	// DefaultEmbeddingsStorage is the default directory name for BERT model's embedding storage.
 	DefaultEmbeddingsStorage = "embeddings_storage"
 )
 
 var (
-	_ nn.Model     = &Model{}
-	_ nn.Processor = &Processor{}
+	_ nn.Model = &Model{}
 )
 
+// Config provides configuration settings for a BERT Model.
 type Config struct {
 	HiddenAct             string            `json:"hidden_act"`
 	HiddenSize            int               `json:"hidden_size"`
@@ -43,6 +47,7 @@ type Config struct {
 	ReadOnly              bool              `json:"read_only"`
 }
 
+// LoadConfig loads a BERT model Config from file.
 func LoadConfig(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)
@@ -57,7 +62,9 @@ func LoadConfig(file string) (Config, error) {
 	return config, nil
 }
 
+// Model implements a BERT model.
 type Model struct {
+	nn.BaseModel
 	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
 	Embeddings      *Embeddings
@@ -88,20 +95,20 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			Size:                   config.HiddenSize,
 			NumOfAttentionHeads:    config.NumAttentionHeads,
 			IntermediateSize:       config.IntermediateSize,
-			IntermediateActivation: ag.OpGeLU,
+			IntermediateActivation: ag.OpGELU,
 			NumOfLayers:            config.NumHiddenLayers,
 		}),
 		Predictor: NewPredictor(PredictorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
 			OutputSize:       config.VocabSize,
-			HiddenActivation: ag.OpGeLU,
+			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Softmax (trained with CrossEntropyLoss)
 		}),
 		Discriminator: NewDiscriminator(DiscriminatorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
-			HiddenActivation: ag.OpGeLU,
+			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Sigmoid (trained with BCEWithLogitsLoss)
 		}),
 		Pooler: NewPooler(PoolerConfig{
@@ -132,6 +139,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 	}
 }
 
+// LoadModel loads a BERT Model from file.
 func LoadModel(modelPath string) (*Model, error) {
 	configFilename := path.Join(modelPath, DefaultConfigurationFile)
 	vocabFilename := path.Join(modelPath, DefaultVocabularyFile)
@@ -165,67 +173,42 @@ func LoadModel(modelPath string) (*Model, error) {
 	return model, nil
 }
 
-type Processor struct {
-	nn.BaseProcessor
-	Embeddings      *EmbeddingsProcessor
-	Encoder         *EncoderProcessor
-	Predictor       *PredictorProcessor
-	Discriminator   *DiscriminatorProcessor
-	Pooler          *PoolerProcessor
-	SeqRelationship *linear.Processor
-	SpanClassifier  *SpanClassifierProcessor
-	Classifier      *ClassifierProcessor
+// Encode transforms a string sequence into an encoded representation.
+func (m *Model) Encode(tokens []string) []ag.Node {
+	tokensEncoding := m.Embeddings.Encode(tokens)
+	return m.Encoder.Forward(tokensEncoding...)
 }
 
-func (m *Model) NewProc(ctx nn.Context) nn.Processor {
-	return &Processor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: true,
-		},
-		Embeddings:      m.Embeddings.NewProc(ctx).(*EmbeddingsProcessor),
-		Encoder:         m.Encoder.NewProc(ctx).(*EncoderProcessor),
-		Predictor:       m.Predictor.NewProc(ctx).(*PredictorProcessor),
-		Discriminator:   m.Discriminator.NewProc(ctx).(*DiscriminatorProcessor),
-		Pooler:          m.Pooler.NewProc(ctx).(*PoolerProcessor),
-		SeqRelationship: m.SeqRelationship.NewProc(ctx).(*linear.Processor),
-		SpanClassifier:  m.SpanClassifier.NewProc(ctx).(*SpanClassifierProcessor),
-		Classifier:      m.Classifier.NewProc(ctx).(*ClassifierProcessor),
-	}
+// PredictMasked performs a masked prediction task. It returns the predictions
+// for indices associated to the masked nodes.
+func (m *Model) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
+	return m.Predictor.PredictMasked(transformed, masked)
 }
 
-func (p *Processor) Encode(tokens []string) []ag.Node {
-	tokensEncoding := p.Embeddings.Encode(tokens)
-	return p.Encoder.Forward(tokensEncoding...)
-}
-
-func (p *Processor) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
-	return p.Predictor.PredictMasked(transformed, masked)
-}
-
-func (p *Processor) Discriminate(encoded []ag.Node) []int {
-	return p.Discriminator.Discriminate(encoded)
+// Discriminate returns 0 or 1 for each encoded element, where 1 means that
+// the word is out of context.
+func (m *Model) Discriminate(encoded []ag.Node) []int {
+	return m.Discriminator.Discriminate(encoded)
 }
 
 // Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
-func (p *Processor) Pool(transformed []ag.Node) ag.Node {
-	return p.Pooler.Forward(transformed[0])[0]
+func (m *Model) Pool(transformed []ag.Node) ag.Node {
+	return nn.ToNode(m.Pooler.Forward(transformed[0]))
 }
 
-func (p *Processor) PredictSeqRelationship(pooled ag.Node) ag.Node {
-	return p.SeqRelationship.Forward(pooled)[0]
+// PredictSeqRelationship predicts if the second sentence in the pair is the
+// subsequent sentence in the original document.
+func (m *Model) PredictSeqRelationship(pooled ag.Node) ag.Node {
+	return nn.ToNode(m.SeqRelationship.Forward(pooled))
 }
 
-func (p *Processor) TokenClassification(transformed []ag.Node) []ag.Node {
-	return p.Classifier.Predict(transformed)
+// TokenClassification performs a classification for each element in the sequence.
+func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
+	return m.Classifier.Forward(transformed...)
 }
 
-func (p *Processor) SequenceClassification(transformed []ag.Node) ag.Node {
-	return p.Classifier.Predict(p.Pooler.Forward(transformed[0]))[0]
-}
-
-func (p *Processor) Forward(_ ...ag.Node) []ag.Node {
-	panic("bert: method not implemented")
+// SequenceClassification performs a single sentence-level classification,
+// using the pooled CLS token.
+func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
+	return nn.ToNode(m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
 }

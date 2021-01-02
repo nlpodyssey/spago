@@ -15,6 +15,7 @@ type Max struct {
 	x2 Operand
 }
 
+// NewMax returns a new Max Function.
 func NewMax(x1, x2 Operand) *Max {
 	return &Max{x1: x1, x2: x2}
 }
@@ -29,6 +30,7 @@ func (r *Max) Forward() mat.Matrix {
 	return x1v.Maximum(x2v)
 }
 
+// Backward computes the backward pass.
 func (r *Max) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()

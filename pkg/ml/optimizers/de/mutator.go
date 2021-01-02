@@ -11,16 +11,19 @@ import (
 	"math"
 )
 
+// Mutator is implemented by values that provides mutation operations.
 type Mutator interface {
 	Mutate(p *Population)
 }
 
 var _ Mutator = &RandomMutation{}
 
+// RandomMutation implements a random mutation operation.
 type RandomMutation struct {
 	Bound float64
 }
 
+// NewRandomMutation returns a new RandomMutation.
 func NewRandomMutation(bound float64) *RandomMutation {
 	return &RandomMutation{
 		Bound: bound,
@@ -56,6 +59,7 @@ type DeglMutation struct {
 	Bound              float64
 }
 
+// NewDeglMutation returns a new DeglMutation.
 func NewDeglMutation(NeighborhoodRadius, bound float64) *DeglMutation {
 	return &DeglMutation{
 		NeighborhoodRadius: NeighborhoodRadius,

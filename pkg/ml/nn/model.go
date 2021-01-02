@@ -5,171 +5,106 @@
 package nn
 
 import (
-	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/utils"
-	"io"
-	"reflect"
-	"strings"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
-// Model contains the serializable parameters.
+// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
+// depending on whether you're doing training or inference.
+// Failing to set the right mode will yield inconsistent inference results.
+type ProcessingMode int
+
+const (
+	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
+	Training ProcessingMode = iota
+	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
+	Inference
+)
+
+// Context is used to reify a Model (inc. sub-models) to operate on a graph, according to the desired ProcessingMode.
+type Context struct {
+	// Graph is the computational graph on which the processor(s) operate.
+	Graph *ag.Graph
+	// Mode regulates the different usage of some operations whether you're doing training or inference.
+	Mode ProcessingMode
+}
+
+// Model is implemented by all neural network architectures.
+// You can assign parameters (i.e. nn.Param) as regular attributes (if any).
+// A Model can also contain other Model(s), allowing to nest them in a tree structure.
+// Through "reification" (i.e. nn.Reify()), a Model operates as a "processor" using the computational graph.
+// The Forward() operation can only be performed on a reified model (a.k.a. processor).
 type Model interface {
-	// NewProc returns a new processor to execute the forward step.
-	NewProc(ctx Context) Processor
+	// Graph returns the computational graph on which the model operates (can be nil).
+	Graph() *ag.Graph
+	// Mode returns whether the model is being used for training or inference.
+	Mode() ProcessingMode
+	// IsProcessor returns whether the model has been reified (i.e., contextualized to operate
+	// on a graph) and can perform the Forward().
+	IsProcessor() bool
+	// InitProcessor is used to initialize structures and data useful for the Forward().
+	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
+	InitProcessor()
+}
+
+// StandardForwarder consists of a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
+// It is called StandardForwarder since this is the most frequent forward method among all implemented neural models.
+type StandardForwarder interface {
+	// Forward executes the forward step for each input and returns the result.
+	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward
+	// networks are stateless so every computation is independent and possibly concurrent.
+	Forward(xs ...ag.Node) []ag.Node
+}
+
+// StandardModel consists of a model that implements StandardForwarder.
+type StandardModel interface {
+	Model
+	StandardForwarder
+}
+
+// Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
+func Reify(ctx Context, m Model) Model {
+	return reifier{ctx: ctx}.reify(m)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func ForEachParam(m Model, callback func(param *Param)) {
-	forEachParam(m, callback, true)
+func ForEachParam(m Model, callback func(param Param)) {
+	newParamsTraversal(callback, true).walk(m)
 }
 
 // ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
-func ForEachParamStrict(m Model, callback func(param *Param)) {
-	forEachParam(m, callback, false)
-}
-
-// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func forEachParam(m interface{}, callback func(param *Param), exploreSubModels bool) {
-	utils.ForEachField(m, func(field interface{}, name string, tag reflect.StructTag) {
-		switch item := field.(type) {
-		case *Param:
-			if item.name == "" {
-				item.name = strings.ToLower(name)
-			}
-			item.pType = ToType(tag.Get("type"))
-			callback(item)
-		case Model:
-			if exploreSubModels {
-				forEachParam(item, callback, true)
-			}
-		case []*Param:
-			for _, p := range item {
-				if p.name == "" {
-					p.name = strings.ToLower(name)
-				}
-				p.pType = ToType(tag.Get("type"))
-				callback(p)
-			}
-		case []Model:
-			if exploreSubModels {
-				for _, m := range item {
-					forEachParam(m, callback, true)
-				}
-			}
-		default:
-			v := reflect.ValueOf(item)
-			switch v.Kind() {
-			case reflect.Slice:
-				length := v.Len()
-				for i := 0; i < length; i++ {
-					if m, ok := v.Index(i).Interface().(Model); ok {
-						if exploreSubModels {
-							forEachParam(m, callback, true)
-						} else {
-							return // skip
-						}
-					} else {
-						switch v.Index(i).Kind() {
-						case reflect.Struct, reflect.Ptr:
-							if tag.Get("type") == "params" {
-								forEachParam(item, callback, exploreSubModels)
-							} else {
-								return // skip
-							}
-						default:
-							return // skip
-						}
-					}
-				}
-			case reflect.Map:
-				mapRange := v.MapRange()
-				for mapRange.Next() {
-					key := ""
-					switch k := mapRange.Key().Interface().(type) {
-					case string:
-						key = k
-					case int:
-						key = fmt.Sprintf("%d", k)
-					default:
-						return // skip map if the key is not a string or an int
-					}
-					// TODO: map of *Models
-					p, ok := mapRange.Value().Interface().(*Param)
-					if !ok {
-						return // skip the map if the value is not a *Param
-					}
-					if p.name == "" {
-						p.name = strings.ToLower(fmt.Sprintf("%s.%s", name, key))
-					}
-					p.pType = ToType(tag.Get("type"))
-					callback(p)
-				}
-			case reflect.Struct, reflect.Ptr:
-				if tag.Get("type") == "params" {
-					forEachParam(item, callback, exploreSubModels)
-				}
-			}
-		}
-	})
-}
-
-type ParamsIterator interface {
-	ParamsList() []*Param
-}
-
-var _ ParamsIterator = &DefaultParamsIterator{}
-
-type DefaultParamsIterator struct {
-	models []Model
-}
-
-func NewDefaultParamsIterator(models ...Model) *DefaultParamsIterator {
-	return &DefaultParamsIterator{models: models}
-}
-
-func (i *DefaultParamsIterator) ParamsList() []*Param {
-	params := make([]*Param, 0)
-	for _, model := range i.models {
-		ForEachParam(model, func(param *Param) {
-			params = append(params, param)
-		})
-	}
-	return params
+func ForEachParamStrict(m Model, callback func(param Param)) {
+	newParamsTraversal(callback, false).walk(m)
 }
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
-// TODO: use ParamsIterator?
 func ZeroGrad(m Model) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		param.ZeroGrad()
 	})
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
-// TODO: use ParamsIterator?
 func ClearSupport(m Model) {
-	ForEachParam(m, func(param *Param) {
+	ForEachParam(m, func(param Param) {
 		param.ClearPayload()
 	})
 }
 
-// TODO: use ParamsIterator?
+// DumpParamsVector dumps all params of a Model into a single Dense vector.
 func DumpParamsVector(model Model) *mat.Dense {
 	data := make([]float64, 0)
-	ForEachParam(model, func(param *Param) {
+	ForEachParam(model, func(param Param) {
 		data = append(data, param.Value().Data()...)
 	})
 	return mat.NewVecDense(data)
 }
 
-// TODO: use ParamsIterator?
+// LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
 func LoadParamsVector(model Model, vector *mat.Dense) {
 	data := vector.Data()
 	offset := 0
-	ForEachParam(model, func(param *Param) {
+	ForEachParam(model, func(param Param) {
 		size := param.Value().Size()
 		param.Value().SetData(data[offset : offset+size])
 		offset += size
@@ -184,43 +119,4 @@ func MakeNewModels(n int, callback func(i int) Model) []Model {
 		lst[i] = callback(i)
 	}
 	return lst
-}
-
-var _ utils.Serializer = &ParamsSerializer{}
-var _ utils.Deserializer = &ParamsSerializer{}
-
-type ParamsSerializer struct {
-	Model
-}
-
-func NewParamsSerializer(m Model) *ParamsSerializer {
-	return &ParamsSerializer{Model: m}
-}
-
-// Serialize dumps the params values to the writer.
-// TODO: use ParamsIterator?
-func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
-	ForEachParam(m, func(param *Param) {
-		cnt, err2 := mat.MarshalBinaryTo(param.Value(), w)
-		n += cnt
-		if err2 != nil {
-			err = err2
-			return
-		}
-	})
-	return n, err
-}
-
-// Deserialize assigns the params with the values obtained from the reader.
-// TODO: use ParamsIterator?
-func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
-	ForEachParam(m, func(param *Param) {
-		cnt, err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
-		n += cnt
-		if err2 != nil {
-			err = err2
-			return
-		}
-	})
-	return n, err
 }

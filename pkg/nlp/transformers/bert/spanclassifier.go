@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	_ nn.Model     = &SpanClassifier{}
-	_ nn.Processor = &SpanClassifierProcessor{}
+	_ nn.Model = &SpanClassifier{}
 )
 
+// SpanClassifierConfig provides configuration settings for a BERT SpanClassifier.
 type SpanClassifierConfig struct {
 	InputSize int
 }
@@ -25,27 +25,17 @@ type SpanClassifier struct {
 	*linear.Model
 }
 
+// NewSpanClassifier returns a new BERT SpanClassifier model.
 func NewSpanClassifier(config SpanClassifierConfig) *SpanClassifier {
 	return &SpanClassifier{
 		Model: linear.New(config.InputSize, 2),
 	}
 }
 
-type SpanClassifierProcessor struct {
-	*linear.Processor
-}
-
-func (m *SpanClassifier) NewProc(ctx nn.Context) nn.Processor {
-	return &SpanClassifierProcessor{
-		Processor: m.Model.NewProc(ctx).(*linear.Processor),
-	}
-}
-
 // Classify returns the "span start logits" and "span end logits".
-func (p *SpanClassifierProcessor) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
-	g := p.GetGraph()
+func (p *SpanClassifier) Classify(xs []ag.Node) (startLogits, endLogits []ag.Node) {
 	for _, y := range p.Forward(xs...) {
-		split := nn.SeparateVec(g, y)
+		split := nn.SeparateVec(p.Graph(), y)
 		startLogits = append(startLogits, split[0])
 		endLogits = append(endLogits, split[1])
 	}

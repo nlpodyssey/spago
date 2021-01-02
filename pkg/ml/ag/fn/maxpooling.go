@@ -23,6 +23,7 @@ type MaxPooling struct {
 	argmaxJ [][]int
 }
 
+// NewMaxPooling returns a new MaxPooling Function.
 func NewMaxPooling(x Operand, r, c int) *MaxPooling {
 	return &MaxPooling{
 		x:       x,
@@ -64,6 +65,7 @@ func (r *MaxPooling) Forward() mat.Matrix {
 	return r.y
 }
 
+// Backward computes the backward pass.
 func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()

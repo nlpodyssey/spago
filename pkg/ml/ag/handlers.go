@@ -11,8 +11,8 @@ import (
 
 type forwardHandler struct {
 	g            *Graph
-	fromTimeStep int64 // default 0
-	toTimeStep   int64 // default -1 (no limit)
+	fromTimeStep int // default 0
+	toTimeStep   int // default -1 (no limit)
 }
 
 func (h *forwardHandler) runSerial() {
@@ -34,19 +34,18 @@ func (h *forwardHandler) runConcurrent() {
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
-			if op, ok := node.(*operator); ok {
-				if op.timeStep < h.fromTimeStep {
-					continue
-				}
-				if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
-					continue
-				}
-				wg.Add(1)
-				go func(op *operator) {
-					defer wg.Done()
-					op.value = op.function.Forward()
-				}(op)
+			op, isOperator := node.(*operator)
+			if !isOperator {
+				continue
 			}
+			if op.timeStep < h.fromTimeStep || h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
+				continue
+			}
+			wg.Add(1)
+			h.g.processingQueue.Go(func() {
+				defer wg.Done()
+				op.value = op.function.Forward()
+			})
 		}
 		wg.Wait()
 	}
@@ -56,7 +55,7 @@ type backwardHandler struct {
 	g              *Graph
 	node           Node
 	outputGrad     mat.Matrix
-	stopAtTimeStep int64 // default -1 (full backward)
+	stopAtTimeStep int // default -1 (full backward)
 }
 
 func (h *backwardHandler) propagateOutputGrad() {
@@ -75,7 +74,7 @@ func (h *backwardHandler) runSerial() {
 	truncated := stopAtTimeStep > -1
 	_ = nodes[lastIndex] // avoid bounds check
 	for i := lastIndex; i >= 0; i-- {
-		if truncated && nodes[i].getTimeStep() <= stopAtTimeStep {
+		if truncated && nodes[i].TimeStep() <= stopAtTimeStep {
 			break
 		}
 		if node, ok := nodes[i].(*operator); ok {
@@ -93,19 +92,21 @@ func (h *backwardHandler) runConcurrent() {
 	var wg sync.WaitGroup
 	for i := lastGroupIndex; i >= 0; i-- {
 		for _, node := range groups[i] {
-			if truncated && node.getTimeStep() <= stopAtTimeStep {
+			if truncated && node.TimeStep() <= stopAtTimeStep {
 				break
 			}
-			if op, ok := node.(*operator); ok {
-				if op.id > lastNodeIndex {
-					continue
-				}
-				wg.Add(1)
-				go func(op *operator) {
-					defer wg.Done()
-					op.backward()
-				}(op)
+			op, isOperator := node.(*operator)
+			if !isOperator {
+				continue
 			}
+			if op.id > lastNodeIndex {
+				continue
+			}
+			wg.Add(1)
+			h.g.processingQueue.Go(func() {
+				defer wg.Done()
+				op.backward()
+			})
 		}
 		wg.Wait()
 	}

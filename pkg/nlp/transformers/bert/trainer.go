@@ -22,8 +22,10 @@ import (
 	"log"
 	"math"
 	"os"
+	"runtime"
 )
 
+// TrainingConfig provides configuration settings for a BERT Trainer.
 type TrainingConfig struct {
 	Seed             uint64
 	BatchSize        int
@@ -33,6 +35,7 @@ type TrainingConfig struct {
 	ModelPath        string
 }
 
+// Trainer implements the training process for a BERT Model.
 type Trainer struct {
 	TrainingConfig
 	randGen       *rand.LockedRand
@@ -43,6 +46,7 @@ type Trainer struct {
 	countLine     int
 }
 
+// NewTrainer returns a new BERT Trainer.
 func NewTrainer(model *Model, config TrainingConfig) *Trainer {
 	optimizer := gd.NewOptimizer(gdmbuilder.NewMethod(config.UpdateMethod), nn.NewDefaultParamsIterator(model))
 	if config.GradientClipping != 0.0 {
@@ -56,6 +60,7 @@ func NewTrainer(model *Model, config TrainingConfig) *Trainer {
 	}
 }
 
+// Train executes the training process.
 func (t *Trainer) Train() {
 	t.forEachLine(func(i int, text string) {
 		t.trainPassage(text)
@@ -87,9 +92,9 @@ func (t *Trainer) trainPassage(text string) {
 		return // skip, sequence too long
 	}
 
-	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(true))
+	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := t.model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).(*Processor)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Training}, t.model).(*Model)
 
 	maskedTokens, maskedIds := t.applyMask(tokenized)
 	if len(maskedIds) == 0 {

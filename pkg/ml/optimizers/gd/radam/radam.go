@@ -13,6 +13,7 @@ import (
 
 var _ gd.MethodConfig = &Config{}
 
+// Config provides configuration settings for a RAdam optimizer.
 type Config struct {
 	gd.MethodConfig
 	StepSize float64
@@ -21,6 +22,8 @@ type Config struct {
 	Epsilon  float64
 }
 
+// NewConfig returns a new RAdam Config.
+// It panics if beta1 or beta2 are not in the range [0.0, 1.0).
 func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
@@ -36,6 +39,7 @@ func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	}
 }
 
+// NewDefaultConfig returns a new Config with generically reasonable default values.
 func NewDefaultConfig() Config {
 	return Config{
 		StepSize: 0.001,
@@ -47,12 +51,14 @@ func NewDefaultConfig() Config {
 
 var _ gd.Method = &RAdam{}
 
+// RAdam implements the RAdam gradient descent optimization method.
 type RAdam struct {
 	Config
 	RoMax    float64 // The maximum length of the approximated SMA.
 	TimeStep int
 }
 
+// New returns a new RAdam optimizer, initialized according to the given configuration.
 func New(c Config) *RAdam {
 	adam := &RAdam{
 		Config:   c,
@@ -62,6 +68,7 @@ func New(c Config) *RAdam {
 	return adam
 }
 
+// Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *RAdam) Label() int {
 	return gd.RAdam
 }
@@ -74,6 +81,7 @@ const (
 	buf3 int = 4
 )
 
+// NewSupport returns a new support structure with the given dimensions.
 func (o *RAdam) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[m] = mat.NewEmptyDense(r, c)
@@ -87,11 +95,13 @@ func (o *RAdam) NewSupport(r, c int) *nn.Payload {
 	}
 }
 
+// IncBatch beats the occurrence of a new batch.
 func (o *RAdam) IncBatch() {
 	o.TimeStep++
 }
 
-func (o *RAdam) Delta(param *nn.Param) mat.Matrix {
+// Delta returns the difference between the current params and where the method wants it to be.
+func (o *RAdam) Delta(param nn.Param) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 

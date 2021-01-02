@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"net/http"
+	"runtime"
 	"sort"
 	"time"
 
@@ -46,11 +47,13 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ClassConfidencePair associates a Confidence to a symbolic Class.
 type ClassConfidencePair struct {
 	Class      string  `json:"class"`
 	Confidence float64 `json:"confidence"`
 }
 
+// ClassifyResponse is a JSON-serializable server response for BERT "classify" requests.
 type ClassifyResponse struct {
 	Class        string                `json:"class"`
 	Confidence   float64               `json:"confidence"`
@@ -101,9 +104,9 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 
 	tokenized := s.getTokenized(text, text2)
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := s.model.NewProc(nn.Context{Graph: g, Mode: nn.Inference}).(*Processor)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	logits := proc.SequenceClassification(encoded)

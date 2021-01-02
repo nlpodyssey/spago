@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	_ nn.Model     = &Embeddings{}
-	_ nn.Processor = &EmbeddingsProcessor{}
+	_ nn.Model = &Embeddings{}
 )
 
+// EmbeddingsConfig provides configuration settings for BERT Embeddings.
 type EmbeddingsConfig struct {
 	Size                int
 	OutputSize          int
@@ -29,19 +29,23 @@ type EmbeddingsConfig struct {
 	DeletePreEmbeddings bool
 }
 
+// Embeddings is a BERT Embeddings model.
 type Embeddings struct {
+	nn.BaseModel
 	EmbeddingsConfig
-	Word      *embeddings.Model
-	Position  []*nn.Param `type:"weights"`
-	TokenType []*nn.Param `type:"weights"`
-	Norm      *layernorm.Model
-	Projector *linear.Model
+	Words            *embeddings.Model
+	Position         []nn.Param `spago:"type:weights"` // TODO: stop auto-wrapping
+	TokenType        []nn.Param `spago:"type:weights"`
+	Norm             *layernorm.Model
+	Projector        *linear.Model
+	UnknownEmbedding ag.Node `spago:"scope:processor"`
 }
 
+// NewEmbeddings returns a new BERT Embeddings model.
 func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	return &Embeddings{
 		EmbeddingsConfig: config,
-		Word: embeddings.New(embeddings.Config{
+		Words: embeddings.New(embeddings.Config{
 			Size:       config.Size,
 			DBPath:     config.WordsMapFilename,
 			ReadOnly:   config.WordsMapReadOnly,
@@ -54,16 +58,21 @@ func NewEmbeddings(config EmbeddingsConfig) *Embeddings {
 	}
 }
 
-func newPositionEmbeddings(size, maxPositions int) []*nn.Param {
-	out := make([]*nn.Param, maxPositions)
+// InitProcessor initializes the unknown embeddings.
+func (m *Embeddings) InitProcessor() {
+	m.UnknownEmbedding = m.Graph().NewWrap(m.Words.GetStoredEmbedding(wordpiecetokenizer.DefaultUnknownToken))
+}
+
+func newPositionEmbeddings(size, maxPositions int) []nn.Param {
+	out := make([]nn.Param, maxPositions)
 	for i := 0; i < maxPositions; i++ {
 		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
 	}
 	return out
 }
 
-func newTokenTypes(size, tokenTypes int) []*nn.Param {
-	out := make([]*nn.Param, tokenTypes)
+func newTokenTypes(size, tokenTypes int) []nn.Param {
+	out := make([]nn.Param, tokenTypes)
 	for i := 0; i < tokenTypes; i++ {
 		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
 	}
@@ -77,62 +86,28 @@ func newProjector(in, out int) *linear.Model {
 	return linear.New(in, out)
 }
 
-type EmbeddingsProcessor struct {
-	nn.BaseProcessor
-	model               *Embeddings
-	wordsLayer          *embeddings.Processor
-	norm                *layernorm.Processor
-	projection          *linear.Processor
-	tokenTypeEmbeddings []ag.Node
-	unknownEmbedding    ag.Node
-}
-
-func (m *Embeddings) NewProc(ctx nn.Context) nn.Processor {
-	var projection *linear.Processor = nil
-	if m.Projector != nil {
-		projection = m.Projector.NewProc(ctx).(*linear.Processor)
-	}
-	tokenTypeEmbeddings := make([]ag.Node, m.TokenTypes)
-	for i, param := range m.TokenType {
-		tokenTypeEmbeddings[i] = ctx.Graph.NewWrap(param)
-	}
-	return &EmbeddingsProcessor{
-		BaseProcessor: nn.BaseProcessor{
-			Model:             m,
-			Mode:              ctx.Mode,
-			Graph:             ctx.Graph,
-			FullSeqProcessing: false,
-		},
-		model:               m,
-		wordsLayer:          m.Word.NewProc(ctx).(*embeddings.Processor),
-		norm:                m.Norm.NewProc(ctx).(*layernorm.Processor),
-		projection:          projection,
-		tokenTypeEmbeddings: tokenTypeEmbeddings,
-		unknownEmbedding:    ctx.Graph.NewWrap(m.Word.GetEmbedding(wordpiecetokenizer.DefaultUnknownToken)),
-	}
-}
-
-func (p *EmbeddingsProcessor) Encode(words []string) []ag.Node {
+// Encode transforms a string sequence into an encoded representation.
+func (m *Embeddings) Encode(words []string) []ag.Node {
 	encoded := make([]ag.Node, len(words))
-	wordEmbeddings := p.getWordEmbeddings(words)
+	wordEmbeddings := m.getWordEmbeddings(words)
 	sequenceIndex := 0
 	for i := 0; i < len(words); i++ {
 		encoded[i] = wordEmbeddings[i]
-		encoded[i] = p.Graph.Add(encoded[i], p.Graph.NewWrap(p.model.Position[i]))
-		encoded[i] = p.Graph.Add(encoded[i], p.tokenTypeEmbeddings[sequenceIndex])
+		encoded[i] = m.Graph().Add(encoded[i], m.Graph().NewWrap(m.Position[i]))
+		encoded[i] = m.Graph().Add(encoded[i], m.TokenType[sequenceIndex])
 		if words[i] == wordpiecetokenizer.DefaultSequenceSeparator {
 			sequenceIndex++
 		}
 	}
-	return p.useProjection(p.norm.Forward(encoded...))
+	return m.useProjection(m.Norm.Forward(encoded...))
 }
 
-func (p *EmbeddingsProcessor) getWordEmbeddings(words []string) []ag.Node {
+func (m *Embeddings) getWordEmbeddings(words []string) []ag.Node {
 	out := make([]ag.Node, len(words))
-	for i, embedding := range p.wordsLayer.Encode(words) {
+	for i, embedding := range m.Words.Encode(words) {
 		switch embedding {
 		case nil:
-			out[i] = p.unknownEmbedding
+			out[i] = m.UnknownEmbedding
 		default:
 			out[i] = embedding
 		}
@@ -140,13 +115,9 @@ func (p *EmbeddingsProcessor) getWordEmbeddings(words []string) []ag.Node {
 	return out
 }
 
-func (p *EmbeddingsProcessor) useProjection(xs []ag.Node) []ag.Node {
-	if p.projection == nil {
+func (m *Embeddings) useProjection(xs []ag.Node) []ag.Node {
+	if m.Projector == nil {
 		return xs
 	}
-	return p.projection.Forward(xs...)
-}
-
-func (p *EmbeddingsProcessor) Forward(_ ...ag.Node) []ag.Node {
-	panic("bert: Forward() method not implemented. Use Encode() instead.")
+	return m.Projector.Forward(xs...)
 }

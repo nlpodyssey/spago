@@ -12,9 +12,11 @@ import (
 	"testing"
 )
 
+//gocyclo:ignore
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
+	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 
@@ -39,7 +41,7 @@ func TestModel_Forward(t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := model.NewProc(nn.Context{Graph: g, Mode: nn.Training}).Forward(x1, x2, x3)
+	y := nn.Reify(ctx, model).(*Model).Forward(x1, x2, x3)
 
 	if !floats.EqualApprox(y[0].Value().Data(), []float64{
 		0.6291451614, 0.4218990053, 0.0399786803,
