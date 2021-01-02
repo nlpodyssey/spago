@@ -4,5 +4,10 @@
 
 package mat
 
+import "math"
+
 // Float is the main float type for the mat package. It is an alias for float64.
 type Float = float64
+
+// SmallestNonzeroFloat corresponds to math.SmallestNonzeroFloat64.
+const SmallestNonzeroFloat Float = math.SmallestNonzeroFloat64

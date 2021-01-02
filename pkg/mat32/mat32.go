@@ -4,5 +4,10 @@
 
 package mat32
 
+import "math"
+
 // Float is the main float type for the mat32 package. It is an alias for float32.
 type Float = float32
+
+// SmallestNonzeroFloat corresponds to math.SmallestNonzeroFloat32.
+const SmallestNonzeroFloat Float = math.SmallestNonzeroFloat32
