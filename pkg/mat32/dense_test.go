@@ -5,7 +5,6 @@
 package mat32
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat32/f32utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -1253,14 +1252,10 @@ func TestDense_String(t *testing.T) {
 
 func assertEqualApprox(t *testing.T, expected, actual Float) {
 	t.Helper()
-	if !f32utils.EqualApprox(expected, actual) {
-		t.Errorf("expected %v, actual %v", expected, actual)
-	}
+	assert.InDelta(t, expected, actual, 1.0e-04)
 }
 
 func assertSliceEqualApprox(t *testing.T, expected, actual []Float) {
 	t.Helper()
-	if !f32utils.SliceEqualApprox(expected, actual) {
-		t.Errorf("expected %v, actual %v", expected, actual)
-	}
+	assert.InDeltaSlice(t, expected, actual, 1.0e-04)
 }
