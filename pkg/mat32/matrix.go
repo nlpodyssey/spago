@@ -31,49 +31,49 @@ type Matrix interface {
 	// It returns -1 if the matrix is empty.
 	LastIndex() int
 	// Data returns the underlying data of the matrix, as a raw one-dimensional slice of values.
-	Data() []float32
+	Data() []Float
 	// IsVector returns whether the matrix is either a row or column vector.
 	IsVector() bool
 	// IsScalar returns whether the matrix contains exactly one scalar value.
 	IsScalar() bool
 	// Scalar returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
-	Scalar() float32
+	Scalar() Float
 	// Set sets the value v at row i and column j.
-	Set(i int, j int, v float32)
+	Set(i int, j int, v Float)
 	// At returns the value at row i and column j.
-	At(i int, j int) float32
+	At(i int, j int) Float
 	// SetVec sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector.
-	SetVec(i int, v float32)
+	SetVec(i int, v Float)
 	// AtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector.
-	AtVec(i int) float32
+	AtVec(i int) Float
 	// T returns the transpose of the matrix.
 	T() Matrix
 	// Reshape returns a copy of the matrix.
 	// It panics if the dimensions are incompatible.
 	Reshape(r, c int) Matrix
 	// Apply executes the unary function fn.
-	Apply(fn func(i, j int, v float32) float32, a Matrix)
+	Apply(fn func(i, j int, v Float) Float, a Matrix)
 	// ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
-	ApplyWithAlpha(fn func(i, j int, v float32, alpha ...float32) float32, a Matrix, alpha ...float32)
+	ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float)
 	// AddScalar performs the addition between the matrix and the given value.
-	AddScalar(n float32) Matrix
+	AddScalar(n Float) Matrix
 	// AddScalarInPlace adds the scalar to all values of the matrix.
-	AddScalarInPlace(n float32) Matrix
+	AddScalarInPlace(n Float) Matrix
 	// SubScalar performs a subtraction between the matrix and the given value.
-	SubScalar(n float32) Matrix
+	SubScalar(n Float) Matrix
 	// SubScalarInPlace subtracts the scalar from the receiver's values.
-	SubScalarInPlace(n float32) Matrix
+	SubScalarInPlace(n Float) Matrix
 	// ProdScalar returns the multiplication between the matrix and the given value.
-	ProdScalar(n float32) Matrix
+	ProdScalar(n Float) Matrix
 	// ProdScalarInPlace performs the in-place multiplication between the matrix and
 	// the given value.
-	ProdScalarInPlace(n float32) Matrix
+	ProdScalarInPlace(n Float) Matrix
 	// ProdMatrixScalarInPlace multiplies the given matrix with the value, storing the
 	// result in the receiver.
-	ProdMatrixScalarInPlace(m Matrix, n float32) Matrix
+	ProdMatrixScalarInPlace(m Matrix, n Float) Matrix
 	// Add returns the addition between the receiver and another matrix.
 	Add(other Matrix) Matrix
 	// AddInPlace performs the in-place addition with the other matrix.
@@ -94,29 +94,29 @@ type Matrix interface {
 	// If A is an i×j Matrix, and B is j×k, then the resulting Matrix C = AB will be i×k.
 	Mul(other Matrix) Matrix
 	// DotUnitary returns the dot product of two vectors.
-	DotUnitary(other Matrix) float32
+	DotUnitary(other Matrix) Float
 	// Pow returns a new matrix, applying the power function with given exponent to all elements
 	// of the matrix.
-	Pow(power float32) Matrix
+	Pow(power Float) Matrix
 	// Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
-	Norm(pow float32) float32
+	Norm(pow Float) Float
 	// Sqrt returns a new matrix applying the square root function to all elements.
 	Sqrt() Matrix
 	// ClipInPlace clips in place each value of the matrix.
-	ClipInPlace(min, max float32) Matrix
+	ClipInPlace(min, max Float) Matrix
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.
-	Sum() float32
+	Sum() Float
 	// Max returns the maximum value of the matrix.
-	Max() float32
+	Max() Float
 	// Min returns the minimum value of the matrix.
-	Min() float32
+	Min() Float
 	// String returns a string representation of the matrix data.
 	String() string
 	// SetData sets the values of the matrix, given a raw one-dimensional slice
 	// data representation.
-	SetData(data []float32)
+	SetData(data []Float)
 }
 
 // ConcatV returns a new Matrix created concatenating the input matrices vertically.
@@ -125,7 +125,7 @@ func ConcatV(vs ...Matrix) Matrix {
 	for _, v := range vs {
 		cup += v.Size()
 	}
-	data := make([]float32, 0, cup)
+	data := make([]Float, 0, cup)
 	for _, v := range vs {
 		if !v.IsVector() {
 			panic("mat: required vector, found matrix")

@@ -11,35 +11,35 @@ import (
 )
 
 func TestDense_AddScalar(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	b := a.AddScalar(1.0)
-	assertSliceEqualApprox(t, []float32{1.1, 1.2, 1.3, 1.0}, b.Data())
+	assertSliceEqualApprox(t, []Float{1.1, 1.2, 1.3, 1.0}, b.Data())
 }
 
 func TestDense_AddScalarInPlace(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	a.AddScalarInPlace(1.0)
-	assertSliceEqualApprox(t, []float32{1.1, 1.2, 1.3, 1.0}, a.data)
+	assertSliceEqualApprox(t, []Float{1.1, 1.2, 1.3, 1.0}, a.data)
 }
 
 func TestDense_SubScalar(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	b := a.SubScalar(2.0)
-	assertSliceEqualApprox(t, []float32{-1.9, -1.8, -1.7, -2.0}, b.Data())
+	assertSliceEqualApprox(t, []Float{-1.9, -1.8, -1.7, -2.0}, b.Data())
 }
 
 func TestDense_SubScalarInPlace(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	a.SubScalarInPlace(2.0)
-	assertSliceEqualApprox(t, []float32{-1.9, -1.8, -1.7, -2.0}, a.Data())
+	assertSliceEqualApprox(t, []Float{-1.9, -1.8, -1.7, -2.0}, a.Data())
 }
 
 func TestDense_Add(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		c := a.Add(b)
-		assertSliceEqualApprox(t, []float32{0.5, 0.5, 0.8, 0.7}, c.Data())
+		assertSliceEqualApprox(t, []Float{0.5, 0.5, 0.8, 0.7}, c.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -51,10 +51,10 @@ func TestDense_Add(t *testing.T) {
 
 func TestDense_AddInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		a.AddInPlace(b)
-		assertSliceEqualApprox(t, []float32{0.5, 0.5, 0.8, 0.7}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.5, 0.5, 0.8, 0.7}, a.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -66,10 +66,10 @@ func TestDense_AddInPlace(t *testing.T) {
 
 func TestDense_Sub(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		c := a.Sub(b)
-		assertSliceEqualApprox(t, []float32{-0.3, -0.1, -0.2, -0.7}, c.Data())
+		assertSliceEqualApprox(t, []Float{-0.3, -0.1, -0.2, -0.7}, c.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -81,23 +81,23 @@ func TestDense_Sub(t *testing.T) {
 
 func TestDense_SubInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		a.SubInPlace(b)
-		assertSliceEqualApprox(t, []float32{-0.3, -0.1, -0.2, -0.7}, a.Data())
+		assertSliceEqualApprox(t, []Float{-0.3, -0.1, -0.2, -0.7}, a.Data())
 	})
 
 	t.Run("it works with another Sparse matrix", func(t *testing.T) {
-		d := NewDense(2, 3, []float32{
+		d := NewDense(2, 3, []Float{
 			10, 20, 30,
 			40, 50, 60,
 		})
-		other := NewSparse(2, 3, []float32{
+		other := NewSparse(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
 		d.SubInPlace(other)
-		expected := []float32{
+		expected := []Float{
 			9, 18, 27,
 			36, 45, 54,
 		}
@@ -112,23 +112,23 @@ func TestDense_SubInPlace(t *testing.T) {
 }
 
 func TestDense_ProdScalar(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	b := a.ProdScalar(2.0)
-	assertSliceEqualApprox(t, []float32{0.2, 0.4, 0.6, 0.0}, b.Data())
+	assertSliceEqualApprox(t, []Float{0.2, 0.4, 0.6, 0.0}, b.Data())
 }
 
 func TestDense_ProdScalarInPlace(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	a.ProdScalarInPlace(2.0)
-	assertSliceEqualApprox(t, []float32{0.2, 0.4, 0.6, 0.0}, a.Data())
+	assertSliceEqualApprox(t, []Float{0.2, 0.4, 0.6, 0.0}, a.Data())
 }
 
 func TestDense_Prod(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		c := a.Prod(b)
-		assertSliceEqualApprox(t, []float32{0.04, 0.06, 0.15, 0}, c.Data())
+		assertSliceEqualApprox(t, []Float{0.04, 0.06, 0.15, 0}, c.Data())
 	})
 
 	t.Run("it works with empty matrices", func(t *testing.T) {
@@ -146,10 +146,10 @@ func TestDense_Prod(t *testing.T) {
 
 func TestDense_ProdInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		a.ProdInPlace(b)
-		assertSliceEqualApprox(t, []float32{0.04, 0.06, 0.15, 0}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.04, 0.06, 0.15, 0}, a.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -160,18 +160,18 @@ func TestDense_ProdInPlace(t *testing.T) {
 }
 
 func TestDense_ProdMatrixScalarInPlace(t *testing.T) {
-	a := NewVecDense([]float32{0.0, 0.0, 0.0, 0.0})
-	b := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.0, 0.0, 0.0, 0.0})
+	b := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	a.ProdMatrixScalarInPlace(b, 2.0)
-	assertSliceEqualApprox(t, []float32{0.2, 0.4, 0.6, 0.0}, a.Data())
+	assertSliceEqualApprox(t, []Float{0.2, 0.4, 0.6, 0.0}, a.Data())
 }
 
 func TestDense_Div(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		c := a.Div(b)
-		assertSliceEqualApprox(t, []float32{0.25, 0.6666666666, 0.6, 0.0}, c.Data())
+		assertSliceEqualApprox(t, []Float{0.25, 0.6666666666, 0.6, 0.0}, c.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -183,10 +183,10 @@ func TestDense_Div(t *testing.T) {
 
 func TestDense_DivInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		b := NewVecDense([]float32{0.4, 0.3, 0.5, 0.7})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		b := NewVecDense([]Float{0.4, 0.3, 0.5, 0.7})
 		a.DivInPlace(b)
-		assertSliceEqualApprox(t, []float32{0.25, 0.6666666666, 0.6, 0.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.25, 0.6666666666, 0.6, 0.0}, a.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
@@ -198,19 +198,19 @@ func TestDense_DivInPlace(t *testing.T) {
 
 func TestDense_Mul(t *testing.T) {
 	t.Run("matrix x matrix", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
 		})
-		b := NewDense(4, 3, []float32{
+		b := NewDense(4, 3, []Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
 			0.2, -0.0, -0.9,
 		})
 		c := a.Mul(b)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			-0.22, 0.36, 0.06,
 			0.7, 0.06, 0.0,
 			0.52, -0.59, 0.48,
@@ -218,27 +218,27 @@ func TestDense_Mul(t *testing.T) {
 	})
 
 	t.Run("matrix x vector", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
 		})
-		b := NewVecDense([]float32{-0.8, -0.9, -0.9, 1.0})
+		b := NewVecDense([]Float{-0.8, -0.9, -0.9, 1.0})
 		c := a.Mul(b)
-		assertSliceEqualApprox(t, []float32{-0.53, 0.47, 0.3}, c.Data())
+		assertSliceEqualApprox(t, []Float{-0.53, 0.47, 0.3}, c.Data())
 	})
 
 	t.Run("it works with another Sparse matrix", func(t *testing.T) {
-		d := NewDense(2, 3, []float32{
+		d := NewDense(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
-		other := NewSparse(3, 2, []float32{
+		other := NewSparse(3, 2, []Float{
 			10, 20,
 			30, 40,
 			50, 60,
 		})
-		expected := []float32{
+		expected := []Float{
 			220, 280,
 			490, 640,
 		}
@@ -255,17 +255,17 @@ func TestDense_Mul(t *testing.T) {
 
 func TestDense_MulT(t *testing.T) {
 	t.Run("column vector x column vector", func(t *testing.T) {
-		d := NewDense(3, 1, []float32{
+		d := NewDense(3, 1, []Float{
 			1,
 			2,
 			3,
 		})
-		other := NewDense(3, 1, []float32{
+		other := NewDense(3, 1, []Float{
 			10,
 			30,
 			50,
 		})
-		expected := []float32{220}
+		expected := []Float{220}
 		result := d.MulT(other)
 		assert.Equal(t, expected, result.Data())
 	})
@@ -290,21 +290,21 @@ func TestDense_MulT(t *testing.T) {
 }
 
 func TestDense_Pow(t *testing.T) {
-	a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+	a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 	b := a.Pow(3.0)
-	assertSliceEqualApprox(t, []float32{0.001, 0.008, 0.027, 0.0}, b.Data())
+	assertSliceEqualApprox(t, []Float{0.001, 0.008, 0.027, 0.0}, b.Data())
 }
 
 func TestNewDense(t *testing.T) {
 	t.Run("matrix 3 x 4", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
 		})
 		assert.Equal(t, 3, a.Rows())
 		assert.Equal(t, 4, a.Columns())
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -312,7 +312,7 @@ func TestNewDense(t *testing.T) {
 	})
 
 	t.Run("square matrix 4 x 4", func(t *testing.T) {
-		a := NewDense(4, 4, []float32{
+		a := NewDense(4, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -322,7 +322,7 @@ func TestNewDense(t *testing.T) {
 		assert.Equal(t, 4, a.Columns())
 		assert.False(t, a.IsVector())
 		assert.False(t, a.IsScalar())
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -335,18 +335,18 @@ func TestNewDense(t *testing.T) {
 	})
 
 	t.Run("it panics with an invalid elements size", func(t *testing.T) {
-		assert.Panics(t, func() { NewDense(2, 3, []float32{1}) })
+		assert.Panics(t, func() { NewDense(2, 3, []Float{1}) })
 	})
 }
 
 func TestNewVecDense(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 		assert.Equal(t, 4, a.Rows())
 		assert.Equal(t, 1, a.Columns())
 		assert.True(t, a.IsVector())
 		assert.False(t, a.IsScalar())
-		assertSliceEqualApprox(t, []float32{0.1, 0.2, 0.3, 0.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.1, 0.2, 0.3, 0.0}, a.Data())
 	})
 
 	t.Run("it panics if elements is nil", func(t *testing.T) {
@@ -359,8 +359,8 @@ func TestNewScalar(t *testing.T) {
 	assert.Equal(t, 1, a.Rows())
 	assert.Equal(t, 1, a.Columns())
 	assert.True(t, a.IsScalar())
-	assert.Equal(t, float32(0.42), a.Scalar())
-	assertSliceEqualApprox(t, []float32{0.42}, a.Data())
+	assert.Equal(t, Float(0.42), a.Scalar())
+	assertSliceEqualApprox(t, []Float{0.42}, a.Data())
 }
 
 func TestNewEmptyVecDense(t *testing.T) {
@@ -369,14 +369,14 @@ func TestNewEmptyVecDense(t *testing.T) {
 	assert.Equal(t, 1, a.Columns())
 	assert.True(t, a.IsVector())
 	assert.False(t, a.IsScalar())
-	assertSliceEqualApprox(t, []float32{0.0, 0.0, 0.0, 0.0}, a.Data())
+	assertSliceEqualApprox(t, []Float{0.0, 0.0, 0.0, 0.0}, a.Data())
 }
 
 func TestNewEmptyDenseNXM(t *testing.T) {
 	a := NewEmptyDense(3, 4)
 	assert.Equal(t, 3, a.Rows())
 	assert.Equal(t, 4, a.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
@@ -384,7 +384,7 @@ func TestNewEmptyDenseNXM(t *testing.T) {
 }
 
 func TestDense_ZerosLike(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -392,7 +392,7 @@ func TestDense_ZerosLike(t *testing.T) {
 	b := a.ZerosLike()
 	assert.Equal(t, 3, b.Rows())
 	assert.Equal(t, 4, b.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
@@ -400,7 +400,7 @@ func TestDense_ZerosLike(t *testing.T) {
 }
 
 func TestDense_OnesLike(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -408,7 +408,7 @@ func TestDense_OnesLike(t *testing.T) {
 	b := a.OnesLike()
 	assert.Equal(t, 3, b.Rows())
 	assert.Equal(t, 4, b.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		1.0, 1.0, 1.0, 1.0,
 		1.0, 1.0, 1.0, 1.0,
 		1.0, 1.0, 1.0, 1.0,
@@ -416,7 +416,7 @@ func TestDense_OnesLike(t *testing.T) {
 }
 
 func TestDense_Zeros(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -424,7 +424,7 @@ func TestDense_Zeros(t *testing.T) {
 	a.Zeros()
 	assert.Equal(t, 3, a.Rows())
 	assert.Equal(t, 4, a.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
@@ -438,7 +438,7 @@ func TestOneHotVecDense(t *testing.T) {
 		assert.Equal(t, 1, a.Columns())
 		assert.True(t, a.IsVector())
 		assert.False(t, a.IsScalar())
-		assertSliceEqualApprox(t, []float32{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0}, a.Data())
 	})
 
 	t.Run("it panics if oneAt >= size", func(t *testing.T) {
@@ -450,7 +450,7 @@ func TestNewInitDenseNXM(t *testing.T) {
 	a := NewInitDense(3, 4, 0.42)
 	assert.Equal(t, 3, a.Rows())
 	assert.Equal(t, 4, a.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.42, 0.42, 0.42, 0.42,
 		0.42, 0.42, 0.42, 0.42,
 		0.42, 0.42, 0.42, 0.42,
@@ -463,12 +463,12 @@ func TestNewInitVecDense(t *testing.T) {
 	assert.Equal(t, 1, a.Columns())
 	assert.True(t, a.IsVector())
 	assert.False(t, a.IsScalar())
-	assertSliceEqualApprox(t, []float32{0.42, 0.42, 0.42, 0.42}, a.Data())
+	assertSliceEqualApprox(t, []Float{0.42, 0.42, 0.42, 0.42}, a.Data())
 }
 
 func TestDense_Reshape(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -476,7 +476,7 @@ func TestDense_Reshape(t *testing.T) {
 		b := a.Reshape(4, 3)
 		assert.Equal(t, 4, b.Rows())
 		assert.Equal(t, 3, b.Columns())
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3,
 			0.0, 0.4, 0.5,
 			-0.6, 0.7, -0.5,
@@ -491,7 +491,7 @@ func TestDense_Reshape(t *testing.T) {
 }
 
 func TestDense_T(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -499,7 +499,7 @@ func TestDense_T(t *testing.T) {
 	b := a.T()
 	assert.Equal(t, 4, b.Rows())
 	assert.Equal(t, 3, b.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.1, 0.4, -0.5,
 		0.2, 0.5, 0.8,
 		0.3, -0.6, -0.8,
@@ -508,7 +508,7 @@ func TestDense_T(t *testing.T) {
 }
 
 func TestDense_Clone(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -516,7 +516,7 @@ func TestDense_Clone(t *testing.T) {
 	b := a.Clone()
 	assert.Equal(t, 3, b.Rows())
 	assert.Equal(t, 4, b.Columns())
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -525,7 +525,7 @@ func TestDense_Clone(t *testing.T) {
 
 func TestDense_Copy(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -534,7 +534,7 @@ func TestDense_Copy(t *testing.T) {
 		b.Copy(a)
 		assert.Equal(t, 3, b.Rows())
 		assert.Equal(t, 4, b.Columns())
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -556,7 +556,7 @@ func TestDense_Copy(t *testing.T) {
 
 func TestDense_SizeMatrix(t *testing.T) {
 	t.Run("matrix", func(t *testing.T) {
-		a := NewDense(3, 4, []float32{
+		a := NewDense(3, 4, []Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -565,18 +565,18 @@ func TestDense_SizeMatrix(t *testing.T) {
 	})
 
 	t.Run("vector", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 		assert.Equal(t, 4, a.Size())
 	})
 
 	t.Run("scalar", func(t *testing.T) {
-		a := NewVecDense([]float32{0.42})
+		a := NewVecDense([]Float{0.42})
 		assert.Equal(t, 1, a.Size())
 	})
 }
 
 func TestDense_Dims(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
@@ -592,13 +592,13 @@ func TestDense_Dims(t *testing.T) {
 }
 
 func TestDense_Clip(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
 	})
 	a.ClipInPlace(0.1, 0.3)
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.1, 0.2, 0.3, 0.1,
 		0.3, 0.3, 0.1, 0.3,
 		0.1, 0.3, 0.1, 0.1,
@@ -606,13 +606,13 @@ func TestDense_Clip(t *testing.T) {
 }
 
 func TestDense_Abs(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
 	})
 	b := a.Abs()
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, 0.6, 0.7,
 		0.5, 0.8, 0.8, 0.1,
@@ -620,19 +620,19 @@ func TestDense_Abs(t *testing.T) {
 }
 
 func TestDense_MaxMinSum(t *testing.T) {
-	a := NewDense(3, 4, []float32{
+	a := NewDense(3, 4, []Float{
 		0.1, 0.2, 0.3, 0.0,
 		0.4, 0.5, -0.6, 0.7,
 		-0.5, 0.8, -0.8, -0.1,
 	})
-	assert.Equal(t, float32(0.8), a.Max())
-	assert.Equal(t, float32(-0.8), a.Min())
+	assert.Equal(t, Float(0.8), a.Max())
+	assert.Equal(t, Float(-0.8), a.Min())
 	assertEqualApprox(t, 1.0, a.Sum())
 }
 
 func TestDense_Identity(t *testing.T) {
 	a := I(3)
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		1.0, 0.0, 0.0,
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0,
@@ -641,13 +641,13 @@ func TestDense_Identity(t *testing.T) {
 
 func TestDense_Pivoting(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 4, []float32{
+		a := NewDense(4, 4, []Float{
 			11, 9, 24, 2,
 			1, 5, 2, 6,
 			3, 17, 18, 1,
 			2, 5, 7, 1,
 		})
-		n := NewDense(4, 4, []float32{
+		n := NewDense(4, 4, []Float{
 			11, 9, 24, 2,
 			1, 5, 2, 6,
 			3, 17, 7, 1,
@@ -656,7 +656,7 @@ func TestDense_Pivoting(t *testing.T) {
 
 		b, s, positions := a.Pivoting(0)
 		assert.False(t, s)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
@@ -666,7 +666,7 @@ func TestDense_Pivoting(t *testing.T) {
 
 		c, s, positions := n.Pivoting(2)
 		assert.True(t, s)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
 			0.0, 0.0, 0.0, 1.0,
@@ -676,7 +676,7 @@ func TestDense_Pivoting(t *testing.T) {
 
 		d, s, positions := a.Pivoting(1)
 		assert.True(t, s)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
@@ -693,32 +693,32 @@ func TestDense_Pivoting(t *testing.T) {
 
 func TestDense_LU(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(3, 3, []float32{
+		a := NewDense(3, 3, []Float{
 			3, 3, 0,
 			7, -5, -1,
 			2, 8, 3,
 		})
 
 		l, u, p := a.LU()
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1, 0, 0,
 			0.285714, 1, 0,
 			0.428571, 0.54545, 1,
 		}, l.Data())
 
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			7, -5, -1,
 			0, 9.42857, 3.28571,
 			0, 0, -1.363636,
 		}, u.Data())
 
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.0, 1.0, 0.0,
 			0.0, 0.0, 1.0,
 			1.0, 0.0, 0.0,
 		}, p.Data())
 
-		b := NewDense(4, 4, []float32{
+		b := NewDense(4, 4, []Float{
 			11, 9, 24, 2,
 			1, 5, 2, 6,
 			3, 17, 18, 1,
@@ -727,21 +727,21 @@ func TestDense_LU(t *testing.T) {
 
 		l2, u2, p2 := b.LU()
 
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1.0, 0.0, 0.0, 0.0,
 			0.27273, 1.0, 0.0, 0.0,
 			0.09091, 0.28750, 1.0, 0.0,
 			0.18182, 0.23125, 0.00360, 1.0,
 		}, l2.Data())
 
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			11.0000, 9.0, 24.0, 2.0,
 			0.0, 14.54545, 11.45455, 0.45455,
 			0.0, 0.0, -3.47500, 5.68750,
 			0.0, 0.0, 0.0, 0.51079,
 		}, u2.Data())
 
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			1.0, 0.0, 0.0, 0.0,
 			0.0, 0.0, 1.0, 0.0,
 			0.0, 1.0, 0.0, 0.0,
@@ -757,33 +757,33 @@ func TestDense_LU(t *testing.T) {
 
 func TestDense_Inverse(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(3, 3, []float32{
+		a := NewDense(3, 3, []Float{
 			1, 2, 3,
 			0, 1, 4,
 			5, 6, 0,
 		})
 		i := a.Inverse()
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			-24, 18, 5,
 			20, -15, -4,
 			-5, 4, 1,
 		}, i.Data())
 
-		b := NewDense(4, 4, []float32{
+		b := NewDense(4, 4, []Float{
 			0.3, 0.2, 0.6, -23,
 			1, 1, -1, 5,
 			6, -7.5, 3, 0,
 			1, 0, 0, 0,
 		})
 		c := b.Inverse()
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0, 0, 0, 1,
 			-0.19230769, -0.88461538, -0.25641025, 2.48076923,
 			-0.48076923, -2.21153846, -0.30769230, 4.20192307,
 			-0.05769230, -0.06538461, -0.01025641, 0.14423076,
 		}, c.Data())
 
-		d := NewDense(4, 4, []float32{
+		d := NewDense(4, 4, []Float{
 			1, 1, 1, -1,
 			1, 1, -1, 1,
 			1, -1, 1, 1,
@@ -791,7 +791,7 @@ func TestDense_Inverse(t *testing.T) {
 		})
 
 		e := d.Inverse()
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.25, 0.25, 0.25, -0.25,
 			0.25, 0.25, -0.25, 0.25,
 			0.25, -0.25, 0.25, 0.25,
@@ -807,13 +807,13 @@ func TestDense_Inverse(t *testing.T) {
 
 func TestDense_Augment(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(3, 3, []float32{
+		a := NewDense(3, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 		})
 		b := a.Augment()
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3, 1.0, 0.0, 0.0,
 			0.4, 0.5, -0.6, 0.0, 1.0, 0.0,
 			-0.5, 0.8, -0.8, 0.0, 0.0, 1.0,
@@ -828,14 +828,14 @@ func TestDense_Augment(t *testing.T) {
 
 func TestDense_SwapInPlace(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
 		a.SwapInPlace(3, 2)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-3, -0.3, -0.4,
@@ -861,20 +861,20 @@ func TestDense_SwapInPlace(t *testing.T) {
 
 func TestDense_Maximum(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
-		b := NewDense(4, 3, []float32{
+		b := NewDense(4, 3, []Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
 			0.2, -0.0, -0.9,
 		})
 		c := a.Maximum(b)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.2, 0.7, 0.5,
 			0.4, 0.5, 0.5,
 			-0.5, 0.8, -0.3,
@@ -891,20 +891,20 @@ func TestDense_Maximum(t *testing.T) {
 
 func TestDense_Minimum(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
-		b := NewDense(4, 3, []float32{
+		b := NewDense(4, 3, []Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
 			0.2, -0.0, -0.9,
 		})
 		c := a.Minimum(b)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3,
 			0.0, 0.4, -0.6,
 			-0.8, 0.7, -0.8,
@@ -921,14 +921,14 @@ func TestDense_Minimum(t *testing.T) {
 
 func TestDense_ExtractRow(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
 		c := a.ExtractRow(2)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			-0.5, 0.8, -0.8,
 		}, c.Data())
 	})
@@ -941,14 +941,14 @@ func TestDense_ExtractRow(t *testing.T) {
 
 func TestDense_ExtractColumn(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
 		c := a.ExtractColumn(2)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.3, -0.6, -0.8, -0.4,
 		}, c.Data())
 	})
@@ -960,41 +960,41 @@ func TestDense_ExtractColumn(t *testing.T) {
 }
 
 func TestDense_Range(t *testing.T) {
-	a := NewDense(4, 3, []float32{
+	a := NewDense(4, 3, []Float{
 		0.1, 0.2, 0.3,
 		0.4, 0.5, -0.6,
 		-0.5, 0.8, -0.8,
 		-3, -0.3, -0.4,
 	})
 	c := a.Range(3, 6)
-	assertSliceEqualApprox(t, []float32{
+	assertSliceEqualApprox(t, []Float{
 		0.4, 0.5, -0.6,
 	}, c.Data())
 }
 
 func TestDense_SplitV(t *testing.T) {
-	a := NewDense(4, 3, []float32{
+	a := NewDense(4, 3, []Float{
 		0.1, 0.2, 0.3,
 		0.4, 0.5, -0.6,
 		-0.5, 0.8, -0.8,
 		-3, -0.3, -0.4,
 	})
 	c := a.SplitV(3, 3, 3)
-	assertSliceEqualApprox(t, []float32{0.1, 0.2, 0.3}, c[0].Data())
-	assertSliceEqualApprox(t, []float32{0.4, 0.5, -0.6}, c[1].Data())
-	assertSliceEqualApprox(t, []float32{-0.5, 0.8, -0.8}, c[2].Data())
+	assertSliceEqualApprox(t, []Float{0.1, 0.2, 0.3}, c[0].Data())
+	assertSliceEqualApprox(t, []Float{0.4, 0.5, -0.6}, c[1].Data())
+	assertSliceEqualApprox(t, []Float{-0.5, 0.8, -0.8}, c[2].Data())
 }
 
 func TestDense_At(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
 		v := a.At(3, 2)
-		assert.Equal(t, float32(-0.4), v)
+		assert.Equal(t, Float(-0.4), v)
 	})
 
 	t.Run("it panics if i >= rows", func(t *testing.T) {
@@ -1010,14 +1010,14 @@ func TestDense_At(t *testing.T) {
 
 func TestDense_Set(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewDense(4, 3, []float32{
+		a := NewDense(4, 3, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
 			-3, -0.3, -0.4,
 		})
 		a.Set(3, 2, 3.0)
-		assertSliceEqualApprox(t, []float32{
+		assertSliceEqualApprox(t, []Float{
 			0.1, 0.2, 0.3,
 			0.4, 0.5, -0.6,
 			-0.5, 0.8, -0.8,
@@ -1038,9 +1038,9 @@ func TestDense_Set(t *testing.T) {
 
 func TestDense_AtVec(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 		v := a.AtVec(2)
-		assert.Equal(t, float32(0.3), v)
+		assert.Equal(t, Float(0.3), v)
 	})
 
 	t.Run("it panics if i >= rows", func(t *testing.T) {
@@ -1056,9 +1056,9 @@ func TestDense_AtVec(t *testing.T) {
 
 func TestDense_SetVec(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
 		a.SetVec(3, 3.0)
-		assertSliceEqualApprox(t, []float32{0.1, 0.2, 0.3, 3.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{0.1, 0.2, 0.3, 3.0}, a.Data())
 	})
 
 	t.Run("it panics if i >= rows", func(t *testing.T) {
@@ -1074,9 +1074,9 @@ func TestDense_SetVec(t *testing.T) {
 
 func TestDense_Sqrt(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{1.0, 2.0, 4.0, 0.0})
+		a := NewVecDense([]Float{1.0, 2.0, 4.0, 0.0})
 		c := a.Sqrt()
-		assertSliceEqualApprox(t, []float32{1.0, 1.414213, 2.0, 0.0}, c.Data())
+		assertSliceEqualApprox(t, []Float{1.0, 1.414213, 2.0, 0.0}, c.Data())
 	})
 
 	t.Run("it works with empty matrices", func(t *testing.T) {
@@ -1088,17 +1088,17 @@ func TestDense_Sqrt(t *testing.T) {
 
 func TestDense_Apply(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		a.Apply(func(i, j int, v float32) float32 {
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		a.Apply(func(i, j int, v Float) Float {
 			return -3.0 * (v / 2.0) // the equation is completely arbitrary
 		}, a)
-		assertSliceEqualApprox(t, []float32{-0.15, -0.3, -0.45, 0.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{-0.15, -0.3, -0.45, 0.0}, a.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
 		d := NewEmptyDense(2, 3)
 		other := NewEmptyDense(3, 2)
-		f := func(i, j int, v float32) float32 {
+		f := func(i, j int, v Float) Float {
 			t.Error("the callback function should never be invoked")
 			return 0
 		}
@@ -1108,7 +1108,7 @@ func TestDense_Apply(t *testing.T) {
 	t.Run("it works with empty matrices", func(t *testing.T) {
 		d := NewEmptyDense(0, 0)
 		other := NewEmptyDense(0, 0)
-		f := func(i, j int, v float32) float32 {
+		f := func(i, j int, v Float) Float {
 			t.Error("the callback function should never be invoked")
 			return 0
 		}
@@ -1117,15 +1117,15 @@ func TestDense_Apply(t *testing.T) {
 
 	t.Run("it works with another Sparse matrix", func(t *testing.T) {
 		d := NewEmptyDense(2, 3)
-		other := NewSparse(2, 3, []float32{
+		other := NewSparse(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
-		f := func(i, j int, v float32) float32 {
-			return float32((i+1)*10) + float32(j+1) + (v / 10)
+		f := func(i, j int, v Float) Float {
+			return Float((i+1)*10) + Float(j+1) + (v / 10)
 		}
 		d.Apply(f, other)
-		assert.Equal(t, []float32{
+		assert.Equal(t, []Float{
 			11.1, 12.2, 13.3,
 			21.4, 22.5, 23.6,
 		}, d.Data())
@@ -1134,17 +1134,17 @@ func TestDense_Apply(t *testing.T) {
 
 func TestDense_ApplyWithAlpha(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		a := NewVecDense([]float32{0.1, 0.2, 0.3, 0.0})
-		a.ApplyWithAlpha(func(i, j int, v float32, alpha ...float32) float32 {
+		a := NewVecDense([]Float{0.1, 0.2, 0.3, 0.0})
+		a.ApplyWithAlpha(func(i, j int, v Float, alpha ...Float) Float {
 			return -3.0*(v/2.0) + alpha[0] // the equation is completely arbitrary
 		}, a, 2.0)
-		assertSliceEqualApprox(t, []float32{1.85, 1.7, 1.55, 2.0}, a.Data())
+		assertSliceEqualApprox(t, []Float{1.85, 1.7, 1.55, 2.0}, a.Data())
 	})
 
 	t.Run("it panics if matrices dimensions differ", func(t *testing.T) {
 		d := NewEmptyDense(2, 3)
 		other := NewEmptyDense(3, 2)
-		f := func(i, j int, v float32, alpha ...float32) float32 {
+		f := func(i, j int, v Float, alpha ...Float) Float {
 			t.Error("the callback function should never be invoked")
 			return 0
 		}
@@ -1153,37 +1153,37 @@ func TestDense_ApplyWithAlpha(t *testing.T) {
 }
 
 func TestDense_Stack(t *testing.T) {
-	v1 := NewVecDense([]float32{0.1, 0.2, 0.3, 0.5})
-	v2 := NewVecDense([]float32{0.4, 0.5, 0.6, 0.4})
-	v3 := NewVecDense([]float32{0.8, 0.9, 0.7, 0.6})
+	v1 := NewVecDense([]Float{0.1, 0.2, 0.3, 0.5})
+	v2 := NewVecDense([]Float{0.4, 0.5, 0.6, 0.4})
+	v3 := NewVecDense([]Float{0.8, 0.9, 0.7, 0.6})
 
 	out := Stack(v1, v2, v3)
 
-	assertSliceEqualApprox(t, []float32{0.1, 0.2, 0.3, 0.5, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9, 0.7, 0.6}, out.Data())
+	assertSliceEqualApprox(t, []Float{0.1, 0.2, 0.3, 0.5, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9, 0.7, 0.6}, out.Data())
 }
 
 func TestDense_SetData(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		d := NewDense(2, 3, []float32{
+		d := NewDense(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
-		d.SetData([]float32{10, 20, 30, 40, 50, 60})
-		assert.Equal(t, []float32{10, 20, 30, 40, 50, 60}, d.Data())
+		d.SetData([]Float{10, 20, 30, 40, 50, 60})
+		assert.Equal(t, []Float{10, 20, 30, 40, 50, 60}, d.Data())
 	})
 
 	t.Run("it panics with incompatible data dimension", func(t *testing.T) {
-		d := NewDense(2, 3, []float32{
+		d := NewDense(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
-		assert.Panics(t, func() { d.SetData([]float32{10, 20}) })
+		assert.Panics(t, func() { d.SetData([]Float{10, 20}) })
 	})
 }
 
 func TestDense_View(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		d := NewDense(2, 3, []float32{
+		d := NewDense(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
@@ -1191,7 +1191,7 @@ func TestDense_View(t *testing.T) {
 		actualRows, actualCols := view.Dims()
 		assert.Equal(t, 3, actualRows)
 		assert.Equal(t, 2, actualCols)
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, view.Data())
+		assert.Equal(t, []Float{1, 2, 3, 4, 5, 6}, view.Data())
 	})
 
 	t.Run("it panics with incompatible dimensions", func(t *testing.T) {
@@ -1203,7 +1203,7 @@ func TestDense_View(t *testing.T) {
 func TestDense_Scalar(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		s := NewScalar(42)
-		assert.Equal(t, float32(42.0), s.Scalar())
+		assert.Equal(t, Float(42.0), s.Scalar())
 	})
 
 	t.Run("it panics with a non-scalar matrix", func(t *testing.T) {
@@ -1214,51 +1214,51 @@ func TestDense_Scalar(t *testing.T) {
 
 func TestDense_DotUnitary(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		d := NewDense(1, 3, []float32{1, 2, 3})
-		other := NewDense(1, 3, []float32{10, 20, 30})
-		assert.Equal(t, float32(140), d.DotUnitary(other))
+		d := NewDense(1, 3, []Float{1, 2, 3})
+		other := NewDense(1, 3, []Float{10, 20, 30})
+		assert.Equal(t, Float(140), d.DotUnitary(other))
 	})
 
 	t.Run("it panics with incompatible dimensions", func(t *testing.T) {
-		d := NewDense(1, 3, []float32{1, 2, 3})
-		other := NewDense(1, 2, []float32{10, 20})
+		d := NewDense(1, 3, []Float{1, 2, 3})
+		other := NewDense(1, 2, []Float{10, 20})
 		assert.Panics(t, func() { d.DotUnitary(other) })
 	})
 }
 
 func TestDense_Norm(t *testing.T) {
-	d := NewVecDense([]float32{1, 2, 3})
+	d := NewVecDense([]Float{1, 2, 3})
 	actual := d.Norm(2)
 	assertEqualApprox(t, 3.741657, actual)
 }
 
 func TestDense_Normalize2(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
-		d := NewVecDense([]float32{1, 2, 3})
+		d := NewVecDense([]Float{1, 2, 3})
 		actual := d.Normalize2().Data()
-		assertSliceEqualApprox(t, []float32{0.267261, 0.534522, 0.801784}, actual)
+		assertSliceEqualApprox(t, []Float{0.267261, 0.534522, 0.801784}, actual)
 	})
 
 	t.Run("with norm = 0", func(t *testing.T) {
-		d := NewVecDense([]float32{0})
+		d := NewVecDense([]Float{0})
 		actual := d.Normalize2().Data()
-		assert.Equal(t, []float32{0}, actual)
+		assert.Equal(t, []Float{0}, actual)
 	})
 }
 
 func TestDense_String(t *testing.T) {
-	d := NewVecDense([]float32{1, 2, 3})
+	d := NewVecDense([]Float{1, 2, 3})
 	assert.Equal(t, "[1 2 3]", d.String())
 }
 
-func assertEqualApprox(t *testing.T, expected, actual float32) {
+func assertEqualApprox(t *testing.T, expected, actual Float) {
 	t.Helper()
 	if !f32utils.EqualApprox(expected, actual) {
 		t.Errorf("expected %v, actual %v", expected, actual)
 	}
 }
 
-func assertSliceEqualApprox(t *testing.T, expected, actual []float32) {
+func assertSliceEqualApprox(t *testing.T, expected, actual []Float) {
 	t.Helper()
 	if !f32utils.SliceEqualApprox(expected, actual) {
 		t.Errorf("expected %v, actual %v", expected, actual)

@@ -145,7 +145,7 @@ func (d *Dense) formattingMaxColumnsWidth(
 	return widths, maxWidth
 }
 
-func formatValue(buf []byte, val float32, c rune, precision int) []byte {
+func formatValue(buf []byte, val Float, c rune, precision int) []byte {
 	return strconv.AppendFloat(buf[:0], float64(val), byte(c), precision, 32)
 }
 

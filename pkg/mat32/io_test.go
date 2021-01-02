@@ -14,7 +14,7 @@ func TestBinaryMarshaling(t *testing.T) {
 	var buf []byte
 
 	{
-		m := NewDense(2, 3, []float32{
+		m := NewDense(2, 3, []Float{
 			1, 2, 3,
 			4, 5, 6,
 		})
@@ -29,7 +29,7 @@ func TestBinaryMarshaling(t *testing.T) {
 		n, err := UnmarshalBinaryFrom(m, bytes.NewBuffer(buf))
 		assert.Nil(t, err)
 		assert.Greater(t, n, 0)
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, m.Data())
+		assert.Equal(t, []Float{1, 2, 3, 4, 5, 6}, m.Data())
 	}
 	{
 		m, n, err := NewUnmarshalBinaryFrom(bytes.NewBuffer(buf))
@@ -37,7 +37,7 @@ func TestBinaryMarshaling(t *testing.T) {
 		assert.Greater(t, n, 0)
 		assert.Equal(t, 2, m.Rows())
 		assert.Equal(t, 3, m.Columns())
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, m.Data())
+		assert.Equal(t, []Float{1, 2, 3, 4, 5, 6}, m.Data())
 	}
 }
 
@@ -46,11 +46,11 @@ func TestBinarySliceMarshaling(t *testing.T) {
 
 	{
 		ms := []Matrix{
-			NewDense(2, 3, []float32{
+			NewDense(2, 3, []Float{
 				1, 2, 3,
 				4, 5, 6,
 			}),
-			NewDense(2, 3, []float32{
+			NewDense(2, 3, []Float{
 				9, 8, 7,
 				6, 5, 4,
 			}),
@@ -69,8 +69,8 @@ func TestBinarySliceMarshaling(t *testing.T) {
 		n, err := UnmarshalBinarySlice(ms, bytes.NewBuffer(buf))
 		assert.Nil(t, err)
 		assert.Greater(t, n, 0)
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, ms[0].Data())
-		assert.Equal(t, []float32{9, 8, 7, 6, 5, 4}, ms[1].Data())
+		assert.Equal(t, []Float{1, 2, 3, 4, 5, 6}, ms[0].Data())
+		assert.Equal(t, []Float{9, 8, 7, 6, 5, 4}, ms[1].Data())
 	}
 	{
 		ms := make([]Matrix, 2)
@@ -80,10 +80,10 @@ func TestBinarySliceMarshaling(t *testing.T) {
 
 		assert.Equal(t, 2, ms[0].Rows())
 		assert.Equal(t, 3, ms[0].Columns())
-		assert.Equal(t, []float32{1, 2, 3, 4, 5, 6}, ms[0].Data())
+		assert.Equal(t, []Float{1, 2, 3, 4, 5, 6}, ms[0].Data())
 
 		assert.Equal(t, 2, ms[1].Rows())
 		assert.Equal(t, 3, ms[1].Columns())
-		assert.Equal(t, []float32{9, 8, 7, 6, 5, 4}, ms[1].Data())
+		assert.Equal(t, []Float{9, 8, 7, 6, 5, 4}, ms[1].Data())
 	}
 }

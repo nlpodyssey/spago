@@ -25,17 +25,17 @@ func TestDense_Format(t *testing.T) {
 
 	run("Scalar with padding", NewScalar(1.2), "%5v", "[  1.2]")
 
-	run("One row", NewDense(1, 3, []float32{1.2, 3.4, 5.6}), "%v",
+	run("One row", NewDense(1, 3, []Float{1.2, 3.4, 5.6}), "%v",
 		"[1.2 3.4 5.6]")
 
-	run("One column", NewDense(3, 1, []float32{1.2, 3.4, 5.6}), "%v",
+	run("One column", NewDense(3, 1, []Float{1.2, 3.4, 5.6}), "%v",
 		""+
 			"⎡1.2⎤\n"+
 			"⎢3.4⎥\n"+
 			"⎣5.6⎦")
 
 	run("3x3",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			1.2, 3.4, 5.6,
 			7.8, 9.1, 2.3,
 			4.5, 6.7, 8.9,
@@ -46,7 +46,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣4.5 6.7 8.9⎦")
 
 	run("Max column width is respected",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			11.2, 3.4, 5.6,
 			7.8, 99.11, 2.3,
 			4.5, 6.7, 88.999,
@@ -57,7 +57,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣ 4.5  6.7  88.999⎦")
 
 	run("Explicit padding is respected",
-		NewDense(3, 4, []float32{
+		NewDense(3, 4, []Float{
 			11.2, 3.4, 5.6, 0.1,
 			7.8, 99.11, 2.3, 0.2,
 			4.5, 6.7, 88.999, 123456.78,
@@ -85,23 +85,23 @@ func TestDense_Format(t *testing.T) {
 	run("decimal point no exponent alt", NewScalar(12.3), "%F", "[12.3]")
 
 	run("scientific notation for large exponents - small e",
-		NewDense(1, 2, []float32{1.2, 3456789.0}), "%g", "[1.2 3.456789e+06]")
+		NewDense(1, 2, []Float{1.2, 3456789.0}), "%g", "[1.2 3.456789e+06]")
 
 	run("scientific notation for large exponents - capital E",
-		NewDense(1, 2, []float32{1.2, 3456789.0}), "%G", "[1.2 3.456789E+06]")
+		NewDense(1, 2, []Float{1.2, 3456789.0}), "%G", "[1.2 3.456789E+06]")
 
 	run("hex notation lowercase", NewScalar(0), "%x", "[0x0p+00]")
 
 	run("hex notation uppercase", NewScalar(0), "%X", "[0X0P+00]")
 
 	run("precision only",
-		NewDense(1, 2, []float32{1.23, 4.567}), "%.2f", "[1.23 4.57]")
+		NewDense(1, 2, []Float{1.23, 4.567}), "%.2f", "[1.23 4.57]")
 
 	run("width and precision",
-		NewDense(1, 2, []float32{1.23, 4.567}), "%6.2f", "[  1.23   4.57]")
+		NewDense(1, 2, []Float{1.23, 4.567}), "%6.2f", "[  1.23   4.57]")
 
 	run("correct point alignment using g",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.8, 123456.78,
 			12345678.0, 12345.6, 9,
 			21, 322, 9876543,
@@ -112,7 +112,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣21               322                  9.876543e+06⎦")
 
 	run("correct point alignment using g with small width",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.8, 123456.78,
 			12345678.0, 12345.6, 9,
 			21, 322, 9876543,
@@ -123,7 +123,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣  21               322                  9.876543e+06⎦")
 
 	run("correct point alignment using g with big width",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.8, 123456.78,
 			12345678.0, 12345.6, 9,
 			21, 322, 9876543,
@@ -134,7 +134,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣    21                322                  9.876543e+06⎦")
 
 	run("correct point alignment using g with zero precision",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.89, 123456.789,
 			12345678.987, 12345.6, 9,
 			21, 322, 9876543,
@@ -145,7 +145,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣2e+01   3e+02 1e+07⎦")
 
 	run("correct point alignment using g with precision",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.89, 123456.789,
 			12345678.987, 12345.6, 9,
 			21, 322, 9876543,
@@ -156,7 +156,7 @@ func TestDense_Format(t *testing.T) {
 			"⎣21        322        9.88e+06⎦")
 
 	run("correct point alignment using g with width and precision",
-		NewDense(3, 3, []float32{
+		NewDense(3, 3, []Float{
 			0.1, 1234567.89, 123456.789,
 			12345678.987, 12345.6, 9,
 			21, 322, 9876543,

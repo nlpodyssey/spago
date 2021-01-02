@@ -17,7 +17,7 @@ import (
 	"sync"
 )
 
-// TODO: adapt Dense Workspace to float32
+// TODO: adapt Dense Workspace to 32bits Float
 
 // Each pool element i returns slices capped at 1<<i.
 // 63 (and not 64) because MaxInt64  = 1<<63 - 1
@@ -36,7 +36,7 @@ func init() {
 				rows:     -1,
 				cols:     -1,
 				size:     -1,
-				data:     make([]float32, length),
+				data:     make([]Float, length),
 				viewOf:   nil,
 				fromPool: true,
 			}
@@ -112,7 +112,7 @@ func bits(v uint64) byte {
 }
 
 // zero zeros the given slice's elements.
-func zero(f []float32) {
+func zero(f []Float) {
 	for i := range f {
 		f[i] = 0.0
 	}

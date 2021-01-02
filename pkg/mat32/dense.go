@@ -16,19 +16,19 @@ import (
 
 var _ Matrix = &Dense{}
 
-// Dense is a Matrix implementation that uses float32 as data type.
+// Dense is a Matrix implementation that uses Float as data type.
 type Dense struct {
 	rows     int
 	cols     int
 	size     int // rows*cols
-	data     []float32
+	data     []Float
 	viewOf   *Dense // default nil
 	fromPool bool
 }
 
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
-func NewDense(rows, cols int, elements []float32) *Dense {
+func NewDense(rows, cols int, elements []Float) *Dense {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyDense() instead.")
 	}
@@ -42,7 +42,7 @@ func NewDense(rows, cols int, elements []float32) *Dense {
 
 // NewVecDense returns a new column vector populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyVecDense to initialize an empty matrix.
-func NewVecDense(elements []float32) *Dense {
+func NewVecDense(elements []Float) *Dense {
 	if elements == nil {
 		panic("mat: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
@@ -52,7 +52,7 @@ func NewVecDense(elements []float32) *Dense {
 }
 
 // NewScalar returns a new 1x1 matrix containing the input value.
-func NewScalar(n float32) *Dense {
+func NewScalar(n Float) *Dense {
 	d := GetDenseWorkspace(1, 1)
 	d.data[0] = n
 	return d
@@ -79,7 +79,7 @@ func OneHotVecDense(size int, oneAt int) *Dense {
 }
 
 // NewInitDense returns a new rows x cols dense matrix initialized with a constant value.
-func NewInitDense(rows, cols int, val float32) *Dense {
+func NewInitDense(rows, cols int, val Float) *Dense {
 	out := GetDenseWorkspace(rows, cols)
 	data := out.data // avoid bounds check
 	for i := range data {
@@ -89,13 +89,13 @@ func NewInitDense(rows, cols int, val float32) *Dense {
 }
 
 // NewInitVecDense returns a new size x 1 dense matrix initialized with a constant value.
-func NewInitVecDense(size int, val float32) *Dense {
+func NewInitVecDense(size int, val Float) *Dense {
 	return NewInitDense(size, 1, val)
 }
 
 // SetData sets the values of the matrix, given a raw one-dimensional slice
 // data representation.
-func (d *Dense) SetData(data []float32) {
+func (d *Dense) SetData(data []Float) {
 	if len(data) != d.size {
 		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
 	}
@@ -188,7 +188,7 @@ func (d *Dense) LastIndex() int {
 }
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional slice of values.
-func (d *Dense) Data() []float32 {
+func (d *Dense) Data() []Float {
 	return d.data
 }
 
@@ -204,7 +204,7 @@ func (d *Dense) IsScalar() bool {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (d *Dense) Scalar() float32 {
+func (d *Dense) Scalar() Float {
 	if !d.IsScalar() {
 		panic("mat: expected scalar but the matrix contains more elements.")
 	}
@@ -213,7 +213,7 @@ func (d *Dense) Scalar() float32 {
 
 // Set sets the value v at row i and column j.
 // It panics if the given indices are out of range.
-func (d *Dense) Set(i int, j int, v float32) {
+func (d *Dense) Set(i int, j int, v Float) {
 	if i >= d.rows {
 		panic("mat: 'i' argument out of range.")
 	}
@@ -225,7 +225,7 @@ func (d *Dense) Set(i int, j int, v float32) {
 
 // At returns the value at row i and column j.
 // It panics if the given indices are out of range.
-func (d *Dense) At(i int, j int) float32 {
+func (d *Dense) At(i int, j int) Float {
 	if i >= d.rows {
 		panic("mat: 'i' argument out of range.")
 	}
@@ -237,7 +237,7 @@ func (d *Dense) At(i int, j int) float32 {
 
 // SetVec sets the value v at position i of a vector.
 // It panics if the receiver is not a vector.
-func (d *Dense) SetVec(i int, v float32) {
+func (d *Dense) SetVec(i int, v Float) {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
 	}
@@ -249,7 +249,7 @@ func (d *Dense) SetVec(i int, v float32) {
 
 // AtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector.
-func (d *Dense) AtVec(i int) float32 {
+func (d *Dense) AtVec(i int) Float {
 	if !(d.IsVector()) {
 		panic("mat: expected vector")
 	}
@@ -308,7 +308,7 @@ func (d *Dense) Reshape(r, c int) Matrix {
 }
 
 // ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
-func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float32, alpha ...float32) float32, a Matrix, alpha ...float32) {
+func (d *Dense) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float) {
 	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
 	}
@@ -320,7 +320,7 @@ func (d *Dense) ApplyWithAlpha(fn func(i, j int, v float32, alpha ...float32) fl
 }
 
 // Apply executes the unary function fn.
-func (d *Dense) Apply(fn func(i, j int, v float32) float32, a Matrix) {
+func (d *Dense) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions.")
 	}
@@ -356,47 +356,47 @@ func (d *Dense) Apply(fn func(i, j int, v float32) float32, a Matrix) {
 }
 
 // AddScalar performs the addition between the matrix and the given value.
-func (d *Dense) AddScalar(n float32) Matrix {
+func (d *Dense) AddScalar(n Float) Matrix {
 	out := d.Clone().(*Dense)
 	internal.AddConst(n, out.data)
 	return out
 }
 
 // SubScalar performs a subtraction between the matrix and the given value.
-func (d *Dense) SubScalar(n float32) Matrix {
+func (d *Dense) SubScalar(n Float) Matrix {
 	out := d.Clone().(*Dense)
 	internal.AddConst(-n, out.data)
 	return out
 }
 
 // AddScalarInPlace adds the scalar to all values of the matrix.
-func (d *Dense) AddScalarInPlace(n float32) Matrix {
+func (d *Dense) AddScalarInPlace(n Float) Matrix {
 	internal.AddConst(n, d.data)
 	return d
 }
 
 // SubScalarInPlace subtracts the scalar from the receiver's values.
-func (d *Dense) SubScalarInPlace(n float32) Matrix {
+func (d *Dense) SubScalarInPlace(n Float) Matrix {
 	internal.AddConst(-n, d.data)
 	return d
 }
 
 // ProdScalarInPlace performs the in-place multiplication between the matrix and
 // the given value.
-func (d *Dense) ProdScalarInPlace(n float32) Matrix {
+func (d *Dense) ProdScalarInPlace(n Float) Matrix {
 	f32.ScalUnitary(n, d.data)
 	return d
 }
 
 // ProdMatrixScalarInPlace multiplies the given matrix with the value, storing the
 // result in the receiver.
-func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n float32) Matrix {
+func (d *Dense) ProdMatrixScalarInPlace(m Matrix, n Float) Matrix {
 	f32.ScalUnitaryTo(d.data, n, m.(*Dense).data)
 	return d
 }
 
 // ProdScalar returns the multiplication between the matrix and the given value.
-func (d *Dense) ProdScalar(n float32) Matrix {
+func (d *Dense) ProdScalar(n Float) Matrix {
 	out := d.ZerosLike().(*Dense)
 	f32.ScalUnitaryTo(out.data, n, d.data)
 	return out
@@ -451,7 +451,7 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 	case *Dense:
 		f32.AxpyUnitary(-1.0, other.data, d.data)
 	case *Sparse:
-		other.DoNonZero(func(i, j int, k float32) {
+		other.DoNonZero(func(i, j int, k Float) {
 			d.Set(i, j, d.At(i, j)-k)
 		})
 	}
@@ -589,7 +589,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 		return out
 
 	case *Sparse:
-		b.DoNonZero(func(k, j int, v float32) {
+		b.DoNonZero(func(k, j int, v Float) {
 			for i := 0; i < d.Rows(); i++ {
 				out.Set(i, j, out.At(i, j)+d.At(i, k)*v)
 			}
@@ -631,7 +631,7 @@ func (d *Dense) MulT(other Matrix) Matrix {
 }
 
 // DotUnitary returns the dot product of two vectors.
-func (d *Dense) DotUnitary(other Matrix) float32 {
+func (d *Dense) DotUnitary(other Matrix) Float {
 	if d.Size() != other.Size() {
 		panic("mat: incompatible sizes.")
 	}
@@ -639,7 +639,7 @@ func (d *Dense) DotUnitary(other Matrix) float32 {
 }
 
 // ClipInPlace clips in place each value of the matrix.
-func (d *Dense) ClipInPlace(min, max float32) Matrix {
+func (d *Dense) ClipInPlace(min, max Float) Matrix {
 	data := d.data
 	for i, v := range data {
 		if v < min {
@@ -658,18 +658,18 @@ func (d *Dense) Abs() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
 	for i, val := range d.data {
-		outData[i] = float32(math.Abs(float64(val)))
+		outData[i] = Float(math.Abs(float64(val)))
 	}
 	return out
 }
 
 // Pow returns a new matrix, applying the power function with given exponent to all elements
 // of the matrix.
-func (d *Dense) Pow(power float32) Matrix {
+func (d *Dense) Pow(power Float) Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
 	for i, val := range d.data {
-		outData[i] = float32(math.Pow(float64(val), float64(power)))
+		outData[i] = Float(math.Pow(float64(val), float64(power)))
 	}
 	return out
 }
@@ -685,19 +685,19 @@ func (d *Dense) Sqrt() Matrix {
 	outData := out.data
 	_ = outData[lastIndex]
 	for i, val := range inData {
-		outData[i] = float32(math.Sqrt(float64(val)))
+		outData[i] = Float(math.Sqrt(float64(val)))
 	}
 	return out
 }
 
 // Sum returns the sum of all values of the matrix.
-func (d *Dense) Sum() float32 {
+func (d *Dense) Sum() Float {
 	return internal.Sum(d.data)
 }
 
 // Max returns the maximum value of the matrix.
-func (d *Dense) Max() float32 {
-	max := float32(math.Inf(-1))
+func (d *Dense) Max() Float {
+	max := Float(math.Inf(-1))
 	for _, v := range d.data {
 		if v > max {
 			max = v
@@ -707,8 +707,8 @@ func (d *Dense) Max() float32 {
 }
 
 // Min returns the minimum value of the matrix.
-func (d *Dense) Min() float32 {
-	min := float32(math.Inf(1))
+func (d *Dense) Min() Float {
+	min := Float(math.Inf(1))
 	for _, v := range d.data {
 		if v < min {
 			min = v
@@ -736,12 +736,12 @@ func (d *Dense) SplitV(sizes ...int) []Matrix {
 }
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
-func (d *Dense) Norm(pow float32) float32 {
-	var s float32 = 0.0
+func (d *Dense) Norm(pow Float) Float {
+	var s Float = 0.0
 	for _, x := range d.data {
-		s += float32(math.Pow(float64(x), float64(pow)))
+		s += Float(math.Pow(float64(x), float64(pow)))
 	}
-	return float32(math.Pow(float64(s), float64(1/pow)))
+	return Float(math.Pow(float64(s), float64(1/pow)))
 }
 
 // Normalize2 normalizes an array with the Euclidean norm.
@@ -835,10 +835,10 @@ func (d *Dense) Pivoting(row int) (Matrix, bool, []int) {
 		pv[i] = i
 	}
 	j := row
-	max := float32(math.Abs(float64(d.data[row*d.cols+j])))
+	max := Float(math.Abs(float64(d.data[row*d.cols+j])))
 	for i := row; i < d.cols; i++ {
 		if d.data[i*d.cols+j] > max {
-			max = float32(math.Abs(float64(d.data[i*d.cols+j])))
+			max = Float(math.Abs(float64(d.data[i*d.cols+j])))
 			row = i
 		}
 	}
@@ -905,7 +905,7 @@ func (d Dense) Inverse() Matrix {
 	for b := 0; b < d.cols; b++ {
 		// find solution of Ly = b
 		for i := 0; i < l.Rows(); i++ {
-			var sum float32 = 0.0
+			var sum Float = 0.0
 			for j := 0; j < i; j++ {
 				sum += l.Data()[i*d.cols+j] * s.data[j*d.cols+b]
 			}
@@ -913,7 +913,7 @@ func (d Dense) Inverse() Matrix {
 		}
 		// find solution of Ux = y
 		for i := d.cols - 1; i >= 0; i-- {
-			var sum float32 = 0.0
+			var sum Float = 0.0
 			for j := i + 1; j < d.cols; j++ {
 				sum += u.Data()[i*d.cols+j] * out.data[j*d.cols+b]
 			}
