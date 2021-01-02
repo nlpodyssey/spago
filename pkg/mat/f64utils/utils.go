@@ -6,17 +6,10 @@ package f64utils
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
-	"gonum.org/v1/gonum/floats"
 	"math"
 	"strconv"
 	"strings"
 )
-
-// EqualApprox returns true if a and b are equal to within reasonable
-// absolute or relative tolerances (both hardcoded as 1.0e-06).
-func EqualApprox(a, b float64) bool {
-	return floats.EqualWithinAbsOrRel(a, b, 1.0e-06, 1.0e-06)
-}
 
 // Copy creates and return a copy of the given slice.
 func Copy(in []float64) []float64 {
