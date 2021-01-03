@@ -5,10 +5,9 @@
 package adam
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
-	"math"
 )
 
 var _ gd.MethodConfig = &Config{}
@@ -16,14 +15,14 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an Adam optimizer.
 type Config struct {
 	gd.MethodConfig
-	StepSize float64
-	Beta1    float64
-	Beta2    float64
-	Epsilon  float64
+	StepSize mat.Float
+	Beta1    mat.Float
+	Beta2    mat.Float
+	Epsilon  mat.Float
 }
 
 // NewConfig returns a new Adam Config.
-func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
+func NewConfig(stepSize, beta1, beta2, epsilon mat.Float) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
 	}
@@ -53,7 +52,7 @@ var _ gd.Method = &Adam{}
 // Adam implements the Adam gradient descent optimization method.
 type Adam struct {
 	Config
-	Alpha    float64
+	Alpha    mat.Float
 	TimeStep int
 }
 
@@ -101,7 +100,7 @@ func (o *Adam) IncExample() {
 }
 
 func (o *Adam) updateAlpha() {
-	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, float64(o.TimeStep))) / (1.0 - math.Pow(o.Beta1, float64(o.TimeStep)))
+	o.Alpha = o.StepSize * mat.Sqrt(1.0-mat.Pow(o.Beta2, mat.Float(o.TimeStep))) / (1.0 - mat.Pow(o.Beta1, mat.Float(o.TimeStep)))
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
@@ -124,14 +123,14 @@ func (o *Adam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
+func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 mat.Float) {
 	supp[v].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[v].AddInPlace(supp[buf1])
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
+func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 mat.Float) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseDense(sqGrad.(*mat.Dense))

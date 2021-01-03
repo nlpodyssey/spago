@@ -5,7 +5,7 @@
 package bls
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -19,7 +19,7 @@ type BroadLearningAlgorithm struct {
 	Model                  *Model
 	Input                  []mat.Matrix
 	DesiredOutput          []mat.Matrix
-	Penalty                float64
+	Penalty                mat.Float
 	OptimizeFeaturesWeight bool // skip optimization if you don't want to
 	Verbose                bool
 }
@@ -86,7 +86,7 @@ func singleZH(m *Model, x ag.Node) *mat.Dense {
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y
-func ridgeRegression(x *mat.Dense, y *mat.Dense, c float64) mat.Matrix {
+func ridgeRegression(x *mat.Dense, y *mat.Dense, c mat.Float) mat.Matrix {
 	i2 := mat.I(x.Columns()).ProdScalar(c)
 	x2 := x.T().Mul(x).Add(i2)
 	invX2 := x2.(*mat.Dense).Inverse()
@@ -94,7 +94,7 @@ func ridgeRegression(x *mat.Dense, y *mat.Dense, c float64) mat.Matrix {
 }
 
 // admn is a naive implementation of the alternating direction method of multipliers method (Goldstein et al. 2014).
-func admn(z *mat.Dense, x *mat.Dense, lam float64, iterations int) mat.Matrix {
+func admn(z *mat.Dense, x *mat.Dense, lam mat.Float, iterations int) mat.Matrix {
 	ZZ := z.T().Mul(z)
 	Wk := mat.NewEmptyDense(z.Columns(), x.Columns())
 	Ok := mat.NewEmptyDense(z.Columns(), x.Columns())
@@ -114,7 +114,7 @@ func admn(z *mat.Dense, x *mat.Dense, lam float64, iterations int) mat.Matrix {
 	return Wk
 }
 
-func shrinkage(X *mat.Dense, k float64) mat.Matrix {
+func shrinkage(X *mat.Dense, k mat.Float) mat.Matrix {
 	Zeros := mat.NewEmptyDense(X.Rows(), X.Columns())
 	X1 := X.SubScalar(k).(*mat.Dense)
 	X2 := X.ProdScalar(-1.0).SubScalar(k).(*mat.Dense)

@@ -5,7 +5,7 @@
 package batchnorm
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -27,7 +27,7 @@ type Model struct {
 const defaultMomentum = 0.9
 
 // NewWithMomentum returns a new model with supplied size and momentum.
-func NewWithMomentum(size int, momentum float64) *Model {
+func NewWithMomentum(size int, momentum mat.Float) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
 		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
@@ -91,7 +91,7 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 	for i := 1; i < len(xs); i++ {
 		sumVector = g.Add(sumVector, xs[i])
 	}
-	return g.DivScalar(sumVector, g.NewScalar(float64(len(xs))+1e-10))
+	return g.DivScalar(sumVector, g.NewScalar(mat.Float(len(xs))+1e-10))
 }
 
 // StdDev computes the standard deviation of the input.
@@ -102,6 +102,6 @@ func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 		diffVector := g.Square(g.Sub(meanVector, x))
 		devVector = g.Add(devVector, diffVector)
 	}
-	devVector = g.Sqrt(g.DivScalar(devVector, g.NewScalar(float64(len(xs))+1e-10)))
+	devVector = g.Sqrt(g.DivScalar(devVector, g.NewScalar(mat.Float(len(xs))+1e-10)))
 	return devVector
 }

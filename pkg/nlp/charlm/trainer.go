@@ -6,7 +6,8 @@ package charlm
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -14,7 +15,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/gdmbuilder"
 	"github.com/nlpodyssey/spago/pkg/nlp/corpora"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"math"
 	"runtime"
 )
 
@@ -24,7 +24,7 @@ type TrainingConfig struct {
 	Seed                  uint64
 	BatchSize             int
 	BackStep              int
-	GradientClipping      float64
+	GradientClipping      mat.Float
 	SerializationInterval int
 	UpdateMethod          gd.MethodConfig
 	ModelPath             string
@@ -37,9 +37,9 @@ type Trainer struct {
 	corpus        corpora.TextCorpusIterator
 	model         *Model
 	optimizer     *gd.GradientDescent
-	bestLoss      float64
-	lastBatchLoss float64
-	curPerplexity float64
+	bestLoss      mat.Float
+	lastBatchLoss mat.Float
+	curPerplexity mat.Float
 }
 
 // NewTrainer returns a new Trainer.
@@ -102,7 +102,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 		loss := t.trainBatch(proc, batch)
 		t.optimizer.Optimize()
 		t.lastBatchLoss = loss
-		t.curPerplexity = math.Exp(loss)
+		t.curPerplexity = mat.Exp(loss)
 	}
 	if g.TimeStep() != cnt {
 		panic(fmt.Sprintf("charlm: time-step `%d` different than processed items `%d`. Something goes wrong.",
@@ -118,7 +118,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 // trainBatch performs both the forward step and the truncated back-propagation on a given batch.
 // Note that the processor remains the same for all batches of the same sequence,
 // so the previous recurrent states are retained for the next prediction.
-func (t *Trainer) trainBatch(proc *Model, batch []string) float64 {
+func (t *Trainer) trainBatch(proc *Model, batch []string) mat.Float {
 	g := proc.Graph()
 	g.ZeroGrad()
 	prevTimeStep := g.TimeStep()

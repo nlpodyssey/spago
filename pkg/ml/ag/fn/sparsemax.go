@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
 	"sort"
 )
 
@@ -35,8 +35,8 @@ func (s *SparseMax) Forward() mat.Matrix {
 func (s *SparseMax) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		output := s.y.Data()
-		nzSum := 0.0
-		nzCount := 0.0
+		var nzSum mat.Float = 0.0
+		var nzCount mat.Float = 0.0
 		gx := mat.GetDenseWorkspace(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
 		for i := range output {
@@ -59,29 +59,29 @@ func (s *SparseMax) Backward(gy mat.Matrix) {
 }
 
 // translateInput translates the input by max for numerical stability
-func translateInput(v []float64) []float64 {
+func translateInput(v []mat.Float) []mat.Float {
 	maximum := max(v)
-	translated := make([]float64, len(v))
+	translated := make([]mat.Float, len(v))
 	for i := range v {
 		translated[i] = v[i] - maximum
 	}
 	return translated
 }
 
-func sparseMaxCommon(v []float64) (zs []float64, bounds []float64, cumSumInput []float64, tau float64) {
-	zs = make([]float64, len(v))
+func sparseMaxCommon(v []mat.Float) (zs []mat.Float, bounds []mat.Float, cumSumInput []mat.Float, tau mat.Float) {
+	zs = make([]mat.Float, len(v))
 	copy(zs, v)
 
 	// Sort zs in descending order.
-	sort.Sort(sort.Reverse(sort.Float64Slice(zs)))
+	sort.Sort(sort.Reverse(matsort.FloatSlice(zs)))
 
-	bounds = make([]float64, len(zs))
+	bounds = make([]mat.Float, len(zs))
 	for i := range bounds {
-		bounds[i] = 1 + float64(i+1)*zs[i]
+		bounds[i] = 1 + mat.Float(i+1)*zs[i]
 	}
 
-	cumSumInput = make([]float64, len(zs))
-	f64utils.CumSum(cumSumInput, zs)
+	cumSumInput = make([]mat.Float, len(zs))
+	floatutils.CumSum(cumSumInput, zs)
 
 	k := -1
 	tau = 0.0
@@ -93,17 +93,17 @@ func sparseMaxCommon(v []float64) (zs []float64, bounds []float64, cumSumInput [
 			tau += zs[i]
 		}
 	}
-	tau = (tau - 1) / float64(k)
+	tau = (tau - 1) / mat.Float(k)
 
 	return zs, bounds, cumSumInput, tau
 }
 
-func sparseMax(v []float64) []float64 {
+func sparseMax(v []mat.Float) []mat.Float {
 	zs, _, _, tau := sparseMaxCommon(v)
 
 	//Reuses zs to avoid allocating new slice
 	for i := range zs {
-		zs[i] = math.Max(0.0, v[i]-tau)
+		zs[i] = mat.Max(0.0, v[i]-tau)
 	}
 	return zs
 }
@@ -111,7 +111,7 @@ func sparseMax(v []float64) []float64 {
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss struct {
 	x   Operand
-	tau float64    // computed during the forward pass
+	tau mat.Float  // computed during the forward pass
 	y   mat.Matrix // computed during forward pass
 }
 
@@ -122,9 +122,9 @@ func NewSparseMaxLoss(x Operand) *SparseMaxLoss {
 
 // sparseMaxLoss computes the sparseMax loss function and returns
 // the loss and the tau parameter (needed by backward)
-func sparseMaxLoss(v []float64) ([]float64, float64) {
+func sparseMaxLoss(v []mat.Float) ([]mat.Float, mat.Float) {
 	zs, bounds, cumSumInput, tau := sparseMaxCommon(v)
-	regTerm := 0.0
+	var regTerm mat.Float = 0.0
 	tauSquared := tau * tau
 
 	for i := range zs {
@@ -153,14 +153,14 @@ func (s *SparseMaxLoss) Forward() mat.Matrix {
 func (s *SparseMaxLoss) Backward(gy mat.Matrix) {
 	if s.x.RequiresGrad() {
 		input := s.x.Value().Data()
-		sparseMax := make([]float64, len(input))
+		sparseMax := make([]mat.Float, len(input))
 		for i := range sparseMax {
-			sparseMax[i] = math.Max(0, input[i]-s.tau)
+			sparseMax[i] = mat.Max(0, input[i]-s.tau)
 		}
 		gx := mat.GetDenseWorkspace(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
 		gyData := gy.Data()
-		gySum := f64utils.Sum(gyData)
+		gySum := floatutils.Sum(gyData)
 		for i := range gyData {
 			gx.Set(i, 0, gy.At(i, 0)-gySum*sparseMax[i])
 		}

@@ -5,7 +5,7 @@
 package adagrad
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -15,12 +15,12 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an AdaGrad optimizer.
 type Config struct {
 	gd.MethodConfig
-	LR      float64
-	Epsilon float64
+	LR      mat.Float
+	Epsilon mat.Float
 }
 
 // NewConfig returns a new AdaGrad Config.
-func NewConfig(lr, epsilon float64) Config {
+func NewConfig(lr, epsilon mat.Float) Config {
 	return Config{
 		LR:      lr,
 		Epsilon: epsilon,
@@ -74,7 +74,7 @@ func (o *AdaGrad) Delta(param nn.Param) mat.Matrix {
 // delta = (grads / (sqrt(m) + eps)) * lr
 func (o *AdaGrad) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	supp[m].AddInPlace(grads.Prod(grads))
-	buf := mat.Sqrt(supp[m])
+	buf := mat.SqrtMatrix(supp[m])
 	buf.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf)
 	delta.ProdScalarInPlace(o.LR)

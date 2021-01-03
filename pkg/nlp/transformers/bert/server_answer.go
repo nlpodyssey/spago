@@ -7,13 +7,14 @@ package bert
 import (
 	"context"
 	"encoding/json"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"net/http"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -67,7 +68,7 @@ func answersFrom(resp *QuestionAnsweringResponse) []*grpcapi.Answer {
 			Text:       t.Text,
 			Start:      int32(t.Start),
 			End:        int32(t.End),
-			Confidence: t.Confidence,
+			Confidence: float64(t.Confidence),
 		}
 	}
 
@@ -101,7 +102,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 	endIndices := getBestIndices(extractScores(endLogits), defaultMaxCandidateLogits)
 
 	candidateAnswers := make([]Answer, 0)
-	scores := make([]float64, 0) // the scores are aligned with the candidateAnswers
+	scores := make([]mat.Float, 0) // the scores are aligned with the candidateAnswers
 	for _, startIndex := range startIndices {
 		for _, endIndex := range endIndices {
 			switch {
@@ -128,7 +129,7 @@ func (s *Server) answer(question string, passage string) *QuestionAnsweringRespo
 		}
 	}
 
-	probs := f64utils.SoftMax(scores)
+	probs := floatutils.SoftMax(scores)
 	answers := make(AnswerSlice, 0)
 	for i, candidate := range candidateAnswers {
 		if probs[i] >= defaultMinConfidence {

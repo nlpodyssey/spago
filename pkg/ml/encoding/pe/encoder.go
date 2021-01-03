@@ -5,8 +5,7 @@
 package pe
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 // PositionalEncoder uses the sine and cosine functions of different frequencies to compose position embeddings so to
@@ -25,6 +24,8 @@ type PositionalEncoder struct {
 	cache []*mat.Dense
 }
 
+var log10000 = mat.Log(10000)
+
 // NewPositionalEncoder returns a new PositionalEncoder ready to use.
 func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	pe := &PositionalEncoder{
@@ -34,10 +35,10 @@ func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	}
 	// pre-compute the encoding for each position, calculating it in natural log-space
 	for pos := 0; pos < length; pos++ {
-		data := make([]float64, size, size)
+		data := make([]mat.Float, size, size)
 		for i := 0; i < size-1; i += 2 {
-			data[i] = math.Sin(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
-			data[i+1] = math.Cos(float64(pos) * math.Exp(float64(i)*-math.Log(10000.0)/float64(size)))
+			data[i] = mat.Sin(mat.Float(pos) * mat.Exp(mat.Float(i)*-log10000/mat.Float(size)))
+			data[i+1] = mat.Cos(mat.Float(pos) * mat.Exp(mat.Float(i)*-log10000/mat.Float(size)))
 		}
 		pe.cache[pos] = mat.NewVecDense(data)
 	}

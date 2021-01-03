@@ -7,8 +7,8 @@
 package lstmsc
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -25,7 +25,7 @@ var (
 type Model struct {
 	nn.BaseModel
 	PolicyGradient *stack.Model
-	Lambda         float64
+	Lambda         mat.Float
 	WIn            nn.Param `spago:"type:weights"`
 	WInRec         nn.Param `spago:"type:weights"`
 	BIn            nn.Param `spago:"type:biases"`
@@ -43,7 +43,7 @@ type Model struct {
 
 // New returns a new model with parameters initialized to zeros.
 // Lambda is the coefficient used in the equation λa + (1 − λ)b where 'a' is state[t-k] and 'b' is state[t-1].
-func New(in, out, k int, lambda float64, intermediate int) *Model {
+func New(in, out, k int, lambda mat.Float, intermediate int) *Model {
 	m := &Model{}
 	m.PolicyGradient = stack.New(
 		linear.New(in+out, intermediate),
@@ -138,7 +138,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 
 	if yPrev != nil {
 		s.Actions = nn.ToNode(m.PolicyGradient.Forward(g.NewWrapNoGrad(g.Concat(yPrev, x))))
-		s.SkipIndex = f64utils.ArgMax(s.Actions.Value().Data())
+		s.SkipIndex = floatutils.ArgMax(s.Actions.Value().Data())
 		if s.SkipIndex < len(m.States) {
 			kState := m.States[len(m.States)-1-s.SkipIndex]
 			yPrevNew = g.Add(g.ProdScalar(kState.Y, lambda), g.ProdScalar(yPrevNew, negLambda))

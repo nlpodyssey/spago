@@ -5,14 +5,14 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"gonum.org/v1/gonum/floats"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestAddScalar_Forward(t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]float64{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -25,20 +25,16 @@ func TestAddScalar_Forward(t *testing.T) {
 	f := NewAddScalar(x1, x2)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{1.1, 1.2, 1.3, 1.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+	assert.InDeltaSlice(t, []mat.Float{1.1, 1.2, 1.3, 1.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]float64{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
 
-	if !floats.EqualApprox(x1.grad.Data(), []float64{-1.0, 0.5, 0.8, 0.0}, 1.0e-6) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []mat.Float{-1.0, 0.5, 0.8, 0.0}, x1.grad.Data(), 1.0e-6)
 }
 
 func TestAddScalar_Forward2(t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []float64{
+		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -47,7 +43,7 @@ func TestAddScalar_Forward2(t *testing.T) {
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]float64{0.1}),
+		value:        mat.NewVecDense([]mat.Float{0.1}),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -55,27 +51,23 @@ func TestAddScalar_Forward2(t *testing.T) {
 	f := NewAddScalar(x1, x2)
 	y := f.Forward()
 
-	if !floats.EqualApprox(y.Data(), []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		0.2, 0.3, 0.4, 0.1,
 		0.5, 0.6, -0.5, 0.8,
-		-0.4, 0.9, -0.7, -0.0}, 1.0e-6) {
-		t.Error("The output doesn't match the expected values")
-	}
+		-0.4, 0.9, -0.7, -0.0,
+	}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewDense(3, 4, []float64{
+	f.Backward(mat.NewDense(3, 4, []mat.Float{
 		-1.0, 0.5, 0.8, 0.0,
 		1.0, 0.3, 0.6, 0.0,
 		1.0, -0.5, -0.3, 0.0,
 	}))
 
-	if !floats.EqualApprox(x1.grad.Data(), []float64{
+	assert.InDeltaSlice(t, []mat.Float{
 		-1.0, 0.5, 0.8, 0.0,
 		1.0, 0.3, 0.6, 0.0,
-		1.0, -0.5, -0.3, 0.0}, 1.0e-6) {
-		t.Error("The x1-gradients don't match the expected values")
-	}
+		1.0, -0.5, -0.3, 0.0,
+	}, x1.grad.Data(), 1.0e-6)
 
-	if !floats.EqualApprox(x2.grad.Data(), []float64{2.4}, 1.0e-6) {
-		t.Error("The x2-gradients don't match the expected values")
-	}
+	assert.InDeltaSlice(t, []mat.Float{2.4}, x2.grad.Data(), 1.0e-6)
 }

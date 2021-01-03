@@ -5,6 +5,7 @@
 package fofe
 
 import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"testing"
 )
 
@@ -20,14 +21,14 @@ func TestEncode(t *testing.T) {
 
 	z := Encode(0.5, len(vocabulary), xs)
 
-	gold := map[int]float64{
+	gold := map[int]mat.Float{
 		0: 1.00781250,
 		2: 0.51562500,
 		3: 0.28125000,
 		4: 0.18750000,
 	}
 
-	z[len(z)-1].DoNonZero(func(i, _ int, v float64) {
+	z[len(z)-1].DoNonZero(func(i, _ int, v mat.Float) {
 		if gold[i] != v {
 			t.Errorf("Found %f for the id %d. Expected %f.", v, i, gold[i])
 		}
@@ -46,20 +47,20 @@ func TestBiEncode(t *testing.T) {
 
 	l2r, r2l := BiEncode(0.5, len(vocabulary), xs)
 
-	gold := map[int]float64{
+	gold := map[int]mat.Float{
 		0: 1.00781250,
 		2: 0.51562500,
 		3: 0.28125000,
 		4: 0.18750000,
 	}
 
-	l2r[len(l2r)-1].DoNonZero(func(i, _ int, v float64) {
+	l2r[len(l2r)-1].DoNonZero(func(i, _ int, v mat.Float) {
 		if gold[i] != v {
 			t.Errorf("Left to right: Found %f for the id %d. Expected %f.", v, i, gold[i])
 		}
 	})
 
-	r2l[0].DoNonZero(func(i, _ int, v float64) {
+	r2l[0].DoNonZero(func(i, _ int, v mat.Float) {
 		if gold[i] != v {
 			t.Errorf("Right to left: Found %f for the id %d. Expected %f.", v, i, gold[i])
 		}

@@ -5,8 +5,8 @@
 package nn
 
 import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"math"
 )
 
 // Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
@@ -99,7 +99,7 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 // It panics if the x Node is not a vector.
 // TODO: optimize, this is extremely inefficient!
 func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
-	size := int(math.Ceil(float64(x.Value().Size()) / float64(chunks)))
+	size := int(mat.Ceil(mat.Float(x.Value().Size()) / mat.Float(chunks)))
 	lastSize := x.Value().Size() % chunks
 	ys := make([]ag.Node, chunks)
 	for c := 0; c < chunks; c++ {

@@ -6,12 +6,11 @@
 package horn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
-	"math"
 )
 
 var (
@@ -78,7 +77,7 @@ func (m *Model) feedback() []ag.Node {
 	var ys []ag.Node
 	n := len(m.States)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
-		alpha := g.NewScalar(math.Pow(0.6, float64(i+1)))
+		alpha := g.NewScalar(mat.Pow(0.6, mat.Float(i+1)))
 		ys = append(ys, m.WRec[i], g.ProdScalar(m.States[n-1-i].Y, alpha))
 	}
 	return ys

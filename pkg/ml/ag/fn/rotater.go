@@ -4,7 +4,7 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
 
 var _ Function = &RotateR{}
 
@@ -35,12 +35,12 @@ func (r *RotateR) Backward(gy mat.Matrix) {
 	}
 }
 
-func rotateR(a []float64, i int) []float64 {
+func rotateR(a []mat.Float, i int) []mat.Float {
 	x, b := a[:(len(a)-i)], a[(len(a)-i):]
 	return append(b, x...)
 }
 
-func rotateL(a []float64, i int) []float64 {
+func rotateL(a []mat.Float, i int) []mat.Float {
 	x, b := a[:i], a[i:]
 	return append(b, x...)
 }

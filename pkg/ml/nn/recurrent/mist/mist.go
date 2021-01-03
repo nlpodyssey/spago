@@ -10,11 +10,10 @@ by Di Pietro et al., 2018 (https://arxiv.org/pdf/1702.07805.pdf).
 package mist
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
-	"math"
 )
 
 var (
@@ -112,7 +111,7 @@ func (m *Model) weightHistory(a ag.Node) ag.Node {
 	var sum ag.Node
 	n := len(m.States)
 	for i := 0; i < m.NumOfDelays; i++ {
-		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
+		k := int(mat.Pow(2.0, mat.Float(i))) // base-2 exponential delay
 		if k <= n {
 			sum = g.Add(sum, g.ProdScalar(m.States[n-k].Y, g.AtVec(a, i)))
 		}

@@ -4,7 +4,7 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
 
 // Operand is implemented by any value that implements automatic differentiation features.
 type Operand interface {

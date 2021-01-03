@@ -9,7 +9,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 )
@@ -161,7 +161,7 @@ func (r *param) ReplaceValue(value mat.Matrix) {
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *param) ScalarValue() float64 {
+func (r *param) ScalarValue() mat.Float {
 	return r.value.Scalar()
 }
 

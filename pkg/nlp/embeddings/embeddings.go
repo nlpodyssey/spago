@@ -6,7 +6,7 @@ package embeddings
 
 import (
 	"bytes"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
@@ -133,7 +133,7 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 
 // SetEmbeddingFromData inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
-func (m *Model) SetEmbeddingFromData(word string, data []float64) {
+func (m *Model) SetEmbeddingFromData(word string, data []mat.Float) {
 	vec := mat.NewVecDense(data)
 	defer mat.ReleaseDense(vec)
 	m.SetEmbedding(word, vec)

@@ -13,12 +13,11 @@ package at the moment.
 package nru
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"log"
-	"math"
 )
 
 var (
@@ -64,10 +63,10 @@ type State struct {
 
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
-	if !isExactInt(math.Sqrt(float64(config.MemorySize * config.K))) {
+	if !isExactInt(mat.Sqrt(mat.Float(config.MemorySize * config.K))) {
 		panic("nru: incompatible 'k' with 'memory size'")
 	}
-	sqrtMemK := int(math.Sqrt(float64(config.MemorySize * config.K)))
+	sqrtMemK := int(mat.Sqrt(mat.Float(config.MemorySize * config.K)))
 
 	return &Model{
 		Wx:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.InputSize)),
@@ -87,8 +86,8 @@ func New(config Config) *Model {
 	}
 }
 
-func isExactInt(val float64) bool {
-	return val == float64(int(val))
+func isExactInt(val mat.Float) bool {
+	return val == mat.Float(int(val))
 }
 
 // SetInitialState sets the initial state of the recurrent network.
@@ -138,7 +137,7 @@ func (m *Model) forward(x ag.Node) *State {
 func (m *Model) calcDiffMemory(addMemory, forgetMemory []ag.Node) ag.Node {
 	g := m.Graph()
 	diffMemory := make([]ag.Node, m.MemorySize)
-	k := g.NewScalar(float64(m.K))
+	k := g.NewScalar(mat.Float(m.K))
 	for j := 0; j < m.MemorySize; j++ {
 		var sum ag.Node
 		for i := 0; i < m.K; i++ {
@@ -260,7 +259,7 @@ func normalization(g *ag.Graph, xs []ag.Node, p int) []ag.Node {
 func pNorm(g *ag.Graph, xs []ag.Node, p int) ag.Node {
 	var sum ag.Node
 	for _, x := range xs {
-		sum = g.Add(sum, g.Pow(g.Abs(x), float64(p)))
+		sum = g.Add(sum, g.Pow(g.Abs(x), mat.Float(p)))
 	}
-	return g.Pow(sum, 1.0/float64(p))
+	return g.Pow(sum, 1.0/mat.Float(p))
 }

@@ -17,7 +17,7 @@ output weights as in the original implementation. Cool, isn't it? ;)
 package bls
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -38,8 +38,8 @@ type Config struct {
 	OutputActivation             ag.OpName
 	KeepFeaturesParamsFixed      bool
 	KeepEnhancedNodesParamsFixed bool
-	FeaturesDropout              float64
-	EnhancedNodesDropout         float64
+	FeaturesDropout              mat.Float
+	EnhancedNodesDropout         mat.Float
 }
 
 // Model contains the serializable parameters.

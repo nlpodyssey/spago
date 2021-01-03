@@ -5,9 +5,8 @@
 package de
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"golang.org/x/exp/rand"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 )
 
 // Member represents a member of the Population.
@@ -19,34 +18,34 @@ type Member struct {
 	// The donor vector
 	DonorVector *mat.Dense
 	// The score of the target vector obtained during the last evaluation
-	TargetScore float64
+	TargetScore mat.Float
 	// The score of the trial vector obtained during the last evaluation
-	TrialScore float64
+	TrialScore mat.Float
 	// The score of the target vector on the validation set
-	ValidationScore float64
+	ValidationScore mat.Float
 }
 
 // MemberHyperParams contains the hyper-parameters of a Member.
 type MemberHyperParams struct {
 	// Differential weight (default 0.5)
-	MutationFactor float64
+	MutationFactor mat.Float
 	// Crossover probability (default 0.9)
-	CrossoverRate float64
+	CrossoverRate mat.Float
 	// Weight factor used by DEGL mutation (default 0.5)
-	WeightFactor float64
+	WeightFactor mat.Float
 }
 
 // MutateHyperParams mutates the hyper-parameters according to l and u.
 // Suggested values: l = 0.1, u = 0.9.
-func (a *MemberHyperParams) MutateHyperParams(l, u float64) {
-	if rand.Float64() < 0.1 {
-		a.MutationFactor = l + rand.Float64()*u
+func (a *MemberHyperParams) MutateHyperParams(l, u mat.Float) {
+	if rand.Float() < 0.1 {
+		a.MutationFactor = l + rand.Float()*u
 	}
-	if rand.Float64() < 0.1 {
-		a.CrossoverRate = rand.Float64()
+	if rand.Float() < 0.1 {
+		a.CrossoverRate = rand.Float()
 	}
-	if rand.Float64() < 0.1 {
-		a.WeightFactor = l + rand.Float64()*u
+	if rand.Float() < 0.1 {
+		a.WeightFactor = l + rand.Float()*u
 	}
 }
 
@@ -56,7 +55,7 @@ func NewMember(vector *mat.Dense, hyperParams MemberHyperParams) *Member {
 		MemberHyperParams: hyperParams,
 		TargetVector:      vector,
 		DonorVector:       vector.ZerosLike().(*mat.Dense),
-		TargetScore:       math.Inf(1),
-		TrialScore:        math.Inf(1),
+		TargetScore:       mat.Inf(1),
+		TrialScore:        mat.Inf(1),
 	}
 }

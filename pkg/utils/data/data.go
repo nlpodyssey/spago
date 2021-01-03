@@ -5,7 +5,8 @@
 package data
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -27,9 +28,9 @@ func GenerateBatches(size, batchFactor int, class func(i int) int) [][]int {
 			batchList = append(batchList, []int{})
 		}
 	}
-	distribution := make([]float64, nClasses)
+	distribution := make([]mat.Float, nClasses)
 	for i := 0; i < nClasses; i++ {
-		distribution[i] = float64(len(groupsByClass[i])) / float64(size)
+		distribution[i] = mat.Float(len(groupsByClass[i])) / mat.Float(size)
 	}
 	k := 0
 	for k < size {
@@ -57,7 +58,7 @@ func ForEachBatch(datasetSize, batchSize int, callback func(start, end int)) {
 // SplitDataset splits the dataset into two parts. Each part consists in a list of indices.
 // The split ratio regulates the percentage of the total assigned to `b` so that `a` contains the rest.
 // For example a split ratio of 0.20 means that `b` should contain the 20% of the total and `a` the rest 80%.
-func SplitDataset(size int, splitRatio float64, seed uint64, class func(i int) string) (a []int, b []int) {
+func SplitDataset(size int, splitRatio mat.Float, seed uint64, class func(i int) string) (a []int, b []int) {
 	classCount := make(map[string]int)
 	for i := 0; i < size; i++ {
 		c := class(i)
@@ -69,7 +70,7 @@ func SplitDataset(size int, splitRatio float64, seed uint64, class func(i int) s
 	for _, i := range indices {
 		c := class(i)
 		usedClassCount[c] = usedClassCount[c] + 1
-		if usedClassCount[c] <= int(splitRatio*float64(classCount[c])) {
+		if usedClassCount[c] <= int(splitRatio*mat.Float(classCount[c])) {
 			b = append(b, i)
 		} else {
 			a = append(a, i)

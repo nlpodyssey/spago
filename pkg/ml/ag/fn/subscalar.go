@@ -5,7 +5,7 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 var _ Function = &SubScalar{}
@@ -35,7 +35,7 @@ func (r *SubScalar) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(gy) // equals to gy.ProdScalar(1.0)
 	}
 	if r.x2.RequiresGrad() {
-		gx := 0.0
+		var gx mat.Float = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
 				gx -= gy.At(i, j)

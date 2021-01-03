@@ -5,8 +5,8 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 )
 
@@ -48,7 +48,7 @@ func NewVariable(value mat.Matrix, requiresGrad bool) Node {
 }
 
 // NewScalar creates a variable node that doesn't require gradients.
-func NewScalar(value float64) Node {
+func NewScalar(value mat.Float) Node {
 	return globalGraph.NewScalar(value)
 }
 
@@ -114,7 +114,7 @@ func Identity(x Node) Node {
 }
 
 // Dropout returns a new operator node as a result of the fn.Dropout function.
-func Dropout(x Node, p float64) Node {
+func Dropout(x Node, p mat.Float) Node {
 	return globalGraph.Dropout(x, p)
 }
 
@@ -241,7 +241,7 @@ func Square(x Node) Node {
 }
 
 // Pow returns a new operator node as a result of the fn.Pow function.
-func Pow(x Node, power float64) Node {
+func Pow(x Node, power mat.Float) Node {
 	return globalGraph.Pow(x, power)
 }
 

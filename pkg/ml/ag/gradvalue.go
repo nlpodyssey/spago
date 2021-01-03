@@ -4,7 +4,7 @@
 
 package ag
 
-import "github.com/nlpodyssey/spago/pkg/mat"
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
 
 // GradValue extends the fn.Operand interface providing more convenient methods
 // to handle gradients in the context of automatic differentiation.
@@ -13,7 +13,7 @@ type GradValue interface {
 	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.
 	Value() mat.Matrix
 	// ScalarValue returns the scalar value of the node. It panics if the value is not a scalar.
-	ScalarValue() float64
+	ScalarValue() mat.Float
 	// Grad returns the gradients accumulated during the backward pass.
 	Grad() mat.Matrix
 	// HasGrad returns true if there are accumulated gradients.

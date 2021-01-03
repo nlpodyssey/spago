@@ -5,6 +5,7 @@
 package charlm
 
 import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -21,7 +22,7 @@ type Generator struct {
 type GeneratorConfig struct {
 	MaxCharacters int
 	StopAtEOS     bool
-	Temperature   float64
+	Temperature   mat.Float
 }
 
 // NewGenerator returns a new Generator.
@@ -36,7 +37,7 @@ func NewGenerator(model *Model, config GeneratorConfig) *Generator {
 // The output text has a maximum length defined in the generator configuration.
 // The text is incrementally constructed character by character, using all previously sampled characters as input
 // to predict the next one.
-func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
+func (m *Generator) GenerateText(prefix string) (text string, logProb mat.Float) {
 	if prefix == "" {
 		prefix = m.model.SequenceSeparator
 	}
@@ -56,11 +57,11 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb float64) {
 		logProb += prob
 	}
 	text = prefix + strings.Join(characters, "")
-	logProb /= float64(len(characters))
+	logProb /= mat.Float(len(characters))
 	return
 }
 
-func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob float64) {
+func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob mat.Float) {
 	lastIndex := len(xs) - 1
 	prediction := proc.Forward(xs).([]ag.Node)[lastIndex].Value().Data() // keep the last prediction only
 	index := sample(prediction, m.Temperature)

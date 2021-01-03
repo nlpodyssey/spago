@@ -5,7 +5,7 @@
 package gd
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/clipper"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
@@ -33,14 +33,14 @@ type Option func(*GradientDescent)
 
 // ClipGradByValue is an option to clip the gradients during the training between
 // -value and +value.
-func ClipGradByValue(value float64) Option {
+func ClipGradByValue(value mat.Float) Option {
 	return func(f *GradientDescent) {
 		f.gradClipper = &clipper.ClipValue{Value: value}
 	}
 }
 
 // ClipGradByNorm is an option to clip the gradients during the training by norm.
-func ClipGradByNorm(max, normType float64) Option {
+func ClipGradByNorm(max, normType mat.Float) Option {
 	return func(f *GradientDescent) {
 		f.gradClipper = &clipper.ClipNorm{
 			MaxNorm:  max,

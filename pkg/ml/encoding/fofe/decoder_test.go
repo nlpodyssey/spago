@@ -5,14 +5,14 @@
 package fofe
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"testing"
 )
 
 func TestDecode(t *testing.T) {
 	reverseVocabulary := map[int]string{0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
 
-	z := mat.NewSparseFromMap(len(reverseVocabulary), 1, map[mat.Coordinate]float64{
+	z := mat.NewSparseFromMap(len(reverseVocabulary), 1, map[mat.Coordinate]mat.Float{
 		{I: 0, J: 0}: 1.00781250,
 		{I: 2, J: 0}: 0.51562500,
 		{I: 3, J: 0}: 0.28125000,

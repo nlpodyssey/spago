@@ -5,9 +5,9 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"github.com/nlpodyssey/spago/pkg/mat/rand/bernulli"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand/bernulli"
 )
 
 var _ Function = &Dropout{}
@@ -15,14 +15,14 @@ var _ Function = &Dropout{}
 // Dropout is an operator to perform elements dropout with a probability.
 type Dropout struct {
 	x       Operand
-	prob    float64
-	q       float64 // 1 - p
+	prob    mat.Float
+	q       mat.Float // 1 - p
 	randGen *rand.LockedRand
 	mask    mat.Matrix // filled during the forward
 }
 
 // NewDropout returns a new Dropout Function.
-func NewDropout(x Operand, p float64, randGen *rand.LockedRand) *Dropout {
+func NewDropout(x Operand, p mat.Float, randGen *rand.LockedRand) *Dropout {
 	return &Dropout{
 		x:       x,
 		prob:    p,

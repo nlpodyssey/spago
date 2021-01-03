@@ -4,7 +4,9 @@
 
 package stats
 
-import "math"
+import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+)
 
 // ClassMetrics provides methods to calculate Precision, Recall, F1Score, Accuracy
 // and other metrics useful to analyze the accuracy of a classifier.
@@ -59,34 +61,34 @@ func (c *ClassMetrics) ExpectedPos() int {
 }
 
 // Precision returns the precision metric, calculated as true positive / (true positive + false positive).
-func (c *ClassMetrics) Precision() float64 {
-	return zeroIfNaN(float64(c.TruePos) / float64(c.TruePos+c.FalsePos))
+func (c *ClassMetrics) Precision() mat.Float {
+	return zeroIfNaN(mat.Float(c.TruePos) / mat.Float(c.TruePos+c.FalsePos))
 }
 
 // Recall returns the recall (true positive rate) metric, calculated as true positive / (true positive + false negative).
-func (c *ClassMetrics) Recall() float64 {
-	return zeroIfNaN(float64(c.TruePos) / float64(c.TruePos+c.FalseNeg))
+func (c *ClassMetrics) Recall() mat.Float {
+	return zeroIfNaN(mat.Float(c.TruePos) / mat.Float(c.TruePos+c.FalseNeg))
 }
 
 // F1Score returns the harmonic mean of precision and recall, calculated as 2 * (precision * recall / (precision + recall))
-func (c *ClassMetrics) F1Score() float64 {
+func (c *ClassMetrics) F1Score() mat.Float {
 	return zeroIfNaN(2.0 * ((c.Precision() * c.Recall()) / (c.Precision() + c.Recall())))
 }
 
 // Specificity returns the specificity (selectivity, true negative rate) metric, calculated as true negative / (true negative + false positive).
-func (c *ClassMetrics) Specificity() float64 {
-	return zeroIfNaN(float64(c.TrueNeg) / float64(c.TrueNeg+c.FalsePos))
+func (c *ClassMetrics) Specificity() mat.Float {
+	return zeroIfNaN(mat.Float(c.TrueNeg) / mat.Float(c.TrueNeg+c.FalsePos))
 }
 
 // Accuracy returns the accuracy metric, calculated as (true positive + true negative) / (TP + TN + FP + FN).
-func (c *ClassMetrics) Accuracy() float64 {
-	numerator := float64(c.TruePos) + float64(c.TrueNeg)
-	return zeroIfNaN(numerator / (numerator + float64(c.FalseNeg+c.FalsePos)))
+func (c *ClassMetrics) Accuracy() mat.Float {
+	numerator := mat.Float(c.TruePos) + mat.Float(c.TrueNeg)
+	return zeroIfNaN(numerator / (numerator + mat.Float(c.FalseNeg+c.FalsePos)))
 }
 
 // zeroIfNaN returns zero if the value is NaN otherwise the value.
-func zeroIfNaN(value float64) float64 {
-	if value == math.NaN() {
+func zeroIfNaN(value mat.Float) mat.Float {
+	if value == mat.NaN() {
 		return 0.0
 	}
 	return value

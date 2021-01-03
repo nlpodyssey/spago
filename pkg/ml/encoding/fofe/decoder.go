@@ -5,7 +5,7 @@
 package fofe
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"sort"
 )
 
@@ -15,13 +15,13 @@ type item struct {
 }
 
 // Decode is the FOFE decoding function.
-func Decode(alpha float64, z *mat.Sparse) []int {
+func Decode(alpha mat.Float, z *mat.Sparse) []int {
 	if alpha <= 0 || alpha > 0.5 {
 		panic("fofe: alpha doesn't satisfy 0 < alpha ≤ 0.5")
 	}
 
 	var buf []item
-	z.DoNonZero(func(i, _ int, v float64) {
+	z.DoNonZero(func(i, _ int, v mat.Float) {
 		for _, k := range offsets(alpha, v) {
 			buf = append(buf, item{id: i, offset: k})
 		}
@@ -39,7 +39,7 @@ func Decode(alpha float64, z *mat.Sparse) []int {
 	return seq
 }
 
-func offsets(base float64, v float64) []int {
+func offsets(base mat.Float, v mat.Float) []int {
 	const limit = 400 // arbitrary limit
 	var lst []int
 	n := v

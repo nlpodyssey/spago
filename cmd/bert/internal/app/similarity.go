@@ -7,7 +7,7 @@ package app
 import (
 	"context"
 	"github.com/nlpodyssey/spago/cmd/clientutils"
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"github.com/urfave/cli"
 	"log"
@@ -61,27 +61,27 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) {
 			log.Fatalln(err)
 		}
 
-		vec1 := mat.NewVecDense(f32tof64(resp.Vector))
-		vec2 := mat.NewVecDense(f32tof64(resp2.Vector))
+		vec1 := mat.NewVecDense(f32SliceToFloatSlice(resp.Vector))
+		vec2 := mat.NewVecDense(f32SliceToFloatSlice(resp2.Vector))
 		similarity := vec1.DotUnitary(vec2)
 
 		clientutils.Println(app.output, toFixed(similarity, 6))
 	}
 }
 
-func f32tof64(xs []float32) []float64 {
-	ys := make([]float64, len(xs))
+func f32SliceToFloatSlice(xs []float32) []mat.Float {
+	ys := make([]mat.Float, len(xs))
 	for i, f32 := range xs {
-		ys[i] = float64(f32)
+		ys[i] = mat.Float(f32)
 	}
 	return ys
 }
 
-func round(num float64) int {
-	return int(num + math.Copysign(0.5, num))
+func round(num mat.Float) int {
+	return int(float64(num) + math.Copysign(0.5, float64(num)))
 }
 
-func toFixed(num float64, precision int) float64 {
-	output := math.Pow(10, float64(precision))
-	return float64(round(num*output)) / output
+func toFixed(num mat.Float, precision int) mat.Float {
+	output := mat.Pow(10, mat.Float(precision))
+	return mat.Float(round(num*output)) / output
 }

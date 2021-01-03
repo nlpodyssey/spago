@@ -5,8 +5,7 @@
 package clipper
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 // GradClipper is implemented by any value that has the Clip method.
@@ -18,7 +17,7 @@ type GradClipper interface {
 // ClipValue is a GradClipper which clips the values of a matrix between
 // -Value and +Value.
 type ClipValue struct {
-	Value float64
+	Value mat.Float
 }
 
 // Clip clips the values of the matrix in place.
@@ -31,7 +30,7 @@ func (c *ClipValue) Clip(gs []mat.Matrix) {
 // ClipNorm is a GradClipper which clips the values of a matrix according to
 // the NormType. See ClipNorm.Clip.
 type ClipNorm struct {
-	MaxNorm, NormType float64
+	MaxNorm, NormType mat.Float
 }
 
 // Clip clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
@@ -41,17 +40,17 @@ func (c *ClipNorm) Clip(gs []mat.Matrix) {
 		panic("gd: norm type required to be > 1.")
 	}
 
-	totalNorm := 0.0
-	if math.IsInf(c.NormType, 1) {
+	var totalNorm mat.Float = 0.0
+	if mat.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = math.Max(g.Abs().Max(), totalNorm)
+			totalNorm = mat.Max(g.Abs().Max(), totalNorm)
 		}
 	} else {
-		sum := 0.0
+		var sum mat.Float = 0.0
 		for _, g := range gs {
 			sum += g.Abs().Pow(c.NormType).Sum()
 		}
-		totalNorm = math.Pow(sum, 1.0/c.NormType)
+		totalNorm = mat.Pow(sum, 1.0/c.NormType)
 	}
 
 	clipCoeff := c.MaxNorm / (totalNorm + 0.0000001)

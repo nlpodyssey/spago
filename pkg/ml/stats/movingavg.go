@@ -4,15 +4,17 @@
 
 package stats
 
+import mat "github.com/nlpodyssey/spago/pkg/mat32"
+
 // MovingAvg provides a convenient way to calculate the moving average by adding value incrementally.
 type MovingAvg struct {
-	Mean     float64
-	Variance float64
-	Count    float64 // counts the added values
+	Mean     mat.Float
+	Variance mat.Float
+	Count    mat.Float // counts the added values
 }
 
 //Add adds the value to the moving average.
-func (m *MovingAvg) Add(value float64) {
+func (m *MovingAvg) Add(value mat.Float) {
 	m.Count++
 	m.Mean += (2.0 / m.Count) * (value - m.Mean)
 	m.Variance += (2.0 / m.Count) * ((value-m.Mean)*(value-m.Mean) - m.Variance)

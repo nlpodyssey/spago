@@ -5,9 +5,8 @@
 package de
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 )
 
 // DifferentialEvolution implements a simple and efficient heuristic for global optimization over continuous spaces.
@@ -22,9 +21,9 @@ type DifferentialEvolution struct {
 	// The crossover strategy
 	crossover Crossover
 	// The fitness function to minimize
-	fitnessFunc func(solution *mat.Dense, batch int) float64
+	fitnessFunc func(solution *mat.Dense, batch int) mat.Float
 	// The validation function to maximize
-	validate func(solution *mat.Dense) float64
+	validate func(solution *mat.Dense) mat.Float
 	// Method to call after finding a new best solution
 	onNewBest func(solution *ScoredVector)
 	// The current best solution (can be nil)
@@ -58,13 +57,13 @@ type Config struct {
 	// The number of optimization steps to do for each generation
 	OptimizationSteps int
 	// Differential weight (default 0.5)
-	MutationFactor float64
+	MutationFactor mat.Float
 	// Crossover probability (default 0.9)
-	CrossoverRate float64
+	CrossoverRate mat.Float
 	// Weight factor used by DEGL mutation strategy (default 0.5)
-	WeightFactor float64
+	WeightFactor mat.Float
 	// The (positive) bound
-	Bound float64
+	Bound mat.Float
 	// Whether to alter the mutation factor and the crossover rate on the Trial evaluation
 	Adaptive bool
 	// Reset the population if the best solution remains unchanged after for this long
@@ -76,7 +75,7 @@ type Config struct {
 // ScoredVector is a pair which associates a Score to a Vector corresponding to a specific solution.
 type ScoredVector struct {
 	Vector *mat.Dense
-	Score  float64
+	Score  mat.Float
 }
 
 // NewOptimizer returns a new DifferentialEvolution ready to optimize your problem.
@@ -84,8 +83,8 @@ func NewOptimizer(
 	config Config,
 	mutation Mutator,
 	crossover Crossover,
-	score func(solution *mat.Dense, batch int) float64,
-	validate func(solution *mat.Dense) float64,
+	score func(solution *mat.Dense, batch int) mat.Float,
+	validate func(solution *mat.Dense) mat.Float,
 	onNewBest func(solution *ScoredVector),
 ) *DifferentialEvolution {
 	return &DifferentialEvolution{
@@ -184,7 +183,7 @@ func (o *DifferentialEvolution) validateTargets() {
 // checkForBetterSolution compares the overall best solution with all current solutions, updating it if a new best is found.
 func (o *DifferentialEvolution) checkForBetterSolution() {
 	bestIndex := 0
-	bestValidationScore := math.Inf(-1)
+	bestValidationScore := mat.Inf(-1)
 	for i, member := range o.population.Members {
 		if member.ValidationScore > bestValidationScore {
 			bestValidationScore = member.ValidationScore

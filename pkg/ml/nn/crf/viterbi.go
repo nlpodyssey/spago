@@ -5,10 +5,9 @@
 package crf
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"math"
 )
 
 // ViterbiStructure implements Viterbi decoding.
@@ -20,7 +19,7 @@ type ViterbiStructure struct {
 // NewViterbiStructure returns a new ViterbiStructure ready to use.
 func NewViterbiStructure(size int) *ViterbiStructure {
 	return &ViterbiStructure{
-		scores:       mat.NewInitVecDense(size, math.Inf(-1)),
+		scores:       mat.NewInitVecDense(size, mat.Inf(-1)),
 		backpointers: make([]int, size),
 	}
 }
@@ -35,7 +34,7 @@ func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
 	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
-	ys[len(xs)-1] = f64utils.ArgMax(alpha[len(xs)].scores.Data())
+	ys[len(xs)-1] = floatutils.ArgMax(alpha[len(xs)].scores.Data())
 	for i := len(xs) - 2; i >= 0; i-- {
 		ys[i] = alpha[i+1].backpointers[ys[i+1]]
 	}

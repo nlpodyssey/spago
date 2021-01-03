@@ -5,7 +5,6 @@
 package hyperbolic
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -13,21 +12,10 @@ import (
 func TestHyperbolic_Decay(t *testing.T) {
 	fn := New(0.01, 0.001, 0.5)
 
-	if !f64utils.EqualApprox(fn.Decay(0.01, 1), 0.01) {
-		t.Error("the new learning rate doesn't match the expected value at time step 1")
-	}
-
-	if !f64utils.EqualApprox(fn.Decay(0.01, 2), 0.005) {
-		t.Error("the new learning rate doesn't match the expected value at time step 2")
-	}
-
-	if !f64utils.EqualApprox(fn.Decay(0.00774263682, 3), 0.004) {
-		t.Error("the new learning rate doesn't match the expected value at time step 3")
-	}
-
-	if !f64utils.EqualApprox(fn.Decay(0.001, 10), 0.001) {
-		t.Error("the new learning rate doesn't match the expected value with t>1 and init = final")
-	}
+	assert.InDelta(t, 0.01, fn.Decay(0.01, 1), 1.0e-06)
+	assert.InDelta(t, 0.005, fn.Decay(0.01, 2), 1.0e-06)
+	assert.InDelta(t, 0.004, fn.Decay(0.00774263682, 3), 1.0e-06)
+	assert.InDelta(t, 0.001, fn.Decay(0.001, 10), 1.0e-06)
 }
 
 func TestNew(t *testing.T) {

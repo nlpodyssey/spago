@@ -7,11 +7,12 @@ package bert
 import (
 	"encoding/json"
 	"fmt"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -83,14 +84,14 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 			cnt++
 		}
 		if cnt > 1 {
-			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(float64(cnt)))
+			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(mat.Float(cnt)))
 		}
 	}
 
 	retTokens := make([]Token, 0)
 	for i, logits := range proc.TokenClassification(avgEncoded) {
-		probs := f64utils.SoftMax(logits.Value().Data())
-		best := f64utils.ArgMax(probs)
+		probs := floatutils.SoftMax(logits.Value().Data())
+		best := floatutils.ArgMax(probs)
 		retTokens = append(retTokens, Token{
 			Text:  groupedTokens[i].String,
 			Start: groupedTokens[i].Offsets.Start,

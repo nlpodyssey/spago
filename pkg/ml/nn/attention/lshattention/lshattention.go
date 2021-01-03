@@ -10,8 +10,8 @@
 package lshattention
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -37,7 +37,7 @@ type Config struct {
 	QuerySize   int
 	ValueSize   int
 	BucketSize  int // num of buckets / 2
-	ScaleFactor float64
+	ScaleFactor mat.Float
 }
 
 // ContextProb is a pair of Context encodings and Prob attention scores.
@@ -68,7 +68,7 @@ type indexedNodes struct {
 func (m *Model) getHash(x *mat.Dense) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
-	return f64utils.ArgMax(concat.Data())
+	return floatutils.ArgMax(concat.Data())
 }
 
 // TODO: implement concurrent computation?
@@ -78,7 +78,7 @@ func (m *Model) lshScaledDotProductAttention(
 	ks,
 	vs *indexedNodes,
 	length int,
-	scaleFactor float64,
+	scaleFactor mat.Float,
 ) (context ag.Node, prob mat.Matrix) {
 	prob = mat.NewEmptyVecDense(length)
 	keys := g.Stack(ks.node...)

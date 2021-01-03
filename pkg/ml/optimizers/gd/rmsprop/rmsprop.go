@@ -5,7 +5,7 @@
 package rmsprop
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -15,13 +15,13 @@ var _ gd.MethodConfig = &Config{}
 // Config provides configuration settings for an RMSProp optimizer.
 type Config struct {
 	gd.MethodConfig
-	LR      float64
-	Epsilon float64
-	Decay   float64
+	LR      mat.Float
+	Epsilon mat.Float
+	Decay   mat.Float
 }
 
 // NewConfig returns a new RMSProp Config.
-func NewConfig(lr, epsilon, decay float64) Config {
+func NewConfig(lr, epsilon, decay mat.Float) Config {
 	return Config{
 		LR:      lr,
 		Epsilon: epsilon,
@@ -78,7 +78,7 @@ func (o *RMSProp) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)
 	supp[v].AddInPlace(buf)
-	buf2 := mat.Sqrt(supp[v])
+	buf2 := mat.SqrtMatrix(supp[v])
 	buf2.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)

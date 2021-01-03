@@ -5,8 +5,8 @@
 package bartserver
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/f64utils"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
@@ -72,14 +72,14 @@ func (s *ServerForSequenceClassification) classifyNLI(
 		multiClass = true
 	}
 
-	scores := func() []float64 {
+	scores := func() []mat.Float {
 		if multiClass {
 			return getMultiClassScores(logits, entailmentID, contradictionID)
 		}
 		return getScores(logits, entailmentID)
 	}()
 
-	best := f64utils.ArgMax(scores)
+	best := floatutils.ArgMax(scores)
 	class := candidateLabels[best]
 
 	distribution := make([]ClassConfidencePair, len(scores))
@@ -103,22 +103,22 @@ func (s *ServerForSequenceClassification) classifyNLI(
 }
 
 // getMultiClassScores softmax over the entailment vs. contradiction for each label independently
-func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []float64 {
-	scores := make([]float64, len(logits))
+func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []mat.Float {
+	scores := make([]mat.Float, len(logits))
 	for i, v := range logits {
-		prob := f64utils.SoftMax([]float64{v.AtVec(entailmentID), v.AtVec(contradictionID)})
+		prob := floatutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
 		scores[i] = prob[0]
 	}
 	return scores
 }
 
 // getScores softmax the "entailment" over all candidate labels
-func getScores(logits []*mat.Dense, entailmentID int) []float64 {
-	scores := make([]float64, len(logits))
+func getScores(logits []*mat.Dense, entailmentID int) []mat.Float {
+	scores := make([]mat.Float, len(logits))
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
 	}
-	return f64utils.SoftMax(scores)
+	return floatutils.SoftMax(scores)
 }
 
 func (s *ServerForSequenceClassification) getEntailmentAndContradictionIDs() (

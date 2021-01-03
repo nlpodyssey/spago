@@ -5,8 +5,7 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"math"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
 var _ Function = &Softmax{}
@@ -52,7 +51,7 @@ func (r *Softmax) Backward(gy mat.Matrix) {
 	}
 }
 
-func max(v []float64) (m float64) {
+func max(v []mat.Float) (m mat.Float) {
 	m = v[len(v)-1]
 	for _, e := range v {
 		if m <= e {
@@ -62,12 +61,12 @@ func max(v []float64) (m float64) {
 	return
 }
 
-func softmax(v []float64) []float64 {
+func softmax(v []mat.Float) []mat.Float {
 	maximum := max(v)
-	sum := 0.0
-	out := make([]float64, len(v))
+	var sum mat.Float = 0.0
+	out := make([]mat.Float, len(v))
 	for i, x := range v {
-		e := math.Exp(x - maximum)
+		e := mat.Exp(x - maximum)
 		out[i] = e
 		sum += e
 	}

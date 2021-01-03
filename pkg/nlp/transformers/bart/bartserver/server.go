@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
@@ -150,15 +151,15 @@ func (s *ServerForSequenceClassification) ClassifyNLIHandler(w http.ResponseWrit
 
 // ClassConfidencePair is a JSON-serializable pair of Class and Confidence.
 type ClassConfidencePair struct {
-	Class      string  `json:"class"`
-	Confidence float64 `json:"confidence"`
+	Class      string    `json:"class"`
+	Confidence mat.Float `json:"confidence"`
 }
 
 // ClassifyResponse is a JSON-serializable structure which holds server
 // classification response data.
 type ClassifyResponse struct {
 	Class        string                `json:"class"`
-	Confidence   float64               `json:"confidence"`
+	Confidence   mat.Float             `json:"confidence"`
 	Distribution []ClassConfidencePair `json:"distribution"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
@@ -169,12 +170,12 @@ func classificationFrom(resp *ClassifyResponse) *grpcapi.ClassifyReply {
 	for i, t := range resp.Distribution {
 		distribution[i] = &grpcapi.ClassConfidencePair{
 			Class:      t.Class,
-			Confidence: t.Confidence,
+			Confidence: float64(t.Confidence),
 		}
 	}
 	return &grpcapi.ClassifyReply{
 		Class:        resp.Class,
-		Confidence:   resp.Confidence,
+		Confidence:   float64(resp.Confidence),
 		Distribution: distribution,
 		Took:         resp.Took,
 	}
