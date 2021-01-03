@@ -78,7 +78,7 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 // where references to the underlying data slice have been kept.
 func ReleaseDense(w *Dense) {
 	if !w.fromPool {
-		panic("mat: only matrices originated from the workspace can return to it")
+		panic("mat32: only matrices originated from the workspace can return to it")
 	}
 	densePool[bits(uint64(cap(w.data)))].Put(w)
 }

@@ -128,7 +128,7 @@ func ConcatV(vs ...Matrix) Matrix {
 	data := make([]Float, 0, cup)
 	for _, v := range vs {
 		if !v.IsVector() {
-			panic("mat: required vector, found matrix")
+			panic("mat32: required vector, found matrix")
 		}
 		data = append(data, v.Data()...)
 	}

@@ -23,9 +23,9 @@ const maxLen = int(^uint(0) >> 1)
 
 var (
 	headerSize    = binary.Size(header{})
-	errTooBig     = errors.New("mat: resulting data slice too big")
-	errBadSize    = errors.New("mat: invalid dimension")
-	errZeroLength = errors.New("mat: zero length in matrix dimension")
+	errTooBig     = errors.New("mat32: resulting data slice too big")
+	errBadSize    = errors.New("mat32: invalid dimension")
+	errZeroLength = errors.New("mat32: zero length in matrix dimension")
 )
 
 func (s header) marshalBinaryTo(w io.Writer) (int, error) {

@@ -25,10 +25,10 @@ type Sparse struct {
 // The elements cannot be nil, panic otherwise. Use NewEmptySparse to initialize an empty matrix.
 func NewSparse(rows, cols int, elements []Float) *Sparse {
 	if elements == nil {
-		panic("mat: elements cannot be nil. Use NewEmptySparse() instead.")
+		panic("mat32: elements cannot be nil. Use NewEmptySparse() instead.")
 	}
 	if len(elements) != rows*cols {
-		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
+		panic(fmt.Sprintf("mat32: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
 	return newSparse(rows, cols, elements)
 }
@@ -37,7 +37,7 @@ func NewSparse(rows, cols int, elements []Float) *Sparse {
 // The elements cannot be nil, panic otherwise. Use NewEmptyVecSparse to initialize an empty matrix.
 func NewVecSparse(elements []Float) *Sparse {
 	if elements == nil {
-		panic("mat: elements cannot be nil. Use NewEmptyVecSparse() instead.")
+		panic("mat32: elements cannot be nil. Use NewEmptyVecSparse() instead.")
 	}
 	return newSparse(len(elements), 1, elements)
 }
@@ -115,7 +115,7 @@ func NewSparseFromMap(rows, cols int, elements map[Coordinate]Float) *Sparse {
 // invalid index.
 func OneHotSparse(size int, oneAt int) *Sparse {
 	if oneAt >= size {
-		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
+		panic(fmt.Sprintf("mat32: impossible to set the one at index %d. The size is: %d", oneAt, size))
 	}
 	vec := NewEmptyVecSparse(size)
 	vec.nzElements = append(vec.nzElements, 1.0)
@@ -150,7 +150,7 @@ func (s *Sparse) ZerosLike() Matrix {
 
 // OnesLike is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) OnesLike() Matrix {
-	panic("mat: OnesLike not implemented for Sparse matrices")
+	panic("mat32: OnesLike not implemented for Sparse matrices")
 }
 
 // Clone returns a new Sparse matrix, copying all its values from the receiver.
@@ -163,10 +163,10 @@ func (s *Sparse) Clone() Matrix {
 // matrix is not Sparse.
 func (s *Sparse) Copy(other Matrix) {
 	if !SameDims(s, other) {
-		panic("mat: incompatible matrix dimensions.")
+		panic("mat32: incompatible matrix dimensions.")
 	}
 	if other, ok := other.(*Sparse); !ok {
-		panic("mat: incompatible matrix types.")
+		panic("mat32: incompatible matrix types.")
 	} else {
 		s.colsIndex = append(s.colsIndex[:0], other.colsIndex...)
 		s.nnzRow = append(s.nnzRow[:0], other.nnzRow...)
@@ -233,7 +233,7 @@ func (s *Sparse) IsScalar() bool {
 // It panics if the matrix does not contain exactly one element.
 func (s *Sparse) Scalar() Float {
 	if !s.IsScalar() {
-		panic("mat: expected scalar but the matrix contains more elements.")
+		panic("mat32: expected scalar but the matrix contains more elements.")
 	}
 	if len(s.nzElements) > 0 {
 		return s.nzElements[0]
@@ -244,17 +244,17 @@ func (s *Sparse) Scalar() Float {
 // Set sets the value v at row i and column j.
 // It panics if the given indices are out of range.
 func (s *Sparse) Set(i int, j int, v Float) {
-	panic("mat: Set not implemented for Sparse matrices")
+	panic("mat32: Set not implemented for Sparse matrices")
 }
 
 // At returns the value at row i and column j.
 // It panics if the given indices are out of range.
 func (s *Sparse) At(i int, j int) Float {
 	if i >= s.rows {
-		panic("mat: 'i' argument out of range.")
+		panic("mat32: 'i' argument out of range.")
 	}
 	if j >= s.cols {
-		panic("mat: 'j' argument out of range")
+		panic("mat32: 'j' argument out of range")
 	}
 	for k := s.nnzRow[i]; k < s.nnzRow[i+1]; k++ {
 		if j == s.colsIndex[k] {
@@ -266,17 +266,17 @@ func (s *Sparse) At(i int, j int) Float {
 
 // SetVec is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) SetVec(i int, v Float) {
-	panic("mat: SetVec not implemented for Sparse matrices")
+	panic("mat32: SetVec not implemented for Sparse matrices")
 }
 
 // AtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector.
 func (s *Sparse) AtVec(i int) Float {
 	if !(s.IsVector()) {
-		panic("mat: expected vector")
+		panic("mat32: expected vector")
 	}
 	if i >= s.size {
-		panic("mat: 'i' argument out of range.")
+		panic("mat32: 'i' argument out of range.")
 	}
 	if s.cols == 1 {
 		if (s.nnzRow[i+1] - s.nnzRow[i]) > 0 {
@@ -339,14 +339,14 @@ func (s *Sparse) T() Matrix {
 
 // Reshape is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) Reshape(r, c int) Matrix {
-	panic("mat: Reshape not implemented for Sparse matrices")
+	panic("mat32: Reshape not implemented for Sparse matrices")
 }
 
 // Apply executes the unary function fn.
 // Important: apply to Functions such that f(0) = 0 (i.e. Sin, Tan)
 func (s *Sparse) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 	if _, ok := a.(*Sparse); !ok {
-		panic("mat: incompatible matrix types.")
+		panic("mat32: incompatible matrix types.")
 	}
 	for i := 0; i < len(s.nzElements); i++ {
 		s.nzElements[i] = fn(i, 0, a.(*Sparse).nzElements[i])
@@ -355,7 +355,7 @@ func (s *Sparse) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 
 // ApplyWithAlpha is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float) {
-	panic("mat: ApplyWithAlpha not implemented for Sparse matrices")
+	panic("mat32: ApplyWithAlpha not implemented for Sparse matrices")
 }
 
 // AddScalar performs the addition between the matrix and the given value,
@@ -371,7 +371,7 @@ func (s *Sparse) AddScalar(n Float) Matrix {
 
 // AddScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) AddScalarInPlace(n Float) Matrix {
-	panic("mat: AddScalarInPlace not implemented for Sparse matrices")
+	panic("mat32: AddScalarInPlace not implemented for Sparse matrices")
 }
 
 // SubScalar performs a subtraction between the matrix and the given value,
@@ -386,7 +386,7 @@ func (s *Sparse) SubScalar(n Float) Matrix {
 
 // SubScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) SubScalarInPlace(n Float) Matrix {
-	panic("mat: SubScalarInPlace not implemented for Sparse matrices")
+	panic("mat32: SubScalarInPlace not implemented for Sparse matrices")
 }
 
 // ProdScalar returns the multiplication between the matrix and the given value,
@@ -419,10 +419,10 @@ func (s *Sparse) ProdScalarInPlace(n Float) Matrix {
 // result in the receiver, and returning the same receiver Sparse matrix.
 func (s *Sparse) ProdMatrixScalarInPlace(m Matrix, n Float) Matrix {
 	if _, ok := m.(*Sparse); !ok {
-		panic("mat: incompatible matrix types.")
+		panic("mat32: incompatible matrix types.")
 	}
 	if !SameDims(s, m) {
-		panic("mat: incompatible matrix dimensions.")
+		panic("mat32: incompatible matrix dimensions.")
 	}
 	if n == 0.0 {
 		*s = *NewEmptySparse(s.rows, s.cols)
@@ -564,7 +564,7 @@ func (s *Sparse) Add(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Dense: // return dense
@@ -589,7 +589,7 @@ func (s *Sparse) AddInPlace(other Matrix) Matrix {
 		s.nnzRow = result.nnzRow
 		s.nzElements = result.nzElements
 	default:
-		panic("mat: AddInPlace(Dense) not implemented for Sparse matrices")
+		panic("mat32: AddInPlace(Dense) not implemented for Sparse matrices")
 	}
 	return s
 }
@@ -600,7 +600,7 @@ func (s *Sparse) Sub(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Dense: // return dense (not recommended)
@@ -625,7 +625,7 @@ func (s *Sparse) SubInPlace(other Matrix) Matrix {
 		s.nnzRow = result.nnzRow
 		s.nzElements = result.nzElements
 	default:
-		panic("mat: SubInPlace(Dense) not implemented for Sparse matrices")
+		panic("mat32: SubInPlace(Dense) not implemented for Sparse matrices")
 	}
 	return s
 }
@@ -636,7 +636,7 @@ func (s *Sparse) Prod(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Dense: // return sparse
@@ -666,7 +666,7 @@ func (s *Sparse) ProdInPlace(other Matrix) Matrix {
 		s.nnzRow = result.nnzRow
 		s.nzElements = result.nzElements
 	default:
-		panic("mat: ProdInPlace(Dense) not implemented for Sparse matrices")
+		panic("mat32: ProdInPlace(Dense) not implemented for Sparse matrices")
 	}
 	return s
 }
@@ -678,7 +678,7 @@ func (s *Sparse) Div(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Dense: // return sparse?
@@ -693,20 +693,20 @@ func (s *Sparse) Div(other Matrix) Matrix {
 		})
 		return out
 	default: // TODO: return sparse?
-		panic("mat: Not permitted")
+		panic("mat32: Not permitted")
 	}
 }
 
 // DivInPlace is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) DivInPlace(other Matrix) Matrix {
-	panic("mat: DivInPlace not implemented for Sparse matrices")
+	panic("mat32: DivInPlace not implemented for Sparse matrices")
 }
 
 // Mul performs the multiplication row by column, returning a Dense matrix.
 // If A is an i×j Matrix, and B is j×k, then the resulting Matrix C = AB will be i×k.
 func (s *Sparse) Mul(other Matrix) Matrix {
 	if s.Columns() != other.Rows() {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	out := GetEmptyDenseWorkspace(s.Rows(), other.Columns())
 
@@ -738,7 +738,7 @@ func (s *Sparse) Mul(other Matrix) Matrix {
 // DotUnitary returns the dot product of two vectors.
 func (s *Sparse) DotUnitary(other Matrix) Float {
 	if s.Size() != other.Size() {
-		panic("mat: incompatible sizes.")
+		panic("mat32: incompatible sizes.")
 	}
 	var sum Float = 0.0
 	switch b := other.(type) {
@@ -850,7 +850,7 @@ func (s *Sparse) String() string {
 
 // SetData is currently not implemented for a Sparse matrix (it always panics).
 func (s *Sparse) SetData(data []Float) {
-	panic("mat: SetData not implemented for Sparse matrices")
+	panic("mat32: SetData not implemented for Sparse matrices")
 }
 
 func (s *Sparse) maximumSparse(other *Sparse) *Sparse {
@@ -975,13 +975,13 @@ func (s *Sparse) Maximum(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Sparse:
 		return s.maximumSparse(other)
 	default:
-		panic("mat: Maximum not implemented between Dense and Sparse matrices")
+		panic("mat32: Maximum not implemented between Dense and Sparse matrices")
 	}
 }
 
@@ -991,12 +991,12 @@ func (s *Sparse) Minimum(other Matrix) Matrix {
 	if !(SameDims(s, other) ||
 		(other.Columns() == 1 && other.Rows() == s.Rows()) ||
 		(other.IsVector() && s.IsVector() && other.Size() == s.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat32: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Sparse:
 		return s.minimumSparse(other)
 	default:
-		panic("mat: Minimum not implemented between Dense and Sparse matrices")
+		panic("mat32: Minimum not implemented between Dense and Sparse matrices")
 	}
 }
