@@ -29,6 +29,17 @@ type Context struct {
 	Mode ProcessingMode
 }
 
+// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
+// We never want to marshal Context, hence this implementation returns an empty value
+func (c *Context) MarshalBinary() ([]byte, error) {
+	return []byte{}, nil
+}
+
+// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
+func (c *Context) UnmarshalBinary(data []byte) error {
+	return nil
+}
+
 // Model is implemented by all neural network architectures.
 // You can assign parameters (i.e. nn.Param) as regular attributes (if any).
 // A Model can also contain other Model(s), allowing to nest them in a tree structure.

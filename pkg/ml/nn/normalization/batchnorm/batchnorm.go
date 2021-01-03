@@ -59,7 +59,7 @@ func (m *Model) forwardTraining(xs []ag.Node) []ag.Node {
 }
 
 func (m *Model) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = g.Div(m.W, devVector)
+	devVector = g.Div(m.W, g.AddScalar(devVector, g.NewScalar(1e-10)))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), m.B)
