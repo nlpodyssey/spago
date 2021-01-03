@@ -74,7 +74,7 @@ func (o *AdaGrad) Delta(param nn.Param) mat.Matrix {
 // delta = (grads / (sqrt(m) + eps)) * lr
 func (o *AdaGrad) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	supp[m].AddInPlace(grads.Prod(grads))
-	buf := mat.MSqrt(supp[m])
+	buf := mat.SqrtMatrix(supp[m])
 	buf.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf)
 	delta.ProdScalarInPlace(o.LR)
