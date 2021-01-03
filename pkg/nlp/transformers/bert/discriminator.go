@@ -5,13 +5,13 @@
 package bert
 
 import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"math"
 )
 
 var (
@@ -48,7 +48,7 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 func (m *Discriminator) Discriminate(encoded []ag.Node) []int {
 	ys := make([]int, len(encoded))
 	for i, x := range m.Forward(encoded...) {
-		ys[i] = int(math.Round(float64(floatutils.Sign(x.ScalarValue())+1.0) / 2.0))
+		ys[i] = int(mat.Round(mat.Float(floatutils.Sign(x.ScalarValue())+1.0) / 2.0))
 	}
 	return ys
 }

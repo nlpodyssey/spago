@@ -6,7 +6,6 @@ package stats
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 )
 
 // ClassMetrics provides methods to calculate Precision, Recall, F1Score, Accuracy
@@ -89,7 +88,7 @@ func (c *ClassMetrics) Accuracy() mat.Float {
 
 // zeroIfNaN returns zero if the value is NaN otherwise the value.
 func zeroIfNaN(value mat.Float) mat.Float {
-	if value == mat.Float(math.NaN()) {
+	if value == mat.NaN() {
 		return 0.0
 	}
 	return value

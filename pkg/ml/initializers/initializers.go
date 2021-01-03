@@ -10,7 +10,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat32/rand/normal"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand/uniform"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"math"
 )
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
@@ -20,7 +19,7 @@ func Gain(f ag.OpName) mat.Float {
 	case ag.OpSigmoid:
 		return 1.0
 	case ag.OpReLU:
-		return mat.Float(math.Sqrt(2.0))
+		return mat.Sqrt(2.0)
 	case ag.OpTanh:
 		return 5.0 / 3
 	default:
@@ -72,7 +71,7 @@ func Zeros(m mat.Matrix) {
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
 func XavierUniform(m mat.Matrix, gain mat.Float, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
-	a := gain * mat.Float(math.Sqrt(6.0/float64(rows+cols)))
+	a := gain * mat.Sqrt(6.0/mat.Float(rows+cols))
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -87,7 +86,7 @@ func XavierUniform(m mat.Matrix, gain mat.Float, generator *rand.LockedRand) {
 // distribution.
 func XavierNormal(m mat.Matrix, gain mat.Float, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
-	std := gain * mat.Float(math.Sqrt(2.0/float64(rows+cols)))
+	std := gain * mat.Sqrt(2.0/mat.Float(rows+cols))
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -104,7 +103,7 @@ func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := mat.Float(1.0 / 6.0)
 	upper := 1.0 - lower
-	a := mat.Float(math.Sqrt(3.0))
+	a := mat.Sqrt(3.0)
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {

@@ -6,7 +6,6 @@ package fn
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 )
 
 var _ Function = &Softmax{}
@@ -67,7 +66,7 @@ func softmax(v []mat.Float) []mat.Float {
 	var sum mat.Float = 0.0
 	out := make([]mat.Float, len(v))
 	for i, x := range v {
-		e := mat.Float(math.Exp(float64(x - maximum)))
+		e := mat.Exp(x - maximum)
 		out[i] = e
 		sum += e
 	}

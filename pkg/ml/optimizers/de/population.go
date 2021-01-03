@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"math"
 )
 
 // Population represents the population.
@@ -53,7 +52,7 @@ func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minSco
 		panic("crossover: K must be less than population size")
 	}
 	argMin = 0
-	minScore = mat.Float(math.Inf(1))
+	minScore = mat.Inf(1)
 	lowIndex := index - windowSize
 	highIndex := index + windowSize
 	if lowIndex < 0 {

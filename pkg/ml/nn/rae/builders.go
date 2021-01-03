@@ -11,18 +11,18 @@ introduced byVaswani et al. (2017) for the step encoding.
 package rae
 
 import (
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"math"
 )
 
 // NewDefaultEncoder returns a new RAE Encoder.
 func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder {
-	hiddenSize := int(math.Round(1.5 * float64(embeddingSize)))
+	hiddenSize := int(mat.Round(1.5 * mat.Float(embeddingSize)))
 	scalingHidden := embeddingSize - ((embeddingSize - inputSize) / 2)
 
 	return &Encoder{
@@ -44,7 +44,7 @@ func NewDefaultEncoder(inputSize, embeddingSize, maxSequenceLength int) *Encoder
 
 // NewDefaultDecoder returns a new RAE Decoder.
 func NewDefaultDecoder(embeddingSize, outputSize, maxSequenceLength int) *Decoder {
-	hiddenSize := int(math.Round(1.5 * float64(embeddingSize)))
+	hiddenSize := int(mat.Round(1.5 * mat.Float(embeddingSize)))
 	descalingHidden := embeddingSize - ((embeddingSize - outputSize) / 2)
 
 	return &Decoder{

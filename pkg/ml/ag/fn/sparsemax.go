@@ -8,7 +8,6 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
-	"math"
 	"sort"
 )
 
@@ -104,7 +103,7 @@ func sparseMax(v []mat.Float) []mat.Float {
 
 	//Reuses zs to avoid allocating new slice
 	for i := range zs {
-		zs[i] = mat.Float(math.Max(0.0, float64(v[i]-tau)))
+		zs[i] = mat.Max(0.0, v[i]-tau)
 	}
 	return zs
 }
@@ -156,7 +155,7 @@ func (s *SparseMaxLoss) Backward(gy mat.Matrix) {
 		input := s.x.Value().Data()
 		sparseMax := make([]mat.Float, len(input))
 		for i := range sparseMax {
-			sparseMax[i] = mat.Float(math.Max(0, float64(input[i]-s.tau)))
+			sparseMax[i] = mat.Max(0, input[i]-s.tau)
 		}
 		gx := mat.GetDenseWorkspace(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)

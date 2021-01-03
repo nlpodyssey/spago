@@ -7,7 +7,6 @@ package de
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
-	"math"
 )
 
 // DifferentialEvolution implements a simple and efficient heuristic for global optimization over continuous spaces.
@@ -184,7 +183,7 @@ func (o *DifferentialEvolution) validateTargets() {
 // checkForBetterSolution compares the overall best solution with all current solutions, updating it if a new best is found.
 func (o *DifferentialEvolution) checkForBetterSolution() {
 	bestIndex := 0
-	bestValidationScore := mat.Float(math.Inf(-1))
+	bestValidationScore := mat.Inf(-1)
 	for i, member := range o.population.Members {
 		if member.ValidationScore > bestValidationScore {
 			bestValidationScore = member.ValidationScore

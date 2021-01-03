@@ -8,7 +8,6 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"math"
 )
 
 // ViterbiStructure implements Viterbi decoding.
@@ -20,7 +19,7 @@ type ViterbiStructure struct {
 // NewViterbiStructure returns a new ViterbiStructure ready to use.
 func NewViterbiStructure(size int) *ViterbiStructure {
 	return &ViterbiStructure{
-		scores:       mat.NewInitVecDense(size, mat.Float(math.Inf(-1))),
+		scores:       mat.NewInitVecDense(size, mat.Inf(-1)),
 		backpointers: make([]int, size),
 	}
 }

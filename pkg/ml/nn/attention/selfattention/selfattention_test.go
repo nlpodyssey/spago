@@ -10,7 +10,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
 	"github.com/stretchr/testify/assert"
-	"math"
 	"testing"
 )
 
@@ -71,7 +70,7 @@ func newTestModel() *Model {
 		QuerySize:   3,
 		KeySize:     3,
 		ValueSize:   3,
-		ScaleFactor: 1.0 / mat.Float(math.Sqrt(3.0)),
+		ScaleFactor: 1.0 / mat.Sqrt(3.0),
 	})
 	model.Value.W.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, 0.7,

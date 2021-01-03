@@ -8,7 +8,6 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
-	"math"
 )
 
 // Crossover is implemented by values that provides crossover operations.
@@ -38,7 +37,7 @@ func (c *BinomialCrossover) Crossover(p *Population) {
 		rn := rand.NewLockedRand(seed.Uint64n(100))
 		k := rn.Intn(size)
 		for i := 0; i < size; i++ {
-			if mat.Float(math.Abs(float64(randomVector.At(i, 0)))) > member.CrossoverRate || i == k { // Fixed range trick
+			if mat.Abs(randomVector.At(i, 0)) > member.CrossoverRate || i == k { // Fixed range trick
 				member.DonorVector.SetVec(i, member.TargetVector.AtVec(i))
 			}
 		}

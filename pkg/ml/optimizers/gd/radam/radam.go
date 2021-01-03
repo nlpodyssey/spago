@@ -8,7 +8,6 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
-	"math"
 )
 
 var _ gd.MethodConfig = &Config{}
@@ -108,7 +107,7 @@ func (o *RAdam) Delta(param nn.Param) mat.Matrix {
 func (o *RAdam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	updateM(grads, supp, o.Beta1)
 	updateV(grads, supp, o.Beta2)
-	sqrtB2T := mat.Float(math.Sqrt(1.0 - math.Pow(float64(o.Beta2), float64(mat.Float(o.TimeStep)))))
+	sqrtB2T := mat.Sqrt(1.0 - mat.Pow(o.Beta2, mat.Float(o.TimeStep)))
 	alpha := o.calcAlpha()
 	buf := supp[v].Sqrt().AddScalarInPlace(o.Epsilon * sqrtB2T)
 	defer mat.ReleaseDense(buf.(*mat.Dense))
@@ -136,12 +135,12 @@ func updateV(grads mat.Matrix, supp []mat.Matrix, beta2 mat.Float) {
 
 func (o *RAdam) calcAlpha() mat.Float {
 	timeStep := mat.Float(o.TimeStep)
-	b1T := mat.Float(math.Pow(float64(o.Beta1), float64(timeStep)))
-	b2T := mat.Float(math.Pow(float64(o.Beta2), float64(timeStep)))
+	b1T := mat.Pow(o.Beta1, timeStep)
+	b2T := mat.Pow(o.Beta2, timeStep)
 	ro := o.RoMax - 2.0*timeStep*b2T/(1.0-b2T)
 	var rect mat.Float = 1.0
 	if ro > 4.0 { // i.e. if the variance is tractable
-		rect = mat.Float(math.Sqrt(float64((ro - 4.0) * (ro - 2.0) * o.RoMax / ((o.RoMax - 4.0) * (o.RoMax - 2.0) * ro))))
+		rect = mat.Sqrt((ro - 4.0) * (ro - 2.0) * o.RoMax / ((o.RoMax - 4.0) * (o.RoMax - 2.0) * ro))
 	}
-	return o.StepSize * rect * mat.Float(math.Sqrt(float64(1.0-b2T))) / (1.0 - b1T)
+	return o.StepSize * rect * mat.Sqrt(1.0-b2T) / (1.0 - b1T)
 }

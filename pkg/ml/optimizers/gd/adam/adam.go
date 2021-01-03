@@ -8,7 +8,6 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
-	"math"
 )
 
 var _ gd.MethodConfig = &Config{}
@@ -101,7 +100,7 @@ func (o *Adam) IncExample() {
 }
 
 func (o *Adam) updateAlpha() {
-	o.Alpha = o.StepSize * mat.Float(math.Sqrt(1.0-math.Pow(float64(o.Beta2), float64(o.TimeStep)))/(1.0-math.Pow(float64(o.Beta1), float64(o.TimeStep))))
+	o.Alpha = o.StepSize * mat.Sqrt(1.0-mat.Pow(o.Beta2, mat.Float(o.TimeStep))) / (1.0 - mat.Pow(o.Beta1, mat.Float(o.TimeStep)))
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.

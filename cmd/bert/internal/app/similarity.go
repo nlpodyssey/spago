@@ -82,6 +82,6 @@ func round(num mat.Float) int {
 }
 
 func toFixed(num mat.Float, precision int) mat.Float {
-	output := mat.Float(math.Pow(10, float64(precision)))
+	output := mat.Pow(10, mat.Float(precision))
 	return mat.Float(round(num*output)) / output
 }

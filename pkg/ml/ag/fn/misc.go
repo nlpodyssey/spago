@@ -6,7 +6,6 @@ package fn
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 )
 
 // NewTan returns a new UnaryElementwise tangent function.
@@ -76,8 +75,8 @@ func NewSoftsign(x Operand) *UnaryElementwise {
 func NewCos(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Cos(float64(v))) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Float(-math.Sin(float64(v))) },
+		f:  func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
+		df: func(i, j int, v mat.Float) mat.Float { return -mat.Sin(v) },
 	}
 }
 
@@ -85,8 +84,8 @@ func NewCos(x Operand) *UnaryElementwise {
 func NewSin(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Sin(float64(v))) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Cos(float64(v))) },
+		f:  func(i, j int, v mat.Float) mat.Float { return mat.Sin(v) },
+		df: func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
 	}
 }
 
@@ -94,8 +93,8 @@ func NewSin(x Operand) *UnaryElementwise {
 func NewExp(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Exp(float64(v))) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Exp(float64(v))) },
+		f:  func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
+		df: func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
 	}
 }
 
@@ -130,7 +129,7 @@ func NewReciprocal(x Operand) *UnaryElementwise {
 func NewAbs(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Abs(float64(v))) },
+		f:  func(i, j int, v mat.Float) mat.Float { return mat.Abs(v) },
 		df: absDeriv,
 	}
 }
@@ -163,8 +162,8 @@ func NewGELU(x Operand) *UnaryElementwise {
 func NewSqrt(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Float(math.Sqrt(float64(v))) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Float(0.5 * math.Pow(float64(v), -0.5)) },
+		f:  func(i, j int, v mat.Float) mat.Float { return mat.Sqrt(v) },
+		df: func(i, j int, v mat.Float) mat.Float { return 0.5 * mat.Pow(v, -0.5) },
 	}
 }
 
@@ -181,9 +180,9 @@ func absDeriv(i, j int, v mat.Float) mat.Float {
 // safeLog is a simple work-around that make the math.Log() safe for zero or negative values
 func safeLog(i, j int, v mat.Float) mat.Float {
 	if v > 0.0 {
-		return mat.Float(math.Log(float64(v)))
+		return mat.Log(v)
 	} else if v == 0.0 {
-		return mat.Float(math.Log(1.0e-08))
+		return mat.Log(1.0e-08)
 	} else {
 		panic("ag: invalid log for negative values")
 	}
@@ -200,11 +199,11 @@ func safeLogDeriv(i, j int, v mat.Float) mat.Float {
 }
 
 func tan(i, j int, v mat.Float) mat.Float {
-	return mat.Float(math.Tan(float64(v)))
+	return mat.Tan(v)
 }
 
 func tanDeriv(i, j int, v mat.Float) mat.Float {
-	return 1.0 / square(i, j, mat.Float(math.Cos(float64(v))))
+	return 1.0 / square(i, j, mat.Cos(v))
 }
 
 func square(i, j int, v mat.Float) mat.Float {
@@ -212,15 +211,15 @@ func square(i, j int, v mat.Float) mat.Float {
 }
 
 func tanh(i, j int, v mat.Float) mat.Float {
-	return mat.Float(math.Tanh(float64(v)))
+	return mat.Tanh(v)
 }
 
 func tanhDeriv(i, j int, v mat.Float) mat.Float {
-	return 1.0 - mat.Float(math.Pow(math.Tanh(float64(v)), 2.0))
+	return 1.0 - mat.Pow(mat.Tanh(v), 2.0)
 }
 
 func sigmoid(i, j int, v mat.Float) mat.Float {
-	return 1.0 / (1 + mat.Float(math.Exp(-float64(v))))
+	return 1.0 / (1 + mat.Exp(-v))
 }
 
 func sigmoidDeriv(i, j int, v mat.Float) mat.Float {
@@ -263,7 +262,7 @@ func hardTanhDeriv(i, j int, v mat.Float) mat.Float {
 }
 
 func relu(i, j int, v mat.Float) mat.Float {
-	return mat.Float(math.Max(0.0, float64(v)))
+	return mat.Max(0.0, v)
 }
 
 func reluDeriv(i, j int, v mat.Float) mat.Float {
@@ -274,16 +273,16 @@ func reluDeriv(i, j int, v mat.Float) mat.Float {
 }
 
 func softsign(i, j int, v mat.Float) mat.Float {
-	return v / (1.0 + mat.Float(math.Abs(float64(v))))
+	return v / (1.0 + mat.Abs(v))
 }
 
 func softsignDeriv(i, j int, v mat.Float) mat.Float {
-	return mat.Float(math.Pow(1.0-math.Abs(float64(softsign(i, j, v))), 2.0))
+	return mat.Pow(1.0-mat.Abs(softsign(i, j, v)), 2.0)
 }
 
 func celu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
-		return alpha[0] * (mat.Float(math.Exp(float64(v/alpha[0]))) - 1)
+		return alpha[0] * (mat.Exp(v/alpha[0]) - 1)
 	} else if v > 0 {
 		return v
 	}
@@ -292,7 +291,7 @@ func celu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 func celuDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
-		return mat.Float(math.Exp(float64(v / alpha[0])))
+		return mat.Exp(v / alpha[0])
 	} else if v > 0 {
 		return 1
 	}
@@ -301,7 +300,7 @@ func celuDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 func elu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
-		return alpha[0] * (mat.Float(math.Exp(float64(v))) - 1)
+		return alpha[0] * (mat.Exp(v) - 1)
 	} else if v > 0 {
 		return v
 	}
@@ -310,7 +309,7 @@ func elu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 func eluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
-		return alpha[0] * mat.Float(mat.Float(math.Exp(float64(v))))
+		return alpha[0] * mat.Exp(v)
 	} else if v > 0 {
 		return 1
 	}
@@ -340,7 +339,7 @@ func leakyReLUDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 func selu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	scale := alpha[1]
 	if v <= 0 {
-		return scale * alpha[0] * (mat.Float(math.Exp(float64(v))) - 1)
+		return scale * alpha[0] * (mat.Exp(v) - 1)
 	} else if v > 0 {
 		return scale * v
 	}
@@ -352,7 +351,7 @@ func selu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 func seluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	scale := alpha[1]
 	if v <= 0 {
-		return scale * alpha[0] * mat.Float(math.Exp(float64(v)))
+		return scale * alpha[0] * mat.Exp(v)
 	} else if v > 0 {
 		return scale
 	}
@@ -363,7 +362,7 @@ func softPlus(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
-		return (1 / beta) * mat.Float(math.Log(1+math.Exp(float64(beta*v))))
+		return (1 / beta) * mat.Log(1+mat.Exp(beta*v))
 	} else if v > threshold {
 		return v
 	}
@@ -374,8 +373,8 @@ func softPlusDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
-		exp := mat.Float(math.Exp(float64(v * beta)))
-		return mat.Float(exp / (exp + 1))
+		exp := mat.Exp(v * beta)
+		return exp / (exp + 1)
 	} else if v > threshold {
 		return 1
 	}
@@ -424,43 +423,43 @@ func thresholdDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 }
 
 func swish(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
-	return v * (1.0 / (1 + mat.Float(math.Exp(float64(beta[0]*-v)))))
+	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
 }
 
 func swishDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
 	prod := v * beta[0]
-	exp := mat.Float(math.Exp(float64(prod)))
+	exp := mat.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 
 func swishBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
 	prod := v * beta
-	exp := mat.Float(math.Exp(-float64(prod)))
+	exp := mat.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))
 }
 
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function" by Diganta Misra, 2019.
 // (https://arxiv.org/pdf/1908.08681.pdf)
 func mish(i, j int, v mat.Float) mat.Float {
-	return v * mat.Float(math.Tanh(math.Log(1+math.Exp(float64(v)))))
+	return v * mat.Tanh(mat.Log(1+mat.Exp(v)))
 }
 
 func mishDeriv(i, j int, v mat.Float) mat.Float {
-	exp := mat.Float(math.Exp(float64(v)))
-	exp2 := mat.Float(math.Exp(float64(2 * v)))
-	exp3 := mat.Float(math.Exp(float64(3 * v)))
+	exp := mat.Exp(v)
+	exp2 := mat.Exp(2 * v)
+	exp3 := mat.Exp(3 * v)
 	omega := 4.0*(v+1.0) + 4.0*exp2 + exp3 + exp*(4.0*v+6.0)
 	delta := 2*exp + exp2 + 2.0
 	return exp * (omega / (delta * delta))
 }
 
 func gelu(i, j int, v mat.Float) mat.Float {
-	return 0.5 * v * (1.0 + mat.Float(math.Tanh(math.Sqrt(2/math.Pi)*(float64(v)+0.044715*math.Pow(float64(v), 3.0)))))
+	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi)*(v+0.044715*mat.Pow(v, 3.0))))
 }
 
 func geluDeriv(i, j int, x mat.Float) mat.Float {
-	x3 := math.Pow(float64(x), 3)
-	return 0.5*mat.Float(math.Tanh(0.0356774*x3+0.797885*float64(x))) +
-		(0.0535161*mat.Float(x3)+0.398942*x)*
-			mat.Float(math.Pow(1.0/math.Cosh(0.0356774*x3+0.797885*float64(x)), 2)) + 0.5
+	x3 := mat.Pow(x, 3)
+	return 0.5*mat.Tanh(0.0356774*x3+0.797885*x) +
+		(0.0535161*x3+0.398942*x)*
+			mat.Pow(1.0/mat.Cosh(0.0356774*x3+0.797885*x), 2) + 0.5
 }

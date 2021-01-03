@@ -15,7 +15,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/gdmbuilder"
 	"github.com/nlpodyssey/spago/pkg/nlp/corpora"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"math"
 	"runtime"
 )
 
@@ -103,7 +102,7 @@ func (t *Trainer) trainPassage(index int, text string) {
 		loss := t.trainBatch(proc, batch)
 		t.optimizer.Optimize()
 		t.lastBatchLoss = loss
-		t.curPerplexity = mat.Float(math.Exp(float64(loss)))
+		t.curPerplexity = mat.Exp(loss)
 	}
 	if g.TimeStep() != cnt {
 		panic(fmt.Sprintf("charlm: time-step `%d` different than processed items `%d`. Something goes wrong.",

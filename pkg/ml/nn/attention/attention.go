@@ -7,7 +7,6 @@ package attention
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"math"
 	"sync"
 )
 
@@ -46,7 +45,7 @@ func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor mat.Float, us
 			// TODO: use external cache for causal mask?
 			causalMask := make([]mat.Float, seqLen)
 			for k := i + 1; k < len(causalMask); k++ {
-				causalMask[k] = mat.Float(math.Inf(-1))
+				causalMask[k] = mat.Inf(-1)
 			}
 			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense(causalMask), false))
 		}

@@ -6,7 +6,6 @@ package exponential
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 )
 
 // Exponential defines an exponential decay depending on the time step:
@@ -32,7 +31,7 @@ func New(init, final mat.Float, iter int) *Exponential {
 // Decay calculates the decay of the learning rate lr at time t.
 func (d *Exponential) Decay(lr mat.Float, t int) mat.Float {
 	if t > 1 && lr > d.final {
-		return mat.Float(math.Exp((float64(d.times-t)*math.Log(float64(lr)) + math.Log(float64(d.final))) / float64(d.times-t+1)))
+		return mat.Exp((mat.Float(d.times-t)*mat.Log(lr) + mat.Log(mat.Float(d.final))) / mat.Float(d.times-t+1))
 	}
 	return lr
 }

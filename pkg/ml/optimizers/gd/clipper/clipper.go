@@ -6,7 +6,6 @@ package clipper
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 )
 
 // GradClipper is implemented by any value that has the Clip method.
@@ -42,16 +41,16 @@ func (c *ClipNorm) Clip(gs []mat.Matrix) {
 	}
 
 	var totalNorm mat.Float = 0.0
-	if math.IsInf(float64(c.NormType), 1) {
+	if mat.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = mat.Float(math.Max(float64(g.Abs().Max()), float64(totalNorm)))
+			totalNorm = mat.Max(g.Abs().Max(), totalNorm)
 		}
 	} else {
 		var sum mat.Float = 0.0
 		for _, g := range gs {
 			sum += g.Abs().Pow(c.NormType).Sum()
 		}
-		totalNorm = mat.Float(math.Pow(float64(sum), 1.0/float64(c.NormType)))
+		totalNorm = mat.Pow(sum, 1.0/c.NormType)
 	}
 
 	clipCoeff := c.MaxNorm / (totalNorm + 0.0000001)

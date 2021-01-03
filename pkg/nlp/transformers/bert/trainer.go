@@ -21,7 +21,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"io"
 	"log"
-	"math"
 	"os"
 	"runtime"
 )
@@ -141,7 +140,7 @@ func (t *Trainer) getMaskedForm(orig string) string {
 	case prob < 0.80:
 		return wordpiecetokenizer.DefaultMaskToken
 	case prob < 0.90:
-		randomID := int(math.Floor(float64(t.randGen.Float() * mat.Float(t.model.Vocabulary.Size()))))
+		randomID := int(mat.Floor(t.randGen.Float() * mat.Float(t.model.Vocabulary.Size())))
 		newWord, _ := t.model.Vocabulary.Term(randomID)
 		return newWord
 	default:

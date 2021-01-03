@@ -18,7 +18,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"log"
-	"math"
 )
 
 var (
@@ -64,10 +63,10 @@ type State struct {
 
 // New returns a new model with parameters initialized to zeros.
 func New(config Config) *Model {
-	if !isExactInt(mat.Float(math.Sqrt(float64(config.MemorySize * config.K)))) {
+	if !isExactInt(mat.Sqrt(mat.Float(config.MemorySize * config.K))) {
 		panic("nru: incompatible 'k' with 'memory size'")
 	}
-	sqrtMemK := int(mat.Float(math.Sqrt(float64(config.MemorySize * config.K))))
+	sqrtMemK := int(mat.Sqrt(mat.Float(config.MemorySize * config.K)))
 
 	return &Model{
 		Wx:              nn.NewParam(mat.NewEmptyDense(config.HiddenSize, config.InputSize)),

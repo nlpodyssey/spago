@@ -7,7 +7,6 @@ package de
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
-	"math"
 )
 
 // Member represents a member of the Population.
@@ -56,7 +55,7 @@ func NewMember(vector *mat.Dense, hyperParams MemberHyperParams) *Member {
 		MemberHyperParams: hyperParams,
 		TargetVector:      vector,
 		DonorVector:       vector.ZerosLike().(*mat.Dense),
-		TargetScore:       mat.Float(math.Inf(1)),
-		TrialScore:        mat.Float(math.Inf(1)),
+		TargetScore:       mat.Inf(1),
+		TrialScore:        mat.Inf(1),
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention/selfattention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
-	"math"
 )
 
 var (
@@ -38,7 +37,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 		QuerySize:     dk,
 		KeySize:       dk,
 		ValueSize:     dk,
-		ScaleFactor:   1.0 / mat.Float(math.Sqrt(float64(dk))),
+		ScaleFactor:   1.0 / mat.Sqrt(mat.Float(dk)),
 		UseCausalMask: useCausalMask,
 	}
 	for i := 0; i < numOfHeads; i++ {
