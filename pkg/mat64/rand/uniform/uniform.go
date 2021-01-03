@@ -5,7 +5,7 @@
 package uniform
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/mat64/rand"
 )
 
 // Uniform is a source of uniformly distributed random numbers.

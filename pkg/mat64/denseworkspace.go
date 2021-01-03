@@ -11,7 +11,7 @@
 // license that can be found in the LICENSE file available
 // at https://github.com/gonum/gonum/blob/master/LICENSE.
 
-package mat
+package mat64
 
 import (
 	"sync"
@@ -76,7 +76,7 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 // where references to the underlying data slice have been kept.
 func ReleaseDense(w *Dense) {
 	if !w.fromPool {
-		panic("mat: only matrices originated from the workspace can return to it")
+		panic("mat64: only matrices originated from the workspace can return to it")
 	}
 	densePool[bits(uint64(cap(w.data)))].Put(w)
 }

@@ -5,7 +5,7 @@
 package normal
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/mat64/rand"
 )
 
 // Normal is a source of normally distributed random numbers.

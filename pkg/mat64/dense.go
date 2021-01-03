@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package mat64
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 	// Ensure that GC and math optimizations setup runs first
 	_ "github.com/nlpodyssey/spago/pkg/global"
-	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
+	"github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 )
 
 var _ Matrix = &Dense{}
@@ -29,10 +29,10 @@ type Dense struct {
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
 func NewDense(rows, cols int, elements []Float) *Dense {
 	if elements == nil {
-		panic("mat: elements cannot be nil. Use NewEmptyDense() instead.")
+		panic("mat64: elements cannot be nil. Use NewEmptyDense() instead.")
 	}
 	if len(elements) != rows*cols {
-		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
+		panic(fmt.Sprintf("mat64: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
 	d := GetDenseWorkspace(rows, cols)
 	_ = append(d.data[:0], elements...)
@@ -43,7 +43,7 @@ func NewDense(rows, cols int, elements []Float) *Dense {
 // The elements cannot be nil, panic otherwise. Use NewEmptyVecDense to initialize an empty matrix.
 func NewVecDense(elements []Float) *Dense {
 	if elements == nil {
-		panic("mat: elements cannot be nil. Use NewEmptyVecDense() instead.")
+		panic("mat64: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
 	d := GetDenseWorkspace(len(elements), 1)
 	_ = append(d.data[:0], elements...)
@@ -70,7 +70,7 @@ func NewEmptyDense(rows, cols int) *Dense {
 // OneHotVecDense returns a new one-hot vector of the given size.
 func OneHotVecDense(size int, oneAt int) *Dense {
 	if oneAt >= size {
-		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
+		panic(fmt.Sprintf("mat64: impossible to set the one at index %d. The size is: %d", oneAt, size))
 	}
 	vec := NewEmptyVecDense(size)
 	vec.SetVec(oneAt, 1.0)
@@ -96,7 +96,7 @@ func NewInitVecDense(size int, val Float) *Dense {
 // data representation.
 func (d *Dense) SetData(data []Float) {
 	if len(data) != d.size {
-		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
+		panic(fmt.Sprintf("mat64: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
 	}
 	_ = append(d.data[:0], data...)
 }
@@ -128,10 +128,10 @@ func (d *Dense) Clone() Matrix {
 // matrix is not Dense.
 func (d *Dense) Copy(other Matrix) {
 	if !SameDims(d, other) {
-		panic("mat: incompatible matrix dimensions.")
+		panic("mat64: incompatible matrix dimensions.")
 	}
 	if other, ok := other.(*Dense); !ok {
-		panic("mat: incompatible matrix types.")
+		panic("mat64: incompatible matrix types.")
 	} else {
 		_ = append(d.data[:0], other.data...)
 	}
@@ -140,7 +140,7 @@ func (d *Dense) Copy(other Matrix) {
 // View returns a new Matrix sharing the same underlying data.
 func (d *Dense) View(rows, cols int) *Dense {
 	if d.Size() != rows*cols {
-		panic("mat: incompatible sizes.")
+		panic("mat64: incompatible sizes.")
 	}
 	return &Dense{
 		rows:     rows,
@@ -205,7 +205,7 @@ func (d *Dense) IsScalar() bool {
 // It panics if the matrix does not contain exactly one element.
 func (d *Dense) Scalar() Float {
 	if !d.IsScalar() {
-		panic("mat: expected scalar but the matrix contains more elements.")
+		panic("mat64: expected scalar but the matrix contains more elements.")
 	}
 	return d.data[0]
 }
@@ -214,10 +214,10 @@ func (d *Dense) Scalar() Float {
 // It panics if the given indices are out of range.
 func (d *Dense) Set(i int, j int, v Float) {
 	if i >= d.rows {
-		panic("mat: 'i' argument out of range.")
+		panic("mat64: 'i' argument out of range.")
 	}
 	if j >= d.cols {
-		panic("mat: 'j' argument out of range")
+		panic("mat64: 'j' argument out of range")
 	}
 	d.data[i*d.cols+j] = v
 }
@@ -226,10 +226,10 @@ func (d *Dense) Set(i int, j int, v Float) {
 // It panics if the given indices are out of range.
 func (d *Dense) At(i int, j int) Float {
 	if i >= d.rows {
-		panic("mat: 'i' argument out of range.")
+		panic("mat64: 'i' argument out of range.")
 	}
 	if j >= d.cols {
-		panic("mat: 'j' argument out of range")
+		panic("mat64: 'j' argument out of range")
 	}
 	return d.data[i*d.cols+j]
 }
@@ -238,10 +238,10 @@ func (d *Dense) At(i int, j int) Float {
 // It panics if the receiver is not a vector.
 func (d *Dense) SetVec(i int, v Float) {
 	if !(d.IsVector()) {
-		panic("mat: expected vector")
+		panic("mat64: expected vector")
 	}
 	if i >= d.size {
-		panic("mat: 'i' argument out of range.")
+		panic("mat64: 'i' argument out of range.")
 	}
 	d.data[i] = v
 }
@@ -250,10 +250,10 @@ func (d *Dense) SetVec(i int, v Float) {
 // It panics if the receiver is not a vector.
 func (d *Dense) AtVec(i int) Float {
 	if !(d.IsVector()) {
-		panic("mat: expected vector")
+		panic("mat64: expected vector")
 	}
 	if i >= d.rows {
-		panic("mat: 'i' argument out of range.")
+		panic("mat64: 'i' argument out of range.")
 	}
 	return d.data[i]
 }
@@ -261,7 +261,7 @@ func (d *Dense) AtVec(i int) Float {
 // ExtractRow returns a copy of the i-th row of the matrix.
 func (d *Dense) ExtractRow(i int) Matrix {
 	if i >= d.Rows() {
-		panic("mat: index out of range")
+		panic("mat64: index out of range")
 	}
 	out := NewVecDense(d.data[i*d.cols : i*d.cols+d.cols])
 	return out
@@ -270,7 +270,7 @@ func (d *Dense) ExtractRow(i int) Matrix {
 // ExtractColumn returns a copy of the i-th column of the matrix.
 func (d *Dense) ExtractColumn(i int) Matrix {
 	if i >= d.Columns() {
-		panic("mat: index out of range")
+		panic("mat64: index out of range")
 	}
 	//out := NewEmptyVecDense(d.rows)
 	out := GetDenseWorkspace(d.rows, 1)
@@ -301,7 +301,7 @@ func (d *Dense) T() Matrix {
 // It panics if the dimensions are incompatible.
 func (d *Dense) Reshape(r, c int) Matrix {
 	if d.Size() != r*c {
-		panic("mat: incompatible sizes.")
+		panic("mat64: incompatible sizes.")
 	}
 	return NewDense(r, c, d.data)
 }
@@ -309,7 +309,7 @@ func (d *Dense) Reshape(r, c int) Matrix {
 // ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
 func (d *Dense) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float) {
 	if !SameDims(d, a) {
-		panic("mat: incompatible matrix dimensions.")
+		panic("mat64: incompatible matrix dimensions.")
 	}
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
@@ -321,7 +321,7 @@ func (d *Dense) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float,
 // Apply executes the unary function fn.
 func (d *Dense) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 	if !SameDims(d, a) {
-		panic("mat: incompatible matrix dimensions.")
+		panic("mat64: incompatible matrix dimensions.")
 	}
 	dData := d.data
 	r := 0
@@ -406,7 +406,7 @@ func (d *Dense) Add(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	b := other.(*Dense)
 	out := d.ZerosLike().(*Dense)
@@ -419,7 +419,7 @@ func (d *Dense) AddInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	b := other.(*Dense)
 	f64.AxpyUnitary(1.0, b.data, d.data)
@@ -431,7 +431,7 @@ func (d *Dense) Sub(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	out := d.ZerosLike().(*Dense)
 	b := other.(*Dense)
@@ -444,7 +444,7 @@ func (d *Dense) SubInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	switch other := other.(type) {
 	case *Dense:
@@ -462,7 +462,7 @@ func (d *Dense) Prod(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 
 	out := GetDenseWorkspace(d.Dims())
@@ -489,7 +489,7 @@ func (d *Dense) ProdInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	b := other.(*Dense)
 	bData := b.data
@@ -505,7 +505,7 @@ func (d *Dense) Div(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	out := d.ZerosLike().(*Dense)
 	f64.DivTo(out.data, d.data, other.(*Dense).data)
@@ -517,7 +517,7 @@ func (d *Dense) DivInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) ||
 		(other.Columns() == 1 && other.Rows() == d.Rows()) ||
 		(other.IsVector() && d.IsVector() && other.Size() == d.Size())) {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	b := other.(*Dense)
 	for i, val := range b.data {
@@ -530,7 +530,7 @@ func (d *Dense) DivInPlace(other Matrix) Matrix {
 // If A is an i×j Matrix, and B is j×k, then the resulting Matrix C = AB will be i×k.
 func (d *Dense) Mul(other Matrix) Matrix {
 	if d.Columns() != other.Rows() {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	out := GetEmptyDenseWorkspace(d.Rows(), other.Columns())
 
@@ -601,7 +601,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 // if A is an r x c Matrix, and B is j x k, r = j the resulting Matrix C will be c x k
 func (d *Dense) MulT(other Matrix) Matrix {
 	if d.Rows() != other.Rows() {
-		panic("mat: matrices with not compatible size")
+		panic("mat64: matrices with not compatible size")
 	}
 	out := GetEmptyDenseWorkspace(d.Columns(), other.Columns())
 
@@ -621,10 +621,10 @@ func (d *Dense) MulT(other Matrix) Matrix {
 				1.0,             // incY
 			)
 		} else {
-			panic("mat: matrices with not compatible size")
+			panic("mat64: matrices with not compatible size")
 		}
 	case *Sparse:
-		panic("mat: matrices not compatible")
+		panic("mat64: matrices not compatible")
 	}
 	return out
 }
@@ -632,7 +632,7 @@ func (d *Dense) MulT(other Matrix) Matrix {
 // DotUnitary returns the dot product of two vectors.
 func (d *Dense) DotUnitary(other Matrix) Float {
 	if d.Size() != other.Size() {
-		panic("mat: incompatible sizes.")
+		panic("mat64: incompatible sizes.")
 	}
 	return f64.DotUnitary(d.data, other.Data())
 }
@@ -755,7 +755,7 @@ func (d *Dense) Normalize2() *Dense {
 // Maximum returns a new matrix containing the element-wise maxima.
 func (d *Dense) Maximum(other Matrix) *Dense {
 	if !SameDims(d, other) {
-		panic("mat: matrix with not compatible size")
+		panic("mat64: matrix with not compatible size")
 	}
 	out := GetDenseWorkspace(d.rows, d.cols)
 	for i := 0; i < d.rows; i++ {
@@ -775,7 +775,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 // Minimum returns a new matrix containing the element-wise minima.
 func (d *Dense) Minimum(other Matrix) *Dense {
 	if !SameDims(d, other) {
-		panic("mat: matrix with not compatible size")
+		panic("mat64: matrix with not compatible size")
 	}
 	out := GetDenseWorkspace(d.rows, d.cols)
 	for i := 0; i < d.rows; i++ {
@@ -795,7 +795,7 @@ func (d *Dense) Minimum(other Matrix) *Dense {
 // Augment places the identity matrix at the end of the original matrix
 func (d *Dense) Augment() Matrix {
 	if d.Columns() != d.Rows() {
-		panic("mat: matrix must be square")
+		panic("mat64: matrix must be square")
 	}
 	out := NewEmptyDense(d.rows, d.rows+d.cols)
 	for i := 0; i < d.rows; i++ {
@@ -810,10 +810,10 @@ func (d *Dense) Augment() Matrix {
 // SwapInPlace swaps two rows of the matrix in place
 func (d Dense) SwapInPlace(r1, r2 int) {
 	if d.IsVector() {
-		panic("mat: input must be a matrix")
+		panic("mat64: input must be a matrix")
 	}
 	if r1 >= d.rows || r2 >= d.rows {
-		panic("mat: index out of range")
+		panic("mat64: index out of range")
 	}
 
 	for j := 0; j < d.cols; j++ {
@@ -826,7 +826,7 @@ func (d Dense) SwapInPlace(r1, r2 int) {
 // Considerate square sub-matrix from element (offset, offset).
 func (d *Dense) Pivoting(row int) (Matrix, bool, []int) {
 	if d.Columns() != d.Rows() {
-		panic("mat: matrix must be square")
+		panic("mat64: matrix must be square")
 	}
 	pv := make([]int, d.cols)
 	positions := make([]int, 2)
@@ -868,7 +868,7 @@ func I(size int) *Dense {
 // LU performs lower–upper (LU) decomposition of a square matrix D such as PLU = D, L is lower diagonal and U is upper diagonal, p are pivots.
 func (d *Dense) LU() (l, u, p *Dense) {
 	if d.Columns() != d.Rows() {
-		panic("mat: matrix must be square")
+		panic("mat64: matrix must be square")
 	}
 	u = d.Clone().(*Dense)
 	p = I(d.cols)
@@ -896,7 +896,7 @@ func (d *Dense) LU() (l, u, p *Dense) {
 // Inverse returns the inverse of the matrix.
 func (d Dense) Inverse() Matrix {
 	if d.Columns() != d.Rows() {
-		panic("mat: matrix must be square")
+		panic("mat64: matrix must be square")
 	}
 	out := NewEmptyDense(d.cols, d.cols)
 	s := NewEmptyDense(d.cols, d.cols)

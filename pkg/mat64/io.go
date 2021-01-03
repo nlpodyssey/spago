@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package mat64
 
 import (
 	"bytes"
@@ -23,9 +23,9 @@ const maxLen = int(^uint(0) >> 1)
 
 var (
 	headerSize    = binary.Size(header{})
-	errTooBig     = errors.New("mat: resulting data slice too big")
-	errBadSize    = errors.New("mat: invalid dimension")
-	errZeroLength = errors.New("mat: zero length in matrix dimension")
+	errTooBig     = errors.New("mat64: resulting data slice too big")
+	errBadSize    = errors.New("mat64: invalid dimension")
+	errZeroLength = errors.New("mat64: zero length in matrix dimension")
 )
 
 func (s header) marshalBinaryTo(w io.Writer) (int, error) {

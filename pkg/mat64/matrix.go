@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package mat64
 
 // The Matrix interface defines set and get methods to access its elements plus a few variants to perform linear algebra
 // operations with other matrices, such as element-wise addition, subtraction, product and matrix-matrix multiplication.
@@ -128,7 +128,7 @@ func ConcatV(vs ...Matrix) Matrix {
 	data := make([]Float, 0, cup)
 	for _, v := range vs {
 		if !v.IsVector() {
-			panic("mat: required vector, found matrix")
+			panic("mat64: required vector, found matrix")
 		}
 		data = append(data, v.Data()...)
 	}

@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package mat64
 
 import "math"
 
-// Float is the main float type for the mat package. It is an alias for float64.
+// Float is the main float type for the mat64 package. It is an alias for float64.
 type Float = float64
 
 const (

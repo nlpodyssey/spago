@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package mat64
 
 import (
 	"fmt"
@@ -68,8 +68,8 @@ func TestDense_Format(t *testing.T) {
 			"⎣     4.5      6.7      88.999 123456.78⎦")
 
 	run("Go-syntax representation", NewScalar(1.2), "%#v",
-		"&mat.Dense{rows:1, cols:1, size:1, data:[]float64{1.2}, "+
-			"viewOf:(*mat.Dense)(nil), fromPool:true}")
+		"&mat64.Dense{rows:1, cols:1, size:1, data:[]float64{1.2}, "+
+			"viewOf:(*mat64.Dense)(nil), fromPool:true}")
 
 	run("Default format with field names", NewScalar(1.2), "%+v",
 		"{rows:1 cols:1 size:1 data:[1.2] viewOf:<nil> fromPool:true}")

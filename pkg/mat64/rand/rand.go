@@ -5,12 +5,12 @@
 package rand
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat64"
 	"golang.org/x/exp/rand"
 )
 
-// Float returns, as a mat.Float, a pseudo-random number in [0.0,1.0)
+// Float returns, as a mat64.Float, a pseudo-random number in [0.0,1.0)
 // from the default Source.
-func Float() mat.Float {
+func Float() mat64.Float {
 	return rand.Float64()
 }

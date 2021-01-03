@@ -5,7 +5,7 @@
 package floatutils
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat/internal/asm/f64"
+	"github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"math"
 	"strconv"
 	"strings"

@@ -5,15 +5,15 @@
 package bernulli
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/rand"
-	"github.com/nlpodyssey/spago/pkg/mat/rand/uniform"
+	"github.com/nlpodyssey/spago/pkg/mat64"
+	"github.com/nlpodyssey/spago/pkg/mat64/rand"
+	"github.com/nlpodyssey/spago/pkg/mat64/rand/uniform"
 	"math"
 )
 
 // Distribution creates a new matrix initialized with Bernoulli distribution.
-func Distribution(r, c int, prob float64, generator *rand.LockedRand) mat.Matrix {
-	out := mat.NewEmptyDense(r, c)
+func Distribution(r, c int, prob float64, generator *rand.LockedRand) mat64.Matrix {
+	out := mat64.NewEmptyDense(r, c)
 	dist := uniform.New(0.0, 1.0, generator)
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
