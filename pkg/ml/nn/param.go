@@ -6,6 +6,7 @@ package nn
 
 import (
 	"bytes"
+	"encoding/gob"
 	"log"
 	"sync"
 
@@ -39,10 +40,6 @@ type Param interface {
 	SetPayload(payload *Payload)
 	// ClearPayload clears the support structure.
 	ClearPayload()
-	// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
-	MarshalBinary() ([]byte, error)
-	// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
-	UnmarshalBinary(data []byte) error
 }
 
 // Params extends a slice of Param with Nodes() method.
@@ -278,6 +275,12 @@ func (r *param) UnmarshalBinary(data []byte) error {
 	value, _, err := mat.NewUnmarshalBinaryFrom(b)
 	r.value = value
 	return err
+}
+
+// init registers the param implementation with the gob subsystem - so that it knows how to encode and decode
+// values of type nn.Param
+func init() {
+	gob.Register(&param{})
 }
 
 // Graph returns always nil since the "pure" parameter is not associated with any graph.
