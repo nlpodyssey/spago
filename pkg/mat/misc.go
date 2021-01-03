@@ -26,8 +26,8 @@ func VectorsOfSameSize(a, b Matrix) bool {
 	return SameSize(a, b) && a.IsVector() && b.IsVector()
 }
 
-// Sqrt returns a new matrix filled with the sqrt of the values of the input matrix.
-func Sqrt(m Matrix) Matrix {
+// MSqrt returns a new matrix filled with the sqrt of the values of the input matrix.
+func MSqrt(m Matrix) Matrix {
 	buf := m.ZerosLike()
 	buf.Apply(func(i, j int, v Float) Float {
 		return math.Sqrt(v)
