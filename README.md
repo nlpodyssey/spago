@@ -89,6 +89,7 @@ We're not at a v1.0.0 yet, so spaGO is currently work-in-progress.
 
 However, it has been running smoothly for a quite a few months now in a system that analyzes thousands of news items a
 day!
+
 Besides, it's pretty easy to get your hands on through, so you might want to use it in your real applications.
 
 Early adopters may make use of it for production use today as long as they understand and accept that spaGO is not fully
