@@ -53,28 +53,16 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		UnknownToken:      config.ContextualStringEmbeddings.UnknownToken,
 	}
 
-	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor, 0)
+	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor, len(config.WordEmbeddings))
 
-	if config.WordEmbeddings.WordEmbeddingsSize > 0 {
-		wordLevelEmbeddings = append(wordLevelEmbeddings,
-			embeddings.New(embeddings.Config{
-				Size:             config.WordEmbeddings.WordEmbeddingsSize,
-				UseZeroEmbedding: true,
-				DBPath:           filepath.Join(path, config.WordEmbeddings.WordEmbeddingsFilename),
-				ReadOnly:         readOnlyEmbeddings,
-				ForceNewDB:       forceNewEmbeddingsDB,
-			}))
-	}
-
-	if config.WordEmbeddings2.WordEmbeddingsSize > 0 {
-		wordLevelEmbeddings = append(wordLevelEmbeddings,
-			embeddings.New(embeddings.Config{
-				Size:             config.WordEmbeddings2.WordEmbeddingsSize,
-				UseZeroEmbedding: true,
-				DBPath:           filepath.Join(path, config.WordEmbeddings2.WordEmbeddingsFilename),
-				ReadOnly:         readOnlyEmbeddings,
-				ForceNewDB:       forceNewEmbeddingsDB,
-			}))
+	for i, weConfig := range config.WordEmbeddings {
+		wordLevelEmbeddings[i] = embeddings.New(embeddings.Config{
+			Size:             weConfig.WordEmbeddingsSize,
+			UseZeroEmbedding: true,
+			DBPath:           filepath.Join(path, weConfig.WordEmbeddingsFilename),
+			ReadOnly:         readOnlyEmbeddings,
+			ForceNewDB:       forceNewEmbeddingsDB,
+		})
 	}
 
 	return &Model{
@@ -118,13 +106,8 @@ func (m *Model) LoadVocabulary(path string) {
 		log.Fatal(err)
 	}
 
-	charLMIndex := 0
-	if m.Config.WordEmbeddings.WordEmbeddingsSize > 0 {
-		charLMIndex++
-	}
-	if m.Config.WordEmbeddings2.WordEmbeddingsSize > 0 {
-		charLMIndex++
-	}
+	charLMIndex := len(m.Config.WordEmbeddings)
+
 	l2rCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).LeftToRight
 	r2lCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).RightToLeft
 
