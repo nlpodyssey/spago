@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `float32` and `float64` is just a matter of changing all imports, from
   `mat32` to `mat64`, or vice-versa (see also the new file
   `change-float-type.sh`).
+- `nlp.sequencelabeler.Convert()` now loads and converts original Flair models,
+   instead of pre-processed dumps.
 
 ## [0.2.0] - 2020-12-31
 ### Added
