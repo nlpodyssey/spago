@@ -11,7 +11,7 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.0
 	github.com/manifoldco/promptui v0.7.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	github.com/nlpodyssey/gopickle v0.0.0-20200517121026-fe7413eee34e
+	github.com/nlpodyssey/gopickle v0.1.0
 	github.com/nlpodyssey/gotokenizers v0.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.5.1

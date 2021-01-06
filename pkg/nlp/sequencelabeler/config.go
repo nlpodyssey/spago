@@ -13,8 +13,7 @@ import (
 // Config provides configuration settings for a sequence labeling Model.
 type Config struct {
 	ModelFilename                  string                     `json:"model_filename"`
-	WordEmbeddings                 WordEmbeddingsConfig       `json:"word_embeddings"`
-	WordEmbeddings2                WordEmbeddingsConfig       `json:"word_embeddings_2"`
+	WordEmbeddings                 []WordEmbeddingsConfig     `json:"word_embeddings"`
 	ContextualStringEmbeddings     ContextualEmbeddingsConfig `json:"contextual_string_embeddings"`
 	EmbeddingsProjectionInputSize  int                        `json:"embeddings_projection_input_size"`
 	EmbeddingsProjectionOutputSize int                        `json:"embeddings_projection_output_size"`
