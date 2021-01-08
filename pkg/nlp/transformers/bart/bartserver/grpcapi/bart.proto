@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package bart.grpcapi;
+
 option go_package = "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/grpcapi";
 
 // The BART service definition.

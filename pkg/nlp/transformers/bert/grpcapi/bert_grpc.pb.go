@@ -39,7 +39,7 @@ func NewBERTClient(cc grpc.ClientConnInterface) BERTClient {
 
 func (c *bERTClient) Answer(ctx context.Context, in *AnswerRequest, opts ...grpc.CallOption) (*AnswerReply, error) {
 	out := new(AnswerReply)
-	err := c.cc.Invoke(ctx, "/BERT/Answer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bert.grpcapi.BERT/Answer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *bERTClient) Answer(ctx context.Context, in *AnswerRequest, opts ...grpc
 
 func (c *bERTClient) Discriminate(ctx context.Context, in *DiscriminateRequest, opts ...grpc.CallOption) (*DiscriminateReply, error) {
 	out := new(DiscriminateReply)
-	err := c.cc.Invoke(ctx, "/BERT/Discriminate", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bert.grpcapi.BERT/Discriminate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *bERTClient) Discriminate(ctx context.Context, in *DiscriminateRequest, 
 
 func (c *bERTClient) Predict(ctx context.Context, in *PredictRequest, opts ...grpc.CallOption) (*PredictReply, error) {
 	out := new(PredictReply)
-	err := c.cc.Invoke(ctx, "/BERT/Predict", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bert.grpcapi.BERT/Predict", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *bERTClient) Predict(ctx context.Context, in *PredictRequest, opts ...gr
 
 func (c *bERTClient) Encode(ctx context.Context, in *EncodeRequest, opts ...grpc.CallOption) (*EncodeReply, error) {
 	out := new(EncodeReply)
-	err := c.cc.Invoke(ctx, "/BERT/Encode", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bert.grpcapi.BERT/Encode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *bERTClient) Encode(ctx context.Context, in *EncodeRequest, opts ...grpc
 
 func (c *bERTClient) Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error) {
 	out := new(ClassifyReply)
-	err := c.cc.Invoke(ctx, "/BERT/Classify", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bert.grpcapi.BERT/Classify", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func _BERT_Answer_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BERT/Answer",
+		FullMethod: "/bert.grpcapi.BERT/Answer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BERTServer).Answer(ctx, req.(*AnswerRequest))
@@ -159,7 +159,7 @@ func _BERT_Discriminate_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BERT/Discriminate",
+		FullMethod: "/bert.grpcapi.BERT/Discriminate",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BERTServer).Discriminate(ctx, req.(*DiscriminateRequest))
@@ -177,7 +177,7 @@ func _BERT_Predict_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BERT/Predict",
+		FullMethod: "/bert.grpcapi.BERT/Predict",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BERTServer).Predict(ctx, req.(*PredictRequest))
@@ -195,7 +195,7 @@ func _BERT_Encode_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BERT/Encode",
+		FullMethod: "/bert.grpcapi.BERT/Encode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BERTServer).Encode(ctx, req.(*EncodeRequest))
@@ -213,7 +213,7 @@ func _BERT_Classify_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BERT/Classify",
+		FullMethod: "/bert.grpcapi.BERT/Classify",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BERTServer).Classify(ctx, req.(*ClassifyRequest))
@@ -222,7 +222,7 @@ func _BERT_Classify_Handler(srv interface{}, ctx context.Context, dec func(inter
 }
 
 var _BERT_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "BERT",
+	ServiceName: "bert.grpcapi.BERT",
 	HandlerType: (*BERTServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

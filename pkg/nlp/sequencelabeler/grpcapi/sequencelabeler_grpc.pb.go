@@ -31,7 +31,7 @@ func NewSequenceLabelerClient(cc grpc.ClientConnInterface) SequenceLabelerClient
 
 func (c *sequenceLabelerClient) Analyze(ctx context.Context, in *AnalyzeRequest, opts ...grpc.CallOption) (*AnalyzeReply, error) {
 	out := new(AnalyzeReply)
-	err := c.cc.Invoke(ctx, "/SequenceLabeler/Analyze", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/sequencelabeler.grpcapi.SequenceLabeler/Analyze", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func _SequenceLabeler_Analyze_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/SequenceLabeler/Analyze",
+		FullMethod: "/sequencelabeler.grpcapi.SequenceLabeler/Analyze",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SequenceLabelerServer).Analyze(ctx, req.(*AnalyzeRequest))
@@ -86,7 +86,7 @@ func _SequenceLabeler_Analyze_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 var _SequenceLabeler_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "SequenceLabeler",
+	ServiceName: "sequencelabeler.grpcapi.SequenceLabeler",
 	HandlerType: (*SequenceLabelerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

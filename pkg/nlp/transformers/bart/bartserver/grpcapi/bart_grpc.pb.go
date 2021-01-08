@@ -33,7 +33,7 @@ func NewBARTClient(cc grpc.ClientConnInterface) BARTClient {
 
 func (c *bARTClient) Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error) {
 	out := new(ClassifyReply)
-	err := c.cc.Invoke(ctx, "/BART/Classify", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bart.grpcapi.BART/Classify", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *bARTClient) Classify(ctx context.Context, in *ClassifyRequest, opts ...
 
 func (c *bARTClient) ClassifyNLI(ctx context.Context, in *ClassifyNLIRequest, opts ...grpc.CallOption) (*ClassifyReply, error) {
 	out := new(ClassifyReply)
-	err := c.cc.Invoke(ctx, "/BART/ClassifyNLI", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/bart.grpcapi.BART/ClassifyNLI", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func _BART_Classify_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BART/Classify",
+		FullMethod: "/bart.grpcapi.BART/Classify",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BARTServer).Classify(ctx, req.(*ClassifyRequest))
@@ -111,7 +111,7 @@ func _BART_ClassifyNLI_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/BART/ClassifyNLI",
+		FullMethod: "/bart.grpcapi.BART/ClassifyNLI",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BARTServer).ClassifyNLI(ctx, req.(*ClassifyNLIRequest))
@@ -120,7 +120,7 @@ func _BART_ClassifyNLI_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 var _BART_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "BART",
+	ServiceName: "bart.grpcapi.BART",
 	HandlerType: (*BARTServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package sequencelabeler.grpcapi;
+
 option go_package = "github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler/grpcapi";
 
 // The SequenceLabeler service definition.
