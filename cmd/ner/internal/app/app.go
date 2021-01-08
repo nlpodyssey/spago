@@ -29,7 +29,7 @@ type NERApp struct {
 	tlsKey            string
 	tlsDisable        bool
 	output            string
-	modelsFolder      string
+	repo              string
 	modelFolder       string
 	modelName         string
 	text              string

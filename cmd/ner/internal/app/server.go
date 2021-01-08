@@ -20,8 +20,8 @@ import (
 func newServerCommandFor(app *NERApp) cli.Command {
 	return cli.Command{
 		Name:        "server",
-		Usage:       "Run the " + programName + ".",
-		UsageText:   programName + " server --model=<model-name> [--models=<path>] [--address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]",
+		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
+		UsageText:   programName + " server --model=<name> [--repo=<path>] [--address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
 		Flags:       newServerCommandFlagsFor(app),
 		Action:      newServerCommandActionFor(app),
@@ -48,13 +48,13 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 			Destination: &app.grpcAddress,
 		},
 		cli.StringFlag{
-			Name:        "models",
+			Name:        "repo",
 			Usage:       "Specifies the path to the models.",
 			Value:       path.Join(usr.HomeDir, ".spago"),
-			Destination: &app.modelsFolder,
+			Destination: &app.repo,
 		},
 		cli.StringFlag{
-			Name:        "model-name",
+			Name:        "model",
 			Usage:       "Specifies the name of the model to use.",
 			Destination: &app.modelName,
 			Required:    true,
@@ -84,7 +84,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 		fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
 		fmt.Printf("TLS private key path is %s\n", app.tlsKey)
 
-		modelsFolder := app.modelsFolder
+		modelsFolder := app.repo
 		if _, err := os.Stat(modelsFolder); os.IsNotExist(err) {
 			log.Fatal(err)
 		}
