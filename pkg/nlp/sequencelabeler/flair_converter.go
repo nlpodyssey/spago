@@ -65,10 +65,7 @@ func newParam(value mat.Matrix) *mappedParam {
 	}
 }
 
-// Convert converts the parameters (weights and bias) of a pre-processed Flair model into spaGO structures.
-// At this moment it is not possible to import directly from the Flair model: a simple Python script takes care
-// of pre-processing and exporting the tensors in a format more compatible with spaGO. I'll make that script
-// available soon, now it's a bit chaotic. In the future it would be even better to import directly from Flair.
+// Convert converts the parameters of a Flair model into spaGO structures.
 func Convert(modelPath string, flairModelName string) {
 	defer embeddings.Close()
 
