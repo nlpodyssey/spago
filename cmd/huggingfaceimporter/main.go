@@ -16,8 +16,8 @@ func main() {
 	importerFlags := importerArgs.BuildFlags()
 
 	app := cli.NewApp()
-	app.Name = "huggingfaceimporter"
-	app.Usage = "import data to a target path"
+	app.Name = "huggingface-importer"
+	app.Usage = "Convert a pickle-serialized Hugging Face model to spaGO"
 	app.HideVersion = true
 	app.Action = importerArgs.RunImporterCli
 	app.Flags = importerFlags

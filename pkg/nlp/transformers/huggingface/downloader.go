@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package huggingfacedownloader
+package huggingface
 
 import (
 	"fmt"
@@ -42,8 +42,6 @@ func NewDownloader(modelsPath, modelName string, canOverwrite bool) *Downloader 
 
 // Download downloads all the necessary files for the specified model.
 func (d *Downloader) Download() error {
-	fmt.Printf("Start downloading 🤗 `%s`\n", d.modelName)
-
 	// make sure the models path exists
 	if _, err := os.Stat(d.modelsPath); os.IsNotExist(err) {
 		return err
