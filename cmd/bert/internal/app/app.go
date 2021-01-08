@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	programName = "bert_server"
+	programName = "bert-server"
 )
 
 // BertApp contains everything needed to run the BERT demo client or server.
@@ -21,7 +21,8 @@ type BertApp struct {
 	tlsKey       string
 	tlsDisable   bool
 	output       string
-	modelPath    string
+	model        string
+	repo         string
 	requestText  string
 	requestText2 string
 	passage      string

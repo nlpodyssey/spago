@@ -20,7 +20,8 @@ type BartApp struct {
 	tlsCert        string
 	tlsKey         string
 	tlsDisable     bool
-	modelPath      string
+	model          string
+	repo           string
 	output         string
 	requestText    string
 	requestText2   string
