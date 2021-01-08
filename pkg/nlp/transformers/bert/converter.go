@@ -133,7 +133,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	if err := c.serializeModel(); err != nil {
 		return err
 	}
-	fmt.Printf("Cool! %s transformer has been successfully converted!\n", huggingFaceEmoji)
+	fmt.Printf("BERT has been converted successfully!\n")
 	return nil
 }
 

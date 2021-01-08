@@ -152,7 +152,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	if err := c.serializeModel(); err != nil {
 		return err
 	}
-	fmt.Printf("BART has been successfully converted!\n")
+	fmt.Printf("BART has been converted successfully!\n")
 	return nil
 }
 
