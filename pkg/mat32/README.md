@@ -1,8 +1,7 @@
 # Matrix
 
 In spaGo, all mathematical operations are performed on 2D matrices (vectors and scalars as a subset of).
-The [Matrix](https://github.com/nlpodyssey/spago/blob/master/pkg/mat32/matrix.go) interface defines _setter_ and _
-getter_ methods to access its elements plus a few methods to perform linear algebra operations with other matrices, such
+The [Matrix](https://github.com/nlpodyssey/spago/blob/master/pkg/mat32/matrix.go) interface defines _setter_ and _getter_ methods to access its elements plus a few methods to perform linear algebra operations with other matrices, such
 as element-wise addition, subtraction, product, and matrix-matrix multiplication. Other convenient methods are the
 usual _max()_, _min()_, _abs()_, and not much else.
 [Dense](https://github.com/nlpodyssey/spago/blob/master/pkg/mat32/dense.go)
