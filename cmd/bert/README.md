@@ -143,20 +143,19 @@ surrounding a `[MASK]` token to try to predict what that `[MASK]` word should be
 We're going to use `BERT` here too, so make sure you've followed the steps of building, importing a model, and starting
 the server as described in the `Question Answering Task` section.
 
-To perform MLM it is necessary that the underlying model contains all the necessary neural layers (
-read [this](https://github.com/nlpodyssey/spago/issues/14#issuecomment-646472428) for more info). My advice is to start
+To perform MLM it is necessary that the underlying model contains all the necessary neural layers (read [this](https://github.com/nlpodyssey/spago/issues/14#issuecomment-646472428) for more info). My advice is to start
 with the base BERT English model trained by Hugging Face (exact name for the import: `bert-base-cased`).
 
 ### Run
 
 ```console
-./bert-server server --repo=~/.spago --model=deepset/bert-base-cased-squad2 --tls-disable
+./bert-server server --repo=~/.spago --model=bert-base-cased --tls-disable
 ```
 
 The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert-server server --repo=/tmp/spago --model=deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert-server server --repo=/tmp/spago --model=bert-base-cased
 ```
 
 ### API
