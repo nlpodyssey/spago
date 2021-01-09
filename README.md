@@ -59,7 +59,7 @@ At a high level, it comprises four main modules:
 4. Optimizer
 
 To get started, look at the implementation of built-in neural models, such as
-the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/rec/lstm/lstm.go#L182). Don't be afraid, it is
+the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/recurrent/lstm/lstm.go). Don't be afraid, it is
 straightforward Go code. The idea is that you could have written spaGO :)
 
 There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy examples, such as MNIST classification.
