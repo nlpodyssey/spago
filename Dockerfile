@@ -32,8 +32,9 @@ RUN mkdir /build
 ADD . /build/
 WORKDIR /build
 RUN go mod download
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o bert_server cmd/bert/main.go
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o hugging_face_importer cmd/huggingfaceimporter/main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o bert-server cmd/bert/main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o bart-server cmd/bart/main.go
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o hugging-face-importer cmd/huggingfaceimporter/main.go
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o ner-server cmd/ner/main.go
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o docker-entrypoint docker-entrypoint.go
 
@@ -70,8 +71,9 @@ COPY --from=Builder /etc/ssl/certs/spago/server.key /etc/ssl/certs/spago/server.
 
 # Copy the compiled demo servers and other programs from the Builder
 # container.
-COPY --from=Builder /build/bert_server /bert_server
-COPY --from=Builder /build/hugging_face_importer /hugging_face_importer
+COPY --from=Builder /build/bert-server /bert-server
+COPY --from=Builder /build/bart-server /bart-server
+COPY --from=Builder /build/hugging-face-importer /hugging-face-importer
 COPY --from=Builder /build/ner-server /ner-server
 COPY --from=Builder /build/docker-entrypoint /docker-entrypoint
 

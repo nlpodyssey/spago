@@ -14,25 +14,23 @@ import (
 
 const (
 	help = `
-spaGO is a beautiful and maintainable machine learning library written in Go designed to support relevant neural network architectures in natural language processing tasks.
+spaGO is a self-contained ML/NLP library written in Go.
 
 Usage:
   <command> [arguments]
 
 The commands are:
 
-   bert_server             demo server for question answering
-   hugging_face_importer   demo program for model importing
-   ner-server              demo server for named entities recognition
+   bert-server             gRPC/HTTP server for BERT
+   bart-server             gRPC/HTTP server for BART
+   hugging-face-importer   Hugging Face model importing
+   ner-server              gRPC/HTTP server for Sequence Labeling
 
    See README.md for more information about run the demo servers using docker.
 `
 )
 
-// The script docker-entrypoint.sh wraps access to the demo
-// programs for named entities recognition (ner-server), model
-// importing (hugging_face_importer), and question answering
-// (bert_server).
+// The script docker-entrypoint.sh wraps access to the cmd programs.
 func main() {
 
 	// The help screen is printed to the user when no commands
