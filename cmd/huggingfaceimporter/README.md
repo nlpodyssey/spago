@@ -6,7 +6,7 @@ spaGO allows you either to use a model in the inference phase or to train one fr
 training a language model (i.e. the transformer objective) to get competitive results can become prohibitive. This
 applies in general, but even more so with spaGO as it does not currently use the GPU :scream:
 
-Pre-trained transformer models fine-tuned exist for several languages and are publicly hosted on
+Pre-trained (fine-tuned) transformer models exist for several languages and are publicly hosted on
 the [Hugging Face models repository](https://huggingface.co/models).
 
 Particularly, these exist for BERT, ELECTRA and BART the three types of transformers architectures currently supported
