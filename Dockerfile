@@ -4,12 +4,12 @@
 
 
 # Builder container builds the demo programs for named entities
-# recognition (ner-server), model importing (hugging_face_importer),
-# and question answering (bert_server). The binaries are then copied
-# into the same runtime container below. The version of Go given in
-# the image tag must match the version of Go in go.mod. The binaries
-# have all been statically linked, and they were built without cgo.
-FROM golang:1.14-alpine as Builder
+# recognition (ner-server), Hugging Face model importing
+# (hugging-face-importer), BERT (bert-server), BART (bert-server).
+# The binaries are then copied into the same runtime container below.
+# The version of Go given in the image tag must match the version of Go in go.mod.
+# The binaries have all been statically linked, and they were built without cgo.
+FROM golang:1.15.6-alpine3.12 as Builder
 
 # Some of the Go packages used by spaGo require gcc. OpenSSL is used
 # to generate a self-signed cert in order to test the Docker image.
@@ -54,10 +54,7 @@ RUN mkdir /etc/ssl/certs/spago \
 	;
 
 
-# The definition of the runtime container now follows, and it contains
-# demo programs for named entities recognition (ner-server), model
-# importing (hugging_face_importer), and question answering
-# (bert_server).
+# The definition of the runtime container now follows.
 FROM scratch
 
 # Copy the user info from the Builder container.
