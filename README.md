@@ -72,14 +72,19 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
-To get started, you can find some tutorials on the [Wiki](https://github.com/nlpodyssey/spago/wiki) about the [Machine Learning Framework](https://github.com/nlpodyssey/spago/wiki/Machine-Learning-Framework).
+To get started, several programs can be leveraged to tour the current NLP capabilities in spaGO. A list of the demos now
+follows.
 
-Several demo programs can be leveraged to tour the current capabilities in spaGO. The demos are documented on this [page](https://github.com/nlpodyssey/spago/wiki/Demos) of the Wiki. A list of the demos now follows.
+* [Named Entities Recognition](https://github.com/nlpodyssey/spago/tree/main/cmd/ner)
+* [Hugging Face Importer](https://github.com/nlpodyssey/spago/tree/main/cmd/huggingfaceimporter)
+* [Question Answering](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#question-answering-task)
+* [Masked Language Model](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#masked-language-model)
 
-* [Named Entities Recognition](https://github.com/nlpodyssey/spago/wiki/Demos#named-entities-recognition-demo)
-* [Import a Pre-Trained Model](https://github.com/nlpodyssey/spago/wiki/Demos#import-a-pre-trained-model-demo)
-* [Question Answering](https://github.com/nlpodyssey/spago/wiki/Demos#question-answering-demo)
-* [Masked Language Model](https://github.com/nlpodyssey/spago/wiki/Demos#masked-language-model-demo)
+The Docker image can be built like this.
+
+```console
+docker build -t spago:main . -f Dockerfile
+```
 
 There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy examples, such as MNIST classification.
 
