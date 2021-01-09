@@ -6,7 +6,7 @@ to [Named Entities Recognition (NER)](https://en.wikipedia.org/wiki/Named-entity
 I felt the need to achieve gratification as quickly as possible, so I opted to use the state-of-the-art pre-trained
 model released with the [Flair](https://github.com/flairNLP/flair) library, instead of training one from scratch.
 
-You got it, I wrote a program to import the parameters (weights and bias) of Flair into spaGO structures.
+You got it, we can import the parameters (weights and bias) of Flair into spaGO structures thanks to the amazing [GoPickle](https://github.com/nlpodyssey/gopickle) module. If you are curious, [this](https://github.com/nlpodyssey/spago/blob/main/pkg/nlp/sequencelabeler/flair_converter.go) is the conversion script. It is a bit chaotic but here the spirit was done is better than perfect ;)
 
 Currently, the following models have been converted and are available:
 
@@ -14,8 +14,7 @@ Currently, the following models have been converted and are available:
 | -------------    | ------------- |------------- |------------- |
 | goflair-en-ner-conll03-v0.4 | 4-class Named Entity Recognition |  Conll-03  |  **93.03** (F1) |
 | goflair-en-ner-fast-conll03-v0.4 | 4-class Named Entity Recognition |  Conll-03  |  **92.75** (F1) |
-| goflair-en-ner-ontonotes-fast-v0.4 | [18-class](https://spacy.io/api/annotation#named-entities) Named Entity Recognition |  Ontonotes  |  **
-89.27** (F1)
+| goflair-en-ner-ontonotes-fast-v0.4 | [18-class](https://spacy.io/api/annotation#named-entities) Named Entity Recognition |  Ontonotes  |  **89.27** (F1)
 | goflair-ner-multi-fast | 4-class Named Entity Recognition |  Conll-03 (en, de, du, es)  |  **87.91**  (average F1) |
 | goflair-fr-ner-wikiner-0.4 | 4-class Named Entity Recognition |  WikiNER-fr  |  ?  (average F1) |
 
