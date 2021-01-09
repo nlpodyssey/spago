@@ -67,7 +67,7 @@ There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy 
 ## Documentation
 
 * [Godocs for spaGO](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
-* [Feature Source Tree](https://github.com/nlpodyssey/spago/wiki/Feature-Source-Tree)
+* [Feature Source Tree](https://github.com/nlpodyssey/spago/blob/main/FEATURE_SOURCE_TREE.md)
 * [Contributing to spaGO](CONTRIBUTING.md)
 * [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
 
