@@ -20,7 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Go` GitHub workflow has been adapted to run tests using both `float32`
   and `float64` as main floating-point data type.
 - This CHANGELOG file.
-
+- Pull and convert Hugging Face models automatically if not found locally 
+  when starting BERT or BART server.
+- Move content from GitHub Wiki to README in related package folders.
 
 ### Changed
 - `ml.ag.ConcurrentComputations` (`GraphOption`) expects the maximum number
@@ -40,8 +42,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `float32` and `float64` is just a matter of changing all imports, from
   `mat32` to `mat64`, or vice-versa (see also the new file
   `change-float-type.sh`).
+- Update internal links to pre-trained NER models to float32 versions.
 - `nlp.sequencelabeler.Convert()` now loads and converts original Flair models,
    instead of pre-processed dumps.
+- Change command line arguments to make them more consistent; please refer to
+  the help messages of each command.
+- Update Dockerfile using a new base building image and adding bart server.
+
+### Fixed
+- Added dedicated package names to different protocol buffers definition files
+  to avoid name conflicts.
 
 ## [0.2.0] - 2020-12-31
 ### Added
