@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/nlpodyssey/spago/cmd/bert/internal/app"
+	"github.com/nlpodyssey/spago/cmd/bert/app"
 )
 
 func main() {

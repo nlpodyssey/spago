@@ -44,6 +44,7 @@ func NewNERApp() *NERApp {
 		App: cli.NewApp(),
 	}
 	app.Name = programName
+	app.HelpName = programName
 	app.Usage = "A demo for named entities recognition."
 	app.Commands = []cli.Command{
 		newClientCommandFor(app),

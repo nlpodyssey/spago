@@ -10,7 +10,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/nlpodyssey/spago/cmd/ner/internal/app"
+	"github.com/nlpodyssey/spago/cmd/ner/app"
 )
 
 func main() {

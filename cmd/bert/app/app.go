@@ -35,6 +35,7 @@ func NewBertApp() *BertApp {
 		App: cli.NewApp(),
 	}
 	app.Name = programName
+	app.HelpName = programName
 	app.Usage = "A demo for question-answering based on BERT."
 	app.Commands = []cli.Command{
 		newClientCommandFor(app),

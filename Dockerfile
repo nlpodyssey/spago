@@ -32,10 +32,6 @@ RUN mkdir /build
 ADD . /build/
 WORKDIR /build
 RUN go mod download
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o bert-server cmd/bert/main.go
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o bart-server cmd/bart/main.go
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o hugging-face-importer cmd/huggingfaceimporter/main.go
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o ner-server cmd/ner/main.go
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-extldflags=-static" -o docker-entrypoint docker-entrypoint.go
 
 # A self-signed certificate and private key is generated so that the
@@ -66,12 +62,7 @@ COPY --from=Builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certifi
 COPY --from=Builder /etc/ssl/certs/spago/server.crt /etc/ssl/certs/spago/server.crt
 COPY --from=Builder /etc/ssl/certs/spago/server.key /etc/ssl/certs/spago/server.key
 
-# Copy the compiled demo servers and other programs from the Builder
-# container.
-COPY --from=Builder /build/bert-server /bert-server
-COPY --from=Builder /build/bart-server /bart-server
-COPY --from=Builder /build/hugging-face-importer /hugging-face-importer
-COPY --from=Builder /build/ner-server /ner-server
+# Copy the docker entrypoint from the Builder container.
 COPY --from=Builder /build/docker-entrypoint /docker-entrypoint
 
 # Setup the environment and run the script docker-entrypoint.sh so
