@@ -35,6 +35,7 @@ func NewBartApp() *BartApp {
 		App: cli.NewApp(),
 	}
 	app.Name = programName
+	app.HelpName = programName
 	app.Usage = "A demo for sequence-classification based on BART."
 	app.Commands = []cli.Command{
 		newServerCommandFor(app),

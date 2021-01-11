@@ -9,13 +9,18 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	programName = "huggingface-importer"
+)
+
 // New returns a new CLI App for importing pickle-serialized Hugging Face models.
 func New() *cli.App {
 	importerArgs := internal.NewDefaultImporterArgs()
 	importerFlags := importerArgs.BuildFlags()
 
 	app := cli.NewApp()
-	app.Name = "huggingface-importer"
+	app.Name = programName
+	app.HelpName = programName
 	app.Usage = "Convert a pickle-serialized Hugging Face model to spaGO"
 	app.HideVersion = true
 	app.Action = importerArgs.RunImporterCli
