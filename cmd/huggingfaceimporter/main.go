@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/nlpodyssey/spago/cmd/huggingfaceimporter/internal/app"
+	"github.com/nlpodyssey/spago/cmd/huggingfaceimporter/app"
 	"log"
 	"os"
 )
