@@ -5,9 +5,9 @@
 package ag
 
 import (
+	"fmt"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
-	"github.com/pkg/errors"
 	"reflect"
 )
 
@@ -222,7 +222,7 @@ func GetOpName(str string) (OpName, error) {
 	if value, ok := strToOpName[str]; ok {
 		return value, nil
 	}
-	return -1, errors.Errorf("ag: unknown operator %s", str)
+	return -1, fmt.Errorf("ag: unknown operator %s", str)
 }
 
 // Invoke returns a new node as a result of the application of the input operator.

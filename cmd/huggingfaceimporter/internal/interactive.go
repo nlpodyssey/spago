@@ -5,10 +5,10 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
 	"github.com/manifoldco/promptui/list"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -58,16 +58,16 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 			writeMsg("Loading data from " + a.ModelsURL)
 			dataJSON, err = LookupFromHuggingFace("")
 			if err != nil {
-				return errors.Wrap(err, "load data from "+a.ModelsURL)
+				return fmt.Errorf("load data from %s: %v", a.ModelsURL, err)
 			}
 		}
 		if len(dataJSON) == 0 {
-			return errors.New("fetch returned no data from " + a.ModelsURL)
+			return fmt.Errorf("fetch returned no data from %s", a.ModelsURL)
 		}
 		// parse
 		srData, err := ParseSearchResults([]byte(dataJSON))
 		if err != nil {
-			return errors.Wrap(err, "parse search results data")
+			return fmt.Errorf("parse search results data: %v", err)
 		}
 		// write cache
 		if err := ioutil.WriteFile(cacheFilePath, []byte(dataJSON), 0644); err != nil {
@@ -96,7 +96,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 	}
 
 	if a.Model == "" {
-		return errors.New("no model selected")
+		return fmt.Errorf("no model selected")
 	}
 	return nil
 }
