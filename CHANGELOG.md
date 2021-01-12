@@ -5,15 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Various new test cases (improving the coverage).
+
 ### Changed
 - All CLI commands implementation has been refactored, so that the
   `docker-entrypoint` can reuse all other `cli.App` objects, instead of
   just running separate executables. By extension, now the Dockerfile builds
   a single executable file, and the final image is way smaller.
+- All dependencies have been upgraded to the latest version.
+- Simplify custom error definitions using `fmt.Errorf` instead of functions
+  from `github.com/pkg/errors`.
 
 ### Fixed
 - `docker-entrypoint` sub-command `hugging-face-importer` has been renamed to
   `huggingface-importer`, just like the main command itself.
+- `docker-entrypoint` sub-command can be correctly specified without leading
+  `./` or `/` when run from a Docker container.
+- BREAKING: mat32.Matrix serialization has been fixed, now serializing single
+  values to chunks of 4 bytes (instead of 8, like float64). Serialized 32-bit
+  models will now be half the size! Unfortunately you will have to re-serialize
+  your models (sorry!).
 
 ## [0.3.0] - 2021-01-10
 ### Added
