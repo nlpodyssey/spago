@@ -5,6 +5,7 @@
 package bartserver
 
 import (
+	"fmt"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -12,7 +13,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
 	"github.com/nlpodyssey/spago/pkg/utils/workerpool"
-	"github.com/pkg/errors"
 	"runtime"
 	"sort"
 	"strings"
@@ -126,11 +126,11 @@ func (s *ServerForSequenceClassification) getEntailmentAndContradictionIDs() (
 ) {
 	entailmentID, ok := s.model.BART.Config.Label2ID["entailment"]
 	if !ok {
-		return -1, -1, errors.New("bartserver: `entailment` label not found")
+		return -1, -1, fmt.Errorf("bartserver: `entailment` label not found")
 	}
 	contradictionID, ok = s.model.BART.Config.Label2ID["contradiction"]
 	if !ok {
-		return -1, -1, errors.New("bartserver: `contradiction` label not found")
+		return -1, -1, fmt.Errorf("bartserver: `contradiction` label not found")
 	}
 	return
 }

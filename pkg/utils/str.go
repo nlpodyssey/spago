@@ -50,6 +50,9 @@ func SplitByRune(str string) []string {
 
 // ReverseString reverses the given string.
 func ReverseString(text string) string {
+	if len(text) == 0 {
+		return ""
+	}
 	str := []rune(text)
 	l := len(str)
 	revStr := make([]rune, l)

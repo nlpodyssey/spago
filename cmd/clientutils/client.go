@@ -14,7 +14,7 @@ import (
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Flags returns a list of the common CLI flags for gRPC clients

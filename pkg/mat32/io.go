@@ -62,7 +62,7 @@ func MarshalBinaryTo(m Matrix, w io.Writer) (int, error) {
 	if err != nil {
 		return n, err
 	}
-	var b [8]byte
+	var b [4]byte
 	for _, num := range m.Data() {
 		binary.LittleEndian.PutUint32(b[:], math.Float32bits(num))
 		nn, err := w.Write(b[:])
@@ -96,7 +96,7 @@ func NewUnmarshalBinaryFrom(r io.Reader) (*Dense, int, error) {
 	}
 
 	data := make([]Float, rows*cols)
-	var b [8]byte
+	var b [4]byte
 	for i := range data {
 		nn, err := utils.ReadFull(r, b[:])
 		n += nn
@@ -136,7 +136,7 @@ func UnmarshalBinaryFrom(m Matrix, r io.Reader) (int, error) {
 	if rows != m.Rows() || cols != m.Columns() {
 		return n, errBadSize
 	}
-	var b [8]byte
+	var b [4]byte
 	data := m.Data()
 	for i := range data {
 		nn, err := utils.ReadFull(r, b[:])
