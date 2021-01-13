@@ -14,12 +14,12 @@ import (
 
 // Serializer is implemented by any value that has the Serialize method.
 type Serializer interface {
-	Serialize(w io.Writer) (int, error)
+	Serialize(w io.Writer) error
 }
 
 // Deserializer is implemented by any value that has the Deserialize method.
 type Deserializer interface {
-	Deserialize(r io.Reader) (int, error)
+	Deserialize(r io.Reader) error
 }
 
 // SerializeToFile serializes obj to file.
@@ -30,7 +30,7 @@ func SerializeToFile(filename string, obj Serializer) (err error) {
 	}
 	defer f.Close()
 	buf := bufio.NewWriter(f) // Buffered writing is essential to avoid memory leaks with large data
-	_, err = obj.Serialize(buf)
+	err = obj.Serialize(buf)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func DeserializeFromFile(filename string, obj Deserializer) (err error) {
 		return err
 	}
 	defer f.Close()
-	_, err = obj.Deserialize(bufio.NewReader(f))
+	err = obj.Deserialize(bufio.NewReader(f))
 	if err != nil {
 		return err
 	}

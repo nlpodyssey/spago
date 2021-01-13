@@ -134,7 +134,7 @@ func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
 // If the word is already on the map, overwrites the existing value with the new one.
 func (m *Model) setEmbedding(word string, value *mat.Dense) {
 	var buf bytes.Buffer
-	if _, err := mat.MarshalBinaryTo(value, &buf); err != nil {
+	if err := mat.MarshalBinaryTo(value, &buf); err != nil {
 		log.Fatal(err)
 	}
 	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
@@ -167,7 +167,7 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	if !ok {
 		return nil // embedding not found
 	}
-	embedding, _, err := mat.NewUnmarshalBinaryFrom(bytes.NewReader(data))
+	embedding, err := mat.NewUnmarshalBinaryFrom(bytes.NewReader(data))
 	if err != nil {
 		log.Fatal(err)
 	}

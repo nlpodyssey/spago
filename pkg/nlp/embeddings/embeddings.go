@@ -122,7 +122,7 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = serializer.Serialize(&buf)
+	err = serializer.Serialize(&buf)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -179,7 +179,7 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := serializer.Deserialize(bytes.NewReader(data)); err != nil {
+	if err := serializer.Deserialize(bytes.NewReader(data)); err != nil {
 		log.Fatal(err)
 	}
 	embedding.SetName(word)

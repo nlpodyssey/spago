@@ -30,7 +30,7 @@ func NewParamSerializer(p Param) (*ParamSerializer, error) {
 }
 
 // Serialize dumps the Param to the writer.
-func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
+func (s *ParamSerializer) Serialize(w io.Writer) error {
 	return paramDataMarshalBinaryTo(&paramData{
 		Value:   s.value.(*mat.Dense),
 		Payload: s.payload,
@@ -38,15 +38,14 @@ func (s *ParamSerializer) Serialize(w io.Writer) (int, error) {
 }
 
 // Deserialize assigns reads a Param the reader.
-func (s *ParamSerializer) Deserialize(r io.Reader) (n int, err error) {
-	var data *paramData
-	data, n, err = paramDataUnmarshalBinaryFrom(r)
+func (s *ParamSerializer) Deserialize(r io.Reader) error {
+	data, err := paramDataUnmarshalBinaryFrom(r)
 	if err != nil {
-		return
+		return err
 	}
 	s.value = data.Value
 	s.payload = data.Payload
-	return
+	return err
 }
 
 type paramData struct {
@@ -54,62 +53,58 @@ type paramData struct {
 	Payload *Payload
 }
 
-func paramDataMarshalBinaryTo(data *paramData, w io.Writer) (int, error) {
-	n, err := mat.MarshalBinaryTo(data.Value, w)
+func paramDataMarshalBinaryTo(data *paramData, w io.Writer) error {
+	err := mat.MarshalBinaryTo(data.Value, w)
 	if err != nil {
-		return n, err
+		return err
 	}
-	n2, err := PayloadMarshalBinaryTo(data.Payload, w)
-	n += n2
+	err = PayloadMarshalBinaryTo(data.Payload, w)
 	if err != nil {
-		return n, err
+		return err
 	}
-	return n, err
+	return err
 }
 
-func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, int, error) {
-	value, n, err := mat.NewUnmarshalBinaryFrom(r)
+func paramDataUnmarshalBinaryFrom(r io.Reader) (*paramData, error) {
+	value, err := mat.NewUnmarshalBinaryFrom(r)
 	if err != nil {
-		return nil, n, err
+		return nil, err
 	}
-	supp, n2, err := NewPayloadUnmarshalBinaryFrom(r)
-	n += n2
+	supp, err := NewPayloadUnmarshalBinaryFrom(r)
 	if err != nil {
-		return nil, n, err
+		return nil, err
 	}
-	return &paramData{Value: value, Payload: supp}, n, err
+	return &paramData{Value: value, Payload: supp}, err
 }
 
 // PayloadMarshalBinaryTo returns the number of bytes written into w and an error, if any.
-func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) (int, error) {
+func PayloadMarshalBinaryTo(supp *Payload, w io.Writer) error {
 	h := header{Label: int64(supp.Label), Size: int64(len(supp.Data))}
-	n, err := h.marshalBinaryTo(w)
+	err := h.marshalBinaryTo(w)
 	if err != nil {
-		return n, err
+		return err
 	}
-	nn, err := mat.MarshalBinarySlice(supp.Data, w)
-	n += nn
-	return n, err
+	err = mat.MarshalBinarySlice(supp.Data, w)
+	return err
 }
 
 // NewPayloadUnmarshalBinaryFrom reads a Payload from the given reader.
-func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, int, error) {
+func NewPayloadUnmarshalBinaryFrom(r io.Reader) (*Payload, error) {
 	var h header
-	n, err := h.unmarshalBinaryFrom(r)
+	err := h.unmarshalBinaryFrom(r)
 	if err != nil {
-		return nil, n, err
+		return nil, err
 	}
 	data := make([]mat.Matrix, h.Size)
-	nn, err := mat.NewUnmarshalBinarySlice(data, r)
-	n = +nn
+	err = mat.NewUnmarshalBinarySlice(data, r)
 	if err != nil {
-		return nil, n, err
+		return nil, err
 	}
 	supp := &Payload{
 		Label: int(h.Label),
 		Data:  data,
 	}
-	return supp, n, err
+	return supp, err
 }
 
 type header struct {
@@ -119,13 +114,14 @@ type header struct {
 
 var headerSize = binary.Size(header{})
 
-func (s header) marshalBinaryTo(w io.Writer) (int, error) {
+func (s header) marshalBinaryTo(w io.Writer) error {
 	buf := bytes.NewBuffer(make([]byte, 0, headerSize))
 	err := binary.Write(buf, binary.LittleEndian, s)
 	if err != nil {
-		return 0, err
+		return err
 	}
-	return w.Write(buf.Bytes())
+	_, err = w.Write(buf.Bytes())
+	return err
 }
 
 func (s *header) unmarshalBinary(buf []byte) error {
@@ -136,11 +132,11 @@ func (s *header) unmarshalBinary(buf []byte) error {
 	return nil
 }
 
-func (s *header) unmarshalBinaryFrom(r io.Reader) (int, error) {
+func (s *header) unmarshalBinaryFrom(r io.Reader) error {
 	buf := make([]byte, headerSize)
 	n, err := utils.ReadFull(r, buf)
 	if err != nil {
-		return n, err
+		return err
 	}
-	return n, s.unmarshalBinary(buf[:n])
+	return s.unmarshalBinary(buf[:n])
 }

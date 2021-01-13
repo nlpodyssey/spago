@@ -27,27 +27,31 @@ func NewParamsSerializer(m Model) *ParamsSerializer {
 }
 
 // Serialize dumps the params values to the writer.
-func (m *ParamsSerializer) Serialize(w io.Writer) (n int, err error) {
+func (m *ParamsSerializer) Serialize(w io.Writer) (err error) {
 	ForEachParam(m, func(param Param) {
-		cnt, err2 := mat.MarshalBinaryTo(param.Value(), w)
-		n += cnt
+		if err != nil {
+			return
+		}
+		err2 := mat.MarshalBinaryTo(param.Value(), w)
 		if err2 != nil {
 			err = err2
 			return
 		}
 	})
-	return n, err
+	return err
 }
 
 // Deserialize assigns the params with the values obtained from the reader.
-func (m *ParamsSerializer) Deserialize(r io.Reader) (n int, err error) {
+func (m *ParamsSerializer) Deserialize(r io.Reader) (err error) {
 	ForEachParam(m, func(param Param) {
-		cnt, err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
-		n += cnt
+		if err != nil {
+			return
+		}
+		err2 := mat.UnmarshalBinaryFrom(param.Value(), r)
 		if err2 != nil {
 			err = err2
 			return
 		}
 	})
-	return n, err
+	return err
 }

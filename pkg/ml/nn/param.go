@@ -251,7 +251,7 @@ func (r *param) updateStorage() {
 		return
 	}
 	var buf bytes.Buffer
-	if _, err := (&ParamSerializer{param: r}).Serialize(&buf); err != nil {
+	if err := (&ParamSerializer{param: r}).Serialize(&buf); err != nil {
 		log.Fatal(err)
 	}
 	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
@@ -262,7 +262,7 @@ func (r *param) updateStorage() {
 // MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
 func (r *param) MarshalBinary() ([]byte, error) {
 	var b bytes.Buffer
-	_, err := mat.MarshalBinaryTo(r.value, &b)
+	err := mat.MarshalBinaryTo(r.value, &b)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (r *param) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
 func (r *param) UnmarshalBinary(data []byte) error {
 	b := bytes.NewBuffer(data)
-	value, _, err := mat.NewUnmarshalBinaryFrom(b)
+	value, err := mat.NewUnmarshalBinaryFrom(b)
 	r.value = value
 	return err
 }

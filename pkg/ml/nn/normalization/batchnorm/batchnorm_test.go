@@ -157,7 +157,7 @@ func Test_Serialize(t *testing.T) {
 	serializer := nn.NewParamsSerializer(model2)
 	tempFile, err = os.Open(tempFile.Name())
 	require.Nil(t, err)
-	_, err = serializer.Deserialize(tempFile)
+	err = serializer.Deserialize(tempFile)
 	require.NoError(t, err)
 	require.Equal(t, model.Momentum.Value().Scalar(), model2.Momentum.Value().Scalar())
 	require.Equal(t, model.Mean.Value().Data(), model2.Mean.Value().Data())
