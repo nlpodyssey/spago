@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // paramsTraversal allows the traversal of Model parameters.
@@ -60,11 +61,39 @@ func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag mod
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}
+	case sync.Map:
+		pt.walkSyncMap(&itemT, name, tag)
 	default:
 		if tag.Type == paramsModuleFieldType {
 			pt.walk(item)
 		}
 	}
+}
+
+func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
+	if tag.Type != paramsModuleFieldType {
+		return
+	}
+
+	i.Range(func(key, value interface{}) bool {
+		switch k := key.(type) {
+		case string:
+			key = k
+		case int:
+			key = fmt.Sprintf("%d", k)
+		default:
+			return false // skip map if the key is not a string or an int
+		}
+
+		name := strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+		switch reflect.ValueOf(value).Kind() {
+		case reflect.Struct, reflect.Ptr, reflect.Interface:
+			pt.walkStructOrPtr(value, name, tag)
+		default:
+			return false // skip
+		}
+		return true
+	})
 }
 
 func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
