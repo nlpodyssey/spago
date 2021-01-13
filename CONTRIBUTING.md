@@ -8,7 +8,7 @@ The preferred flow is to fork the project, create branches in your fork, and sub
 
 ## Requirements
 
-* [Go 1.14](https://golang.org/dl/)
+* [Go 1.15](https://golang.org/dl/)
 * [Go Modules](https://blog.golang.org/using-go-modules)
 
 ## API Development

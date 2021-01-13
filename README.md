@@ -1,5 +1,7 @@
 ![alt text](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/spago_logo.png)
 
+[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/nlpodyssey/spago/.svg)](https://pkg.go.dev/github.com/nlpodyssey/spago/)
 ![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
 [![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
@@ -62,14 +64,10 @@ To get started, look at the implementation of built-in neural models, such as
 the [LSTM](https://github.com/nlpodyssey/spago/blob/main/pkg/ml/nn/recurrent/lstm/lstm.go). Don't be afraid, it is
 straightforward Go code. The idea is that you could have written spaGO :)
 
+You may find a [Feature Source Tree](https://github.com/nlpodyssey/spago/blob/main/FEATURE_SOURCE_TREE.md) useful for a
+quick overview of the library's package organization.
+
 There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy examples, such as MNIST classification.
-
-## Documentation
-
-* [Godocs for spaGO](https://pkg.go.dev/mod/github.com/nlpodyssey/spago)
-* [Feature Source Tree](https://github.com/nlpodyssey/spago/blob/main/FEATURE_SOURCE_TREE.md)
-* [Contributing to spaGO](CONTRIBUTING.md)
-* [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
 
 ## Features
 
@@ -125,6 +123,14 @@ tested and that APIs might change.
 
 Sadly, at the moment, spaGO is not GPU friendly by design.
 
+# Contributing
+
+We're glad you're thinking about contributing to spaGO! If you think something is missing or could be improved, please
+open issues and pull requests. If you'd like to help this project grow, we'd love to have you!
+
+To start contributing, check
+the [Contributing Guidelines](https://github.com/nlpodyssey/spago/blob/main/CONTRIBUTING.md).
+
 ## Contact
 
 We encourage you to write an issue. This would help the community grow.
@@ -132,9 +138,15 @@ We encourage you to write an issue. This would help the community grow.
 If you really want to write to us privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your
 questions or comments.
 
+## Links
+
+* [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
+
 ## Acknowledgments
 
-spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here, which is providing full support for development by promoting the project and giving it increasing importance.
+spaGO is a personal project that is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative
+initiated by members of the EXOP team. I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here,
+which is providing full support for development by promoting the project and giving it increasing importance.
 
 ## Sponsors
 
