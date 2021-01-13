@@ -16,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All dependencies have been upgraded to the latest version.
 - Simplify custom error definitions using `fmt.Errorf` instead of functions
   from `github.com/pkg/errors`.
+- The following functions and methods no longer return the number of
+  read or written bytes:
+  - `MarshalBinarySlice` from `mat32` and `mat64`
+  - `MarshalBinaryTo` from `mat32` and `mat64`
+  - `NewUnmarshalBinaryFrom` from `mat32` and `mat64`
+  - `NewUnmarshalBinarySlice` from `mat32` and `mat64`
+  - `UnmarshalBinaryFrom` from `mat32` and `mat64`
+  - `UnmarshalBinarySlice` from `mat32` and `mat64`
+  - `ml.nn.NewPayloadUnmarshalBinaryFrom`
+  - `ml.nn.ParamSerializer.Deserialize`
+  - `ml.nn.ParamSerializer.Serialize`
+  - `ml.nn.ParamsSerializer.Deserialize`
+  - `ml.nn.ParamsSerializer.Serialize`
+  - `ml.nn.PayloadMarshalBinaryTo`
+  - `utils.Deserializer.Deserialize`
+  - `utils.Serializer.Serialize`  
 
 ### Fixed
 - `docker-entrypoint` sub-command `hugging-face-importer` has been renamed to
