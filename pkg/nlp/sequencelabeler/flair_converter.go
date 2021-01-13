@@ -76,7 +76,7 @@ func Convert(modelPath string, flairModelName string) {
 	{
 		configData, err := json.MarshalIndent(config, "", "  ")
 		if err != nil {
-			panic(fmt.Errorf("error marshaling configuration: %v", err))
+			panic(fmt.Errorf("error marshaling configuration: %w", err))
 		}
 		err = ioutil.WriteFile(path.Join(modelPath, defaultConfigFilename), configData, 0644)
 	}
@@ -91,7 +91,7 @@ func Convert(modelPath string, flairModelName string) {
 	normalizedVocab := embeddingsLMForward.Dictionary.GetItems()
 	dictData, err := json.Marshal(normalizedVocab)
 	if err != nil {
-		panic(fmt.Errorf("error marshaling vocab: %v", err))
+		panic(fmt.Errorf("error marshaling vocab: %w", err))
 	}
 	err = ioutil.WriteFile(path.Join(modelPath, defaultDictionaryFilename), dictData, 0644)
 

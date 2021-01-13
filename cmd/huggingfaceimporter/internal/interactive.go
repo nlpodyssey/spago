@@ -58,7 +58,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 			writeMsg("Loading data from " + a.ModelsURL)
 			dataJSON, err = LookupFromHuggingFace("")
 			if err != nil {
-				return fmt.Errorf("load data from %s: %v", a.ModelsURL, err)
+				return fmt.Errorf("load data from %s: %w", a.ModelsURL, err)
 			}
 		}
 		if len(dataJSON) == 0 {
@@ -67,7 +67,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 		// parse
 		srData, err := ParseSearchResults([]byte(dataJSON))
 		if err != nil {
-			return fmt.Errorf("parse search results data: %v", err)
+			return fmt.Errorf("parse search results data: %w", err)
 		}
 		// write cache
 		if err := ioutil.WriteFile(cacheFilePath, []byte(dataJSON), 0644); err != nil {

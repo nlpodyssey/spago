@@ -174,7 +174,7 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	}
 	err := utils.SerializeToFile(c.modelFilename, nn.NewParamsSerializer(sequenceClassificationModel))
 	if err != nil {
-		return fmt.Errorf("bert: error during model serialization. %v", err)
+		return fmt.Errorf("bert: error during model serialization: %w", err)
 	}
 	fmt.Println("ok")
 	return nil

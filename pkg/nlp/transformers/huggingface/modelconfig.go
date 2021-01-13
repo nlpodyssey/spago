@@ -32,7 +32,7 @@ type CommonModelConfig struct {
 func ReadCommonModelConfig(filename string) (cmc *CommonModelConfig, err error) {
 	configFile, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("JSON config file not found: %v", err)
+		return nil, fmt.Errorf("JSON config file not found: %w", err)
 	}
 	defer func() {
 		if e := configFile.Close(); e != nil && err == nil {
@@ -43,7 +43,7 @@ func ReadCommonModelConfig(filename string) (cmc *CommonModelConfig, err error) 
 	cmc = &CommonModelConfig{}
 	err = json.NewDecoder(configFile).Decode(&cmc)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse JSON config file: %v", err)
+		return nil, fmt.Errorf("cannot parse JSON config file: %w", err)
 	}
 	return cmc, nil
 }
