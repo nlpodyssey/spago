@@ -123,7 +123,7 @@ tested and that APIs might change.
 
 Sadly, at the moment, spaGO is not GPU friendly by design.
 
-# Contributing
+## Contributing
 
 We're glad you're thinking about contributing to spaGO! If you think something is missing or could be improved, please
 open issues and pull requests. If you'd like to help this project grow, we'd love to have you!
