@@ -6,6 +6,7 @@ package embeddings
 
 import (
 	"bytes"
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -115,18 +116,18 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}
+
 	embedding := nn.NewParam(value)
 	embedding.SetPayload(nn.NewEmptySupport())
+
 	var buf bytes.Buffer
-	serializer, err := nn.NewParamSerializer(embedding)
+	err := gob.NewEncoder(&buf).Encode(embedding)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = serializer.Serialize(&buf)
+
+	err = m.Storage.Put([]byte(word), buf.Bytes())
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -174,12 +175,10 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 	if !ok {
 		return nil // embedding not found
 	}
+
 	embedding := nn.NewParam(nil, nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
-	serializer, err := nn.NewParamSerializer(embedding)
+	err = gob.NewDecoder(bytes.NewReader(data)).Decode(embedding)
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err := serializer.Deserialize(bytes.NewReader(data)); err != nil {
 		log.Fatal(err)
 	}
 	embedding.SetName(word)
