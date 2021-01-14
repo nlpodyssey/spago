@@ -54,26 +54,6 @@ func DeserializeFromFile(filename string, obj interface{}) (err error) {
 	return
 }
 
-// ReadFull reads from r into buf until it has read len(buf).
-// It returns the number of bytes copied and an error if fewer bytes were read.
-// If an EOF happens after reading fewer than len(buf) bytes, io.ErrUnexpectedEOF is returned.
-func ReadFull(r io.Reader, buf []byte) (int, error) {
-	var n int
-	var err error
-	for n < len(buf) && err == nil {
-		var nn int
-		nn, err = r.Read(buf[n:])
-		n += nn
-	}
-	if n == len(buf) {
-		return n, nil
-	}
-	if err == io.EOF {
-		return n, io.ErrUnexpectedEOF
-	}
-	return n, err
-}
-
 // CountLines efficiently counts the lines of text inside a file.
 // See: https://stackoverflow.com/questions/24562942/golang-how-do-i-determine-the-number-of-lines-in-a-file-efficiently
 func CountLines(filename string) (int, error) {
