@@ -10,6 +10,7 @@ package evolvingembeddings
 
 import (
 	"bytes"
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -134,7 +135,7 @@ func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
 // If the word is already on the map, overwrites the existing value with the new one.
 func (m *Model) setEmbedding(word string, value *mat.Dense) {
 	var buf bytes.Buffer
-	if err := mat.MarshalBinaryTo(value, &buf); err != nil {
+	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
 		log.Fatal(err)
 	}
 	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
@@ -167,7 +168,8 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	if !ok {
 		return nil // embedding not found
 	}
-	embedding, err := mat.NewUnmarshalBinaryFrom(bytes.NewReader(data))
+	var embedding *mat.Dense
+	err = gob.NewDecoder(bytes.NewReader(data)).Decode(&embedding)
 	if err != nil {
 		log.Fatal(err)
 	}
