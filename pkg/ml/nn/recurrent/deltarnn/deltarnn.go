@@ -5,6 +5,7 @@
 package deltarnn
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -26,6 +27,10 @@ type Model struct {
 	Beta1  nn.Param `spago:"type:weights"`
 	Beta2  nn.Param `spago:"type:weights"`
 	States []*State `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // State represent a state of the DeltaRNN recurrent network.

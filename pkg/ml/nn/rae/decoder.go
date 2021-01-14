@@ -5,6 +5,7 @@
 package rae
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -29,6 +30,10 @@ type State struct {
 	SequenceLength int
 	MaxRecursions  int
 	Recursions     int
+}
+
+func init() {
+	gob.Register(&Decoder{})
 }
 
 // SetSequenceLength sets the length of the expected sequence.

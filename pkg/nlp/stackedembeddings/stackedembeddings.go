@@ -8,6 +8,7 @@
 package stackedembeddings
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -32,6 +33,10 @@ type Model struct {
 	nn.BaseModel
 	WordsEncoders   []WordsEncoderProcessor
 	ProjectionLayer *linear.Model
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // Encode transforms a string sequence into an encoded representation.

@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -29,6 +30,10 @@ type DiscriminatorConfig struct {
 // Discriminator is a BERT Discriminator model.
 type Discriminator struct {
 	*stack.Model
+}
+
+func init() {
+	gob.Register(&Discriminator{})
 }
 
 // NewDiscriminator returns a new BERT Discriminator model.

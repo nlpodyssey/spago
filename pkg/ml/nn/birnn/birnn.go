@@ -5,6 +5,7 @@
 package birnn
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"sync"
@@ -35,6 +36,10 @@ type Model struct {
 	Positive  nn.StandardModel // positive time direction a.k.a. left-to-right
 	Negative  nn.StandardModel // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

@@ -7,6 +7,7 @@
 package sequencelabeler
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -39,6 +40,10 @@ type Model struct {
 	EmbeddingsLayer *stackedembeddings.Model
 	TaggerLayer     *birnncrf.Model
 	Labels          []string
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // NewDefaultModel returns a new sequence labeler built based on the architecture of Flair.

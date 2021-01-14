@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 )
@@ -23,6 +24,10 @@ type ClassifierConfig struct {
 type Classifier struct {
 	Config ClassifierConfig
 	*linear.Model
+}
+
+func init() {
+	gob.Register(&Classifier{})
 }
 
 // NewTokenClassifier returns a new BERT Classifier model.

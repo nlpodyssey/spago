@@ -5,6 +5,7 @@
 package pooling
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -18,6 +19,10 @@ type MaxPooling struct {
 	nn.BaseModel
 	Rows    int
 	Columns int
+}
+
+func init() {
+	gob.Register(&MaxPooling{})
 }
 
 // NewMax returns a new model.

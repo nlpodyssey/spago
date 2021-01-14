@@ -10,6 +10,7 @@
 package adanorm
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -31,6 +32,10 @@ type consts struct {
 	one ag.Node
 	k   ag.Node
 	c   ag.Node
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model.

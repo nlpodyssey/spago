@@ -5,6 +5,7 @@
 package indrnn
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -28,6 +29,10 @@ type Model struct {
 // State represent a state of the IndRNN recurrent network.
 type State struct {
 	Y ag.Node
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

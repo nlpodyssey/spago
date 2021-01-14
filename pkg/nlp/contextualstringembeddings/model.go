@@ -8,6 +8,7 @@
 package contextualstringembeddings
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
@@ -43,6 +44,10 @@ type Model struct {
 	MergeMode   MergeType
 	StartMarker rune
 	EndMarker   rune
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new Contextual String Embeddings Model.

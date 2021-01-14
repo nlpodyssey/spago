@@ -5,6 +5,7 @@
 package convolution
 
 import (
+	"encoding/gob"
 	"fmt"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -34,6 +35,10 @@ type Model struct {
 	Config Config
 	K      []nn.Param `spago:"type:weights"`
 	B      []nn.Param `spago:"type:biases"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.

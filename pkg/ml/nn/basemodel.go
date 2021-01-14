@@ -4,13 +4,20 @@
 
 package nn
 
-import "github.com/nlpodyssey/spago/pkg/ml/ag"
+import (
+	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
+)
 
 // BaseModel satisfies some methods of the Model interface.
 // Don't use it directly; it is meant to be embedded in other processors to reduce the amount of boilerplate code.
 type BaseModel struct {
 	// Context
 	Ctx Context
+}
+
+func init() {
+	gob.Register(&BaseModel{})
 }
 
 // Mode returns whether the (reified) model is being used for training or inference.

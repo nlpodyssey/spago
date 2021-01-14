@@ -5,6 +5,7 @@
 package barthead
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -25,6 +26,10 @@ type SequenceClassification struct {
 	nn.BaseModel
 	BART           *bart.Model
 	Classification *Classification
+}
+
+func init() {
+	gob.Register(&SequenceClassification{})
 }
 
 // NewSequenceClassification returns a new SequenceClassification.

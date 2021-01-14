@@ -5,6 +5,7 @@
 package ltm
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -33,6 +34,10 @@ type State struct {
 	Cand ag.Node
 	Cell ag.Node
 	Y    ag.Node
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

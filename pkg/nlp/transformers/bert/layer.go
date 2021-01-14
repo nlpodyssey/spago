@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
@@ -25,6 +26,10 @@ type EncoderLayer struct {
 	FFN                *stack.Model
 	NormFFN            *layernorm.Model
 	Index              int // layer index (useful for debugging)
+}
+
+func init() {
+	gob.Register(&EncoderLayer{})
 }
 
 // Forward performs the forward step for each input node and returns the result.

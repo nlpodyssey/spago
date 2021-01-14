@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -45,6 +46,10 @@ type Config struct {
 	VocabSize             int               `json:"vocab_size"`
 	ID2Label              map[string]string `json:"id2label"`
 	ReadOnly              bool              `json:"read_only"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // LoadConfig loads a BERT model Config from file.

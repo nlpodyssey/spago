@@ -5,6 +5,7 @@
 package batchnorm
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -25,6 +26,10 @@ type Model struct {
 }
 
 const defaultMomentum = 0.9
+
+func init() {
+	gob.Register(&Model{})
+}
 
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum mat.Float) *Model {

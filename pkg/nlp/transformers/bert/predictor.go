@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -29,6 +30,10 @@ type PredictorConfig struct {
 // Predictor is a BERT Predictor model.
 type Predictor struct {
 	*stack.Model
+}
+
+func init() {
+	gob.Register(&Predictor{})
 }
 
 // NewPredictor returns a new BERT Predictor model.

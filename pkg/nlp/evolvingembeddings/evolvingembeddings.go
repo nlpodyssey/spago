@@ -59,6 +59,10 @@ type Config struct {
 	ForceNewDB bool
 }
 
+func init() {
+	gob.Register(&Model{})
+}
+
 // New returns a new embedding Model.
 func New(config Config) *Model {
 	m := &Model{
