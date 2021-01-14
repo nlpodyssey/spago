@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -21,17 +22,13 @@ func TestDense_Gob(t *testing.T) {
 
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(matrixToEncode)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	var decodedMatrix *Dense
 
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&decodedMatrix)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	assert.NotNil(t, decodedMatrix)
 	assert.Equal(t, 2, decodedMatrix.rows)
@@ -52,17 +49,13 @@ func TestSparse_Gob(t *testing.T) {
 
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(matrixToEncode)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	var decodedMatrix *Dense
 
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&decodedMatrix)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	assert.NotNil(t, decodedMatrix)
 	assert.Equal(t, 2, decodedMatrix.Rows())
