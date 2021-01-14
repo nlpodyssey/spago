@@ -61,8 +61,8 @@ func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag mod
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}
-	case sync.Map:
-		pt.walkSyncMap(&itemT, name, tag)
+	case *sync.Map:
+		pt.walkSyncMap(itemT, name, tag)
 	default:
 		if tag.Type == paramsModuleFieldType {
 			pt.walk(item)

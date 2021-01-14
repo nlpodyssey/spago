@@ -337,11 +337,11 @@ func TestParamsTraversal(t *testing.T) {
 
 		type TestModel struct {
 			ParamsTraversalBaseModel
-			MS sync.Map `spago:"type:params"`
+			MS *sync.Map `spago:"type:params"`
 		}
 
 		m := &TestModel{
-			MS: sync.Map{},
+			MS: &sync.Map{},
 		}
 		m.MS.Store("a", NewParam(mat.NewScalar(3)))
 

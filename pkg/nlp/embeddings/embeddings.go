@@ -26,8 +26,8 @@ type Model struct {
 	nn.BaseModel
 	Config
 	Storage        kvdb.KeyValueDB
-	UsedEmbeddings sync.Map `spago:"type:params;scope:model"`
-	ZeroEmbedding  nn.Param `spago:"type:weights"`
+	UsedEmbeddings *sync.Map `spago:"type:params;scope:model"`
+	ZeroEmbedding  nn.Param  `spago:"type:weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -54,7 +54,7 @@ func New(config Config) *Model {
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		UsedEmbeddings: sync.Map{},
+		UsedEmbeddings: &sync.Map{},
 		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
