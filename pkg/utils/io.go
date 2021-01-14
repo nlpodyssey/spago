@@ -13,16 +13,6 @@ import (
 	"os"
 )
 
-// Serializer is implemented by any value that has the Serialize method.
-type Serializer interface {
-	Serialize(w io.Writer) error
-}
-
-// Deserializer is implemented by any value that has the Deserialize method.
-type Deserializer interface {
-	Deserialize(r io.Reader) error
-}
-
 // SerializeToFile serializes obj to file, using gob encoding.
 func SerializeToFile(filename string, obj interface{}) (err error) {
 	f, err := os.Create(filename)
