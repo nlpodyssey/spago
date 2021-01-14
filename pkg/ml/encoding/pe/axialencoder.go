@@ -18,8 +18,8 @@ type AxialPositionalEncoder struct {
 	Length int
 	// The dimensions of the axis, such as Width X Height = Length.
 	Width, Height int
-	// cache contains the pre-computed encoding.
-	cache []*mat.Dense
+	// Cache contains the pre-computed encoding.
+	Cache []*mat.Dense
 }
 
 // NewAxialPositionalEncoder returns a new AxialPositionalEncoder ready to use.
@@ -41,7 +41,7 @@ func NewAxialPositionalEncoder(size, d, length, width, height int) *AxialPositio
 	if pe.Width > pe.Height {
 		max = pe.Width
 	}
-	pe.cache = NewPositionalEncoder(size, max).cache
+	pe.Cache = NewPositionalEncoder(size, max).Cache
 	return pe
 }
 
@@ -49,10 +49,10 @@ func NewAxialPositionalEncoder(size, d, length, width, height int) *AxialPositio
 func (r *AxialPositionalEncoder) EncodingAt(pos int) *mat.Dense {
 	data := make([]mat.Float, r.Size)
 	for i := 0; i < r.D; i++ {
-		data[i] = r.cache[pos%r.Width].Data()[i]
+		data[i] = r.Cache[pos%r.Width].Data()[i]
 	}
 	for i := r.D; i < r.Size; i++ {
-		data[i] = r.cache[pos/r.Height].Data()[i]
+		data[i] = r.Cache[pos/r.Height].Data()[i]
 	}
 	return mat.NewVecDense(data)
 }
