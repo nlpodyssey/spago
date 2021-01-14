@@ -82,6 +82,12 @@ type param struct {
 	storage      *kvdb.KeyValueDB // default nil
 }
 
+// serializableParam is used for binary encoding/decoding with gob.
+type serializableParam struct {
+	Value   mat.Matrix
+	Payload *Payload
+}
+
 // ParamOption allows to configure a new Param with your specific needs.
 type ParamOption func(*param)
 
@@ -251,30 +257,36 @@ func (r *param) updateStorage() {
 		return
 	}
 	var buf bytes.Buffer
-	if err := (&ParamSerializer{param: r}).Serialize(&buf); err != nil {
+	err := gob.NewEncoder(&buf).Encode(r)
+	if err != nil {
 		log.Fatal(err)
 	}
-	if err := r.storage.Put([]byte(r.name), buf.Bytes()); err != nil {
+	err = r.storage.Put([]byte(r.name), buf.Bytes())
+	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 // MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
 func (r *param) MarshalBinary() ([]byte, error) {
-	var b bytes.Buffer
-	err := mat.MarshalBinaryTo(r.value, &b)
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(serializableParam{Value: r.value, Payload: r.payload})
 	if err != nil {
 		return nil, err
 	}
-	return b.Bytes(), nil
+	return buf.Bytes(), nil
 }
 
 // UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
 func (r *param) UnmarshalBinary(data []byte) error {
-	b := bytes.NewBuffer(data)
-	value, err := mat.NewUnmarshalBinaryFrom(b)
-	r.value = value
-	return err
+	var sp serializableParam
+	err := gob.NewDecoder(bytes.NewBuffer(data)).Decode(&sp)
+	if err != nil {
+		return err
+	}
+	r.value = sp.Value
+	r.payload = sp.Payload
+	return nil
 }
 
 // init registers the param implementation with the gob subsystem - so that it knows how to encode and decode
