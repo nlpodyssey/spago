@@ -8,8 +8,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -56,4 +59,35 @@ func TestParam_Gob(t *testing.T) {
 		assert.Nil(t, decodedParam.Value())
 		assert.Nil(t, decodedParam.Payload())
 	})
+}
+
+func TestParam_Storage(t *testing.T) {
+	dir, err := ioutil.TempDir("", "spago-kvdb-test-")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	storage := kvdb.NewDefaultKeyValueDB(kvdb.Config{Path: dir, ReadOnly: false, ForceNew: true})
+	defer storage.Close()
+	p := NewParam(mat.NewScalar(123), SetStorage(storage))
+	p.SetName("foo")
+	payload := &Payload{Label: 42, Data: nil}
+
+	// Just run an operation which will update the storage
+	p.SetPayload(payload)
+
+	keys, err := storage.Keys()
+	require.Nil(t, err)
+	assert.Equal(t, []string{"foo"}, keys)
+
+	value, ok, err := storage.Get([]byte("foo"))
+	require.Nil(t, err)
+	require.True(t, ok)
+	assert.NotEmpty(t, value)
+
+	var decodedParam Param
+	err = gob.NewDecoder(bytes.NewReader(value)).Decode(&decodedParam)
+	require.Nil(t, err)
+	require.NotNil(t, decodedParam)
+	require.Equal(t, mat.Float(123), decodedParam.Value().Scalar())
+	require.Equal(t, payload, decodedParam.Payload())
 }
