@@ -21,6 +21,7 @@ func TestKeyValueDB_Gob(t *testing.T) {
 	defer os.RemoveAll(dir1)
 
 	db1 := NewDefaultKeyValueDB(Config{Path: dir1, ReadOnly: false, ForceNew: true})
+	defer db1.Close()
 	err := db1.Put([]byte{42}, []byte{1})
 	if err != nil {
 		t.Fatal(err)
@@ -31,6 +32,7 @@ func TestKeyValueDB_Gob(t *testing.T) {
 	defer os.RemoveAll(dir2)
 
 	db2 := NewDefaultKeyValueDB(Config{Path: dir2, ReadOnly: false, ForceNew: true})
+	defer db2.Close()
 	err = db2.Put([]byte{42}, []byte{2})
 	if err != nil {
 		t.Fatal(err)
