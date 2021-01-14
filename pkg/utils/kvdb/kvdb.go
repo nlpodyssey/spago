@@ -10,14 +10,11 @@ import (
 	"os"
 )
 
-// KeyValueDB is an interface implemented by key-value databases which spaGO
-// can use.
-type KeyValueDB interface {
-	Put(key []byte, value []byte) error
-	Get(key []byte) ([]byte, bool, error)
-	Keys() ([]string, error)
-	DropAll() error
-	Close() error
+// KeyValueDB is a key-value database which spaGO can use to efficiently store
+// large data.
+type KeyValueDB struct {
+	Config
+	db *badger.DB
 }
 
 // Config provides configuration parameters for KeyValueDB.
@@ -28,7 +25,7 @@ type Config struct {
 }
 
 // NewDefaultKeyValueDB returns a new KeyValueDB.
-func NewDefaultKeyValueDB(config Config) KeyValueDB {
+func NewDefaultKeyValueDB(config Config) *KeyValueDB {
 	if config.ForceNew {
 		err := os.RemoveAll(config.Path)
 		if err != nil {
@@ -44,32 +41,25 @@ func NewDefaultKeyValueDB(config Config) KeyValueDB {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &badgerBackend{
+	return &KeyValueDB{
 		Config: config,
 		db:     db,
 	}
 }
 
-var _ KeyValueDB = &badgerBackend{}
-
-type badgerBackend struct {
-	Config
-	db *badger.DB
-}
-
 // Close closes the underlying DB.
 // It's crucial to call it to ensure all the pending updates make their way to disk.
-func (m *badgerBackend) Close() error {
+func (m *KeyValueDB) Close() error {
 	return m.db.Close()
 }
 
 // DropAll would drop all the data stored.
 // Readings or writings performed during this operation may result in panics.
-func (m *badgerBackend) DropAll() error {
+func (m *KeyValueDB) DropAll() error {
 	return m.db.DropAll()
 }
 
-func (m *badgerBackend) Keys() ([]string, error) {
+func (m *KeyValueDB) Keys() ([]string, error) {
 	var keys []string
 	err := m.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -84,7 +74,7 @@ func (m *badgerBackend) Keys() ([]string, error) {
 	return keys, err
 }
 
-func (m *badgerBackend) Put(key []byte, value []byte) error {
+func (m *KeyValueDB) Put(key []byte, value []byte) error {
 	return m.db.Update(func(txn *badger.Txn) error {
 		entry := badger.NewEntry(key, value)
 		err := txn.SetEntry(entry)
@@ -92,7 +82,7 @@ func (m *badgerBackend) Put(key []byte, value []byte) error {
 	})
 }
 
-func (m *badgerBackend) Get(key []byte) (value []byte, ok bool, err error) {
+func (m *KeyValueDB) Get(key []byte) (value []byte, ok bool, err error) {
 	err = m.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
 		if err != nil {

@@ -29,7 +29,7 @@ var allModels []*Model
 type Model struct {
 	nn.BaseModel
 	Config
-	Storage       kvdb.KeyValueDB
+	Storage       *kvdb.KeyValueDB
 	Mu            sync.Mutex
 	ZeroEmbedding nn.Param `spago:"type:weights"`
 }

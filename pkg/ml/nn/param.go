@@ -79,7 +79,7 @@ type param struct {
 	payload      *Payload   // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
-	storage      kvdb.KeyValueDB // default nil
+	storage      *kvdb.KeyValueDB // default nil
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
@@ -95,7 +95,7 @@ func RequiresGrad(value bool) ParamOption {
 // SetStorage is an option to specify a kvdb.KeyValueDB storage.
 // This is useful, for example, for a memory-efficient embeddings
 // Param implementation.
-func SetStorage(storage kvdb.KeyValueDB) ParamOption {
+func SetStorage(storage *kvdb.KeyValueDB) ParamOption {
 	return func(p *param) {
 		p.storage = storage
 	}

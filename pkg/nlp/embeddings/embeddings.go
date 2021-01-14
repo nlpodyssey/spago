@@ -25,7 +25,7 @@ var allModels []*Model
 type Model struct {
 	nn.BaseModel
 	Config
-	Storage        kvdb.KeyValueDB
+	Storage        *kvdb.KeyValueDB
 	UsedEmbeddings *sync.Map `spago:"type:params;scope:model"`
 	ZeroEmbedding  nn.Param  `spago:"type:weights"`
 }
