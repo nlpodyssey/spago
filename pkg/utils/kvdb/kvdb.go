@@ -47,6 +47,24 @@ func NewDefaultKeyValueDB(config Config) *KeyValueDB {
 	}
 }
 
+// MarshalBinary prevents KeyValueDB to be encoded to binary representation.
+//
+// It never makes sense to encode/decode a KeyValueDB value, for example
+// when used as a model parameter. So this method always returns nil, and
+// no errors.
+func (KeyValueDB) MarshalBinary() ([]byte, error) {
+	return nil, nil
+}
+
+// UnmarshalBinary prevents KeyValueDB to be decoded from binary representation.
+//
+// It never makes sense to encode/decode a KeyValueDB value, for example
+// when used as a model parameter. So this method always does not modify the
+// receiver in any way, and never returns errors.
+func (*KeyValueDB) UnmarshalBinary([]byte) error {
+	return nil
+}
+
 // Close closes the underlying DB.
 // It's crucial to call it to ensure all the pending updates make their way to disk.
 func (m *KeyValueDB) Close() error {
