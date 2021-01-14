@@ -12,6 +12,7 @@ import (
 
 func init() {
 	gob.Register(&Dense{})
+	gob.Register(&Sparse{})
 }
 
 // MarshalBinary marshals a Dense matrix into binary form.
