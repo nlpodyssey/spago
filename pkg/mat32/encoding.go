@@ -38,3 +38,26 @@ func (d *Dense) UnmarshalBinary(data []byte) error {
 	}
 	return nil
 }
+
+// MarshalBinary marshals a Sparse matrix into binary form.
+func (s Sparse) MarshalBinary() ([]byte, error) {
+	data := make([]byte, 8+s.size*4)
+	binary.LittleEndian.PutUint32(data, uint32(s.rows))
+	binary.LittleEndian.PutUint32(data[4:], uint32(s.cols))
+	for i, v := range s.Data() {
+		binary.LittleEndian.PutUint32(data[8+i*4:], math.Float32bits(v))
+	}
+	return data, nil
+}
+
+// UnmarshalBinary unmarshals a binary representation of a Sparse matrix.
+func (s *Sparse) UnmarshalBinary(data []byte) error {
+	rows := int(binary.LittleEndian.Uint32(data))
+	cols := int(binary.LittleEndian.Uint32(data[4:]))
+	elements := make([]Float, rows*cols)
+	for i := range elements {
+		elements[i] = math.Float32frombits(binary.LittleEndian.Uint32(data[8+i*4:]))
+	}
+	*s = *NewSparse(rows, cols, elements)
+	return nil
+}
