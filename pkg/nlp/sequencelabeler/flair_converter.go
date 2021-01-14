@@ -152,7 +152,7 @@ func Convert(modelPath string, flairModelName string) {
 
 	output := path.Join(modelPath, config.ModelFilename)
 	log.Printf("Serializing full model to \"%s\"... ", output)
-	err = utils.SerializeToFile(output, nn.NewParamsSerializer(model))
+	err = utils.SerializeToFile(output, model)
 	if err != nil {
 		panic("error during model serialization.")
 	}

@@ -119,7 +119,7 @@ func (m *Model) LoadVocabulary(path string) {
 func (m *Model) LoadParams(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
-	err := utils.DeserializeFromFile(file, nn.NewParamsSerializer(m))
+	err := utils.DeserializeFromFile(file, m)
 	if err != nil {
 		panic("error during model deserialization.")
 	}

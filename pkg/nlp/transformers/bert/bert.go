@@ -164,7 +164,7 @@ func LoadModel(modelPath string) (*Model, error) {
 	model.Vocabulary = vocab
 
 	fmt.Printf("[3/3] Loading model weights... ")
-	err = utils.DeserializeFromFile(modelFilename, nn.NewParamsSerializer(model))
+	err = utils.DeserializeFromFile(modelFilename, model)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("bert: error during model deserialization (%s)", err.Error()))
 	}
