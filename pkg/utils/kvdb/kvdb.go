@@ -59,6 +59,7 @@ func (m *KeyValueDB) DropAll() error {
 	return m.db.DropAll()
 }
 
+// Keys returns all the keys from the DB.
 func (m *KeyValueDB) Keys() ([]string, error) {
 	var keys []string
 	err := m.db.View(func(txn *badger.Txn) error {
@@ -74,6 +75,7 @@ func (m *KeyValueDB) Keys() ([]string, error) {
 	return keys, err
 }
 
+// Put sets a new key/value pair in the DB.
 func (m *KeyValueDB) Put(key []byte, value []byte) error {
 	return m.db.Update(func(txn *badger.Txn) error {
 		entry := badger.NewEntry(key, value)
@@ -82,6 +84,7 @@ func (m *KeyValueDB) Put(key []byte, value []byte) error {
 	})
 }
 
+// Get returns the value associated to the given key, if it exists.
 func (m *KeyValueDB) Get(key []byte) (value []byte, ok bool, err error) {
 	err = m.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get(key)
