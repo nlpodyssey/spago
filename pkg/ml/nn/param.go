@@ -257,7 +257,8 @@ func (r *param) updateStorage() {
 		return
 	}
 	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(r)
+	var p Param = r // without this, gob couldn't decode to Param interface
+	err := gob.NewEncoder(&buf).Encode(&p)
 	if err != nil {
 		log.Fatal(err)
 	}
