@@ -33,7 +33,7 @@ type BiModel struct {
 	LayerNorm *layernorm.Model
 }
 
-// New returns a new model with parameters initialized to zeros.
+// NewBidirectional returns a new model with parameters initialized to zeros.
 func NewBidirectional(config Config) *BiModel {
 	layers := []nn.StandardModel{
 		linear.New(config.InputSize, config.HyperSize),
