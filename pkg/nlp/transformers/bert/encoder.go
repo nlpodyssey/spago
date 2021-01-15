@@ -13,6 +13,7 @@ Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser and Illia Polosukhin
 package bert
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -40,6 +41,10 @@ type EncoderConfig struct {
 type Encoder struct {
 	EncoderConfig
 	*stack.Model
+}
+
+func init() {
+	gob.Register(&Encoder{})
 }
 
 // NewBertEncoder returns a new BERT encoder model composed of a stack of N identical BERT encoder layers.

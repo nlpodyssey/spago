@@ -5,6 +5,7 @@
 package barthead
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -25,6 +26,10 @@ type SequenceClassification struct {
 	nn.BaseModel
 	BART           *bart.Model
 	Classification *Classification
+}
+
+func init() {
+	gob.Register(&SequenceClassification{})
 }
 
 // NewSequenceClassification returns a new SequenceClassification.
@@ -61,7 +66,7 @@ func LoadModelForSequenceClassification(modelPath string) (*SequenceClassificati
 	model := NewSequenceClassification(config, embeddingsPath)
 
 	fmt.Printf("[2/2] Loading model weights... ")
-	err = utils.DeserializeFromFile(modelFilename, nn.NewParamsSerializer(model))
+	err = utils.DeserializeFromFile(modelFilename, model)
 	if err != nil {
 		log.Fatal(fmt.Sprintf("bert: error during model deserialization (%s)", err.Error()))
 	}

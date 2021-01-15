@@ -5,6 +5,7 @@
 package posembeddings
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -28,6 +29,10 @@ type LearnedPositionalEmbeddings struct {
 	nn.BaseModel
 	Config  Config
 	Vectors []nn.Param `spago:"type:weights;scope:model"`
+}
+
+func init() {
+	gob.Register(&LearnedPositionalEmbeddings{})
 }
 
 // NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.

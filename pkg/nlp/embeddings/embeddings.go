@@ -6,13 +6,14 @@ package embeddings
 
 import (
 	"bytes"
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/nlp/embeddings/syncmap"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"log"
 	"strings"
-	"sync"
 )
 
 var (
@@ -25,9 +26,9 @@ var allModels []*Model
 type Model struct {
 	nn.BaseModel
 	Config
-	Storage        kvdb.KeyValueDB
-	UsedEmbeddings *sync.Map `spago:"type:params;scope:model"`
-	ZeroEmbedding  nn.Param  `spago:"type:weights"`
+	Storage        *kvdb.KeyValueDB
+	UsedEmbeddings *syncmap.Map `spago:"type:params;scope:model"`
+	ZeroEmbedding  nn.Param     `spago:"type:weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -45,6 +46,10 @@ type Config struct {
 	ForceNewDB bool
 }
 
+func init() {
+	gob.Register(&Model{})
+}
+
 // New returns a new embedding model.
 func New(config Config) *Model {
 	m := &Model{
@@ -54,7 +59,7 @@ func New(config Config) *Model {
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		UsedEmbeddings: &sync.Map{},
+		UsedEmbeddings: syncmap.New(),
 		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
@@ -115,18 +120,18 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}
+
 	embedding := nn.NewParam(value)
 	embedding.SetPayload(nn.NewEmptySupport())
+
 	var buf bytes.Buffer
-	serializer, err := nn.NewParamSerializer(embedding)
+	err := gob.NewEncoder(&buf).Encode(embedding)
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = serializer.Serialize(&buf)
+
+	err = m.Storage.Put([]byte(word), buf.Bytes())
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -174,12 +179,10 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 	if !ok {
 		return nil // embedding not found
 	}
+
 	embedding := nn.NewParam(nil, nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
-	serializer, err := nn.NewParamSerializer(embedding)
+	err = gob.NewDecoder(bytes.NewReader(data)).Decode(embedding)
 	if err != nil {
-		log.Fatal(err)
-	}
-	if _, err := serializer.Deserialize(bytes.NewReader(data)); err != nil {
 		log.Fatal(err)
 	}
 	embedding.SetName(word)

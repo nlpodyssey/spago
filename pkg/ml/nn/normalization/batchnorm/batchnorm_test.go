@@ -150,19 +150,17 @@ func Test_Serialize(t *testing.T) {
 	defer func() {
 		_ = os.Remove(tempFile.Name())
 	}()
-	err = utils.SerializeToFile(tempFile.Name(), nn.NewParamsSerializer(model))
+	err = utils.SerializeToFile(tempFile.Name(), &model)
 	require.Nil(t, err)
 
 	model2 := New(3)
-	serializer := nn.NewParamsSerializer(model2)
-	tempFile, err = os.Open(tempFile.Name())
-	require.Nil(t, err)
-	_, err = serializer.Deserialize(tempFile)
+	err = utils.DeserializeFromFile(tempFile.Name(), &model2)
 	require.NoError(t, err)
 	require.Equal(t, model.Momentum.Value().Scalar(), model2.Momentum.Value().Scalar())
 	require.Equal(t, model.Mean.Value().Data(), model2.Mean.Value().Data())
 	require.Equal(t, model.StdDev.Value().Data(), model2.StdDev.Value().Data())
 }
+
 func TestModel_Forward(t *testing.T) {
 
 	model := newTestModel()

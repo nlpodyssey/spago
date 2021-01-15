@@ -20,6 +20,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
 	"github.com/nlpodyssey/spago/pkg/nlp/contextualstringembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
+	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/gopickleutils"
 	"io"
@@ -76,24 +77,12 @@ func Convert(modelPath string, flairModelName string) {
 	{
 		configData, err := json.MarshalIndent(config, "", "  ")
 		if err != nil {
-			panic(fmt.Errorf("error marshaling configuration: %v", err))
+			panic(fmt.Errorf("error marshaling configuration: %w", err))
 		}
 		err = ioutil.WriteFile(path.Join(modelPath, defaultConfigFilename), configData, 0644)
 	}
 
 	stateDict := c.buildStateDict()
-
-	// ---
-
-	flairEmbeddingsForward, _ := c.embeddings().FlairEmbeddings()
-	embeddingsLMForward := flairEmbeddingsForward.modules.MustGet("lm").(*flairLanguageModel)
-
-	normalizedVocab := embeddingsLMForward.Dictionary.GetItems()
-	dictData, err := json.Marshal(normalizedVocab)
-	if err != nil {
-		panic(fmt.Errorf("error marshaling vocab: %v", err))
-	}
-	err = ioutil.WriteFile(path.Join(modelPath, defaultDictionaryFilename), dictData, 0644)
 
 	// ---
 
@@ -112,6 +101,11 @@ func Convert(modelPath string, flairModelName string) {
 	if lm.Config.VocabularySize != lmRev.VocabularySize || lm.Config.EmbeddingSize != lmRev.EmbeddingSize {
 		panic("language model size mismatch")
 	}
+
+	flairEmbeddingsForward, _ := c.embeddings().FlairEmbeddings()
+	embeddingsLMForward := flairEmbeddingsForward.modules.MustGet("lm").(*flairLanguageModel)
+	voc := vocabulary.New(embeddingsLMForward.Dictionary.GetItems())
+	lm.Vocabulary, lmRev.Vocabulary = voc, voc
 
 	assignToParamsList(
 		stateDict["lm.forward.embeddings.weight"],
@@ -152,7 +146,7 @@ func Convert(modelPath string, flairModelName string) {
 
 	output := path.Join(modelPath, config.ModelFilename)
 	log.Printf("Serializing full model to \"%s\"... ", output)
-	err = utils.SerializeToFile(output, nn.NewParamsSerializer(model))
+	err := utils.SerializeToFile(output, model)
 	if err != nil {
 		panic("error during model serialization.")
 	}

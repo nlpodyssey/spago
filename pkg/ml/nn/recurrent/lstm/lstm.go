@@ -5,6 +5,7 @@
 package lstm
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -46,6 +47,10 @@ type State struct {
 
 // Option allows to configure a new Model with your specific needs.
 type Option func(*Model)
+
+func init() {
+	gob.Register(&Model{})
+}
 
 // SetRefinedGates sets whether to use refined gates.
 // Refined Gate: A Simple and Effective Gating Mechanism for Recurrent Units

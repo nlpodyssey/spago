@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -39,6 +40,10 @@ type Embeddings struct {
 	Norm             *layernorm.Model
 	Projector        *linear.Model
 	UnknownEmbedding ag.Node `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Embeddings{})
 }
 
 // NewEmbeddings returns a new BERT Embeddings model.

@@ -70,7 +70,7 @@ func (t *Trainer) Train() {
 
 		if i > 0 && i%1000 == 0 {
 			fmt.Println("=== MODEL SERIALIZATION")
-			err := utils.SerializeToFile(t.ModelPath, nn.NewParamsSerializer(t.model))
+			err := utils.SerializeToFile(t.ModelPath, t.model)
 			if err != nil {
 				panic("bert: error during model serialization.")
 			}

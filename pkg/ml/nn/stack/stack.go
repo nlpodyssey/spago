@@ -5,6 +5,7 @@
 package stack
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -17,6 +18,10 @@ var (
 type Model struct {
 	nn.BaseModel
 	Layers []nn.StandardModel
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model.

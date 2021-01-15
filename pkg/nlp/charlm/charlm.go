@@ -9,6 +9,7 @@
 package charlm
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -17,6 +18,10 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/recurrent/lstm"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
+)
+
+var (
+	_ nn.Model = &Model{}
 )
 
 const (
@@ -50,6 +55,10 @@ type Model struct {
 	Vocabulary       *vocabulary.Vocabulary
 	UsedEmbeddings   map[int]ag.Node `spago:"scope:processor"`
 	UnknownEmbedding ag.Node         `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new character-level language Model, initialized according to

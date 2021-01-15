@@ -69,12 +69,12 @@ func parseModuleFieldTag(tag string) (moduleFieldTag, error) {
 		case "type":
 			mft.Type, err = stringToModuleFieldType(right)
 			if err != nil {
-				return mft, fmt.Errorf("malformed module field tag %#v: %v", tag, err)
+				return mft, fmt.Errorf("malformed module field tag %#v: %w", tag, err)
 			}
 		case "scope":
 			mft.Scope, err = stringToModuleFieldScope(right)
 			if err != nil {
-				return mft, fmt.Errorf("malformed module field tag %#v: %v", tag, err)
+				return mft, fmt.Errorf("malformed module field tag %#v: %w", tag, err)
 			}
 		default:
 			return mft, fmt.Errorf("malformed module field tag %#v: unexpected key %#v", tag, left)

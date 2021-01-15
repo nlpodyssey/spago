@@ -5,6 +5,7 @@
 package barthead
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -30,6 +31,10 @@ type ClassificationConfig struct {
 type Classification struct {
 	Config ClassificationConfig
 	*stack.Model
+}
+
+func init() {
+	gob.Register(&Classification{})
 }
 
 // NewClassification returns a new Classification.

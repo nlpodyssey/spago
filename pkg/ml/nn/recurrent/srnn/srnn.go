@@ -7,6 +7,7 @@
 package srnn
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -44,6 +45,10 @@ type Config struct {
 type State struct {
 	Y ag.Node
 	H ag.Node
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

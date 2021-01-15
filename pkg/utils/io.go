@@ -7,30 +7,25 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"encoding/gob"
 	"io"
 	"log"
 	"os"
 )
 
-// Serializer is implemented by any value that has the Serialize method.
-type Serializer interface {
-	Serialize(w io.Writer) (int, error)
-}
-
-// Deserializer is implemented by any value that has the Deserialize method.
-type Deserializer interface {
-	Deserialize(r io.Reader) (int, error)
-}
-
-// SerializeToFile serializes obj to file.
-func SerializeToFile(filename string, obj Serializer) (err error) {
+// SerializeToFile serializes obj to file, using gob encoding.
+func SerializeToFile(filename string, obj interface{}) (err error) {
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() {
+		if e := f.Close(); e != nil && err == nil {
+			err = e
+		}
+	}()
 	buf := bufio.NewWriter(f) // Buffered writing is essential to avoid memory leaks with large data
-	_, err = obj.Serialize(buf)
+	err = gob.NewEncoder(buf).Encode(obj)
 	if err != nil {
 		return err
 	}
@@ -38,41 +33,25 @@ func SerializeToFile(filename string, obj Serializer) (err error) {
 	if err != nil {
 		return err
 	}
-	return
+	return nil
 }
 
-// DeserializeFromFile deserializes obj from file.
-func DeserializeFromFile(filename string, obj Deserializer) (err error) {
+// DeserializeFromFile deserializes obj from file, using gob decoding.
+func DeserializeFromFile(filename string, obj interface{}) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	_, err = obj.Deserialize(bufio.NewReader(f))
+	defer func() {
+		if e := f.Close(); e != nil && err == nil {
+			err = e
+		}
+	}()
+	err = gob.NewDecoder(bufio.NewReader(f)).Decode(obj)
 	if err != nil {
 		return err
 	}
 	return
-}
-
-// ReadFull reads from r into buf until it has read len(buf).
-// It returns the number of bytes copied and an error if fewer bytes were read.
-// If an EOF happens after reading fewer than len(buf) bytes, io.ErrUnexpectedEOF is returned.
-func ReadFull(r io.Reader, buf []byte) (int, error) {
-	var n int
-	var err error
-	for n < len(buf) && err == nil {
-		var nn int
-		nn, err = r.Read(buf[n:])
-		n += nn
-	}
-	if n == len(buf) {
-		return n, nil
-	}
-	if err == io.EOF {
-		return n, io.ErrUnexpectedEOF
-	}
-	return n, err
 }
 
 // CountLines efficiently counts the lines of text inside a file.

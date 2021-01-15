@@ -5,6 +5,7 @@
 package rae
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -21,6 +22,10 @@ type Encoder struct {
 	EncodingFFN nn.StandardModel
 	StepEncoder *pe.PositionalEncoder
 	Recursions  int `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Encoder{})
 }
 
 // GetRecursions returns the number of recursions.

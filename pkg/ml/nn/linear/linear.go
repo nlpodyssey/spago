@@ -5,6 +5,7 @@
 package linear
 
 import (
+	"encoding/gob"
 	"sync"
 
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
@@ -31,6 +32,10 @@ func BiasGrad(enable bool) Option {
 	return func(m *Model) {
 		m.B.SetRequiresGrad(enable)
 	}
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

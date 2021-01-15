@@ -5,6 +5,7 @@
 package bartencoder
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
@@ -26,6 +27,10 @@ type Model struct {
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
 	EmbeddingLayerNorm          *layernorm.Model
 	LayerNorm                   *layernorm.Model
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new BART encoder Model.

@@ -5,6 +5,7 @@
 package bartencoder
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -28,6 +29,10 @@ type Layer struct {
 	SelfAttentionLayerNorm *layernorm.Model
 	FFN                    *stack.Model
 	LayerNorm              *layernorm.Model
+}
+
+func init() {
+	gob.Register(&Layer{})
 }
 
 // NewLayer returns a new BART encoder Layer.

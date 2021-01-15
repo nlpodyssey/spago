@@ -6,6 +6,8 @@ package vocabulary
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"os"
 	"sync/atomic"
@@ -119,4 +121,25 @@ func (c *Vocabulary) LongestPrefix(term string) string {
 		}
 	}
 	return ""
+}
+
+// MarshalBinary marshals a Vocabulary into binary form.
+func (c Vocabulary) MarshalBinary() ([]byte, error) {
+	var buf bytes.Buffer
+	err := gob.NewEncoder(&buf).Encode(&c.inverse)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// UnmarshalBinary unmarshals a binary representation of a Vocabulary.
+func (c *Vocabulary) UnmarshalBinary(data []byte) error {
+	var terms []string
+	err := gob.NewDecoder(bytes.NewReader(data)).Decode(&terms)
+	if err != nil {
+		return err
+	}
+	*c = *New(terms)
+	return nil
 }

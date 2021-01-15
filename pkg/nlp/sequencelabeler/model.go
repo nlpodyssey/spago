@@ -7,7 +7,7 @@
 package sequencelabeler
 
 import (
-	"encoding/json"
+	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -21,10 +21,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/stackedembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
-	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"log"
-	"os"
 	"path/filepath"
 )
 
@@ -39,6 +36,10 @@ type Model struct {
 	EmbeddingsLayer *stackedembeddings.Model
 	TaggerLayer     *birnncrf.Model
 	Labels          []string
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // NewDefaultModel returns a new sequence labeler built based on the architecture of Flair.
@@ -93,33 +94,11 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
-// LoadVocabulary loads a vocabulary from file.
-func (m *Model) LoadVocabulary(path string) {
-	var terms []string
-	file, err := os.Open(filepath.Join(path, m.Config.ContextualStringEmbeddings.VocabularyFilename))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	err = json.NewDecoder(file).Decode(&terms)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	charLMIndex := len(m.Config.WordEmbeddings)
-
-	l2rCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).LeftToRight
-	r2lCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).RightToLeft
-
-	vocab := vocabulary.New(terms)
-	l2rCharLM.Vocabulary, r2lCharLM.Vocabulary = vocab, vocab
-}
-
-// LoadParams load Model parameters from file.
-func (m *Model) LoadParams(path string) {
+// Load loads a Model from file.
+func (m *Model) Load(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
-	err := utils.DeserializeFromFile(file, nn.NewParamsSerializer(m))
+	err := utils.DeserializeFromFile(file, m)
 	if err != nil {
 		panic("error during model deserialization.")
 	}

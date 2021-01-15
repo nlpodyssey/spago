@@ -5,6 +5,7 @@
 package highway
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -22,6 +23,10 @@ type Model struct {
 	WT         nn.Param `spago:"type:weights"`
 	BT         nn.Param `spago:"type:biases"`
 	Activation ag.OpName
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

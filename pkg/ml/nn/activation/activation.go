@@ -5,6 +5,7 @@
 package activation
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -18,6 +19,10 @@ type Model struct {
 	nn.BaseModel
 	Activation ag.OpName
 	Params     []nn.Param
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

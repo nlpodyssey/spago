@@ -5,6 +5,7 @@
 package crf
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -20,6 +21,10 @@ type Model struct {
 	Size             int
 	TransitionScores nn.Param    `spago:"type:weights"`
 	Scores           [][]ag.Node `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.

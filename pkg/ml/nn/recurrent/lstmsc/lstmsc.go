@@ -7,6 +7,7 @@
 package lstmsc
 
 import (
+	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -39,6 +40,10 @@ type Model struct {
 	WCandRec       nn.Param `spago:"type:weights"`
 	BCand          nn.Param `spago:"type:biases"`
 	States         []*State `spago:"scope:processor"`
+}
+
+func init() {
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.

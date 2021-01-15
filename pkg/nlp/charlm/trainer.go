@@ -63,7 +63,7 @@ func (t *Trainer) Train() {
 		// TODO: save the model only if it is better against a validation criterion (yet to be defined)
 		if i > 0 && i%t.SerializationInterval == 0 {
 			fmt.Println("=== MODEL SERIALIZATION")
-			err := utils.SerializeToFile(t.ModelPath, nn.NewParamsSerializer(t.model))
+			err := utils.SerializeToFile(t.ModelPath, t.model)
 			if err != nil {
 				panic("charlm: error during model serialization.")
 			}

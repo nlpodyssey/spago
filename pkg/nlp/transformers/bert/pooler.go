@@ -5,6 +5,7 @@
 package bert
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -25,6 +26,10 @@ type PoolerConfig struct {
 // Pooler is a BERT Pooler model.
 type Pooler struct {
 	*stack.Model
+}
+
+func init() {
+	gob.Register(&Pooler{})
 }
 
 // NewPooler returns a new BERT Pooler model.
