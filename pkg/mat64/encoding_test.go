@@ -62,3 +62,45 @@ func TestSparse_Gob(t *testing.T) {
 	assert.Equal(t, 3, decodedMatrix.Columns())
 	assert.Equal(t, []Float{1, 0, 3, 0, 5, 0}, decodedMatrix.Data())
 }
+
+func TestMatrixBinaryMarshaling(t *testing.T) {
+	t.Run("Dense matrix", func(t *testing.T) {
+		var matrixToEncode Matrix = NewScalar(42)
+
+		buf := new(bytes.Buffer)
+		err := MarshalBinaryMatrix(matrixToEncode, buf)
+		require.Nil(t, err)
+
+		decodedMatrix, err := UnmarshalBinaryMatrix(buf)
+		require.Nil(t, err)
+		require.NotNil(t, decodedMatrix)
+		require.IsType(t, &Dense{}, decodedMatrix)
+		require.Equal(t, Float(42), decodedMatrix.Scalar())
+	})
+
+	t.Run("Sparse matrix", func(t *testing.T) {
+		var matrixToEncode Matrix = NewVecSparse([]Float{42})
+
+		buf := new(bytes.Buffer)
+		err := MarshalBinaryMatrix(matrixToEncode, buf)
+		require.Nil(t, err)
+
+		decodedMatrix, err := UnmarshalBinaryMatrix(buf)
+		require.Nil(t, err)
+		require.NotNil(t, decodedMatrix)
+		require.IsType(t, &Sparse{}, decodedMatrix)
+		require.Equal(t, Float(42), decodedMatrix.Scalar())
+	})
+
+	t.Run("nil", func(t *testing.T) {
+		var matrixToEncode Matrix = nil
+
+		buf := new(bytes.Buffer)
+		err := MarshalBinaryMatrix(matrixToEncode, buf)
+		require.Nil(t, err)
+
+		decodedMatrix, err := UnmarshalBinaryMatrix(buf)
+		require.Nil(t, err)
+		require.Nil(t, decodedMatrix)
+	})
+}
