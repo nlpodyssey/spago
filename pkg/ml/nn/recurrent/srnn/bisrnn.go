@@ -23,7 +23,7 @@ var (
 	_ nn.Model = &BiModel{}
 )
 
-// Model contains the serializable parameters.
+// BiModel contains the serializable parameters.
 type BiModel struct {
 	nn.BaseModel
 	Config    Config
