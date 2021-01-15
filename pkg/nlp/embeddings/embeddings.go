@@ -122,10 +122,10 @@ func (m *Model) SetEmbedding(word string, value *mat.Dense) {
 	}
 
 	embedding := nn.NewParam(value)
-	embedding.SetPayload(nn.NewEmptySupport())
+	embedding.SetPayload(nn.NewPayload())
 
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(embedding)
+	buf := new(bytes.Buffer)
+	err := nn.MarshalBinaryParam(embedding, buf)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -180,11 +180,13 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 		return nil // embedding not found
 	}
 
-	embedding := nn.NewParam(nil, nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
-	err = gob.NewDecoder(bytes.NewReader(data)).Decode(embedding)
+	tmp, err := nn.UnmarshalBinaryParam(bytes.NewReader(data))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	embedding := nn.NewParam(tmp.Value(), nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
+	embedding.SetPayload(tmp.Payload())
 	embedding.SetName(word)
 	m.UsedEmbeddings.Store(word, embedding) // important
 	return embedding

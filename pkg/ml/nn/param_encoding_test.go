@@ -70,7 +70,8 @@ func TestParam_Storage(t *testing.T) {
 	defer storage.Close()
 	p := NewParam(mat.NewScalar(123), SetStorage(storage))
 	p.SetName("foo")
-	payload := &Payload{Label: 42, Data: nil}
+	payload := NewPayload()
+	payload.Label = 42
 
 	// Just run an operation which will update the storage
 	p.SetPayload(payload)
@@ -84,10 +85,36 @@ func TestParam_Storage(t *testing.T) {
 	require.True(t, ok)
 	assert.NotEmpty(t, value)
 
-	var decodedParam = NewParam(nil)
-	err = gob.NewDecoder(bytes.NewReader(value)).Decode(decodedParam)
+	decodedParam, err := UnmarshalBinaryParam(bytes.NewReader(value))
 	require.Nil(t, err)
 	require.NotNil(t, decodedParam)
 	require.Equal(t, mat.Float(123), decodedParam.Value().Scalar())
 	require.Equal(t, payload, decodedParam.Payload())
+}
+
+func TestParamInterfaceBinaryMarshaling(t *testing.T) {
+	t.Run("simple case", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+
+		paramToEncode := NewParam(mat.NewScalar(42))
+		err := MarshalBinaryParam(paramToEncode, buf)
+		require.Nil(t, err)
+
+		decodedParam, err := UnmarshalBinaryParam(buf)
+		require.Nil(t, err)
+		require.NotNil(t, decodedParam)
+		assert.Equal(t, mat.Float(42), decodedParam.Value().Scalar())
+	})
+
+	t.Run("nil", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+
+		var paramToEncode Param = nil
+		err := MarshalBinaryParam(paramToEncode, buf)
+		require.Nil(t, err)
+
+		decodedParam, err := UnmarshalBinaryParam(buf)
+		require.Nil(t, err)
+		assert.Nil(t, decodedParam)
+	})
 }

@@ -6,13 +6,11 @@ package nn
 
 import (
 	"bytes"
-	"encoding/gob"
-	"log"
-	"sync"
-
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
+	"log"
+	"sync"
 )
 
 // Param is the interface for a Model parameter.
@@ -54,20 +52,6 @@ func (ps Params) Nodes() []ag.Node {
 	return ns
 }
 
-// Payload contains the support data used for example by the optimization methods
-type Payload struct {
-	Label int
-	Data  []mat.Matrix
-}
-
-// NewEmptySupport returns an empty support structure, not connected to any optimization method.
-func NewEmptySupport() *Payload {
-	return &Payload{
-		Label: 0, // important set the label to zero
-		Data:  make([]mat.Matrix, 0),
-	}
-}
-
 var _ Param = &param{}
 
 type param struct {
@@ -80,12 +64,6 @@ type param struct {
 	hasGrad      bool
 	requiresGrad bool
 	storage      *kvdb.KeyValueDB // default nil
-}
-
-// serializableParam is used for binary encoding/decoding with gob.
-type serializableParam struct {
-	Value   mat.Matrix
-	Payload *Payload
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
@@ -256,44 +234,17 @@ func (r *param) updateStorage() {
 	if r.storage == nil {
 		return
 	}
-	var buf bytes.Buffer
-	var p Param = r // without this, gob couldn't decode to Param interface
-	err := gob.NewEncoder(&buf).Encode(p)
+
+	buf := new(bytes.Buffer)
+	err := MarshalBinaryParam(r, buf)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = r.storage.Put([]byte(r.name), buf.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
-func (r *param) MarshalBinary() ([]byte, error) {
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(serializableParam{Value: r.value, Payload: r.payload})
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
-func (r *param) UnmarshalBinary(data []byte) error {
-	var sp serializableParam
-	err := gob.NewDecoder(bytes.NewBuffer(data)).Decode(&sp)
-	if err != nil {
-		return err
-	}
-	r.value = sp.Value
-	r.payload = sp.Payload
-	return nil
-}
-
-// init registers the param implementation with the gob subsystem - so that it knows how to encode and decode
-// values of type nn.Param
-func init() {
-	gob.Register(&param{})
 }
 
 // Graph returns always nil since the "pure" parameter is not associated with any graph.

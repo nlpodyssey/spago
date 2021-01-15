@@ -9,7 +9,6 @@
 package evolvingembeddings
 
 import (
-	"bytes"
 	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -138,11 +137,17 @@ func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
 // SetEmbeddings inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
 func (m *Model) setEmbedding(word string, value *mat.Dense) {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(value); err != nil {
-		log.Fatal(err)
+	var err error
+	var data []byte = nil
+
+	if value != nil {
+		data, err = value.MarshalBinary()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	if err := m.Storage.Put([]byte(word), buf.Bytes()); err != nil {
+
+	if err := m.Storage.Put([]byte(word), data); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -169,11 +174,12 @@ func (m *Model) getEmbeddingExactMatch(word string) *mat.Dense {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if !ok {
-		return nil // embedding not found
+	if !ok || data == nil {
+		return nil // embedding not found, or nil Dense matrix
 	}
-	var embedding *mat.Dense
-	err = gob.NewDecoder(bytes.NewReader(data)).Decode(&embedding)
+
+	embedding := new(mat.Dense)
+	err = embedding.UnmarshalBinary(data)
 	if err != nil {
 		log.Fatal(err)
 	}
