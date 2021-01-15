@@ -10,10 +10,10 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/nlp/embeddings/syncmap"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"log"
 	"strings"
-	"sync"
 )
 
 var (
@@ -27,8 +27,8 @@ type Model struct {
 	nn.BaseModel
 	Config
 	Storage        *kvdb.KeyValueDB
-	UsedEmbeddings *sync.Map `spago:"type:params;scope:model"`
-	ZeroEmbedding  nn.Param  `spago:"type:weights"`
+	UsedEmbeddings *syncmap.Map `spago:"type:params;scope:model"`
+	ZeroEmbedding  nn.Param     `spago:"type:weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -59,7 +59,7 @@ func New(config Config) *Model {
 			ReadOnly: config.ReadOnly,
 			ForceNew: config.ForceNewDB,
 		}),
-		UsedEmbeddings: &sync.Map{},
+		UsedEmbeddings: syncmap.New(),
 		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
