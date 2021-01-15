@@ -84,8 +84,8 @@ func TestParam_Storage(t *testing.T) {
 	require.True(t, ok)
 	assert.NotEmpty(t, value)
 
-	var decodedParam Param
-	err = gob.NewDecoder(bytes.NewReader(value)).Decode(&decodedParam)
+	var decodedParam = NewParam(nil)
+	err = gob.NewDecoder(bytes.NewReader(value)).Decode(decodedParam)
 	require.Nil(t, err)
 	require.NotNil(t, decodedParam)
 	require.Equal(t, mat.Float(123), decodedParam.Value().Scalar())
