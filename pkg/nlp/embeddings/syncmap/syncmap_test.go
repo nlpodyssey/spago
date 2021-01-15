@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestKeyValueDB_Gob(t *testing.T) {
+func TestSyncMap_Gob(t *testing.T) {
 	var buf bytes.Buffer
 
 	m1 := New()
@@ -32,6 +32,5 @@ func TestKeyValueDB_Gob(t *testing.T) {
 	assert.Equal(t, "bar", value)
 
 	value, ok = m2.Load("foo")
-	assert.True(t, ok)
-	assert.Equal(t, "qux", value)
+	assert.False(t, ok)
 }
