@@ -94,6 +94,19 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
+// LoadEmbeddings sets the embeddings into the model.
+func (m *Model) LoadEmbeddings(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) {
+	for i, weConfig := range config.WordEmbeddings {
+		m.EmbeddingsLayer.WordsEncoders[i] = embeddings.New(embeddings.Config{
+			Size:             weConfig.WordEmbeddingsSize,
+			UseZeroEmbedding: true,
+			DBPath:           filepath.Join(path, weConfig.WordEmbeddingsFilename),
+			ReadOnly:         readOnlyEmbeddings,
+			ForceNewDB:       forceNewEmbeddingsDB,
+		})
+	}
+}
+
 // Load loads a Model from file.
 func (m *Model) Load(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
