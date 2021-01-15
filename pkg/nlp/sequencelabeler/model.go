@@ -94,8 +94,8 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
-// LoadParams load Model parameters from file.
-func (m *Model) LoadParams(path string) {
+// Load loads a Model from file.
+func (m *Model) Load(path string) {
 	file := filepath.Join(path, m.Config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
 	err := utils.DeserializeFromFile(file, m)
