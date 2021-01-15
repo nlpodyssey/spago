@@ -24,6 +24,7 @@ func (Map) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary prevents Map to be decoded from binary representation.
-func (*Map) UnmarshalBinary([]byte) error {
+func (m *Map) UnmarshalBinary([]byte) error {
+	m.Map = &sync.Map{}
 	return nil
 }
