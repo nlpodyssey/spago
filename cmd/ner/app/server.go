@@ -6,15 +6,14 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
+	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/urfave/cli"
 	"log"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
-
-	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
-	"github.com/nlpodyssey/spago/pkg/utils/httputils"
-	"github.com/urfave/cli"
 )
 
 func newServerCommandFor(app *NERApp) cli.Command {
@@ -72,9 +71,21 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 			Destination: &app.tlsKey,
 		},
 		cli.BoolFlag{
-			Name:        "tls-disable ",
+			Name:        "tls-disable",
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: &app.tlsDisable,
+		},
+		cli.IntFlag{
+			Name:        "timeout",
+			Usage:       "Server read, write, and idle timeout duration in seconds.",
+			Value:       httputils.DefaultTimeoutSeconds,
+			Destination: &app.serverTimeoutSeconds,
+		},
+		cli.IntFlag{
+			Name:        "max-request-size",
+			Usage:       "Maximum number of bytes the server will read parsing the request content.",
+			Value:       httputils.DefaultMaxRequestBytes,
+			Destination: &app.serverMaxRequestBytes,
 		},
 	}
 }
@@ -131,6 +142,8 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 		}(), app.grpcAddress)
 
 		server := sequencelabeler.NewServer(model)
+		server.TimeoutSeconds = app.serverTimeoutSeconds
+		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.Start(app.address, app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
 	}
 }

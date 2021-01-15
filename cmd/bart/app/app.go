@@ -15,18 +15,20 @@ const (
 // BartApp contains everything needed to run the BART demo client or server.
 type BartApp struct {
 	*cli.App
-	address        string
-	grpcAddress    string
-	tlsCert        string
-	tlsKey         string
-	tlsDisable     bool
-	model          string
-	repo           string
-	output         string
-	requestText    string
-	requestText2   string
-	commaSepLabels string
-	multiClass     bool
+	address               string
+	grpcAddress           string
+	tlsCert               string
+	tlsKey                string
+	tlsDisable            bool
+	model                 string
+	repo                  string
+	output                string
+	requestText           string
+	requestText2          string
+	commaSepLabels        string
+	multiClass            bool
+	serverTimeoutSeconds  int
+	serverMaxRequestBytes int
 }
 
 // NewBartApp returns a new BartApp object, which can be used as either client or server.

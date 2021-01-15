@@ -5,33 +5,45 @@
 package grpcutils
 
 import (
-	"log"
-	"net"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"log"
+	"net"
+	"time"
 )
 
-// NewGRPCServer returns grpc.Server objects, optionally configured for TLS.
-func NewGRPCServer(tlsDisable bool, tlsCert, tlsKey string) *grpc.Server {
-	serverOptions := createServerOptions(tlsDisable, tlsCert, tlsKey)
-	grpcServer := grpc.NewServer(serverOptions...)
-	return grpcServer
+// GRPCServerConfig provides server configuration parameters for creating
+// a GRPC server (see NewGRPCServer).
+type GRPCServerConfig struct {
+	TLSDisable      bool
+	TLSCert         string
+	TLSKey          string
+	TimeoutSeconds  int
+	MaxRequestBytes int
 }
 
-func createServerOptions(tlsDisable bool, tlsCert, tlsKey string) []grpc.ServerOption {
-	if tlsDisable {
-		return []grpc.ServerOption{}
+// NewGRPCServer returns grpc.Server objects, optionally configured for TLS.
+func NewGRPCServer(config GRPCServerConfig) *grpc.Server {
+	serverOptions := createServerOptions(config)
+	return grpc.NewServer(serverOptions...)
+}
+
+func createServerOptions(config GRPCServerConfig) []grpc.ServerOption {
+	options := []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(config.MaxRequestBytes),
+		// ConnectionTimeout is EXPERIMENTAL and may be changed or removed in a later release.
+		grpc.ConnectionTimeout(time.Duration(config.TimeoutSeconds) * time.Second),
 	}
 
-	creds, err := credentials.NewServerTLSFromFile(tlsCert, tlsKey)
-	if err != nil {
-		log.Fatalf("failed to read TLS certs: %v\n", err)
+	if !config.TLSDisable {
+		creds, err := credentials.NewServerTLSFromFile(config.TLSCert, config.TLSKey)
+		if err != nil {
+			log.Fatalf("failed to read TLS certs: %v\n", err)
+		}
+		options = append(options, grpc.Creds(creds))
 	}
 
-	return []grpc.ServerOption{
-		grpc.Creds(creds),
-	}
+	return options
 }
 
 // RunGRPCServer listens on the given address and serves the given *grpc.Server,

@@ -16,7 +16,9 @@ import (
 // Server is the spaGO built-in implementation of HTTP and gRPC server for
 // sequence labeling.
 type Server struct {
-	model *Model
+	model           *Model
+	TimeoutSeconds  int
+	MaxRequestBytes int
 
 	// UnimplementedSequenceLabelerServer must be embedded to have forward compatible implementations for gRPC.
 	grpcapi.UnimplementedSequenceLabelerServer
@@ -35,9 +37,22 @@ func (s *Server) Start(address, grpcAddress, tlsCert, tlsKey string, tlsDisable 
 	mux.HandleFunc("/ner-ui", ner.Handler)
 	mux.HandleFunc("/analyze", s.analyze)
 
-	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
+	go httputils.RunHTTPServer(httputils.HTTPServerConfig{
+		Address:         address,
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	}, mux)
 
-	grpcServer := grpcutils.NewGRPCServer(tlsDisable, tlsCert, tlsKey)
+	grpcServer := grpcutils.NewGRPCServer(grpcutils.GRPCServerConfig{
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	})
 	grpcapi.RegisterSequenceLabelerServer(grpcServer, s)
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }

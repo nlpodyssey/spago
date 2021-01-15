@@ -25,7 +25,9 @@ import (
 
 // Server contains everything needed to run a BERT server.
 type Server struct {
-	model *Model
+	model           *Model
+	TimeoutSeconds  int
+	MaxRequestBytes int
 
 	// UnimplementedBERTServer must be embedded to have forward compatible implementations for gRPC.
 	grpcapi.UnimplementedBERTServer
@@ -52,9 +54,22 @@ func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string
 	mux.HandleFunc("/classify", s.ClassifyHandler)
 	mux.HandleFunc("/encode", s.SentenceEncoderHandler)
 
-	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
+	go httputils.RunHTTPServer(httputils.HTTPServerConfig{
+		Address:         address,
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	}, mux)
 
-	grpcServer := grpcutils.NewGRPCServer(tlsDisable, tlsCert, tlsKey)
+	grpcServer := grpcutils.NewGRPCServer(grpcutils.GRPCServerConfig{
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	})
 	grpcapi.RegisterBERTServer(grpcServer, s)
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
