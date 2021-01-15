@@ -186,8 +186,9 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 	}
 
 	embedding := nn.NewParam(tmp.Value(), nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
-	embedding.SetPayload(tmp.Payload())
 	embedding.SetName(word)
+	embedding.SetPayload(tmp.Payload())
+
 	m.UsedEmbeddings.Store(word, embedding) // important
 	return embedding
 }
