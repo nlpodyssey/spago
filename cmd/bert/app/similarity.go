@@ -18,7 +18,6 @@ func newClientSimilarityCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "similarity",
 		Usage:       "Perform text-similarity using BERT sentence encoding.",
-		UsageText:   programName + " client encode --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client to determine the similarity between two texts.",
 		Flags:       newClientSimilarityCommandFlagsFor(app),
 		Action:      newClientSimilarityCommandActionFor(app),

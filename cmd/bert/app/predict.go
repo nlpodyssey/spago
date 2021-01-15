@@ -17,7 +17,6 @@ func newClientPredictCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "predict",
 		Usage:       "Perform a prediction based on a trained Masked Language Model (MLM).",
-		UsageText:   programName + " client predict --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for prediction.",
 		Flags:       newClientPredictCommandFlagsFor(app),
 		Action:      newClientPredictCommandActionFor(app),

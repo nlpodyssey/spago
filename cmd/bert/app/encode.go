@@ -17,7 +17,6 @@ func newClientEncodeCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "encode",
 		Usage:       "Perform sentence2vec encoding using BERT.",
-		UsageText:   programName + " client encode --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for sentence encoding.",
 		Flags:       newClientEncodeCommandFlagsFor(app),
 		Action:      newClientEncodeCommandActionFor(app),

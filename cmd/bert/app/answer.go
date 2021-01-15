@@ -17,7 +17,6 @@ func newClientAnswerCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "answer",
 		Usage:       "Perform question-answering using BERT.",
-		UsageText:   programName + " client answer --passage=<passage> --question=<question>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for question-answering.",
 		Flags:       newClientAnswerCommandFlagsFor(app),
 		Action:      newClientAnswerCommandActionFor(app),

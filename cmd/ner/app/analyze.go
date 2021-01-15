@@ -17,7 +17,6 @@ func newClientAnalyzeCommandFor(app *NERApp) cli.Command {
 	return cli.Command{
 		Name:        "analyze",
 		Usage:       "Perform sequence labeling analysis for Named Entity Recognition.",
-		UsageText:   programName + " client analyze --text=<text> [--merge-entities] [--filter-non-entities]" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for Named Entity Recognition.",
 		Flags:       newClientAnalyzeCommandFlagsFor(app),
 		Action:      newClientAnalyzeCommandActionFor(app),

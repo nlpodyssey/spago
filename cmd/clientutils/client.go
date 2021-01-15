@@ -42,11 +42,6 @@ func Flags(address *string, tlsDisable *bool, output *string, cmdFlags []cli.Fla
 	return append(grpcClientFlags, cmdFlags...)
 }
 
-// UsageText returns the usage text for gRPC clients that may be appended to existing usage text.
-func UsageText() string {
-	return " [--address=<address>] [--tls-disable] [(-o|--output=)json|yaml]"
-}
-
 // VerifyFlags verifies the values of specific client flags such as `output`.
 func VerifyFlags(outputFlag string) {
 	if !strings.EqualFold(outputFlag, "json") && !strings.EqualFold(outputFlag, "yaml") {

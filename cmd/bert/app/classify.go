@@ -17,7 +17,6 @@ func newClientClassifyCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "classify",
 		Usage:       "Perform text classification using BERT.",
-		UsageText:   programName + " client encode --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for text classification.",
 		Flags:       newClientClassifyCommandFlagsFor(app),
 		Action:      newClientClassifyCommandActionFor(app),
