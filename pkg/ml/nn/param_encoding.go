@@ -104,6 +104,7 @@ func MarshalBinaryParam(p Param, w io.Writer) error {
 }
 
 // UnmarshalBinaryParam decodes a Param from binary form.
+// TODO: add a "withBacking" optional argument to remove the need of UnmarshalBinaryParamWithReceiver().
 func UnmarshalBinaryParam(r io.Reader) (Param, error) {
 	isPresent := make([]byte, 1)
 	_, err := r.Read(isPresent)
@@ -132,4 +133,39 @@ func UnmarshalBinaryParam(r io.Reader) (Param, error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+// UnmarshalBinaryParamWithReceiver decodes a Param from binary form into the receiver.
+func UnmarshalBinaryParamWithReceiver(r io.Reader, dest Param) error {
+	p, isParam := dest.(*param)
+	if !isParam {
+		log.Fatal(fmt.Errorf("unsupported Param implementation for binary unmarshaling, %T: %#v", p, p))
+	}
+
+	isPresent := make([]byte, 1)
+	_, err := r.Read(isPresent)
+	if err != nil {
+		return err
+	}
+	if isPresent[0] == 0 {
+		return nil
+	}
+
+	binLenBytes := make([]byte, 4)
+	_, err = r.Read(binLenBytes)
+	if err != nil {
+		return err
+	}
+	binLen := int(binary.LittleEndian.Uint32(binLenBytes))
+	bin := make([]byte, binLen)
+	_, err = r.Read(bin)
+	if err != nil {
+		return err
+	}
+
+	err = p.UnmarshalBinary(bin)
+	if err != nil {
+		return err
+	}
+	return nil
 }
