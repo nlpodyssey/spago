@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Various new test cases (improving the coverage).
+- `nlp.embeddings.syncmap` package.
 
 ### Changed
 - All CLI commands implementation has been refactored, so that the
@@ -33,14 +34,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `ml.encoding.pe` package) are now public.
   - All types implementing `nn.Model` interface are registered for gob
     serialization (in init functions).
+  - `embeddings.Model.UsedEmbeddings` type is now `nlp.embeddings.syncmap.Map`.
   - As a consequence, you will have to re-serialize all your models.
-    
+- Flair converter now sets the vocabulary directly in the model, instead
+  of creating a separate file.
+- `sequencelabeler.Model.LoadParams` has been renamed to `Load`.
+
 ### Removed
 - In relation to the aforementioned gob serialization changes:
   - `nn.ParamSerializer` and related functions
   - `nn.ParamsSerializer` and related functions
   - `utils.Serializer` and `utils.Deserializer` interfaces
   - `utils.ReadFull` function
+- `sequencelabeler.Model.LoadVocabulary`
 
 ### Fixed
 - `docker-entrypoint` sub-command `hugging-face-importer` has been renamed to
