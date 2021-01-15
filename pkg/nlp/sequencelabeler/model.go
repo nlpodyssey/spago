@@ -8,7 +8,6 @@ package sequencelabeler
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -22,10 +21,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/stackedembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
-	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 	"github.com/nlpodyssey/spago/pkg/utils"
-	"log"
-	"os"
 	"path/filepath"
 )
 
@@ -96,28 +92,6 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		),
 		Labels: config.Labels,
 	}
-}
-
-// LoadVocabulary loads a vocabulary from file.
-func (m *Model) LoadVocabulary(path string) {
-	var terms []string
-	file, err := os.Open(filepath.Join(path, m.Config.ContextualStringEmbeddings.VocabularyFilename))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	err = json.NewDecoder(file).Decode(&terms)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	charLMIndex := len(m.Config.WordEmbeddings)
-
-	l2rCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).LeftToRight
-	r2lCharLM := m.EmbeddingsLayer.WordsEncoders[charLMIndex].(*contextualstringembeddings.Model).RightToLeft
-
-	vocab := vocabulary.New(terms)
-	l2rCharLM.Vocabulary, r2lCharLM.Vocabulary = vocab, vocab
 }
 
 // LoadParams load Model parameters from file.
