@@ -6,15 +6,15 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
+	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/urfave/cli"
 	"log"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
-
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
-	"github.com/urfave/cli"
 )
 
 func newServerCommandFor(app *BertApp) cli.Command {
@@ -78,6 +78,18 @@ func newServerCommandFlagsFor(app *BertApp) []cli.Flag {
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: &app.tlsDisable,
 		},
+		cli.IntFlag{
+			Name:        "timeout",
+			Usage:       "Server read, write, and idle timeout duration in seconds.",
+			Value:       httputils.DefaultTimeoutSeconds,
+			Destination: &app.serverTimeoutSeconds,
+		},
+		cli.IntFlag{
+			Name:        "max-request-size",
+			Usage:       "Maximum number of bytes the server will read parsing the request content.",
+			Value:       httputils.DefaultMaxRequestBytes,
+			Destination: &app.serverMaxRequestBytes,
+		},
 	}
 }
 
@@ -138,6 +150,8 @@ func newServerCommandActionFor(app *BertApp) func(c *cli.Context) error {
 		}(), app.grpcAddress)
 
 		server := bert.NewServer(model)
+		server.TimeoutSeconds = app.serverTimeoutSeconds
+		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.StartDefaultServer(app.address, app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
 
 		return nil

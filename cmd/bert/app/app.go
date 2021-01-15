@@ -15,18 +15,20 @@ const (
 // BertApp contains everything needed to run the BERT demo client or server.
 type BertApp struct {
 	*cli.App
-	address      string
-	grpcAddress  string
-	tlsCert      string
-	tlsKey       string
-	tlsDisable   bool
-	output       string
-	model        string
-	repo         string
-	requestText  string
-	requestText2 string
-	passage      string
-	question     string
+	address               string
+	grpcAddress           string
+	tlsCert               string
+	tlsKey                string
+	tlsDisable            bool
+	output                string
+	model                 string
+	repo                  string
+	requestText           string
+	requestText2          string
+	passage               string
+	question              string
+	serverTimeoutSeconds  int
+	serverMaxRequestBytes int
 }
 
 // NewBertApp returns BertApp objects. The app can be used as both a client and a server.

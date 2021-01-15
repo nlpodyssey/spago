@@ -20,8 +20,10 @@ import (
 
 // ServerForSequenceClassification contains everything needed to run a BART server.
 type ServerForSequenceClassification struct {
-	model     *barthead.SequenceClassification
-	tokenizer *bpetokenizer.BPETokenizer
+	model           *barthead.SequenceClassification
+	tokenizer       *bpetokenizer.BPETokenizer
+	TimeoutSeconds  int
+	MaxRequestBytes int
 
 	// UnimplementedBARTServer must be embedded to have forward compatible implementations for gRPC.
 	grpcapi.UnimplementedBARTServer
@@ -40,7 +42,13 @@ func NewServer(
 
 // StartDefaultServer is used to start a basic BART gRPC server.
 func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
-	grpcServer := grpcutils.NewGRPCServer(tlsDisable, tlsCert, tlsKey)
+	grpcServer := grpcutils.NewGRPCServer(grpcutils.GRPCServerConfig{
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	})
 	grpcapi.RegisterBARTServer(grpcServer, s)
 	grpcutils.RunGRPCServer(grpcAddress, grpcServer)
 }
@@ -53,7 +61,15 @@ func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCer
 	mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
 	mux.HandleFunc("/classify", s.ClassifyHandler)
 	mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
-	go httputils.RunHTTPServer(address, tlsDisable, tlsCert, tlsKey, mux)
+
+	go httputils.RunHTTPServer(httputils.HTTPServerConfig{
+		Address:         address,
+		TLSDisable:      tlsDisable,
+		TLSCert:         tlsCert,
+		TLSKey:          tlsKey,
+		TimeoutSeconds:  s.TimeoutSeconds,
+		MaxRequestBytes: s.MaxRequestBytes,
+	}, mux)
 }
 
 // Classify handles a classification request over gRPC.

@@ -24,18 +24,20 @@ var predefinedModels = map[string]string{
 // NERApp contains everything needed to run the NER client or server.
 type NERApp struct {
 	*cli.App
-	address           string
-	grpcAddress       string
-	tlsCert           string
-	tlsKey            string
-	tlsDisable        bool
-	output            string
-	repo              string
-	modelFolder       string
-	modelName         string
-	text              string
-	mergeEntities     bool
-	filterNonEntities bool
+	address               string
+	grpcAddress           string
+	tlsCert               string
+	tlsKey                string
+	tlsDisable            bool
+	output                string
+	repo                  string
+	modelFolder           string
+	modelName             string
+	text                  string
+	mergeEntities         bool
+	filterNonEntities     bool
+	serverTimeoutSeconds  int
+	serverMaxRequestBytes int
 }
 
 // NewNERApp returns NerApp objects.

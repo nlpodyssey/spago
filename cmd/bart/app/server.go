@@ -10,13 +10,13 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
+	"github.com/nlpodyssey/spago/pkg/utils/httputils"
+	"github.com/urfave/cli"
 	"log"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
-
-	"github.com/urfave/cli"
 )
 
 func newServerCommandFor(app *BartApp) cli.Command {
@@ -79,6 +79,18 @@ func newServerCommandFlagsFor(app *BartApp) []cli.Flag {
 			Name:        "tls-disable",
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: &app.tlsDisable,
+		},
+		cli.IntFlag{
+			Name:        "timeout",
+			Usage:       "Server read, write, and idle timeout duration in seconds.",
+			Value:       httputils.DefaultTimeoutSeconds,
+			Destination: &app.serverTimeoutSeconds,
+		},
+		cli.IntFlag{
+			Name:        "max-request-size",
+			Usage:       "Maximum number of bytes the server will read parsing the request content.",
+			Value:       httputils.DefaultMaxRequestBytes,
+			Destination: &app.serverMaxRequestBytes,
 		},
 	}
 }
@@ -151,6 +163,8 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		}(), app.address)
 
 		server := bartserver.NewServer(model, tokenizer)
+		server.TimeoutSeconds = app.serverTimeoutSeconds
+		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
 		server.StartDefaultServer(app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
 

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Various new test cases (improving the coverage).
 - `nlp.embeddings.syncmap` package.
+- `ml.nn.recurrent.srnn.BiModel` which implements a bidirectional variant of
+  the SRNN.
+- Configurable timeout and request limit to all HTTP and gRPC servers (see
+  also commands help).
 
 ### Changed
 - All CLI commands implementation has been refactored, so that the
