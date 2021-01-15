@@ -10,9 +10,8 @@ import (
 
 func newClientCommandFor(app *BartApp) cli.Command {
 	return cli.Command{
-		Name:      "client",
-		Usage:     "Run the " + programName + " client.",
-		UsageText: programName + " client",
+		Name:  "client",
+		Usage: "Run the " + programName + " client.",
 		Subcommands: []cli.Command{
 			newClientClassifyCommandFor(app),
 			newClientClassifyNLICommandFor(app),

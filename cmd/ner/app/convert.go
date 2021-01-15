@@ -13,7 +13,6 @@ func newConvertCommandFor(app *NERApp) cli.Command {
 	return cli.Command{
 		Name:        "convert",
 		Usage:       "Run the " + programName + " to convert a pre-processed Flair model.",
-		UsageText:   programName + " convert --model-folder --model-name",
 		Description: "Run the " + programName + " converter.",
 		Flags: []cli.Flag{
 			cli.StringFlag{

@@ -21,7 +21,6 @@ func newServerCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
-		UsageText:   programName + " run --model=<name> [--repo=<path>] [--address=<address>] [--grpc-address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]",
 		Description: "Run the " + programName + " indicating the model path (NOT the model file).",
 		Flags:       newServerCommandFlagsFor(app),
 		Action:      newServerCommandActionFor(app),

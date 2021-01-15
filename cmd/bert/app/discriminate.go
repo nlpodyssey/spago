@@ -17,7 +17,6 @@ func newClientDiscriminateCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
 		Name:        "discriminate",
 		Usage:       "Perform linear discriminate analysis using BERT.",
-		UsageText:   programName + " client discriminate --text=<value>" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for linear discriminate analysis.",
 		Flags:       newClientDiscriminateCommandFlagsFor(app),
 		Action:      newClientDiscriminateCommandActionFor(app),

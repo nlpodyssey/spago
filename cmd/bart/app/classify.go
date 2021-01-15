@@ -17,7 +17,6 @@ func newClientClassifyCommandFor(app *BartApp) cli.Command {
 	return cli.Command{
 		Name:        "classify",
 		Usage:       "Perform text classification using BART.",
-		UsageText:   programName + " client classify --text=<value> [--text2=<value>]" + clientutils.UsageText(),
 		Description: "Run the " + programName + " client for text classification.",
 		Flags:       newClientClassifyCommandFlagsFor(app),
 		Action:      newClientClassifyCommandActionFor(app),

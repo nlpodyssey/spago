@@ -15,10 +15,8 @@ import (
 
 func newClientClassifyNLICommandFor(app *BartApp) cli.Command {
 	return cli.Command{
-		Name:  "classify-nli",
-		Usage: "Perform zero-shot classification using BART fine-tuned for Natural Language Inference (NLI).",
-		UsageText: programName +
-			" client classify-nli --text=<value> --labels=<value> --multi-class=<value> [--hypothesis-template=<value>]  " + clientutils.UsageText(),
+		Name:        "classify-nli",
+		Usage:       "Perform zero-shot classification using BART fine-tuned for Natural Language Inference (NLI).",
 		Description: "Run the " + programName + " client to perform zero-shot classification.",
 		Flags:       newClientClassifyNLICommandFlagsFor(app),
 		Action:      newClientClassifyNLICommandActionFor(app),

@@ -20,7 +20,6 @@ func newServerCommandFor(app *NERApp) cli.Command {
 	return cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
-		UsageText:   programName + " server --model=<name> [--repo=<path>] [--address=<address>] [--tls-cert-file=<cert>] [--tls-key-file=<key>] [--tls-disable]",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
 		Flags:       newServerCommandFlagsFor(app),
 		Action:      newServerCommandActionFor(app),

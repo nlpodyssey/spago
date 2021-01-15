@@ -10,9 +10,8 @@ import (
 
 func newClientCommandFor(app *BertApp) cli.Command {
 	return cli.Command{
-		Name:      "client",
-		Usage:     "Run the " + programName + " client.",
-		UsageText: programName + " client",
+		Name:  "client",
+		Usage: "Run the " + programName + " client.",
 		Subcommands: []cli.Command{
 			newClientAnswerCommandFor(app),
 			newClientDiscriminateCommandFor(app),
