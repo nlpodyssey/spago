@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// Package srnn implements the SRNN (Shuffling Recurrent Neural Networks) by Rotman and Wolf, 2020.
+// (https://arxiv.org/pdf/2007.07324.pdf)
+//
+// This file implements a bidirectional variant of the SRNN, in which the input features are shared
+// among the two directions (Grella, 2021).
 package srnn
 
 import (
