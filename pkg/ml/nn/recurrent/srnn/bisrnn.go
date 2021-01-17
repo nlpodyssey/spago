@@ -10,6 +10,7 @@
 package srnn
 
 import (
+	"encoding/gob"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -31,6 +32,10 @@ type BiModel struct {
 	FC2       *linear.Model
 	FC3       *linear.Model
 	LayerNorm *layernorm.Model
+}
+
+func init() {
+	gob.Register(&BiModel{})
 }
 
 // NewBidirectional returns a new model with parameters initialized to zeros.
