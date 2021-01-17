@@ -5,8 +5,7 @@ natural language processing developed by Google.
 
 Transformers are a recent trend in natural language processing. They are self-attention based models trained in a
 self-supervised manner on huge amounts of text to assimilate human language patterns. In other words, they
-are [super-parrots](https://medium.com/@ElementalCognition/can-super-parrots-ever-achieve-language-understanding-8307dfd3e87c)
-.
+are [super-parrots](https://medium.com/@ElementalCognition/can-super-parrots-ever-achieve-language-understanding-8307dfd3e87c).
 
 Although I do not believe that this is the right way to solve the problem of language processing - at least not alone -
 I have to admit that their power is extraordinary!
@@ -59,7 +58,7 @@ Start TLS server listening on 0.0.0.0:1987.
 The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert-server server --repo=/tmp/spago --model=deepset/bert-base-cased-squad2
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main bert-server server --repo=/tmp/spago --model=deepset/bert-base-cased-squad2
 ```
 
 ### API
@@ -155,7 +154,7 @@ with the base BERT English model trained by Hugging Face (exact name for the imp
 The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
 
 ```console
-docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main ./bert-server server --repo=/tmp/spago --model=bert-base-cased
+docker run --rm -it -p 1987:1987 -v ~/.spago:/tmp/spago spago:main bert-server server --repo=/tmp/spago --model=bert-base-cased
 ```
 
 ### API
