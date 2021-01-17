@@ -17,9 +17,12 @@ Currently, the following models have been converted and are available:
 | goflair-en-ner-ontonotes-fast-v0.4 | [18-class](https://spacy.io/api/annotation#named-entities) Named Entity Recognition |  Ontonotes  |  **89.27** (F1)
 | goflair-ner-multi-fast | 4-class Named Entity Recognition |  Conll-03 (en, de, du, es)  |  **87.91**  (average F1) |
 | goflair-fr-ner-wikiner-0.4 | 4-class Named Entity Recognition |  WikiNER-fr  |  ?  (average F1) |
+| goflair-en-chunk-conll2000-fast-v0.4 | Chunking |  Conll-2000  |  **96.72** (F1) |
 
 In particular, the model `goflair-ner-multi-fast`  also kind of works for languages it was not trained on, such as
 French.
+
+The model `goflair-en-chunk-conll2000-fast-v0.4` does [shallow parsing](https://en.wikipedia.org/wiki/Shallow_parsing) and not NER. However, it uses the same sequence labeling architecture as the others.
 
 ## Build
 
@@ -64,7 +67,7 @@ previously downloaded model.
 The Docker version of the demo can be run like this. (Note that TLS is not disabled this time.)
 
 ```console
-docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ./ner-server server --repo=/tmp/spago --model=goflair-en-ner-fast-conll03-v0.4
+docker run --rm -it -p:1987:1987 -v ~/.spago:/tmp/spago spago:main ner-server server --repo=/tmp/spago --model=goflair-en-ner-fast-conll03-v0.4
 ```
 
 ## API
