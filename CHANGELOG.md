@@ -1,19 +1,24 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
+to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2021-01-17
+
 ### Added
+
 - Various new test cases (improving the coverage).
 - `nlp.embeddings.syncmap` package.
-- `ml.nn.recurrent.srnn.BiModel` which implements a bidirectional variant of
-  the SRNN.
-- Configurable timeout and request limit to all HTTP and gRPC servers (see
-  also commands help).
+- `ml.nn.recurrent.srnn.BiModel` which implements a bidirectional variant of the Shuffling Recurrent Neural Networks (
+  SRNN).
+- Configurable timeout and request limit to all HTTP and gRPC servers (see also commands help).
 
 ### Changed
+
 - All CLI commands implementation has been refactored, so that the
   `docker-entrypoint` can reuse all other `cli.App` objects, instead of
   just running separate executables. By extension, now the Dockerfile builds
