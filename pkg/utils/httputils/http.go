@@ -32,7 +32,7 @@ type HTTPServerConfig struct {
 // RunHTTPServer listens on the given address and serves the given mux using HTTP
 // (optionally over TLS), and blocks until done.
 func RunHTTPServer(config HTTPServerConfig, h http.Handler) {
-	timeout := time.Duration(config.TimeoutSeconds) * time.Millisecond
+	timeout := time.Duration(config.TimeoutSeconds) * time.Second
 	server := &http.Server{
 		Addr: config.Address,
 		Handler: http.TimeoutHandler(
