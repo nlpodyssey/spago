@@ -59,8 +59,8 @@ func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi
 	result := s.encode(req.GetText())
 
 	vector32 := make([]float32, len(result.Data))
-	for i, f64 := range result.Data {
-		vector32[i] = float32(f64)
+	for i, num := range result.Data {
+		vector32[i] = float32(num)
 	}
 
 	return &grpcapi.EncodeReply{
@@ -82,10 +82,9 @@ func (s *Server) encode(text string) *EncodeResponse {
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
 	pooled := proc.Pool(encoded)
-	normalized := pooled.Value().(*mat.Dense).Normalize2()
 
 	return &EncodeResponse{
-		Data: normalized.Data(),
+		Data: pooled.Value().Data(),
 		Took: time.Since(start).Milliseconds(),
 	}
 }

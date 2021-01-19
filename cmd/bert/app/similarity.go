@@ -60,12 +60,16 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) {
 			log.Fatalln(err)
 		}
 
-		vec1 := mat.NewVecDense(f32SliceToFloatSlice(resp.Vector))
-		vec2 := mat.NewVecDense(f32SliceToFloatSlice(resp2.Vector))
+		vec1 := normalize(f32SliceToFloatSlice(resp.Vector))
+		vec2 := normalize(f32SliceToFloatSlice(resp2.Vector))
 		similarity := vec1.DotUnitary(vec2)
 
 		clientutils.Println(app.output, toFixed(similarity, 6))
 	}
+}
+
+func normalize(xs []mat.Float) mat.Matrix {
+	return mat.NewVecDense(xs).Normalize2()
 }
 
 func f32SliceToFloatSlice(xs []float32) []mat.Float {
