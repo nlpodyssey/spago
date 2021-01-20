@@ -104,6 +104,9 @@ type Matrix interface {
 	Sqrt() Matrix
 	// ClipInPlace clips in place each value of the matrix.
 	ClipInPlace(min, max Float) Matrix
+	// SplitV extract N vectors from the Matrix.
+	// N[i] has size sizes[i].
+	SplitV(sizes ...int) []Matrix
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.
