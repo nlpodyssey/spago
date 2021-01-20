@@ -175,9 +175,9 @@ func TestModel_Forward(t *testing.T) {
 
 	y := rectify(g, nn.Reify(ctx, model).(*Model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
-	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 1.302356}, y[2].Value().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 1.302356}, y[2].Value().Data(), 1.0e-04)
 
 	// == Backward
 
@@ -186,11 +186,11 @@ func TestModel_Forward(t *testing.T) {
 	y[2].PropagateGrad(mat.NewVecDense([]mat.Float{0.3, -0.4, 0.7, -0.8}))
 	g.BackwardAll()
 
-	assert.InDeltaSlice(t, []mat.Float{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, x3.Grad().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{-1.0, -0.5, 0.0, -0.8}, model.B.Grad().Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []mat.Float{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []mat.Float{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, x3.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{-1.0, -0.5, 0.0, -0.8}, model.B.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []mat.Float{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
 func rectify(g *ag.Graph, xs []ag.Node) []ag.Node {

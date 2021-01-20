@@ -24,7 +24,7 @@ type Model struct {
 	StdDev   nn.Param `spago:"type:undefined"`
 	Momentum nn.Param `spago:"type:undefined"`
 }
-
+const epsilon = 1e-5
 const defaultMomentum = 0.9
 
 func init() {
@@ -64,7 +64,7 @@ func (m *Model) forwardTraining(xs []ag.Node) []ag.Node {
 }
 
 func (m *Model) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = g.Div(m.W, g.AddScalar(devVector, g.NewScalar(1e-10)))
+	devVector = g.Div(m.W, g.AddScalar(devVector, g.NewScalar(epsilon)))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), m.B)
@@ -96,7 +96,8 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 	for i := 1; i < len(xs); i++ {
 		sumVector = g.Add(sumVector, xs[i])
 	}
-	return g.DivScalar(sumVector, g.NewScalar(mat.Float(len(xs))+1e-10))
+
+	return g.DivScalar(sumVector, g.NewScalar(mat.Float(len(xs))+epsilon))
 }
 
 // StdDev computes the standard deviation of the input.
@@ -107,6 +108,6 @@ func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 		diffVector := g.Square(g.Sub(meanVector, x))
 		devVector = g.Add(devVector, diffVector)
 	}
-	devVector = g.Sqrt(g.DivScalar(devVector, g.NewScalar(mat.Float(len(xs))+1e-10)))
+	devVector = g.Sqrt(g.DivScalar(devVector, g.NewScalar(mat.Float(len(xs))+epsilon)))
 	return devVector
 }
