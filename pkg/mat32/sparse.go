@@ -808,6 +808,11 @@ func (s *Sparse) SplitV(_ ...int) []Matrix {
 	panic("mat32: SplitV not implemented for Sparse matrices")
 }
 
+// MulT is currently not implemented for a Sparse matrix (it always panics).
+func (s *Sparse) MulT(_ Matrix) Matrix {
+	panic("mat32: MulT not implemented for Sparse matrices")
+}
+
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (s *Sparse) Abs() Matrix {
 	out := s.Clone().(*Sparse) // TODO: find a better alternative to s.Clone()

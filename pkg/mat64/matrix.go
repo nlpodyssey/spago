@@ -111,6 +111,9 @@ type Matrix interface {
 	Minimum(other Matrix) Matrix
 	// Maximum returns a new matrix containing the element-wise maxima.
 	Maximum(other Matrix) Matrix
+	// MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
+	// if A is an r x c Matrix, and B is j x k, r = j the resulting Matrix C will be c x k.
+	MulT(other Matrix) Matrix
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.
