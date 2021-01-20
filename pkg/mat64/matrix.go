@@ -152,14 +152,14 @@ func ConcatH(ms ...Matrix) *Dense {
 }
 
 // Stack returns a new Matrix created concatenating the input vectors horizontally.
-func Stack(vs ...*Dense) *Dense {
+func Stack(vs ...Matrix) Matrix {
 	rows := len(vs)
-	cols := vs[0].size
+	cols := vs[0].Size()
 	out := GetDenseWorkspace(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
 	start := 0
 	end := cols
 	for _, v := range vs {
-		copy(out.data[start:end], v.data)
+		copy(out.data[start:end], v.Data())
 		start = end
 		end += cols
 	}
