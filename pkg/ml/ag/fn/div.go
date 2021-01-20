@@ -41,14 +41,14 @@ func (r *Div) Backward(gy mat.Matrix) {
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.Div(r.x2.Value())
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		x2sq := r.x2.Value().Prod(r.x2.Value())
-		defer mat.ReleaseDense(x2sq.(*mat.Dense))
+		defer mat.ReleaseMatrix(x2sq)
 		gx := r.x1.Value().Prod(gy)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(-1)
 		gx.DivInPlace(x2sq)
 		r.x2.PropagateGrad(gx)

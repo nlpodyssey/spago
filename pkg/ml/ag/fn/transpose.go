@@ -32,7 +32,7 @@ func (r *Transpose) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := gy.T()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		r.x.PropagateGrad(gx)
 	}
 }

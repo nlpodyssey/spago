@@ -68,7 +68,7 @@ func (r *MaxPooling) Forward() mat.Matrix {
 func (r *MaxPooling) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		for row := 0; row < r.y.Rows(); row++ {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]

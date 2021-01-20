@@ -169,7 +169,7 @@ func (g *Graph) releaseValue(node *operator) {
 	if node.value == nil {
 		return
 	}
-	mat.ReleaseDense(node.value.(*mat.Dense))
+	mat.ReleaseMatrix(node.value)
 	node.value = nil
 }
 

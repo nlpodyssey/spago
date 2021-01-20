@@ -44,7 +44,7 @@ func (r *Sub) Backward(gy mat.Matrix) {
 	}
 	if r.x2.RequiresGrad() {
 		gx := gy.ProdScalar(-1.0)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		r.x2.PropagateGrad(gx)
 	}
 }

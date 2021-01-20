@@ -46,7 +46,7 @@ func (r *Max) Backward(gy mat.Matrix) {
 
 	if r.x1.RequiresGrad() {
 		gx := x1v.ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		gxData := gx.Data()
 		for i := 0; i < n; i++ {
 			if x1vData[i] > x2vData[i] {
@@ -57,7 +57,7 @@ func (r *Max) Backward(gy mat.Matrix) {
 	}
 	if r.x2.RequiresGrad() {
 		gx := x2v.ZerosLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		n := gy.Size()
 		gxData := gx.Data()
 		for i := 0; i < n; i++ {
