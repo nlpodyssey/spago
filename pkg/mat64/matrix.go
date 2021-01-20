@@ -107,6 +107,10 @@ type Matrix interface {
 	// SplitV extract N vectors from the Matrix.
 	// N[i] has size sizes[i].
 	SplitV(sizes ...int) []Matrix
+	// Minimum returns a new matrix containing the element-wise minima.
+	Minimum(other Matrix) Matrix
+	// Maximum returns a new matrix containing the element-wise maxima.
+	Maximum(other Matrix) Matrix
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.

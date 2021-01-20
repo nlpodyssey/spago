@@ -754,7 +754,7 @@ func (d *Dense) Normalize2() *Dense {
 }
 
 // Maximum returns a new matrix containing the element-wise maxima.
-func (d *Dense) Maximum(other Matrix) *Dense {
+func (d *Dense) Maximum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat32: matrix with not compatible size")
 	}
@@ -774,7 +774,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 }
 
 // Minimum returns a new matrix containing the element-wise minima.
-func (d *Dense) Minimum(other Matrix) *Dense {
+func (d *Dense) Minimum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat32: matrix with not compatible size")
 	}
