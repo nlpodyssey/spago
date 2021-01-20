@@ -59,13 +59,13 @@ func TestModelConcat_Forward(t *testing.T) {
 		0.001234, -0.107987,
 		0.175039, 0.015738,
 		0.213397, -0.046717,
-	}, model.Positive.(*srn.Model).W.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model).W.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.041817, -0.059241, 0.013592,
 		0.042229, -0.086071, 0.019157,
 		0.035331, -0.11595, 0.02512,
-	}, model.Positive.(*srn.Model).WRec.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.071016, 0.268027, 0.345019,
@@ -75,13 +75,13 @@ func TestModelConcat_Forward(t *testing.T) {
 		0.145713, 0.234548,
 		0.050135, 0.070768,
 		-0.06125, -0.017281,
-	}, model.Negative.(*srn.Model).W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Negative.(*srn.Model).W.Grad().Data(), 1.0e-05)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.029278, -0.112568, -0.089725,
 		-0.074426, 0.003116, -0.070784,
 		0.022664, 0.040583, 0.044139,
-	}, model.Negative.(*srn.Model).WRec.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.Negative.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.03906, 0.237598, -0.137858,

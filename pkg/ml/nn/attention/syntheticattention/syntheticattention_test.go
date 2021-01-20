@@ -44,7 +44,7 @@ func TestModel_SyntheticAttention(t *testing.T) {
 		0.02565823, 0.01689616, 0.02447476, -0.02306554,
 		-0.0871563, -0.1083235, -0.0844748, 0.287951612,
 		-0.2523685, -0.2838154, -0.2480056, 0.669627458,
-	}, model.Value.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Value.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.02, 0.46, 1.02,
 	}, model.Value.B.Grad().Data(), 1.0e-05)

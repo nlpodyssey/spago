@@ -51,7 +51,7 @@ func TestModel_LshAttention(t *testing.T) {
 		0.108, 0.14410127, -0.288, 0.018050638, 0.09005063,
 		0.096, 0.12809002, -0.256, 0.016045011, 0.0800450,
 		0.003, 0.0040028, -0.008, 0.0005014, 0.002501406,
-	}, model.Value.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Value.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.04, 0.36, 0.32, 0.01,
 	}, model.Value.B.Grad().Data(), 1.0e-05)
@@ -60,7 +60,7 @@ func TestModel_LshAttention(t *testing.T) {
 		4.3255563e-05, -0.000100, -0.000115348, -7.16580691e-05, -4.28210269e-05,
 		7.6290542e-06, -0.000110, -2.03441446e-05, -5.9124849e-05, -5.40388133e-05,
 		-8.932830e-06, 0.00016517, 2.382088001e-05, 8.70514586e-05, 8.10962386e-05,
-	}, model.Query.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Query.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		4.3981819e-05, 0.000144185, 2.5430180e-05, -2.97761e-05,
 	}, model.Query.B.Grad().Data(), 1.0e-05)
