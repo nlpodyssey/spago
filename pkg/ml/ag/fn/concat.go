@@ -46,7 +46,7 @@ func (r *Concat) Backward(gy mat.Matrix) {
 		sizes[i] = x.Value().Size()
 	}
 	xs := r.xs
-	for i, gx := range gy.(*mat.Dense).SplitV(sizes...) {
+	for i, gx := range gy.SplitV(sizes...) {
 		if xs[i].RequiresGrad() {
 			xs[i].PropagateGrad(gx)
 		}

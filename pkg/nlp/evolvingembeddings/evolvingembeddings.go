@@ -118,12 +118,12 @@ func (m *Model) Aggregate(list []*WordVectorPair) {
 		if found := m.getStorageEmbedding(word); found == nil {
 			m.setEmbedding(word, vector)
 		} else {
-			m.setEmbedding(word, m.pooling(found, vector))
+			m.setEmbedding(word, m.pooling(found, vector).(*mat.Dense))
 		}
 	}
 }
 
-func (m *Model) pooling(a, b *mat.Dense) *mat.Dense {
+func (m *Model) pooling(a, b mat.Matrix) mat.Matrix {
 	switch m.PoolingOperation {
 	case Max:
 		return a.Maximum(b)

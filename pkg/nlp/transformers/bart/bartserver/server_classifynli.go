@@ -46,7 +46,7 @@ func (s *ServerForSequenceClassification) classifyNLI(
 	}
 
 	numOfCandidateLabels := len(candidateLabels)
-	logits := make([]*mat.Dense, numOfCandidateLabels)
+	logits := make([]mat.Matrix, numOfCandidateLabels)
 
 	numWorkers := runtime.NumCPU() / 2 // leave some space for other concurrent computations
 	wp := workerpool.New(numWorkers)
@@ -103,7 +103,7 @@ func (s *ServerForSequenceClassification) classifyNLI(
 }
 
 // getMultiClassScores softmax over the entailment vs. contradiction for each label independently
-func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int) []mat.Float {
+func getMultiClassScores(logits []mat.Matrix, entailmentID, contradictionID int) []mat.Float {
 	scores := make([]mat.Float, len(logits))
 	for i, v := range logits {
 		prob := floatutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
@@ -113,7 +113,7 @@ func getMultiClassScores(logits []*mat.Dense, entailmentID, contradictionID int)
 }
 
 // getScores softmax the "entailment" over all candidate labels
-func getScores(logits []*mat.Dense, entailmentID int) []mat.Float {
+func getScores(logits []mat.Matrix, entailmentID int) []mat.Float {
 	scores := make([]mat.Float, len(logits))
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
@@ -151,12 +151,12 @@ type worker struct {
 	model     *barthead.SequenceClassification
 }
 
-func (w *worker) process(input premiseHypothesisPair) *mat.Dense {
+func (w *worker) process(input premiseHypothesisPair) mat.Matrix {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*barthead.SequenceClassification)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Classify(inputIds)
 	g.Forward()
-	return g.GetCopiedValue(logits).(*mat.Dense)
+	return g.GetCopiedValue(logits)
 }

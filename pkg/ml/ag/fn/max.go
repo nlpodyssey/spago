@@ -22,7 +22,7 @@ func NewMax(x1, x2 Operand) *Max {
 
 // Forward computes the output of the function.
 func (r *Max) Forward() mat.Matrix {
-	x1v := r.x1.Value().(*mat.Dense)
+	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
 		panic("fn: matrices with not compatible size")

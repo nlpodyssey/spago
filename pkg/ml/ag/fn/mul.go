@@ -54,7 +54,7 @@ func (r *Mul) Backward(gy mat.Matrix) {
 			defer wg.Done()
 			//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
 			if gy.Columns() == 1 {
-				gx := r.x1.Value().(*mat.Dense).MulT(gy)
+				gx := r.x1.Value().MulT(gy)
 				defer mat.ReleaseMatrix(gx)
 				r.x2.PropagateGrad(gx)
 			} else {

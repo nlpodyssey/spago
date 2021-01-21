@@ -70,7 +70,7 @@ type indexedNodes struct {
 
 // getHash returns the hash for the dense matrix `x`.
 // Since the hash does not require the use of gradients, it is calculated outside the graph to reduce overhead.
-func (m *Model) getHash(x *mat.Dense) int {
+func (m *Model) getHash(x mat.Matrix) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
 	return floatutils.ArgMax(concat.Data())
@@ -125,7 +125,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	for i, q := range qs {
 		norm := g.Sqrt(g.ReduceSum(g.Pow(q, 2.0)))
 		ks[i] = g.DivScalar(q, norm) // Euclidean norm
-		h := m.getHash(ks[i].Value().(*mat.Dense))
+		h := m.getHash(ks[i].Value())
 		insertNode(mapk, ks[i], i, h)
 		insertNode(mapv, vs[i], i, h)
 	}
@@ -133,7 +133,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	context := make([]ag.Node, length)
 	prob := make([]mat.Matrix, length)
 	for i, q := range qs {
-		j := m.getHash(q.Value().(*mat.Dense))
+		j := m.getHash(q.Value())
 		c, p := m.lshScaledDotProductAttention(g, q, mapk[j], mapv[j], length, m.Config.ScaleFactor)
 		context[i], prob[i] = c, p
 	}
