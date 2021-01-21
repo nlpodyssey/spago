@@ -10,8 +10,8 @@ import (
 )
 
 // EncodeDense is similar to Encode, but it works with Dense matrices.
-func EncodeDense(alpha mat.Float, size int, seq []int) []*mat.Dense {
-	y := make([]*mat.Dense, len(seq), len(seq))
+func EncodeDense(alpha mat.Float, size int, seq []int) []mat.Matrix {
+	y := make([]mat.Matrix, len(seq), len(seq))
 	for i, x := range Encode(alpha, size, seq) {
 		y[i] = mat.NewVecDense(x.Data())
 	}
@@ -21,12 +21,12 @@ func EncodeDense(alpha mat.Float, size int, seq []int) []*mat.Dense {
 // Encode is the FOFE encoding function, which works with Sparse matrices.
 //
 // Reference recursive formula: z(t) = α · z(t−1) + e(t), where 1 ≤ t ≤ T
-func Encode(alpha mat.Float, size int, seq []int) []*mat.Sparse {
-	var z []*mat.Sparse
+func Encode(alpha mat.Float, size int, seq []int) []mat.Matrix {
+	var z []mat.Matrix
 	for t, i := range seq {
 		x := mat.OneHotSparse(size, i)
 		if len(z) > 0 {
-			z = append(z, z[t-1].ProdScalar(alpha).Add(x).(*mat.Sparse))
+			z = append(z, z[t-1].ProdScalar(alpha).Add(x))
 		} else {
 			z = append(z, x)
 		}
@@ -35,7 +35,7 @@ func Encode(alpha mat.Float, size int, seq []int) []*mat.Sparse {
 }
 
 // BiEncode is the FOFE bidirectional encoding function.
-func BiEncode(alpha mat.Float, size int, seq []int) (fwd []*mat.Sparse, bwd []*mat.Sparse) {
+func BiEncode(alpha mat.Float, size int, seq []int) (fwd []mat.Matrix, bwd []mat.Matrix) {
 	fwd = Encode(alpha, size, seq)
 	bwd = Encode(alpha, size, utils.ReverseIntSlice(seq))
 	utils.ReverseInPlace(bwd)
