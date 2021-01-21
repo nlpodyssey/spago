@@ -112,7 +112,7 @@ func DumpParamsVector(model Model) mat.Matrix {
 }
 
 // LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
-func LoadParamsVector(model Model, vector *mat.Dense) {
+func LoadParamsVector(model Model, vector mat.Matrix) {
 	data := vector.Data()
 	offset := 0
 	ForEachParam(model, func(param Param) {
