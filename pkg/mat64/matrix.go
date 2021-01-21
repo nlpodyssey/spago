@@ -116,6 +116,9 @@ type Matrix interface {
 	MulT(other Matrix) Matrix
 	// Inverse returns the inverse of the Matrix.
 	Inverse() Matrix
+	// DoNonZero calls a function for each non-zero element of the matrix.
+	// The parameters of the function are the element indices and its value.
+	DoNonZero(fn func(i, j int, v Float))
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.
