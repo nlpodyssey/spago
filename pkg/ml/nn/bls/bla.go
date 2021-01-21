@@ -86,7 +86,7 @@ func singleZH(m *Model, x ag.Node) mat.Matrix {
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y
-func ridgeRegression(x *mat.Dense, y *mat.Dense, c mat.Float) mat.Matrix {
+func ridgeRegression(x mat.Matrix, y mat.Matrix, c mat.Float) mat.Matrix {
 	i2 := mat.I(x.Columns()).ProdScalar(c)
 	x2 := x.T().Mul(x).Add(i2)
 	invX2 := x2.Inverse()
@@ -94,7 +94,7 @@ func ridgeRegression(x *mat.Dense, y *mat.Dense, c mat.Float) mat.Matrix {
 }
 
 // admn is a naive implementation of the alternating direction method of multipliers method (Goldstein et al. 2014).
-func admn(z *mat.Dense, x *mat.Dense, lam mat.Float, iterations int) mat.Matrix {
+func admn(z mat.Matrix, x mat.Matrix, lam mat.Float, iterations int) mat.Matrix {
 	ZZ := z.T().Mul(z)
 	var Wk mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
 	var Ok mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
