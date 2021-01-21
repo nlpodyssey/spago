@@ -114,6 +114,8 @@ type Matrix interface {
 	// MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
 	// if A is an r x c Matrix, and B is j x k, r = j the resulting Matrix C will be c x k.
 	MulT(other Matrix) Matrix
+	// Inverse returns the inverse of the Matrix.
+	Inverse() Matrix
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.

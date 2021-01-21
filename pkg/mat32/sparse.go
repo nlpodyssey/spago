@@ -813,6 +813,11 @@ func (s *Sparse) MulT(_ Matrix) Matrix {
 	panic("mat32: MulT not implemented for Sparse matrices")
 }
 
+// Inverse returns the inverse of the matrix.
+func (s *Sparse) Inverse() Matrix {
+	panic("mat32: Sparse not implemented for Sparse matrices")
+}
+
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (s *Sparse) Abs() Matrix {
 	out := s.Clone().(*Sparse) // TODO: find a better alternative to s.Clone()

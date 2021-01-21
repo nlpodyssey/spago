@@ -894,7 +894,7 @@ func (d *Dense) LU() (l, u, p *Dense) {
 }
 
 // Inverse returns the inverse of the matrix.
-func (d Dense) Inverse() Matrix {
+func (d *Dense) Inverse() Matrix {
 	if d.Columns() != d.Rows() {
 		panic("mat64: matrix must be square")
 	}
