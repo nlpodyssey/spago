@@ -923,6 +923,20 @@ func (d *Dense) Inverse() Matrix {
 	return out
 }
 
+// DoNonZero calls a function for each non-zero element of the matrix.
+// The parameters of the function are the element indices and its value.
+func (d *Dense) DoNonZero(fn func(i, j int, v Float)) {
+	for i, di := 0, 0; i < d.rows; i++ {
+		for j := 0; j < d.cols; j, di = j+1, di+1 {
+			v := d.data[di]
+			if v == 0.0 {
+				continue
+			}
+			fn(i, j, v)
+		}
+	}
+}
+
 // String returns a string representation of the matrix data.
 func (d *Dense) String() string {
 	return fmt.Sprintf("%v", d.data)
