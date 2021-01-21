@@ -19,7 +19,7 @@ type AxialPositionalEncoder struct {
 	// The dimensions of the axis, such as Width X Height = Length.
 	Width, Height int
 	// Cache contains the pre-computed encoding.
-	Cache []*mat.Dense
+	Cache []mat.Matrix
 }
 
 // NewAxialPositionalEncoder returns a new AxialPositionalEncoder ready to use.
