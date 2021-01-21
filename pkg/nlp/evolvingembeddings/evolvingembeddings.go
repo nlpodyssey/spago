@@ -108,7 +108,7 @@ func (m *Model) Count() int {
 // WordVectorPair associates a Vector to a Word.
 type WordVectorPair struct {
 	Word   string
-	Vector *mat.Dense
+	Vector mat.Matrix
 }
 
 // Aggregate performs a pooling operation over the list of WordVectorPair elements.
