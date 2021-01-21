@@ -116,7 +116,7 @@ func (m *Model) Count() int {
 
 // SetEmbedding inserts a new word embedding.
 // If the word is already on the map, it overwrites the existing value with the new one.
-func (m *Model) SetEmbedding(word string, value *mat.Dense) {
+func (m *Model) SetEmbedding(word string, value mat.Matrix) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}
