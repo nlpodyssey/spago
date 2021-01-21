@@ -14,9 +14,9 @@ type Member struct {
 	// The hyper-params tha might change over the generations
 	MemberHyperParams
 	// The target vector
-	TargetVector *mat.Dense
+	TargetVector mat.Matrix
 	// The donor vector
-	DonorVector *mat.Dense
+	DonorVector mat.Matrix
 	// The score of the target vector obtained during the last evaluation
 	TargetScore mat.Float
 	// The score of the trial vector obtained during the last evaluation
@@ -50,11 +50,11 @@ func (a *MemberHyperParams) MutateHyperParams(l, u mat.Float) {
 }
 
 // NewMember returns a new population member.
-func NewMember(vector *mat.Dense, hyperParams MemberHyperParams) *Member {
+func NewMember(vector mat.Matrix, hyperParams MemberHyperParams) *Member {
 	return &Member{
 		MemberHyperParams: hyperParams,
 		TargetVector:      vector,
-		DonorVector:       vector.ZerosLike().(*mat.Dense),
+		DonorVector:       vector.ZerosLike(),
 		TargetScore:       mat.Inf(1),
 		TrialScore:        mat.Inf(1),
 	}
