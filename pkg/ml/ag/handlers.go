@@ -62,7 +62,7 @@ func (h *backwardHandler) propagateOutputGrad() {
 	gx := h.outputGrad
 	if gx == nil {
 		gx = h.node.Value().OnesLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 	}
 	h.node.PropagateGrad(gx)
 }

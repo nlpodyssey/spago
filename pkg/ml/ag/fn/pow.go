@@ -33,7 +33,7 @@ func (r *Pow) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().Pow(r.power - 1)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(r.power).ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

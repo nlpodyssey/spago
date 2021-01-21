@@ -21,7 +21,7 @@ type PositionalEncoder struct {
 	// Length is the max number of positions.
 	Length int
 	// Cache contains the pre-computed encoding.
-	Cache []*mat.Dense
+	Cache []mat.Matrix
 }
 
 var log10000 = mat.Log(10000)
@@ -31,7 +31,7 @@ func NewPositionalEncoder(size, length int) *PositionalEncoder {
 	pe := &PositionalEncoder{
 		Size:   size,
 		Length: length,
-		Cache:  make([]*mat.Dense, length),
+		Cache:  make([]mat.Matrix, length),
 	}
 	// pre-compute the encoding for each position, calculating it in natural log-space
 	for pos := 0; pos < length; pos++ {
@@ -46,6 +46,6 @@ func NewPositionalEncoder(size, length int) *PositionalEncoder {
 }
 
 // EncodingAt returns the positional encoding at the given position.
-func (r *PositionalEncoder) EncodingAt(pos int) *mat.Dense {
+func (r *PositionalEncoder) EncodingAt(pos int) mat.Matrix {
 	return r.Cache[pos]
 }

@@ -187,7 +187,7 @@ func (r *param) ZeroGrad() {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	defer mat.ReleaseDense(r.grad.(*mat.Dense)) //  release memory
+	defer mat.ReleaseMatrix(r.grad) //  release memory
 	r.grad = nil
 	r.hasGrad = false
 }

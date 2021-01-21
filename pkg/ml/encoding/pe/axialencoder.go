@@ -19,7 +19,7 @@ type AxialPositionalEncoder struct {
 	// The dimensions of the axis, such as Width X Height = Length.
 	Width, Height int
 	// Cache contains the pre-computed encoding.
-	Cache []*mat.Dense
+	Cache []mat.Matrix
 }
 
 // NewAxialPositionalEncoder returns a new AxialPositionalEncoder ready to use.
@@ -46,7 +46,7 @@ func NewAxialPositionalEncoder(size, d, length, width, height int) *AxialPositio
 }
 
 // EncodingAt returns the positional encoding at the given position.
-func (r *AxialPositionalEncoder) EncodingAt(pos int) *mat.Dense {
+func (r *AxialPositionalEncoder) EncodingAt(pos int) mat.Matrix {
 	data := make([]mat.Float, r.Size)
 	for i := 0; i < r.D; i++ {
 		data[i] = r.Cache[pos%r.Width].Data()[i]

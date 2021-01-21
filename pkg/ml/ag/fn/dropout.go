@@ -48,7 +48,7 @@ func (r *Dropout) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
-	defer mat.ReleaseDense(r.mask.(*mat.Dense))
+	defer mat.ReleaseMatrix(r.mask)
 	if r.x.RequiresGrad() {
 		gx := gy.Prod(r.mask)
 		r.x.PropagateGrad(gx)

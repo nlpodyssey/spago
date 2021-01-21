@@ -26,7 +26,7 @@ func (r *Add) Forward() mat.Matrix {
 	x2v := r.x2.Value()
 	if x1v == nil {
 		x1v = x2v.ZerosLike()
-		defer mat.ReleaseDense(x1v.(*mat.Dense))
+		defer mat.ReleaseMatrix(x1v)
 	}
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
 		panic("fn: matrices with not compatible size")

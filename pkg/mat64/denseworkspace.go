@@ -71,6 +71,16 @@ func GetEmptyDenseWorkspace(r, c int) *Dense {
 	return w
 }
 
+// ReleaseMatrix checks whether m is a Dense matrix, and, if so, it
+// releases is, otherwise no operation is performed.
+func ReleaseMatrix(m Matrix) {
+	d, isDense := m.(*Dense)
+	if !isDense {
+		return
+	}
+	ReleaseDense(d)
+}
+
 // ReleaseDense replaces a used *Dense into the appropriate size
 // workspace pool. ReleaseDense must not be called with a matrix
 // where references to the underlying data slice have been kept.

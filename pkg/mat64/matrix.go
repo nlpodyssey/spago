@@ -104,6 +104,21 @@ type Matrix interface {
 	Sqrt() Matrix
 	// ClipInPlace clips in place each value of the matrix.
 	ClipInPlace(min, max Float) Matrix
+	// SplitV extract N vectors from the Matrix.
+	// N[i] has size sizes[i].
+	SplitV(sizes ...int) []Matrix
+	// Minimum returns a new matrix containing the element-wise minima.
+	Minimum(other Matrix) Matrix
+	// Maximum returns a new matrix containing the element-wise maxima.
+	Maximum(other Matrix) Matrix
+	// MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
+	// if A is an r x c Matrix, and B is j x k, r = j the resulting Matrix C will be c x k.
+	MulT(other Matrix) Matrix
+	// Inverse returns the inverse of the Matrix.
+	Inverse() Matrix
+	// DoNonZero calls a function for each non-zero element of the matrix.
+	// The parameters of the function are the element indices and its value.
+	DoNonZero(fn func(i, j int, v Float))
 	// Abs returns a new matrix applying the absolute value function to all elements.
 	Abs() Matrix
 	// Sum returns the sum of all values of the matrix.
@@ -149,14 +164,14 @@ func ConcatH(ms ...Matrix) *Dense {
 }
 
 // Stack returns a new Matrix created concatenating the input vectors horizontally.
-func Stack(vs ...*Dense) *Dense {
+func Stack(vs ...Matrix) Matrix {
 	rows := len(vs)
-	cols := vs[0].size
+	cols := vs[0].Size()
 	out := GetDenseWorkspace(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
 	start := 0
 	end := cols
 	for _, v := range vs {
-		copy(out.data[start:end], v.data)
+		copy(out.data[start:end], v.Data())
 		start = end
 		end += cols
 	}

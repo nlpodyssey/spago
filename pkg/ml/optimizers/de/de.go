@@ -21,9 +21,9 @@ type DifferentialEvolution struct {
 	// The crossover strategy
 	crossover Crossover
 	// The fitness function to minimize
-	fitnessFunc func(solution *mat.Dense, batch int) mat.Float
+	fitnessFunc func(solution mat.Matrix, batch int) mat.Float
 	// The validation function to maximize
-	validate func(solution *mat.Dense) mat.Float
+	validate func(solution mat.Matrix) mat.Float
 	// Method to call after finding a new best solution
 	onNewBest func(solution *ScoredVector)
 	// The current best solution (can be nil)
@@ -74,7 +74,7 @@ type Config struct {
 
 // ScoredVector is a pair which associates a Score to a Vector corresponding to a specific solution.
 type ScoredVector struct {
-	Vector *mat.Dense
+	Vector mat.Matrix
 	Score  mat.Float
 }
 
@@ -83,8 +83,8 @@ func NewOptimizer(
 	config Config,
 	mutation Mutator,
 	crossover Crossover,
-	score func(solution *mat.Dense, batch int) mat.Float,
-	validate func(solution *mat.Dense) mat.Float,
+	score func(solution mat.Matrix, batch int) mat.Float,
+	validate func(solution mat.Matrix) mat.Float,
 	onNewBest func(solution *ScoredVector),
 ) *DifferentialEvolution {
 	return &DifferentialEvolution{
@@ -165,7 +165,7 @@ func (o *DifferentialEvolution) evaluateTrials() {
 		member.TrialScore = o.fitnessFunc(member.DonorVector, o.state.CurBatch)
 		if member.TrialScore < member.TargetScore {
 			member.TargetScore = member.TrialScore
-			member.TargetVector = member.DonorVector.Clone().(*mat.Dense)
+			member.TargetVector = member.DonorVector.Clone()
 			if o.Adaptive {
 				member.MutateHyperParams(0.1, 0.9) // TODO: get arguments from the config
 			}
@@ -193,7 +193,7 @@ func (o *DifferentialEvolution) checkForBetterSolution() {
 	if o.bestSolution == nil || bestValidationScore > o.bestSolution.Score {
 		o.state.countBestScoreUnchanged = 0
 		o.bestSolution = &ScoredVector{
-			Vector: o.population.Members[bestIndex].TargetVector.Clone().(*mat.Dense),
+			Vector: o.population.Members[bestIndex].TargetVector.Clone(),
 			Score:  bestValidationScore,
 		}
 		o.onNewBest(o.bestSolution)
@@ -217,6 +217,6 @@ func (o *DifferentialEvolution) resetPopulation() {
 	)
 	// retain the best solution
 	members := o.population.Members
-	members[0].TargetVector = o.bestSolution.Vector.Clone().(*mat.Dense)
+	members[0].TargetVector = o.bestSolution.Vector.Clone()
 	members[0].TargetScore = o.bestSolution.Score
 }

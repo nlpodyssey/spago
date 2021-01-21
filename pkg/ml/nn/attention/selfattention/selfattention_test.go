@@ -42,7 +42,7 @@ func TestModel_SelfAttention(t *testing.T) {
 		0.01790323, 0.01853984, 0.01959262, -0.020789988,
 		-0.1529254, -0.2133677, -0.17563661, 0.336455424,
 		-0.2887047, -0.3777314, -0.31337569, 0.705232107,
-	}, model.Value.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Value.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.02, 0.46, 1.02,
 	}, model.Value.B.Grad().Data(), 1.0e-05)
@@ -50,7 +50,7 @@ func TestModel_SelfAttention(t *testing.T) {
 		0.07438275, 0.15194683, 0.11696175, -0.0629919,
 		0.03235329, 0.05018469, 0.04422187, -0.0234946,
 		-0.0599427, -0.1594204, -0.1097165, 0.0598379,
-	}, model.Key.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Key.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		0, 0, 0,
 	}, model.Key.B.Grad().Data(), 1.0e-05)
@@ -58,7 +58,7 @@ func TestModel_SelfAttention(t *testing.T) {
 		0.00538138, -0.0264289, -0.0085512, -0.0088408,
 		-0.0175901, -0.0032803, -0.0132455, 0.0143783,
 		-0.1022365, -0.0221910, -0.0784209, 0.08306303,
-	}, model.Query.W.Grad().(*mat.Dense).Data(), 1.0e-05)
+	}, model.Query.W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.0267918, 0.0149118, 0.08413719,
 	}, model.Query.B.Grad().Data(), 1.0e-05)

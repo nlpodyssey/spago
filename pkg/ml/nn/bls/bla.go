@@ -78,47 +78,47 @@ func (l *BroadLearningAlgorithm) log(message string) {
 	}
 }
 
-func singleZH(m *Model, x ag.Node) *mat.Dense {
+func singleZH(m *Model, x ag.Node) mat.Matrix {
 	g := m.Graph()
 	z := m.useFeaturesDropout(m.featuresMapping(x))
 	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
-	return g.Concat(z, h).Value().(*mat.Dense)
+	return g.Concat(z, h).Value()
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y
-func ridgeRegression(x *mat.Dense, y *mat.Dense, c mat.Float) mat.Matrix {
+func ridgeRegression(x mat.Matrix, y mat.Matrix, c mat.Float) mat.Matrix {
 	i2 := mat.I(x.Columns()).ProdScalar(c)
 	x2 := x.T().Mul(x).Add(i2)
-	invX2 := x2.(*mat.Dense).Inverse()
+	invX2 := x2.Inverse()
 	return invX2.Mul(x.T()).Mul(y)
 }
 
 // admn is a naive implementation of the alternating direction method of multipliers method (Goldstein et al. 2014).
-func admn(z *mat.Dense, x *mat.Dense, lam mat.Float, iterations int) mat.Matrix {
+func admn(z mat.Matrix, x mat.Matrix, lam mat.Float, iterations int) mat.Matrix {
 	ZZ := z.T().Mul(z)
-	Wk := mat.NewEmptyDense(z.Columns(), x.Columns())
-	Ok := mat.NewEmptyDense(z.Columns(), x.Columns())
-	Uk := mat.NewEmptyDense(z.Columns(), x.Columns())
+	var Wk mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
+	var Ok mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
+	var Uk mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
 
 	L1 := ZZ.AddInPlace(mat.I(z.Columns()))
-	L1 = L1.(*mat.Dense).Inverse()
+	L1 = L1.Inverse()
 	L2 := L1.Mul(z.T()).Mul(x)
 
 	for i := 0; i < iterations; i++ {
 		temp := Ok.Sub(Uk)
 		Ck := L2.Add(L1.Mul(temp))
-		Ok = shrinkage(Ck.Add(Uk).(*mat.Dense), lam).(*mat.Dense)
-		Uk = Uk.Add(Ck.Sub(Ok)).(*mat.Dense)
+		Ok = shrinkage(Ck.Add(Uk), lam)
+		Uk = Uk.Add(Ck.Sub(Ok))
 		Wk = Ok
 	}
 	return Wk
 }
 
-func shrinkage(X *mat.Dense, k mat.Float) mat.Matrix {
+func shrinkage(X mat.Matrix, k mat.Float) mat.Matrix {
 	Zeros := mat.NewEmptyDense(X.Rows(), X.Columns())
-	X1 := X.SubScalar(k).(*mat.Dense)
-	X2 := X.ProdScalar(-1.0).SubScalar(k).(*mat.Dense)
+	X1 := X.SubScalar(k)
+	X2 := X.ProdScalar(-1.0).SubScalar(k)
 	X2 = X2.Maximum(Zeros)
-	X2 = Zeros.Sub(X2).(*mat.Dense)
+	X2 = Zeros.Sub(X2)
 	return X1.Maximum(X2)
 }

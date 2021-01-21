@@ -1245,6 +1245,38 @@ func TestDense_Normalize2(t *testing.T) {
 	})
 }
 
+func TestDense_DoNonZero(t *testing.T) {
+	t.Run("empty matrix", func(t *testing.T) {
+		m := NewEmptyDense(0, 0)
+		fn := func(i, j int, v Float) {
+			t.Fatalf("unexpected call with %d, %d, %f", i, j, v)
+		}
+		m.DoNonZero(fn)
+	})
+
+	t.Run("simple case", func(t *testing.T) {
+		m := NewDense(2, 3, []Float{
+			10, 0, 20,
+			0, 30, 0,
+		})
+		type visited struct {
+			i, j int
+			f    Float
+		}
+		actual := make([]visited, 0)
+		fn := func(i, j int, v Float) {
+			actual = append(actual, visited{i, j, v})
+		}
+		m.DoNonZero(fn)
+		expected := []visited{
+			{0, 0, 10},
+			{0, 2, 20},
+			{1, 1, 30},
+		}
+		assert.Equal(t, expected, actual)
+	})
+}
+
 func TestDense_String(t *testing.T) {
 	d := NewVecDense([]Float{1, 2, 3})
 	assert.Equal(t, "[1 2 3]", d.String())

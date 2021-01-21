@@ -753,7 +753,7 @@ func (d *Dense) Normalize2() *Dense {
 }
 
 // Maximum returns a new matrix containing the element-wise maxima.
-func (d *Dense) Maximum(other Matrix) *Dense {
+func (d *Dense) Maximum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat64: matrix with not compatible size")
 	}
@@ -773,7 +773,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 }
 
 // Minimum returns a new matrix containing the element-wise minima.
-func (d *Dense) Minimum(other Matrix) *Dense {
+func (d *Dense) Minimum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat64: matrix with not compatible size")
 	}
@@ -894,7 +894,7 @@ func (d *Dense) LU() (l, u, p *Dense) {
 }
 
 // Inverse returns the inverse of the matrix.
-func (d Dense) Inverse() Matrix {
+func (d *Dense) Inverse() Matrix {
 	if d.Columns() != d.Rows() {
 		panic("mat64: matrix must be square")
 	}
@@ -920,6 +920,20 @@ func (d Dense) Inverse() Matrix {
 		}
 	}
 	return out
+}
+
+// DoNonZero calls a function for each non-zero element of the matrix.
+// The parameters of the function are the element indices and its value.
+func (d *Dense) DoNonZero(fn func(i, j int, v Float)) {
+	for i, di := 0, 0; i < d.rows; i++ {
+		for j := 0; j < d.cols; j, di = j+1, di+1 {
+			v := d.data[di]
+			if v == 0.0 {
+				continue
+			}
+			fn(i, j, v)
+		}
+	}
 }
 
 // String returns a string representation of the matrix data.
