@@ -5,6 +5,7 @@
 package mat32
 
 import (
+	"encoding/gob"
 	"fmt"
 	"math"
 )
@@ -19,6 +20,10 @@ type Sparse struct {
 	nzElements []Float // A vector
 	nnzRow     []int   // IA vector
 	colsIndex  []int   // JA vector
+}
+
+func init() {
+	gob.Register(&Sparse{})
 }
 
 // NewSparse returns a new rows x cols sparse matrix populated with a copy of the non-zero elements.

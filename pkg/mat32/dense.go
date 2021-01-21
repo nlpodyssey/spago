@@ -5,6 +5,7 @@
 package mat32
 
 import (
+	"encoding/gob"
 	"fmt"
 	"math"
 
@@ -24,6 +25,10 @@ type Dense struct {
 	data     []Float
 	viewOf   *Dense // default nil
 	fromPool bool
+}
+
+func init() {
+	gob.Register(&Dense{})
 }
 
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
