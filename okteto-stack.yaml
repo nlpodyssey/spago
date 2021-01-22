@@ -1,15 +1,38 @@
-name: spago
+name: spago-okteto
 services:
-  spago-ner:
+  spago:
     public: true
     image: okteto.dev/spago
     build: .
-    command: "/docker-entrypoint ner-server server --address=0.0.0.0:3000 --grpc-address=0.0.0.0:3001 --model=goflair-en-ner-fast-conll03-v0.4 --repo=/tmp/spago --tls-disable"
+    command:
+    - sh
+    - -c
+    - /docker-entrypoint ner-server server --address=0.0.0.0:3000 --grpc-address=0.0.0.0:3001 --model=goflair-en-ner-fast-conll03-v0.4 --repo=/tmp/spago --tls-disable
     ports:
       - 3000
     resources:
       storage: 5Gi
-      memory: 5Gi
-      cpu: 200m
+      memory: 1Gi
+      cpu: 500m
     volumes:
       - /tmp/spago
+  spago-2:
+    public: true
+    image: okteto.dev/spago
+    build: .
+    command:
+    - sh
+    - -c
+    - /docker-entrypoint bert-server  server --address=0.0.0.0:4000 --grpc-address=0.0.0.0:4001 --model=deepset/bert-base-cased-squad2 --repo=/tmp/spago1 --tls-disable
+    ports:
+      - 4000
+    resources:
+      storage: 8Gi
+      memory: 7Gi
+      cpu: 800m
+    volumes:
+      - /tmp/spago1
+
+
+
+
