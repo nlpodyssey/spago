@@ -51,7 +51,7 @@ RUN mkdir /etc/ssl/certs/spago \
 
 
 # The definition of the runtime container now follows.
-FROM scratch
+FROM debian:buster-slim
 
 # Copy the user info from the Builder container.
 COPY --from=Builder /etc/passwd /etc/passwd
