@@ -6,16 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.1] - 2021-01-22
+
 ### Added
+
 - New function `ReleaseMatrix` to packages `mat32` and `mat64`.
 - New methods to `Matrix` interface, from `mat32` and `mat64`: `Minimum`,
-  `Maximum`, `MulT`, `Inverse`, `DoNonZero`.
-  However, the implementation on sparse matrices is not implemented yet (it always panics).
+  `Maximum`, `MulT`, `Inverse`, `DoNonZero`. However, the implementation on sparse matrices is not implemented yet (it
+  always panics).
 
 ### Changed
+
 - Prefer handling `Matrix` interface values over specific `Dense` or `Sparse`
-   matrices, also avoiding unnecessary type casts. Relevant changes to the
-   public API are listed below.
+  matrices, also avoiding unnecessary type casts. Relevant changes to the public API are listed below.
   - `mat(32|64).Stack` function's arguments and returned value are now `Matrix` 
     interfaces, instead of explicit `Dense` matrices.
   - `Dense.Minimum` and `Dense.Maximum`, from packages `mat32` and `mat64`,
