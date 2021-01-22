@@ -50,7 +50,7 @@ docker build -t spago:main . -f Dockerfile
 
 ### Deploy on Okteto Cloud With One click 
 
-[![Develop on Okteto](https://okteto.com/develop-okteto.svg)](https://cloud.okteto.com/deploy?repository=https://github.com/nlpodyssey/spago/&branch=okteto-stack-v0.4.1/)
+[![Develop on Okteto](https://okteto.com/develop-okteto.svg)](https://cloud.okteto.com/deploy?repository=https://github.com/nlpodyssey/spago/&branch=okteto-stack-v0.4.1)
 
 
 
