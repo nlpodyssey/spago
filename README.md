@@ -48,6 +48,12 @@ The Docker image can be built like this.
 docker build -t spago:main . -f Dockerfile
 ```
 
+### Deploy on Okteto Cloud With One click 
+
+[![Develop on Okteto](https://okteto.com/develop-okteto.svg)](https://cloud.okteto.com/deploy?repository=https://github.com/nlpodyssey/spago/&branch=okteto-stack-v0.4.1/)
+
+
+
 ### Library mode
 
 You can access the core functionality of spaGO, i.e. optimizing mathematical expressions by back-propagating gradients
