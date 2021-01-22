@@ -45,7 +45,7 @@ type Config struct {
 	TypeVocabSize         int               `json:"type_vocab_size"`
 	VocabSize             int               `json:"vocab_size"`
 	ID2Label              map[string]string `json:"id2label"`
-	ReadOnly              bool              `json:"read_only"`
+	Training              bool              `json:"training"` // Custom for spaGO
 }
 
 func init() {
@@ -93,7 +93,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			MaxPositions:        config.MaxPositionEmbeddings,
 			TokenTypes:          config.TypeVocabSize,
 			WordsMapFilename:    embeddingsStoragePath,
-			WordsMapReadOnly:    config.ReadOnly,
+			WordsMapReadOnly:    !config.Training,
 			DeletePreEmbeddings: false,
 		}),
 		Encoder: NewBertEncoder(EncoderConfig{
