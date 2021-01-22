@@ -4,7 +4,7 @@ services:
     public: true
     image: okteto.dev/spago
     build: .
-    command: "docker-entrypoint ner-server server --address=0.0.0.0:3000 --grpc-address=0.0.0.0:3001 --model=goflair-en-ner-fast-conll03-v0.4 --repo=/tmp/spago --tls-disable"
+    command: "/docker-entrypoint ner-server server --address=0.0.0.0:3000 --grpc-address=0.0.0.0:3001 --model=goflair-en-ner-fast-conll03-v0.4 --repo=/tmp/spago --tls-disable"
     ports:
       - 3000
     volumes:
