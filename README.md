@@ -48,7 +48,7 @@ The Docker image can be built like this.
 docker build -t spago:main . -f Dockerfile
 ```
 
-### Deploy on Okteto Cloud With One click 
+### Deploy On Okteto Cloud With One Click 
 
 [![Develop on Okteto](https://okteto.com/develop-okteto.svg)](https://cloud.okteto.com/deploy?repository=https://github.com/nlpodyssey/spago/&branch=okteto-stack-v0.4.1)
 
