@@ -34,7 +34,7 @@ func init() {
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum mat.Float) *Model {
 	return &Model{
-		W:        nn.NewParam(mat.NewInitVecDense(size, 1.0)),
+		W:        nn.NewParam(mat.NewInitVecDense(size,epsilon)),
 		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
 		Mean:     nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
 		StdDev:   nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),

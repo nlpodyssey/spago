@@ -130,6 +130,7 @@ func TestModel_Inference(t *testing.T) {
 	model := New(3)
 	model.Mean = nn.NewParam(mat.NewVecDense([]mat.Float{0.0, 0.0, 1.0}))
 	model.StdDev = nn.NewParam(mat.NewVecDense([]mat.Float{1.0, 0.5, 1.0}))
+	model.W=nn.NewParam(mat.NewInitVecDense(3,1.0))
 	g := ag.NewGraph()
 	ctx := nn.Context{Graph: g, Mode: nn.Inference}
 	proc := nn.Reify(ctx, model)
