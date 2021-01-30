@@ -81,7 +81,7 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	if m.Config.NormalizeBefore {
 		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.SelfAttention.Forward(attention.ToQKV(xs))
+	xs = m.SelfAttention.Forward(attention.ToQKV(xs)).AttOutput
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
@@ -99,7 +99,8 @@ func (m *Layer) crossAttentionBlock(xs []ag.Node, encoderHiddenStates []ag.Node)
 		Queries: xs,
 		Keys:    encoderHiddenStates,
 		Values:  encoderHiddenStates,
-	})
+	}).AttOutput
+
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {

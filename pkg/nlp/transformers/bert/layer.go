@@ -38,7 +38,7 @@ func (m *EncoderLayer) Forward(xs ...ag.Node) []ag.Node {
 }
 
 func (m *EncoderLayer) selfAttentionBlock(xs []ag.Node) []ag.Node {
-	selfAtt := m.MultiHeadAttention.Forward(attention.ToQKV(xs))
+	selfAtt := m.MultiHeadAttention.Forward(attention.ToQKV(xs)).AttOutput
 	return m.NormAttention.Forward(m.add(xs, selfAtt)...)
 }
 

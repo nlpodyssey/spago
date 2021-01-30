@@ -18,6 +18,20 @@ type QKV struct {
 	Values  []ag.Node
 }
 
+type Output struct {
+	// Result of the self-attention.
+	AttOutput []ag.Node
+	// Attention scores.
+	AttWeights []mat.Matrix
+	// Projected Keys and Values.
+	ProjKeysValues KeysValuesPair
+}
+
+type KeysValuesPair struct {
+	Keys   []ag.Node
+	Values []ag.Node
+}
+
 // ToQKV create a new QKV struct with queries = keys = values = xs.
 func ToQKV(xs []ag.Node) QKV {
 	return QKV{
@@ -31,14 +45,14 @@ func ToQKV(xs []ag.Node) QKV {
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor mat.Float, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(attIn.Queries))
-	prob = make([]mat.Matrix, len(attIn.Queries))
-	keys := g.Stack(attIn.Keys...)
-	values := g.T(g.Stack(attIn.Values...))
+func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
+	context = make([]ag.Node, len(qkv.Queries))
+	prob = make([]mat.Matrix, len(qkv.Queries))
+	keys := g.Stack(qkv.Keys...)
+	values := g.T(g.Stack(qkv.Values...))
 	factor := g.NewScalar(scaleFactor)
-	seqLen := len(attIn.Queries)
-	for i, q := range attIn.Queries {
+	seqLen := len(qkv.Queries)
+	for i, q := range qkv.Queries {
 		attScores := g.ProdScalar(g.Mul(keys, q), factor)
 
 		if useCausalMask {
@@ -58,15 +72,15 @@ func ScaledDotProductAttention(g *ag.Graph, attIn QKV, scaleFactor mat.Float, us
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, attIn QKV, scaleFactor mat.Float) (context []ag.Node, prob []mat.Matrix) {
-	context = make([]ag.Node, len(attIn.Queries))
-	prob = make([]mat.Matrix, len(attIn.Queries))
-	keys := g.Stack(attIn.Keys...)
-	values := g.T(g.Stack(attIn.Values...))
+func ScaledDotProductAttentionConcurrent(g *ag.Graph, qkv QKV, scaleFactor mat.Float) (context []ag.Node, prob []mat.Matrix) {
+	context = make([]ag.Node, len(qkv.Queries))
+	prob = make([]mat.Matrix, len(qkv.Queries))
+	keys := g.Stack(qkv.Keys...)
+	values := g.T(g.Stack(qkv.Values...))
 	factor := g.NewScalar(scaleFactor)
 	var wg sync.WaitGroup
-	wg.Add(len(attIn.Queries))
-	for i, q := range attIn.Queries {
+	wg.Add(len(qkv.Queries))
+	for i, q := range qkv.Queries {
 		go func(i int, q ag.Node) {
 			defer wg.Done()
 			attScores := g.ProdScalar(g.Mul(keys, q), factor)
@@ -85,21 +99,21 @@ type MappingFunc func(g *ag.Graph, x ag.Node) ag.Node
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(g *ag.Graph, attIn QKV, mappingFunction MappingFunc, eps mat.Float) []ag.Node {
-	context := make([]ag.Node, len(attIn.Queries))
-	attKeys := make([]ag.Node, len(attIn.Keys))
+func LinearAttention(g *ag.Graph, qkv QKV, mappingFunction MappingFunc, eps mat.Float) []ag.Node {
+	context := make([]ag.Node, len(qkv.Queries))
+	attKeys := make([]ag.Node, len(qkv.Keys))
 
 	var attKeysSum ag.Node = nil
-	for i := range attIn.Keys {
-		attKeys[i] = mappingFunction(g, attIn.Keys[i])
+	for i := range qkv.Keys {
+		attKeys[i] = mappingFunction(g, qkv.Keys[i])
 		attKeysSum = g.Add(attKeysSum, attKeys[i])
 	}
 
 	attKeysT := g.T(g.Stack(attKeys...))
-	kv := g.Mul(attKeysT, g.Stack(attIn.Values...))
+	kv := g.Mul(attKeysT, g.Stack(qkv.Values...))
 
-	for i := range attIn.Queries {
-		attQuery := mappingFunction(g, attIn.Queries[i])
+	for i := range qkv.Queries {
+		attQuery := mappingFunction(g, qkv.Queries[i])
 		n := g.T(g.Mul(g.T(attQuery), kv))
 		d := g.Dot(attQuery, attKeysSum)
 		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))

@@ -36,7 +36,7 @@ func init() {
 func New(size, numOfHeads int, useCausalMask bool) *Model {
 	dm := size
 	dk := size / numOfHeads
-	attention := make([]*selfattention.Model, numOfHeads)
+	att := make([]*selfattention.Model, numOfHeads)
 	attentionConfig := selfattention.Config{
 		InputSize:     dm,
 		QuerySize:     dk,
@@ -46,10 +46,10 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 		UseCausalMask: useCausalMask,
 	}
 	for i := 0; i < numOfHeads; i++ {
-		attention[i] = selfattention.New(attentionConfig)
+		att[i] = selfattention.New(attentionConfig)
 	}
 	return &Model{
-		Attention:   attention,
+		Attention:   att,
 		OutputMerge: linear.New(dk*numOfHeads, dm),
 		NumOfHeads:  numOfHeads,
 		Dm:          dm,
@@ -57,20 +57,47 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 	}
 }
 
+type KeysValuesPair = []attention.KeysValuesPair
+
+type Output struct {
+	// Result of the multi-head attention.
+	AttOutput []ag.Node
+	// AttWeights attention scores.
+	AttWeights [][]mat.Matrix
+	// TODO
+	ProjKeysValues KeysValuesPair
+}
+
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(attIn attention.QKV) []ag.Node {
-	g := m.Graph()
-	headsAttention := make([][]ag.Node, m.NumOfHeads)
+func (m *Model) Forward(qkv attention.QKV, pastProjKeysValues ...KeysValuesPair) Output {
+	headsAttNodes := make([][]ag.Node, m.NumOfHeads)
+	headsAttWeights := make([][]mat.Matrix, m.NumOfHeads)
+	attProjKeysValues := make(KeysValuesPair, m.NumOfHeads)
+
 	for h, proc := range m.Attention {
-		headsAttention[h] = proc.Forward(attIn)
+		var out attention.Output
+		if pastProjKeysValues != nil {
+			out = proc.ForwardWithPastKeysValues(qkv, pastProjKeysValues[0][h])
+		} else {
+			out = proc.Forward(qkv)
+		}
+		headsAttNodes[h] = out.AttOutput
+		headsAttWeights[h] = out.AttWeights
+		attProjKeysValues[h] = out.ProjKeysValues
 	}
-	concatHeads := make([]ag.Node, len(attIn.Queries))
+
+	concatHeads := make([]ag.Node, len(qkv.Queries))
 	for i := 0; i < len(concatHeads); i++ {
 		buf := make([]ag.Node, m.NumOfHeads)
 		for j := 0; j < m.NumOfHeads; j++ {
-			buf[j] = headsAttention[j][i]
+			buf[j] = headsAttNodes[j][i]
 		}
-		concatHeads[i] = g.Concat(buf...)
+		concatHeads[i] = m.Graph().Concat(buf...)
 	}
-	return m.OutputMerge.Forward(concatHeads...)
+
+	return Output{
+		AttOutput:      m.OutputMerge.Forward(concatHeads...),
+		AttWeights:     headsAttWeights,
+		ProjKeysValues: attProjKeysValues,
+	}
 }

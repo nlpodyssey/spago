@@ -65,7 +65,7 @@ func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
 	if m.Config.NormalizeBefore {
 		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.SelfAttention.Forward(attention.ToQKV(xs)) // TODO: key_padding_mask
+	xs = m.SelfAttention.Forward(attention.ToQKV(xs)).AttOutput // TODO: key_padding_mask
 	// TODO: xs = m.Dropout(xs) // config.Dropout
 	xs = add(m.Graph(), residual, xs)
 	if !m.Config.NormalizeBefore {
