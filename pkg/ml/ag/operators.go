@@ -9,6 +9,7 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"reflect"
+	"strings"
 )
 
 // OpName is the enumeration-like type used for the set of operators supported
@@ -207,17 +208,18 @@ var opNameToMethodName = map[OpName]string{
 	OpStack:         "Stack",
 }
 
-// strToOpName is the inverse map of opNameToMethodName
+// strToOpName is the inverse map of opNameToMethodName.
 var strToOpName = func() map[string]OpName {
 	invMap := make(map[string]OpName)
 	for k, v := range opNameToMethodName {
 		invMap[v] = k
+		invMap[strings.ToLower(v)] = k
 	}
 	return invMap
 }()
 
 // GetOpName maps a string to an operator.
-// It panics if the string does not match any operator.
+// It panics if the string does not match any operator (not even using lowercase).
 func GetOpName(str string) (OpName, error) {
 	if value, ok := strToOpName[str]; ok {
 		return value, nil
