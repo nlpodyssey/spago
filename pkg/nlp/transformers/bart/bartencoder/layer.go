@@ -43,12 +43,20 @@ func NewLayer(config bartconfig.Config) *Layer {
 		SelfAttentionLayerNorm: layernorm.New(config.DModel),
 		FFN: stack.New(
 			linear.New(config.DModel, config.EncoderFFNDim),
-			activation.New(ag.OpGELU), // TODO: config.ActivationFunction
+			activation.New(mustGetOpName(config.ActivationFunction)),
 			// dropout.New(config.ActivationDropout)
 			linear.New(config.EncoderFFNDim, config.DModel),
 			// dropout.New(config.Dropout)
 		),
 		LayerNorm: layernorm.New(config.DModel),
+	}
+}
+
+func mustGetOpName(str string) ag.OpName {
+	if value, err := ag.GetOpName(str); err == nil {
+		return value
+	} else {
+		panic(err)
 	}
 }
 
