@@ -21,7 +21,7 @@ type Decoder struct {
 	DecodingFNN1 nn.StandardModel // decoding part 1
 	DecodingFFN2 nn.StandardModel // decoding part 2
 	DescalingFFN nn.StandardModel
-	StepEncoder  *pe.PositionalEncoder
+	StepEncoder  *pe.SinusoidalPositionalEncoder
 	State        State `spago:"scope:processor"`
 }
 

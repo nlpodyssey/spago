@@ -20,7 +20,7 @@ type Encoder struct {
 	nn.BaseModel
 	ScalingFFN  nn.StandardModel
 	EncodingFFN nn.StandardModel
-	StepEncoder *pe.PositionalEncoder
+	StepEncoder *pe.SinusoidalPositionalEncoder
 	Recursions  int `spago:"scope:processor"`
 }
 
