@@ -57,7 +57,7 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 	}
 }
 
-type KeysValuesPair = []attention.KeysValuesPair
+type KeysValuesPairs = []attention.KeysValuesPair
 
 type Output struct {
 	// Result of the multi-head attention.
@@ -65,19 +65,29 @@ type Output struct {
 	// AttWeights attention scores.
 	AttWeights [][]mat.Matrix
 	// TODO
-	ProjKeysValues KeysValuesPair
+	ProjKeysValues KeysValuesPairs
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(qkv attention.QKV, pastProjKeysValues ...KeysValuesPair) Output {
+func (m *Model) Forward(qkv attention.QKV) Output {
+	return m.forward(qkv, nil)
+}
+
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
+	return m.forward(qkv, pastProjKeysValues)
+}
+
+// Forward performs the forward step for each input node and returns the result.
+func (m *Model) forward(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
 	headsAttNodes := make([][]ag.Node, m.NumOfHeads)
 	headsAttWeights := make([][]mat.Matrix, m.NumOfHeads)
-	attProjKeysValues := make(KeysValuesPair, m.NumOfHeads)
+	attProjKeysValues := make(KeysValuesPairs, m.NumOfHeads)
 
 	for h, proc := range m.Attention {
 		var out attention.Output
 		if pastProjKeysValues != nil {
-			out = proc.ForwardWithPastKeysValues(qkv, pastProjKeysValues[0][h])
+			out = proc.ForwardWithPastKeysValues(qkv, pastProjKeysValues[h])
 		} else {
 			out = proc.Forward(qkv)
 		}
