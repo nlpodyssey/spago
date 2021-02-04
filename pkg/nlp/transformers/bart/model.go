@@ -12,9 +12,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartdecoder"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartencoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder"
 	"strconv"
 )
 
@@ -25,10 +25,10 @@ var (
 // Model implements a BART model.
 type Model struct {
 	nn.BaseModel
-	Config     bartconfig.Config
+	Config     config.Config
 	Embeddings *embeddings.Model
-	Encoder    *bartencoder.Model
-	Decoder    *bartdecoder.Model
+	Encoder    *encoder.Model
+	Decoder    *decoder.Model
 }
 
 func init() {
@@ -36,7 +36,7 @@ func init() {
 }
 
 // New returns a new BART Model.
-func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
+func New(config config.Config, embeddingsStoragePath string) *Model {
 	return &Model{
 		Config: config,
 		Embeddings: embeddings.New(embeddings.Config{
@@ -45,8 +45,8 @@ func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 			ReadOnly:   !config.Training,
 			ForceNewDB: false, // TODO: from config?
 		}),
-		Encoder: bartencoder.New(config),
-		Decoder: bartdecoder.New(config),
+		Encoder: encoder.New(config),
+		Decoder: decoder.New(config),
 	}
 }
 
@@ -60,7 +60,11 @@ func (m *Model) Encode(inputIDs []int) []ag.Node {
 	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
 	encoderOutput := m.Encoder.Encode(encoderInput)
 	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput := m.Decoder.Decode(decoderInput, encoderOutput)
+	decoderOutput, _ := m.Decoder.Decode(decoder.Input{
+		Xs:                  decoderInput,
+		EncoderHiddenStates: encoderOutput,
+		PastKeysValuesPairs: nil,
+	})
 	return decoderOutput
 }
 

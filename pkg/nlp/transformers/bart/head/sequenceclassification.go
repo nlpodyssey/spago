@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package barthead
+package head
 
 import (
 	"encoding/gob"
@@ -10,7 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
 	"path"
@@ -33,7 +33,7 @@ func init() {
 }
 
 // NewSequenceClassification returns a new SequenceClassification.
-func NewSequenceClassification(config bartconfig.Config, embeddingsPath string) *SequenceClassification {
+func NewSequenceClassification(config config.Config, embeddingsPath string) *SequenceClassification {
 	return &SequenceClassification{
 		BART: bart.New(config, embeddingsPath),
 		Classification: NewClassification(ClassificationConfig{
@@ -52,13 +52,13 @@ func (m *SequenceClassification) Close() {
 
 // LoadModelForSequenceClassification loads a SequenceClassification model from file.
 func LoadModelForSequenceClassification(modelPath string) (*SequenceClassification, error) {
-	configFilename := path.Join(modelPath, bartconfig.DefaultConfigurationFile)
-	embeddingsPath := path.Join(modelPath, bartconfig.DefaultEmbeddingsStorage)
-	modelFilename := path.Join(modelPath, bartconfig.DefaultModelFile)
+	configFilename := path.Join(modelPath, config.DefaultConfigurationFile)
+	embeddingsPath := path.Join(modelPath, config.DefaultEmbeddingsStorage)
+	modelFilename := path.Join(modelPath, config.DefaultModelFile)
 
 	fmt.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
 	fmt.Printf("[1/2] Loading configuration... ")
-	config, err := bartconfig.Load(configFilename)
+	config, err := config.Load(configFilename)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartdecoder
+package decoder
 
 import (
 	"encoding/gob"
@@ -10,7 +10,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder/layer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/posembeddings"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
@@ -22,9 +23,9 @@ var (
 // Model implements a BART decoder.
 type Model struct {
 	nn.BaseModel
-	Config                      bartconfig.Config
+	Config                      config.Config
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
-	Layers                      []*Layer
+	Layers                      []*layer.Layer
 	EmbeddingLayerNorm          *layernorm.Model
 	LayerNorm                   *layernorm.Model
 }
@@ -34,7 +35,7 @@ func init() {
 }
 
 // New returns a new BART decoder Model.
-func New(config bartconfig.Config) *Model {
+func New(config config.Config) *Model {
 	if config.StaticPositionEmbeddings {
 		panic("bart: static position embeddings not implemented.")
 	}
@@ -60,31 +61,45 @@ func New(config bartconfig.Config) *Model {
 	}
 }
 
-func makeLayers(config bartconfig.Config) []*Layer {
-	layers := make([]*Layer, config.DecoderLayers)
+func makeLayers(config config.Config) []*layer.Layer {
+	layers := make([]*layer.Layer, config.DecoderLayers)
 	for i := range layers {
-		layers[i] = NewLayer(config)
+		layers[i] = layer.NewLayer(config)
 		// TODO: add LayerDrop to skip layers during training (see https://arxiv.org/abs/1909.11556 for description)
 	}
 	return layers
 }
 
+type KeysValuesPairs = []layer.KeysValuesPairs
+
+type Input struct {
+	Xs                  []ag.Node
+	EncoderHiddenStates []ag.Node
+	PastKeysValuesPairs KeysValuesPairs
+}
+
 // Decode performs the forward step for each input and returns the result.
-func (m *Model) Decode(xs, encoderHiddenStates []ag.Node) []ag.Node {
-	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
-	ys := m.add(xs, embedPos)
+func (m *Model) Decode(input Input) ([]ag.Node, KeysValuesPairs) {
+	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(input.Xs)))
+	ys := m.add(input.Xs, embedPos)
 	ys = m.EmbeddingLayerNorm.Forward(ys...)
 	// TODO: ys = m.Dropout(ys)
 
-	for _, layer := range m.Layers {
-		ys = layer.Forward(ys, encoderHiddenStates)
-		// TODO: save all hidden states into the processor to allow a later access
+	var nextCache KeysValuesPairs
+	for i, l := range m.Layers {
+		var kvp layer.KeysValuesPairs
+		if input.PastKeysValuesPairs != nil {
+			ys, kvp = l.Forward(ys, input.EncoderHiddenStates, input.PastKeysValuesPairs[i])
+		} else {
+			ys, kvp = l.Forward(ys, input.EncoderHiddenStates, layer.KeysValuesPairs{})
+		}
+		nextCache = append(nextCache, kvp)
 	}
 
 	if m.Config.FinalLayerNorm {
 		ys = m.LayerNorm.Forward(ys...)
 	}
-	return ys
+	return ys, nextCache
 }
 
 func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {

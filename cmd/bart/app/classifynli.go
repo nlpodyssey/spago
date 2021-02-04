@@ -7,7 +7,7 @@ package app
 import (
 	"context"
 	"github.com/nlpodyssey/spago/cmd/clientutils"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
 	"github.com/urfave/cli"
 	"log"
 	"strings"

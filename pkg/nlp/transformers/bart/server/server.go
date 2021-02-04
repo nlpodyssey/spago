@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartserver
+package server
 
 import (
 	"bytes"
@@ -10,8 +10,8 @@ import (
 	"encoding/json"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
 	"github.com/nlpodyssey/spago/pkg/webui/bartnli"
@@ -20,7 +20,7 @@ import (
 
 // ServerForSequenceClassification contains everything needed to run a BART server.
 type ServerForSequenceClassification struct {
-	model           *barthead.SequenceClassification
+	model           *head.SequenceClassification
 	tokenizer       *bpetokenizer.BPETokenizer
 	TimeoutSeconds  int
 	MaxRequestBytes int
@@ -31,7 +31,7 @@ type ServerForSequenceClassification struct {
 
 // NewServer returns a new ServerForSequenceClassification.
 func NewServer(
-	model *barthead.SequenceClassification,
+	model *head.SequenceClassification,
 	tokenizer *bpetokenizer.BPETokenizer,
 ) *ServerForSequenceClassification {
 	return &ServerForSequenceClassification{

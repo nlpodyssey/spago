@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartserver
+package server
 
 import (
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
 	"runtime"
 	"sort"
 	"strconv"
@@ -20,7 +20,7 @@ func (s *ServerForSequenceClassification) classify(text string, text2 string) *C
 
 	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*barthead.SequenceClassification)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*head.SequenceClassification)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
 	logits := proc.Classify(inputIds)
 	g.Forward()

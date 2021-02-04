@@ -7,8 +7,8 @@ package app
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
 	"github.com/urfave/cli"
@@ -135,7 +135,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			log.Fatal("expected BPETokenizer, actual nil")
 		}
 
-		model, err := barthead.LoadModelForSequenceClassification(modelPath)
+		model, err := head.LoadModelForSequenceClassification(modelPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -161,7 +161,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			return "TLS"
 		}(), app.address)
 
-		server := bartserver.NewServer(model, tokenizer)
+		server := server.NewServer(model, tokenizer)
 		server.TimeoutSeconds = app.serverTimeoutSeconds
 		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)

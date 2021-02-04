@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartdecoder
+package layer
 
 import (
 	"encoding/gob"
@@ -14,18 +14,18 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartencoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
 )
 
 var (
-	_ nn.Model = &bartencoder.Layer{}
+	_ nn.Model = &layer.Layer{}
 )
 
 // Layer implements a BART decoder layer.
 type Layer struct {
 	nn.BaseModel
-	Config                    bartconfig.Config
+	Config                    config.Config
 	SelfAttention             *multiheadattention.Model
 	SelfAttentionLayerNorm    *layernorm.Model
 	EncoderAttention          *multiheadattention.Model
@@ -35,11 +35,11 @@ type Layer struct {
 }
 
 func init() {
-	gob.Register(&Layer{})
+	gob.RegisterName("*bart.decoder.layer.Layer", &Layer{})
 }
 
 // NewLayer returns a new BART decoder Layer.
-func NewLayer(config bartconfig.Config) *Layer {
+func NewLayer(config config.Config) *Layer {
 	return &Layer{
 		Config: config,
 		SelfAttention: multiheadattention.New(
@@ -75,46 +75,69 @@ func mustGetOpName(str string) ag.OpName {
 	}
 }
 
+type KeysValuesPairs struct {
+	SelfAttKeyValues  multiheadattention.KeysValuesPairs
+	CrossAttKeyValues multiheadattention.KeysValuesPairs
+}
+
 // Forward performs the forward step for each input and returns the result.
-// Valid input type: LayerInput.
-func (m *Layer) Forward(xs, encoderHiddenStates []ag.Node) []ag.Node {
-	selfAtt := m.selfAttentionBlock(xs)
-	crossAtt := m.crossAttentionBlock(selfAtt, encoderHiddenStates)
+func (m *Layer) Forward(
+	xs []ag.Node,
+	encoderHiddenStates []ag.Node,
+	pastProjKeysValues KeysValuesPairs,
+) ([]ag.Node, KeysValuesPairs) {
+	selfAtt, selfAttKeyValues := m.selfAttentionBlock(xs, pastProjKeysValues.SelfAttKeyValues)
+	crossAtt, crossAttKeyValues := m.crossAttentionBlock(selfAtt, encoderHiddenStates, pastProjKeysValues.CrossAttKeyValues)
 	out := m.fullyConnectedBlock(crossAtt)
-	return out
+
+	return out, KeysValuesPairs{
+		SelfAttKeyValues:  selfAttKeyValues,
+		CrossAttKeyValues: crossAttKeyValues,
+	}
 }
 
-func (m *Layer) selfAttentionBlock(xs []ag.Node) []ag.Node {
+func (m *Layer) selfAttentionBlock(
+	xs []ag.Node,
+	pastProjKeysValues multiheadattention.KeysValuesPairs,
+) ([]ag.Node, multiheadattention.KeysValuesPairs) {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
 		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.SelfAttention.Forward(attention.ToQKV(xs)).AttOutput
+	att := m.SelfAttention.ForwardWithPastKeysValues(attention.ToQKV(xs), pastProjKeysValues)
+	xs = att.AttOutput
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
 		xs = m.SelfAttentionLayerNorm.Forward(xs...)
 	}
-	return xs
+	return xs, att.ProjKeysValues
 }
 
-func (m *Layer) crossAttentionBlock(xs []ag.Node, encoderHiddenStates []ag.Node) []ag.Node {
+func (m *Layer) crossAttentionBlock(
+	xs []ag.Node,
+	encoderHiddenStates []ag.Node,
+	pastProjKeysValues multiheadattention.KeysValuesPairs,
+) ([]ag.Node, multiheadattention.KeysValuesPairs) {
 	residual := m.copy(xs)
 	if m.Config.NormalizeBefore {
 		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	xs = m.EncoderAttention.Forward(attention.QKV{
-		Queries: xs,
-		Keys:    encoderHiddenStates,
-		Values:  encoderHiddenStates,
-	}).AttOutput
-
+	att := m.EncoderAttention.ForwardWithPastKeysValues(
+		attention.QKV{
+			Queries: xs,
+			Keys:    encoderHiddenStates,
+			Values:  encoderHiddenStates,
+		},
+		pastProjKeysValues,
+	)
+	xs = att.AttOutput
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)
 	if !m.Config.NormalizeBefore {
 		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	return xs
+	return xs, att.ProjKeysValues
 }
 
 func (m *Layer) fullyConnectedBlock(xs []ag.Node) []ag.Node {

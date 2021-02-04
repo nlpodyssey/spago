@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartencoder
+package encoder
 
 import (
 	"encoding/gob"
@@ -10,7 +10,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/posembeddings"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
@@ -22,7 +23,7 @@ var (
 // Model implements a BART encoder.
 type Model struct {
 	nn.BaseModel
-	Config                      bartconfig.Config
+	Config                      config.Config
 	Layers                      *stack.Model
 	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
 	EmbeddingLayerNorm          *layernorm.Model
@@ -34,7 +35,7 @@ func init() {
 }
 
 // New returns a new BART encoder Model.
-func New(config bartconfig.Config) *Model {
+func New(config config.Config) *Model {
 	if config.StaticPositionEmbeddings {
 		panic("bart: static position embeddings not implemented.")
 	}
@@ -53,7 +54,7 @@ func New(config bartconfig.Config) *Model {
 			}),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
 		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel {
-			return NewLayer(config)
+			return layer.NewLayer(config)
 			// add LayerDrop to skip layers during training? (see https://arxiv.org/abs/1909.11556 for description)
 		}),
 		LayerNorm: layernorm.New(config.DModel),

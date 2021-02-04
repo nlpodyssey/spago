@@ -13,10 +13,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartdecoder"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartencoder"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
+	pkgconfig "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder"
+	encoder_layer "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/gopickleutils"
 	"log"
@@ -33,7 +34,7 @@ const defaultHuggingFaceModelFile = "pytorch_model.bin"
 // ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BART
 // transformer model to a corresponding spaGO model.
 func ConvertHuggingFacePreTrained(modelPath string) error {
-	configFilename, err := exists(path.Join(modelPath, bartconfig.DefaultConfigurationFile))
+	configFilename, err := exists(path.Join(modelPath, pkgconfig.DefaultConfigurationFile))
 	if err != nil {
 		return err
 	}
@@ -41,7 +42,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	if err != nil {
 		return err
 	}
-	config, err := bartconfig.Load(configFilename)
+	config, err := pkgconfig.Load(configFilename)
 	if err != nil {
 		return err
 	}
@@ -50,9 +51,9 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	// (for example, for embeddings storage files).
 	config.Training = true
 
-	model := bart.New(config, path.Join(modelPath, bartconfig.DefaultEmbeddingsStorage))
+	model := bart.New(config, path.Join(modelPath, pkgconfig.DefaultEmbeddingsStorage))
 	defer model.Close()
-	classification := barthead.NewClassification(barthead.ClassificationConfig{
+	classification := head.NewClassification(head.ClassificationConfig{
 		InputSize:     config.DModel,
 		HiddenSize:    config.DModel,
 		OutputSize:    config.NumLabels,
@@ -63,7 +64,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 		modelPath:            modelPath,
 		configFilename:       configFilename,
 		pyTorchModelFilename: pyTorchModelFilename,
-		modelFilename:        path.Join(modelPath, bartconfig.DefaultModelFile),
+		modelFilename:        path.Join(modelPath, pkgconfig.DefaultModelFile),
 		model:                model,
 		classificationHead:   classification,
 		modelMapping:         make(map[string]*mappedParam), // lazy initialization
@@ -76,13 +77,13 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 }
 
 type huggingFacePreTrainedConverter struct {
-	config               bartconfig.Config
+	config               pkgconfig.Config
 	modelPath            string
 	configFilename       string
 	pyTorchModelFilename string
 	modelFilename        string
 	model                *bart.Model
-	classificationHead   *barthead.Classification
+	classificationHead   *head.Classification
 	modelMapping         map[string]*mappedParam
 }
 
@@ -168,7 +169,7 @@ func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabSize in
 
 func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	// TODO: handle different heads and base BART model alone as well
-	sequenceClassificationModel := &barthead.SequenceClassification{
+	sequenceClassificationModel := &head.SequenceClassification{
 		BART:           c.model,
 		Classification: c.classificationHead,
 	}
@@ -180,10 +181,10 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	return nil
 }
 
-func mapBartEncoder(model *bartencoder.Model) map[string]mat.Matrix {
+func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.Config.EncoderLayers; i++ {
-		layer := model.Layers.Layers[i].(*bartencoder.Layer)
+		layer := model.Layers.Layers[i].(*encoder_layer.Layer)
 		prefixBase := fmt.Sprintf("model.encoder.layers.%d", i)
 		// Sublayer 1
 		for j := 0; j < model.Config.EncoderAttentionHeads; j++ {
@@ -217,7 +218,7 @@ func mapBartEncoder(model *bartencoder.Model) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapBartDecoder(model *bartdecoder.Model) map[string]mat.Matrix {
+func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.Config.DecoderLayers; i++ {
 		layer := model.Layers[i]
@@ -270,7 +271,7 @@ func mapBartDecoder(model *bartdecoder.Model) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapClassificationHead(model *barthead.Classification) map[string]mat.Matrix {
+func mapClassificationHead(model *head.Classification) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	paramsMap["classification_head.dense.weight"] = model.Layers[0].(*linear.Model).W.Value()
 	paramsMap["classification_head.dense.bias"] = model.Layers[0].(*linear.Model).B.Value()

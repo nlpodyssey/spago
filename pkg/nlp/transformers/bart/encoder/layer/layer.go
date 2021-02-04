@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartencoder
+package layer
 
 import (
 	"encoding/gob"
@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
 )
 
 var (
@@ -24,7 +24,7 @@ var (
 // Layer implements a BART encoder layer.
 type Layer struct {
 	nn.BaseModel
-	Config                 bartconfig.Config
+	Config                 config.Config
 	SelfAttention          *multiheadattention.Model
 	SelfAttentionLayerNorm *layernorm.Model
 	FFN                    *stack.Model
@@ -32,11 +32,11 @@ type Layer struct {
 }
 
 func init() {
-	gob.Register(&Layer{})
+	gob.RegisterName("*bart.encoder.layer.Layer", &Layer{})
 }
 
 // NewLayer returns a new BART encoder Layer.
-func NewLayer(config bartconfig.Config) *Layer {
+func NewLayer(config config.Config) *Layer {
 	return &Layer{
 		Config:                 config,
 		SelfAttention:          multiheadattention.New(config.DModel, config.EncoderAttentionHeads, false), // TODO: config.AttentionDropout
@@ -101,4 +101,12 @@ func (m *Layer) copy(xs []ag.Node) []ag.Node {
 		return g.Identity(x)
 	}
 	return ag.Map(copied, xs)
+}
+
+func add(g *ag.Graph, a []ag.Node, b []ag.Node) []ag.Node {
+	c := make([]ag.Node, len(a))
+	for i := 0; i < len(a); i++ {
+		c[i] = g.Add(a[i], b[i])
+	}
+	return c
 }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package bartserver
+package server
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/barthead"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
 	"github.com/nlpodyssey/spago/pkg/utils/workerpool"
 	"runtime"
 	"sort"
@@ -126,11 +126,11 @@ func (s *ServerForSequenceClassification) getEntailmentAndContradictionIDs() (
 ) {
 	entailmentID, ok := s.model.BART.Config.Label2ID["entailment"]
 	if !ok {
-		return -1, -1, fmt.Errorf("bartserver: `entailment` label not found")
+		return -1, -1, fmt.Errorf("server: `entailment` label not found")
 	}
 	contradictionID, ok = s.model.BART.Config.Label2ID["contradiction"]
 	if !ok {
-		return -1, -1, fmt.Errorf("bartserver: `contradiction` label not found")
+		return -1, -1, fmt.Errorf("server: `contradiction` label not found")
 	}
 	return
 }
@@ -148,13 +148,13 @@ func (s *ServerForSequenceClassification) newWorkers(workersSize int) []*worker 
 
 type worker struct {
 	tokenizer *bpetokenizer.BPETokenizer
-	model     *barthead.SequenceClassification
+	model     *head.SequenceClassification
 }
 
 func (w *worker) process(input premiseHypothesisPair) mat.Matrix {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*barthead.SequenceClassification)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*head.SequenceClassification)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Classify(inputIds)
 	g.Forward()
