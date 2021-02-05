@@ -15,16 +15,16 @@ type SinusoidalPositionalEncoder struct {
 	Size int
 	// Length is the max number of positions.
 	Length int
-	// Cache contains the pre-computed encoding.
-	Cache []mat.Matrix
+	// Vectors contains the pre-computed encoding.
+	Vectors []mat.Matrix
 }
 
 // NewSinusoidalPositionalEncoder returns a new SinusoidalPositionalEncoder ready to use.
 func NewSinusoidalPositionalEncoder(size, length int) *SinusoidalPositionalEncoder {
 	pe := &SinusoidalPositionalEncoder{
-		Size:   size,
-		Length: length,
-		Cache:  make([]mat.Matrix, length),
+		Size:    size,
+		Length:  length,
+		Vectors: make([]mat.Matrix, length),
 	}
 
 	half := (size + (size % 2)) / 2
@@ -42,12 +42,12 @@ func NewSinusoidalPositionalEncoder(size, length int) *SinusoidalPositionalEncod
 			}
 		}
 
-		pe.Cache[pos] = mat.NewVecDense(data)
+		pe.Vectors[pos] = mat.NewVecDense(data)
 	}
 	return pe
 }
 
 // EncodingAt returns the positional encoding at the given position.
 func (r *SinusoidalPositionalEncoder) EncodingAt(pos int) mat.Matrix {
-	return r.Cache[pos]
+	return r.Vectors[pos]
 }
