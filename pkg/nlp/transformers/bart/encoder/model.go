@@ -12,7 +12,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/posembeddings"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/learnedpositionalencoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/sinusoidalpositionalencoder"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -23,35 +25,38 @@ var (
 // Model implements a BART encoder.
 type Model struct {
 	nn.BaseModel
-	Config                      config.Config
-	Layers                      *stack.Model
-	LearnedPositionalEmbeddings *posembeddings.LearnedPositionalEmbeddings
-	EmbeddingLayerNorm          *layernorm.Model
-	LayerNorm                   *layernorm.Model
+	Config             config.Config
+	Layers             *stack.Model
+	PositionalEncoder  positionalencoder.Encoder
+	EmbeddingLayerNorm *layernorm.Model
+	LayerNorm          *layernorm.Model
 }
 
 func init() {
 	gob.Register(&Model{})
 }
 
+func newPositionalEncoder(config config.Config) positionalencoder.Encoder {
+	if config.StaticPositionEmbeddings {
+		return sinusoidalpositionalencoder.New(sinusoidalpositionalencoder.Config{
+			NumEmbeddings: config.VocabSize,
+			EmbeddingDim:  config.DModel,
+		})
+	}
+	return learnedpositionalencoder.New(
+		learnedpositionalencoder.Config{
+			NumEmbeddings: config.VocabSize,
+			EmbeddingDim:  config.DModel,
+			PaddingIDX:    config.PadTokenID,
+			Offset:        config.ExtraPosEmbedding,
+		})
+}
+
 // New returns a new BART encoder Model.
 func New(config config.Config) *Model {
-	if config.StaticPositionEmbeddings {
-		panic("bart: static position embeddings not implemented.")
-	}
-	if config.ScaleEmbedding {
-		panic("bart: scale embedding not implemented.")
-	}
-
 	return &Model{
-		Config: config,
-		LearnedPositionalEmbeddings: posembeddings.NewLearnedPositionalEmbeddings(
-			posembeddings.Config{
-				NumEmbeddings: config.VocabSize,
-				EmbeddingDim:  config.DModel,
-				PaddingIDX:    config.PadTokenID,
-				Offset:        config.ExtraPosEmbedding,
-			}),
+		Config:             config,
+		PositionalEncoder:  newPositionalEncoder(config),
 		EmbeddingLayerNorm: layernorm.New(config.DModel),
 		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel {
 			return layer.NewLayer(config)
@@ -63,11 +68,12 @@ func New(config config.Config) *Model {
 
 // Encode performs the forward step for each input node and returns the result.
 func (m *Model) Encode(xs []ag.Node) []ag.Node {
-	embedPos := m.LearnedPositionalEmbeddings.Encode(utils.MakeIndices(len(xs)))
+	embedPos := m.PositionalEncoder.Encode(utils.MakeIndices(len(xs)))
 	ys := add(m.Graph(), xs, embedPos)
-	ys = m.EmbeddingLayerNorm.Forward(ys...)
-	// TODO: ys = m.Dropout(ys)
-
+	if m.Config.NormalizeEmbedding {
+		ys = m.EmbeddingLayerNorm.Forward(ys...)
+		// TODO: ys = m.Dropout(ys)
+	}
 	ys = m.Layers.Forward(ys...)
 	if m.Config.FinalLayerNorm {
 		ys = m.LayerNorm.Forward(ys...)

@@ -9,6 +9,7 @@ package bart
 
 import (
 	"encoding/gob"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
@@ -55,17 +56,39 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-// Encode performs the forward step for each input and returns the result.
+// Process performs the forward step for each input and returns the result.
+func (m *Model) Process(inputIDs []int) []ag.Node {
+	encoded := m.Encode(inputIDs)
+	decoded, _ := m.Decode(shiftR(inputIDs, 1), encoded, nil)
+	return decoded
+}
+
 func (m *Model) Encode(inputIDs []int) []ag.Node {
-	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
-	encoderOutput := m.Encoder.Encode(encoderInput)
-	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput, _ := m.Decoder.Decode(decoder.Input{
-		Xs:                  decoderInput,
-		EncoderHiddenStates: encoderOutput,
-		PastKeysValuesPairs: nil,
-	})
-	return decoderOutput
+	return m.Encoder.Encode(m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))))
+}
+
+func (m *Model) Decode(
+	inputIDs []int,
+	encoderHiddenStates []ag.Node,
+	pastKeysValuesPairs decoder.KeysValuesPairs,
+) ([]ag.Node, decoder.KeysValuesPairs) {
+	return m.Decoder.Decode(
+		m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))),
+		encoderHiddenStates,
+		pastKeysValuesPairs,
+	)
+}
+
+func (m *Model) useScaledEmbeddings(xs []ag.Node) []ag.Node {
+	if !m.Config.ScaleEmbedding {
+		return xs
+	}
+
+	embedScale := m.Graph().Constant(mat.Sqrt(mat.Float(m.Config.DModel)))
+	scaled := func(x ag.Node) ag.Node {
+		return m.Graph().ProdScalar(x, embedScale)
+	}
+	return ag.Map(scaled, xs)
 }
 
 func intToStringSlice(a []int) []string {
