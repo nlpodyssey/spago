@@ -6,8 +6,9 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/loader"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
@@ -127,6 +128,17 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			}
 		}
 
+		model, err := loader.Load(modelPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer func() {
+			if m, ok := model.(nn.Closer); ok {
+				m.Close()
+			}
+		}()
+
 		tokenizer, err := bpetokenizer.NewFromModelFolder(modelPath)
 		if err != nil {
 			log.Fatal(err)
@@ -134,13 +146,6 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		if tokenizer == nil {
 			log.Fatal("expected BPETokenizer, actual nil")
 		}
-
-		model, err := head.LoadModelForSequenceClassification(modelPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer model.Close()
-		fmt.Printf("Config: %+v\n", model.BART.Config)
 
 		if !app.tlsDisable {
 			fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
@@ -161,11 +166,11 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			return "TLS"
 		}(), app.address)
 
-		server := server.NewServer(model, tokenizer)
-		server.TimeoutSeconds = app.serverTimeoutSeconds
-		server.MaxRequestBytes = app.serverMaxRequestBytes
-		server.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
-		server.StartDefaultServer(app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
+		s := server.NewServer(model, tokenizer)
+		s.TimeoutSeconds = app.serverTimeoutSeconds
+		s.MaxRequestBytes = app.serverMaxRequestBytes
+		s.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
+		s.StartDefaultServer(app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
 
 		return nil
 	}
