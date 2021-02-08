@@ -47,7 +47,11 @@ func NewSinusoidalPositionalEncoder(size, length int) *SinusoidalPositionalEncod
 	return pe
 }
 
-// EncodingAt returns the positional encoding at the given position.
-func (r *SinusoidalPositionalEncoder) EncodingAt(pos int) mat.Matrix {
-	return r.Vectors[pos]
+// Encode returns the positional encoding for the given positions.
+func (r *SinusoidalPositionalEncoder) Encode(xs ...int) []mat.Matrix {
+	ys := make([]mat.Matrix, len(xs))
+	for i, x := range xs {
+		ys[i] = r.Vectors[x]
+	}
+	return ys
 }
