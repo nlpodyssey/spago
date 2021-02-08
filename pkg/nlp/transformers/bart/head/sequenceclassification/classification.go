@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package head
+package sequenceclassification
 
 import (
 	"encoding/gob"
@@ -15,31 +15,31 @@ import (
 )
 
 var (
-	_ nn.Model = &Classification{}
+	_ nn.Model = &Classifier{}
 )
 
-// ClassificationConfig provides configuration settings for a BART head for sentence-level
-// Classification model.
-type ClassificationConfig struct {
+// ClassifierConfig provides configuration settings for a BART head for sentence-level
+// Classifier model.
+type ClassifierConfig struct {
 	InputSize     int
 	HiddenSize    int
 	OutputSize    int
 	PoolerDropout mat.Float
 }
 
-// Classification is a model for BART head for sentence-level classification tasks.
-type Classification struct {
-	Config ClassificationConfig
+// Classifier is a model for BART head for sentence-level classification tasks.
+type Classifier struct {
+	Config ClassifierConfig
 	*stack.Model
 }
 
 func init() {
-	gob.Register(&Classification{})
+	gob.Register(&Classifier{})
 }
 
-// NewClassification returns a new Classification.
-func NewClassification(config ClassificationConfig) *Classification {
-	return &Classification{
+// NewClassifier returns a new Classifier.
+func NewClassifier(config ClassifierConfig) *Classifier {
+	return &Classifier{
 		Config: config,
 		Model: stack.New(
 			// dropout.New(pooler_dropout),
