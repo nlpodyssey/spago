@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package posembeddings
+package learnedpositionalencoder
 
 import (
 	"encoding/gob"
@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	_ nn.Model = &LearnedPositionalEmbeddings{}
+	_ nn.Model = &LearnedPositionalEncoder{}
 )
 
-// Config provides configuration settings for a LearnedPositionalEmbeddings Model.
+// Config provides configuration settings for a LearnedPositionalEncoder Model.
 type Config struct {
 	NumEmbeddings int
 	EmbeddingDim  int
@@ -23,33 +23,33 @@ type Config struct {
 	Offset        int
 }
 
-// LearnedPositionalEmbeddings contains positional embeddings fine-tuned during
+// LearnedPositionalEncoder contains positional embeddings fine-tuned during
 // the training phase.
-type LearnedPositionalEmbeddings struct {
+type LearnedPositionalEncoder struct {
 	nn.BaseModel
 	Config  Config
 	Vectors []nn.Param `spago:"type:weights;scope:model"`
 }
 
 func init() {
-	gob.Register(&LearnedPositionalEmbeddings{})
+	gob.Register(&LearnedPositionalEncoder{})
 }
 
-// NewLearnedPositionalEmbeddings returns a new LearnedPositionalEmbeddings.
+// New returns a new LearnedPositionalEncoder.
 // TODO: PaddingIDX
-func NewLearnedPositionalEmbeddings(config Config) *LearnedPositionalEmbeddings {
+func New(config Config) *LearnedPositionalEncoder {
 	vectors := make([]nn.Param, config.NumEmbeddings+config.Offset)
 	for i := 0; i < len(vectors); i++ {
 		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
 	}
-	return &LearnedPositionalEmbeddings{
+	return &LearnedPositionalEncoder{
 		Config:  config,
 		Vectors: vectors,
 	}
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *LearnedPositionalEmbeddings) Encode(positions []int) []ag.Node {
+func (m *LearnedPositionalEncoder) Encode(positions []int) []ag.Node {
 	g := m.Graph()
 	embeddings := make([]ag.Node, len(positions))
 	for i, pos := range positions {
