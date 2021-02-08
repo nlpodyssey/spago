@@ -67,6 +67,10 @@ type StandardForwarder interface {
 	Forward(xs ...ag.Node) []ag.Node
 }
 
+type Closer interface {
+	Close()
+}
+
 // StandardModel consists of a model that implements StandardForwarder.
 type StandardModel interface {
 	Model
