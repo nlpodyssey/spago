@@ -13,12 +13,12 @@ const (
 )
 
 var predefinedModels = map[string]string{
-	"goflair-en-ner-conll03-v0.4":          "https://dl.dropboxusercontent.com/s/41fk31b684mz6v8/goflair-en-ner-conll03-v0.4.tar.gz?dl=0",
-	"goflair-en-ner-fast-conll03-v0.4":     "https://dl.dropboxusercontent.com/s/5zlyw1e6gpm94oo/goflair-en-ner-fast-conll03-v0.4.tar.gz?dl=0",
-	"goflair-ner-multi-fast":               "https://dl.dropboxusercontent.com/s/k5kvaf23oorkgv3/goflair-ner-multi-fast.tar.gz?dl=0",
-	"goflair-en-ner-ontonotes-fast-v0.4":   "https://dl.dropboxusercontent.com/s/v2r2cldnz9rh6ya/goflair-en-ner-ontonotes-fast-v0.4.tar.gz?dl=0",
-	"goflair-fr-ner-wikiner-0.4":           "https://dl.dropboxusercontent.com/s/y3gv1gz4ckmj8bn/goflair-fr-ner-wikiner-0.4.tar.gz?dl=0",
-	"goflair-en-chunk-conll2000-fast-v0.4": "https://dl.dropboxusercontent.com/s/un8wxcsqweidg1x/goflair-en-chunk-conll2000-fast-v0.4.tar.gz?dl=0",
+	"goflair-en-chunk-conll2000-fast-v0.4": "https://dl.dropboxusercontent.com/s/m3sraek9iy663gp/goflair-en-chunk-conll2000-fast-v0.4.tar.gz?dl=0",
+	"goflair-en-ner-conll03-v0.4":          "https://dl.dropboxusercontent.com/s/uf1jihxxb5lsyvy/goflair-en-ner-conll03-v0.4.tar.gz?dl=0",
+	"goflair-en-ner-fast-conll03-v0.4":     "https://dl.dropboxusercontent.com/s/pu53gqxlpuzmmwr/goflair-en-ner-fast-conll03-v0.4.tar.gz?dl=0",
+	"goflair-en-ner-ontonotes-fast-v0.4":   "https://dl.dropboxusercontent.com/s/a77mfbr1mvzqzcr/goflair-en-ner-ontonotes-fast-v0.4.tar.gz?dl=0",
+	"goflair-fr-ner-wikiner-0.4":           "https://dl.dropboxusercontent.com/s/588byt40sc5v1vo/goflair-fr-ner-wikiner-0.4.tar.gz?dl=0",
+	"goflair-ner-multi-fast":               "https://dl.dropboxusercontent.com/s/z1nr57a8zh4qwml/goflair-ner-multi-fast.tar.gz?dl=0",
 }
 
 // NERApp contains everything needed to run the NER client or server.
