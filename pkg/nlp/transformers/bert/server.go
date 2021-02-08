@@ -182,6 +182,30 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+// TokenSlice is a slice of Token elements, which implements the sort.Interface.
+type TokenSlice []Token
+
+// Len returns the length of the slice.
+func (p TokenSlice) Len() int {
+	return len(p)
+}
+
+// Less returns true if the Token.Start of the element at position i is
+// lower than the one of the element at position j.
+func (p TokenSlice) Less(i, j int) bool {
+	return p[i].Start < p[j].Start
+}
+
+// Swap swaps the elements at positions i and j.
+func (p TokenSlice) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+// Sort sorts the TokenSlice's elements by Token.Start.
+func (p TokenSlice) Sort() {
+	sort.Sort(p)
+}
+
 // Dump serializes the given value to JSON.
 func Dump(value interface{}, pretty bool) ([]byte, error) {
 	buf := bytes.NewBufferString("")
