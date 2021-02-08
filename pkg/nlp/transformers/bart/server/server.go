@@ -9,8 +9,10 @@ import (
 	"context"
 	"encoding/json"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
@@ -18,9 +20,9 @@ import (
 	"net/http"
 )
 
-// ServerForSequenceClassification contains everything needed to run a BART server.
-type ServerForSequenceClassification struct {
-	model           *head.SequenceClassification
+// Server contains everything needed to run a BART server.
+type Server struct {
+	model           nn.Model
 	tokenizer       *bpetokenizer.BPETokenizer
 	TimeoutSeconds  int
 	MaxRequestBytes int
@@ -29,19 +31,24 @@ type ServerForSequenceClassification struct {
 	grpcapi.UnimplementedBARTServer
 }
 
-// NewServer returns a new ServerForSequenceClassification.
+// NewServer returns a new Server.
 func NewServer(
-	model *head.SequenceClassification,
+	model nn.Model,
 	tokenizer *bpetokenizer.BPETokenizer,
-) *ServerForSequenceClassification {
-	return &ServerForSequenceClassification{
+) *Server {
+	switch model.(type) {
+	case *sequenceclassification.Model, *conditionalgeneration.Model: // ok
+	default:
+		panic("bart: invalid model type")
+	}
+	return &Server{
 		model:     model,
 		tokenizer: tokenizer,
 	}
 }
 
 // StartDefaultServer is used to start a basic BART gRPC server.
-func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	grpcServer := grpcutils.NewGRPCServer(grpcutils.GRPCServerConfig{
 		TLSDisable:      tlsDisable,
 		TLSCert:         tlsCert,
@@ -56,11 +63,17 @@ func (s *ServerForSequenceClassification) StartDefaultServer(grpcAddress, tlsCer
 // StartDefaultHTTPServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
-func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
-	mux.HandleFunc("/classify", s.ClassifyHandler)
-	mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
+	switch s.model.(type) {
+	case *sequenceclassification.Model:
+		mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
+		mux.HandleFunc("/classify", s.ClassifyHandler)
+		mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
+	default:
+		// TODO: mux.HandleFunc("/translate", s.TranslateHandler)
+		panic("bart: invalid model type")
+	}
 
 	go httputils.RunHTTPServer(httputils.HTTPServerConfig{
 		Address:         address,
@@ -73,13 +86,13 @@ func (s *ServerForSequenceClassification) StartDefaultHTTPServer(address, tlsCer
 }
 
 // Classify handles a classification request over gRPC.
-func (s *ServerForSequenceClassification) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
+func (s *Server) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
 	result := s.classify(req.GetText(), req.GetText2())
 	return classificationFrom(result), nil
 }
 
 // ClassifyNLI handles a zero-shot classification request over gRPC.
-func (s *ServerForSequenceClassification) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest) (*grpcapi.ClassifyReply, error) {
+func (s *Server) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest) (*grpcapi.ClassifyReply, error) {
 	result, err := s.classifyNLI(
 		req.GetText(),
 		req.GetHypothesisTemplate(),
@@ -102,7 +115,7 @@ type body struct {
 }
 
 // ClassifyHandler handles a classify request over HTTP.
-func (s *ServerForSequenceClassification) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -129,7 +142,7 @@ func (s *ServerForSequenceClassification) ClassifyHandler(w http.ResponseWriter,
 }
 
 // ClassifyNLIHandler handles a classify request over HTTP.
-func (s *ServerForSequenceClassification) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 

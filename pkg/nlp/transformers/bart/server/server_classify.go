@@ -8,26 +8,26 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"runtime"
 	"sort"
 	"strconv"
 	"time"
 )
 
-func (s *ServerForSequenceClassification) classify(text string, text2 string) *ClassifyResponse {
+func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	start := time.Now()
 
 	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*head.SequenceClassification)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*sequenceclassification.Model)
 	inputIds := getInputIDs(s.tokenizer, text, text2)
 	logits := proc.Classify(inputIds)
 	g.Forward()
 
 	probs := floatutils.SoftMax(g.GetCopiedValue(logits).Data())
 	best := floatutils.ArgMax(probs)
-	classes := s.model.BART.Config.ID2Label
+	classes := s.model.(*sequenceclassification.Model).BART.Config.ID2Label
 	class := classes[strconv.Itoa(best)]
 
 	distribution := make([]ClassConfidencePair, len(probs))

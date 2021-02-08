@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/utils/workerpool"
 	"runtime"
 	"sort"
@@ -28,7 +28,7 @@ type premiseHypothesisPair struct {
 
 const defaultHypothesisTemplate = "This text is about {}."
 
-func (s *ServerForSequenceClassification) classifyNLI(
+func (s *Server) classifyNLI(
 	text string,
 	hypothesisTemplate string,
 	candidateLabels []string,
@@ -121,26 +121,27 @@ func getScores(logits []mat.Matrix, entailmentID int) []mat.Float {
 	return floatutils.SoftMax(scores)
 }
 
-func (s *ServerForSequenceClassification) getEntailmentAndContradictionIDs() (
+func (s *Server) getEntailmentAndContradictionIDs() (
 	entailmentID, contradictionID int, err error,
 ) {
-	entailmentID, ok := s.model.BART.Config.Label2ID["entailment"]
+	labels2id := s.model.(*sequenceclassification.Model).BART.Config.Label2ID
+	entailmentID, ok := labels2id["entailment"]
 	if !ok {
 		return -1, -1, fmt.Errorf("server: `entailment` label not found")
 	}
-	contradictionID, ok = s.model.BART.Config.Label2ID["contradiction"]
+	contradictionID, ok = labels2id["contradiction"]
 	if !ok {
 		return -1, -1, fmt.Errorf("server: `contradiction` label not found")
 	}
 	return
 }
 
-func (s *ServerForSequenceClassification) newWorkers(workersSize int) []*worker {
+func (s *Server) newWorkers(workersSize int) []*worker {
 	workers := make([]*worker, workersSize)
 	for i := range workers {
 		workers[i] = &worker{
 			tokenizer: s.tokenizer,
-			model:     s.model,
+			model:     s.model.(*sequenceclassification.Model),
 		}
 	}
 	return workers
@@ -148,13 +149,13 @@ func (s *ServerForSequenceClassification) newWorkers(workersSize int) []*worker 
 
 type worker struct {
 	tokenizer *bpetokenizer.BPETokenizer
-	model     *head.SequenceClassification
+	model     *sequenceclassification.Model
 }
 
 func (w *worker) process(input premiseHypothesisPair) mat.Matrix {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*head.SequenceClassification)
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, w.model).(*sequenceclassification.Model)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Classify(inputIds)
 	g.Forward()
