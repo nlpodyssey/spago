@@ -81,7 +81,7 @@ func (p *Decoder) decodingPart1(xs []ag.Node) []ag.Node {
 func (p *Decoder) addStepEncoding(xs []ag.Node) []ag.Node {
 	g := p.Graph()
 	stepEncoder := p.StepEncoder
-	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.State.Recursions), false)
+	stepEncoding := g.NewVariable(stepEncoder.Encode(p.State.Recursions)[0], false)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = g.Add(x, stepEncoding)
