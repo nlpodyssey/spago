@@ -305,9 +305,14 @@ func PositiveELU(x Node) Node {
 	return globalGraph.PositiveELU(x)
 }
 
+// SwishB returns a new operator node as a result of the fn.SwishB function.
+func SwishB(x Node, beta Node) Node {
+	return globalGraph.SwishB(x, beta)
+}
+
 // Swish returns a new operator node as a result of the fn.Swish function.
-func Swish(x Node, beta Node) Node {
-	return globalGraph.Swish(x, beta)
+func Swish(x Node) Node {
+	return globalGraph.Swish(x)
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.

@@ -167,6 +167,14 @@ func NewSqrt(x Operand) *UnaryElementwise {
 	}
 }
 
+func NewSwish(x Operand) *UnaryElementwise {
+	return &UnaryElementwise{
+		x:  x,
+		f:  swish,
+		df: swishDeriv,
+	}
+}
+
 func absDeriv(i, j int, v mat.Float) mat.Float {
 	if v < 0 {
 		return -1
@@ -422,17 +430,25 @@ func thresholdDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func swish(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swish(i, j int, v mat.Float) mat.Float {
+	return v * (1.0 / (1 + mat.Exp(-v)))
+}
+
+func swishDeriv(i, j int, v mat.Float) mat.Float {
+	return swishBDeriv(i, j, v, 1.0)
+}
+
+func swishB(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
 	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
 }
 
-func swishDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishBDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
 	prod := v * beta[0]
 	exp := mat.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 
-func swishBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
+func swishBBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
 	prod := v * beta
 	exp := mat.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))

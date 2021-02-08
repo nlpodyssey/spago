@@ -91,6 +91,8 @@ const (
 	OpELU
 	// OpPositiveELU identifies the Graph.PositiveELU operator.
 	OpPositiveELU
+	// OpSwishB identifies the Graph.SwishB operator.
+	OpSwishB
 	// OpSwish identifies the Graph.Swish operator.
 	OpSwish
 	// OpMish identifies the Graph.Mish operator.
@@ -181,6 +183,7 @@ var opNameToMethodName = map[OpName]string{
 	OpGELU:          "GELU",
 	OpELU:           "ELU",
 	OpPositiveELU:   "PositiveELU",
+	OpSwishB:        "SwishB",
 	OpSwish:         "Swish",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
@@ -434,9 +437,14 @@ func (g *Graph) ELU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewELU(x, alpha), x, alpha)
 }
 
+// SwishB returns a new operator node as a result of the fn.SwishB function.
+func (g *Graph) SwishB(x Node, beta Node) Node {
+	return g.NewOperator(fn.NewSwishB(x, beta), x, beta)
+}
+
 // Swish returns a new operator node as a result of the fn.Swish function.
-func (g *Graph) Swish(x Node, beta Node) Node {
-	return g.NewOperator(fn.NewSwish(x, beta), x, beta)
+func (g *Graph) Swish(x Node) Node {
+	return g.NewOperator(fn.NewSwish(x), x)
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.

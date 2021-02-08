@@ -8,37 +8,37 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
-var _ Function = &Swish{}
+var _ Function = &SwishB{}
 
-// Swish function: f(x) = x * sigmoid.
+// SwishB function: f(x) = x * sigmoid.
 //
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
-type Swish struct {
+type SwishB struct {
 	x    Operand
 	beta Operand // scalar
 }
 
-// NewSwish returns a new Swish Function.
-func NewSwish(x, beta Operand) *Swish {
-	return &Swish{x: x, beta: beta}
+// NewSwishB returns a new SwishB Function.
+func NewSwishB(x, beta Operand) *SwishB {
+	return &SwishB{x: x, beta: beta}
 }
 
 // Forward computes the output of the function.
-func (r *Swish) Forward() mat.Matrix {
+func (r *SwishB) Forward() mat.Matrix {
 	y := mat.GetDenseWorkspace(r.x.Value().Dims())
-	y.ApplyWithAlpha(swish, r.x.Value(), r.beta.Value().Scalar())
+	y.ApplyWithAlpha(swishB, r.x.Value(), r.beta.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *Swish) Backward(gy mat.Matrix) {
+func (r *SwishB) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
-		gx.ApplyWithAlpha(swishDeriv, r.x.Value(), r.beta.Value().Scalar())
+		gx.ApplyWithAlpha(swishBDeriv, r.x.Value(), r.beta.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
@@ -46,7 +46,7 @@ func (r *Swish) Backward(gy mat.Matrix) {
 		gb := mat.GetDenseWorkspace(r.beta.Value().Dims())
 		defer mat.ReleaseDense(gb)
 		for i, x := range r.x.Value().Data() {
-			gb.AddScalarInPlace(swishBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])
+			gb.AddScalarInPlace(swishBBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])
 		}
 		r.beta.PropagateGrad(gb)
 	}
