@@ -17,7 +17,9 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder"
 	encoder_layer "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/learnedpositionalencoder"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/gopickleutils"
 	"log"
@@ -53,7 +55,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 
 	model := bart.New(config, path.Join(modelPath, pkgconfig.DefaultEmbeddingsStorage))
 	defer model.Close()
-	classification := head.NewClassification(head.ClassificationConfig{
+	classification := sequenceclassification.NewClassifier(sequenceclassification.ClassifierConfig{
 		InputSize:     config.DModel,
 		HiddenSize:    config.DModel,
 		OutputSize:    config.NumLabels,
@@ -67,6 +69,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 		modelFilename:        path.Join(modelPath, pkgconfig.DefaultModelFile),
 		model:                model,
 		classificationHead:   classification,
+		generationHead:       linear.New(config.DModel, config.VocabSize),
 		modelMapping:         make(map[string]*mappedParam), // lazy initialization
 	}
 	err = handler.convert()
@@ -83,7 +86,8 @@ type huggingFacePreTrainedConverter struct {
 	pyTorchModelFilename string
 	modelFilename        string
 	model                *bart.Model
-	classificationHead   *head.Classification
+	classificationHead   *sequenceclassification.Classifier
+	generationHead       *linear.Model
 	modelMapping         map[string]*mappedParam
 }
 
@@ -111,23 +115,25 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	c.addToModelMapping(mapBartEncoder(c.model.Encoder))
 	c.addToModelMapping(mapBartDecoder(c.model.Decoder))
 	c.addToModelMapping(mapClassificationHead(c.classificationHead))
-	// TODO: convert other Heads
+	c.addToModelMapping(mapGenerationHead(c.generationHead))
 
-	fmt.Printf("Setting model.encoder.embed_positions.weight.... ")
-	assignToParamsList(
-		pyTorchParams["model.encoder.embed_positions.weight"],
-		c.model.Encoder.LearnedPositionalEmbeddings.Vectors,
-		c.model.Encoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
-		c.model.Encoder.Config.DModel)
-	fmt.Print("ok\n")
+	if !c.config.StaticPositionEmbeddings {
+		fmt.Printf("Setting model.encoder.embed_positions.weight.... ")
+		assignToParamsList(
+			pyTorchParams["model.encoder.embed_positions.weight"],
+			c.model.Encoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder).Vectors,
+			c.model.Encoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
+			c.model.Encoder.Config.DModel)
+		fmt.Print("ok\n")
 
-	fmt.Printf("Setting model.decoder.embed_positions.weight.... ")
-	assignToParamsList(
-		pyTorchParams["model.decoder.embed_positions.weight"],
-		c.model.Decoder.LearnedPositionalEmbeddings.Vectors,
-		c.model.Decoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
-		c.model.Decoder.Config.DModel)
-	fmt.Print("ok\n")
+		fmt.Printf("Setting model.decoder.embed_positions.weight.... ")
+		assignToParamsList(
+			pyTorchParams["model.decoder.embed_positions.weight"],
+			c.model.Decoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder).Vectors,
+			c.model.Decoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
+			c.model.Decoder.Config.DModel)
+		fmt.Print("ok\n")
+	}
 
 	log.Printf("Search for matches with the mapped model to import weights...")
 	for paramName, preTrainedWeights := range pyTorchParams {
@@ -168,12 +174,28 @@ func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabSize in
 }
 
 func (c *huggingFacePreTrainedConverter) serializeModel() error {
-	// TODO: handle different heads and base BART model alone as well
-	sequenceClassificationModel := &head.SequenceClassification{
-		BART:           c.model,
-		Classification: c.classificationHead,
+	var model nn.Model
+
+	if len(c.config.Architecture) == 0 {
+		model = c.model // BART base
+	} else {
+		switch c.config.Architecture[0] {
+		case "BartForSequenceClassification":
+			model = &sequenceclassification.Model{
+				BART:       c.model,
+				Classifier: c.classificationHead,
+			}
+		case "MarianMTModel":
+			model = &conditionalgeneration.Model{
+				BART:       c.model,
+				Projection: c.generationHead,
+			}
+		default:
+			panic(fmt.Errorf("bart: unsupported architecture %s", c.config.Architecture[0]))
+		}
 	}
-	err := utils.SerializeToFile(c.modelFilename, sequenceClassificationModel)
+
+	err := utils.SerializeToFile(c.modelFilename, model)
 	if err != nil {
 		return fmt.Errorf("bert: error during model serialization: %w", err)
 	}
@@ -271,12 +293,19 @@ func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapClassificationHead(model *head.Classification) map[string]mat.Matrix {
+func mapClassificationHead(model *sequenceclassification.Classifier) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	paramsMap["classification_head.dense.weight"] = model.Layers[0].(*linear.Model).W.Value()
 	paramsMap["classification_head.dense.bias"] = model.Layers[0].(*linear.Model).B.Value()
 	paramsMap["classification_head.out_proj.weight"] = model.Layers[2].(*linear.Model).W.Value()
 	paramsMap["classification_head.out_proj.bias"] = model.Layers[2].(*linear.Model).B.Value()
+	return paramsMap
+}
+
+func mapGenerationHead(model *linear.Model) map[string]mat.Matrix {
+	paramsMap := make(map[string]mat.Matrix)
+	paramsMap["model.shared.weight"] = model.W.Value()
+	paramsMap["final_logits_bias"] = model.B.Value()
 	return paramsMap
 }
 
