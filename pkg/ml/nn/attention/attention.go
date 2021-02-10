@@ -51,16 +51,12 @@ func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useC
 	keys := g.Stack(qkv.Keys...)
 	values := g.T(g.Stack(qkv.Values...))
 	factor := g.NewScalar(scaleFactor)
-	seqLen := len(qkv.Queries)
+
 	for i, q := range qkv.Queries {
 		attScores := g.ProdScalar(g.Mul(keys, q), factor)
 
-		if useCausalMask {
-			// TODO: use external cache for causal mask?
-			causalMask := make([]mat.Float, seqLen)
-			for k := i + 1; k < len(causalMask); k++ {
-				causalMask[k] = mat.Inf(-1)
-			}
+		if useCausalMask && len(qkv.Queries) > 1 {
+			causalMask := MakeCausalMask(i, len(qkv.Keys)) // TODO: use external cache for causal mask?
 			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense(causalMask), false))
 		}
 
@@ -69,6 +65,14 @@ func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useC
 		prob[i] = attProb.Value()
 	}
 	return
+}
+
+func MakeCausalMask(curIndex, seqLength int) []mat.Float {
+	causalMask := make([]mat.Float, seqLength)
+	for k := curIndex + 1; k < seqLength; k++ {
+		causalMask[k] = mat.Inf(-1)
+	}
+	return causalMask
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
