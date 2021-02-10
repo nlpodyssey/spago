@@ -14,7 +14,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/learnedpositionalencoder"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/sinusoidalpositionalencoder"
-	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
 var (
@@ -73,13 +72,21 @@ func makeLayers(config config.Config) []*layer.Layer {
 
 type KeysValuesPairs = []layer.KeysValuesPairs
 
+func getPastSequenceLength(pkv KeysValuesPairs) int {
+	if pkv == nil {
+		return 0
+	}
+	return len(pkv[0].SelfAttKeyValues[0].Values)
+}
+
 // Decode performs the forward step for each input and returns the result.
 func (m *Model) Decode(
 	xs []ag.Node,
 	encoderHiddenStates []ag.Node,
 	pastKeysValuesPairs KeysValuesPairs,
 ) ([]ag.Node, KeysValuesPairs) {
-	embedPos := m.PositionalEncoder.Encode(utils.MakeIndices(len(xs)))
+
+	embedPos := m.PositionalEncoder.Encode(makePositions(len(xs), getPastSequenceLength(pastKeysValuesPairs)))
 	ys := m.add(xs, embedPos)
 
 	if m.Config.NormalizeEmbedding {
@@ -102,6 +109,16 @@ func (m *Model) Decode(
 		ys = m.LayerNorm.Forward(ys...)
 	}
 	return ys, nextCache
+}
+
+// makePositions returns a slice of the given size, where each element has
+// the same value of its own index position plus the offset.
+func makePositions(size, offset int) []int {
+	indices := make([]int, size)
+	for i := range indices {
+		indices[i] = i + offset
+	}
+	return indices
 }
 
 func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {
