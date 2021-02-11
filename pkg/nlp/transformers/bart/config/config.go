@@ -36,6 +36,7 @@ type Config struct {
 	DecoderFFNDim              int               `json:"decoder_ffn_dim"`
 	DecoderLayerDrop           mat.Float         `json:"decoder_layerdrop"`
 	DecoderLayers              int               `json:"decoder_layers"`
+	DecoderStartTokenID        int               `json:"decoder_start_token_id"`
 	Dropout                    mat.Float         `json:"dropout"`
 	EncoderAttentionHeads      int               `json:"encoder_attention_heads"`
 	EncoderFFNDim              int               `json:"encoder_ffn_dim"`
@@ -60,6 +61,9 @@ type Config struct {
 	StaticPositionEmbeddings   bool              `json:"static_position_embeddings"`
 	TotalFlos                  mat.Float         `json:"total_flos"`
 	VocabSize                  int               `json:"vocab_size"`
+	NumBeams                   int               `json:"num_beams"`
+	MaxLength                  int               `json:"max_length"`
+	BadWordsIDs                [][]int           `json:"bad_words_ids"`
 	Training                   bool              `json:"training"` // Custom for spaGO
 }
 
