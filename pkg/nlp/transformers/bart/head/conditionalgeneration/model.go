@@ -6,10 +6,12 @@ package conditionalgeneration
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
 )
 
 var (
@@ -39,4 +41,15 @@ func New(config config.Config, embeddingsPath string) *Model {
 // Close closes the BART model's embeddings DB.
 func (m *Model) Close() {
 	m.BART.Close()
+}
+
+// PredictNext returns the logits for the next possible tokens.
+func (m *Model) PredictNext(
+	encoderOutLastHiddenState []ag.Node,
+	decoderInputIDs []int,
+	pastKeyValues decoder.KeysValuesPairs,
+) (ag.Node, decoder.KeysValuesPairs) {
+	decoded, nextCache := m.BART.Decode(decoderInputIDs, encoderOutLastHiddenState, pastKeyValues)
+	logits := m.Projection.Forward(decoded...)
+	return nn.ToNode(logits), nextCache
 }
