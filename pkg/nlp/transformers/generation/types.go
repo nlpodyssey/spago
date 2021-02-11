@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
-// Model is a model able to perform encoder-decoder conditional generation.
+// EncoderDecoder is a model able to perform encoder-decoder conditional generation.
 type EncoderDecoder interface {
 	Encoder
 	Decoder
