@@ -60,6 +60,19 @@ func ContainsInt(lst []int, x int) bool {
 	return false
 }
 
+// IntSliceEqual returns whether the two slices are equal, or not.
+func IntSliceEqual(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, va := range a {
+		if va != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 // GetNeighborsIndices returns the indices of the (circular) neighbours at position index.
 func GetNeighborsIndices(size, index, windowSize int) []int {
 	low := index - windowSize
