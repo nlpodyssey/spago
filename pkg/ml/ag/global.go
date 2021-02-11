@@ -350,6 +350,11 @@ func Softmax(x Node) Node {
 	return globalGraph.Softmax(x)
 }
 
+// LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
+func LogSoftmax(x Node) Node {
+	return globalGraph.LogSoftmax(x)
+}
+
 // SparseMax returns a new operator node as a result of the fn.SparseMax function.
 func SparseMax(x Node) Node {
 	return globalGraph.SparseMax(x)

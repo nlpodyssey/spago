@@ -109,6 +109,8 @@ const (
 	OpThreshold
 	// OpSoftmax identifies the Graph.Softmax operator.
 	OpSoftmax
+	// OpLogSoftmax identifies the Graph.LogSoftmax operator.
+	OpLogSoftmax
 	// OpSparseMax identifies the Graph.SparseMax operator.
 	OpSparseMax
 	// OpSparseMaxLoss identifies the Graph.SparseMaxLoss operator.
@@ -192,6 +194,7 @@ var opNameToMethodName = map[OpName]string{
 	OpSoftShrink:    "SoftShrink",
 	OpThreshold:     "Threshold",
 	OpSoftmax:       "Softmax",
+	OpLogSoftmax:    "LogSoftmax",
 	OpSparseMax:     "SparseMax",
 	OpSparseMaxLoss: "SparseMaxLoss",
 	OpSin:           "Sin",

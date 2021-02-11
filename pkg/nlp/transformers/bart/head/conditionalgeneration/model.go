@@ -83,7 +83,7 @@ func (m *Model) Encode(InputIDs []int) []ag.Node {
 	return m.BART.Encode(InputIDs)
 }
 
-// Encode satisfies pkg/nlp/transformers/generation/Decoder.
+// Decode satisfies pkg/nlp/transformers/generation/Decoder.
 func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, curLen int, pastCache generation.Cache) (generation.Scores, generation.Cache) {
 	pastKeysValues, _ := pastCache.(decoder.KeysValuesPairs)
 	if pastKeysValues != nil {
@@ -98,13 +98,8 @@ func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, curLen int, pastC
 	logits = m.Graph().NewVariable(logits.Value(), false)
 	m.adjustLogits(logits.Value(), curLen)
 
-	scores := m.logSoftmax(logits)
+	scores := m.Graph().LogSoftmax(logits)
 	return m.Graph().GetCopiedValue(scores), nextCache
-}
-
-func (m *Model) logSoftmax(logits ag.Node) ag.Node {
-	g := m.Graph()
-	return g.Log(g.Softmax(logits))
 }
 
 func (m *Model) adjustLogits(logits mat.Matrix, curLen int) mat.Matrix {
