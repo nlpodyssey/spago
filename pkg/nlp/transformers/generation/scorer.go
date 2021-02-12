@@ -8,6 +8,7 @@ package generation
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"math"
 	"sort"
 )
 
@@ -29,18 +30,37 @@ type ScoredToken struct {
 // ScoredTokens is a slice of ScoredToken.
 type ScoredTokens []ScoredToken
 
-// Sorts sort the scored tokens in place.
-func (st ScoredTokens) Sort() {
-	sort.Slice(st, func(i, j int) bool {
-		x, y := st[i], st[j]
-		if x.Score == y.Score {
-			if x.TokenIndex == y.TokenIndex {
-				return x.BeamIndex < y.BeamIndex
-			}
-			return x.TokenIndex < y.TokenIndex
+// TopK returns the top K indices and values of the provided float array
+// in decreasing order
+func (st ScoredTokens) TopK(k int) ScoredTokens {
+	resultSize := k
+	if resultSize > len(st) {
+		resultSize = len(st)
+	}
+	result := make(ScoredTokens, 0, resultSize)
+	var currentMinValue mat.Float = -math.MaxFloat32
+	var currentMinIndex int
+
+	for _, value := range st {
+		if len(result) < resultSize || value.Score > currentMinValue {
+			result = append(result, value)
 		}
-		return x.Score > y.Score
+		if len(result) > resultSize {
+			result = append(result[:currentMinIndex], result[currentMinIndex+1:]...)
+		}
+		currentMinValue = math.MaxFloat32
+		for ri, rv := range result {
+			if rv.Score < currentMinValue {
+				currentMinValue = rv.Score
+				currentMinIndex = ri
+			}
+		}
+	}
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Score > result[j].Score
 	})
+	return result
 }
 
 // ScorerProcessOutput is the output value of Scorer.Process.
@@ -66,7 +86,7 @@ func (s *Scorer) IsDone() bool {
 }
 
 // Process processes a new set of scored tokens.
-func (s *Scorer) Process(inputIDs [][]int, scoredTokens []ScoredToken) ScorerProcessOutput {
+func (s *Scorer) Process(inputIDs [][]int, scoredTokens ScoredTokens) ScorerProcessOutput {
 	numBeams := s.config.NumBeams
 	eosTokenID := s.config.EOSTokenID
 	padTokenID := s.config.PadTokenID

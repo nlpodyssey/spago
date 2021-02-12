@@ -93,24 +93,17 @@ func (b *Generator) generateNext(
 }
 
 func (b *Generator) makeScoredTokens(tokensScores []Scores) ScoredTokens {
-	scoredTokens := make(ScoredTokens, 0, len(tokensScores)*tokensScores[0].Size())
+	scoredTokens := make(ScoredTokens, len(tokensScores)*tokensScores[0].Size())
+	i := 0
 	for beamIndex, n := range tokensScores {
 		for tokenIndex, score := range n.Data() {
-			scoredTokens = append(scoredTokens, ScoredToken{
-				BeamIndex:  beamIndex,
-				TokenIndex: tokenIndex,
-				Score:      score,
-			})
+			scoredTokens[i].BeamIndex = beamIndex
+			scoredTokens[i].TokenIndex = tokenIndex
+			scoredTokens[i].Score = score
+			i++
 		}
 	}
-	scoredTokens.Sort() // important
-
-	// limit the number of candidate tokens to an arbitrary amount i.e. numBeams*2
-	numBeams := b.config.NumBeams
-	if len(scoredTokens) > numBeams*2 {
-		scoredTokens = scoredTokens[:numBeams*2]
-	}
-	return scoredTokens
+	return scoredTokens.TopK(b.config.NumBeams * 2)
 }
 
 func updateTokensScores(tokensScores []Scores, beamScores []mat.Float) {
