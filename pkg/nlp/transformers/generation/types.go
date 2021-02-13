@@ -15,6 +15,7 @@ import (
 type EncoderDecoder interface {
 	Encoder
 	Decoder
+	Graph() *ag.Graph
 }
 
 // Encoder is a model able to encode each input of a sequence into a vector representation.
@@ -26,7 +27,7 @@ type Encoder interface {
 // Decoder is a model able to encode.
 type Decoder interface {
 	// Decode returns the log probabilities for each possible next element of a sequence.
-	Decode(encodedInput []ag.Node, decodingInputIDs []int, curLen int, pastCache Cache) (Scores, Cache)
+	Decode(encodedInput []ag.Node, decodingInputIDs []int, pastCache Cache) (ag.Node, Cache)
 }
 
 // Scores is just an alias of a Matrix

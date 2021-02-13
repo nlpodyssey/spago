@@ -15,7 +15,7 @@ import (
 func (s *Server) generate(text string) (*GenerateResponse, error) {
 	start := time.Now()
 
-	g := ag.NewGraph()
+	g := ag.NewGraph(ag.IncrementalForward(false))
 	defer g.Clear()
 
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*conditionalgeneration.Model)

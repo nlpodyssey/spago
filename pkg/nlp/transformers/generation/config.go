@@ -40,4 +40,6 @@ type GeneratorConfig struct {
 	// MaxConcurrentComputations is the maximum number of concurrent computations
 	// handled by the generation search algorithm.
 	MaxConcurrentComputations int
+	// IncrementalForward indicates the graph usage mode.
+	IncrementalForward bool
 }

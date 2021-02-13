@@ -6,7 +6,6 @@ package conditionalgeneration
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -60,6 +59,13 @@ func (m *Model) PredictNext(
 
 // Generate generates sequences using generation-search decoding.
 func (m *Model) Generate(inputIDs []int) []int {
+	incrementalForward := m.Graph().IncrementalForwardEnabled()
+
+	maxConcurrentComputations := 1
+	if incrementalForward {
+		maxConcurrentComputations = runtime.NumCPU() / 2
+	}
+
 	generator := generation.NewGenerator(generation.GeneratorConfig{
 		NumBeams:                  m.BART.Config.NumBeams,
 		MinLength:                 0,
@@ -72,7 +78,8 @@ func (m *Model) Generate(inputIDs []int) []int {
 		LengthPenalty:             1.0,
 		EarlyStopping:             false,
 		BadWordsIDs:               m.BART.Config.BadWordsIDs,
-		MaxConcurrentComputations: runtime.NumCPU() / 2,
+		MaxConcurrentComputations: maxConcurrentComputations,
+		IncrementalForward:        incrementalForward,
 	}, m)
 
 	return generator.Generate(inputIDs)
@@ -84,41 +91,13 @@ func (m *Model) Encode(InputIDs []int) []ag.Node {
 }
 
 // Decode satisfies pkg/nlp/transformers/generation/Decoder.
-func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, curLen int, pastCache generation.Cache) (generation.Scores, generation.Cache) {
+func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, pastCache generation.Cache) (ag.Node, generation.Cache) {
 	pastKeysValues, _ := pastCache.(decoder.KeysValuesPairs)
 	if pastKeysValues != nil {
 		// cut input ids if past is used
 		inputIDs = inputIDs[len(inputIDs)-1:]
 	}
-
 	logits, nextCache := m.PredictNext(encodedInput, inputIDs, pastKeysValues)
-
-	// important: detach the logits from the current computation branch
-	// (so that they can be modified in place without side effects)
-	logits = m.Graph().NewVariable(logits.Value(), false)
-	m.adjustLogits(logits.Value(), curLen)
-
-	scores := m.Graph().LogSoftmax(logits)
-	return m.Graph().GetCopiedValue(scores), nextCache
-}
-
-func (m *Model) adjustLogits(logits mat.Matrix, curLen int) mat.Matrix {
-	maxLen := m.BART.Config.MaxLength
-	padTokenID := m.BART.Config.PadTokenID
-	eosTokenID := m.BART.Config.EosTokenID
-
-	// Never predict pad token.
-	logits.SetVec(padTokenID, mat.Inf(-1))
-
-	if curLen == maxLen-1 && eosTokenID >= 0 {
-		// Force EOS token ID to be generated.
-		for i := 0; i < logits.Size(); i++ {
-			if i == eosTokenID {
-				continue
-			}
-			logits.SetVec(i, mat.Inf(-1))
-		}
-	}
-
-	return logits
+	logProbs := m.Graph().LogSoftmax(logits)
+	return logProbs, nextCache
 }

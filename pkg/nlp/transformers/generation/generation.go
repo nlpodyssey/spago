@@ -36,7 +36,13 @@ func (b *Generator) Generate(inputIDs []int) []int {
 	if !b.config.IsEncoderDecoder {
 		panic("generator: unsupported architecture")
 	}
-	return b.beamSearch(NewScorer(b.config), b.model.Encode(inputIDs))
+
+	encodedInput := b.model.Encode(inputIDs)
+	if !b.config.IncrementalForward {
+		b.performForward()
+	}
+
+	return b.beamSearch(NewScorer(b.config), encodedInput)
 }
 
 func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
@@ -50,7 +56,7 @@ func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
 	)
 
 	for curLen < b.config.MaxLength {
-		scores, cache = b.generateNext(encodedInput, decodingInputIDs, curLen, cache)
+		scores, cache = b.generateNext(encodedInput, decodingInputIDs, cache)
 		nextTokenScores := b.inhibitInvalidTokens(decodingInputIDs, scores)
 		updateTokensScores(nextTokenScores, beamScores)
 		scoredTokens := b.makeScoredTokens(nextTokenScores)
@@ -71,10 +77,10 @@ func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
 func (b *Generator) generateNext(
 	encodedInput []ag.Node,
 	decodingInputIDs [][]int,
-	curLen int,
 	pastCache []Cache,
 ) ([]Scores, []Cache) {
 	numBeams := b.config.NumBeams
+	logProbs := make([]ag.Node, numBeams)
 	scores := make([]Scores, numBeams)
 	nextCache := make([]Cache, numBeams)
 
@@ -84,12 +90,26 @@ func (b *Generator) generateNext(
 		i := i // redefine `i` in the inner scope, for using it in the goroutine
 		b.processingQueue.Go(func() {
 			defer wg.Done()
-			scores[i], nextCache[i] = b.model.Decode(encodedInput, decodingInputIDs[i], curLen, pastCache[i])
+			logProbs[i], nextCache[i] = b.model.Decode(encodedInput, decodingInputIDs[i], pastCache[i])
 		})
 	}
 	wg.Wait()
 
+	if !b.config.IncrementalForward {
+		b.performForward()
+	}
+
+	for i := 0; i < numBeams; i++ {
+		scores[i] = b.model.Graph().GetCopiedValue(logProbs[i])
+	}
+
 	return scores, nextCache
+}
+
+func (b *Generator) performForward() {
+	g := b.model.Graph()
+	g.Forward(ag.Range(g.TimeStep(), -1))
+	g.IncTimeStep() // mark the next block to be computed from here on
 }
 
 func (b *Generator) makeScoredTokens(tokensScores []Scores) ScoredTokens {
