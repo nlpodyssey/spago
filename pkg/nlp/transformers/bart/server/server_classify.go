@@ -21,7 +21,7 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*sequenceclassification.Model)
-	inputIds := getInputIDs(s.tokenizer, text, text2)
+	inputIds := getInputIDs(s.bpeTokenizer, text, text2)
 	logits := proc.Classify(inputIds)
 	g.Forward()
 

@@ -140,7 +140,7 @@ func (s *Server) newWorkers(workersSize int) []*worker {
 	workers := make([]*worker, workersSize)
 	for i := range workers {
 		workers[i] = &worker{
-			tokenizer: s.tokenizer,
+			tokenizer: s.bpeTokenizer,
 			model:     s.model.(*sequenceclassification.Model),
 		}
 	}

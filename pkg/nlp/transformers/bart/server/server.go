@@ -11,6 +11,7 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
+	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
@@ -23,7 +24,8 @@ import (
 // Server contains everything needed to run a BART server.
 type Server struct {
 	model           nn.Model
-	tokenizer       *bpetokenizer.BPETokenizer
+	bpeTokenizer    *bpetokenizer.BPETokenizer
+	spTokenizer     *sentencepiece.SentencePieceTokenizer
 	TimeoutSeconds  int
 	MaxRequestBytes int
 
@@ -34,7 +36,8 @@ type Server struct {
 // NewServer returns a new Server.
 func NewServer(
 	model nn.Model,
-	tokenizer *bpetokenizer.BPETokenizer,
+	bpeTokenizer *bpetokenizer.BPETokenizer,
+	spTokenizer *sentencepiece.SentencePieceTokenizer,
 ) *Server {
 	switch model.(type) {
 	case *sequenceclassification.Model, *conditionalgeneration.Model: // ok
@@ -42,8 +45,9 @@ func NewServer(
 		panic("bart: invalid model type")
 	}
 	return &Server{
-		model:     model,
-		tokenizer: tokenizer,
+		model:        model,
+		bpeTokenizer: bpeTokenizer,
+		spTokenizer:  spTokenizer,
 	}
 }
 
@@ -71,8 +75,7 @@ func (s *Server) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisa
 		mux.HandleFunc("/classify", s.ClassifyHandler)
 		mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
 	case *conditionalgeneration.Model:
-		// TODO: mux.HandleFunc("/generate", s.GenerateHandler)
-		panic("bart: invalid model type")
+		mux.HandleFunc("/generate", s.GenerateHandler)
 	default:
 		panic("bart: invalid model type")
 	}
@@ -109,8 +112,14 @@ func (s *Server) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest)
 
 // Generate handles a conditional generation request over gRPC.
 func (s *Server) Generate(_ context.Context, req *grpcapi.GenerateRequest) (*grpcapi.GenerateReply, error) {
-	// TODO: implement `generate` method
-	return &grpcapi.GenerateReply{}, nil
+	result, err := s.generate(req.GetText())
+	if err != nil {
+		return nil, err
+	}
+	return &grpcapi.GenerateReply{
+		Text: result.Text,
+		Took: result.Took,
+	}, nil
 }
 
 type body struct {
@@ -186,6 +195,38 @@ func (s *Server) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// GenerateHandler handles a conditional generation request over HTTP.
+func (s *Server) GenerateHandler(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
+	w.Header().Set("Content-Type", "application/json")
+
+	var content body
+	err := json.NewDecoder(req.Body).Decode(&content)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, err := s.generate(content.Text)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, pretty := req.URL.Query()["pretty"]
+	response, err := Dump(result, pretty)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 // ClassConfidencePair is a JSON-serializable pair of Class and Confidence.
 type ClassConfidencePair struct {
 	Class      string    `json:"class"`
@@ -198,6 +239,14 @@ type ClassifyResponse struct {
 	Class        string                `json:"class"`
 	Confidence   mat.Float             `json:"confidence"`
 	Distribution []ClassConfidencePair `json:"distribution"`
+	// Took is the number of milliseconds it took the server to execute the request.
+	Took int64 `json:"took"`
+}
+
+// GenerateResponse is a JSON-serializable structure which holds server
+// generation response data.
+type GenerateResponse struct {
+	Text string `json:"text"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }

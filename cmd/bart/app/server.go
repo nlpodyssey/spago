@@ -8,6 +8,9 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
+	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/loader"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
@@ -139,12 +142,22 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			}
 		}()
 
-		tokenizer, err := bpetokenizer.NewFromModelFolder(modelPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if tokenizer == nil {
-			log.Fatal("expected BPETokenizer, actual nil")
+		var bpeTokenizer *bpetokenizer.BPETokenizer
+		var spTokenizer *sentencepiece.SentencePieceTokenizer
+
+		switch model.(type) {
+		case *sequenceclassification.Model:
+			bpeTokenizer, err = bpetokenizer.NewFromModelFolder(modelPath)
+			if err != nil {
+				log.Fatal(err)
+			}
+		case *conditionalgeneration.Model:
+			spTokenizer, err = sentencepiece.NewFromModelFolder(modelPath, false)
+			if err != nil {
+				log.Fatal(err)
+			}
+		default:
+			panic("bart: invalid model type")
 		}
 
 		if !app.tlsDisable {
@@ -166,7 +179,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 			return "TLS"
 		}(), app.address)
 
-		s := server.NewServer(model, tokenizer)
+		s := server.NewServer(model, bpeTokenizer, spTokenizer)
 		s.TimeoutSeconds = app.serverTimeoutSeconds
 		s.MaxRequestBytes = app.serverMaxRequestBytes
 		s.StartDefaultHTTPServer(app.address, app.tlsCert, app.tlsKey, app.tlsDisable)
