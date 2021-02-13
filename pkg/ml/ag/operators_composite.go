@@ -11,7 +11,7 @@ func (g *Graph) PositiveELU(x Node) Node {
 	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
 }
 
-// PositiveELU returns a new operator node as a result of Log(Softmax(x)).
+// LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
 func (g *Graph) LogSoftmax(x Node) Node {
 	return g.Log(g.Softmax(x))
 }

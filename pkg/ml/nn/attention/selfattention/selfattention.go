@@ -69,7 +69,7 @@ func (m *Model) Forward(qkv attention.QKV) attention.Output {
 	}
 }
 
-// Forward performs the forward step for each input node and returns the result.
+// ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
 // It generates the queries, keys and values from the same input xs.
 func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, past attention.KeysValuesPair) attention.Output {
 	projAtt := attention.QKV{

@@ -73,7 +73,7 @@ func (m *Model) Forward(qkv attention.QKV) Output {
 	return m.forward(qkv, nil)
 }
 
-// Forward performs the forward step for each input node and returns the result.
+// ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
 func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
 	return m.forward(qkv, pastProjKeysValues)
 }
