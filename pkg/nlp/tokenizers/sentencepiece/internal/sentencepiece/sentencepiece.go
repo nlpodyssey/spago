@@ -2,7 +2,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-// sentencepiece is pure go implementation of the sentencepiece encoder.
+// Package sentencepiece implements the SentencePiece encoder (Kudo and Richardson, 2018).
 package sentencepiece
 
 import (
