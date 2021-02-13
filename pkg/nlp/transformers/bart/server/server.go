@@ -70,8 +70,10 @@ func (s *Server) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisa
 		mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
 		mux.HandleFunc("/classify", s.ClassifyHandler)
 		mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
+	case *conditionalgeneration.Model:
+		// TODO: mux.HandleFunc("/generate", s.GenerateHandler)
+		panic("bart: invalid model type")
 	default:
-		// TODO: mux.HandleFunc("/translate", s.TranslateHandler)
 		panic("bart: invalid model type")
 	}
 
@@ -103,6 +105,12 @@ func (s *Server) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest)
 		return nil, err
 	}
 	return classificationFrom(result), nil
+}
+
+// Generate handles a conditional generation request over gRPC.
+func (s *Server) Generate(_ context.Context, req *grpcapi.GenerateRequest) (*grpcapi.GenerateReply, error) {
+	// TODO: implement `generate` method
+	return &grpcapi.GenerateReply{}, nil
 }
 
 type body struct {

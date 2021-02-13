@@ -10,6 +10,8 @@ service BART {
   rpc Classify(ClassifyRequest) returns (ClassifyReply) {}
   // Sends a request to classify-nli.
   rpc ClassifyNLI(ClassifyNLIRequest) returns (ClassifyReply) {}
+  // Send a request to generate.
+  rpc Generate(GenerateRequest) returns (GenerateReply) {}
 }
 
 // The classify request message containing the text to classify
@@ -38,6 +40,19 @@ message ClassifyReply {
   string class = 1;
   double confidence = 2;
   repeated ClassConfidencePair distribution = 3;
+
+  // Took is the number of milliseconds it took the server to execute the request.
+  int64 took = 4;
+}
+
+// The generate request message containing the text from which to start the conditional generation
+message GenerateRequest {
+  string text = 2;
+}
+
+// The response message containing the generated text.
+message GenerateReply {
+  string text = 1;
 
   // Took is the number of milliseconds it took the server to execute the request.
   int64 took = 4;

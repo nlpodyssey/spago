@@ -21,6 +21,8 @@ type BARTClient interface {
 	Classify(ctx context.Context, in *ClassifyRequest, opts ...grpc.CallOption) (*ClassifyReply, error)
 	// Sends a request to classify-nli.
 	ClassifyNLI(ctx context.Context, in *ClassifyNLIRequest, opts ...grpc.CallOption) (*ClassifyReply, error)
+	// Send a request to generate.
+	Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateReply, error)
 }
 
 type bARTClient struct {
@@ -49,6 +51,15 @@ func (c *bARTClient) ClassifyNLI(ctx context.Context, in *ClassifyNLIRequest, op
 	return out, nil
 }
 
+func (c *bARTClient) Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateReply, error) {
+	out := new(GenerateReply)
+	err := c.cc.Invoke(ctx, "/bart.grpcapi.BART/Generate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BARTServer is the server API for BART service.
 // All implementations must embed UnimplementedBARTServer
 // for forward compatibility
@@ -57,6 +68,8 @@ type BARTServer interface {
 	Classify(context.Context, *ClassifyRequest) (*ClassifyReply, error)
 	// Sends a request to classify-nli.
 	ClassifyNLI(context.Context, *ClassifyNLIRequest) (*ClassifyReply, error)
+	// Send a request to generate.
+	Generate(context.Context, *GenerateRequest) (*GenerateReply, error)
 	mustEmbedUnimplementedBARTServer()
 }
 
@@ -69,6 +82,9 @@ func (UnimplementedBARTServer) Classify(context.Context, *ClassifyRequest) (*Cla
 }
 func (UnimplementedBARTServer) ClassifyNLI(context.Context, *ClassifyNLIRequest) (*ClassifyReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClassifyNLI not implemented")
+}
+func (UnimplementedBARTServer) Generate(context.Context, *GenerateRequest) (*GenerateReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
 }
 func (UnimplementedBARTServer) mustEmbedUnimplementedBARTServer() {}
 
@@ -119,6 +135,24 @@ func _BART_ClassifyNLI_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BART_Generate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BARTServer).Generate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bart.grpcapi.BART/Generate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BARTServer).Generate(ctx, req.(*GenerateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _BART_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "bart.grpcapi.BART",
 	HandlerType: (*BARTServer)(nil),
@@ -130,6 +164,10 @@ var _BART_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClassifyNLI",
 			Handler:    _BART_ClassifyNLI_Handler,
+		},
+		{
+			MethodName: "Generate",
+			Handler:    _BART_Generate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
