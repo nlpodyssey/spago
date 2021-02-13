@@ -111,6 +111,12 @@ func NewGraph(opts ...GraphOption) *Graph {
 	return g
 }
 
+// IncrementalForwardEnabled returns whether the computation happens during the graph definition.
+// See ag.IncrementalForward() option.
+func (g *Graph) IncrementalForwardEnabled() bool {
+	return g.incrementalForward
+}
+
 // Clear cleans the graph. This is a destructive operation.
 // It is not mandatory to call this method, but it is strongly recommended to do so when you finish using the graph.
 // The cleaning of the graph improves the memory management and therefore the efficiency of execution.
