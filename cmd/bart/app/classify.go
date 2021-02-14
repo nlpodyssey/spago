@@ -25,12 +25,12 @@ func newClientClassifyCommandFor(app *BartApp) cli.Command {
 
 func newClientClassifyCommandFlagsFor(app *BartApp) []cli.Flag {
 	return clientutils.Flags(&app.grpcAddress, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text2",
 			Destination: &app.requestText2,
 			Required:    false,

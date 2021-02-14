@@ -25,16 +25,16 @@ func newClientAnalyzeCommandFor(app *NERApp) cli.Command {
 
 func newClientAnalyzeCommandFlagsFor(app *NERApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.text,
 			Required:    true,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "merge-entities",
 			Destination: &app.mergeEntities,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "filter-non-entities",
 			Destination: &app.filterNonEntities,
 		},

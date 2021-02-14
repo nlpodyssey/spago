@@ -25,7 +25,7 @@ func newClientEncodeCommandFor(app *BertApp) cli.Command {
 
 func newClientEncodeCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,

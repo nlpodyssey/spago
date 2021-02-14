@@ -25,12 +25,12 @@ func newClientAnswerCommandFor(app *BertApp) cli.Command {
 
 func newClientAnswerCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "passage",
 			Destination: &app.passage,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "question",
 			Destination: &app.question,
 			Required:    true,

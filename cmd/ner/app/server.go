@@ -33,54 +33,54 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 	}
 
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "address",
 			Usage:       "Specifies the bind-address of the server.",
 			Value:       "0.0.0.0:1987",
 			Destination: &app.address,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "grpc-address",
 			Usage:       "Changes the bind address of the gRPC server.",
 			Value:       "0.0.0.0:1976",
 			Destination: &app.grpcAddress,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "repo",
 			Usage:       "Specifies the path to the models.",
 			Value:       path.Join(usr.HomeDir, ".spago"),
 			Destination: &app.repo,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "model",
 			Usage:       "Specifies the name of the model to use.",
 			Destination: &app.modelName,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "tls-cert-file",
 			Usage:       "Specifies the path of the TLS certificate file.",
 			Value:       "/etc/ssl/certs/spago/server.crt",
 			Destination: &app.tlsCert,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "tls-key-file",
 			Usage:       "Specifies the path of the private key for the certificate.",
 			Value:       "/etc/ssl/certs/spago/server.key",
 			Destination: &app.tlsKey,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "tls-disable",
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: &app.tlsDisable,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "timeout",
 			Usage:       "Server read, write, and idle timeout duration in seconds.",
 			Value:       httputils.DefaultTimeoutSeconds,
 			Destination: &app.serverTimeoutSeconds,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "max-request-size",
 			Usage:       "Maximum number of bytes the server will read parsing the request content.",
 			Value:       httputils.DefaultMaxRequestBytes,

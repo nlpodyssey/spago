@@ -25,23 +25,23 @@ func newClientClassifyNLICommandFor(app *BartApp) cli.Command {
 
 func newClientClassifyNLICommandFlagsFor(app *BartApp) []cli.Flag {
 	return clientutils.Flags(&app.grpcAddress, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "labels",
 			Usage:       "candidate labels separated by `,`",
 			Destination: &app.commaSepLabels,
 			Required:    true,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "multi-class",
 			Destination: &app.multiClass,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "hypothesis-template",
 			Destination: &app.requestText2,
 			Required:    false,

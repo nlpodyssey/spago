@@ -26,12 +26,12 @@ func newClientSimilarityCommandFor(app *BertApp) cli.Command {
 
 func newClientSimilarityCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text1",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text2",
 			Destination: &app.requestText2,
 			Required:    true,

@@ -25,7 +25,7 @@ func newClientPredictCommandFor(app *BertApp) cli.Command {
 
 func newClientPredictCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
