@@ -59,21 +59,21 @@ func (a *ImporterArgs) BuildFlags() []cli.Flag {
 	}
 
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "repo",
 			Value:       path.Join(usr.HomeDir, ".spago"),
 			Usage:       "Directory to download the model [default: `DIR`]",
 			EnvVar:      "SPAGO_REPO",
 			Destination: &a.Repo,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "model",
 			Usage:       "name of the model to convert",
 			EnvVar:      "SPAGO_MODEL",
 			Value:       a.Model,
 			Destination: &a.Model,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "overwrite",
 			Usage:       "overwrite files if they exist already",
 			EnvVar:      "SPAGO_OVERWRITE",
