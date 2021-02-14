@@ -5,14 +5,14 @@
 package app
 
 import (
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:  "client",
 		Usage: "Run the " + programName + " client.",
-		Subcommands: []cli.Command{
+		Subcommands: []*cli.Command{
 			newClientAnswerCommandFor(app),
 			newClientDiscriminateCommandFor(app),
 			newClientPredictCommandFor(app),

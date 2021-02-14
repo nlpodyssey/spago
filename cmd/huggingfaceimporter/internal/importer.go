@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/user"
@@ -63,20 +63,17 @@ func (a *ImporterArgs) BuildFlags() []cli.Flag {
 			Name:        "repo",
 			Value:       path.Join(usr.HomeDir, ".spago"),
 			Usage:       "Directory to download the model [default: `DIR`]",
-			EnvVar:      "SPAGO_REPO",
 			Destination: &a.Repo,
 		},
 		&cli.StringFlag{
 			Name:        "model",
 			Usage:       "name of the model to convert",
-			EnvVar:      "SPAGO_MODEL",
 			Value:       a.Model,
 			Destination: &a.Model,
 		},
 		&cli.BoolFlag{
 			Name:        "overwrite",
 			Usage:       "overwrite files if they exist already",
-			EnvVar:      "SPAGO_OVERWRITE",
 			Destination: &a.Overwrite,
 		},
 	}

@@ -8,13 +8,12 @@ import (
 	"context"
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
-	"github.com/urfave/cli"
-	"log"
+	"github.com/urfave/cli/v2"
 	"strings"
 )
 
-func newClientClassifyNLICommandFor(app *BartApp) cli.Command {
-	return cli.Command{
+func newClientClassifyNLICommandFor(app *BartApp) *cli.Command {
+	return &cli.Command{
 		Name:        "classify-nli",
 		Usage:       "Perform zero-shot classification using BART fine-tuned for Natural Language Inference (NLI).",
 		Description: "Run the " + programName + " client to perform zero-shot classification.",
@@ -49,8 +48,8 @@ func newClientClassifyNLICommandFlagsFor(app *BartApp) []cli.Flag {
 	})
 }
 
-func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.grpcAddress, app.tlsDisable)
@@ -69,9 +68,10 @@ func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) {
 			MultiClass: app.multiClass,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+		return nil
 	}
 }

@@ -6,15 +6,14 @@ package app
 
 import (
 	"context"
-	"log"
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientAnalyzeCommandFor(app *NERApp) cli.Command {
-	return cli.Command{
+func newClientAnalyzeCommandFor(app *NERApp) *cli.Command {
+	return &cli.Command{
 		Name:        "analyze",
 		Usage:       "Perform sequence labeling analysis for Named Entity Recognition.",
 		Description: "Run the " + programName + " client for Named Entity Recognition.",
@@ -41,8 +40,8 @@ func newClientAnalyzeCommandFlagsFor(app *NERApp) []cli.Flag {
 	})
 }
 
-func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -55,9 +54,11 @@ func newClientAnalyzeCommandActionFor(app *NERApp) func(c *cli.Context) {
 		})
 
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }

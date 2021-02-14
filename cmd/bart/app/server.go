@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/user"
@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *BartApp) cli.Command {
-	return cli.Command{
+func newServerCommandFor(app *BartApp) *cli.Command {
+	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "Run the " + programName + " indicating the model path (NOT the model file).",
@@ -55,14 +55,12 @@ func newServerCommandFlagsFor(app *BartApp) []cli.Flag {
 		&cli.StringFlag{
 			Name:        "repo",
 			Usage:       "Specifies the path to the models.",
-			EnvVar:      "SPAGO_REPO",
 			Value:       path.Join(usr.HomeDir, ".spago"),
 			Destination: &app.repo,
 		},
 		&cli.StringFlag{
 			Name:        "model, m",
 			Required:    true,
-			EnvVar:      "SPAGO_MODEL",
 			Usage:       "Specifies the model name.",
 			Destination: &app.model,
 		},

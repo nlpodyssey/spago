@@ -10,11 +10,11 @@ import (
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientClassifyCommandFor(app *BartApp) cli.Command {
-	return cli.Command{
+func newClientClassifyCommandFor(app *BartApp) *cli.Command {
+	return &cli.Command{
 		Name:        "classify",
 		Usage:       "Perform text classification using BART.",
 		Description: "Run the " + programName + " client for text classification.",
@@ -38,8 +38,8 @@ func newClientClassifyCommandFlagsFor(app *BartApp) []cli.Flag {
 	})
 }
 
-func newClientClassifyCommandActionFor(app *BartApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientClassifyCommandActionFor(app *BartApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.grpcAddress, app.tlsDisable)
@@ -54,5 +54,7 @@ func newClientClassifyCommandActionFor(app *BartApp) func(c *cli.Context) {
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }

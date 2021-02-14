@@ -20,7 +20,7 @@ require (
 	github.com/nlpodyssey/gotokenizers v0.2.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	github.com/urfave/cli v1.22.5
+	github.com/urfave/cli/v2 v2.3.0
 	golang.org/x/exp v0.0.0-20201229011636-eab1b5eb1a03
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/sys v0.0.0-20210112091331-59c308dcf3cc // indirect

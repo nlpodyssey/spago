@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/user"
@@ -16,8 +16,8 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *NERApp) cli.Command {
-	return cli.Command{
+func newServerCommandFor(app *NERApp) *cli.Command {
+	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
@@ -89,8 +89,8 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 	}
 }
 
-func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
 		fmt.Printf("TLS private key path is %s\n", app.tlsKey)
 
@@ -106,17 +106,17 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 			case ok:
 				fmt.Printf("Fetch model from `%s`\n", url)
 				if err := httputils.DownloadFile(fmt.Sprintf("%s-compressed", modelPath), url); err != nil {
-					log.Fatal(err)
+					return err
 				}
 				r, err := os.Open(fmt.Sprintf("%s-compressed", modelPath))
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				fmt.Print("Extracting compressed model... ")
 				extractTarGz(r, modelsFolder)
 				fmt.Println("ok")
 			default:
-				log.Fatal(err)
+				return err
 			}
 		}
 
@@ -144,5 +144,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 		server.TimeoutSeconds = app.serverTimeoutSeconds
 		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.Start(app.address, app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
+
+		return nil
 	}
 }

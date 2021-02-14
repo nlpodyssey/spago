@@ -6,7 +6,7 @@ package app
 
 import (
 	"github.com/nlpodyssey/spago/cmd/huggingfaceimporter/internal"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -23,7 +23,9 @@ func New() *cli.App {
 	app.HelpName = programName
 	app.Usage = "Convert a pickle-serialized Hugging Face model to spaGO"
 	app.HideVersion = true
-	app.Action = importerArgs.RunImporterCli
+	app.Action = func(context *cli.Context) error {
+		return importerArgs.RunImporterCli(context)
+	}
 	app.Flags = importerFlags
 	return app
 }

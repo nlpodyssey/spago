@@ -5,7 +5,7 @@
 package app
 
 import (
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -48,7 +48,7 @@ func NewNERApp() *NERApp {
 	app.Name = programName
 	app.HelpName = programName
 	app.Usage = "A demo for named entities recognition."
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		newClientCommandFor(app),
 		newServerCommandFor(app),
 		newConvertCommandFor(app),

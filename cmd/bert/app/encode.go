@@ -10,11 +10,11 @@ import (
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientEncodeCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientEncodeCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:        "encode",
 		Usage:       "Perform sentence2vec encoding using BERT.",
 		Description: "Run the " + programName + " client for sentence encoding.",
@@ -33,8 +33,8 @@ func newClientEncodeCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientEncodeCommandActionFor(app *BertApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientEncodeCommandActionFor(app *BertApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -49,5 +49,7 @@ func newClientEncodeCommandActionFor(app *BertApp) func(c *cli.Context) {
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }
