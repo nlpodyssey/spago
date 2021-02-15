@@ -141,7 +141,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		}()
 
 		var bpeTokenizer *bpetokenizer.BPETokenizer
-		var spTokenizer *sentencepiece.SentencePieceTokenizer
+		var spTokenizer *sentencepiece.Tokenizer
 
 		switch model.(type) {
 		case *sequenceclassification.Model:

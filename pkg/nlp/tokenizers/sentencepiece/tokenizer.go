@@ -15,14 +15,14 @@ import (
 const defaultUnknownToken = "<unk>"
 const defaultSeparator = "▁"
 
-// SentencePieceTokenizer is a Sentence Piece tokenizer.
-type SentencePieceTokenizer struct {
+// Tokenizer is a Sentence Piece tokenizer.
+type Tokenizer struct {
 	sp    *sentencepiece.Sentencepiece
 	vocab *vocabulary.Vocabulary
 }
 
-// NewFromModelFolder returns a new SentencePieceTokenizer.
-func NewFromModelFolder(path string, lowercase bool) (*SentencePieceTokenizer, error) {
+// NewFromModelFolder returns a new Tokenizer.
+func NewFromModelFolder(path string, lowercase bool) (*Tokenizer, error) {
 	vocabFilename := filepath.Join(path, "vocab.json")
 	vocab, err := vocabulary.FromJSONFile(vocabFilename)
 	if err != nil {
@@ -35,14 +35,14 @@ func NewFromModelFolder(path string, lowercase bool) (*SentencePieceTokenizer, e
 		return nil, fmt.Errorf("loading sentence-piece from file %s: %w", spmFilename, err)
 	}
 
-	return &SentencePieceTokenizer{
+	return &Tokenizer{
 		sp:    &sp,
 		vocab: vocab,
 	}, nil
 }
 
 // Tokenize performs sentence-piece tokenization.
-func (t *SentencePieceTokenizer) Tokenize(text string) []string {
+func (t *Tokenizer) Tokenize(text string) []string {
 	tokens := t.sp.Tokenize(text)
 
 	result := make([]string, len(tokens))
@@ -54,7 +54,7 @@ func (t *SentencePieceTokenizer) Tokenize(text string) []string {
 
 // TokensToIDs returns a list of token IDs from a list of string tokens.
 // It panics if a token is not found in the vocabulary and no unknown token is found.
-func (t *SentencePieceTokenizer) TokensToIDs(tokens []string) []int {
+func (t *Tokenizer) TokensToIDs(tokens []string) []int {
 	ids := make([]int, len(tokens))
 	for i, token := range tokens {
 		var ok bool
@@ -71,7 +71,7 @@ func (t *SentencePieceTokenizer) TokensToIDs(tokens []string) []int {
 
 // IDsToTokens returns a list of string terms from a list of token IDs.
 // It panics if a token is not found in the vocabulary.
-func (t *SentencePieceTokenizer) IDsToTokens(ids []int) []string {
+func (t *Tokenizer) IDsToTokens(ids []int) []string {
 	tokens := make([]string, len(ids))
 	for i, id := range ids {
 		var ok bool
@@ -84,7 +84,7 @@ func (t *SentencePieceTokenizer) IDsToTokens(ids []int) []string {
 }
 
 // Detokenize flatten and merges a list of tokens into a single string.
-func (t *SentencePieceTokenizer) Detokenize(tokens []string) string {
+func (t *Tokenizer) Detokenize(tokens []string) string {
 	var sb strings.Builder
 
 	for i, token := range tokens {

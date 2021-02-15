@@ -25,7 +25,7 @@ import (
 type Server struct {
 	model           nn.Model
 	bpeTokenizer    *bpetokenizer.BPETokenizer
-	spTokenizer     *sentencepiece.SentencePieceTokenizer
+	spTokenizer     *sentencepiece.Tokenizer
 	TimeoutSeconds  int
 	MaxRequestBytes int
 
@@ -37,7 +37,7 @@ type Server struct {
 func NewServer(
 	model nn.Model,
 	bpeTokenizer *bpetokenizer.BPETokenizer,
-	spTokenizer *sentencepiece.SentencePieceTokenizer,
+	spTokenizer *sentencepiece.Tokenizer,
 ) *Server {
 	switch model.(type) {
 	case *sequenceclassification.Model, *conditionalgeneration.Model: // ok
