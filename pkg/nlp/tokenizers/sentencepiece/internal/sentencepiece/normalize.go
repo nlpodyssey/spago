@@ -38,6 +38,7 @@ var controlChars = []rune{
 	0x1D177, 0x1D178, 0x1D179, 0x1D17A, 0xE0001,
 }
 
+//gocyclo:ignore
 func isControl(c rune) bool {
 	if c == ' ' || c == '\n' || c == '\r' || c == '\t' {
 		return false
