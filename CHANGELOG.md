@@ -7,6 +7,42 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Implement a beam-search algorithm for conditional generation:
+  - `nlp.transformer.generation` package.
+- Add implementation of the Sentence-Piece tokenizer.
+  - `nlp.tokenizers.sentencepiece` package.
+- BART improvements:
+  - Add support for "Marian" architecture (used for translation tasks).
+  - Add sinusoidal positional encoder (used by Marian).
+  - Add "head" for conditional generation.
+- Add `nn.Closer` interface (e.g. `embeddings.Model` needs to close the underlying key-value store).
+- Add Swish act. function without trainable parameters.
+- Add SiLU act. function (it is just an alias for Swish).
+- New `pe.SinusoidalPositionalEncoder` (this implementation replaces unused `pe.PositionalEncoder`
+  and `pe.AxialPositionalEncoder`)
+
+### Changed
+
+- Update urfave/cli to v2
+- Update dgraph-io/badger to v3.
+- Make the BART positional encoder an interface to support various encoding (i.e. trainable vs static).
+- Rename to `fn.NewSwish` into `fn.NewSwishB` as this was the Swish variant with trainable parameters (*B*).
+- Relax `ag.GetOpName` to match operator names in lower-case.
+- Allow arbitrary activation function on BART encoder/decoder layers.
+- Use precomputed "keys" and "values" in self-attention, multi-head attention and BART decoder.
+
+### Removed
+
+- In relation to the aforementioned positional encoding changes:
+  - `pe.PositionalEncoder` and related functions
+  - `pe.AxialPositionalEncoder` and related functions
+
+### Fixed
+
+- Fix causal-mask used by `nn.ScaledDotProductAttention`
+
 ## [0.4.1] - 2021-01-22
 
 ### Added
