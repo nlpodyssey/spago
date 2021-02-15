@@ -11,12 +11,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Implement a beam-search algorithm for conditional generation:
   - `nlp.transformer.generation` package.
-- Add implementation of the Sentence-Piece tokenizer.
+- Add implementation of the Sentence-Piece tokenizer:
   - `nlp.tokenizers.sentencepiece` package.
 - BART improvements:
+  - gRPC and HTTP API to perform Text Generation.
   - Add support for "Marian" architecture (used for translation tasks).
   - Add sinusoidal positional encoder (used by Marian).
-  - Add "head" for conditional generation.
+  - Add "head" for conditional generation:
+    - `nlp.transformers.bart.head.conditionalgeneration` package.
 - Add `nn.Closer` interface (e.g. `embeddings.Model` needs to close the underlying key-value store).
 - Add Swish act. function without trainable parameters.
 - Add SiLU act. function (it is just an alias for Swish).
