@@ -167,12 +167,19 @@ func NewSqrt(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSwish returns a new function of the form f(x) = x * sigmoid(x).
 func NewSwish(x Operand) *UnaryElementwise {
 	return &UnaryElementwise{
 		x:  x,
 		f:  swish,
 		df: swishDeriv,
 	}
+}
+
+// NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
+// The function is the same as NewSwish.
+func NewSiLU(x Operand) *UnaryElementwise {
+	return NewSwish(x)
 }
 
 func absDeriv(i, j int, v mat.Float) mat.Float {
