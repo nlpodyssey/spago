@@ -68,7 +68,7 @@ type StandardForwarder interface {
 }
 
 // Closer is implemented by any Model that requires to close or finalize its structures.
-// Fo example, embeddings.Model needs to close the underlying key-value store.
+// For example, embeddings.Model needs to close the underlying key-value store.
 type Closer interface {
 	Close()
 }
