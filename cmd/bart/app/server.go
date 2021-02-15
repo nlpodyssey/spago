@@ -96,38 +96,13 @@ func newServerCommandFlagsFor(app *BartApp) []cli.Flag {
 	}
 }
 
-const defaultModelFile = "spago_model.bin"
-
 func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
-		modelPath := filepath.Join(app.repo, app.model)
-
-		if _, err := os.Stat(modelPath); os.IsNotExist(err) {
-			fmt.Printf("Unable to find `%s` locally.\n", modelPath)
-			fmt.Printf("Pulling `%s` from Hugging Face models hub...\n", app.model)
-			// make sure the models path exists
-			if _, err := os.Stat(app.repo); os.IsNotExist(err) {
-				if err := os.MkdirAll(app.repo, 0755); err != nil {
-					return err
-				}
-			}
-			err = huggingface.NewDownloader(app.repo, app.model, false).Download()
-			if err != nil {
-				return err
-			}
-			fmt.Printf("Converting model...\n")
-			err = huggingface.NewConverter(app.repo, app.model).Convert()
-			if err != nil {
-				return err
-			}
-		} else if _, err := os.Stat(path.Join(modelPath, defaultModelFile)); os.IsNotExist(err) {
-			fmt.Printf("Unable to find `%s` in the model directory.\n", defaultModelFile)
-			fmt.Printf("Assuming there is a Hugging Face model to convert...\n")
-			err = huggingface.NewConverter(app.repo, app.model).Convert()
-			if err != nil {
-				return err
-			}
+		if err := pullModel(app); err != nil {
+			return err
 		}
+
+		modelPath := filepath.Join(app.repo, app.model)
 
 		model, err := loader.Load(modelPath)
 		if err != nil {
@@ -147,12 +122,12 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		case *sequenceclassification.Model:
 			bpeTokenizer, err = bpetokenizer.NewFromModelFolder(modelPath)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		case *conditionalgeneration.Model:
 			spTokenizer, err = sentencepiece.NewFromModelFolder(modelPath, false)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		default:
 			panic("bart: invalid model type")
@@ -185,4 +160,42 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 
 		return nil
 	}
+}
+
+const defaultModelFile = "spago_model.bin"
+
+func pullModel(app *BartApp) error {
+	modelPath := filepath.Join(app.repo, app.model)
+	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
+		fmt.Printf("Unable to find `%s` locally.\n", modelPath)
+		fmt.Printf("Pulling `%s` from Hugging Face models hub...\n", app.model)
+		// make sure the models path exists
+		if _, err := os.Stat(app.repo); os.IsNotExist(err) {
+			if err := os.MkdirAll(app.repo, 0755); err != nil {
+				return err
+			}
+		}
+		err = huggingface.NewDownloader(app.repo, app.model, false).Download()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Converting model...\n")
+		err = huggingface.NewConverter(app.repo, app.model).Convert()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if _, err := os.Stat(path.Join(modelPath, defaultModelFile)); os.IsNotExist(err) {
+		fmt.Printf("Unable to find `%s` in the model directory.\n", defaultModelFile)
+		fmt.Printf("Assuming there is a Hugging Face model to convert...\n")
+		err = huggingface.NewConverter(app.repo, app.model).Convert()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
