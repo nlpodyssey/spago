@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2021-02-15
+
 ### Added
 
 - Implement a beam-search algorithm for conditional generation:
