@@ -453,7 +453,7 @@ func (g *Graph) Swish(x Node) Node {
 	return g.NewOperator(fn.NewSwish(x), x)
 }
 
-// Swish returns a new operator node as a result of the fn.SiLU function.
+// SiLU returns a new operator node as a result of the fn.SiLU function.
 func (g *Graph) SiLU(x Node) Node {
 	return g.NewOperator(fn.NewSiLU(x), x)
 }

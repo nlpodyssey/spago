@@ -315,7 +315,7 @@ func Swish(x Node) Node {
 	return globalGraph.Swish(x)
 }
 
-// Swish returns a new operator node as a result of the fn.SiLU function.
+// SiLU returns a new operator node as a result of the fn.SiLU function.
 func SiLU(x Node) Node {
 	return globalGraph.SiLU(x)
 }
