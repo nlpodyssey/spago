@@ -75,8 +75,11 @@ func mustGetOpName(str string) ag.OpName {
 	return value
 }
 
+// KeysValuesPairs contains the keys and values used by the self-attention and cross-attention blocks.
 type KeysValuesPairs struct {
-	SelfAttKeyValues  multiheadattention.KeysValuesPairs
+	// SelfAttKeyValues contains the keys and values used by self-attention.
+	SelfAttKeyValues multiheadattention.KeysValuesPairs
+	// CrossAttKeyValues contains the keys and values used by cross-attention.
 	CrossAttKeyValues multiheadattention.KeysValuesPairs
 }
 

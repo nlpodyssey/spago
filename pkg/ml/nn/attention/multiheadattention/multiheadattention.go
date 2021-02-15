@@ -57,14 +57,17 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 	}
 }
 
+// KeysValuesPairs contains the attention.KeysValuesPair for each attention head.
 type KeysValuesPairs = []attention.KeysValuesPair
 
+// Output aggregates the multiple output of the multi-head attentions,
+// incl. attention scores and last projected keys and values for each head.
 type Output struct {
 	// Result of the multi-head attention.
 	AttOutput []ag.Node
 	// AttWeights attention scores.
 	AttWeights [][]mat.Matrix
-	// TODO
+	// ProjKeysValues contains the attention.KeysValuesPair for each attention head.
 	ProjKeysValues KeysValuesPairs
 }
 

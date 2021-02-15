@@ -18,15 +18,18 @@ type QKV struct {
 	Values  []ag.Node
 }
 
+// Output aggregates the multiple output of the self-attentions,
+// incl. attention scores and last projected keys and values.
 type Output struct {
-	// Result of the self-attention.
+	// AttOutput is the result of the self-attention.
 	AttOutput []ag.Node
-	// Attention scores.
+	// AttWeights are the attention scores for each element of the sequence.
 	AttWeights []mat.Matrix
-	// Projected Keys and Values.
+	// ProjKeysValues is the list of Keys and Values used to compute the self-attention.
 	ProjKeysValues KeysValuesPair
 }
 
+// KeysValuesPair contains Keys and Values.
 type KeysValuesPair struct {
 	Keys   []ag.Node
 	Values []ag.Node
@@ -67,6 +70,7 @@ func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useC
 	return
 }
 
+// MakeCausalMask returns a slice of size seqLength filled with zeros until curIndex, and the rest with -inf.
 func MakeCausalMask(curIndex, seqLength int) []mat.Float {
 	causalMask := make([]mat.Float, seqLength)
 	for k := curIndex + 1; k < seqLength; k++ {

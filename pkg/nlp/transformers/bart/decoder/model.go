@@ -70,6 +70,7 @@ func makeLayers(config config.Config) []*layer.Layer {
 	return layers
 }
 
+// KeysValuesPairs contains the layer.KeysValuesPairs for each decoding layer.
 type KeysValuesPairs = []layer.KeysValuesPairs
 
 func getPastSequenceLength(pkv KeysValuesPairs) int {
