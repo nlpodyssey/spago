@@ -53,11 +53,11 @@ func NewLayer(config config.Config) *Layer {
 }
 
 func mustGetOpName(str string) ag.OpName {
-	if value, err := ag.GetOpName(str); err == nil {
-		return value
-	} else {
+	value, err := ag.GetOpName(str)
+	if err != nil {
 		panic(err)
 	}
+	return value
 }
 
 // Forward performs the forward step for each input node and returns the result.
