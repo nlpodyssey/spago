@@ -6,6 +6,8 @@ package positionalencoder
 
 import "github.com/nlpodyssey/spago/pkg/ml/ag"
 
+// Encoder is implemented by Models that require positional encoding.
 type Encoder interface {
+	// Encode transforms the input positions into a dense representation.
 	Encode(positions []int) []ag.Node
 }

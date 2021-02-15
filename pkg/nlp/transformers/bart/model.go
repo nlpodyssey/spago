@@ -63,10 +63,12 @@ func (m *Model) Process(inputIDs []int) []ag.Node {
 	return decoded
 }
 
+// Encode performs the BART encoding.
 func (m *Model) Encode(inputIDs []int) []ag.Node {
 	return m.Encoder.Encode(m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))))
 }
 
+// Decode performs the BART decoding.
 func (m *Model) Decode(
 	inputIDs []int,
 	encoderHiddenStates []ag.Node,
