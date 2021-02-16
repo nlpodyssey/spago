@@ -4,7 +4,10 @@
 
 package mat32
 
-import "math"
+import (
+	"github.com/nlpodyssey/spago/pkg/mat32/internal/math32"
+	"math"
+)
 
 // Float is the main float type for the mat32 package. It is an alias for float32.
 type Float = float32
@@ -18,7 +21,7 @@ const (
 
 // Pow returns x**y, the base-x exponential of y.
 func Pow(x, y Float) Float {
-	return Float(math.Pow(float64(x), float64(y)))
+	return math32.Pow(x, y)
 }
 
 // Cos returns the cosine of the radian argument x.
@@ -43,22 +46,22 @@ func Sinh(x Float) Float {
 
 // Exp returns e**x, the base-e exponential of x.
 func Exp(x Float) Float {
-	return Float(math.Exp(float64(x)))
+	return math32.Exp(x)
 }
 
 // Abs returns the absolute value of x.
 func Abs(x Float) Float {
-	return Float(math.Abs(float64(x)))
+	return math32.Abs(x)
 }
 
 // Sqrt returns the square root of x.
 func Sqrt(x Float) Float {
-	return Float(math.Sqrt(float64(x)))
+	return math32.Sqrt(x)
 }
 
 // Log returns the natural logarithm of x.
 func Log(x Float) Float {
-	return Float(math.Log(float64(x)))
+	return math32.Log(x)
 }
 
 // Tan returns the tangent of the radian argument x.
@@ -68,37 +71,37 @@ func Tan(x Float) Float {
 
 // Tanh returns the hyperbolic tangent of x.
 func Tanh(x Float) Float {
-	return Float(math.Tanh(float64(x)))
+	return math32.Tanh(x)
 }
 
 // Max returns the larger of x or y.
 func Max(x, y Float) Float {
-	return Float(math.Max(float64(x), float64(y)))
+	return math32.Max(x, y)
 }
 
 // Inf returns positive infinity if sign >= 0, negative infinity if sign < 0.
 func Inf(sign int) Float {
-	return Float(math.Inf(sign))
+	return math32.Inf(sign)
 }
 
 // IsInf reports whether f is an infinity, according to sign.
 func IsInf(f Float, sign int) bool {
-	return math.IsInf(float64(f), sign)
+	return math32.IsInf(f, sign)
 }
 
 // NaN returns an IEEE 754 ``not-a-number'' value.
 func NaN() Float {
-	return Float(math.NaN())
+	return math32.NaN()
 }
 
 // Ceil returns the least integer value greater than or equal to x.
 func Ceil(x Float) Float {
-	return Float(math.Ceil(float64(x)))
+	return math32.Ceil(x)
 }
 
 // Floor returns the greatest integer value less than or equal to x.
 func Floor(x Float) Float {
-	return Float(math.Floor(float64(x)))
+	return math32.Floor(x)
 }
 
 // Round returns the nearest integer, rounding half away from zero.
