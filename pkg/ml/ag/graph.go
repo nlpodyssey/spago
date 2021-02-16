@@ -482,10 +482,12 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	if g.cache.maxID == g.maxID {
 		return g.cache.nodesByHeight
 	}
-	groups := make([][]Node, 0, 1)
+	groups := g.cache.nodesByHeight
 	height := make([]int, len(g.nodes))
+	copy(height[:len(g.cache.height)], g.cache.height)
 
-	for _, node := range g.nodes {
+	startIndex := g.cache.maxID + 1
+	for _, node := range g.nodes[startIndex:] {
 		h := 0
 		if node, ok := node.(*operator); ok {
 			for _, operand := range node.operands {
