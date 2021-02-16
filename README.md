@@ -24,17 +24,18 @@ inference, easy to understand from start to finish.
 
 - Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
 - Character Language Models
-- Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
+- Recurrent Sequence Labeler with CRF on top (
+  e.g. [Named Entities Recognition](https://github.com/nlpodyssey/spago/tree/main/cmd/ner))
 - Transformer models:
-    - Masked language model
-    - Next sentence prediction
-    - Tokens Classification
-    - Text Classification (e.g. Sentiment Analysis)
-    - Question Answering
-    - Natural Language Inference (i.e. Textual Entailment)
-    - Zero-Shot Text Classification
-    - Text Similarity
-    - Machine Translation
+  - [Masked Language Model](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#masked-language-model)
+  - Next sentence prediction
+  - Tokens Classification
+  - Text Classification (e.g. Sentiment Analysis)
+  - [Question Answering](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#question-answering-task)
+  - Natural Language Inference (i.e. Textual Entailment)
+  - Zero-Shot Text Classification
+  - Text Similarity
+  - [Machine Translation](https://github.com/nlpodyssey/spago/tree/main/cmd/bart#machine-translation)
 
 ### Internal Machine Learning Framework
 
