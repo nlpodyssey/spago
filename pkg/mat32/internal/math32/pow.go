@@ -31,6 +31,7 @@ func isOddInt(x float32) bool {
 //	Pow(+Inf, y) = +0 for y < 0
 //	Pow(-Inf, y) = Pow(-0, -y)
 //	Pow(x, y) = NaN for finite x < 0 and finite non-integer y
+//gocyclo:ignore
 func Pow(x, y float32) float32 {
 	switch {
 	case y == 0 || x == 1:
