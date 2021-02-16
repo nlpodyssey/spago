@@ -7,7 +7,7 @@ follows.
 
 ## Machine Translation
 
-Machine Translation is text generation task, specifically a text-to-text one.
+Machine Translation is a text generation task, specifically it can be cast as a text-to-text one.
 
 BART is a transformer of type **encoder-decoder**, which makes it suitable for text generation. In particular, BART is
 compatible with the architecture of [Marian](https://marian-nmt.github.io/), a machine translation framework in C++
