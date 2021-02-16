@@ -108,7 +108,7 @@ Set a TEXT as environment variable:
 TEXT="Per il momento questa implementazione in Go è davvero troppo lenta, ma è comunque un ottimo inizio... non credi?!"
 ```
 
-To get the answer to the first question, execute:
+To get the translation, execute:
 
 ```console
 curl -k -d '{"text": "'"$TEXT"'"}' -H "Content-Type: application/json" "https://127.0.0.1:1987/generate?pretty"
