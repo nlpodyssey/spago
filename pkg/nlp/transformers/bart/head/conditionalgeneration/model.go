@@ -61,7 +61,7 @@ func (m *Model) PredictNext(
 func (m *Model) Generate(inputIDs []int) []int {
 	incrementalForward := m.Graph().IncrementalForwardEnabled()
 
-	maxConcurrentComputations := 1
+	maxConcurrentComputations := runtime.NumCPU()
 	if incrementalForward {
 		maxConcurrentComputations = runtime.NumCPU() / 2
 	}
