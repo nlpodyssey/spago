@@ -541,20 +541,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 
 	switch b := other.(type) {
 	case *Dense:
-		if out.cols == 1 {
-			f64.GemvN(
-				uintptr(d.rows), // m
-				uintptr(d.cols), // n
-				1.0,             // alpha
-				d.data,          // a
-				uintptr(d.cols), // lda
-				b.data,          // x
-				1.0,             // incX
-				0.0,             // beta
-				out.data,        // y
-				1.0,             // incY
-			)
-		} else {
+		if out.cols != 1 {
 			f64.DgemmSerial(
 				false,
 				false,
@@ -569,8 +556,21 @@ func (d *Dense) Mul(other Matrix) Matrix {
 				out.cols, // ldc
 				1.0,      // alpha
 			)
+			return out
 		}
 
+		f64.GemvN(
+			uintptr(d.rows), // m
+			uintptr(d.cols), // n
+			1.0,             // alpha
+			d.data,          // a
+			uintptr(d.cols), // lda
+			b.data,          // x
+			1.0,             // incX
+			0.0,             // beta
+			out.data,        // y
+			1.0,             // incY
+		)
 		return out
 
 	case *Sparse:
