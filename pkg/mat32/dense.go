@@ -560,18 +560,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 			return out
 		}
 
-		internal.GemvN(
-			uintptr(d.rows), // m
-			uintptr(d.cols), // n
-			1.0,             // alpha
-			d.data,          // a
-			uintptr(d.cols), // lda
-			b.data,          // x
-			1.0,             // incX
-			0.0,             // beta
-			out.data,        // y
-			1.0,             // incY
-		)
+		matrixVectorMul(d.data, b.data, out.data)
 		return out
 
 	case *Sparse:
@@ -582,6 +571,18 @@ func (d *Dense) Mul(other Matrix) Matrix {
 		})
 	}
 	return out
+}
+
+// matrixVectorMul performs matrix-vector multiplication: y = A * x.
+func matrixVectorMul(a []float32, x []float32, y []float32) {
+	start := 0
+	size := len(x)
+
+	for i := range y {
+		end := start + size
+		y[i] = f32.DotUnitary(a[start:end], x)
+		start = end
+	}
 }
 
 // MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
