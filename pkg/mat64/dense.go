@@ -569,25 +569,6 @@ func (d *Dense) Mul(other Matrix) Matrix {
 				out.cols, // ldc
 				1.0,      // alpha
 			)
-
-			/*
-				// parallel implementation
-				f64.Dgemm(
-					false,    // aTrans
-					false,    // bTrans
-					d.rows,   // m
-					b.cols,   // n
-					d.cols,   // k
-					1.0,      // alpha
-					d.data,   // a
-					d.cols,   // lda
-					b.data,   // b
-					b.cols,   // ldb
-					0.0,      // beta
-					out.data, // c
-					out.cols, // ldc
-				)
-			*/
 		}
 
 		return out
