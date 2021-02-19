@@ -11,6 +11,8 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
+	"math"
+	"sort"
 	"sync"
 )
 
@@ -113,17 +115,38 @@ func (b *Generator) performForward() {
 }
 
 func (b *Generator) makeScoredTokens(tokensScores []Scores) ScoredTokens {
-	scoredTokens := make(ScoredTokens, len(tokensScores)*tokensScores[0].Size())
-	i := 0
+	resultSize := b.config.NumBeams * 2
+	result := make(ScoredTokens, 0, resultSize+1)
+
+	var currentMinValue mat.Float = -math.MaxFloat32
+	var currentMinIndex int
+
 	for beamIndex, n := range tokensScores {
 		for tokenIndex, score := range n.Data() {
-			scoredTokens[i].BeamIndex = beamIndex
-			scoredTokens[i].TokenIndex = tokenIndex
-			scoredTokens[i].Score = score
-			i++
+			if len(result) < resultSize || score > currentMinValue {
+				result = append(result, &ScoredToken{
+					BeamIndex:  beamIndex,
+					TokenIndex: tokenIndex,
+					Score:      score,
+				})
+			}
+			if len(result) > resultSize {
+				result = append(result[:currentMinIndex], result[currentMinIndex+1:]...)
+			}
+			currentMinValue = math.MaxFloat32
+			for ri, rv := range result {
+				if rv.Score < currentMinValue {
+					currentMinValue = rv.Score
+					currentMinIndex = ri
+				}
+			}
 		}
 	}
-	return scoredTokens.TopK(b.config.NumBeams * 2)
+
+	sort.SliceStable(result, func(i, j int) bool {
+		return result[i].Score > result[j].Score
+	})
+	return result
 }
 
 func updateTokensScores(tokensScores []Scores, beamScores []mat.Float) {

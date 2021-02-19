@@ -8,7 +8,6 @@ package generation
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"math"
 	"sort"
 )
 
@@ -28,40 +27,7 @@ type ScoredToken struct {
 }
 
 // ScoredTokens is a slice of ScoredToken.
-type ScoredTokens []ScoredToken
-
-// TopK returns the top K indices and values of the provided float array
-// in decreasing order
-func (st ScoredTokens) TopK(k int) ScoredTokens {
-	resultSize := k
-	if resultSize > len(st) {
-		resultSize = len(st)
-	}
-	result := make(ScoredTokens, 0, resultSize)
-	var currentMinValue mat.Float = -math.MaxFloat32
-	var currentMinIndex int
-
-	for _, value := range st {
-		if len(result) < resultSize || value.Score > currentMinValue {
-			result = append(result, value)
-		}
-		if len(result) > resultSize {
-			result = append(result[:currentMinIndex], result[currentMinIndex+1:]...)
-		}
-		currentMinValue = math.MaxFloat32
-		for ri, rv := range result {
-			if rv.Score < currentMinValue {
-				currentMinValue = rv.Score
-				currentMinIndex = ri
-			}
-		}
-	}
-
-	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].Score > result[j].Score
-	})
-	return result
-}
+type ScoredTokens []*ScoredToken
 
 // ScorerProcessOutput is the output value of Scorer.Process.
 type ScorerProcessOutput struct {
