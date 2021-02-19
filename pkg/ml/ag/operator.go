@@ -16,6 +16,12 @@ var (
 	_ Node       = &operator{}
 )
 
+var operatorPool = sync.Pool{
+	New: func() interface{} {
+		return new(operator)
+	},
+}
+
 type operator struct {
 	graph        *Graph
 	timeStep     int

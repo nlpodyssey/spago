@@ -135,6 +135,14 @@ func (g *Graph) Clear() {
 	g.curTimeStep = 0
 	g.clearCache()
 	g.releaseMemory()
+
+	for _, node := range g.nodes {
+		if node, ok := node.(*operator); ok {
+			*node = operator{}
+			operatorPool.Put(node)
+		}
+	}
+
 	g.nodes = nil
 }
 
@@ -252,9 +260,13 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 			break
 		}
 	}
+
+	newNode := operatorPool.Get().(*operator)
+
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newNode := &operator{
+
+	*newNode = operator{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		id:           g.newID(),
@@ -265,6 +277,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
+
 	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
