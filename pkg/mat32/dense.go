@@ -41,7 +41,7 @@ func NewDense(rows, cols int, elements []Float) *Dense {
 		panic(fmt.Sprintf("mat32: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
 	d := GetDenseWorkspace(rows, cols)
-	_ = append(d.data[:0], elements...)
+	copy(d.data, elements)
 	return d
 }
 
@@ -52,7 +52,7 @@ func NewVecDense(elements []Float) *Dense {
 		panic("mat32: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
 	d := GetDenseWorkspace(len(elements), 1)
-	_ = append(d.data[:0], elements...)
+	copy(d.data, elements)
 	return d
 }
 
@@ -104,7 +104,7 @@ func (d *Dense) SetData(data []Float) {
 	if len(data) != d.size {
 		panic(fmt.Sprintf("mat32: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
 	}
-	_ = append(d.data[:0], data...)
+	copy(d.data, data)
 }
 
 // ZerosLike returns a new Dense matrix with the same dimensions of the receiver,
@@ -139,7 +139,7 @@ func (d *Dense) Copy(other Matrix) {
 	if other, ok := other.(*Dense); !ok {
 		panic("mat32: incompatible matrix types.")
 	} else {
-		_ = append(d.data[:0], other.data...)
+		copy(d.data, other.data)
 	}
 }
 
