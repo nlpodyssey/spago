@@ -24,6 +24,8 @@ type GeneratorConfig struct {
 	EOSTokenID int
 	// PadTokenID is the id of the padding token.
 	PadTokenID int
+	// VocabSize is the size of the vocabulary.
+	VocabSize int
 	// DecoderStartTokenID is the ID of the start token for the decoder of an
 	// encoder-decoder model.
 	DecoderStartTokenID int
