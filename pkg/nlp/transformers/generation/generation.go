@@ -8,11 +8,10 @@
 package generation
 
 import (
+	"container/heap"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
-	"math"
-	"sort"
 	"sync"
 )
 
@@ -21,6 +20,8 @@ type Generator struct {
 	config          GeneratorConfig
 	model           EncoderDecoder
 	processingQueue processingqueue.ProcessingQueue
+	padMask         ag.Node
+	eosMask         ag.Node
 }
 
 // NewGenerator creates a new Generator object.
@@ -29,6 +30,8 @@ func NewGenerator(config GeneratorConfig, model EncoderDecoder) *Generator {
 		config:          config,
 		model:           model,
 		processingQueue: processingqueue.New(config.MaxConcurrentComputations),
+		padMask:         makePadMask(model.Graph(), config.PadTokenID, config.VocabSize),
+		eosMask:         makeEosMask(model.Graph(), config.EOSTokenID, config.VocabSize),
 	}
 }
 
@@ -61,7 +64,7 @@ func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
 		scores, cache = b.generateNext(encodedInput, decodingInputIDs, cache)
 		nextTokenScores := b.inhibitInvalidTokens(decodingInputIDs, scores)
 		updateTokensScores(nextTokenScores, beamScores)
-		scoredTokens := b.makeScoredTokens(nextTokenScores)
+		scoredTokens := b.getTopKScoredTokens(nextTokenScores)
 		beamOutputs := scorer.Process(decodingInputIDs, scoredTokens)
 		beamScores = beamOutputs.nextBeamScores
 		decodingInputIDs = makeNewInputIDs(decodingInputIDs, beamOutputs)
@@ -83,6 +86,7 @@ func (b *Generator) generateNext(
 ) ([]Scores, []Cache) {
 	numBeams := b.config.NumBeams
 	logProbs := make([]ag.Node, numBeams)
+	logits := make([]ag.Node, numBeams)
 	scores := make([]Scores, numBeams)
 	nextCache := make([]Cache, numBeams)
 
@@ -92,7 +96,9 @@ func (b *Generator) generateNext(
 		i := i // redefine `i` in the inner scope, for using it in the goroutine
 		b.processingQueue.Go(func() {
 			defer wg.Done()
-			logProbs[i], nextCache[i] = b.model.Decode(encodedInput, decodingInputIDs[i], pastCache[i])
+			logits[i], nextCache[i] = b.model.Decode(encodedInput, decodingInputIDs[i], pastCache[i])
+			logits[i] = b.adjustLogitsDuringGeneration(logits[i], len(decodingInputIDs[i]))
+			logProbs[i] = b.model.Graph().LogSoftmax(logits[i])
 		})
 	}
 	wg.Wait()
@@ -114,38 +120,23 @@ func (b *Generator) performForward() {
 	g.IncTimeStep() // mark the next block to be computed from here on
 }
 
-func (b *Generator) makeScoredTokens(tokensScores []Scores) ScoredTokens {
-	resultSize := b.config.NumBeams * 2
-	result := make(ScoredTokens, 0, resultSize+1)
-
-	var currentMinValue mat.Float = -math.MaxFloat32
-	var currentMinIndex int
-
+func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
+	h := &ScoredTokens{}
+	heap.Init(h)
 	for beamIndex, n := range tokensScores {
 		for tokenIndex, score := range n.Data() {
-			if len(result) < resultSize || score > currentMinValue {
-				result = append(result, &ScoredToken{
-					BeamIndex:  beamIndex,
-					TokenIndex: tokenIndex,
-					Score:      score,
-				})
-			}
-			if len(result) > resultSize {
-				result = append(result[:currentMinIndex], result[currentMinIndex+1:]...)
-			}
-			currentMinValue = math.MaxFloat32
-			for ri, rv := range result {
-				if rv.Score < currentMinValue {
-					currentMinValue = rv.Score
-					currentMinIndex = ri
-				}
-			}
+			heap.Push(h, &ScoredToken{
+				BeamIndex:  beamIndex,
+				TokenIndex: tokenIndex,
+				Score:      score,
+			})
 		}
 	}
 
-	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].Score > result[j].Score
-	})
+	result := make(ScoredTokens, b.config.NumBeams*2)
+	for i := range result {
+		result[i] = heap.Pop(h).(*ScoredToken)
+	}
 	return result
 }
 
@@ -193,4 +184,27 @@ func (b *Generator) makeInitBeamScores() []mat.Float {
 		beamScores[i] = -1e9
 	}
 	return beamScores
+}
+
+func (b *Generator) adjustLogitsDuringGeneration(xs ag.Node, curLength int) ag.Node {
+	// Don't generate pad token
+	ys := b.model.Graph().Add(xs, b.padMask)
+
+	if curLength == b.config.MaxLength-1 && b.config.EOSTokenID >= 0 {
+		// Force EOS to be generated
+		ys = b.model.Graph().Add(ys, b.eosMask)
+	}
+	return ys
+}
+
+func makePadMask(g *ag.Graph, padTokenID int, vocabSize int) ag.Node {
+	mask := mat.NewInitVecDense(vocabSize, 0)
+	mask.SetVec(padTokenID, mat.Inf(-1))
+	return g.NewVariable(mask, false)
+}
+
+func makeEosMask(g *ag.Graph, eosTokenID int, vocabSize int) ag.Node {
+	mask := mat.NewInitVecDense(vocabSize, mat.Inf(-1))
+	mask.SetVec(eosTokenID, 0)
+	return g.NewVariable(mask, false)
 }

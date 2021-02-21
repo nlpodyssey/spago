@@ -29,6 +29,42 @@ type ScoredToken struct {
 // ScoredTokens is a slice of ScoredToken.
 type ScoredTokens []*ScoredToken
 
+// Len satisfies heap.Interface.
+func (h ScoredTokens) Len() int {
+	return len(h)
+}
+
+// Less satisfies heap.Interface.
+func (h ScoredTokens) Less(i, j int) bool {
+	x, y := h[i], h[j]
+	if x.Score == y.Score {
+		if x.TokenIndex == y.TokenIndex {
+			return x.BeamIndex < y.BeamIndex
+		}
+		return x.TokenIndex < y.TokenIndex
+	}
+	return x.Score > y.Score
+}
+
+// Swap satisfies heap.Interface.
+func (h ScoredTokens) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+
+// Push satisfies heap.Interface.
+func (h *ScoredTokens) Push(x interface{}) {
+	*h = append(*h, x.(*ScoredToken))
+}
+
+// Pop satisfies heap.Interface.
+func (h *ScoredTokens) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
 // ScorerProcessOutput is the output value of Scorer.Process.
 type ScorerProcessOutput struct {
 	nextBeamScores  []mat.Float

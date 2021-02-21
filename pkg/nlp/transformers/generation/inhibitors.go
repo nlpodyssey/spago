@@ -12,31 +12,11 @@ import (
 )
 
 func (b *Generator) inhibitInvalidTokens(inputIDs [][]int, scores []Scores) []Scores {
-	for _, vec := range scores {
-		// Don't generate pad token.
-		vec.SetVec(b.config.PadTokenID, mat.Inf(-1))
-	}
-	if len(inputIDs) == b.config.MaxLength-1 && b.config.EOSTokenID >= 0 {
-		scores = b.forceEosToBeGenerated(scores)
-	}
 	if b.config.MinLength >= 0 && b.config.EOSTokenID >= 0 {
 		scores = b.processMinLengthScores(inputIDs, scores)
 	}
 	if len(b.config.BadWordsIDs) > 0 {
 		scores = b.processBadWordsScores(inputIDs, scores)
-	}
-	return scores
-}
-
-func (b *Generator) forceEosToBeGenerated(scores []Scores) []Scores {
-	eosTokenID := b.config.EOSTokenID
-	for _, vec := range scores {
-		for i := 0; i < vec.Size(); i++ {
-			if i == eosTokenID {
-				continue
-			}
-			vec.SetVec(i, mat.Inf(-1))
-		}
 	}
 	return scores
 }
