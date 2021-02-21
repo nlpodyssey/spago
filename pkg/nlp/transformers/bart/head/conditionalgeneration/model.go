@@ -74,6 +74,7 @@ func (m *Model) Generate(inputIDs []int) []int {
 		BOSTokenID:                m.BART.Config.BosTokenID,
 		EOSTokenID:                m.BART.Config.EosTokenID,
 		PadTokenID:                m.BART.Config.PadTokenID,
+		VocabSize:                 m.BART.Config.VocabSize,
 		DecoderStartTokenID:       m.BART.Config.DecoderStartTokenID,
 		LengthPenalty:             1.0,
 		EarlyStopping:             false,
@@ -98,6 +99,5 @@ func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, pastCache generat
 		inputIDs = inputIDs[len(inputIDs)-1:]
 	}
 	logits, nextCache := m.PredictNext(encodedInput, inputIDs, pastKeysValues)
-	logProbs := m.Graph().LogSoftmax(logits)
-	return logProbs, nextCache
+	return logits, nextCache
 }
