@@ -126,14 +126,15 @@ func (m *Layer) crossAttentionBlock(
 	if m.Config.NormalizeBefore {
 		xs = m.EncoderAttentionLayerNorm.Forward(xs...)
 	}
-	att := m.EncoderAttention.ForwardWithPastKeysValues(
-		attention.QKV{
-			Queries: xs,
-			Keys:    encoderHiddenStates,
-			Values:  encoderHiddenStates,
-		},
-		pastProjKeysValues,
-	)
+
+	qkv := attention.QKV{Queries: xs}
+	// use the past key-values if they are available otherwise use the encoder hidden states
+	if pastProjKeysValues == nil {
+		qkv.Keys = encoderHiddenStates
+		qkv.Values = encoderHiddenStates
+	}
+
+	att := m.EncoderAttention.ForwardWithPastKeysValues(qkv, pastProjKeysValues)
 	xs = att.AttOutput
 	// TODO: xs = m.Dropout(xs)
 	xs = m.add(residual, xs)

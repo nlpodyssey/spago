@@ -74,11 +74,14 @@ func (m *Model) Forward(qkv attention.QKV) attention.Output {
 func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, past attention.KeysValuesPair) attention.Output {
 	projAtt := attention.QKV{
 		Queries: m.Query.Forward(qkv.Queries...),
-		Keys:    m.Key.Forward(qkv.Keys...),
-		Values:  m.Value.Forward(qkv.Values...),
+		Keys:    past.Keys,
+		Values:  past.Values,
 	}
-	projAtt.Keys = append(past.Keys, projAtt.Keys...)
-	projAtt.Values = append(past.Values, projAtt.Values...)
+
+	if qkv.Keys != nil { // thus the qkv.Values shall not be null as well
+		projAtt.Keys = append(projAtt.Keys, m.Key.Forward(qkv.Keys...)...)
+		projAtt.Values = append(projAtt.Keys, m.Value.Forward(qkv.Values...)...)
+	}
 
 	attOutput, attWeights := attention.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
 
