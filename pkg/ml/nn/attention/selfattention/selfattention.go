@@ -7,6 +7,7 @@ package selfattention
 import (
 	"encoding/gob"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -74,11 +75,11 @@ func (m *Model) Forward(qkv attention.QKV) attention.Output {
 func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, past attention.KeysValuesPair) attention.Output {
 	projAtt := attention.QKV{
 		Queries: m.Query.Forward(qkv.Queries...),
-		Keys:    past.Keys,
-		Values:  past.Values,
+		Keys:    append([]ag.Node{}, past.Keys...),   // this append is important
+		Values:  append([]ag.Node{}, past.Values...), // this append is important
 	}
 
-	if qkv.Keys != nil { // thus the qkv.Values shall not be null as well
+	if qkv.Keys != nil { // the qkv.Values shall not be null as well
 		projAtt.Keys = append(projAtt.Keys, m.Key.Forward(qkv.Keys...)...)
 		projAtt.Values = append(projAtt.Values, m.Value.Forward(qkv.Values...)...)
 	}
