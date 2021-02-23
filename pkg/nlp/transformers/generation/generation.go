@@ -130,13 +130,14 @@ func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
 
 	for beamIndex, n := range tokensScores {
 		for tokenIndex, score := range n.Data() {
-			if len(result) < resultSize || score > currentMinValue {
-				result = append(result, &ScoredToken{
-					BeamIndex:  beamIndex,
-					TokenIndex: tokenIndex,
-					Score:      score,
-				})
+			if len(result) == resultSize && score <= currentMinValue {
+				continue
 			}
+			result = append(result, &ScoredToken{
+				BeamIndex:  beamIndex,
+				TokenIndex: tokenIndex,
+				Score:      score,
+			})
 			if len(result) > resultSize {
 				result = append(result[:currentMinIndex], result[currentMinIndex+1:]...)
 			}
@@ -157,11 +158,9 @@ func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
 }
 
 func updateTokensScores(tokensScores []Scores, beamScores []mat.Float) {
-	for i, bs := range beamScores {
-		v := tokensScores[i]
-		for j, f := range v.Data() {
-			v.SetVec(j, f+bs)
-		}
+	_ = tokensScores[len(beamScores)-1]
+	for i, beamScore := range beamScores {
+		tokensScores[i].AddScalarInPlace(beamScore)
 	}
 }
 

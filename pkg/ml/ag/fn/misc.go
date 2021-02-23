@@ -196,11 +196,11 @@ func absDeriv(i, j int, v mat.Float) mat.Float {
 func safeLog(i, j int, v mat.Float) mat.Float {
 	if v > 0.0 {
 		return mat.Log(v)
-	} else if v == 0.0 {
-		return mat.Log(1.0e-08)
-	} else {
-		panic("ag: invalid log for negative values")
 	}
+	if v == 0.0 {
+		return mat.Log(1.0e-08)
+	}
+	panic("ag: invalid log for negative values")
 }
 
 func safeLogDeriv(i, j int, v mat.Float) mat.Float {
