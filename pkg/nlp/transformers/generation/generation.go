@@ -158,6 +158,7 @@ func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
 }
 
 func updateTokensScores(tokensScores []Scores, beamScores []mat.Float) {
+	_ = tokensScores[len(beamScores)-1]
 	for i, bs := range beamScores {
 		v := tokensScores[i]
 		for j, f := range v.Data() {
