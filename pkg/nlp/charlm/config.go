@@ -20,7 +20,7 @@ type Config struct {
 	UnknownToken      string // empty string is replaced with DefaultUnknownToken
 }
 
-// Load loads a Config from file.
+// LoadConfig loads a Config from file.
 func LoadConfig(file string) (Config, error) {
 	var config Config
 	configFile, err := os.Open(file)
