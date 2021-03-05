@@ -57,8 +57,15 @@ func newParam(value mat.Matrix) *mappedParam {
 }
 
 // Convert converts the parameters of a Flair model into spaGO structures.
-func Convert(modelPath string, flairModelName string) {
+func Convert(modelPath string, flairModelName, configFileName, modelFileName string) {
 	defer embeddings.Close()
+
+	if configFileName == "" {
+		configFileName = defaultConfigFilename
+	}
+	if modelFileName == "" {
+		modelFileName = defaultModelFilename
+	}
 
 	c := newConverter(path.Join(modelPath, flairModelName))
 	c.unpickleModel()
@@ -69,7 +76,7 @@ func Convert(modelPath string, flairModelName string) {
 		if err != nil {
 			panic(fmt.Errorf("error marshaling configuration: %w", err))
 		}
-		err = ioutil.WriteFile(path.Join(modelPath, defaultConfigFilename), configData, 0644)
+		err = ioutil.WriteFile(path.Join(modelPath, configFileName), configData, 0644)
 	}
 
 	stateDict := c.buildStateDict()
@@ -106,7 +113,7 @@ func Convert(modelPath string, flairModelName string) {
 		}
 	}
 
-	output := path.Join(modelPath, defaultModelFilename)
+	output := path.Join(modelPath, modelFileName)
 	log.Printf("Serializing full model to \"%s\"... ", output)
 	err := utils.SerializeToFile(output, lm)
 	if err != nil {
