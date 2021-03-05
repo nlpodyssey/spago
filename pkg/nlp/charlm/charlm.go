@@ -90,7 +90,7 @@ func newEmptyEmbeddings(vocabularySize, embeddingSize int) []nn.Param {
 }
 
 // Initialize initializes the Model m using the given random generator.
-func Initialize(m *Model, rndGen *rand.LockedRand) {
+func (m *Model) Initialize(rndGen *rand.LockedRand) {
 	nn.ForEachParam(m, func(param nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1, rndGen)
