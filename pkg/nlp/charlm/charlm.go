@@ -33,17 +33,6 @@ const (
 	DefaultUnknownToken = "[UNK]"
 )
 
-// Config provides configuration settings for a Character-level Language Model.
-// TODO: add dropout
-type Config struct {
-	VocabularySize    int
-	EmbeddingSize     int
-	HiddenSize        int
-	OutputSize        int    // use the projection layer when the output size is > 0
-	SequenceSeparator string // empty string is replaced with DefaultSequenceSeparator
-	UnknownToken      string // empty string is replaced with DefaultUnknownToken
-}
-
 // Model implements a Character-level Language Model.
 type Model struct {
 	nn.BaseModel
