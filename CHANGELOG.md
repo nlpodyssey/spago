@@ -7,6 +7,26 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Add `nlp.charlm.flair_converter.go` to
+  import [Flair character language models](https://github.com/flairNLP/flair/issues/614).
+
+### Changed
+
+- Improve `nlp.transformer.generation` algorithms:
+  - optimize `Generator.getTopKScoredTokens()`.
+  - optimize `Generator.updateTokensScores()`.
+- Simplify `mat32.Dense.Mul` when doing Matrix-Vector multiplication.
+- Refactor `math32` functions using [chewxy/math32](https://github.com/chewxy/math32) functions.
+- Improve `ag.Graph` efficiency:
+  - Use pre-computed cache doing `ag.Graph.groupNodesByHeight()`.
+  - Use `sync.pool` to reduce allocations of graph's operators.
+
+### Fixed
+
+- Fix past key-values usage on self-attention and cross-attention
+
 ## [0.5.0] - 2021-02-15
 
 ### Added
