@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.1] - 2021-03-07
+
 ### Added
 
 - Add `nlp.charlm.flair_converter.go` to
