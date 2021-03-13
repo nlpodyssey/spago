@@ -76,7 +76,19 @@ message PredictReply {
 
 // The encode request message containing the text.
 message EncodeRequest {
+  enum PoolingStrategy {
+    // get the encoding state corresponding to [CLS], i.e. the first token (default)
+    CLS_TOKEN = 0;
+    // take the average of the encoding states
+    REDUCE_MEAN = 1;
+    //  take the maximum of the encoding states
+    REDUCE_MAX = 2;
+    // do REDUCE_MEAN and REDUCE_MAX separately and then concat them together
+    REDUCE_MEAN_MAX = 3;
+  }
+
   string text = 1;
+  PoolingStrategy pooling_strategy = 2;
 }
 
 // The response message containing the tokens from BERT prediction.

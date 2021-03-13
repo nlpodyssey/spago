@@ -76,8 +76,9 @@ func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string
 
 // Body is the JSON-serializable expected request body for various BERT server requests.
 type Body struct {
-	Text  string `json:"text"`
-	Text2 string `json:"text2"`
+	Text            string                                `json:"text"`
+	Text2           string                                `json:"text2"`
+	PoolingStrategy grpcapi.EncodeRequest_PoolingStrategy `json:"pooling_strategy"`
 }
 
 // QABody is the JSON-serializable expected request body for BERT question-answering server requests.
