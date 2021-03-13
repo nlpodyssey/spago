@@ -100,7 +100,7 @@ func (s *Server) encode(text string, poolingStrategy grpcapi.EncodeRequest_Pooli
 	}
 }
 
-// Mean returns the value that describes the average of the sample.
+// Max returns the value that describes the maximum of the sample.
 func Max(g *ag.Graph, xs []ag.Node) ag.Node {
 	maxVector := xs[0]
 	for i := 1; i < len(xs); i++ {
