@@ -28,9 +28,9 @@ const _ = proto.ProtoPackageIsVersion4
 type EncodeRequest_PoolingStrategy int32
 
 const (
-	// get the encoding state corresponding to [CLS], i.e. the first token
+	// get the encoding state corresponding to [CLS], i.e. the first token (default)
 	EncodeRequest_CLS_TOKEN EncodeRequest_PoolingStrategy = 0
-	// take the average of the encoding states (default)
+	// take the average of the encoding states
 	EncodeRequest_REDUCE_MEAN EncodeRequest_PoolingStrategy = 1
 	//  take the maximum of the encoding states
 	EncodeRequest_REDUCE_MAX EncodeRequest_PoolingStrategy = 2
