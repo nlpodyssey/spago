@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.2] - 2021-03-16
+
 ### Added
 
 - Handle multiple BERT pooling strategies (e.g. CLS_TOKEN, REDUCE_MEAN) in `nlp.transformers.bert.server_encode.go`.
