@@ -305,9 +305,19 @@ func PositiveELU(x Node) Node {
 	return globalGraph.PositiveELU(x)
 }
 
+// SwishB returns a new operator node as a result of the fn.SwishB function.
+func SwishB(x Node, beta Node) Node {
+	return globalGraph.SwishB(x, beta)
+}
+
 // Swish returns a new operator node as a result of the fn.Swish function.
-func Swish(x Node, beta Node) Node {
-	return globalGraph.Swish(x, beta)
+func Swish(x Node) Node {
+	return globalGraph.Swish(x)
+}
+
+// SiLU returns a new operator node as a result of the fn.SiLU function.
+func SiLU(x Node) Node {
+	return globalGraph.SiLU(x)
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.
@@ -343,6 +353,11 @@ func Threshold(x Node, threshold Node, k Node) Node {
 // Softmax returns a new operator node as a result of the fn.Softmax function.
 func Softmax(x Node) Node {
 	return globalGraph.Softmax(x)
+}
+
+// LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
+func LogSoftmax(x Node) Node {
+	return globalGraph.LogSoftmax(x)
 }
 
 // SparseMax returns a new operator node as a result of the fn.SparseMax function.

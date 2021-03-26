@@ -6,15 +6,14 @@ package app
 
 import (
 	"context"
-	"log"
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientPredictCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientPredictCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:        "predict",
 		Usage:       "Perform a prediction based on a trained Masked Language Model (MLM).",
 		Description: "Run the " + programName + " client for prediction.",
@@ -25,7 +24,7 @@ func newClientPredictCommandFor(app *BertApp) cli.Command {
 
 func newClientPredictCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
@@ -33,8 +32,8 @@ func newClientPredictCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -45,9 +44,11 @@ func newClientPredictCommandActionFor(app *BertApp) func(c *cli.Context) {
 		})
 
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }

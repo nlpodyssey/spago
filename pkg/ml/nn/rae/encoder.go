@@ -20,7 +20,7 @@ type Encoder struct {
 	nn.BaseModel
 	ScalingFFN  nn.StandardModel
 	EncodingFFN nn.StandardModel
-	StepEncoder *pe.PositionalEncoder
+	StepEncoder *pe.SinusoidalPositionalEncoder
 	Recursions  int `spago:"scope:processor"`
 }
 
@@ -47,7 +47,7 @@ func (p *Encoder) Forward(xs ...ag.Node) []ag.Node {
 func (p *Encoder) encodingStep(xs []ag.Node) []ag.Node {
 	g := p.Graph()
 	stepEncoder := p.StepEncoder
-	stepEncoding := g.NewVariable(stepEncoder.EncodingAt(p.Recursions), false)
+	stepEncoding := g.NewVariable(stepEncoder.Encode(p.Recursions)[0], false)
 	size := len(xs)
 	ys := make([]ag.Node, size-1)
 	for i := 0; i < size-1; i++ {

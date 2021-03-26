@@ -6,15 +6,14 @@ package app
 
 import (
 	"context"
-	"log"
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientAnswerCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientAnswerCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:        "answer",
 		Usage:       "Perform question-answering using BERT.",
 		Description: "Run the " + programName + " client for question-answering.",
@@ -25,12 +24,12 @@ func newClientAnswerCommandFor(app *BertApp) cli.Command {
 
 func newClientAnswerCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "passage",
 			Destination: &app.passage,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "question",
 			Destination: &app.question,
 			Required:    true,
@@ -38,8 +37,8 @@ func newClientAnswerCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -51,9 +50,11 @@ func newClientAnswerCommandActionFor(app *BertApp) func(c *cli.Context) {
 		})
 
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }

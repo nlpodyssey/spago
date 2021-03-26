@@ -11,6 +11,11 @@ func (g *Graph) PositiveELU(x Node) Node {
 	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
 }
 
+// LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
+func (g *Graph) LogSoftmax(x Node) Node {
+	return g.Log(g.Softmax(x))
+}
+
 // Sum returns the value that describes the sum of the sample.
 // It panics if the input is empty.
 func (g *Graph) Sum(xs ...Node) Node {

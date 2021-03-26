@@ -42,9 +42,9 @@ func (r *Mul) Backward(gy mat.Matrix) {
 		go func() {
 			defer wg.Done()
 			x2t := r.x2.Value().T()
-			defer mat.ReleaseDense(x2t.(*mat.Dense))
+			defer mat.ReleaseMatrix(x2t)
 			gx := gy.Mul(x2t)
-			defer mat.ReleaseDense(gx.(*mat.Dense))
+			defer mat.ReleaseMatrix(gx)
 			r.x1.PropagateGrad(gx)
 		}()
 	}
@@ -54,14 +54,14 @@ func (r *Mul) Backward(gy mat.Matrix) {
 			defer wg.Done()
 			//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
 			if gy.Columns() == 1 {
-				gx := r.x1.Value().(*mat.Dense).MulT(gy)
-				defer mat.ReleaseDense(gx.(*mat.Dense))
+				gx := r.x1.Value().MulT(gy)
+				defer mat.ReleaseMatrix(gx)
 				r.x2.PropagateGrad(gx)
 			} else {
 				x1t := r.x1.Value().T()
-				defer mat.ReleaseDense(x1t.(*mat.Dense))
+				defer mat.ReleaseMatrix(x1t)
 				gx := x1t.Mul(gy)
-				defer mat.ReleaseDense(gx.(*mat.Dense))
+				defer mat.ReleaseMatrix(gx)
 				r.x2.PropagateGrad(gx)
 			}
 		}()

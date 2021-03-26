@@ -11,7 +11,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"gopkg.in/yaml.v3"
@@ -21,17 +21,17 @@ import (
 // combined with a list of specific CLI command flags.
 func Flags(address *string, tlsDisable *bool, output *string, cmdFlags []cli.Flag) []cli.Flag {
 	grpcClientFlags := []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "address",
 			Value:       "127.0.0.1:1976",
 			Destination: address,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "tls-disable ",
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: tlsDisable,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "o, output",
 			Value:       "yaml",
 			Usage:       "Output format. One of: json|yaml",

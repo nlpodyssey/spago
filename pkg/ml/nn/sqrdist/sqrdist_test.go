@@ -34,7 +34,7 @@ func TestModel_Forward(t *testing.T) {
 		-0.1488, -0.248, 0.1984,
 		-0.1584, -0.264, 0.2112,
 		0.024, 0.04, -0.032,
-	}, model.B.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.B.Grad().Data(), 1.0e-06)
 }
 
 func newTestModel() *Model {

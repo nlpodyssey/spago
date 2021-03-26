@@ -35,7 +35,7 @@ func TestModel_Forward(t *testing.T) {
 		-0.094803, -0.106653, -0.106653, 0.118504,
 		0.013931, 0.015672, 0.015672, -0.017413,
 		-0.346622, -0.389949, -0.389949, 0.433277,
-	}, model.WIn.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.WIn.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.409706, 0.118504, -0.017413, 0.433277,
@@ -46,7 +46,7 @@ func TestModel_Forward(t *testing.T) {
 		-0.015190, -0.017088, -0.017088, 0.018987,
 		0.011082, 0.012467, 0.012467, -0.013853,
 		0.097793, 0.110017, 0.110017, -0.122241,
-	}, model.WT.Grad().(*mat.Dense).Data(), 1.0e-06)
+	}, model.WT.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.028775, 0.018987, -0.013853, -0.122241,

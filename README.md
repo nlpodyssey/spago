@@ -18,6 +18,48 @@ Language Processing**.
 spaGO is self-contained, in that it uses its own lightweight *computational graph* framework for both training and
 inference, easy to understand from start to finish.
 
+## Features
+
+### Natural Language Processing
+
+- Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+- Character Language Models
+- Recurrent Sequence Labeler with CRF on top (
+  e.g. [Named Entities Recognition](https://github.com/nlpodyssey/spago/tree/main/cmd/ner))
+- Transformer models:
+  - [Masked Language Model](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#masked-language-model)
+  - Next sentence prediction
+  - Tokens Classification
+  - Text Classification (e.g. Sentiment Analysis)
+  - [Question Answering](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#question-answering-task)
+  - Natural Language Inference (i.e. Textual Entailment)
+  - Zero-Shot Text Classification
+  - Text Similarity
+  - [Machine Translation](https://github.com/nlpodyssey/spago/tree/main/cmd/bart#machine-translation)
+
+### Internal Machine Learning Framework
+
+- Automatic differentiation:
+    - Define-by-Run (default, just like PyTorch does)
+    - Define-and-Run (similar to the static graph of TensorFlow)
+
+- Optimization methods:
+    - Gradient descent (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
+    - Differential Evolution
+
+- Neural networks:
+    - Feed-forward models (Linear, Highway, Convolution, ...)
+    - Recurrent models (LSTM, GRU, BiLSTM...)
+    - Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
+    - Recursive auto-encoders
+
+### Additional features
+
+spaGO is compatible with pre-trained state-of-the-art neural models:
+
+- Hugging Face [Transformers](https://github.com/huggingface/transformers)
+- [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
+
 ## Usage
 
 Requirements:
@@ -37,10 +79,11 @@ spaGO supports two main use cases, which are explained more in detail in the fol
 
 Several programs can be leveraged to tour the current NLP capabilities in spaGO. A list of the demos now follows.
 
-* [Named Entities Recognition](https://github.com/nlpodyssey/spago/tree/main/cmd/ner)
 * [Hugging Face Importer](https://github.com/nlpodyssey/spago/tree/main/cmd/huggingfaceimporter)
-* [Question Answering](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#question-answering-task)
 * [Masked Language Model](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#masked-language-model)
+* [Question Answering](https://github.com/nlpodyssey/spago/tree/main/cmd/bert#question-answering-task)
+* [Machine Translation](https://github.com/nlpodyssey/spago/tree/main/cmd/bart#machine-translation)
+* [Named Entities Recognition](https://github.com/nlpodyssey/spago/tree/main/cmd/ner)
 
 The Docker image can be built like this.
 
@@ -68,44 +111,6 @@ You may find a [Feature Source Tree](https://github.com/nlpodyssey/spago/blob/ma
 quick overview of the library's package organization.
 
 There is also a [repo](https://github.com/nlpodyssey/spago-examples) with handy examples, such as MNIST classification.
-
-## Features
-
-#### Automatic differentiation
-
-- You write the *forward()*, it does all *backward()* derivatives for you:
-    - Define-by-Run (default, just like PyTorch does)
-    - Define-and-Run (similar to the static graph of TensorFlow)
-
-#### Optimization methods
-
-- Gradient descent:
-    - Adam, RAdam, RMS-Prop, AdaGrad, SGD
-- Differential Evolution
-
-#### Neural networks
--   Feed-forward models (Linear, Highway, Convolution, ...)
--   Recurrent models (LSTM, GRU, BiLSTM...)
--   Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
--   Recursive auto-encoders
-
-#### Natural Language Processing
--   Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
--   Character Language Models
--   Recurrent Sequence Labeler with CRF on top (e.g. Named Entities Recognition)
--   Transformer models (BERT-like)
-    -   Masked language model
-    -   Next sentence prediction
-    -   Tokens Classification
-    -   Text Classification (e.g. Sentiment Analysis)
-    -   Question Answering
-    -   Textual Entailment
-    -   Text Similarity
-
-#### Compatible with pre-trained state-of-the-art neural models:
-
-- Hugging Face [Transformers](https://github.com/huggingface/transformers)
-- [Flair](https://github.com/flairNLP/flair) sequence labeler architecture
 
 ## Current Status
 

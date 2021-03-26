@@ -5,7 +5,7 @@
 package app
 
 import (
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -39,7 +39,7 @@ func NewBertApp() *BertApp {
 	app.Name = programName
 	app.HelpName = programName
 	app.Usage = "A demo for question-answering based on BERT."
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		newClientCommandFor(app),
 		newServerCommandFor(app),
 	}

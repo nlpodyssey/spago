@@ -5,6 +5,7 @@
 package mat64
 
 import (
+	"encoding/gob"
 	"fmt"
 	"math"
 
@@ -25,6 +26,10 @@ type Dense struct {
 	fromPool bool
 }
 
+func init() {
+	gob.Register(&Dense{})
+}
+
 // NewDense returns a new rows x cols dense matrix populated with a copy of the elements.
 // The elements cannot be nil, panic otherwise. Use NewEmptyDense to initialize an empty matrix.
 func NewDense(rows, cols int, elements []Float) *Dense {
@@ -35,7 +40,7 @@ func NewDense(rows, cols int, elements []Float) *Dense {
 		panic(fmt.Sprintf("mat64: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
 	d := GetDenseWorkspace(rows, cols)
-	_ = append(d.data[:0], elements...)
+	copy(d.data, elements)
 	return d
 }
 
@@ -46,7 +51,7 @@ func NewVecDense(elements []Float) *Dense {
 		panic("mat64: elements cannot be nil. Use NewEmptyVecDense() instead.")
 	}
 	d := GetDenseWorkspace(len(elements), 1)
-	_ = append(d.data[:0], elements...)
+	copy(d.data, elements)
 	return d
 }
 
@@ -98,7 +103,7 @@ func (d *Dense) SetData(data []Float) {
 	if len(data) != d.size {
 		panic(fmt.Sprintf("mat64: incompatible data size. Expected: %d Found: %d", d.size, len(data)))
 	}
-	_ = append(d.data[:0], data...)
+	copy(d.data, data)
 }
 
 // ZerosLike returns a new Dense matrix with the same dimensions of the receiver,
@@ -133,7 +138,7 @@ func (d *Dense) Copy(other Matrix) {
 	if other, ok := other.(*Dense); !ok {
 		panic("mat64: incompatible matrix types.")
 	} else {
-		_ = append(d.data[:0], other.data...)
+		copy(d.data, other.data)
 	}
 }
 
@@ -536,20 +541,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 
 	switch b := other.(type) {
 	case *Dense:
-		if out.cols == 1 {
-			f64.GemvN(
-				uintptr(d.rows), // m
-				uintptr(d.cols), // n
-				1.0,             // alpha
-				d.data,          // a
-				uintptr(d.cols), // lda
-				b.data,          // x
-				1.0,             // incX
-				0.0,             // beta
-				out.data,        // y
-				1.0,             // incY
-			)
-		} else {
+		if out.cols != 1 {
 			f64.DgemmSerial(
 				false,
 				false,
@@ -564,27 +556,21 @@ func (d *Dense) Mul(other Matrix) Matrix {
 				out.cols, // ldc
 				1.0,      // alpha
 			)
-
-			/*
-				// parallel implementation
-				f64.Dgemm(
-					false,    // aTrans
-					false,    // bTrans
-					d.rows,   // m
-					b.cols,   // n
-					d.cols,   // k
-					1.0,      // alpha
-					d.data,   // a
-					d.cols,   // lda
-					b.data,   // b
-					b.cols,   // ldb
-					0.0,      // beta
-					out.data, // c
-					out.cols, // ldc
-				)
-			*/
+			return out
 		}
 
+		f64.GemvN(
+			uintptr(d.rows), // m
+			uintptr(d.cols), // n
+			1.0,             // alpha
+			d.data,          // a
+			uintptr(d.cols), // lda
+			b.data,          // x
+			1.0,             // incX
+			0.0,             // beta
+			out.data,        // y
+			1.0,             // incY
+		)
 		return out
 
 	case *Sparse:
@@ -753,7 +739,7 @@ func (d *Dense) Normalize2() *Dense {
 }
 
 // Maximum returns a new matrix containing the element-wise maxima.
-func (d *Dense) Maximum(other Matrix) *Dense {
+func (d *Dense) Maximum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat64: matrix with not compatible size")
 	}
@@ -773,7 +759,7 @@ func (d *Dense) Maximum(other Matrix) *Dense {
 }
 
 // Minimum returns a new matrix containing the element-wise minima.
-func (d *Dense) Minimum(other Matrix) *Dense {
+func (d *Dense) Minimum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat64: matrix with not compatible size")
 	}
@@ -894,7 +880,7 @@ func (d *Dense) LU() (l, u, p *Dense) {
 }
 
 // Inverse returns the inverse of the matrix.
-func (d Dense) Inverse() Matrix {
+func (d *Dense) Inverse() Matrix {
 	if d.Columns() != d.Rows() {
 		panic("mat64: matrix must be square")
 	}
@@ -920,6 +906,20 @@ func (d Dense) Inverse() Matrix {
 		}
 	}
 	return out
+}
+
+// DoNonZero calls a function for each non-zero element of the matrix.
+// The parameters of the function are the element indices and its value.
+func (d *Dense) DoNonZero(fn func(i, j int, v Float)) {
+	for i, di := 0, 0; i < d.rows; i++ {
+		for j := 0; j < d.cols; j, di = j+1, di+1 {
+			v := d.data[di]
+			if v == 0.0 {
+				continue
+			}
+			fn(i, j, v)
+		}
+	}
 }
 
 // String returns a string representation of the matrix data.

@@ -167,6 +167,21 @@ func NewSqrt(x Operand) *UnaryElementwise {
 	}
 }
 
+// NewSwish returns a new function of the form f(x) = x * sigmoid(x).
+func NewSwish(x Operand) *UnaryElementwise {
+	return &UnaryElementwise{
+		x:  x,
+		f:  swish,
+		df: swishDeriv,
+	}
+}
+
+// NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
+// The function is the same as NewSwish.
+func NewSiLU(x Operand) *UnaryElementwise {
+	return NewSwish(x)
+}
+
 func absDeriv(i, j int, v mat.Float) mat.Float {
 	if v < 0 {
 		return -1
@@ -181,11 +196,11 @@ func absDeriv(i, j int, v mat.Float) mat.Float {
 func safeLog(i, j int, v mat.Float) mat.Float {
 	if v > 0.0 {
 		return mat.Log(v)
-	} else if v == 0.0 {
-		return mat.Log(1.0e-08)
-	} else {
-		panic("ag: invalid log for negative values")
 	}
+	if v == 0.0 {
+		return mat.Log(1.0e-08)
+	}
+	panic("ag: invalid log for negative values")
 }
 
 func safeLogDeriv(i, j int, v mat.Float) mat.Float {
@@ -422,17 +437,25 @@ func thresholdDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func swish(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swish(i, j int, v mat.Float) mat.Float {
+	return v * (1.0 / (1 + mat.Exp(-v)))
+}
+
+func swishDeriv(i, j int, v mat.Float) mat.Float {
+	return swishBDeriv(i, j, v, 1.0)
+}
+
+func swishB(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
 	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
 }
 
-func swishDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishBDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
 	prod := v * beta[0]
 	exp := mat.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 
-func swishBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
+func swishBBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
 	prod := v * beta
 	exp := mat.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))

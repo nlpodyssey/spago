@@ -24,6 +24,7 @@ type Model struct {
 	StdDev   nn.Param `spago:"type:undefined"`
 	Momentum nn.Param `spago:"type:undefined"`
 }
+
 const epsilon = 1e-5
 const defaultMomentum = 0.9
 

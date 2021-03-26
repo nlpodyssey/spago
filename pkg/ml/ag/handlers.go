@@ -30,15 +30,14 @@ func (h *forwardHandler) runSerial() {
 }
 
 func (h *forwardHandler) runConcurrent() {
+	fromTS, toTS := h.fromTimeStep, h.toTimeStep
 	groups := h.g.groupNodesByHeight()
+
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
 			op, isOperator := node.(*operator)
-			if !isOperator {
-				continue
-			}
-			if op.timeStep < h.fromTimeStep || h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
+			if !isOperator || (op.timeStep < fromTS || (toTS != -1 && op.timeStep > toTS)) {
 				continue
 			}
 			wg.Add(1)
@@ -62,7 +61,7 @@ func (h *backwardHandler) propagateOutputGrad() {
 	gx := h.outputGrad
 	if gx == nil {
 		gx = h.node.Value().OnesLike()
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 	}
 	h.node.PropagateGrad(gx)
 }

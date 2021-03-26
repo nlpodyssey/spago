@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"runtime"
+	"sort"
 	"time"
 
 	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
@@ -77,7 +78,7 @@ func (s *Server) predict(text string) *Response {
 		}
 	}
 
-	retTokens := make([]Token, 0)
+	retTokens := make(TokenSlice, 0)
 	for tokenID, prediction := range proc.PredictMasked(encoded, masked) {
 		bestPredictedWordIndex := floatutils.ArgMax(prediction.Value().Data())
 		word, ok := s.model.Vocabulary.Term(bestPredictedWordIndex)
@@ -92,5 +93,8 @@ func (s *Server) predict(text string) *Response {
 			Label: label,
 		})
 	}
+
+	sort.Sort(retTokens)
+
 	return &Response{Tokens: retTokens, Took: time.Since(start).Milliseconds()}
 }

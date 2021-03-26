@@ -111,6 +111,12 @@ func NewGraph(opts ...GraphOption) *Graph {
 	return g
 }
 
+// IncrementalForwardEnabled returns whether the computation happens during the graph definition.
+// See ag.IncrementalForward() option.
+func (g *Graph) IncrementalForwardEnabled() bool {
+	return g.incrementalForward
+}
+
 // Clear cleans the graph. This is a destructive operation.
 // It is not mandatory to call this method, but it is strongly recommended to do so when you finish using the graph.
 // The cleaning of the graph improves the memory management and therefore the efficiency of execution.
@@ -129,6 +135,14 @@ func (g *Graph) Clear() {
 	g.curTimeStep = 0
 	g.clearCache()
 	g.releaseMemory()
+
+	for _, node := range g.nodes {
+		if node, ok := node.(*operator); ok {
+			*node = operator{}
+			operatorPool.Put(node)
+		}
+	}
+
 	g.nodes = nil
 }
 
@@ -169,7 +183,7 @@ func (g *Graph) releaseValue(node *operator) {
 	if node.value == nil {
 		return
 	}
-	mat.ReleaseDense(node.value.(*mat.Dense))
+	mat.ReleaseMatrix(node.value)
 	node.value = nil
 }
 
@@ -246,9 +260,13 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 			break
 		}
 	}
+
+	newNode := operatorPool.Get().(*operator)
+
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newNode := &operator{
+
+	*newNode = operator{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		id:           g.newID(),
@@ -259,6 +277,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
+
 	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
@@ -476,10 +495,12 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	if g.cache.maxID == g.maxID {
 		return g.cache.nodesByHeight
 	}
-	groups := make([][]Node, 0, 1)
+	groups := g.cache.nodesByHeight
 	height := make([]int, len(g.nodes))
+	copy(height[:len(g.cache.height)], g.cache.height)
 
-	for _, node := range g.nodes {
+	startIndex := g.cache.maxID + 1
+	for _, node := range g.nodes[startIndex:] {
 		h := 0
 		if node, ok := node.(*operator); ok {
 			for _, operand := range node.operands {

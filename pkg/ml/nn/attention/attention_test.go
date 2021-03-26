@@ -37,9 +37,9 @@ func TestScaledDotProductAttention(t *testing.T) {
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
 	}
-	assert.InDeltaSlice(t, []mat.Float{2.22875441063165, 6.68411289826994, 2.82497984315079}, context[0].Value().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []mat.Float{2.20637295180029, 8.15650999969648, 0.539678848469417}, context[1].Value().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []mat.Float{2.20423303670527, 8.41210390591632, 0.152898186332002}, context[2].Value().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []mat.Float{2.22875441063165, 6.68411289826994, 2.82497984315079}, context[0].Value().Data(), 1.0e-5)
+	assert.InDeltaSlice(t, []mat.Float{2.20637295180029, 8.15650999969648, 0.539678848469417}, context[1].Value().Data(), 1.0e-5)
+	assert.InDeltaSlice(t, []mat.Float{2.20423303670527, 8.41210390591632, 0.152898186332002}, context[2].Value().Data(), 1.0e-5)
 }
 
 //gocyclo:ignore

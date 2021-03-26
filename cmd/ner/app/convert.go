@@ -6,28 +6,29 @@ package app
 
 import (
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newConvertCommandFor(app *NERApp) cli.Command {
-	return cli.Command{
+func newConvertCommandFor(app *NERApp) *cli.Command {
+	return &cli.Command{
 		Name:        "convert",
 		Usage:       "Run the " + programName + " to convert a pre-processed Flair model.",
 		Description: "Run the " + programName + " converter.",
 		Flags: []cli.Flag{
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:        "model-folder",
 				Destination: &app.modelFolder,
 				Required:    true,
 			},
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:        "model-name",
 				Destination: &app.modelName,
 				Required:    true,
 			},
 		},
-		Action: func(c *cli.Context) {
+		Action: func(c *cli.Context) error {
 			sequencelabeler.Convert(app.modelFolder, app.modelName)
+			return nil
 		},
 	}
 }

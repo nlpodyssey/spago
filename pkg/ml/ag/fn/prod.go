@@ -46,12 +46,12 @@ func (r *Prod) Backward(gy mat.Matrix) {
 	}
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().Prod(gy)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := r.x1.Value().Prod(gy)
-		defer mat.ReleaseDense(gx.(*mat.Dense))
+		defer mat.ReleaseMatrix(gx)
 		r.x2.PropagateGrad(gx)
 	}
 }

@@ -6,15 +6,14 @@ package app
 
 import (
 	"context"
-	"log"
 
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
-func newClientDiscriminateCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientDiscriminateCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:        "discriminate",
 		Usage:       "Perform linear discriminate analysis using BERT.",
 		Description: "Run the " + programName + " client for linear discriminate analysis.",
@@ -25,7 +24,7 @@ func newClientDiscriminateCommandFor(app *BertApp) cli.Command {
 
 func newClientDiscriminateCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
@@ -33,8 +32,8 @@ func newClientDiscriminateCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientDiscriminateCommandActionFor(app *BertApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientDiscriminateCommandActionFor(app *BertApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -45,9 +44,11 @@ func newClientDiscriminateCommandActionFor(app *BertApp) func(c *cli.Context) {
 		})
 
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+
+		return nil
 	}
 }

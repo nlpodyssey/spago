@@ -7,6 +7,111 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.2] - 2021-03-16
+
+### Added
+
+- Handle multiple BERT pooling strategies (e.g. CLS_TOKEN, REDUCE_MEAN) in `nlp.transformers.bert.server_encode.go`.
+
+## [0.5.1] - 2021-03-07
+
+### Added
+
+- Add `nlp.charlm.flair_converter.go` to
+  import [Flair character language models](https://github.com/flairNLP/flair/issues/614).
+
+### Changed
+
+- Improve `nlp.transformer.generation` algorithms:
+  - optimize `Generator.getTopKScoredTokens()`.
+  - optimize `Generator.updateTokensScores()`.
+- Simplify `mat32.Dense.Mul` when doing Matrix-Vector multiplication.
+- Refactor `math32` functions using [chewxy/math32](https://github.com/chewxy/math32) functions.
+- Improve `ag.Graph` efficiency:
+  - Use pre-computed cache doing `ag.Graph.groupNodesByHeight()`.
+  - Use `sync.pool` to reduce allocations of graph's operators.
+
+### Fixed
+
+- Fix past key-values usage on self-attention and cross-attention
+
+## [0.5.0] - 2021-02-15
+
+### Added
+
+- Implement a beam-search algorithm for conditional generation:
+  - `nlp.transformer.generation` package.
+- Add implementation of the Sentence-Piece tokenizer:
+  - `nlp.tokenizers.sentencepiece` package.
+- BART improvements:
+  - gRPC and HTTP API to perform Text Generation.
+  - Add support for "Marian" architecture (used for translation tasks).
+  - Add sinusoidal positional encoder (used by Marian).
+  - Add "head" for conditional generation:
+    - `nlp.transformers.bart.head.conditionalgeneration` package.
+- Add `nn.Closer` interface (e.g. `embeddings.Model` needs to close the underlying key-value store).
+- Add Swish act. function without trainable parameters.
+- Add SiLU act. function (it is just an alias for Swish).
+- New `pe.SinusoidalPositionalEncoder` (this implementation replaces unused `pe.PositionalEncoder`
+  and `pe.AxialPositionalEncoder`)
+
+### Changed
+
+- Update urfave/cli to v2
+- Update dgraph-io/badger to v3.
+- Make the BART positional encoder an interface to support various encoding (i.e. trainable vs static).
+- Rename to `fn.NewSwish` into `fn.NewSwishB` as this was the Swish variant with trainable parameters (*B*).
+- Relax `ag.GetOpName` to match operator names in lower-case.
+- Allow arbitrary activation function on BART encoder/decoder layers.
+- Use precomputed "keys" and "values" in self-attention, multi-head attention and BART decoder.
+
+### Removed
+
+- In relation to the aforementioned positional encoding changes:
+  - `pe.PositionalEncoder` and related functions
+  - `pe.AxialPositionalEncoder` and related functions
+
+### Fixed
+
+- Fix causal-mask used by `nn.ScaledDotProductAttention`
+
+## [0.4.1] - 2021-01-22
+
+### Added
+
+- New function `ReleaseMatrix` to packages `mat32` and `mat64`.
+- New methods to `Matrix` interface, from `mat32` and `mat64`: `Minimum`,
+  `Maximum`, `MulT`, `Inverse`, `DoNonZero`. However, the implementation on sparse matrices is not implemented yet (it
+  always panics).
+
+### Changed
+
+- Prefer handling `Matrix` interface values over specific `Dense` or `Sparse`
+  matrices, also avoiding unnecessary type casts. Relevant changes to the public API are listed below.
+  - `mat(32|64).Stack` function's arguments and returned value are now `Matrix` 
+    interfaces, instead of explicit `Dense` matrices.
+  - `Dense.Minimum` and `Dense.Maximum`, from packages `mat32` and `mat64`,
+    return a `Matrix` interface, instead of a specific `Dense` type.
+  - The return values of `fofe.EncodeDense`, `fofe.Encode`, and `fofe.BiEncode`
+    are slices of `Matrix` values, instead of `Dense` or `Sparse`.
+  - The `z` argument of the function `fofe.Decode` is of type `Matrix`,
+    instead of `Dense`.
+  - `ml.optimizers.de` (Differential Evolution optimizer) API was changed
+    handling `Matrix` values, instead of specific `Dense` matrices. Changes
+    include: `Member.TargetVector`, `Member.DonorVector`, `ScoredVector.Vector`, 
+    the `vector` argument of `NewMember` function, the `solution` argument
+    of `score` and `validate` functions passed to `NewOptimizer`.
+  - `PositionalEncoder.Cache` and `AxialPositionalEncoder.Cache` are slices
+    of `Matrix`, instead of slices of `Dense`.
+  - `AxialPositionalEncoder.EncodingAt` returns a `Matrix` value, instead of `Dense`.
+  - `nn.DumpParamsVector` returns a `Matrix` value, instead of `Dense`.
+  - The `vector` argument of the function `nn.LoadParamsVector` is a `Matrix`, 
+    instead of `Dense`.
+  - The `value` argument of the method `embeddings.Model.SetEmbedding` is of
+    type `Matrix`, instead of `Dense`.
+  - The type of the struct field `evolvingembeddings.WordVectorPair.Vector` is
+   `Matrix`, instead of `Dense`.
+
 ## [0.4.0] - 2021-01-17
 
 ### Added

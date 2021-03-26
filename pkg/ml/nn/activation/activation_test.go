@@ -35,7 +35,7 @@ func TestModelSwish_Forward(t *testing.T) {
 	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	beta := nn.NewParam(mat.NewScalar(2.0))
-	model := New(ag.OpSwish, beta)
+	model := New(ag.OpSwishB, beta)
 	p := nn.Reify(ctx, model).(*Model)
 
 	// == Forward

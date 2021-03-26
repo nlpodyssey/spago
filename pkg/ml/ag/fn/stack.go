@@ -21,9 +21,9 @@ func NewStack(xs []Operand) *Stack {
 
 // Forward computes the output of the function.
 func (r *Stack) Forward() mat.Matrix {
-	vs := make([]*mat.Dense, len(r.xs))
+	vs := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
-		vs[i] = x.Value().(*mat.Dense)
+		vs[i] = x.Value()
 	}
 	return mat.Stack(vs...)
 }
@@ -41,10 +41,10 @@ func (r *Stack) Backward(gy mat.Matrix) {
 		}
 	}
 	xs := r.xs
-	for i, gx := range gy.(*mat.Dense).SplitV(sizes...) {
+	for i, gx := range gy.SplitV(sizes...) {
 		if xs[i].RequiresGrad() {
 			xs[i].PropagateGrad(gx)
 		}
-		mat.ReleaseDense(gx.(*mat.Dense))
+		mat.ReleaseMatrix(gx)
 	}
 }

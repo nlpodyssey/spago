@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/user"
@@ -16,8 +16,8 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *NERApp) cli.Command {
-	return cli.Command{
+func newServerCommandFor(app *NERApp) *cli.Command {
+	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
@@ -33,54 +33,54 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 	}
 
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "address",
 			Usage:       "Specifies the bind-address of the server.",
 			Value:       "0.0.0.0:1987",
 			Destination: &app.address,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "grpc-address",
 			Usage:       "Changes the bind address of the gRPC server.",
 			Value:       "0.0.0.0:1976",
 			Destination: &app.grpcAddress,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "repo",
 			Usage:       "Specifies the path to the models.",
 			Value:       path.Join(usr.HomeDir, ".spago"),
 			Destination: &app.repo,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "model",
 			Usage:       "Specifies the name of the model to use.",
 			Destination: &app.modelName,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "tls-cert-file",
 			Usage:       "Specifies the path of the TLS certificate file.",
 			Value:       "/etc/ssl/certs/spago/server.crt",
 			Destination: &app.tlsCert,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "tls-key-file",
 			Usage:       "Specifies the path of the private key for the certificate.",
 			Value:       "/etc/ssl/certs/spago/server.key",
 			Destination: &app.tlsKey,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "tls-disable",
 			Usage:       "Specifies that TLS is disabled.",
 			Destination: &app.tlsDisable,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "timeout",
 			Usage:       "Server read, write, and idle timeout duration in seconds.",
 			Value:       httputils.DefaultTimeoutSeconds,
 			Destination: &app.serverTimeoutSeconds,
 		},
-		cli.IntFlag{
+		&cli.IntFlag{
 			Name:        "max-request-size",
 			Usage:       "Maximum number of bytes the server will read parsing the request content.",
 			Value:       httputils.DefaultMaxRequestBytes,
@@ -89,8 +89,8 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 	}
 }
 
-func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
 		fmt.Printf("TLS private key path is %s\n", app.tlsKey)
 
@@ -106,17 +106,17 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 			case ok:
 				fmt.Printf("Fetch model from `%s`\n", url)
 				if err := httputils.DownloadFile(fmt.Sprintf("%s-compressed", modelPath), url); err != nil {
-					log.Fatal(err)
+					return err
 				}
 				r, err := os.Open(fmt.Sprintf("%s-compressed", modelPath))
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				fmt.Print("Extracting compressed model... ")
 				extractTarGz(r, modelsFolder)
 				fmt.Println("ok")
 			default:
-				log.Fatal(err)
+				return err
 			}
 		}
 
@@ -144,5 +144,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) {
 		server.TimeoutSeconds = app.serverTimeoutSeconds
 		server.MaxRequestBytes = app.serverMaxRequestBytes
 		server.Start(app.address, app.grpcAddress, app.tlsCert, app.tlsKey, app.tlsDisable)
+
+		return nil
 	}
 }

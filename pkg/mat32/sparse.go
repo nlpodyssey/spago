@@ -5,6 +5,7 @@
 package mat32
 
 import (
+	"encoding/gob"
 	"fmt"
 	"math"
 )
@@ -19,6 +20,10 @@ type Sparse struct {
 	nzElements []Float // A vector
 	nnzRow     []int   // IA vector
 	colsIndex  []int   // JA vector
+}
+
+func init() {
+	gob.Register(&Sparse{})
 }
 
 // NewSparse returns a new rows x cols sparse matrix populated with a copy of the non-zero elements.
@@ -801,6 +806,21 @@ func (s *Sparse) ClipInPlace(min, max Float) Matrix {
 		}
 	}
 	return s
+}
+
+// SplitV is currently not implemented for a Sparse matrix (it always panics).
+func (s *Sparse) SplitV(_ ...int) []Matrix {
+	panic("mat32: SplitV not implemented for Sparse matrices")
+}
+
+// MulT is currently not implemented for a Sparse matrix (it always panics).
+func (s *Sparse) MulT(_ Matrix) Matrix {
+	panic("mat32: MulT not implemented for Sparse matrices")
+}
+
+// Inverse returns the inverse of the matrix.
+func (s *Sparse) Inverse() Matrix {
+	panic("mat32: Sparse not implemented for Sparse matrices")
 }
 
 // Abs returns a new matrix applying the absolute value function to all elements.

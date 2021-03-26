@@ -44,7 +44,7 @@ func (c *Converter) Convert() error {
 	}
 
 	switch config.ModelType {
-	case "bart":
+	case "bart", "marian":
 		return converter.ConvertHuggingFacePreTrained(c.modelPath)
 	case "bert", "electra":
 		return bert.ConvertHuggingFacePreTrained(c.modelPath)

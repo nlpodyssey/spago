@@ -9,6 +9,7 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"reflect"
+	"strings"
 )
 
 // OpName is the enumeration-like type used for the set of operators supported
@@ -90,8 +91,12 @@ const (
 	OpELU
 	// OpPositiveELU identifies the Graph.PositiveELU operator.
 	OpPositiveELU
+	// OpSwishB identifies the Graph.SwishB operator.
+	OpSwishB
 	// OpSwish identifies the Graph.Swish operator.
 	OpSwish
+	// OpSiLU identifies the Graph.SiLU operator.
+	OpSiLU
 	// OpMish identifies the Graph.Mish operator.
 	OpMish
 	// OpLeakyReLU identifies the Graph.LeakyReLU operator.
@@ -106,6 +111,8 @@ const (
 	OpThreshold
 	// OpSoftmax identifies the Graph.Softmax operator.
 	OpSoftmax
+	// OpLogSoftmax identifies the Graph.LogSoftmax operator.
+	OpLogSoftmax
 	// OpSparseMax identifies the Graph.SparseMax operator.
 	OpSparseMax
 	// OpSparseMaxLoss identifies the Graph.SparseMaxLoss operator.
@@ -180,7 +187,9 @@ var opNameToMethodName = map[OpName]string{
 	OpGELU:          "GELU",
 	OpELU:           "ELU",
 	OpPositiveELU:   "PositiveELU",
+	OpSwishB:        "SwishB",
 	OpSwish:         "Swish",
+	OpSiLU:          "SiLU",
 	OpMish:          "Mish",
 	OpLeakyReLU:     "LeakyReLU",
 	OpSELU:          "SELU",
@@ -188,6 +197,7 @@ var opNameToMethodName = map[OpName]string{
 	OpSoftShrink:    "SoftShrink",
 	OpThreshold:     "Threshold",
 	OpSoftmax:       "Softmax",
+	OpLogSoftmax:    "LogSoftmax",
 	OpSparseMax:     "SparseMax",
 	OpSparseMaxLoss: "SparseMaxLoss",
 	OpSin:           "Sin",
@@ -207,17 +217,18 @@ var opNameToMethodName = map[OpName]string{
 	OpStack:         "Stack",
 }
 
-// strToOpName is the inverse map of opNameToMethodName
+// strToOpName is the inverse map of opNameToMethodName.
 var strToOpName = func() map[string]OpName {
 	invMap := make(map[string]OpName)
 	for k, v := range opNameToMethodName {
 		invMap[v] = k
+		invMap[strings.ToLower(v)] = k
 	}
 	return invMap
 }()
 
 // GetOpName maps a string to an operator.
-// It panics if the string does not match any operator.
+// It panics if the string does not match any operator (not even using lowercase).
 func GetOpName(str string) (OpName, error) {
 	if value, ok := strToOpName[str]; ok {
 		return value, nil
@@ -432,9 +443,19 @@ func (g *Graph) ELU(x Node, alpha Node) Node {
 	return g.NewOperator(fn.NewELU(x, alpha), x, alpha)
 }
 
+// SwishB returns a new operator node as a result of the fn.SwishB function.
+func (g *Graph) SwishB(x Node, beta Node) Node {
+	return g.NewOperator(fn.NewSwishB(x, beta), x, beta)
+}
+
 // Swish returns a new operator node as a result of the fn.Swish function.
-func (g *Graph) Swish(x Node, beta Node) Node {
-	return g.NewOperator(fn.NewSwish(x, beta), x, beta)
+func (g *Graph) Swish(x Node) Node {
+	return g.NewOperator(fn.NewSwish(x), x)
+}
+
+// SiLU returns a new operator node as a result of the fn.SiLU function.
+func (g *Graph) SiLU(x Node) Node {
+	return g.NewOperator(fn.NewSiLU(x), x)
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.

@@ -31,7 +31,7 @@ func (s *Server) SentenceEncoderHandler(w http.ResponseWriter, req *http.Request
 		return
 	}
 
-	result := s.encode(body.Text)
+	result := s.encode(body.Text, body.PoolingStrategy)
 	_, pretty := req.URL.Query()["pretty"]
 	response, err := Dump(result, pretty)
 	if err != nil {
@@ -56,7 +56,7 @@ type EncodeResponse struct {
 // Encode handles an encoding request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
 func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi.EncodeReply, error) {
-	result := s.encode(req.GetText())
+	result := s.encode(req.GetText(), req.GetPoolingStrategy())
 
 	vector32 := make([]float32, len(result.Data))
 	for i, num := range result.Data {
@@ -69,10 +69,8 @@ func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi
 	}, nil
 }
 
-// TODO: This method is too long; it needs to be refactored.
-func (s *Server) encode(text string) *EncodeResponse {
+func (s *Server) encode(text string, poolingStrategy grpcapi.EncodeRequest_PoolingStrategy) *EncodeResponse {
 	start := time.Now()
-
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
@@ -81,10 +79,32 @@ func (s *Server) encode(text string) *EncodeResponse {
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
 	encoded := proc.Encode(tokenized)
-	pooled := proc.Pool(encoded)
+
+	var pooled ag.Node
+	switch poolingStrategy {
+	case grpcapi.EncodeRequest_REDUCE_MEAN:
+		pooled = g.Mean(encoded)
+	case grpcapi.EncodeRequest_REDUCE_MAX:
+		pooled = Max(g, encoded)
+	case grpcapi.EncodeRequest_REDUCE_MEAN_MAX:
+		pooled = g.Concat(g.Mean(encoded), Max(g, encoded))
+	case grpcapi.EncodeRequest_CLS_TOKEN:
+		pooled = proc.Pool(encoded)
+	default:
+		panic("bert: invalid pooling strategy")
+	}
 
 	return &EncodeResponse{
 		Data: pooled.Value().Data(),
 		Took: time.Since(start).Milliseconds(),
 	}
+}
+
+// Max returns the value that describes the maximum of the sample.
+func Max(g *ag.Graph, xs []ag.Node) ag.Node {
+	maxVector := xs[0]
+	for i := 1; i < len(xs); i++ {
+		maxVector = g.Max(maxVector, xs[i])
+	}
+	return maxVector
 }

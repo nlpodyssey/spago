@@ -7,14 +7,13 @@ package app
 import (
 	"context"
 	"github.com/nlpodyssey/spago/cmd/clientutils"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartserver/grpcapi"
-	"github.com/urfave/cli"
-	"log"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
+	"github.com/urfave/cli/v2"
 	"strings"
 )
 
-func newClientClassifyNLICommandFor(app *BartApp) cli.Command {
-	return cli.Command{
+func newClientClassifyNLICommandFor(app *BartApp) *cli.Command {
+	return &cli.Command{
 		Name:        "classify-nli",
 		Usage:       "Perform zero-shot classification using BART fine-tuned for Natural Language Inference (NLI).",
 		Description: "Run the " + programName + " client to perform zero-shot classification.",
@@ -25,23 +24,23 @@ func newClientClassifyNLICommandFor(app *BartApp) cli.Command {
 
 func newClientClassifyNLICommandFlagsFor(app *BartApp) []cli.Flag {
 	return clientutils.Flags(&app.grpcAddress, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "labels",
 			Usage:       "candidate labels separated by `,`",
 			Destination: &app.commaSepLabels,
 			Required:    true,
 		},
-		cli.BoolFlag{
+		&cli.BoolFlag{
 			Name:        "multi-class",
 			Destination: &app.multiClass,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "hypothesis-template",
 			Destination: &app.requestText2,
 			Required:    false,
@@ -49,8 +48,8 @@ func newClientClassifyNLICommandFlagsFor(app *BartApp) []cli.Flag {
 	})
 }
 
-func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.grpcAddress, app.tlsDisable)
@@ -69,9 +68,10 @@ func newClientClassifyNLICommandActionFor(app *BartApp) func(c *cli.Context) {
 			MultiClass: app.multiClass,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		clientutils.Println(app.output, resp)
+		return nil
 	}
 }

@@ -41,7 +41,7 @@ func (m *RandomMutation) Mutate(p *Population) {
 		xa := p.Members[extracted[0]].TargetVector
 		donor := xa.Add(xb.Sub(xc).ProdScalarInPlace(member.MutationFactor))
 		donor.ClipInPlace(-m.Bound, +m.Bound)
-		member.DonorVector = donor.(*mat.Dense)
+		member.DonorVector = donor
 	}
 }
 
@@ -96,6 +96,6 @@ func (m *DeglMutation) Mutate(p *Population) {
 		g := xi.Add(diff3).AddInPlace(diff1).ProdScalarInPlace(w)
 		donor := g.Add(l)
 		donor.ClipInPlace(-m.Bound, +m.Bound)
-		member.DonorVector = donor.(*mat.Dense)
+		member.DonorVector = donor
 	}
 }

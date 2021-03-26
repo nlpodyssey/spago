@@ -9,12 +9,13 @@ package bart
 
 import (
 	"encoding/gob"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartconfig"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartdecoder"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/bartencoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder"
 	"strconv"
 )
 
@@ -25,10 +26,10 @@ var (
 // Model implements a BART model.
 type Model struct {
 	nn.BaseModel
-	Config     bartconfig.Config
+	Config     config.Config
 	Embeddings *embeddings.Model
-	Encoder    *bartencoder.Model
-	Decoder    *bartdecoder.Model
+	Encoder    *encoder.Model
+	Decoder    *decoder.Model
 }
 
 func init() {
@@ -36,7 +37,7 @@ func init() {
 }
 
 // New returns a new BART Model.
-func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
+func New(config config.Config, embeddingsStoragePath string) *Model {
 	return &Model{
 		Config: config,
 		Embeddings: embeddings.New(embeddings.Config{
@@ -45,8 +46,8 @@ func New(config bartconfig.Config, embeddingsStoragePath string) *Model {
 			ReadOnly:   !config.Training,
 			ForceNewDB: false, // TODO: from config?
 		}),
-		Encoder: bartencoder.New(config),
-		Decoder: bartdecoder.New(config),
+		Encoder: encoder.New(config),
+		Decoder: decoder.New(config),
 	}
 }
 
@@ -55,13 +56,41 @@ func (m *Model) Close() {
 	m.Embeddings.Close()
 }
 
-// Encode performs the forward step for each input and returns the result.
+// Process performs the forward step for each input and returns the result.
+func (m *Model) Process(inputIDs []int) []ag.Node {
+	encoded := m.Encode(inputIDs)
+	decoded, _ := m.Decode(shiftR(inputIDs, 1), encoded, nil)
+	return decoded
+}
+
+// Encode performs the BART encoding.
 func (m *Model) Encode(inputIDs []int) []ag.Node {
-	encoderInput := m.Embeddings.Encode(intToStringSlice(inputIDs))
-	encoderOutput := m.Encoder.Encode(encoderInput)
-	decoderInput := m.Embeddings.Encode(intToStringSlice(shiftR(inputIDs, 1)))
-	decoderOutput := m.Decoder.Decode(decoderInput, encoderOutput)
-	return decoderOutput
+	return m.Encoder.Encode(m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))))
+}
+
+// Decode performs the BART decoding.
+func (m *Model) Decode(
+	inputIDs []int,
+	encoderHiddenStates []ag.Node,
+	pastKeysValuesPairs decoder.KeysValuesPairs,
+) ([]ag.Node, decoder.KeysValuesPairs) {
+	return m.Decoder.Decode(
+		m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))),
+		encoderHiddenStates,
+		pastKeysValuesPairs,
+	)
+}
+
+func (m *Model) useScaledEmbeddings(xs []ag.Node) []ag.Node {
+	if !m.Config.ScaleEmbedding {
+		return xs
+	}
+
+	embedScale := m.Graph().Constant(mat.Sqrt(mat.Float(m.Config.DModel)))
+	scaled := func(x ag.Node) ag.Node {
+		return m.Graph().ProdScalar(x, embedScale)
+	}
+	return ag.Map(scaled, xs)
 }
 
 func intToStringSlice(a []int) []string {

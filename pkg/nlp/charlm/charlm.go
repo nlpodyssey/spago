@@ -33,17 +33,6 @@ const (
 	DefaultUnknownToken = "[UNK]"
 )
 
-// Config provides configuration settings for a Character-level Language Model.
-// TODO: add dropout
-type Config struct {
-	VocabularySize    int
-	EmbeddingSize     int
-	HiddenSize        int
-	OutputSize        int    // use the projection layer when the output size is > 0
-	SequenceSeparator string // empty string is replaced with DefaultSequenceSeparator
-	UnknownToken      string // empty string is replaced with DefaultUnknownToken
-}
-
 // Model implements a Character-level Language Model.
 type Model struct {
 	nn.BaseModel
@@ -101,7 +90,7 @@ func newEmptyEmbeddings(vocabularySize, embeddingSize int) []nn.Param {
 }
 
 // Initialize initializes the Model m using the given random generator.
-func Initialize(m *Model, rndGen *rand.LockedRand) {
+func (m *Model) Initialize(rndGen *rand.LockedRand) {
 	nn.ForEachParam(m, func(param nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1, rndGen)

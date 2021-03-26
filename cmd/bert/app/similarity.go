@@ -9,13 +9,12 @@ import (
 	"github.com/nlpodyssey/spago/cmd/clientutils"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
-	"github.com/urfave/cli"
-	"log"
+	"github.com/urfave/cli/v2"
 	"math"
 )
 
-func newClientSimilarityCommandFor(app *BertApp) cli.Command {
-	return cli.Command{
+func newClientSimilarityCommandFor(app *BertApp) *cli.Command {
+	return &cli.Command{
 		Name:        "similarity",
 		Usage:       "Perform text-similarity using BERT sentence encoding.",
 		Description: "Run the " + programName + " client to determine the similarity between two texts.",
@@ -26,12 +25,12 @@ func newClientSimilarityCommandFor(app *BertApp) cli.Command {
 
 func newClientSimilarityCommandFlagsFor(app *BertApp) []cli.Flag {
 	return clientutils.Flags(&app.address, &app.tlsDisable, &app.output, []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text1",
 			Destination: &app.requestText,
 			Required:    true,
 		},
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "text2",
 			Destination: &app.requestText2,
 			Required:    true,
@@ -39,8 +38,8 @@ func newClientSimilarityCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) {
-	return func(c *cli.Context) {
+func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) error {
+	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
 		conn := clientutils.OpenConnection(app.address, app.tlsDisable)
@@ -50,14 +49,14 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) {
 			Text: app.requestText,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		resp2, err := client.Encode(context.Background(), &grpcapi.EncodeRequest{
 			Text: app.requestText2,
 		})
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 		vec1 := normalize(f32SliceToFloatSlice(resp.Vector))
@@ -65,6 +64,8 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) {
 		similarity := vec1.DotUnitary(vec2)
 
 		clientutils.Println(app.output, toFixed(similarity, 6))
+
+		return nil
 	}
 }
 

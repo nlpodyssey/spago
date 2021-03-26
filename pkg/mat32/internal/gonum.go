@@ -61,44 +61,6 @@ func CumSum(dst, s []float32) []float32 {
 	return dst
 }
 
-// GemvN computes
-//  y = alpha * A * x + beta * y
-// where A is an m×n dense matrix, x and y are vectors, and alpha and beta are scalars.
-func GemvN(m, n uintptr, alpha float32, a []float32, lda uintptr, x []float32, incX uintptr, beta float32, y []float32, incY uintptr) {
-	var kx, ky, i uintptr
-	if int(incX) < 0 {
-		kx = uintptr(-int(n-1) * int(incX))
-	}
-	if int(incY) < 0 {
-		ky = uintptr(-int(m-1) * int(incY))
-	}
-
-	if incX == 1 && incY == 1 {
-		if beta == 0 {
-			for i = 0; i < m; i++ {
-				y[i] = alpha * f32.DotUnitary(a[lda*i:lda*i+n], x)
-			}
-			return
-		}
-		for i = 0; i < m; i++ {
-			y[i] = y[i]*beta + alpha*f32.DotUnitary(a[lda*i:lda*i+n], x)
-		}
-		return
-	}
-	iy := ky
-	if beta == 0 {
-		for i = 0; i < m; i++ {
-			y[iy] = alpha * f32.DotInc(x, a[lda*i:lda*i+n], n, incX, 1, kx, 0)
-			iy += incY
-		}
-		return
-	}
-	for i = 0; i < m; i++ {
-		y[iy] = y[iy]*beta + alpha*f32.DotInc(x, a[lda*i:lda*i+n], n, incX, 1, kx, 0)
-		iy += incY
-	}
-}
-
 // GemvT computes
 //  y = alpha * Aᵀ * x + beta * y
 // where A is an m×n dense matrix, x and y are vectors, and alpha and beta are scalars.
