@@ -49,6 +49,20 @@ func TestCrossEntropyLoss(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.0, 0.1, -0.8, 0.7}, x.Grad().Data(), 1.0e-6)
 }
 
+func TestWeightedCrossEntropyLoss(t *testing.T) {
+	g := ag.NewGraph()
+	x := g.NewVariable(mat.NewVecDense([]mat.Float{-500, 0, 0.693147, 1.94591}), true)
+	w := []float32{0.5, 0.5, 0.5, 0.9}
+	lossFn := WeightedCrossEntropy(w)
+	loss := lossFn(g, x, 2)
+
+	assertEqualApprox(t, 0.804719, loss.Value().Scalar())
+
+	g.Backward(loss)
+
+	assert.InDeltaSlice(t, []mat.Float{0.0, 0.05, -0.4, 0.35}, x.Grad().Data(), 1.0e-6)
+}
+
 func TestZeroOneQuantization(t *testing.T) {
 	g := ag.NewGraph()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)

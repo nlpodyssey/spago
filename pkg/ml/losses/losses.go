@@ -34,9 +34,20 @@ func NLL(g *ag.Graph, x ag.Node, y ag.Node) ag.Node {
 }
 
 // CrossEntropy implements a cross-entropy loss function.
-// c is the index of the gold class
+// x is the raw scores for each class (logits).
+// c is the index of the gold class.
 func CrossEntropy(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return g.Add(g.Neg(g.AtVec(x, c)), g.Log(g.ReduceSum(g.Exp(x))))
+}
+
+// WeightedCrossEntropy implements a weighted cross-entropy loss function.
+// x is the raw scores for each class (logits).
+// c is the index of the gold class.
+// This function is scaled by a weighting factor l.Weights[class] ∈ [0,1]
+func WeightedCrossEntropy(weights []float32) func(g *ag.Graph, x ag.Node, c int) ag.Node {
+	return func(g *ag.Graph, x ag.Node, c int) ag.Node {
+		return g.ProdScalar(CrossEntropy(g, x, c), g.NewScalar(weights[c]))
+	}
 }
 
 // Perplexity computes the perplexity, implemented as exp over the cross-entropy.
