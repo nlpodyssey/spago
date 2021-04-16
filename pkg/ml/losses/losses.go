@@ -50,6 +50,20 @@ func WeightedCrossEntropy(weights []float32) func(g *ag.Graph, x ag.Node, c int)
 	}
 }
 
+// FocalLoss implements a variant of the CrossEntropy loss that reduces
+// the loss contribution from "easy" examples and increases the importance
+// of correcting misclassified examples.
+// x is the raw scores for each class (logits).
+// c is the index of the gold class.
+// gamma is the focusing parameter (gamma ≥ 0).
+func FocalLoss(g *ag.Graph, x ag.Node, c int, gamma float32) ag.Node {
+	ce := CrossEntropy(g, x, c)
+	p := g.Exp(g.Neg(ce))
+	sub := g.ReverseSub(p, g.NewScalar(1.0))
+	a := g.Pow(sub, gamma)
+	return g.Prod(a, ce)
+}
+
 // Perplexity computes the perplexity, implemented as exp over the cross-entropy.
 func Perplexity(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return g.Exp(CrossEntropy(g, x, c))
