@@ -44,7 +44,7 @@ func CrossEntropy(g *ag.Graph, x ag.Node, c int) ag.Node {
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 // This function is scaled by a weighting factor weights[class] ∈ [0,1]
-func WeightedCrossEntropy(weights []float32) func(g *ag.Graph, x ag.Node, c int) ag.Node {
+func WeightedCrossEntropy(weights []mat.Float) func(g *ag.Graph, x ag.Node, c int) ag.Node {
 	return func(g *ag.Graph, x ag.Node, c int) ag.Node {
 		return g.ProdScalar(CrossEntropy(g, x, c), g.NewScalar(weights[c]))
 	}
@@ -56,7 +56,7 @@ func WeightedCrossEntropy(weights []float32) func(g *ag.Graph, x ag.Node, c int)
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 // gamma is the focusing parameter (gamma ≥ 0).
-func FocalLoss(g *ag.Graph, x ag.Node, c int, gamma float32) ag.Node {
+func FocalLoss(g *ag.Graph, x ag.Node, c int, gamma mat.Float) ag.Node {
 	ce := CrossEntropy(g, x, c)
 	p := g.Exp(g.Neg(ce))
 	sub := g.ReverseSub(p, g.NewScalar(1.0))
@@ -71,14 +71,14 @@ func FocalLoss(g *ag.Graph, x ag.Node, c int, gamma float32) ag.Node {
 // c is the index of the gold class.
 // gamma is the focusing parameter (gamma ≥ 0).
 // This function is scaled by a weighting factor weights[class] ∈ [0,1].
-func WeightedFocalLoss(a []float32) func(g *ag.Graph, x ag.Node, c int, gamma float32) ag.Node {
-	return func(g *ag.Graph, x ag.Node, c int, gamma float32) ag.Node {
+func WeightedFocalLoss(weights []mat.Float) func(g *ag.Graph, x ag.Node, c int, gamma mat.Float) ag.Node {
+	return func(g *ag.Graph, x ag.Node, c int, gamma mat.Float) ag.Node {
 		ce := CrossEntropy(g, x, c)
 		p := g.Exp(g.Neg(ce))
 		sub := g.ReverseSub(p, g.NewScalar(1.0))
 		b := g.Pow(sub, gamma)
 		fl := g.Prod(b, ce)
-		return g.ProdScalar(fl, g.NewScalar(a[c]))
+		return g.ProdScalar(fl, g.NewScalar(weights[c]))
 	}
 }
 
