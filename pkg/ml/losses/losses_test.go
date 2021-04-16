@@ -52,7 +52,7 @@ func TestCrossEntropyLoss(t *testing.T) {
 func TestWeightedCrossEntropyLoss(t *testing.T) {
 	g := ag.NewGraph()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-500, 0, 0.693147, 1.94591}), true)
-	w := []float32{0.5, 0.5, 0.5, 0.9}
+	w := []mat.Float{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedCrossEntropy(w)
 	loss := lossFn(g, x, 2)
 
@@ -78,7 +78,7 @@ func TestFocalLoss(t *testing.T) {
 func TestWeightedFocalLoss(t *testing.T) {
 	g := ag.NewGraph()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4}), true)
-	w := []float32{0.5, 0.5, 0.5, 0.9}
+	w := []mat.Float{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedFocalLoss(w)
 	loss := lossFn(g, x, 2, 2.0)
 
