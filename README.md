@@ -143,7 +143,18 @@ We encourage you to write an issue. This would help the community grow.
 If you really want to write to us privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your
 questions or comments.
 
-## Links
+## Projects Using spaGO
+
+Below is a list of known projects that use spaGO:
+
+* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
+  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
+* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
+  news from multiple sources.
+* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
+  service.
+
+## Other Links
 
 * [spaGO: Self-contained ML/NLP Library in Go](https://www.slideshare.net/MatteoGrella/spago-a-selfcontained-ml-nlp-library-in-go) ([video of GoWayFest 4.0](https://www.youtube.com/watch?v=wE3CQU4G2fk))
 
