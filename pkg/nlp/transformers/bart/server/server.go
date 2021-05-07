@@ -8,13 +8,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/server/grpcapi"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
 	"github.com/nlpodyssey/spago/pkg/webui/bartnli"
@@ -227,22 +227,6 @@ func (s *Server) GenerateHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// ClassConfidencePair is a JSON-serializable pair of Class and Confidence.
-type ClassConfidencePair struct {
-	Class      string    `json:"class"`
-	Confidence mat.Float `json:"confidence"`
-}
-
-// ClassifyResponse is a JSON-serializable structure which holds server
-// classification response data.
-type ClassifyResponse struct {
-	Class        string                `json:"class"`
-	Confidence   mat.Float             `json:"confidence"`
-	Distribution []ClassConfidencePair `json:"distribution"`
-	// Took is the number of milliseconds it took the server to execute the request.
-	Took int64 `json:"took"`
-}
-
 // GenerateResponse is a JSON-serializable structure which holds server
 // generation response data.
 type GenerateResponse struct {
@@ -251,7 +235,7 @@ type GenerateResponse struct {
 	Took int64 `json:"took"`
 }
 
-func classificationFrom(resp *ClassifyResponse) *grpcapi.ClassifyReply {
+func classificationFrom(resp *tasks.ClassifyResponse) *grpcapi.ClassifyReply {
 	distribution := make([]*grpcapi.ClassConfidencePair, len(resp.Distribution))
 	for i, t := range resp.Distribution {
 		distribution[i] = &grpcapi.ClassConfidencePair{

@@ -9,13 +9,14 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks"
 	"runtime"
 	"sort"
 	"strconv"
 	"time"
 )
 
-func (s *Server) classify(text string, text2 string) *ClassifyResponse {
+func (s *Server) classify(text string, text2 string) *tasks.ClassifyResponse {
 	start := time.Now()
 
 	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
@@ -30,9 +31,9 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	classes := s.model.(*sequenceclassification.Model).BART.Config.ID2Label
 	class := classes[strconv.Itoa(best)]
 
-	distribution := make([]ClassConfidencePair, len(probs))
+	distribution := make([]tasks.ClassConfidencePair, len(probs))
 	for i := 0; i < len(probs); i++ {
-		distribution[i] = ClassConfidencePair{
+		distribution[i] = tasks.ClassConfidencePair{
 			Class:      classes[strconv.Itoa(i)],
 			Confidence: probs[i],
 		}
@@ -42,7 +43,7 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 		return distribution[i].Confidence > distribution[j].Confidence
 	})
 
-	return &ClassifyResponse{
+	return &tasks.ClassifyResponse{
 		Class:        class,
 		Confidence:   probs[best],
 		Distribution: distribution,
