@@ -120,7 +120,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
 			}
 		}
 
-		model, err := sequencelabeler.Load(modelPath)
+		model, err := sequencelabeler.LoadModel(modelPath)
 		if err != nil {
 			return err
 		}

@@ -97,8 +97,8 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
-// Load loads a Model from file.
-func Load(path string) (*Model, error) {
+// LoadModel loads a Model from file.
+func LoadModel(path string) (*Model, error) {
 	config := LoadConfig(filepath.Join(path, "config.json"))
 	model := NewDefaultModel(
 		config,
