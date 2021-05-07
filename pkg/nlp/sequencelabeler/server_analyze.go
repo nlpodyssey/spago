@@ -28,7 +28,7 @@ type Body struct {
 
 // Response provides JSON-serializable parameters for sequence labeling Server responses.
 type Response struct {
-	Tokens []*grpcapi.Token `json:"tokens"`
+	Tokens []Token `json:"tokens"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
@@ -48,7 +48,7 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 	analysis := s.model.Analyze(body.Text, body.Options.MergeEntities, body.Options.FilterNotEntities)
 
 	result := &Response{
-		Tokens: tokensFrom(analysis),
+		Tokens: analysis,
 		Took:   time.Since(start).Milliseconds(),
 	}
 
@@ -81,13 +81,13 @@ func (s *Server) Analyze(ctx context.Context, req *grpcapi.AnalyzeRequest) (*grp
 	}, nil
 }
 
-func tokensFrom(tokens []TokenLabel) []*grpcapi.Token {
+func tokensFrom(tokens []Token) []*grpcapi.Token {
 	result := make([]*grpcapi.Token, len(tokens))
 	for i, t := range tokens {
 		result[i] = &grpcapi.Token{
-			Text:  t.String,
-			Start: int32(t.Offsets.Start),
-			End:   int32(t.Offsets.End),
+			Text:  t.Text,
+			Start: int32(t.Start),
+			End:   int32(t.End),
 			Label: t.Label,
 		}
 	}

@@ -121,13 +121,15 @@ func (m *Model) Load(path string) {
 	fmt.Println("ok")
 }
 
-// TokenLabel associates a tokenizers.StringOffsetsPair to a Label.
-type TokenLabel struct {
-	tokenizers.StringOffsetsPair
-	Label string
+// Token is a token resulting from the analysis process.
+type Token struct {
+	Text  string `json:"text"`
+	Start int    `json:"start"`
+	End   int    `json:"end"`
+	Label string `json:"label"`
 }
 
-func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) []TokenLabel {
+func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) []Token {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
@@ -143,15 +145,18 @@ func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
+func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []Token {
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
 	prediction := m.TaggerLayer.Predict(encodings)
-	result := make([]TokenLabel, len(tokens))
+	result := make([]Token, len(tokens))
 	for i, labelIndex := range prediction {
-		result[i] = TokenLabel{
-			StringOffsetsPair: tokens[i],
-			Label:             m.Labels[labelIndex],
+		tk := tokens[i]
+		result[i] = Token{
+			Text:  tk.String,
+			Start: tk.Offsets.Start,
+			End:   tk.Offsets.End,
+			Label: m.Labels[labelIndex],
 		}
 	}
 	return result
@@ -164,9 +169,9 @@ func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node
 }
 
 // TODO: make sure that the input label sequence is valid
-func (m *Model) mergeEntities(tokens []TokenLabel) []TokenLabel {
-	newTokens := make([]TokenLabel, 0)
-	buf := TokenLabel{}
+func (m *Model) mergeEntities(tokens []Token) []Token {
+	newTokens := make([]Token, 0)
+	buf := Token{}
 	text := bytes.NewBufferString("")
 	for _, token := range tokens {
 		switch token.Label[0] {
@@ -178,24 +183,24 @@ func (m *Model) mergeEntities(tokens []TokenLabel) []TokenLabel {
 			newTokens = append(newTokens, newToken)
 		case 'B':
 			text.Reset()
-			text.Write([]byte(token.String))
-			buf = TokenLabel{}
+			text.Write([]byte(token.Text))
+			buf = Token{}
 			buf.Label = fmt.Sprintf("%s", token.Label[2:]) // copy
-			buf.Offsets.Start = token.Offsets.Start
+			buf.Start = token.Start
 		case 'I':
-			text.Write([]byte(fmt.Sprintf(" %s", token.String)))
+			text.Write([]byte(fmt.Sprintf(" %s", token.Text)))
 		case 'E':
-			text.Write([]byte(fmt.Sprintf(" %s", token.String)))
-			buf.String = text.String()
-			buf.Offsets.End = token.Offsets.End
+			text.Write([]byte(fmt.Sprintf(" %s", token.Text)))
+			buf.Text = text.String()
+			buf.End = token.End
 			newTokens = append(newTokens, buf)
 		}
 	}
 	return newTokens
 }
 
-func (m *Model) filterNotEntities(tokens []TokenLabel) []TokenLabel {
-	ret := make([]TokenLabel, 0)
+func (m *Model) filterNotEntities(tokens []Token) []Token {
+	ret := make([]Token, 0)
 	for _, token := range tokens {
 		if token.Label == "O" { // not an entity
 			continue
