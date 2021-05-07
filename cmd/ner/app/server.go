@@ -120,11 +120,10 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
 			}
 		}
 
-		configPath := filepath.Join(modelPath, "config.json")
-		config := sequencelabeler.LoadConfig(configPath)
-		model := sequencelabeler.NewDefaultModel(config, modelPath, true, false)
-		model.Load(modelPath)
-		model.LoadEmbeddings(config, modelPath, true, false) // TODO: find a general solution
+		model, err := sequencelabeler.Load(modelPath)
+		if err != nil {
+			return err
+		}
 
 		fmt.Printf("Start %s HTTP server listening on %s.\n", func() string {
 			if app.tlsDisable {

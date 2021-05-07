@@ -97,8 +97,35 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 	}
 }
 
-// LoadEmbeddings sets the embeddings into the model.
-func (m *Model) LoadEmbeddings(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) {
+// Load loads a Model from file.
+func Load(path string) (*Model, error) {
+	config := LoadConfig(filepath.Join(path, "config.json"))
+	model := NewDefaultModel(
+		config,
+		path,
+		true,  // read-only embeddings
+		false, // don't force new embeddings DB
+	)
+
+	file := filepath.Join(path, config.ModelFilename)
+	fmt.Printf("Loading model parameters from `%s`... ", file)
+	err := utils.DeserializeFromFile(file, model)
+	if err != nil {
+		return nil, fmt.Errorf("sequencelabeler: error during model deserialization")
+	}
+	// TODO: find a general solution to set embeddings lost during deserialization
+	model.loadEmbeddings(
+		config,
+		path,
+		true,  // read-only embeddings
+		false, // don't force new embeddings DB
+	)
+	fmt.Println("ok")
+	return model, nil
+}
+
+// loadEmbeddings sets the embeddings into the model.
+func (m *Model) loadEmbeddings(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) {
 	for i, weConfig := range config.WordEmbeddings {
 		m.EmbeddingsLayer.WordsEncoders[i] = embeddings.New(embeddings.Config{
 			Size:             weConfig.WordEmbeddingsSize,
@@ -108,17 +135,6 @@ func (m *Model) LoadEmbeddings(config Config, path string, readOnlyEmbeddings bo
 			ForceNewDB:       forceNewEmbeddingsDB,
 		})
 	}
-}
-
-// Load loads a Model from file.
-func (m *Model) Load(path string) {
-	file := filepath.Join(path, m.Config.ModelFilename)
-	fmt.Printf("Loading model parameters from `%s`... ", file)
-	err := utils.DeserializeFromFile(file, m)
-	if err != nil {
-		panic("error during model deserialization.")
-	}
-	fmt.Println("ok")
 }
 
 // Token is a token resulting from the analysis process.
