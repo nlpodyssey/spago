@@ -51,15 +51,14 @@ func (s *Server) Discriminate(ctx context.Context, req *grpcapi.DiscriminateRequ
 	result := s.discriminate(req.GetText())
 
 	return &grpcapi.DiscriminateReply{
-		Tokens: tokensFrom(result),
+		Tokens: tokensFrom(result.Tokens),
 		Took:   result.Took,
 	}, nil
 }
 
-func tokensFrom(resp *Response) []*grpcapi.Token {
-	result := make([]*grpcapi.Token, len(resp.Tokens))
-
-	for i, t := range resp.Tokens {
+func tokensFrom(tokens []Token) []*grpcapi.Token {
+	result := make([]*grpcapi.Token, len(tokens))
+	for i, t := range tokens {
 		result[i] = &grpcapi.Token{
 			Text:  t.Text,
 			Start: int32(t.Start),
@@ -67,7 +66,6 @@ func tokensFrom(resp *Response) []*grpcapi.Token {
 			Label: t.Label,
 		}
 	}
-
 	return result
 }
 
