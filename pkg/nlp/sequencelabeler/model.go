@@ -7,6 +7,7 @@
 package sequencelabeler
 
 import (
+	"bytes"
 	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -21,8 +22,10 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/stackedembeddings"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
+	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"path/filepath"
+	"runtime"
 )
 
 var (
@@ -124,6 +127,21 @@ type TokenLabel struct {
 	Label string
 }
 
+func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) []TokenLabel {
+	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+	defer g.Clear()
+	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
+	tokenized := basetokenizer.New().Tokenize(text)
+	result := proc.Forward(tokenized)
+	if mergeEntities {
+		result = m.mergeEntities(result)
+	}
+	if filterNotEntities {
+		result = m.filterNotEntities(result)
+	}
+	return result
+}
+
 // Forward performs the forward step for each input and returns the result.
 func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 	words := tokenizers.GetStrings(tokens)
@@ -143,4 +161,46 @@ func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []TokenLabel {
 // TODO: it could be more consistent if the targets were the string labels
 func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
 	return m.TaggerLayer.NegativeLogLoss(emissionScores, targets)
+}
+
+// TODO: make sure that the input label sequence is valid
+func (m *Model) mergeEntities(tokens []TokenLabel) []TokenLabel {
+	newTokens := make([]TokenLabel, 0)
+	buf := TokenLabel{}
+	text := bytes.NewBufferString("")
+	for _, token := range tokens {
+		switch token.Label[0] {
+		case 'O':
+			newTokens = append(newTokens, token)
+		case 'S':
+			newToken := token
+			newToken.Label = newToken.Label[2:]
+			newTokens = append(newTokens, newToken)
+		case 'B':
+			text.Reset()
+			text.Write([]byte(token.String))
+			buf = TokenLabel{}
+			buf.Label = fmt.Sprintf("%s", token.Label[2:]) // copy
+			buf.Offsets.Start = token.Offsets.Start
+		case 'I':
+			text.Write([]byte(fmt.Sprintf(" %s", token.String)))
+		case 'E':
+			text.Write([]byte(fmt.Sprintf(" %s", token.String)))
+			buf.String = text.String()
+			buf.Offsets.End = token.Offsets.End
+			newTokens = append(newTokens, buf)
+		}
+	}
+	return newTokens
+}
+
+func (m *Model) filterNotEntities(tokens []TokenLabel) []TokenLabel {
+	ret := make([]TokenLabel, 0)
+	for _, token := range tokens {
+		if token.Label == "O" { // not an entity
+			continue
+		}
+		ret = append(ret, token)
+	}
+	return ret
 }

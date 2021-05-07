@@ -16,9 +16,6 @@ message AnalyzeRequest {
   string text              = 1;
   bool   mergeEntities     = 2;
   bool   filterNotEntities = 3;
-
-  // Took is the number of milliseconds it took the server to execute the request.
-	int64  took              = 4;
 }
 
 // The analyze response message containing the text to analyze with options.

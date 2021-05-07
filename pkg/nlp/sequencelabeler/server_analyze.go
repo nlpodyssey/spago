@@ -9,13 +9,9 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"runtime"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
-	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler/grpcapi"
-	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/basetokenizer"
 )
 
 // OptionsType provides JSON-serializable options for the sequence labeling Server.
@@ -30,6 +26,13 @@ type Body struct {
 	Text    string      `json:"text"`
 }
 
+// Response provides JSON-serializable parameters for sequence labeling Server responses.
+type Response struct {
+	Tokens []*grpcapi.Token `json:"tokens"`
+	// Took is the number of milliseconds it took the server to execute the request.
+	Took int64 `json:"took"`
+}
+
 func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
@@ -41,11 +44,13 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	analysis, took := s.process(body.Text, body.Options.MergeEntities)
-	if body.Options.FilterNotEntities {
-		analysis = filterNotEntities(analysis)
+	start := time.Now()
+	analysis := s.model.Analyze(body.Text, body.Options.MergeEntities, body.Options.FilterNotEntities)
+
+	result := &Response{
+		Tokens: tokensFrom(analysis),
+		Took:   time.Since(start).Milliseconds(),
 	}
-	result := prepareResponse(analysis, took)
 
 	_, pretty := req.URL.Query()["pretty"]
 	response, err := result.Dump(pretty)
@@ -64,73 +69,29 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 // Analyze sends a request to /analyze.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
 func (s *Server) Analyze(ctx context.Context, req *grpcapi.AnalyzeRequest) (*grpcapi.AnalyzeReply, error) {
-	analysis, took := s.process(req.GetText(), req.GetMergeEntities())
-	if req.GetFilterNotEntities() {
-		analysis = filterNotEntities(analysis)
-	}
-	result := prepareResponse(analysis, took)
-
+	start := time.Now()
+	analysis := s.model.Analyze(
+		req.GetText(),
+		req.GetMergeEntities(),
+		req.GetFilterNotEntities(),
+	)
 	return &grpcapi.AnalyzeReply{
-		Tokens: tokensFrom(result),
-		Took:   took.Milliseconds(),
+		Tokens: tokensFrom(analysis),
+		Took:   time.Since(start).Milliseconds(),
 	}, nil
 }
 
-func tokensFrom(resp *Response) []*grpcapi.Token {
-	result := make([]*grpcapi.Token, len(resp.Tokens))
-
-	for i, t := range resp.Tokens {
+func tokensFrom(tokens []TokenLabel) []*grpcapi.Token {
+	result := make([]*grpcapi.Token, len(tokens))
+	for i, t := range tokens {
 		result[i] = &grpcapi.Token{
-			Text:  t.Text,
-			Start: int32(t.Start),
-			End:   int32(t.End),
+			Text:  t.String,
+			Start: int32(t.Offsets.Start),
+			End:   int32(t.Offsets.End),
 			Label: t.Label,
 		}
 	}
-
 	return result
-}
-
-func (s *Server) process(text string, merge bool) ([]TokenLabel, time.Duration) {
-	start := time.Now()
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
-	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
-	tokenized := basetokenizer.New().Tokenize(text)
-	predicted := proc.Forward(tokenized)
-	if merge {
-		predicted = mergeEntities(predicted)
-	}
-	return predicted, time.Since(start)
-}
-
-func prepareResponse(tokens []TokenLabel, took time.Duration) *Response {
-	newTokens := make([]Token, len(tokens))
-	for i, token := range tokens {
-		newTokens[i] = Token{
-			Text:  token.String,
-			Start: token.Offsets.Start,
-			End:   token.Offsets.End,
-			Label: token.Label,
-		}
-	}
-	return &Response{Tokens: newTokens, Took: took.Milliseconds()}
-}
-
-// Response provides JSON-serializable parameters for sequence labeling Server responses.
-type Response struct {
-	Tokens []Token `json:"tokens"`
-	// Took is the number of milliseconds it took the server to execute the request.
-	Took int64 `json:"took"`
-}
-
-// Token provides JSON-serializable parameters for a single token of sequence
-// labeling Server responses.
-type Token struct {
-	Text  string `json:"text"`
-	Start int    `json:"start"`
-	End   int    `json:"end"`
-	Label string `json:"label"`
 }
 
 // Dump serializes the Response to JSON.
