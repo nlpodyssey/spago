@@ -98,16 +98,16 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 }
 
 // LoadModel loads a Model from file.
-func LoadModel(path string) (*Model, error) {
-	config := LoadConfig(filepath.Join(path, "config.json"))
+func LoadModel(modelPath string) (*Model, error) {
+	config := LoadConfig(filepath.Join(modelPath, "config.json"))
 	model := NewDefaultModel(
 		config,
-		path,
+		modelPath,
 		true,  // read-only embeddings
 		false, // don't force new embeddings DB
 	)
 
-	file := filepath.Join(path, config.ModelFilename)
+	file := filepath.Join(modelPath, config.ModelFilename)
 	fmt.Printf("Loading model parameters from `%s`... ", file)
 	err := utils.DeserializeFromFile(file, model)
 	if err != nil {
@@ -116,7 +116,7 @@ func LoadModel(path string) (*Model, error) {
 	// TODO: find a general solution to set embeddings lost during deserialization
 	model.loadEmbeddings(
 		config,
-		path,
+		modelPath,
 		true,  // read-only embeddings
 		false, // don't force new embeddings DB
 	)
@@ -145,23 +145,29 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+type AnalysisResult struct {
+	Tokens []Token
+}
+
 // Analyze returns a slice of annotated tokens.
 // The result can be adjusted according to the options of merge entities and filter non-entities,
 // respectively to merge into one token the pieces of a single recognized entity (e.g. formed by "B-" and "E-"),
 // and to discard all tokens that are not recognized as entities (i.e. tag "O").
-func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) []Token {
+func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) AnalysisResult {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
 	tokenized := basetokenizer.New().Tokenize(text)
-	result := proc.Forward(tokenized)
+	annotated := proc.Forward(tokenized)
 	if mergeEntities {
-		result = m.mergeEntities(result)
+		annotated = m.mergeEntities(annotated)
 	}
 	if filterNotEntities {
-		result = m.filterNotEntities(result)
+		annotated = m.filterNotEntities(annotated)
 	}
-	return result
+	return AnalysisResult{
+		Tokens: annotated,
+	}
 }
 
 // Forward performs the forward step for each input and returns the result.

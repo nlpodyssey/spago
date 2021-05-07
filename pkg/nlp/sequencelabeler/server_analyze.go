@@ -48,7 +48,7 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 	analysis := s.model.Analyze(body.Text, body.Options.MergeEntities, body.Options.FilterNotEntities)
 
 	result := &Response{
-		Tokens: analysis,
+		Tokens: analysis.Tokens,
 		Took:   time.Since(start).Milliseconds(),
 	}
 
@@ -76,7 +76,7 @@ func (s *Server) Analyze(ctx context.Context, req *grpcapi.AnalyzeRequest) (*grp
 		req.GetFilterNotEntities(),
 	)
 	return &grpcapi.AnalyzeReply{
-		Tokens: tokensFrom(analysis),
+		Tokens: tokensFrom(analysis.Tokens),
 		Took:   time.Since(start).Milliseconds(),
 	}, nil
 }
