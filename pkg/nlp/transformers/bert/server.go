@@ -7,13 +7,10 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
 	"github.com/nlpodyssey/spago/pkg/webui/bertclassification"
 	"net/http"
 	"sort"
 
-	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/wordpiecetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"github.com/nlpodyssey/spago/pkg/utils/grpcutils"
@@ -105,67 +102,12 @@ const DefaultFakeLabel = "FAKE"
 // "predict" server requests.
 const DefaultPredictedLabel = "PREDICTED"
 
-// Answer represent a single JSON-serializable BERT question-answering answer,
-// used as part of a server's response.
-type Answer struct {
-	Text       string    `json:"text"`
-	Start      int       `json:"start"`
-	End        int       `json:"end"`
-	Confidence mat.Float `json:"confidence"`
-}
-
-// AnswerSlice is a slice of Answer elements, which implements the sort.Interface.
-type AnswerSlice []Answer
-
-// Len returns the length of the slice.
-func (p AnswerSlice) Len() int {
-	return len(p)
-}
-
-// Less returns true if the Answer.Confidence of the element at position i is
-// lower than the one of the element at position j.
-func (p AnswerSlice) Less(i, j int) bool {
-	return p[i].Confidence < p[j].Confidence
-}
-
-// Swap swaps the elements at positions i and j.
-func (p AnswerSlice) Swap(i, j int) {
-	p[i], p[j] = p[j], p[i]
-}
-
-// Sort sorts the AnswerSlice's elements by Answer.Confidence.
-func (p AnswerSlice) Sort() {
-	sort.Sort(p)
-}
-
 // QuestionAnsweringResponse is the JSON-serializable structure for BERT
 // question-answering server response.
 type QuestionAnsweringResponse struct {
-	Answers AnswerSlice `json:"answers"`
+	Answers Answers `json:"answers"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
-}
-
-const defaultMaxAnswerLength = 20     // TODO: from options
-const defaultMinConfidence = 0.1      // TODO: from options
-const defaultMaxCandidateLogits = 3.0 // TODO: from options
-const defaultMaxAnswers = 3           // TODO: from options
-
-func extractScores(logits []ag.Node) []mat.Float {
-	scores := make([]mat.Float, len(logits))
-	for i, node := range logits {
-		scores[i] = node.ScalarValue()
-	}
-	return scores
-}
-
-func getBestIndices(logits []mat.Float, size int) []int {
-	s := matsort.NewFloatSlice(logits...)
-	sort.Sort(sort.Reverse(s))
-	if len(s.Indices) < size {
-		return s.Indices
-	}
-	return s.Indices[:size]
 }
 
 // Response is the JSON-serializable server response for various BERT-related requests.
