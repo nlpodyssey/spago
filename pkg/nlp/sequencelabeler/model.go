@@ -129,6 +129,10 @@ type Token struct {
 	Label string `json:"label"`
 }
 
+// Analyze returns a slice of annotated tokens.
+// The result can be adjusted according to the options of merge entities and filter non-entities,
+// respectively to merge into one token the pieces of a single recognized entity (e.g. formed by "B-" and "E-"),
+// and to discard all tokens that are not recognized as entities (i.e. tag "O").
 func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) []Token {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
