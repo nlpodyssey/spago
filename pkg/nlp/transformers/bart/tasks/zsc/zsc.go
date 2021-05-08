@@ -31,6 +31,21 @@ type BartForZeroShotClassification struct {
 	Tokenizer *bpetokenizer.BPETokenizer
 }
 
+func LoadModel(modelPath string) (*BartForZeroShotClassification, error) {
+	model, err := loader.Load(modelPath)
+	if err != nil {
+		return nil, err
+	}
+	tokenizer, err := bpetokenizer.NewFromModelFolder(modelPath)
+	if err != nil {
+		return nil, err
+	}
+	return &BartForZeroShotClassification{
+		Model:     model.(*sequenceclassification.Model),
+		Tokenizer: tokenizer,
+	}, nil
+}
+
 type premiseHypothesisPair struct {
 	index      int
 	premise    string
