@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package tasks
+package seq2seq
 
 import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
@@ -10,14 +10,34 @@ import (
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/loader"
 )
+
+var _ nn.Model = &BartForConditionalGeneration{}
+var _ nn.Closer = &BartForConditionalGeneration{}
 
 // BartForConditionalGeneration contains the Model and the Tokenizer
 // used for conditional generation tasks.
 // For example, Machine Translation and Summarization.
 type BartForConditionalGeneration struct {
-	Model     *conditionalgeneration.Model
+	*conditionalgeneration.Model
 	Tokenizer *sentencepiece.Tokenizer
+}
+
+// LoadModel loads a BartForZeroShotClassification from file.
+func LoadModel(modelPath string) (*BartForConditionalGeneration, error) {
+	model, err := loader.Load(modelPath)
+	if err != nil {
+		return nil, err
+	}
+	tokenizer, err := sentencepiece.NewFromModelFolder(modelPath, false) // TODO: lowercase from config
+	if err != nil {
+		return nil, err
+	}
+	return &BartForConditionalGeneration{
+		Model:     model.(*conditionalgeneration.Model),
+		Tokenizer: tokenizer,
+	}, nil
 }
 
 // Generate generates new texts starting from the input.

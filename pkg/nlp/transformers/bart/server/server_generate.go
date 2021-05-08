@@ -6,14 +6,14 @@ package server
 
 import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
-	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks/seq2seq"
 	"time"
 )
 
 func (s *Server) generate(text string) (*GenerateResponse, error) {
 	start := time.Now()
 
-	task := tasks.BartForConditionalGeneration{
+	task := seq2seq.BartForConditionalGeneration{
 		Model:     s.model.(*conditionalgeneration.Model),
 		Tokenizer: s.spTokenizer,
 	}
