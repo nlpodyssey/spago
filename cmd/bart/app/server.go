@@ -108,12 +108,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		defer func() {
-			if m, ok := model.(nn.Closer); ok {
-				m.Close()
-			}
-		}()
+		defer nn.Close(model)
 
 		var bpeTokenizer *bpetokenizer.BPETokenizer
 		var spTokenizer *sentencepiece.Tokenizer

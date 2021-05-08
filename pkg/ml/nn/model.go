@@ -73,6 +73,13 @@ type Closer interface {
 	Close()
 }
 
+// Close calls the Close() function of the model if it implements the Closer interface.
+func Close(m Model) {
+	if m, ok := m.(Closer); ok {
+		m.Close()
+	}
+}
+
 // StandardModel consists of a model that implements StandardForwarder.
 type StandardModel interface {
 	Model
