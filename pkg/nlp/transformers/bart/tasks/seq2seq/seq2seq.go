@@ -24,7 +24,7 @@ type BartForConditionalGeneration struct {
 	Tokenizer *sentencepiece.Tokenizer
 }
 
-// LoadModel loads a BartForZeroShotClassification from file.
+// LoadModel loads a BartForConditionalGeneration from file.
 func LoadModel(modelPath string) (*BartForConditionalGeneration, error) {
 	model, err := loader.Load(modelPath)
 	if err != nil {
