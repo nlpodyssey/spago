@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package tasks
+package zsc
 
 import (
 	"fmt"
@@ -12,6 +12,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/loader"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks"
 	"github.com/nlpodyssey/spago/pkg/utils/workerpool"
 	"runtime"
 	"sort"
@@ -19,10 +21,13 @@ import (
 	"sync"
 )
 
+var _ nn.Model = &BartForZeroShotClassification{}
+var _ nn.Closer = &BartForZeroShotClassification{}
+
 // BartForZeroShotClassification combines a sequence classification BART
 // model with a BPE tokenizer to perform Zero-Shot Text Classification.
 type BartForZeroShotClassification struct {
-	Model     *sequenceclassification.Model
+	*sequenceclassification.Model
 	Tokenizer *bpetokenizer.BPETokenizer
 }
 
@@ -44,7 +49,7 @@ func (t *BartForZeroShotClassification) Classify(
 	hypothesisTemplate string,
 	candidateLabels []string,
 	multiClass bool,
-) (*ClassifyResponse, error) {
+) (*tasks.ClassifyResponse, error) {
 	if hypothesisTemplate == "" {
 		hypothesisTemplate = defaultHypothesisTemplate
 	}
@@ -91,9 +96,9 @@ func (t *BartForZeroShotClassification) Classify(
 	best := floatutils.ArgMax(scores)
 	class := candidateLabels[best]
 
-	distribution := make([]ClassConfidencePair, len(scores))
+	distribution := make([]tasks.ClassConfidencePair, len(scores))
 	for i := 0; i < len(scores); i++ {
-		distribution[i] = ClassConfidencePair{
+		distribution[i] = tasks.ClassConfidencePair{
 			Class:      candidateLabels[i],
 			Confidence: scores[i],
 		}
@@ -103,7 +108,7 @@ func (t *BartForZeroShotClassification) Classify(
 		return distribution[i].Confidence > distribution[j].Confidence
 	})
 
-	return &ClassifyResponse{
+	return &tasks.ClassifyResponse{
 		Class:        class,
 		Confidence:   scores[best],
 		Distribution: distribution,

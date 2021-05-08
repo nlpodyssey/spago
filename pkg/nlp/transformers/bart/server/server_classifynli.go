@@ -7,6 +7,7 @@ package server
 import (
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks"
+	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/tasks/zsc"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func (s *Server) classifyNLI(
 ) (*tasks.ClassifyResponse, error) {
 	start := time.Now()
 
-	task := tasks.BartForZeroShotClassification{
+	task := zsc.BartForZeroShotClassification{
 		Model:     s.model.(*sequenceclassification.Model),
 		Tokenizer: s.bpeTokenizer,
 	}
