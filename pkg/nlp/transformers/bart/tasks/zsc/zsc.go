@@ -31,6 +31,7 @@ type BartForZeroShotClassification struct {
 	Tokenizer *bpetokenizer.BPETokenizer
 }
 
+// LoadModel loads a BartForZeroShotClassification from file.
 func LoadModel(modelPath string) (*BartForZeroShotClassification, error) {
 	model, err := loader.Load(modelPath)
 	if err != nil {
