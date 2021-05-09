@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
+	github.com/awalterschulze/gographviz v2.0.3+incompatible
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dgraph-io/badger/v3 v3.2011.1
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
