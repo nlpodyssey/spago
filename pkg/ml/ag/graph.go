@@ -400,6 +400,10 @@ func OutputGrad(grad mat.Matrix) BackwardOption {
 // the visit ends as soon as it is encountered a node with time-step less or equal to the number of back steps.
 // The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
 func (g *Graph) Backward(node Node, opts ...BackwardOption) {
+	if node.Graph() != g {
+		panic("ag: backward cannot be executed among nodes of different graphs")
+	}
+
 	handler := &backwardHandler{
 		g:              g,
 		node:           node,
