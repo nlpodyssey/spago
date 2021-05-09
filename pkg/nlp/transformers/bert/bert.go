@@ -151,29 +151,29 @@ func LoadModel(modelPath string) (*Model, error) {
 	embeddingsFilename := path.Join(modelPath, DefaultEmbeddingsStorage)
 	modelFilename := path.Join(modelPath, DefaultModelFile)
 
-	fmt.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
-	fmt.Printf("[1/3] Loading configuration... ")
+	log.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
+	log.Printf("[1/4] Load configuration... ")
 	config, err := LoadConfig(configFilename)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("ok\n")
+
+	log.Printf("[2/4] Instantiate a new model... ")
 	model := NewDefaultBERT(config, embeddingsFilename)
 
-	fmt.Printf("[2/3] Loading vocabulary... ")
+	log.Printf("[3/4] Load vocabulary... ")
 	vocab, err := vocabulary.NewFromFile(vocabFilename)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("ok\n")
 	model.Vocabulary = vocab
 
-	fmt.Printf("[3/3] Loading model weights... ")
+	log.Printf("[4/4] Load model weights... ")
 	err = utils.DeserializeFromFile(modelFilename, model)
 	if err != nil {
-		log.Fatal(fmt.Sprintf("bert: error during model deserialization (%s)", err.Error()))
+		return nil, fmt.Errorf("bert: error during model deserialization (%s)", err.Error())
 	}
-	fmt.Println("ok")
+	log.Printf("Done.")
 
 	return model, nil
 }
