@@ -60,13 +60,18 @@ func GraphvizGraph(g *ag.Graph) (gographviz.Interface, error) {
 
 func (r *graphvizGraph) addGVVariable(v *ag.Variable) error {
 	id := fmt.Sprintf("%d", v.ID())
+	name := v.Name()
+	if name == "" {
+		name = "-"
+	}
 	label := fmt.Sprintf(
 		`<
 			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
-			variable<BR />
+			variable <B>%s</B><BR />
 			%s
 		>`,
 		v.ID(),
+		name,
 		gvMatrixShape(v.Value()),
 	)
 	attrs := map[string]string{

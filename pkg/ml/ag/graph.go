@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"fmt"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/mat32/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
@@ -217,10 +218,35 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	return newNode
 }
 
+// NewVariableWithName creates and returns a new node.
+func (g *Graph) NewVariableWithName(value mat.Matrix, requiresGrad bool, name string) Node {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	newNode := &Variable{
+		graph:        g,
+		timeStep:     g.curTimeStep,
+		id:           g.newID(),
+		name:         name,
+		value:        value,
+		grad:         nil,
+		hasGrad:      false,
+		requiresGrad: requiresGrad,
+	}
+	// the new ID is sequential so it corresponds to the index in g.nodes
+	g.nodes = append(g.nodes, newNode)
+	return newNode
+}
+
 // NewScalar creates a variable node that doesn't require gradients.
 // TODO: Why shouldn't gradient be required by default?
 func (g *Graph) NewScalar(value mat.Float) Node {
 	return g.NewVariable(mat.NewScalar(value), false)
+}
+
+// NewScalarWithName creates a variable node that doesn't require gradients.
+// TODO: Why shouldn't gradient be required by default?
+func (g *Graph) NewScalarWithName(value mat.Float, name string) Node {
+	return g.NewVariableWithName(mat.NewScalar(value), false, name)
 }
 
 // Constant returns a scalar Node that that doesn't require gradients.
@@ -232,7 +258,7 @@ func (g *Graph) Constant(value mat.Float) Node {
 	if node, ok := g.constants[value]; ok {
 		return node
 	}
-	node := g.NewVariable(mat.NewScalar(value), false)
+	node := g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
 	g.constants[value] = node
 	return node
 }

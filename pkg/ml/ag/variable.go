@@ -21,6 +21,7 @@ type Variable struct {
 	graph        *Graph
 	timeStep     int
 	id           int
+	name         string
 	value        mat.Matrix // store the results of a forward evaluation.
 	mu           sync.Mutex // to avoid data race during gradients accumulation
 	grad         mat.Matrix // TODO: support of sparse gradients
@@ -31,6 +32,13 @@ type Variable struct {
 // ID returns the ID of the node in the graph.
 func (r *Variable) ID() int {
 	return r.id
+}
+
+// Name returns the Name of the variable (it can be empty).
+// Never refer to a variable by its name and use it only for debugging purposes.
+// The name is set by g.NewVariableWithName().
+func (r *Variable) Name() string {
+	return r.name
 }
 
 // Graph returns the graph this node belongs to.
