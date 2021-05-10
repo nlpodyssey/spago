@@ -9,7 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
-// GraphvizGraph creates a gographviz graph representation of the Graph.
-func GraphvizGraph(g *ag.Graph) (gographviz.Interface, error) {
+// BuildGraph creates a gographviz representation of the Graph.
+func BuildGraph(g *ag.Graph) (gographviz.Interface, error) {
 	return newBuilder(g).build()
 }
