@@ -21,9 +21,14 @@ func NewProd(x1, x2 Operand) *Prod {
 	return &Prod{x1: x1, x2: x2}
 }
 
+// Square is an operator to perform element-wise square.
+type Square struct {
+	*Prod
+}
+
 // NewSquare returns a new Prod Function with both operands set to the given value x.
-func NewSquare(x Operand) *Prod {
-	return &Prod{x1: x, x2: x}
+func NewSquare(x Operand) *Square {
+	return &Square{Prod: &Prod{x1: x, x2: x}}
 }
 
 // Forward computes the output of the node.
