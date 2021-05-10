@@ -20,7 +20,7 @@ func MAE(g *ag.Graph, x ag.Node, y ag.Node, reduceMean bool) ag.Node {
 
 // MSE measures the mean squared error (squared L2 norm) between each element in the input x and target y.
 func MSE(g *ag.Graph, x ag.Node, y ag.Node, reduceMean bool) ag.Node {
-	loss := g.ProdScalar(g.Square(g.Sub(x, y)), g.NewScalar(0.5))
+	loss := g.ProdScalar(g.Square(g.Sub(x, y)), g.Constant(0.5))
 	if reduceMean {
 		return g.ReduceMean(loss)
 	}
