@@ -41,6 +41,12 @@ func (r *Operator) ID() int {
 	return r.id
 }
 
+// Name returns the Name of the operator.
+// The name is taken from the name of r.function via reflection.
+func (r *Operator) Name() string {
+	return reflect.ValueOf(r.function).Elem().Type().Name()
+}
+
 // Graph returns the graph this node belongs to.
 func (r *Operator) Graph() *Graph {
 	return r.graph
