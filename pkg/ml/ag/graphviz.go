@@ -20,6 +20,9 @@ func (g *Graph) GraphvizGraph() (gographviz.Interface, error) {
 	if err := gg.SetDir(true); err != nil {
 		return nil, err
 	}
+	if err := gg.AddAttr("", "rankdir", "LR"); err != nil {
+		return nil, err
+	}
 
 	for _, node := range g.nodes {
 		switch nt := node.(type) {
