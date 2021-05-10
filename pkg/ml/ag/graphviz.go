@@ -9,8 +9,6 @@ import (
 	"github.com/awalterschulze/gographviz"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"reflect"
-	"strconv"
-	"strings"
 )
 
 // GraphvizGraph creates a gographviz graph representation of the Graph.
@@ -48,14 +46,12 @@ func (g *Graph) addGVVariable(gg gographviz.Interface, v *variable) error {
 	id := fmt.Sprintf("%d", v.ID())
 	label := fmt.Sprintf(
 		`<
-			<TABLE BORDER="0">
-				<TR><TD><FONT COLOR="#707070" POINT-SIZE="11">%d</FONT></TD></TR>
-				<TR><TD>variable</TD></TR>
-				<TR><TD><FONT FACE="monospace" POINT-SIZE="9">%s</FONT></TD></TR>
-			</TABLE>
+			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			variable<BR />
+			%s
 		>`,
 		v.ID(),
-		gvMatrixTable(v.value),
+		gvMatrixShape(v.value),
 	)
 	attrs := map[string]string{
 		"label": label,
@@ -69,14 +65,13 @@ func (g *Graph) addGVOperator(gg gographviz.Interface, op *operator) error {
 	funcName := reflect.ValueOf(op.function).Elem().Type().Name()
 	label := fmt.Sprintf(
 		`<
-			<TABLE BORDER="0">
-				<TR><TD><FONT COLOR="#707070" POINT-SIZE="11">%d</FONT></TD></TR>
-				<TR><TD>operator</TD></TR>
-				<TR><TD><B>%s</B></TD></TR>
-			</TABLE>
+			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			<B>%s</B><BR />
+			%s
 		>`,
 		op.ID(),
 		funcName,
+		gvMatrixShape(op.Value()),
 	)
 	attrs := map[string]string{
 		"label": label,
@@ -94,56 +89,12 @@ func (g *Graph) addGVOperator(gg gographviz.Interface, op *operator) error {
 	return nil
 }
 
-func gvMatrixTable(m mat.Matrix) string {
-	var b strings.Builder
-	b.WriteString(`<TABLE BORDER="0" CELLSPACING="0">`)
-
-	nRows := m.Rows()
-	nCols := m.Columns()
-
-	collapseThreshold := 7
-	collapsedRows := nRows > collapseThreshold
-	collapsedCols := nCols > collapseThreshold
-	nonCollapsed := 3
-
-	b.WriteString(`<TR><TD BORDER="0"></TD>`)
-	for c := 0; c < nCols; c++ {
-		if collapsedCols && c == nonCollapsed {
-			b.WriteString(`<TD BORDER="1"><B>…</B></TD>`)
-			c = nCols - nonCollapsed - 1
-			continue
-		}
-		b.WriteString(fmt.Sprintf(`<TD BORDER="1"><B>%d</B></TD>`, c))
+func gvMatrixShape(m mat.Matrix) string {
+	if m == nil {
+		return ""
 	}
-	b.WriteString("</TR>")
-
-	for r := 0; r < nRows; r++ {
-		if collapsedRows && r == nonCollapsed {
-			b.WriteString(`<TR><TD BORDER="1"><B>…</B></TD>`)
-			for c := 0; c < nCols; c++ {
-				b.WriteString(`<TD BORDER="1"><B>…</B></TD>`)
-				if collapsedCols && c == nonCollapsed {
-					c = nCols - nonCollapsed - 1
-				}
-			}
-			b.WriteString("</TR>")
-			r = nRows - nonCollapsed - 1
-			continue
-		}
-
-		b.WriteString(fmt.Sprintf(`<TR><TD BORDER="1"><B>%d</B></TD>`, r))
-		for c := 0; c < nCols; c++ {
-			if collapsedCols && c == nonCollapsed {
-				b.WriteString(`<TD BORDER="1"><B>…</B></TD>`)
-				c = nCols - nonCollapsed - 1
-				continue
-			}
-			f := strconv.FormatFloat(float64(m.At(r, c)), 'g', -1, 64)
-			b.WriteString(fmt.Sprintf(`<TD BORDER="1">%s</TD>`, f))
-		}
-		b.WriteString("</TR>")
+	if m.IsScalar() {
+		return "scalar"
 	}
-
-	b.WriteString("</TABLE>")
-	return b.String()
+	return fmt.Sprintf("%d × %d", m.Rows(), m.Columns())
 }
