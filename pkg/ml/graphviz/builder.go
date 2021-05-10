@@ -90,7 +90,7 @@ func (b *builder) addVariable(v *ag.Variable) error {
 		"shape": "box",
 		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := timeStepGraphName(v.TimeStep())
+	parentGraph := b.timeStepGraphName(v.TimeStep())
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
@@ -110,7 +110,7 @@ func (b *builder) addWrapper(v *ag.Wrapper) error {
 		"shape": "box",
 		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := timeStepGraphName(v.TimeStep())
+	parentGraph := b.timeStepGraphName(v.TimeStep())
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
@@ -135,7 +135,7 @@ func (b *builder) addParam(v *ag.Wrapper, name string) error {
 		"shape": "box",
 		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := timeStepGraphName(v.TimeStep())
+	parentGraph := b.timeStepGraphName(v.TimeStep())
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
@@ -155,7 +155,7 @@ func (b *builder) addOperator(op *ag.Operator) error {
 		"label": label,
 		"color": b.timeStepColor(op.TimeStep()),
 	}
-	parentGraph := timeStepGraphName(op.TimeStep())
+	parentGraph := b.timeStepGraphName(op.TimeStep())
 	if err := b.gv.AddNode(parentGraph, operatorID, attrs); err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func (b *builder) addTimeStepSubGraph(timeStep int) error {
 		"fontcolor": b.timeStepColor(timeStep),
 		"fontsize":  "11",
 	}
-	return b.gv.AddSubGraph("", timeStepGraphName(timeStep), attrs)
+	return b.gv.AddSubGraph("", b.timeStepGraphName(timeStep), attrs)
 }
 
 func (b *builder) timeStepColor(timeStep int) string {
@@ -196,6 +196,9 @@ func matrixShapeString(m mat.Matrix) string {
 	return fmt.Sprintf("%d × %d", m.Rows(), m.Columns())
 }
 
-func timeStepGraphName(timeStep int) string {
+func (b *builder) timeStepGraphName(timeStep int) string {
+	if b.g.TimeStep() == 0 {
+		return fmt.Sprintf("time_step_%d", timeStep)
+	}
 	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
