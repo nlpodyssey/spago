@@ -34,7 +34,15 @@ func (b *builder) build() (gographviz.Interface, error) {
 		return nil, err
 	}
 
+	lastTimeStep := -1
 	for _, node := range b.g.Nodes() {
+		if ts := node.TimeStep(); ts != lastTimeStep {
+			if err := b.addTimeStepSubGraph(ts); err != nil {
+				return nil, err
+			}
+			lastTimeStep = ts
+		}
+
 		switch nt := node.(type) {
 		case *ag.Variable:
 			if err := b.addVariable(nt); err != nil {
@@ -80,8 +88,10 @@ func (b *builder) addVariable(v *ag.Variable) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
+		"color": b.timeStepColor(v.TimeStep()),
 	}
-	return b.gv.AddNode("", id, attrs)
+	parentGraph := timeStepGraphName(v.TimeStep())
+	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
 func (b *builder) addWrapper(v *ag.Wrapper) error {
@@ -98,8 +108,10 @@ func (b *builder) addWrapper(v *ag.Wrapper) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
+		"color": b.timeStepColor(v.TimeStep()),
 	}
-	return b.gv.AddNode("", id, attrs)
+	parentGraph := timeStepGraphName(v.TimeStep())
+	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
 func (b *builder) addParam(v *ag.Wrapper, name string) error {
@@ -121,8 +133,10 @@ func (b *builder) addParam(v *ag.Wrapper, name string) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
+		"color": b.timeStepColor(v.TimeStep()),
 	}
-	return b.gv.AddNode("", id, attrs)
+	parentGraph := timeStepGraphName(v.TimeStep())
+	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
 func (b *builder) addOperator(op *ag.Operator) error {
@@ -139,8 +153,10 @@ func (b *builder) addOperator(op *ag.Operator) error {
 	)
 	attrs := map[string]string{
 		"label": label,
+		"color": b.timeStepColor(op.TimeStep()),
 	}
-	if err := b.gv.AddNode("", operatorID, attrs); err != nil {
+	parentGraph := timeStepGraphName(op.TimeStep())
+	if err := b.gv.AddNode(parentGraph, operatorID, attrs); err != nil {
 		return err
 	}
 
@@ -153,6 +169,23 @@ func (b *builder) addOperator(op *ag.Operator) error {
 	return nil
 }
 
+func (b *builder) addTimeStepSubGraph(timeStep int) error {
+	attrs := map[string]string{
+		"label":     fmt.Sprintf("Time Step %d", timeStep),
+		"color":     b.timeStepColor(timeStep),
+		"fontcolor": b.timeStepColor(timeStep),
+		"fontsize":  "11",
+	}
+	return b.gv.AddSubGraph("", timeStepGraphName(timeStep), attrs)
+}
+
+func (b *builder) timeStepColor(timeStep int) string {
+	if !b.opt.ColoredTimeSteps {
+		return "#000000"
+	}
+	return timeStepColors[timeStep%len(timeStepColors)]
+}
+
 func matrixShapeString(m mat.Matrix) string {
 	if m == nil {
 		return ""
@@ -161,4 +194,8 @@ func matrixShapeString(m mat.Matrix) string {
 		return "scalar"
 	}
 	return fmt.Sprintf("%d × %d", m.Rows(), m.Columns())
+}
+
+func timeStepGraphName(timeStep int) string {
+	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
