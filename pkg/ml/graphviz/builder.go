@@ -13,14 +13,16 @@ import (
 )
 
 type builder struct {
-	g  *ag.Graph
-	gv gographviz.Interface
+	g   *ag.Graph
+	gv  gographviz.Interface
+	opt Options
 }
 
-func newBuilder(g *ag.Graph) *builder {
+func newBuilder(g *ag.Graph, options Options) *builder {
 	return &builder{
-		g:  g,
-		gv: gographviz.NewEscape(),
+		g:   g,
+		gv:  gographviz.NewEscape(),
+		opt: options,
 	}
 }
 

@@ -10,6 +10,6 @@ import (
 )
 
 // BuildGraph creates a gographviz representation of the Graph.
-func BuildGraph(g *ag.Graph) (gographviz.Interface, error) {
-	return newBuilder(g).build()
+func BuildGraph(g *ag.Graph, options Options) (gographviz.Interface, error) {
+	return newBuilder(g, options).build()
 }
