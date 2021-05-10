@@ -15,6 +15,7 @@ var (
 	_ Node       = &Wrapper{}
 )
 
+// Wrapper is a type of node.
 type Wrapper struct {
 	GradValue
 	graph    *Graph

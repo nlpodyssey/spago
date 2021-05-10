@@ -16,6 +16,7 @@ var (
 	_ Node       = &Variable{}
 )
 
+// Variable is a type of node.
 type Variable struct {
 	graph        *Graph
 	timeStep     int

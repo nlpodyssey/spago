@@ -23,6 +23,7 @@ var operatorPool = sync.Pool{
 	},
 }
 
+// Operator is a type of node.
 type Operator struct {
 	graph        *Graph
 	timeStep     int
