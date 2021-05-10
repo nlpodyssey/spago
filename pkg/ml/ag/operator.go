@@ -108,7 +108,12 @@ func (r *Operator) TimeStep() int {
 	return r.timeStep
 }
 
-func (r *operator) backward() {
+// Operands returns the operands of the operator.
+func (r *Operator) Operands() []Node {
+	return r.operands
+}
+
+func (r *Operator) backward() {
 	if !r.hasGrad {
 		return
 	}
