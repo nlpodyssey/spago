@@ -103,7 +103,7 @@ func (r *graphvizGraph) addGVParam(v *ag.Wrapper, name string) error {
 	label := fmt.Sprintf(
 		`<
 			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
-			param (<B>%s</B>)<BR />
+			param <B>%s</B><BR />
 			%s
 		>`,
 		v.ID(),
