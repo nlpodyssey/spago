@@ -86,6 +86,11 @@ func TimeStep() int {
 	return globalGraph.TimeStep()
 }
 
+// Nodes returns the nodes of the graph.
+func Nodes() []Node {
+	return globalGraph.Nodes()
+}
+
 // Forward computes the results of the entire global raph.
 func Forward(opts ...ForwardOption) {
 	globalGraph.Forward(opts...)

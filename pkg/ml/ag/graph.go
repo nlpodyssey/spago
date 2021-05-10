@@ -483,6 +483,11 @@ func (g *Graph) TimeStep() int {
 	return int(g.curTimeStep)
 }
 
+// Nodes returns the nodes of the graph.
+func (g *Graph) Nodes() []Node {
+	return g.nodes
+}
+
 // ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 func (g *Graph) ConcurrentComputations() int {
