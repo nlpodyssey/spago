@@ -175,7 +175,7 @@ func (r *param) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
-// RequiresGrad is an option to specify whether a Param should be trained or not.
+// SetRequiresGrad is an option to specify whether a Param should be trained or not.
 func (r *param) SetRequiresGrad(value bool) {
 	r.requiresGrad = value
 }
