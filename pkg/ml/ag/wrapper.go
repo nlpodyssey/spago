@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	_ fn.Operand = &wrapper{}
-	_ GradValue  = &wrapper{}
-	_ Node       = &wrapper{}
+	_ fn.Operand = &Wrapper{}
+	_ GradValue  = &Wrapper{}
+	_ Node       = &Wrapper{}
 )
 
-type wrapper struct {
+type Wrapper struct {
 	GradValue
 	graph    *Graph
 	timeStep int
@@ -24,17 +24,17 @@ type wrapper struct {
 }
 
 // ID returns the ID of the node in the graph.
-func (r *wrapper) ID() int {
+func (r *Wrapper) ID() int {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *wrapper) Graph() *Graph {
+func (r *Wrapper) Graph() *Graph {
 	return r.graph
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *wrapper) Grad() mat.Matrix {
+func (r *Wrapper) Grad() mat.Matrix {
 	if !r.wrapGrad {
 		return nil
 	}
@@ -42,7 +42,7 @@ func (r *wrapper) Grad() mat.Matrix {
 }
 
 // PropagateGrad propagates the gradients to the node.
-func (r *wrapper) PropagateGrad(gx mat.Matrix) {
+func (r *Wrapper) PropagateGrad(gx mat.Matrix) {
 	if !r.wrapGrad {
 		return
 	}
@@ -50,7 +50,7 @@ func (r *wrapper) PropagateGrad(gx mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *wrapper) HasGrad() bool {
+func (r *Wrapper) HasGrad() bool {
 	if !r.wrapGrad {
 		return false
 	}
@@ -58,7 +58,7 @@ func (r *wrapper) HasGrad() bool {
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *wrapper) RequiresGrad() bool {
+func (r *Wrapper) RequiresGrad() bool {
 	if !r.wrapGrad {
 		return false
 	}
@@ -66,13 +66,14 @@ func (r *wrapper) RequiresGrad() bool {
 }
 
 // ZeroGrad set the gradients to zeros.
-func (r *wrapper) ZeroGrad() {
+func (r *Wrapper) ZeroGrad() {
 	if !r.wrapGrad {
 		return
 	}
 	r.GradValue.ZeroGrad()
 }
 
-func (r *wrapper) TimeStep() int {
+// TimeStep returns the time-step of the node.
+func (r *Wrapper) TimeStep() int {
 	return r.timeStep
 }

@@ -17,7 +17,7 @@ type forwardHandler struct {
 
 func (h *forwardHandler) runSerial() {
 	for _, node := range h.g.nodes {
-		if op, ok := node.(*operator); ok {
+		if op, ok := node.(*Operator); ok {
 			if op.timeStep < h.fromTimeStep {
 				continue
 			}
@@ -36,7 +36,7 @@ func (h *forwardHandler) runConcurrent() {
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
-			op, isOperator := node.(*operator)
+			op, isOperator := node.(*Operator)
 			if !isOperator || (op.timeStep < fromTS || (toTS != -1 && op.timeStep > toTS)) {
 				continue
 			}
@@ -76,7 +76,7 @@ func (h *backwardHandler) runSerial() {
 		if truncated && nodes[i].TimeStep() <= stopAtTimeStep {
 			break
 		}
-		if node, ok := nodes[i].(*operator); ok {
+		if node, ok := nodes[i].(*Operator); ok {
 			node.backward()
 		}
 	}
@@ -94,7 +94,7 @@ func (h *backwardHandler) runConcurrent() {
 			if truncated && node.TimeStep() <= stopAtTimeStep {
 				break
 			}
-			op, isOperator := node.(*operator)
+			op, isOperator := node.(*Operator)
 			if !isOperator {
 				continue
 			}

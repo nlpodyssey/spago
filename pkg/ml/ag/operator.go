@@ -7,22 +7,23 @@ package ag
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
+	"reflect"
 	"sync"
 )
 
 var (
-	_ fn.Operand = &operator{}
-	_ GradValue  = &operator{}
-	_ Node       = &operator{}
+	_ fn.Operand = &Operator{}
+	_ GradValue  = &Operator{}
+	_ Node       = &Operator{}
 )
 
 var operatorPool = sync.Pool{
 	New: func() interface{} {
-		return new(operator)
+		return new(Operator)
 	},
 }
 
-type operator struct {
+type Operator struct {
 	graph        *Graph
 	timeStep     int
 	id           int
@@ -36,34 +37,34 @@ type operator struct {
 }
 
 // ID returns the ID of the node in the graph.
-func (r *operator) ID() int {
+func (r *Operator) ID() int {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *operator) Graph() *Graph {
+func (r *Operator) Graph() *Graph {
 	return r.graph
 }
 
 // Value returns the cached result of the function.
-func (r *operator) Value() mat.Matrix {
+func (r *Operator) Value() mat.Matrix {
 	return r.value
 }
 
-// ScalarValue() returns the the scalar value of the node.
+// ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *operator) ScalarValue() mat.Float {
+func (r *Operator) ScalarValue() mat.Float {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *operator) Grad() mat.Matrix {
+func (r *Operator) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *operator) PropagateGrad(grad mat.Matrix) {
+func (r *Operator) PropagateGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}
@@ -77,17 +78,17 @@ func (r *operator) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *operator) HasGrad() bool {
+func (r *Operator) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *operator) RequiresGrad() bool {
+func (r *Operator) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *operator) ZeroGrad() {
+func (r *Operator) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
@@ -96,7 +97,8 @@ func (r *operator) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *operator) TimeStep() int {
+// TimeStep returns the time-step of the node.
+func (r *Operator) TimeStep() int {
 	return r.timeStep
 }
 

@@ -287,8 +287,8 @@ func TestGraph_NewWrap(t *testing.T) {
 	g.IncTimeStep()
 
 	result := g.NewWrap(s)
-	assert.IsType(t, &wrapper{}, result)
-	w := result.(*wrapper)
+	assert.IsType(t, &Wrapper{}, result)
+	w := result.(*Wrapper)
 
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)
@@ -303,8 +303,8 @@ func TestGraph_NewWrapNoGrad(t *testing.T) {
 	g.IncTimeStep()
 
 	result := g.NewWrapNoGrad(s)
-	assert.IsType(t, &wrapper{}, result)
-	w := result.(*wrapper)
+	assert.IsType(t, &Wrapper{}, result)
+	w := result.(*Wrapper)
 
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)

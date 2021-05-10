@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	_ fn.Operand = &variable{}
-	_ GradValue  = &variable{}
-	_ Node       = &variable{}
+	_ fn.Operand = &Variable{}
+	_ GradValue  = &Variable{}
+	_ Node       = &Variable{}
 )
 
-type variable struct {
+type Variable struct {
 	graph        *Graph
 	timeStep     int
 	id           int
@@ -28,34 +28,34 @@ type variable struct {
 }
 
 // ID returns the ID of the node in the graph.
-func (r *variable) ID() int {
+func (r *Variable) ID() int {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *variable) Graph() *Graph {
+func (r *Variable) Graph() *Graph {
 	return r.graph
 }
 
 // Value returns the value of the variable itself.
-func (r *variable) Value() mat.Matrix {
+func (r *Variable) Value() mat.Matrix {
 	return r.value
 }
 
-// ScalarValue() returns the the scalar value of the node.
+// ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *variable) ScalarValue() mat.Float {
+func (r *Variable) ScalarValue() mat.Float {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *variable) Grad() mat.Matrix {
+func (r *Variable) Grad() mat.Matrix {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *variable) PropagateGrad(grad mat.Matrix) {
+func (r *Variable) PropagateGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}
@@ -69,17 +69,17 @@ func (r *variable) PropagateGrad(grad mat.Matrix) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *variable) HasGrad() bool {
+func (r *Variable) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *variable) RequiresGrad() bool {
+func (r *Variable) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *variable) ZeroGrad() {
+func (r *Variable) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
@@ -88,6 +88,7 @@ func (r *variable) ZeroGrad() {
 	r.hasGrad = false
 }
 
-func (r *variable) TimeStep() int {
+// TimeStep returns the time-step of the node.
+func (r *Variable) TimeStep() int {
 	return r.timeStep
 }

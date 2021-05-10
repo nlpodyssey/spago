@@ -137,8 +137,8 @@ func (g *Graph) Clear() {
 	g.releaseMemory()
 
 	for _, node := range g.nodes {
-		if node, ok := node.(*operator); ok {
-			*node = operator{}
+		if node, ok := node.(*Operator); ok {
+			*node = Operator{}
 			operatorPool.Put(node)
 		}
 	}
@@ -171,7 +171,7 @@ func (g *Graph) ClearForReuse() {
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph) releaseMemory() {
 	for _, node := range g.nodes {
-		if node, ok := node.(*operator); ok {
+		if node, ok := node.(*Operator); ok {
 			g.releaseValue(node)
 			g.releaseGrad(node)
 		}
@@ -179,7 +179,7 @@ func (g *Graph) releaseMemory() {
 }
 
 // releaseValue set the node value to nil release the memory.
-func (g *Graph) releaseValue(node *operator) {
+func (g *Graph) releaseValue(node *Operator) {
 	if node.value == nil {
 		return
 	}
@@ -188,7 +188,7 @@ func (g *Graph) releaseValue(node *operator) {
 }
 
 // releaseGrad set the node gradient to nil and release the memory.
-func (g *Graph) releaseGrad(node *operator) {
+func (g *Graph) releaseGrad(node *Operator) {
 	node.ZeroGrad()
 }
 
@@ -203,7 +203,7 @@ func (g *Graph) ZeroGrad() {
 func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newNode := &variable{
+	newNode := &Variable{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		id:           g.newID(),
@@ -261,12 +261,12 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 		}
 	}
 
-	newNode := operatorPool.Get().(*operator)
+	newNode := operatorPool.Get().(*Operator)
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	*newNode = operator{
+	*newNode = Operator{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		id:           g.newID(),
@@ -288,7 +288,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 func (g *Graph) NewWrap(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newNode := &wrapper{
+	newNode := &Wrapper{
 		GradValue: value,
 		timeStep:  g.curTimeStep,
 		graph:     g,
@@ -305,7 +305,7 @@ func (g *Graph) NewWrap(value GradValue) Node {
 func (g *Graph) NewWrapNoGrad(value GradValue) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	newNode := &wrapper{
+	newNode := &Wrapper{
 		GradValue: value,
 		graph:     g,
 		timeStep:  g.curTimeStep,
@@ -352,7 +352,7 @@ func (g *Graph) Forward(opts ...ForwardOption) {
 
 	// Free the values that are about to be recalculated so that memory is not wasted
 	for _, node := range g.nodes {
-		if op, ok := node.(*operator); ok {
+		if op, ok := node.(*Operator); ok {
 			if op.timeStep >= handler.fromTimeStep && (handler.toTimeStep == -1 || op.timeStep <= handler.toTimeStep) {
 				g.releaseValue(op)
 			}
@@ -464,7 +464,7 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 // ReplaceValue replaces the current value of a variable Node with the given value.
 // It panics if node is not a variable.
 func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
-	if node, ok := node.(*variable); !ok {
+	if node, ok := node.(*Variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
 	} else {
 		node.value = value
@@ -506,9 +506,9 @@ func (g *Graph) groupNodesByHeight() [][]Node {
 	startIndex := g.cache.maxID + 1
 	for _, node := range g.nodes[startIndex:] {
 		h := 0
-		if node, ok := node.(*operator); ok {
+		if node, ok := node.(*Operator); ok {
 			for _, operand := range node.operands {
-				if operand, ok := operand.(*operator); ok {
+				if operand, ok := operand.(*Operator); ok {
 					if height[operand.id] >= h {
 						h = height[operand.id] + 1
 					}
