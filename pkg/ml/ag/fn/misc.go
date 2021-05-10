@@ -8,130 +8,233 @@ import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 )
 
+// Tan is an operator to perform element-wise tangent.
+type Tan struct {
+	*UnaryElementwise
+}
+
 // NewTan returns a new UnaryElementwise tangent function.
-func NewTan(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  tan,
-		df: tanDeriv,
+func NewTan(x Operand) *Tan {
+	return &Tan{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  tan,
+			df: tanDeriv,
+		},
 	}
+}
+
+// Tanh is an operator to perform element-wise hyperbolic tangent.
+type Tanh struct {
+	*UnaryElementwise
 }
 
 // NewTanh returns a new UnaryElementwise hyperbolic tangent function.
-func NewTanh(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  tanh,
-		df: tanhDeriv,
+func NewTanh(x Operand) *Tanh {
+	return &Tanh{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  tanh,
+			df: tanhDeriv,
+		},
 	}
+}
+
+// Sigmoid is an operator to perform element-wise sigmoid.
+type Sigmoid struct {
+	*UnaryElementwise
 }
 
 // NewSigmoid returns a new UnaryElementwise sigmoid function.
-func NewSigmoid(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  sigmoid,
-		df: sigmoidDeriv,
+func NewSigmoid(x Operand) *Sigmoid {
+	return &Sigmoid{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  sigmoid,
+			df: sigmoidDeriv,
+		},
 	}
+}
+
+// HardSigmoid is an operator to perform element-wise hard sigmoid.
+type HardSigmoid struct {
+	*UnaryElementwise
 }
 
 // NewHardSigmoid returns a new UnaryElementwise hard sigmoid function.
-func NewHardSigmoid(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  hardSigmoid,
-		df: hardSigmoidDeriv,
+func NewHardSigmoid(x Operand) *HardSigmoid {
+	return &HardSigmoid{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  hardSigmoid,
+			df: hardSigmoidDeriv,
+		},
 	}
+}
+
+// HardTanh is an operator to perform element-wise hard hyperbolic tangent.
+type HardTanh struct {
+	*UnaryElementwise
 }
 
 // NewHardTanh returns a new UnaryElementwise hard hyperbolic tangent function.
-func NewHardTanh(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  hardTanh,
-		df: hardTanhDeriv,
+func NewHardTanh(x Operand) *HardTanh {
+	return &HardTanh{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  hardTanh,
+			df: hardTanhDeriv,
+		},
 	}
+}
+
+// ReLU is an operator to perform element-wise Rectified Linear Unit (ReLU)
+type ReLU struct {
+	*UnaryElementwise
 }
 
 // NewReLU returns a new UnaryElementwise Rectified Linear Unit (ReLU) function.
-func NewReLU(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  relu,
-		df: reluDeriv,
+func NewReLU(x Operand) *ReLU {
+	return &ReLU{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  relu,
+			df: reluDeriv,
+		},
 	}
+}
+
+// Softsign is an operator to perform element-wise softsign.
+type Softsign struct {
+	*UnaryElementwise
 }
 
 // NewSoftsign returns a new UnaryElementwise softsign function.
-func NewSoftsign(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  softsign,
-		df: softsignDeriv,
+func NewSoftsign(x Operand) *Softsign {
+	return &Softsign{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  softsign,
+			df: softsignDeriv,
+		},
 	}
 }
 
-// NewCos returns a new UnaryElementwise cosine function.
-func NewCos(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
-		df: func(i, j int, v mat.Float) mat.Float { return -mat.Sin(v) },
+// Cos is an operator to perform element-wise cos.
+type Cos struct {
+	*UnaryElementwise
+}
+
+// NewCos returns a new UnaryElementwise cos function.
+func NewCos(x Operand) *Cos {
+	return &Cos{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
+			df: func(i, j int, v mat.Float) mat.Float { return -mat.Sin(v) },
+		},
 	}
+}
+
+// Sin is an operator to perform element-wise sin.
+type Sin struct {
+	*UnaryElementwise
 }
 
 // NewSin returns a new UnaryElementwise sine function.
-func NewSin(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Sin(v) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
+func NewSin(x Operand) *Sin {
+	return &Sin{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return mat.Sin(v) },
+			df: func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
+		},
 	}
+}
+
+// Exp is an operator to perform element-wise base-e exponential.
+type Exp struct {
+	*UnaryElementwise
 }
 
 // NewExp returns a new UnaryElementwise base-e exponential function.
-func NewExp(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
-		df: func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
+func NewExp(x Operand) *Exp {
+	return &Exp{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
+			df: func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
+		},
 	}
+}
+
+// Log is an operator to perform element-wise natural logarithm.
+type Log struct {
+	*UnaryElementwise
 }
 
 // NewLog returns a new UnaryElementwise natural logarithm function.
-func NewLog(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  safeLog,
-		df: safeLogDeriv,
+func NewLog(x Operand) *Log {
+	return &Log{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  safeLog,
+			df: safeLogDeriv,
+		},
 	}
+}
+
+// Neg is an operator to perform element-wise f(x) = -x
+type Neg struct {
+	*UnaryElementwise
 }
 
 // NewNeg returns a new UnaryElementwise f(x) = -x function.
-func NewNeg(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return -v },
-		df: func(i, j int, v mat.Float) mat.Float { return -1.0 },
+func NewNeg(x Operand) *Neg {
+	return &Neg{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return -v },
+			df: func(i, j int, v mat.Float) mat.Float { return -1.0 },
+		},
 	}
+}
+
+// Reciprocal is an operator to perform element-wise reciprocal.
+type Reciprocal struct {
+	*UnaryElementwise
 }
 
 // NewReciprocal returns a new UnaryElementwise reciprocal function.
-func NewReciprocal(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return 1.0 / v },
-		df: func(i, j int, v mat.Float) mat.Float { return -1.0 / (v * v) },
+func NewReciprocal(x Operand) *Reciprocal {
+	return &Reciprocal{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return 1.0 / v },
+			df: func(i, j int, v mat.Float) mat.Float { return -1.0 / (v * v) },
+		},
 	}
 }
 
+// Abs is an operator to perform element-wise absolute value function.
+type Abs struct {
+	*UnaryElementwise
+}
+
 // NewAbs returns a new UnaryElementwise absolute value function.
-func NewAbs(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Abs(v) },
-		df: absDeriv,
+func NewAbs(x Operand) *Abs {
+	return &Abs{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return mat.Abs(v) },
+			df: absDeriv,
+		},
 	}
+}
+
+// Mish is an operator to perform element-wise mish.
+type Mish struct {
+	*UnaryElementwise
 }
 
 // NewMish returns a new UnaryElementwise Mish function.
@@ -141,46 +244,67 @@ func NewAbs(x Operand) *UnaryElementwise {
 //
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function"
 // by Diganta Misra, 2019 (https://arxiv.org/pdf/1908.08681.pdf)
-func NewMish(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  mish,
-		df: mishDeriv,
+func NewMish(x Operand) *Mish {
+	return &Mish{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  mish,
+			df: mishDeriv,
+		},
 	}
+}
+
+// GELU is an operator to perform element-wise GELU.
+type GELU struct {
+	*UnaryElementwise
 }
 
 // NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
-func NewGELU(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  gelu,
-		df: geluDeriv,
+func NewGELU(x Operand) *GELU {
+	return &GELU{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  gelu,
+			df: geluDeriv,
+		},
 	}
+}
+
+// Sqrt is an operator to perform element-wise square root.
+type Sqrt struct {
+	*UnaryElementwise
 }
 
 // NewSqrt returns a new UnaryElementwise square root function.
-func NewSqrt(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  func(i, j int, v mat.Float) mat.Float { return mat.Sqrt(v) },
-		df: func(i, j int, v mat.Float) mat.Float { return 0.5 * mat.Pow(v, -0.5) },
+func NewSqrt(x Operand) *Sqrt {
+	return &Sqrt{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  func(i, j int, v mat.Float) mat.Float { return mat.Sqrt(v) },
+			df: func(i, j int, v mat.Float) mat.Float { return 0.5 * mat.Pow(v, -0.5) },
+		},
 	}
 }
 
+// Swish is an operator to perform element-wise x * sigmoid(x).
+type Swish struct {
+	*UnaryElementwise
+}
+
 // NewSwish returns a new function of the form f(x) = x * sigmoid(x).
-func NewSwish(x Operand) *UnaryElementwise {
-	return &UnaryElementwise{
-		x:  x,
-		f:  swish,
-		df: swishDeriv,
+func NewSwish(x Operand) *Swish {
+	return &Swish{
+		UnaryElementwise: &UnaryElementwise{
+			x:  x,
+			f:  swish,
+			df: swishDeriv,
+		},
 	}
 }
 
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
-// The function is the same as NewSwish.
-func NewSiLU(x Operand) *UnaryElementwise {
-	return NewSwish(x)
-}
+// The function in an alias of NewSwish.
+var NewSiLU = NewSwish
 
 func absDeriv(i, j int, v mat.Float) mat.Float {
 	if v < 0 {
