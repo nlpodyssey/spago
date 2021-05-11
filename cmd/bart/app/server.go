@@ -6,7 +6,6 @@ package app
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
@@ -108,7 +107,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer nn.Close(model)
+		defer model.Close()
 
 		var bpeTokenizer *bpetokenizer.BPETokenizer
 		var spTokenizer *sentencepiece.Tokenizer

@@ -124,6 +124,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		defer model.Close()
 
 		fmt.Printf("Start %s HTTP server listening on %s.\n", func() string {
 			if app.tlsDisable {

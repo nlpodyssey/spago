@@ -56,6 +56,9 @@ type Model interface {
 	// InitProcessor is used to initialize structures and data useful for the Forward().
 	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
 	InitProcessor()
+	// Close can be used to close or finalize model structures.
+	// For example, embeddings.Model needs to close the underlying key-value store.
+	Close()
 }
 
 // StandardForwarder consists of a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
@@ -65,19 +68,6 @@ type StandardForwarder interface {
 	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward
 	// networks are stateless so every computation is independent and possibly concurrent.
 	Forward(xs ...ag.Node) []ag.Node
-}
-
-// Closer is implemented by any Model that requires to close or finalize its structures.
-// For example, embeddings.Model needs to close the underlying key-value store.
-type Closer interface {
-	Close()
-}
-
-// Close calls the Close() function of the model if it implements the Closer interface.
-func Close(m Model) {
-	if m, ok := m.(Closer); ok {
-		m.Close()
-	}
 }
 
 // StandardModel consists of a model that implements StandardForwarder.

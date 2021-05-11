@@ -22,7 +22,6 @@ import (
 )
 
 var _ nn.Model = &BartForZeroShotClassification{}
-var _ nn.Closer = &BartForZeroShotClassification{}
 
 // BartForZeroShotClassification combines a sequence classification BART
 // model with a BPE tokenizer to perform Zero-Shot Text Classification.

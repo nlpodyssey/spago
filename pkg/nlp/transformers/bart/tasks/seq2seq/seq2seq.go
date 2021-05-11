@@ -14,7 +14,6 @@ import (
 )
 
 var _ nn.Model = &BartForConditionalGeneration{}
-var _ nn.Closer = &BartForConditionalGeneration{}
 
 // BartForConditionalGeneration contains the Model and the Tokenizer
 // used for conditional generation tasks.

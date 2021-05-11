@@ -127,6 +127,7 @@ func newServerCommandActionFor(app *BertApp) func(c *cli.Context) error {
 		if err != nil {
 			log.Fatalf("error during model loading (%v)\n", err)
 		}
+		defer model.Close()
 		fmt.Printf("Config: %+v\n", model.Config)
 
 		if !app.tlsDisable {
