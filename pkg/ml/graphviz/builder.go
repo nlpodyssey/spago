@@ -34,8 +34,16 @@ func (b *builder) build() (gographviz.Interface, error) {
 		return nil, err
 	}
 
+	var nodesWithoutEdges intSet
+	if !b.opt.ShowNodesWithoutEdges {
+		nodesWithoutEdges = b.findNodesWithoutEdges()
+	}
+
 	lastTimeStep := -1
 	for _, node := range b.g.Nodes() {
+		if nodesWithoutEdges != nil && nodesWithoutEdges.Has(node.ID()) {
+			continue
+		}
 		if ts := node.TimeStep(); ts != lastTimeStep {
 			if err := b.addTimeStepSubGraph(ts); err != nil {
 				return nil, err
@@ -191,6 +199,21 @@ func (b *builder) timeStepGraphName(timeStep int) string {
 		return fmt.Sprintf("time_step_%d", timeStep)
 	}
 	return fmt.Sprintf("cluster_time_step_%d", timeStep)
+}
+
+func (b *builder) findNodesWithoutEdges() intSet {
+	ids := newIntSet()
+	for _, node := range b.g.Nodes() {
+		operator, isOperator := node.(*ag.Operator)
+		if !isOperator || len(operator.Operands()) == 0 {
+			ids.Add(node.ID())
+			continue
+		}
+		for _, operand := range operator.Operands() {
+			ids.Delete(operand.ID())
+		}
+	}
+	return ids
 }
 
 func matrixShapeString(m mat.Matrix) string {
