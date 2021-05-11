@@ -186,6 +186,13 @@ func (b *builder) timeStepColor(timeStep int) string {
 	return timeStepColors[timeStep%len(timeStepColors)]
 }
 
+func (b *builder) timeStepGraphName(timeStep int) string {
+	if b.g.TimeStep() == 0 {
+		return fmt.Sprintf("time_step_%d", timeStep)
+	}
+	return fmt.Sprintf("cluster_time_step_%d", timeStep)
+}
+
 func matrixShapeString(m mat.Matrix) string {
 	if m == nil {
 		return ""
@@ -194,11 +201,4 @@ func matrixShapeString(m mat.Matrix) string {
 		return "scalar"
 	}
 	return fmt.Sprintf("%d × %d", m.Rows(), m.Columns())
-}
-
-func (b *builder) timeStepGraphName(timeStep int) string {
-	if b.g.TimeStep() == 0 {
-		return fmt.Sprintf("time_step_%d", timeStep)
-	}
-	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
