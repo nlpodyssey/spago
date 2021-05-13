@@ -37,7 +37,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   list of the modified functions: `Tan`, `Tanh`, `Sigmoid`, `HardSigmoid`,
   `HardTanh`, `ReLU`, `Softsign`, `Cos`, `Sin`, `Exp`, `Log`, `Neg`,
   `Reciprocal`, `Abs`, `Mish`, `GELU`, `Sqrt`, `Swish`.
-  For the same reason, a dedicated `Square` Function is introduced, replacing
+  For the same reason, a dedicated `Square` function is introduced, replacing
   `Prod` with both operands set to the same value.
 - `ml/ag` types `Operator`, `Variable`, `Wrapper` are now public.
 - `ml/nn.Reify()` now expects a Graph and a Processing Mode arguments
@@ -47,7 +47,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and `ProcessingMode`).
 - Refactoring server implementation of `nlp/sequencelabeler`,
   `nlp/transformers/bert`, and `nlp/transformers/bart`.
-  
+- Upgrade various dependencies.
+- Regenerate protocol buffers files (with `protoc-gen-go` v1.26.0 and
+  `protoc` v3.16.0).
+
 ### Removed
 - `nlp/sequencelabeler.Load()` and `LoadEmbeddings()` (now replaced by
   `nlp/sequencelabeler.LoadModel()`)
