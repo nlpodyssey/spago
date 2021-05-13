@@ -42,7 +42,7 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb mat.Float)
 		prefix = m.model.SequenceSeparator
 	}
 	g := ag.NewGraph()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m.model).(*Model)
+	proc := nn.Reify(m.model, g, nn.Inference).(*Model)
 	characters := make([]string, 0)
 	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
 	characters = append(characters, next)

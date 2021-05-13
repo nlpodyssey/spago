@@ -37,8 +37,7 @@ func TestModelContextualizer(t *testing.T) {
 
 		sourceModel := &TestModel{ID: 42}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel)
+		result := Reify(sourceModel, g, Training)
 		assert.IsType(t, &TestModel{}, result)
 		assert.NotSame(t, sourceModel, result)
 		assert.Equal(t, &TestModel{ID: 42}, result)
@@ -53,13 +52,12 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
 		sourceModel := &TestModel{
 			A: NewParam(mat.NewScalar(1)).(*param).wrappedParam(g),
 		}
 
 		assert.Panics(t, func() {
-			Reify(ctx, sourceModel)
+			Reify(sourceModel, g, Training)
 		})
 	})
 
@@ -77,8 +75,7 @@ func TestModelContextualizer(t *testing.T) {
 			B: NewParam(mat.NewScalar(2)),
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A)
 		assert.IsType(t, &wrappedParam{}, result.B)
@@ -101,8 +98,7 @@ func TestModelContextualizer(t *testing.T) {
 			},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A[0])
 		assert.IsType(t, &wrappedParam{}, result.A[1])
@@ -146,8 +142,7 @@ func TestModelContextualizer(t *testing.T) {
 			},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
@@ -192,8 +187,7 @@ func TestModelContextualizer(t *testing.T) {
 			Baz: &MyStruct{X: 33},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.Equal(t, 11, result.Foo.X)
 		assert.Equal(t, 0, result.Bar.X)
@@ -228,8 +222,7 @@ func TestModelContextualizer(t *testing.T) {
 			Qux: []*MyStruct{{P: NewParam(mat.NewScalar(4))}},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz[0], result.Baz[0])
@@ -259,10 +252,9 @@ func TestModelContextualizer(t *testing.T) {
 			Foo: []int{1, 2, 3},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
 
 		assert.Panics(t, func() {
-			Reify(ctx, sourceModel)
+			Reify(sourceModel, g, Training)
 		})
 	})
 
@@ -281,8 +273,7 @@ func TestModelContextualizer(t *testing.T) {
 			},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.IsType(t, &wrappedParam{}, result.A["a"])
 		assert.IsType(t, &wrappedParam{}, result.A["b"])
@@ -312,8 +303,7 @@ func TestModelContextualizer(t *testing.T) {
 			Qux: map[string]*MyStruct{"d": {P: NewParam(mat.NewScalar(4))}},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
-		result := Reify(ctx, sourceModel).(*TestModel)
+		result := Reify(sourceModel, g, Training).(*TestModel)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz["c"], result.Baz["c"])
@@ -343,10 +333,9 @@ func TestModelContextualizer(t *testing.T) {
 			Foo: map[string]int{"a": 1, "b": 2},
 		}
 		g := ag.NewGraph()
-		ctx := Context{Graph: g, Mode: Training}
 
 		assert.Panics(t, func() {
-			Reify(ctx, sourceModel)
+			Reify(sourceModel, g, Training)
 		})
 	})
 }

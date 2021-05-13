@@ -23,7 +23,7 @@ func (m *Model) PredictMLM(text string) []Token {
 
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, m).(*Model)
+	proc := nn.Reify(m, g, nn.Inference).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	masked := make([]int, 0)

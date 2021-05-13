@@ -16,8 +16,7 @@ import (
 func TestModel_SyntheticAttention(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.8, -0.3, 0.5, 0.3}), true)

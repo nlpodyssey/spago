@@ -12,7 +12,7 @@ import (
 // ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
 // depending on whether you're doing training or inference.
 // Failing to set the right mode will yield inconsistent inference results.
-type ProcessingMode int
+type ProcessingMode uint8
 
 const (
 	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
@@ -20,25 +20,6 @@ const (
 	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
 	Inference
 )
-
-// Context is used to reify a Model (inc. sub-models) to operate on a graph, according to the desired ProcessingMode.
-type Context struct {
-	// Graph is the computational graph on which the processor(s) operate.
-	Graph *ag.Graph
-	// Mode regulates the different usage of some operations whether you're doing training or inference.
-	Mode ProcessingMode
-}
-
-// MarshalBinary satisfies package pkg/encoding/gob custom marshaling interface
-// We never want to marshal Context, hence this implementation returns an empty value
-func (c *Context) MarshalBinary() ([]byte, error) {
-	return []byte{}, nil
-}
-
-// UnmarshalBinary satisfies pkg/encoding/gob custom marshaling interface
-func (c *Context) UnmarshalBinary(data []byte) error {
-	return nil
-}
 
 // Model is implemented by all neural network architectures.
 // You can assign parameters (i.e. nn.Param) as regular attributes (if any).
@@ -77,8 +58,8 @@ type StandardModel interface {
 }
 
 // Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
-func Reify(ctx Context, m Model) Model {
-	return reifier{ctx: ctx}.reify(m)
+func Reify(m Model, g *ag.Graph, mode ProcessingMode) Model {
+	return newReifier(g, mode).reify(m)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.

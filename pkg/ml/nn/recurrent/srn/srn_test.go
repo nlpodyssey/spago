@@ -16,12 +16,11 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 
-	y := nn.ToNode(nn.Reify(ctx, model).(*Model).Forward(x))
+	y := nn.ToNode(nn.Reify(model, g, nn.Training).(*Model).Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
@@ -57,8 +56,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 	yPrev := g.Tanh(g.NewVariable(mat.NewVecDense([]mat.Float{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 	proc.SetInitialState(&State{Y: yPrev})
 	y := nn.ToNode(proc.Forward(x))
 
@@ -116,8 +114,7 @@ func newTestModel() *Model {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 	proc.SetInitialState(&State{
 		Y: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true),
 	})

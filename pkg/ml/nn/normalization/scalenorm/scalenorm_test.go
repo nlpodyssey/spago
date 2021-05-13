@@ -15,13 +15,12 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
 	// == Forward
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.0, 2.0, 0.0, 4.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := nn.Reify(ctx, model).(*Model).Forward(x1, x2, x3)
+	y := nn.Reify(model, g, nn.Training).(*Model).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{0.1091089451, -0.0872871560, 0.0, 0.6982972487}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []mat.Float{0.2121320343, -0.0565685424, 0.0424264068, 0.6788225099}, y[1].Value().Data(), 1.0e-06)

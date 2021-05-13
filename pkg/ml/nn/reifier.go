@@ -5,20 +5,29 @@
 package nn
 
 import (
+	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"reflect"
 )
 
 type reifier struct {
-	ctx Context
+	g    *ag.Graph
+	mode ProcessingMode
 }
 
-func (r reifier) reify(m Model) Model {
+func newReifier(g *ag.Graph, mode ProcessingMode) *reifier {
+	return &reifier{
+		g:    g,
+		mode: mode,
+	}
+}
+
+func (r *reifier) reify(m Model) Model {
 	p := r.reifyStruct(m).(Model)
 	p.InitProcessor()
 	return p
 }
 
-func (r reifier) reifyStruct(rawSource interface{}) interface{} {
+func (r *reifier) reifyStruct(rawSource interface{}) interface{} {
 	source := reflect.ValueOf(rawSource)
 	sourceType := reflect.TypeOf(rawSource)
 
@@ -58,10 +67,12 @@ func (r reifier) reifyStruct(rawSource interface{}) interface{} {
 	return destPointer.Interface()
 }
 
-func (r reifier) reifyStructField(sourceField, destField reflect.Value, tag moduleFieldTag) {
+func (r *reifier) reifyStructField(sourceField, destField reflect.Value, tag moduleFieldTag) {
 	switch sourceFieldT := sourceField.Interface().(type) {
-	case Context:
-		destField.Set(reflect.ValueOf(r.ctx))
+	case *ag.Graph:
+		destField.Set(reflect.ValueOf(r.g))
+	case ProcessingMode:
+		destField.Set(reflect.ValueOf(r.mode))
 	case BaseModel, *BaseModel:
 		destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 	case Param:
@@ -93,16 +104,16 @@ func (r reifier) reifyStructField(sourceField, destField reflect.Value, tag modu
 	}
 }
 
-func (r reifier) reifyModel(sourceField Model) Model {
+func (r *reifier) reifyModel(sourceField Model) Model {
 	if isNil(sourceField) {
 		return sourceField
 	}
-	p := Reify(r.ctx, sourceField)
+	p := Reify(sourceField, r.g, r.mode)
 	p.InitProcessor()
 	return p
 }
 
-func (r reifier) reifyModelSlice(sourceField []Model) []Model {
+func (r *reifier) reifyModelSlice(sourceField []Model) []Model {
 	result := make([]Model, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
 		result[i] = r.reifyModel(sourceField[i])
@@ -110,11 +121,11 @@ func (r reifier) reifyModelSlice(sourceField []Model) []Model {
 	return result
 }
 
-func (r reifier) reifyParam(sourceField *param) Param {
-	return sourceField.wrappedParam(r.ctx.Graph)
+func (r *reifier) reifyParam(sourceField *param) Param {
+	return sourceField.wrappedParam(r.g)
 }
 
-func (r reifier) reifyParamSlice(sourceField []Param) []Param {
+func (r *reifier) reifyParamSlice(sourceField []Param) []Param {
 	result := make([]Param, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
 		result[i] = r.reifyParam(sourceField[i].(*param))
@@ -122,7 +133,7 @@ func (r reifier) reifyParamSlice(sourceField []Param) []Param {
 	return result
 }
 
-func (r reifier) reifySlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
+func (r *reifier) reifySlice(sourceField reflect.Value, tag moduleFieldTag) reflect.Value {
 	length := sourceField.Len()
 	result := reflect.MakeSlice(sourceField.Type(), length, length)
 	isParamsTag := tag.Type == paramsModuleFieldType
@@ -149,7 +160,7 @@ func (r reifier) reifySlice(sourceField reflect.Value, tag moduleFieldTag) refle
 
 var paramInterfaceName = reflect.TypeOf((*Param)(nil)).Elem().Name()
 
-func (r reifier) reifyMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
+func (r *reifier) reifyMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
 	sourceType := reflect.TypeOf(sourceValue.Interface())
 	mapValueType := sourceType.Elem()
 

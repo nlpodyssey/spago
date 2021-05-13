@@ -66,8 +66,7 @@ func (m *Model) Answer(question string, passage string) Answers {
 
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	ctx := nn.Context{Graph: g, Mode: nn.Inference}
-	proc := nn.Reify(ctx, m).(*Model)
+	proc := nn.Reify(m, g, nn.Inference).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	startLogits, endLogits := proc.SpanClassifier.Classify(encoded)

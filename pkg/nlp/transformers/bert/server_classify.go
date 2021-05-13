@@ -107,7 +107,7 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.Reify(nn.Context{Graph: g, Mode: nn.Inference}, s.model).(*Model)
+	proc := nn.Reify(s.model, g, nn.Inference).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	logits := proc.SequenceClassification(encoded)

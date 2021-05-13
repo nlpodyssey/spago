@@ -15,8 +15,7 @@ import (
 func TestModel_Decode(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
@@ -34,8 +33,7 @@ func TestModel_Decode(t *testing.T) {
 func TestModel_GoldScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
@@ -52,8 +50,7 @@ func TestModel_GoldScore(t *testing.T) {
 func TestModel_TotalScore(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
@@ -69,8 +66,7 @@ func TestModel_TotalScore(t *testing.T) {
 func TestModel_Loss(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	ctx := nn.Context{Graph: g, Mode: nn.Training}
-	proc := nn.Reify(ctx, model).(*Model)
+	proc := nn.Reify(model, g, nn.Training).(*Model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
