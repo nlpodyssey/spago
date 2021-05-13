@@ -62,6 +62,18 @@ func Reify(m Model, g *ag.Graph, mode ProcessingMode) Model {
 	return newReifier(g, mode).reify(m)
 }
 
+// ReifyForTraining returns a new reified model (a.k.a. processor) with the
+// given Graph, setting the mode to Training.
+func ReifyForTraining(m Model, g *ag.Graph) Model {
+	return Reify(m, g, Training)
+}
+
+// ReifyForInference returns a new reified model (a.k.a. processor) with the
+// given Graph, setting the mode to Inference.
+func ReifyForInference(m Model, g *ag.Graph) Model {
+	return Reify(m, g, Inference)
+}
+
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
 func ForEachParam(m Model, callback func(param Param)) {
 	newParamsTraversal(callback, true).walk(m)
