@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2021-05-13
+
 ### Added
 - `ml/losses.WeightedCrossEntropy()`
 - `ml/losses.FocalLoss()`
