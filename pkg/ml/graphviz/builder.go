@@ -61,12 +61,6 @@ func (b *builder) build() (gographviz.Interface, error) {
 				return nil, err
 			}
 		case *ag.Wrapper:
-			if param, ok := nt.GradValue.(nn.Param); ok {
-				if err := b.addParam(nt, param.Name()); err != nil {
-					return nil, err
-				}
-				continue
-			}
 			if err := b.addWrapper(nt); err != nil {
 				return nil, err
 			}
@@ -103,6 +97,10 @@ func (b *builder) addVariable(v *ag.Variable) error {
 }
 
 func (b *builder) addWrapper(v *ag.Wrapper) error {
+	if param, ok := v.GradValue.(nn.Param); ok {
+		return b.addParam(v, param.Name())
+	}
+
 	id := fmt.Sprintf("%d", v.ID())
 	label := fmt.Sprintf(
 		`<
