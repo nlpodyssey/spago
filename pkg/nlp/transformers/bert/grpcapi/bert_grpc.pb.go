@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // BERTClient is the client API for BERT service.
@@ -128,7 +129,7 @@ type UnsafeBERTServer interface {
 }
 
 func RegisterBERTServer(s grpc.ServiceRegistrar, srv BERTServer) {
-	s.RegisterService(&_BERT_serviceDesc, srv)
+	s.RegisterService(&BERT_ServiceDesc, srv)
 }
 
 func _BERT_Answer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -221,7 +222,10 @@ func _BERT_Classify_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-var _BERT_serviceDesc = grpc.ServiceDesc{
+// BERT_ServiceDesc is the grpc.ServiceDesc for BERT service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var BERT_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "bert.grpcapi.BERT",
 	HandlerType: (*BERTServer)(nil),
 	Methods: []grpc.MethodDesc{
