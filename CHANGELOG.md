@@ -7,6 +7,52 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- `ml/losses.WeightedCrossEntropy()`
+- `ml/losses.FocalLoss()`
+- `ml/losses.WeightedFocalLoss()`
+- `nlp/sequencelabeler.LoadModel()` (it replaces `Load()` and `LoadEmbeddings()`)
+- `nlp/charlm.LoadModel()`
+- `nlp/transformers/bert.Model.PredictMLM()`
+- `nlp/transformers/bart/tasks` package
+- `nlp/transformers/bert.Model.Vectorize()`
+- `ml/ag.Graph.Nodes()` and `ml/ag.Nodes()`
+- `ml/nn.Model.Close()`
+- `ml/nn.ReifyForTraining()` and `ml/nn.ReifyForInference()`
+- `ml/ag.Graph.Backward()` now panics if it is executed with nodes belonging to
+  different graphs.
+- The new `ml/graphviz` package allows exporting a Graph to [Graphviz](https://graphviz.org/)
+  [DOT](https://graphviz.org/pdf/dotguide.pdf) format. To make it possible,
+  we introduced a new go-mod dependency [gographviz](https://github.com/awalterschulze/gographviz).
+- A custom name can be optionally set to a Graph's Variables. This can be
+  useful for debugging purposes and visual graph representation.
+  You can now use `Graph.NewVariableWithName()` and `Graph.NewScalarWithName()`
+  to create named Variables, and get the name of a Variable with
+  `Variable.Name()`.
+
+### Changed
+- All `UnaryElementwise` functions provided by the package `ag/fn` have been
+  promoted to separate dedicated structs. This improves debuggability and you
+  can get appropriate function names when using reflection. Here is the full
+  list of the modified functions: `Tan`, `Tanh`, `Sigmoid`, `HardSigmoid`,
+  `HardTanh`, `ReLU`, `Softsign`, `Cos`, `Sin`, `Exp`, `Log`, `Neg`,
+  `Reciprocal`, `Abs`, `Mish`, `GELU`, `Sqrt`, `Swish`.
+  For the same reason, a dedicated `Square` Function is introduced, replacing
+  `Prod` with both operands set to the same value.
+- `ml/ag` types `Operator`, `Variable`, `Wrapper` are now public.
+- `ml/nn.Reify()` now expects a Graph and a Processing Mode arguments
+  instead of a `Context` object (removed).
+- `ml/nn.BaseModel` has been modified, replacing the field `Ctx Context` with
+  a direct reference to the model's Graph and the Processing Mode (fields `G`
+  and `ProcessingMode`).
+- Refactoring server implementation of `nlp/sequencelabeler`,
+  `nlp/transformers/bert`, and `nlp/transformers/bart`.
+  
+### Removed
+- `nlp/sequencelabeler.Load()` and `LoadEmbeddings()` (now replaced by
+  `nlp/sequencelabeler.LoadModel()`)
+- `ml/nn.Context` (see related changes on `Reify()` and `BaseModel`)
+
 ## [0.5.2] - 2021-03-16
 
 ### Added
