@@ -20,7 +20,7 @@ func TestModel_Forward(t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.ToNode(nn.Reify(model, g, nn.Training).(*Model).Forward(x))
+	y := nn.ToNode(nn.ReifyForTraining(model, g).(*Model).Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{0.74, -0.23, 0.11, 0.49, -0.05}, y.Value().Data(), 0.005)
 
@@ -76,7 +76,7 @@ func TestModel_Forward(t *testing.T) {
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := nn.Reify(model, g, nn.Training).(*Model)
+	proc := nn.ReifyForTraining(model, g).(*Model)
 	proc.SetInitialState(
 		&State{Y: g.NewVariable(mat.NewVecDense([]mat.Float{-0.2, 0.2, -0.3, -0.9, -0.8}), true)},
 	)
@@ -215,7 +215,7 @@ func newTestModel() *Model {
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
 	g := ag.NewGraph()
-	proc := nn.Reify(model, g, nn.Training).(*Model)
+	proc := nn.ReifyForTraining(model, g).(*Model)
 	proc.SetInitialState(
 		&State{Y: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true)},
 	)

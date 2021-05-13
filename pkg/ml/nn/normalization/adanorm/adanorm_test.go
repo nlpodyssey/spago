@@ -21,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := nn.Reify(model, g, nn.Training).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{-0.4262454708, 0.1329389665, -1.0585727653, 1.0318792697}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []mat.Float{0, -0.4504751299, -0.9466645455, 1.0771396755}, y[1].Value().Data(), 1.0e-06)

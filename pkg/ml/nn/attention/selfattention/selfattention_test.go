@@ -16,7 +16,7 @@ import (
 func TestModel_SelfAttention(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := nn.Reify(model, g, nn.Training).(*Model)
+	proc := nn.ReifyForTraining(model, g).(*Model)
 
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.8, -0.3, 0.5, 0.3}), true)

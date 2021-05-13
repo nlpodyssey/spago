@@ -36,7 +36,7 @@ func (m *Model) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Mat
 
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.Reify(m, g, nn.Inference).(*Model)
+	proc := nn.ReifyForInference(m, g).(*Model)
 	encoded := proc.Encode(tokenized)
 
 	var pooled ag.Node

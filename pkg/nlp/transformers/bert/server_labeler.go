@@ -71,7 +71,7 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := nn.Reify(s.model, g, nn.Inference).(*Model)
+	proc := nn.ReifyForInference(s.model, g).(*Model)
 	encoded := proc.Encode(tokenized)
 	encoded = encoded[1 : len(encoded)-1] // trim [CLS] and [SEP]
 

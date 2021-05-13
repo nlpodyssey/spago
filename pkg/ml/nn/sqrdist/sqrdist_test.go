@@ -18,7 +18,7 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.3, 0.5, -0.4}), true)
-	y := nn.ToNode(nn.Reify(model, g, nn.Training).(*Model).Forward(x))
+	y := nn.ToNode(nn.ReifyForTraining(model, g).(*Model).Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{0.5928}, y.Value().Data(), 1.0e-05)
 

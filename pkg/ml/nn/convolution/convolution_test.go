@@ -40,7 +40,7 @@ func TestModel_Forward(t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := nn.Reify(model, g, nn.Training).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.6291451614, 0.4218990053, 0.0399786803,

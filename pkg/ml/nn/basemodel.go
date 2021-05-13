@@ -31,7 +31,7 @@ func (m *BaseModel) Mode() ProcessingMode {
 // It panics if the Graph is nil.
 func (m *BaseModel) Graph() *ag.Graph {
 	if m.ModelGraph == nil {
-		panic("nn: attempting to access Graph on a not reified model. Hint: use nn.Reify(ctx, model).")
+		panic("nn: attempting to access Graph on a not reified model. Hint: use nn.Reify().")
 	}
 	return m.ModelGraph
 }
