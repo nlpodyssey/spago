@@ -28,8 +28,8 @@ Install the following tools like this, if you haven't already.
 
 ```console
 brew install protobuf
-go get -u github.com/golang/protobuf/proto
-go get -u github.com/golang/protobuf/protoc-gen-go
+go get -u google.golang.org/protobuf/proto
+go get -u google.golang.org/protobuf/protoc-gen-go
 go get -u google.golang.org/grpc
 ```
 
