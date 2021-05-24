@@ -7,6 +7,19 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- New package `ml/ag/encoding/dot`, for simple serialization of a Graph to 
+  DOT (Graphviz) format.
+- New package `ml/nn/sgu`, implementing a Spatial Gating Unit (SGU) model.
+- New package `ml/nn/conv1x1`, implementing a simple 1-dimensional
+  1-sized-kernel convolution model.
+- New package `ml/nn/gmlp`, implementing a [gMLP](https://arxiv.org/pdf/2105.08050.pdf)
+  model.
+
+### Changed
+- `ml/nn/activation/Model.Forward` now simply returns the input as it is if
+  the activation function is the identity.
+
 ## [0.6.0] - 2021-05-13
 
 ### Added
