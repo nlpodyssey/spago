@@ -36,9 +36,12 @@ func New(activation ag.OpName, params ...nn.Param) *Model {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	activation := m.Activation
+	if m.Activation == ag.OpIdentity {
+		return xs
+	}
+
 	transformed := func(x ag.Node) ag.Node {
-		return m.Graph().Invoke(activation, append([]ag.Node{x}, nn.Params(m.Params).Nodes()...)...)
+		return m.Graph().Invoke(m.Activation, append([]ag.Node{x}, nn.Params(m.Params).Nodes()...)...)
 	}
 	return ag.Map(transformed, xs)
 }
