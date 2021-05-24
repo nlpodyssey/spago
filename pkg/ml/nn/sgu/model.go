@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/conv1x1"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
 )
@@ -23,15 +24,17 @@ type Model struct {
 	Config Config
 	Norm   *layernorm.Model
 	Proj   *conv1x1.Model
+	Act    *activation.Model
 }
 
 var _ nn.Model = &Model{}
 
 // Config provides configuration parameters for Model.
 type Config struct {
-	Dim     int
-	DimSeq  int
-	InitEps mat.Float
+	Dim        int
+	DimSeq     int
+	InitEps    mat.Float
+	Activation ag.OpName
 }
 
 func init() {
@@ -42,14 +45,21 @@ func init() {
 func New(config Config) *Model {
 	dimOut := config.Dim / 2
 
-	return &Model{
+	m := &Model{
 		Config: config,
 		Norm:   layernorm.New(dimOut),
 		Proj: conv1x1.New(conv1x1.Config{
 			InputChannels:  config.DimSeq,
 			OutputChannels: config.DimSeq,
 		}),
+		Act: nil,
 	}
+
+	if config.Activation != ag.OpIdentity {
+		m.Act = activation.New(config.Activation)
+	}
+
+	return m
 }
 
 // Initialize set the projection weights as near-zero values and the biases as ones to improve training stability.
@@ -74,6 +84,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 
 	gate = m.Norm.Forward(gate...)
 	gate = m.Proj.Forward(gate...)
+
+	if m.Act != nil {
+		gate = m.Act.Forward(gate...)
+	}
 
 	y := make([]ag.Node, len(gate))
 	for i := range y {

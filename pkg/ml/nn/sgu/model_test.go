@@ -10,9 +10,10 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := New(Config{
-		Dim:     16,
-		DimSeq:  2,
-		InitEps: 0.001,
+		Dim:        16,
+		DimSeq:     2,
+		InitEps:    0.001,
+		Activation: ag.OpIdentity,
 	})
 	defer model.Close()
 

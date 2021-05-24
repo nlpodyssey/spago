@@ -24,10 +24,11 @@ type Model struct {
 
 // Config provides configuration parameters for a the gMLP Model.
 type Config struct {
-	Dim    int
-	Depth  int
-	SeqLen int
-	FFMult int
+	Dim        int
+	Depth      int
+	SeqLen     int
+	FFMult     int
+	Activation ag.OpName
 	// TODO: ProbSurvival mat.Float
 }
 
@@ -42,9 +43,10 @@ func New(config Config) *Model {
 			NewPreNorm(
 				config.Dim,
 				NewBlock(BlockConfig{
-					Dim:    config.Dim,
-					DimFF:  config.Dim * config.FFMult,
-					SeqLen: config.SeqLen,
+					Dim:        config.Dim,
+					DimFF:      config.Dim * config.FFMult,
+					SeqLen:     config.SeqLen,
+					Activation: config.Activation,
 				}),
 			),
 		)

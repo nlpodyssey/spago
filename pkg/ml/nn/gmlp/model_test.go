@@ -17,10 +17,11 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := New(Config{
-		Dim:    4,
-		Depth:  2,
-		SeqLen: 2,
-		FFMult: 4,
+		Dim:        4,
+		Depth:      2,
+		SeqLen:     2,
+		FFMult:     4,
+		Activation: ag.OpIdentity,
 	})
 	assert.NotNil(t, model)
 	defer model.Close()

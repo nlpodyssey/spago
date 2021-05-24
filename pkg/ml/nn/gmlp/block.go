@@ -24,9 +24,10 @@ type Block struct {
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.
 type BlockConfig struct {
-	Dim    int
-	DimFF  int
-	SeqLen int
+	Dim        int
+	DimFF      int
+	SeqLen     int
+	Activation ag.OpName
 }
 
 func init() {
@@ -40,9 +41,10 @@ func NewBlock(config BlockConfig) *Block {
 			linear.New(config.Dim, config.DimFF),
 			activation.New(ag.OpGELU),
 			sgu.New(sgu.Config{
-				Dim:     config.DimFF,
-				DimSeq:  config.SeqLen,
-				InitEps: 1e-3,
+				Dim:        config.DimFF,
+				DimSeq:     config.SeqLen,
+				InitEps:    1e-3,
+				Activation: config.Activation,
 			}),
 			linear.New(config.DimFF/2, config.Dim),
 		),
