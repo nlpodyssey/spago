@@ -10,12 +10,13 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
+var _ nn.Model = &Residual{}
+
+// Residual is a helper model to perform residual connections.
 type Residual struct {
 	nn.BaseModel
 	PreNorm *PreNorm
 }
-
-var _ nn.Model = &Residual{}
 
 func init() {
 	gob.Register(&Residual{})
@@ -28,6 +29,7 @@ func NewResidual(preNorm *PreNorm) *Residual {
 	}
 }
 
+// Forward performs the forward step.
 func (m *Residual) Forward(xs ...ag.Node) []ag.Node {
 	pns := m.PreNorm.Forward(xs...)
 

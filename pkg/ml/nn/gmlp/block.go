@@ -10,41 +10,38 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
+	"github.com/nlpodyssey/spago/pkg/ml/nn/sgu"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
-type GMLPBlock struct {
+var _ nn.Model = &Block{}
+
+// Block is the core model of the gMLP.
+type Block struct {
 	nn.BaseModel
 	*stack.Model
 }
 
-var _ nn.Model = &GMLPBlock{}
-
-// GMLPBlockConfig provides configuration parameters for GMLPBlock.
-type GMLPBlockConfig struct {
+// BlockConfig provides configuration parameters for a single Block of the gMLP Model.
+type BlockConfig struct {
 	Dim    int
 	DimFF  int
 	SeqLen int
-	// Set AttnDim <= 0 to disable attention.
-	AttnDim int
-	Causal  bool
 }
 
 func init() {
-	gob.Register(&GMLPBlock{})
+	gob.Register(&Block{})
 }
 
-// NewGMLPBlock returns a new GMLPBlock.
-func NewGMLPBlock(config GMLPBlockConfig) *GMLPBlock {
-	return &GMLPBlock{
+// NewBlock returns a new Block.
+func NewBlock(config BlockConfig) *Block {
+	return &Block{
 		Model: stack.New(
 			linear.New(config.Dim, config.DimFF),
 			activation.New(ag.OpGELU),
-			NewSpatialGatingUnit(SpatialGatingUnitConfig{
+			sgu.New(sgu.Config{
 				Dim:     config.DimFF,
 				DimSeq:  config.SeqLen,
-				AttnDim: config.AttnDim,
-				Causal:  config.Causal,
 				InitEps: 1e-3,
 			}),
 			linear.New(config.DimFF/2, config.Dim),
