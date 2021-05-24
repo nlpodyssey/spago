@@ -8,6 +8,7 @@ package gmlp
 
 import (
 	"encoding/gob"
+	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
@@ -56,6 +57,23 @@ func New(config Config) *Model {
 
 // Forward performs the forward step. It adds pads if necessary.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	// TODO: add padding
-	return m.Model.Forward(xs...)
+	padded := m.addPadding(xs...)
+	return m.Model.Forward(padded...)
+}
+
+func (m *Model) addPadding(xs ...ag.Node) []ag.Node {
+	if len(xs) > m.Config.SeqLen {
+		panic("gMLP: input sequence is too long")
+	}
+	if len(xs) == m.Config.SeqLen {
+		return xs
+	}
+
+	pn := m.Graph().NewVariable(mat.NewEmptyVecDense(m.Config.Dim), false)
+	padded := make([]ag.Node, m.Config.SeqLen)
+	copy(padded[:len(xs)], xs)
+	for i := len(xs); i < len(padded); i++ {
+		padded[i] = pn
+	}
+	return padded
 }
