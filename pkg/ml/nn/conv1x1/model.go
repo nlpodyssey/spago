@@ -23,6 +23,7 @@ type Model struct {
 
 var _ nn.Model = &Model{}
 
+// Config provides configuration parameters for Model.
 type Config struct {
 	InputChannels  int
 	OutputChannels int
