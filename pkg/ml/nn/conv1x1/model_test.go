@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gmlp
+package conv1x1
 
 import (
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
@@ -13,9 +13,9 @@ import (
 	"testing"
 )
 
-func TestSimpleConv1D(t *testing.T) {
+func TestModel_Forward(t *testing.T) {
 	t.Run("input 3, output 2", func(t *testing.T) {
-		model := NewSimpleConv1D(SimpleConv1DConfig{
+		model := New(Config{
 			InputChannels:  3,
 			OutputChannels: 2,
 		})
@@ -35,7 +35,7 @@ func TestSimpleConv1D(t *testing.T) {
 		g := ag.NewGraph()
 		defer g.Clear()
 
-		proc := nn.ReifyForInference(model, g).(*SimpleConv1D)
+		proc := nn.ReifyForInference(model, g).(*Model)
 
 		xs := []ag.Node{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1, 2, 4, 0, -1}), false),
@@ -53,7 +53,7 @@ func TestSimpleConv1D(t *testing.T) {
 	})
 
 	t.Run("input 4, output 3", func(t *testing.T) {
-		model := NewSimpleConv1D(SimpleConv1DConfig{
+		model := New(Config{
 			InputChannels:  4,
 			OutputChannels: 3,
 		})
@@ -69,7 +69,7 @@ func TestSimpleConv1D(t *testing.T) {
 		g := ag.NewGraph()
 		defer g.Clear()
 
-		proc := nn.ReifyForInference(model, g).(*SimpleConv1D)
+		proc := nn.ReifyForInference(model, g).(*Model)
 
 		xs := []ag.Node{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.2, 0.9, 0.1}), false),

@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package gmlp
+// Package conv1x1 implements a 1-dimensional 1-kernel convolution model
+package conv1x1
 
 import (
 	"encoding/gob"
@@ -11,29 +12,29 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
-// SimpleConv1D is a simple 1-dimensional convolution model.
+// Model is a superficial depth-wise 1-dimensional convolution model.
 // The following values are fixed: kernel size = 1; stride = 1; padding = 0,
-type SimpleConv1D struct {
+type Model struct {
 	nn.BaseModel
-	Config SimpleConv1DConfig
+	Config Config
 	W      nn.Param `spago:"type:weights"`
 	B      nn.Param `spago:"type:biases"`
 }
 
-var _ nn.Model = &SimpleConv1D{}
+var _ nn.Model = &Model{}
 
-type SimpleConv1DConfig struct {
+type Config struct {
 	InputChannels  int
 	OutputChannels int
 }
 
 func init() {
-	gob.Register(&SimpleConv1D{})
+	gob.Register(&Model{})
 }
 
-// NewSimpleConv1D returns a new SimpleConv1D.
-func NewSimpleConv1D(config SimpleConv1DConfig) *SimpleConv1D {
-	return &SimpleConv1D{
+// New returns a new Model.
+func New(config Config) *Model {
+	return &Model{
 		Config: config,
 		W:      nn.NewParam(mat.NewEmptyDense(config.OutputChannels, config.InputChannels)),
 		B:      nn.NewParam(mat.NewEmptyVecDense(config.OutputChannels)),
@@ -41,7 +42,7 @@ func NewSimpleConv1D(config SimpleConv1DConfig) *SimpleConv1D {
 }
 
 // Forward performs the forward step. Each "x" is a channel.
-func (m *SimpleConv1D) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 
 	xm := g.Stack(xs...)
