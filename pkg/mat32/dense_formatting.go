@@ -7,9 +7,6 @@ package mat32
 import (
 	"fmt"
 	"strconv"
-
-	// Ensure that GC and math optimizations setup runs first
-	_ "github.com/nlpodyssey/spago/pkg/global"
 )
 
 var _ fmt.Formatter = &Dense{}

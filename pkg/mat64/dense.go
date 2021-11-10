@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"math"
 
-	// Ensure that GC and math optimizations setup runs first
-	_ "github.com/nlpodyssey/spago/pkg/global"
 	"github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 )
 
