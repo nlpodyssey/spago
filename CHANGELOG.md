@@ -16,6 +16,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and _Gonum_, according to their most recent versions.
 - Usages of functions from `ioutil` packages have been replaced with their
   preferred alternatives from `io` and `os` packages.
+- Minor refactorings and cleanups.
 - Dependencies upgrade.
 
 ### Removed
