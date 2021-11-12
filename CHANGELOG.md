@@ -17,7 +17,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 - Global heap allocation "ballast" and math optimization level.
 
-## [0.7.0] - 2021-05-24glg
+## [0.7.0] - 2021-05-24
 
 ### Added
 - New package `ml/ag/encoding/dot`, for simple serialization of a Graph to 
