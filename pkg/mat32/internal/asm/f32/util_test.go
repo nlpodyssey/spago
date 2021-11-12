@@ -120,24 +120,6 @@ func newIncSet(inc ...int) []incSet {
 	return is
 }
 
-type incToSet struct {
-	dst, x, y int
-}
-
-// genIncTo will generate all (dst,x,y) combinations of the input increment set.
-func newIncToSet(inc ...int) []incToSet {
-	n := len(inc)
-	is := make([]incToSet, n*n*n)
-	for i, dst := range inc {
-		for x := range inc {
-			for y := range inc {
-				is[i*n*n+x*n+y] = incToSet{dst, inc[x], inc[y]}
-			}
-		}
-	}
-	return is
-}
-
 // EqualWithinAbsOrRel returns true when a and b are equal to within
 // the absolute or relative tolerances. See EqualWithinAbs and
 // EqualWithinRel for details.
