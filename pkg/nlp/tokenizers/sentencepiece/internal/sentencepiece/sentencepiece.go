@@ -15,32 +15,12 @@ import (
 
 const minScore float32 = -math.MaxFloat32
 const sep rune = 0x2581
-const unknown string = "<unk>"
 
 type slice struct {
 	score float32
 	index int32
 	start int
 	end   int
-}
-
-func findOffset(position int, q string) int {
-	count := 0
-	for i := range q {
-		if count == position {
-			return i
-		}
-	}
-	return -1
-}
-
-func text(s slice, q string) string {
-	startOffset := findOffset(s.start, q)
-	endOffset := findOffset(s.end, q)
-	if startOffset == -1 || endOffset == -1 {
-		return ""
-	}
-	return q[startOffset:endOffset]
 }
 
 type trieNode struct {
@@ -241,16 +221,6 @@ func replaceWhiteSpace(runes []rune) {
 			runes[i] = sep
 		}
 	}
-}
-
-func replaceSeperator(s string) string {
-	replacer := func(r rune) rune {
-		if r == sep {
-			return ' '
-		}
-		return r
-	}
-	return strings.Map(replacer, s)
 }
 
 func torunes(text string) []rune {
