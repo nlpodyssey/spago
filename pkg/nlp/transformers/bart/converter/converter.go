@@ -16,7 +16,7 @@ import (
 	pkgconfig "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/decoder"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder"
-	encoder_layer "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
+	encoderlayer "github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/encoder/layer"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/positionalencoder/learnedpositionalencoder"
@@ -206,7 +206,7 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix {
 	paramsMap := make(map[string]mat.Matrix)
 	for i := 0; i < model.Config.EncoderLayers; i++ {
-		layer := model.Layers.Layers[i].(*encoder_layer.Layer)
+		layer := model.Layers.Layers[i].(*encoderlayer.Layer)
 		prefixBase := fmt.Sprintf("model.encoder.layers.%d", i)
 		// Sublayer 1
 		for j := 0; j < model.Config.EncoderAttentionHeads; j++ {
