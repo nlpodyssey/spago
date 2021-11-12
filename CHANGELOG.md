@@ -11,9 +11,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Updating initialization of BatchNorm normalization, making training more
   stable at the beginning. Initializing the weight matrix with a small nonzero
   value improves the behaviour of gradients and stabilizes training.
-- Refactor and update `mat32` package implementation. Changes include an
-  update of the code borrowed from _github.com/chewxy/math32_ and _Gonum_
-  according to their most recent version.
+- Refactor and update `mat32` and `mat64` packages implementation.
+  Changes include an update of the code borrowed from _github.com/chewxy/math32_
+  and _Gonum_, according to their most recent versions.
 - Dependencies upgrade.
 
 ### Removed
