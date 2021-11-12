@@ -1,7 +1,7 @@
 package math32
 
 // Exp returns e**x, the base-e exponential of x.
-func Exp(x float32) float32
+func Exp(float32) float32
 
 func exp(x float32) float32 {
 	const (
@@ -12,10 +12,6 @@ func exp(x float32) float32 {
 		Overflow  = 7.09782712893383973096e+02
 		Underflow = -7.45133219101941108420e+02
 		NearZero  = 1.0 / (1 << 28) // 2**-28
-
-		LogMax = 0x42b2d4fc // The bitmask of log(FLT_MAX), rounded down.  This value is the largest input that can be passed to exp() without producing overflow.
-		LogMin = 0x42aeac50 // The bitmask of |log(REAL_FLT_MIN)|, rounding down
-
 	)
 	// hx := Float32bits(x) & uint32(0x7fffffff)
 
@@ -32,7 +28,7 @@ func exp(x float32) float32 {
 		// case hx > LogMax:
 		// 	return Inf(1)
 		// case x < 0 && hx > LogMin:
-		return 0
+		//  return 0
 	case -NearZero < x && x < NearZero:
 		return 1 + x
 	}
@@ -47,44 +43,6 @@ func exp(x float32) float32 {
 	}
 	hi := x - float32(k)*Ln2Hi
 	lo := float32(k) * Ln2Lo
-
-	// compute
-	return expmulti(hi, lo, k)
-}
-
-func exp2(x float32) float32 {
-	const (
-		Ln2Hi = 6.9313812256e-01
-		Ln2Lo = 9.0580006145e-06
-
-		Overflow  = 1.0239999999999999e+03
-		Underflow = -1.0740e+03
-	)
-
-	// special cases
-	switch {
-	case IsNaN(x) || IsInf(x, 1):
-		return x
-	case IsInf(x, -1):
-		return 0
-	case x > Overflow:
-		return Inf(1)
-	case x < Underflow:
-		return 0
-	}
-
-	// argument reduction; x = r×lg(e) + k with |r| ≤ ln(2)/2.
-	// computed as r = hi - lo for extra precision.
-	var k int
-	switch {
-	case x > 0:
-		k = int(x + 0.5)
-	case x < 0:
-		k = int(x - 0.5)
-	}
-	t := x - float32(k)
-	hi := t * Ln2Hi
-	lo := -t * Ln2Lo
 
 	// compute
 	return expmulti(hi, lo, k)

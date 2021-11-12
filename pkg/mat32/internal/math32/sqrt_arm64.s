@@ -6,7 +6,7 @@
 
 // func Sqrt(x float64) float64
 TEXT ·Sqrt(SB),NOSPLIT,$0
-	FMOVD	x+0(FP), F0
-	FSQRTD	F0, F0
-	FMOVD	F0, ret+8(FP)
+	FMOVS	x+0(FP), F0
+	FSQRTS	F0, F0
+	FMOVS	F0, ret+8(FP)
 	RET
