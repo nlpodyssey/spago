@@ -570,6 +570,6 @@ func (g *Graph) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
-func (g *Graph) UnmarshalBinary(data []byte) error {
+func (g *Graph) UnmarshalBinary(_ []byte) error {
 	return nil
 }

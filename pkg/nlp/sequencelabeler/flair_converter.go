@@ -1122,6 +1122,6 @@ type torchRNNUnserializable struct{}
 
 var _ types.PyNewable = torchRNNUnserializableClass{}
 
-func (c torchRNNUnserializableClass) PyNew(args ...interface{}) (interface{}, error) {
+func (c torchRNNUnserializableClass) PyNew(_ ...interface{}) (interface{}, error) {
 	return &torchRNNUnserializable{}, nil
 }

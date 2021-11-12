@@ -121,7 +121,7 @@ func init() {
 }
 
 // Handler is the server handler function for BART NLI classification web UI
-func Handler(w http.ResponseWriter, req *http.Request) {
+func Handler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "text/html")
 	_, err := w.Write(html)

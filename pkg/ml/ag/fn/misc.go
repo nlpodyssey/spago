@@ -306,7 +306,7 @@ func NewSwish(x Operand) *Swish {
 // The function in an alias of NewSwish.
 var NewSiLU = NewSwish
 
-func absDeriv(i, j int, v mat.Float) mat.Float {
+func absDeriv(_, _ int, v mat.Float) mat.Float {
 	if v < 0 {
 		return -1
 	} else if v > 0 {
@@ -317,7 +317,7 @@ func absDeriv(i, j int, v mat.Float) mat.Float {
 }
 
 // safeLog is a simple work-around that make the math.Log() safe for zero or negative values
-func safeLog(i, j int, v mat.Float) mat.Float {
+func safeLog(_, _ int, v mat.Float) mat.Float {
 	if v > 0.0 {
 		return mat.Log(v)
 	}
@@ -327,7 +327,7 @@ func safeLog(i, j int, v mat.Float) mat.Float {
 	panic("ag: invalid log for negative values")
 }
 
-func safeLogDeriv(i, j int, v mat.Float) mat.Float {
+func safeLogDeriv(_, _ int, v mat.Float) mat.Float {
 	if v > 0.0 {
 		return 1.0 / v
 	} else if v == 0.0 {
@@ -337,7 +337,7 @@ func safeLogDeriv(i, j int, v mat.Float) mat.Float {
 	}
 }
 
-func tan(i, j int, v mat.Float) mat.Float {
+func tan(_, _ int, v mat.Float) mat.Float {
 	return mat.Tan(v)
 }
 
@@ -345,19 +345,19 @@ func tanDeriv(i, j int, v mat.Float) mat.Float {
 	return 1.0 / square(i, j, mat.Cos(v))
 }
 
-func square(i, j int, v mat.Float) mat.Float {
+func square(_, _ int, v mat.Float) mat.Float {
 	return v * v
 }
 
-func tanh(i, j int, v mat.Float) mat.Float {
+func tanh(_, _ int, v mat.Float) mat.Float {
 	return mat.Tanh(v)
 }
 
-func tanhDeriv(i, j int, v mat.Float) mat.Float {
+func tanhDeriv(_, _ int, v mat.Float) mat.Float {
 	return 1.0 - mat.Pow(mat.Tanh(v), 2.0)
 }
 
-func sigmoid(i, j int, v mat.Float) mat.Float {
+func sigmoid(_, _ int, v mat.Float) mat.Float {
 	return 1.0 / (1 + mat.Exp(-v))
 }
 
@@ -366,7 +366,7 @@ func sigmoidDeriv(i, j int, v mat.Float) mat.Float {
 	return fx * (1.0 - fx)
 }
 
-func hardSigmoid(i, j int, v mat.Float) mat.Float {
+func hardSigmoid(_, _ int, v mat.Float) mat.Float {
 	if v > 2.5 {
 		return 1.0
 	} else if v < -2.5 {
@@ -376,14 +376,14 @@ func hardSigmoid(i, j int, v mat.Float) mat.Float {
 	}
 }
 
-func hardSigmoidDeriv(i, j int, v mat.Float) mat.Float {
+func hardSigmoidDeriv(_, _ int, v mat.Float) mat.Float {
 	if v < 2.5 && v > -2.5 {
 		return 0.2
 	}
 	return 0.0
 }
 
-func hardTanh(i, j int, v mat.Float) mat.Float {
+func hardTanh(_, _ int, v mat.Float) mat.Float {
 	if v > 1.0 {
 		return 1.0
 	} else if v < -1.0 {
@@ -393,25 +393,25 @@ func hardTanh(i, j int, v mat.Float) mat.Float {
 	}
 }
 
-func hardTanhDeriv(i, j int, v mat.Float) mat.Float {
+func hardTanhDeriv(_, _ int, v mat.Float) mat.Float {
 	if v < 1.0 && v > -1.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func relu(i, j int, v mat.Float) mat.Float {
+func relu(_, _ int, v mat.Float) mat.Float {
 	return mat.Max(0.0, v)
 }
 
-func reluDeriv(i, j int, v mat.Float) mat.Float {
+func reluDeriv(_, _ int, v mat.Float) mat.Float {
 	if v >= 0.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func softsign(i, j int, v mat.Float) mat.Float {
+func softsign(_, _ int, v mat.Float) mat.Float {
 	return v / (1.0 + mat.Abs(v))
 }
 
@@ -419,7 +419,7 @@ func softsignDeriv(i, j int, v mat.Float) mat.Float {
 	return mat.Pow(1.0-mat.Abs(softsign(i, j, v)), 2.0)
 }
 
-func celu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func celu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return alpha[0] * (mat.Exp(v/alpha[0]) - 1)
 	} else if v > 0 {
@@ -428,7 +428,7 @@ func celu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func celuDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func celuDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return mat.Exp(v / alpha[0])
 	} else if v > 0 {
@@ -437,7 +437,7 @@ func celuDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func elu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func elu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return alpha[0] * (mat.Exp(v) - 1)
 	} else if v > 0 {
@@ -446,7 +446,7 @@ func elu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func eluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func eluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return alpha[0] * mat.Exp(v)
 	} else if v > 0 {
@@ -455,7 +455,7 @@ func eluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func leakyReLU(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func leakyReLU(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return alpha[0] * v // slope * v
 	} else if v > 0 {
@@ -464,7 +464,7 @@ func leakyReLU(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func leakyReLUDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func leakyReLUDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	if v <= 0 {
 		return alpha[0] // slope
 	} else if v > 0 {
@@ -475,7 +475,7 @@ func leakyReLUDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func selu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func selu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	scale := alpha[1]
 	if v <= 0 {
 		return scale * alpha[0] * (mat.Exp(v) - 1)
@@ -487,7 +487,7 @@ func selu(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func seluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func seluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	scale := alpha[1]
 	if v <= 0 {
 		return scale * alpha[0] * mat.Exp(v)
@@ -497,7 +497,7 @@ func seluDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softPlus(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softPlus(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
@@ -508,7 +508,7 @@ func softPlus(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softPlusDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softPlusDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
@@ -520,7 +520,7 @@ func softPlusDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softShrink(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softShrink(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	lambda := alpha[0]
 	if v < -lambda {
 		return v + lambda
@@ -530,7 +530,7 @@ func softShrink(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softShrinkDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softShrinkDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	lambda := alpha[0]
 	if v < -lambda {
 		return 1
@@ -540,7 +540,7 @@ func softShrinkDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func threshold(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func threshold(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	value := alpha[1]
 	threshold := alpha[0]
 	if v <= threshold {
@@ -551,7 +551,7 @@ func threshold(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func thresholdDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
+func thresholdDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	threshold := alpha[0]
 	if v <= threshold {
 		return 0
@@ -561,7 +561,7 @@ func thresholdDeriv(i, j int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func swish(i, j int, v mat.Float) mat.Float {
+func swish(_, _ int, v mat.Float) mat.Float {
 	return v * (1.0 / (1 + mat.Exp(-v)))
 }
 
@@ -569,11 +569,11 @@ func swishDeriv(i, j int, v mat.Float) mat.Float {
 	return swishBDeriv(i, j, v, 1.0)
 }
 
-func swishB(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishB(_, _ int, v mat.Float, beta ...mat.Float) mat.Float {
 	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
 }
 
-func swishBDeriv(i, j int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishBDeriv(_, _ int, v mat.Float, beta ...mat.Float) mat.Float {
 	prod := v * beta[0]
 	exp := mat.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
@@ -587,11 +587,11 @@ func swishBBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
 
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function" by Diganta Misra, 2019.
 // (https://arxiv.org/pdf/1908.08681.pdf)
-func mish(i, j int, v mat.Float) mat.Float {
+func mish(_, _ int, v mat.Float) mat.Float {
 	return v * mat.Tanh(mat.Log(1+mat.Exp(v)))
 }
 
-func mishDeriv(i, j int, v mat.Float) mat.Float {
+func mishDeriv(_, _ int, v mat.Float) mat.Float {
 	exp := mat.Exp(v)
 	exp2 := mat.Exp(2 * v)
 	exp3 := mat.Exp(3 * v)
@@ -600,11 +600,11 @@ func mishDeriv(i, j int, v mat.Float) mat.Float {
 	return exp * (omega / (delta * delta))
 }
 
-func gelu(i, j int, v mat.Float) mat.Float {
+func gelu(_, _ int, v mat.Float) mat.Float {
 	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi)*(v+0.044715*mat.Pow(v, 3.0))))
 }
 
-func geluDeriv(i, j int, x mat.Float) mat.Float {
+func geluDeriv(_, _ int, x mat.Float) mat.Float {
 	x3 := mat.Pow(x, 3)
 	return 0.5*mat.Tanh(0.0356774*x3+0.797885*x) +
 		(0.0535161*x3+0.398942*x)*
