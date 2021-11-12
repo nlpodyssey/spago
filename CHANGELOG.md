@@ -6,8 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Updating initialization of BatchNorm normalization, making training more
+  stable at the beginning. Initializing the weight matrix with a small nonzero
+  value improves the behaviour of gradients and stabilizes training.
 
-## [0.7.0] - 2021-05-24
+### Removed
+- Global heap allocation "ballast" and math optimization level.
+
+## [0.7.0] - 2021-05-24glg
 
 ### Added
 - New package `ml/ag/encoding/dot`, for simple serialization of a Graph to 
