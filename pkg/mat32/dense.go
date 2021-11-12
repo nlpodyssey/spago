@@ -539,19 +539,13 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	switch b := other.(type) {
 	case *Dense:
 		if out.cols != 1 {
-			internal.DgemmSerial(
-				false,
-				false,
-				d.rows,   // m
-				b.cols,   // n
-				d.cols,   // k
+			internal.MatrixMul(
+				d.rows,   // aRows
+				d.cols,   // aCols
+				b.cols,   // bCols
 				d.data,   // a
-				d.cols,   // lda
 				b.data,   // b
-				b.cols,   // ldb
 				out.data, // c
-				out.cols, // ldc
-				1.0,      // alpha
 			)
 			return out
 		}

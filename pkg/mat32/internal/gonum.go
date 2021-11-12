@@ -4,6 +4,22 @@
 
 package internal
 
+import "github.com/nlpodyssey/spago/pkg/mat32/internal/asm/f32"
+
+// MatrixMul computes the matrix-matrix multiplication C = A * B.
+// This code is adapted from Gonum's Dgemm implementation.
+func MatrixMul(aRows, aCols, bCols int, a []float32, b []float32, c []float32) {
+	for i := 0; i < aRows; i++ {
+		ctmp := c[i*bCols : i*bCols+bCols]
+		for l, v := range a[i*aCols : i*aCols+aCols] {
+			if v == 0 {
+				continue
+			}
+			f32.AxpyUnitary(v, b[l*bCols:l*bCols+bCols], ctmp)
+		}
+	}
+}
+
 // AddConst is
 //  for i := range x {
 //  	x[i] += alpha
