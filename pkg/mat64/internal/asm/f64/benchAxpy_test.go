@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"testing"
 )
 
-const (
-	testLen = 1e5
-)
+const testLen = 1e5
 
 var (
 	a = 2.0

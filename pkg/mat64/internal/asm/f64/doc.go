@@ -3,4 +3,4 @@
 // license that can be found in the LICENSE file.
 
 // Package f64 provides float64 vector primitives.
-package f64
+package f64 // import "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"

@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
+	"golang.org/x/exp/rand"
 	"math"
 	"testing"
-
-	"golang.org/x/exp/rand"
 )
 
 func TestDotUnitary(t *testing.T) {
@@ -204,8 +204,6 @@ func BenchmarkDotUnitaryN1000(b *testing.B)   { dotUnitaryBenchmark(b, 1000) }
 func BenchmarkDotUnitaryN10000(b *testing.B)  { dotUnitaryBenchmark(b, 10000) }
 func BenchmarkDotUnitaryN100000(b *testing.B) { dotUnitaryBenchmark(b, 100000) }
 
-var r float64
-
 func dotUnitaryBenchmark(b *testing.B, n int) {
 	x := make([]float64, n)
 	for i := range x {
@@ -217,7 +215,7 @@ func dotUnitaryBenchmark(b *testing.B, n int) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r = DotUnitary(x, y)
+		DotUnitary(x, y)
 	}
 }
 
@@ -277,6 +275,6 @@ func dotIncBenchmark(b *testing.B, n, inc int) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r = DotInc(x, y, uintptr(n), uintptr(inc), uintptr(inc), uintptr(ini), uintptr(ini))
+		DotInc(x, y, uintptr(n), uintptr(inc), uintptr(inc), uintptr(ini), uintptr(ini))
 	}
 }

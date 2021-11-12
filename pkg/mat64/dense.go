@@ -7,6 +7,7 @@ package mat64
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat64/internal"
 	"math"
 
 	"github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
@@ -540,7 +541,7 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	switch b := other.(type) {
 	case *Dense:
 		if out.cols != 1 {
-			f64.DgemmSerial(
+			internal.DgemmSerial(
 				false,
 				false,
 				d.rows,   // m
