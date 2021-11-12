@@ -16,12 +16,12 @@ func NewSentencepieceFromFile(filename string, lowercase bool) (Sentencepiece, e
 	s := NewEmptySentencepiece(lowercase)
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
-		return s, fmt.Errorf("Unable to read file : %s, err %v", filename, err)
+		return s, fmt.Errorf("unable to read file : %s, err %v", filename, err)
 	}
 	var model ModelProto
 	err = proto.Unmarshal(bytes, &model)
 	if err != nil {
-		return s, fmt.Errorf("Unable to read model file : %s, err %v", filename, err)
+		return s, fmt.Errorf("unable to read model file : %s, err %v", filename, err)
 	}
 
 	count := 0
