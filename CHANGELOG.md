@@ -14,6 +14,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Refactor and update `mat32` and `mat64` packages implementation.
   Changes include an update of the code borrowed from _github.com/chewxy/math32_
   and _Gonum_, according to their most recent versions.
+- Usages of functions from `ioutil` packages have been replaced with their
+  preferred alternatives from `io` and `os` packages.
 - Dependencies upgrade.
 
 ### Removed

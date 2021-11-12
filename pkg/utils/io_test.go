@@ -7,13 +7,12 @@ package utils
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
 	"os"
 	"testing"
 )
 
 func TestFileSerialization(t *testing.T) {
-	tempFile, err := ioutil.TempFile("", "spago-serialization-test-")
+	tempFile, err := os.CreateTemp("", "spago-serialization-test-")
 	require.Nil(t, err)
 	fileName := tempFile.Name()
 	defer os.Remove(fileName)
@@ -38,12 +37,12 @@ func TestFileSerialization(t *testing.T) {
 }
 
 func TestCountLines(t *testing.T) {
-	tempFile, err := ioutil.TempFile("", "spago-count-lines-test-")
+	tempFile, err := os.CreateTemp("", "spago-count-lines-test-")
 	require.Nil(t, err)
 	fileName := tempFile.Name()
 	defer os.Remove(fileName)
 
-	err = ioutil.WriteFile(fileName, []byte("foo\nbar\nbaz\n"), 0644)
+	err = os.WriteFile(fileName, []byte("foo\nbar\nbaz\n"), 0644)
 	require.Nil(t, err)
 
 	n, err := CountLines(fileName)

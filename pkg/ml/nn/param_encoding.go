@@ -11,7 +11,6 @@ import (
 	"fmt"
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"io"
-	"io/ioutil"
 	"log"
 )
 
@@ -62,7 +61,7 @@ func (r *param) UnmarshalBinary(data []byte) error {
 
 	r.payload = new(Payload)
 
-	pBin, err := ioutil.ReadAll(buf)
+	pBin, err := io.ReadAll(buf)
 	if err != nil {
 		return err
 	}

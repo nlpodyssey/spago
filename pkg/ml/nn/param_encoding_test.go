@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -62,7 +61,7 @@ func TestParam_Gob(t *testing.T) {
 }
 
 func TestParam_Storage(t *testing.T) {
-	dir, err := ioutil.TempDir("", "spago-kvdb-test-")
+	dir, err := os.MkdirTemp("", "spago-kvdb-test-")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 

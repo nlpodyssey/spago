@@ -6,7 +6,6 @@ package batchnorm
 
 import (
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -143,7 +142,7 @@ func Test_Serialize(t *testing.T) {
 	model := NewWithMomentum(3, 0.777)
 	model.Mean = nn.NewParam(mat.NewVecDense([]mat.Float{0.0, 0.0, 1.0}))
 	model.StdDev = nn.NewParam(mat.NewVecDense([]mat.Float{1.0, 0.5, 1.0}))
-	tempFile, err := ioutil.TempFile("", "test_serialize")
+	tempFile, err := os.CreateTemp("", "test_serialize")
 	require.Nil(t, err)
 	tempFile.Close()
 	defer func() {
