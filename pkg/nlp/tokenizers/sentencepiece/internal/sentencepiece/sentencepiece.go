@@ -166,9 +166,9 @@ func (s *Sentencepiece) commonPrefixSearch(runes []rune) []trieNode {
 
 func (s *Sentencepiece) decodeBackwards(slices []slice) []slice {
 	best := make([]slice, len(slices))
-	len := len(slices) - 1
-	i := len
-	index := len
+	lastIndex := len(slices) - 1
+	i := lastIndex
+	index := lastIndex
 	for ; i >= 0; i-- {
 		s := slices[index]
 		if s.start == -1 {
@@ -178,7 +178,7 @@ func (s *Sentencepiece) decodeBackwards(slices []slice) []slice {
 		best[i] = s
 		index = s.start
 	}
-	return best[i : len+1]
+	return best[i : lastIndex+1]
 }
 
 func (s *Sentencepiece) decodeForwardToken(runes []rune) []slice {
