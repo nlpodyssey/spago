@@ -120,7 +120,7 @@ func BenchmarkAxpyInc(t *testing.B) {
 						idx = uintptr((-int(tt.len) + 1) * inc)
 					}
 					for i := 0; i < b.N; i++ {
-						test.f(a, x, y, uintptr(tt.len), tstInc, tstInc, idx, idx)
+						test.f(a, x, y, tt.len, tstInc, tstInc, idx, idx)
 					}
 				})
 			}
@@ -154,7 +154,7 @@ func BenchmarkAxpyIncTo(t *testing.B) {
 						idx = uintptr((-int(tt.len) + 1) * inc)
 					}
 					for i := 0; i < b.N; i++ {
-						test.f(z, tstInc, idx, a, x, y, uintptr(tt.len),
+						test.f(z, tstInc, idx, a, x, y, tt.len,
 							tstInc, tstInc, idx, idx)
 					}
 				})

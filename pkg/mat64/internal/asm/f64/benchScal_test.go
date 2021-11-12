@@ -63,7 +63,7 @@ func BenchmarkScalInc(t *testing.B) {
 				b.SetBytes(int64(64 * tt.len))
 				tstInc := uintptr(inc)
 				for i := 0; i < b.N; i++ {
-					ScalInc(a, x, uintptr(tt.len), tstInc)
+					ScalInc(a, x, tt.len, tstInc)
 				}
 			})
 		}
@@ -78,7 +78,7 @@ func BenchmarkScalIncTo(t *testing.B) {
 				b.SetBytes(int64(64 * tt.len))
 				tstInc := uintptr(inc)
 				for i := 0; i < b.N; i++ {
-					ScalIncTo(z, tstInc, a, x, uintptr(tt.len), tstInc)
+					ScalIncTo(z, tstInc, a, x, tt.len, tstInc)
 				}
 			})
 		}

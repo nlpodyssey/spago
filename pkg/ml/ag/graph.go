@@ -506,7 +506,7 @@ func (g *Graph) IncTimeStep() {
 // to perform truncated back propagation. This value is 0 for a new Graph, and
 // can be incremented calling IncTimeStep.
 func (g *Graph) TimeStep() int {
-	return int(g.curTimeStep)
+	return g.curTimeStep
 }
 
 // Nodes returns the nodes of the graph.

@@ -31,7 +31,7 @@ func New(init, final mat.Float, iter int) *Exponential {
 // Decay calculates the decay of the learning rate lr at time t.
 func (d *Exponential) Decay(lr mat.Float, t int) mat.Float {
 	if t > 1 && lr > d.final {
-		return mat.Exp((mat.Float(d.times-t)*mat.Log(lr) + mat.Log(mat.Float(d.final))) / mat.Float(d.times-t+1))
+		return mat.Exp((mat.Float(d.times-t)*mat.Log(lr) + mat.Log(d.final)) / mat.Float(d.times-t+1))
 	}
 	return lr
 }
