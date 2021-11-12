@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Changed
+- Require Go version `1.17`.
 - Updating initialization of BatchNorm normalization, making training more
   stable at the beginning. Initializing the weight matrix with a small nonzero
   value improves the behaviour of gradients and stabilizes training.
