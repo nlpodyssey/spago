@@ -521,6 +521,7 @@ func TestGemv(t *testing.T) {
 	}
 }
 
+//gocyclo:ignore
 func sgemvcomp(t *testing.T, test SgemvCase, trans bool, cas SgemvSubcase, _ int) {
 	const (
 		tol = 1e-6
