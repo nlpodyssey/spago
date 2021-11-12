@@ -102,7 +102,6 @@ func checkValidIncGuard(t *testing.T, v []float32, g float32, inc, gdLn int) {
 
 var ( // Offset sets for testing alignment handling in Unitary assembly functions.
 	align2 = newIncSet(0, 1, 2, 3)
-	align3 = newIncToSet(0, 1, 2, 3)
 )
 
 type incSet struct {
