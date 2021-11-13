@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Added
+- Thanks to various changes listed below, this is the first release
+  supporting execution on ARM-based macOS.
 - Markdown links to tag comparison URL to the release versions on this
   CHANGELOG file.
 
