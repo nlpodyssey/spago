@@ -248,7 +248,7 @@ func (s *Sparse) Scalar() Float {
 
 // Set sets the value v at row i and column j.
 // It panics if the given indices are out of range.
-func (s *Sparse) Set(i int, j int, v Float) {
+func (s *Sparse) Set(_ int, _ int, _ Float) {
 	panic("mat64: Set not implemented for Sparse matrices")
 }
 
@@ -270,7 +270,7 @@ func (s *Sparse) At(i int, j int) Float {
 }
 
 // SetVec is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SetVec(i int, v Float) {
+func (s *Sparse) SetVec(_ int, _ Float) {
 	panic("mat64: SetVec not implemented for Sparse matrices")
 }
 
@@ -343,7 +343,7 @@ func (s *Sparse) T() Matrix {
 }
 
 // Reshape is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) Reshape(r, c int) Matrix {
+func (s *Sparse) Reshape(_, _ int) Matrix {
 	panic("mat64: Reshape not implemented for Sparse matrices")
 }
 
@@ -359,7 +359,7 @@ func (s *Sparse) Apply(fn func(i, j int, v Float) Float, a Matrix) {
 }
 
 // ApplyWithAlpha is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) ApplyWithAlpha(fn func(i, j int, v Float, alpha ...Float) Float, a Matrix, alpha ...Float) {
+func (s *Sparse) ApplyWithAlpha(_ func(i, j int, v Float, alpha ...Float) Float, _ Matrix, _ ...Float) {
 	panic("mat64: ApplyWithAlpha not implemented for Sparse matrices")
 }
 
@@ -375,7 +375,7 @@ func (s *Sparse) AddScalar(n Float) Matrix {
 }
 
 // AddScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) AddScalarInPlace(n Float) Matrix {
+func (s *Sparse) AddScalarInPlace(_ Float) Matrix {
 	panic("mat64: AddScalarInPlace not implemented for Sparse matrices")
 }
 
@@ -390,7 +390,7 @@ func (s *Sparse) SubScalar(n Float) Matrix {
 }
 
 // SubScalarInPlace is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SubScalarInPlace(n Float) Matrix {
+func (s *Sparse) SubScalarInPlace(_ Float) Matrix {
 	panic("mat64: SubScalarInPlace not implemented for Sparse matrices")
 }
 
@@ -703,7 +703,7 @@ func (s *Sparse) Div(other Matrix) Matrix {
 }
 
 // DivInPlace is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) DivInPlace(other Matrix) Matrix {
+func (s *Sparse) DivInPlace(_ Matrix) Matrix {
 	panic("mat64: DivInPlace not implemented for Sparse matrices")
 }
 
@@ -869,7 +869,7 @@ func (s *Sparse) String() string {
 }
 
 // SetData is currently not implemented for a Sparse matrix (it always panics).
-func (s *Sparse) SetData(data []Float) {
+func (s *Sparse) SetData(_ []Float) {
 	panic("mat64: SetData not implemented for Sparse matrices")
 }
 

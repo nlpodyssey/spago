@@ -7,7 +7,7 @@ package internal
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -45,7 +45,7 @@ func LookupFromHuggingFace(searchQuery string) (string, error) {
 		return "", err
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}

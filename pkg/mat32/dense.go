@@ -7,8 +7,6 @@ package mat32
 import (
 	"encoding/gob"
 	"fmt"
-	"math"
-
 	"github.com/nlpodyssey/spago/pkg/mat32/internal"
 	"github.com/nlpodyssey/spago/pkg/mat32/internal/asm/f32"
 )
@@ -541,24 +539,29 @@ func (d *Dense) Mul(other Matrix) Matrix {
 	switch b := other.(type) {
 	case *Dense:
 		if out.cols != 1 {
-			internal.DgemmSerial(
-				false,
-				false,
-				d.rows,   // m
-				b.cols,   // n
-				d.cols,   // k
+			internal.MatrixMul(
+				d.rows,   // aRows
+				d.cols,   // aCols
+				b.cols,   // bCols
 				d.data,   // a
-				d.cols,   // lda
 				b.data,   // b
-				b.cols,   // ldb
 				out.data, // c
-				out.cols, // ldc
-				1.0,      // alpha
 			)
 			return out
 		}
 
-		matrixVectorMul(d.data, b.data, out.data)
+		f32.GemvN(
+			uintptr(d.rows), // m
+			uintptr(d.cols), // n
+			1.0,             // alpha
+			d.data,          // a
+			uintptr(d.cols), // lda
+			b.data,          // x
+			1.0,             // incX
+			0.0,             // beta
+			out.data,        // y
+			1.0,             // incY
+		)
 		return out
 
 	case *Sparse:
@@ -569,18 +572,6 @@ func (d *Dense) Mul(other Matrix) Matrix {
 		})
 	}
 	return out
-}
-
-// matrixVectorMul performs matrix-vector multiplication: y = A * x.
-func matrixVectorMul(a []float32, x []float32, y []float32) {
-	start := 0
-	size := len(x)
-
-	for i := range y {
-		end := start + size
-		y[i] = f32.DotUnitary(a[start:end], x)
-		start = end
-	}
 }
 
 // MulT performs the matrix multiplication row by column. ATB = C, where AT is the transpose of B
@@ -594,7 +585,7 @@ func (d *Dense) MulT(other Matrix) Matrix {
 	switch b := other.(type) {
 	case *Dense:
 		if out.cols == 1 {
-			internal.GemvT(
+			f32.GemvT(
 				uintptr(d.rows), // m
 				uintptr(d.cols), // n
 				1.0,             // alpha
@@ -643,7 +634,7 @@ func (d *Dense) Abs() Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
 	for i, val := range d.data {
-		outData[i] = Float(math.Abs(float64(val)))
+		outData[i] = Abs(val)
 	}
 	return out
 }
@@ -654,7 +645,7 @@ func (d *Dense) Pow(power Float) Matrix {
 	out := GetDenseWorkspace(d.Dims())
 	outData := out.data
 	for i, val := range d.data {
-		outData[i] = Float(math.Pow(float64(val), float64(power)))
+		outData[i] = Pow(val, power)
 	}
 	return out
 }
@@ -670,19 +661,19 @@ func (d *Dense) Sqrt() Matrix {
 	outData := out.data
 	_ = outData[lastIndex]
 	for i, val := range inData {
-		outData[i] = Float(math.Sqrt(float64(val)))
+		outData[i] = Sqrt(val)
 	}
 	return out
 }
 
 // Sum returns the sum of all values of the matrix.
 func (d *Dense) Sum() Float {
-	return internal.Sum(d.data)
+	return f32.Sum(d.data)
 }
 
 // Max returns the maximum value of the matrix.
 func (d *Dense) Max() Float {
-	max := Float(math.Inf(-1))
+	max := Inf(-1)
 	for _, v := range d.data {
 		if v > max {
 			max = v
@@ -693,7 +684,7 @@ func (d *Dense) Max() Float {
 
 // Min returns the minimum value of the matrix.
 func (d *Dense) Min() Float {
-	min := Float(math.Inf(1))
+	min := Inf(1)
 	for _, v := range d.data {
 		if v < min {
 			min = v
@@ -724,9 +715,9 @@ func (d *Dense) SplitV(sizes ...int) []Matrix {
 func (d *Dense) Norm(pow Float) Float {
 	var s Float = 0.0
 	for _, x := range d.data {
-		s += Float(math.Pow(float64(x), float64(pow)))
+		s += Pow(x, pow)
 	}
-	return Float(math.Pow(float64(s), float64(1/pow)))
+	return Pow(s, 1/pow)
 }
 
 // Normalize2 normalizes an array with the Euclidean norm.
@@ -820,10 +811,10 @@ func (d *Dense) Pivoting(row int) (Matrix, bool, []int) {
 		pv[i] = i
 	}
 	j := row
-	max := Float(math.Abs(float64(d.data[row*d.cols+j])))
+	max := Abs(d.data[row*d.cols+j])
 	for i := row; i < d.cols; i++ {
 		if d.data[i*d.cols+j] > max {
-			max = Float(math.Abs(float64(d.data[i*d.cols+j])))
+			max = Abs(d.data[i*d.cols+j])
 			row = i
 		}
 	}

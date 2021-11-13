@@ -506,7 +506,7 @@ func (g *Graph) IncTimeStep() {
 // to perform truncated back propagation. This value is 0 for a new Graph, and
 // can be incremented calling IncTimeStep.
 func (g *Graph) TimeStep() int {
-	return int(g.curTimeStep)
+	return g.curTimeStep
 }
 
 // Nodes returns the nodes of the graph.
@@ -570,6 +570,6 @@ func (g *Graph) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
-func (g *Graph) UnmarshalBinary(data []byte) error {
+func (g *Graph) UnmarshalBinary(_ []byte) error {
 	return nil
 }

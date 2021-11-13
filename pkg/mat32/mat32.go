@@ -14,9 +14,9 @@ type Float = float32
 
 const (
 	// SmallestNonzeroFloat corresponds to math.SmallestNonzeroFloat32.
-	SmallestNonzeroFloat Float = math.SmallestNonzeroFloat32
+	SmallestNonzeroFloat = Float(math.SmallestNonzeroFloat32)
 	// Pi mathematical constant.
-	Pi Float = math.Pi
+	Pi = Float(math.Pi)
 )
 
 // Pow returns x**y, the base-x exponential of y.

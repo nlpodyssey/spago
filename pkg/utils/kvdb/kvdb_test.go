@@ -9,7 +9,6 @@ import (
 	"encoding/gob"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -172,7 +171,7 @@ func TestKeyValueDB_Gob(t *testing.T) {
 
 func newTempDir(t *testing.T, pattern string) string {
 	t.Helper()
-	dir, err := ioutil.TempDir("", pattern)
+	dir, err := os.MkdirTemp("", pattern)
 	require.Nil(t, err)
 	return dir
 }

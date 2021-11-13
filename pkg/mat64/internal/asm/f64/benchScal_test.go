@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"testing"
 )
 
@@ -29,7 +30,7 @@ func BenchmarkScalUnitaryTo(t *testing.B) {
 	tstName := "ScalUnitaryTo"
 	for _, ln := range uniScal {
 		t.Run(fmt.Sprintf("%s-%d", tstName, ln), func(b *testing.B) {
-			b.SetBytes(int64(64 * ln))
+			b.SetBytes(64 * ln)
 			x, y := x[:ln], y[:ln]
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -62,7 +63,7 @@ func BenchmarkScalInc(t *testing.B) {
 				b.SetBytes(int64(64 * tt.len))
 				tstInc := uintptr(inc)
 				for i := 0; i < b.N; i++ {
-					ScalInc(a, x, uintptr(tt.len), tstInc)
+					ScalInc(a, x, tt.len, tstInc)
 				}
 			})
 		}
@@ -77,7 +78,7 @@ func BenchmarkScalIncTo(t *testing.B) {
 				b.SetBytes(int64(64 * tt.len))
 				tstInc := uintptr(inc)
 				for i := 0; i < b.N; i++ {
-					ScalIncTo(z, tstInc, a, x, uintptr(tt.len), tstInc)
+					ScalIncTo(z, tstInc, a, x, tt.len, tstInc)
 				}
 			})
 		}

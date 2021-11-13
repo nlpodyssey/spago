@@ -47,7 +47,7 @@ func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
 
 // Discriminate handles a discriminate request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Discriminate(ctx context.Context, req *grpcapi.DiscriminateRequest) (*grpcapi.DiscriminateReply, error) {
+func (s *Server) Discriminate(_ context.Context, req *grpcapi.DiscriminateRequest) (*grpcapi.DiscriminateReply, error) {
 	result := s.discriminate(req.GetText())
 
 	return &grpcapi.DiscriminateReply{

@@ -19,8 +19,8 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"github.com/nlpodyssey/spago/pkg/utils/gopickleutils"
 	"io"
-	"io/ioutil"
 	"log"
+	"os"
 	"path"
 )
 
@@ -76,7 +76,7 @@ func Convert(modelPath string, flairModelName, configFileName, modelFileName str
 		if err != nil {
 			panic(fmt.Errorf("error marshaling configuration: %w", err))
 		}
-		err = ioutil.WriteFile(path.Join(modelPath, configFileName), configData, 0644)
+		err = os.WriteFile(path.Join(modelPath, configFileName), configData, 0644)
 	}
 
 	stateDict := c.buildStateDict()

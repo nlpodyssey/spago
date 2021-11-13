@@ -25,7 +25,6 @@ import (
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
 const defaultHuggingFaceModelFile = "pytorch_model.bin"
-const huggingFaceEmoji = "🤗"
 
 // ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BERT
 // transformer model to a corresponding spaGO model.

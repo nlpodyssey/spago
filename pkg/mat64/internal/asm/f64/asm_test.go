@@ -2,20 +2,18 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
+	"golang.org/x/exp/rand"
 	"math"
 	"testing"
-
-	"golang.org/x/exp/rand"
 )
 
 const (
 	msgVal      = "%v: unexpected value at %v Got: %v Expected: %v"
 	msgGuard    = "%v: Guard violated in %s vector %v %v"
 	msgReadOnly = "%v: modified read-only %v argument"
-	epsilon     = 1e-12
 )
 
 var (
@@ -147,9 +145,9 @@ func same(a, b float64) bool {
 	return a == b || (math.IsNaN(a) && math.IsNaN(b))
 }
 
-// within tests for nan-aware equality within epsilon.
-func within(a, b float64) bool {
-	return same(a, b) || math.Abs(a-b) <= epsilon
+// sameApprox tests for nan-aware equality within tolerance.
+func sameApprox(a, b, tol float64) bool {
+	return same(a, b) || EqualWithinAbsOrRel(a, b, tol, tol)
 }
 
 var ( // Offset sets for testing alignment handling in Unitary assembly functions.
@@ -192,19 +190,6 @@ func newIncToSet(inc ...int) []incToSet {
 	return is
 }
 
-var benchSink []float64
-
-func randomSlice(n, inc int) []float64 {
-	if inc < 0 {
-		inc = -inc
-	}
-	x := make([]float64, (n-1)*inc+1)
-	for i := range x {
-		x[i] = rand.Float64()
-	}
-	return x
-}
-
 func randSlice(n, inc int, r *rand.Rand) []float64 {
 	if inc < 0 {
 		inc = -inc
@@ -214,4 +199,39 @@ func randSlice(n, inc int, r *rand.Rand) []float64 {
 		x[i] = r.Float64()
 	}
 	return x
+}
+
+// EqualWithinAbs returns true when a and b have an absolute difference
+// not greater than tol.
+func EqualWithinAbs(a, b, tol float64) bool {
+	return a == b || math.Abs(a-b) <= tol
+}
+
+// minNormalFloat64 is the smallest normal number. For 64 bit IEEE-754
+// floats this is 2^{-1022}.
+const minNormalFloat64 = 0x1p-1022
+
+// EqualWithinRel returns true when the difference between a and b
+// is not greater than tol times the greater absolute value of a and b,
+//  abs(a-b) <= tol * max(abs(a), abs(b)).
+func EqualWithinRel(a, b, tol float64) bool {
+	if a == b {
+		return true
+	}
+	delta := math.Abs(a - b)
+	if delta <= minNormalFloat64 {
+		return delta <= tol*minNormalFloat64
+	}
+	// We depend on the division in this relationship to identify
+	// infinities (we rely on the NaN to fail the test) otherwise
+	// we compare Infs of the same sign and evaluate Infs as equal
+	// independent of sign.
+	return delta/math.Max(math.Abs(a), math.Abs(b)) <= tol
+}
+
+// EqualWithinAbsOrRel returns true when a and b are equal to within
+// the absolute or relative tolerances. See EqualWithinAbs and
+// EqualWithinRel for details.
+func EqualWithinAbsOrRel(a, b, absTol, relTol float64) bool {
+	return EqualWithinAbs(a, b, absTol) || EqualWithinRel(a, b, relTol)
 }

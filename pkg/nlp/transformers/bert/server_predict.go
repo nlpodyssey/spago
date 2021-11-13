@@ -46,7 +46,7 @@ func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
 
 // Predict handles a predict request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Predict(ctx context.Context, req *grpcapi.PredictRequest) (*grpcapi.PredictReply, error) {
+func (s *Server) Predict(_ context.Context, req *grpcapi.PredictRequest) (*grpcapi.PredictReply, error) {
 	start := time.Now()
 	result := s.model.PredictMLM(req.GetText())
 	return &grpcapi.PredictReply{

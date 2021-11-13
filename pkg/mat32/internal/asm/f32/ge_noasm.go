@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build !amd64 || noasm || gccgo || safe
 // +build !amd64 noasm gccgo safe
 
 package f32
@@ -30,7 +31,7 @@ func Ger(m, n uintptr, alpha float32, x []float32, incX uintptr, y []float32, in
 
 	ix := kx
 	for i := 0; i < int(m); i++ {
-		AxpyInc(alpha*x[ix], y, a[uintptr(i)*lda:uintptr(i)*lda+n], uintptr(n), uintptr(incY), 1, uintptr(ky), 0)
+		AxpyInc(alpha*x[ix], y, a[uintptr(i)*lda:uintptr(i)*lda+n], n, incY, 1, ky, 0)
 		ix += incX
 	}
 }

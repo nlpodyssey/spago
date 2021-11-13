@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
-import "testing"
+import (
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
+	"testing"
+)
 
 func TestL1Norm(t *testing.T) {
 	var srcGd float64 = 1
@@ -624,6 +627,17 @@ func TestSum(t *testing.T) {
 		gsrc := guardVector(v.src, srcGd, gdLn)
 		src := gsrc[gdLn : len(gsrc)-gdLn]
 		ret := Sum(src)
+		if !same(ret, v.expect) {
+			t.Errorf("Test %d Sum error Got: %v Expected: %v", j, ret, v.expect)
+		}
+		if !isValidGuard(gsrc, srcGd, gdLn) {
+			t.Errorf("Test %d Guard violated in src vector %v %v", j, gsrc[:gdLn], gsrc[len(gsrc)-gdLn:])
+		}
+
+		gdLn++
+		gsrc = guardVector(v.src, srcGd, gdLn)
+		src = gsrc[gdLn : len(gsrc)-gdLn]
+		ret = Sum(src)
 		if !same(ret, v.expect) {
 			t.Errorf("Test %d Sum error Got: %v Expected: %v", j, ret, v.expect)
 		}

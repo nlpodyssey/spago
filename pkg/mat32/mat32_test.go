@@ -11,27 +11,27 @@ import (
 )
 
 func TestPow(t *testing.T) {
-	assert.Equal(t, Float(8), Pow(2, 3))
+	assert.InDelta(t, Float(8), Pow(2, 3), 1e-10)
 }
 
 func TestCos(t *testing.T) {
-	assert.Equal(t, Float(-1), Cos(Pi))
+	assert.InDelta(t, Float(-1), Cos(Pi), 1e-10)
 }
 
 func TestSin(t *testing.T) {
-	assert.Equal(t, Float(1), Sin(Pi/2))
+	assert.InDelta(t, Float(1), Sin(Pi/2), 1e-10)
 }
 
 func TestCosh(t *testing.T) {
-	assert.InDelta(t, Float(11.59195), Cosh(Pi), 0.00001)
+	assert.InDelta(t, 11.59195, Cosh(Pi), 1e-5)
 }
 
 func TestSinh(t *testing.T) {
-	assert.InDelta(t, Float(11.54874), Sinh(Pi), 0.00001)
+	assert.InDelta(t, 11.54874, Sinh(Pi), 1e-5)
 }
 
 func TestExp(t *testing.T) {
-	assert.InDelta(t, 2.71828, Exp(1), 0.00001)
+	assert.InDelta(t, 2.71828, Exp(1), 1e-5)
 }
 
 func TestAbs(t *testing.T) {
@@ -40,19 +40,19 @@ func TestAbs(t *testing.T) {
 }
 
 func TestSqrt(t *testing.T) {
-	assert.Equal(t, Float(3), Sqrt(9))
+	assert.InDelta(t, Float(3), Sqrt(9), 1e-10)
 }
 
 func TestLog(t *testing.T) {
-	assert.InDelta(t, 0.69314, Log(2), 0.00001)
+	assert.InDelta(t, 0.69314, Log(2), 1e-5)
 }
 
 func TestTan(t *testing.T) {
-	assert.Equal(t, Float(1), Tan(Pi/4))
+	assert.InDelta(t, Float(1), Tan(Pi/4), 1e-10)
 }
 
 func TestTanh(t *testing.T) {
-	assert.InDelta(t, 0.76159, Tanh(1), 0.00001)
+	assert.InDelta(t, 0.76159, Tanh(1), 1e-5)
 }
 
 func TestMax(t *testing.T) {

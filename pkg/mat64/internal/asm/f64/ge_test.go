@@ -2,10 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"testing"
 )
 
@@ -106,6 +107,8 @@ var gerTests = []struct {
 //gocyclo:ignore
 func TestGer(t *testing.T) {
 	const (
+		tol = 1e-15
+
 		xGdVal, yGdVal, aGdVal = -0.5, 1.5, 10
 		gdLn                   = 4
 	)
@@ -123,7 +126,7 @@ func TestGer(t *testing.T) {
 			alpha := 1.0
 			Ger(uintptr(m), uintptr(n), alpha, x, 1, y, 1, a, uintptr(n))
 			for i := range test.want {
-				if !within(a[i], test.want[i]) {
+				if !sameApprox(a[i], test.want[i], tol) {
 					t.Errorf(msgVal, prefix, i, a[i], test.want[i])
 					t.Error(a)
 					return
@@ -158,7 +161,7 @@ func TestGer(t *testing.T) {
 			Ger(uintptr(m), uintptr(n), alpha, x, uintptr(inc.x), y, uintptr(inc.y), a, uintptr(n))
 			for i := range test.want {
 				want := alpha*(test.want[i]-test.a[i]) + test.a[i]
-				if !within(a[i], want) {
+				if !sameApprox(a[i], want, tol) {
 					t.Errorf(msgVal, prefix, i, a[i], want)
 				}
 			}

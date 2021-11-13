@@ -6,7 +6,7 @@ package sentencepiece
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -14,14 +14,14 @@ import (
 // NewSentencepieceFromFile creates sentencepiece from file.
 func NewSentencepieceFromFile(filename string, lowercase bool) (Sentencepiece, error) {
 	s := NewEmptySentencepiece(lowercase)
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
-		return s, fmt.Errorf("Unable to read file : %s, err %v", filename, err)
+		return s, fmt.Errorf("unable to read file : %s, err %v", filename, err)
 	}
 	var model ModelProto
 	err = proto.Unmarshal(bytes, &model)
 	if err != nil {
-		return s, fmt.Errorf("Unable to read model file : %s, err %v", filename, err)
+		return s, fmt.Errorf("unable to read model file : %s, err %v", filename, err)
 	}
 
 	count := 0

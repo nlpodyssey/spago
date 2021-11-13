@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"testing"
 )
 
-const (
-	testLen = 1e5
-)
+const testLen = 1e5
 
 var (
 	a = 2.0
@@ -121,7 +120,7 @@ func BenchmarkAxpyInc(t *testing.B) {
 						idx = uintptr((-int(tt.len) + 1) * inc)
 					}
 					for i := 0; i < b.N; i++ {
-						test.f(a, x, y, uintptr(tt.len), tstInc, tstInc, idx, idx)
+						test.f(a, x, y, tt.len, tstInc, tstInc, idx, idx)
 					}
 				})
 			}
@@ -155,7 +154,7 @@ func BenchmarkAxpyIncTo(t *testing.B) {
 						idx = uintptr((-int(tt.len) + 1) * inc)
 					}
 					for i := 0; i < b.N; i++ {
-						test.f(z, tstInc, idx, a, x, y, uintptr(tt.len),
+						test.f(z, tstInc, idx, a, x, y, tt.len,
 							tstInc, tstInc, idx, idx)
 					}
 				})

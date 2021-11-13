@@ -48,7 +48,7 @@ func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 
 // Answer handles a question-answering request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Answer(ctx context.Context, req *grpcapi.AnswerRequest) (*grpcapi.AnswerReply, error) {
+func (s *Server) Answer(_ context.Context, req *grpcapi.AnswerRequest) (*grpcapi.AnswerReply, error) {
 	start := time.Now()
 	result := s.model.Answer(req.GetQuestion(), req.GetPassage())
 	return &grpcapi.AnswerReply{

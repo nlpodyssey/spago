@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
-	"github.com/manifoldco/promptui/list"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -48,7 +46,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 		cacheFilePath := path.Join(repo, CacheFileName)
 		var dataJSON string
 		if _, err := os.Stat(cacheFilePath); err == nil {
-			dataBin, err := ioutil.ReadFile(cacheFilePath)
+			dataBin, err := os.ReadFile(cacheFilePath)
 			if err != nil {
 				writeMsg("Could not read cache file, skipping: " + err.Error())
 			}
@@ -70,7 +68,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 			return fmt.Errorf("parse search results data: %w", err)
 		}
 		// write cache
-		if err := ioutil.WriteFile(cacheFilePath, []byte(dataJSON), 0644); err != nil {
+		if err := os.WriteFile(cacheFilePath, []byte(dataJSON), 0644); err != nil {
 			writeMsg("Unable to write cache file: " + err.Error())
 		}
 
@@ -86,9 +84,9 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 			Items:             ids,
 			// Called on each items of the select and should return a
 			// boolean for whether or not the item fits the searched term.
-			Searcher: list.Searcher(func(input string, index int) bool {
+			Searcher: func(input string, index int) bool {
 				return fuzzy.Match(input, ids[index])
-			}),
+			},
 		}).Run()
 		if err != nil {
 			return err

@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package f64
+package f64_test
 
 import (
 	"fmt"
-	"testing"
-
+	. "github.com/nlpodyssey/spago/pkg/mat64/internal/asm/f64"
 	"golang.org/x/exp/rand"
+	"testing"
 )
 
 var scalTests = []struct {
