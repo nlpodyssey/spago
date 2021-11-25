@@ -913,6 +913,71 @@ func (d *Dense) DoNonZero(fn func(i, j int, v Float)) {
 	}
 }
 
+// ResizeVector returns a resized copy of the given vector x.
+//
+// The input x MUST be a vector.
+//
+// If the new size is smaller than the input vector, the remaining tail
+// elements are removed. If it's bigger, the additional tail elements
+// will are set to zero.
+func (d *Dense) ResizeVector(newSize int) Matrix {
+	xSize := d.Size()
+	xData := d.data
+	if newSize <= xSize {
+		return NewVecDense(xData[:newSize])
+	}
+
+	y := NewEmptyVecDense(newSize)
+	yData := y.data
+	copy(yData[:xSize], xData)
+	copy(y.data, yData)
+
+	return y
+}
+
+// PadColumns returns a copy of the given matrix x with n additional tail columns.
+// The additional elements are set to zero.
+func (d *Dense) PadColumns(n int) Matrix {
+	rows := d.rows
+	xCols := d.cols
+	yCols := xCols + n
+	y := NewEmptyDense(rows, yCols)
+
+	if rows == 0 || xCols == 0 {
+		return y
+	}
+
+	xData := d.data
+	yData := y.data
+	for r, xi, yi := 0, 0, 0; r < rows; r, xi, yi = r+1, xi+xCols, yi+yCols {
+		copy(yData[yi:yi+xCols], xData[xi:xi+xCols])
+	}
+	copy(y.data, yData)
+
+	return y
+}
+
+// PadRows returns a copy of the given matrix x with n additional tail rows.
+// The additional elements are set to zero.
+func (d *Dense) PadRows(n int) Matrix {
+	cols := d.cols
+	xRows := d.rows
+	yRows := xRows + n
+
+	y := NewEmptyDense(yRows, cols)
+
+	if cols == 0 || xRows == 0 {
+		return y
+	}
+
+	xData := d.data
+	yData := y.data
+	copy(yData[:len(xData)], xData)
+	copy(y.data, yData)
+
+	return y
+}
+
 // String returns a string representation of the matrix data.
 func (d *Dense) String() string {
 	return fmt.Sprintf("%v", d.data)

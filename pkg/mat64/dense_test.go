@@ -5,9 +5,11 @@
 package mat64
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDense_AddScalar(t *testing.T) {
@@ -1453,6 +1455,145 @@ func TestDense_DoNonZero(t *testing.T) {
 		}
 		assert.Equal(t, expected, actual)
 	})
+}
+
+func TestResizeVector(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		x        []Float
+		size     int
+		expected []Float
+	}{
+		{[]Float{}, 0, []Float{}},
+		{[]Float{}, 1, []Float{0}},
+		{[]Float{}, 2, []Float{0, 0}},
+
+		{[]Float{1}, 0, []Float{}},
+		{[]Float{1}, 1, []Float{1}},
+		{[]Float{1}, 2, []Float{1, 0}},
+		{[]Float{1}, 3, []Float{1, 0, 0}},
+
+		{[]Float{1, 2}, 0, []Float{}},
+		{[]Float{1, 2}, 1, []Float{1}},
+		{[]Float{1, 2}, 2, []Float{1, 2}},
+		{[]Float{1, 2}, 3, []Float{1, 2, 0}},
+		{[]Float{1, 2}, 4, []Float{1, 2, 0, 0}},
+	}
+
+	for _, c := range cases {
+		testName := fmt.Sprintf("ResizeVector(%#v, %d) == %#v", c.x, c.size, c.expected)
+		t.Run(testName, func(t *testing.T) {
+			x := NewVecDense(c.x)
+			y := x.ResizeVector(c.size)
+			if !reflect.DeepEqual(y.Data(), c.expected) {
+				t.Fatalf("expected %#v, actual %#v", c.expected, y.Data())
+			}
+			if !reflect.DeepEqual(x.Data(), c.x) {
+				t.Fatalf("the input vector was modified: %#v", x.Data())
+			}
+		})
+	}
+}
+
+func TestPadColumns(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		x        Matrix
+		cols     int
+		expected Matrix
+	}{
+		{NewDense(0, 0, []Float{}), 0, NewDense(0, 0, []Float{})},
+		{NewDense(0, 0, []Float{}), 1, NewDense(0, 1, []Float{})},
+		{NewDense(0, 0, []Float{}), 2, NewDense(0, 2, []Float{})},
+
+		{NewDense(0, 1, []Float{}), 0, NewDense(0, 1, []Float{})},
+		{NewDense(0, 1, []Float{}), 1, NewDense(0, 2, []Float{})},
+		{NewDense(0, 1, []Float{}), 2, NewDense(0, 3, []Float{})},
+
+		{NewDense(1, 0, []Float{}), 0, NewDense(1, 0, []Float{})},
+		{NewDense(1, 0, []Float{}), 1, NewDense(1, 1, []Float{0})},
+		{NewDense(1, 0, []Float{}), 2, NewDense(1, 2, []Float{0, 0})},
+
+		{NewDense(1, 1, []Float{1}), 0, NewDense(1, 1, []Float{1})},
+		{NewDense(1, 1, []Float{1}), 1, NewDense(1, 2, []Float{1, 0})},
+		{NewDense(1, 1, []Float{1}), 2, NewDense(1, 3, []Float{1, 0, 0})},
+
+		{NewDense(2, 1, []Float{1, 2}), 0, NewDense(2, 1, []Float{1, 2})},
+		{NewDense(2, 1, []Float{1, 2}), 1, NewDense(2, 2, []Float{1, 0, 2, 0})},
+		{NewDense(2, 1, []Float{1, 2}), 2, NewDense(2, 3, []Float{1, 0, 0, 2, 0, 0})},
+
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 0, NewDense(2, 2, []Float{1, 2, 3, 4})},
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 1, NewDense(2, 3, []Float{1, 2, 0, 3, 4, 0})},
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 2, NewDense(2, 4, []Float{1, 2, 0, 0, 3, 4, 0, 0})},
+	}
+
+	for _, c := range cases {
+		testName := fmt.Sprintf("PadColumns(%.0f, %d) == %.0f", c.x, c.cols, c.expected)
+		t.Run(testName, func(t *testing.T) {
+			xCopy := c.x.Clone()
+			y := c.x.(*Dense).PadColumns(c.cols)
+			if !matrixEqual(y, c.expected) {
+				t.Fatalf("expected %.0f, actual %.0f", c.expected, y)
+			}
+			if !matrixEqual(c.x, xCopy) {
+				t.Fatalf("the input vector was modified: %.0f", c.x)
+			}
+		})
+	}
+}
+
+func TestPadRows(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		x        Matrix
+		cols     int
+		expected Matrix
+	}{
+		{NewDense(0, 0, []Float{}), 0, NewDense(0, 0, []Float{})},
+		{NewDense(0, 0, []Float{}), 1, NewDense(1, 0, []Float{})},
+		{NewDense(0, 0, []Float{}), 2, NewDense(2, 0, []Float{})},
+
+		{NewDense(1, 0, []Float{}), 0, NewDense(1, 0, []Float{})},
+		{NewDense(1, 0, []Float{}), 1, NewDense(2, 0, []Float{})},
+		{NewDense(1, 0, []Float{}), 2, NewDense(3, 0, []Float{})},
+
+		{NewDense(0, 1, []Float{}), 0, NewDense(0, 1, []Float{})},
+		{NewDense(0, 1, []Float{}), 1, NewDense(1, 1, []Float{0})},
+		{NewDense(0, 1, []Float{}), 2, NewDense(2, 1, []Float{0, 0})},
+
+		{NewDense(1, 1, []Float{1}), 0, NewDense(1, 1, []Float{1})},
+		{NewDense(1, 1, []Float{1}), 1, NewDense(2, 1, []Float{1, 0})},
+		{NewDense(1, 1, []Float{1}), 2, NewDense(3, 1, []Float{1, 0, 0})},
+
+		{NewDense(1, 2, []Float{1, 2}), 0, NewDense(1, 2, []Float{1, 2})},
+		{NewDense(1, 2, []Float{1, 2}), 1, NewDense(2, 2, []Float{1, 2, 0, 0})},
+		{NewDense(1, 2, []Float{1, 2}), 2, NewDense(3, 2, []Float{1, 2, 0, 0, 0, 0})},
+
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 0, NewDense(2, 2, []Float{1, 2, 3, 4})},
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 1, NewDense(3, 2, []Float{1, 2, 3, 4, 0, 0})},
+		{NewDense(2, 2, []Float{1, 2, 3, 4}), 2, NewDense(4, 2, []Float{1, 2, 3, 4, 0, 0, 0, 0})},
+	}
+
+	for _, c := range cases {
+		testName := fmt.Sprintf("PadRows(%.0f, %d) == %.0f", c.x, c.cols, c.expected)
+		t.Run(testName, func(t *testing.T) {
+			xCopy := c.x.Clone()
+			y := c.x.(*Dense).PadRows(c.cols)
+			if !matrixEqual(y, c.expected) {
+				t.Fatalf("expected %.0f, actual %.0f", c.expected, y)
+			}
+			if !matrixEqual(c.x, xCopy) {
+				t.Fatalf("the input vector was modified: %.0f", c.x)
+			}
+		})
+	}
+}
+
+func matrixEqual(a, b Matrix) bool {
+	return SameDims(a, b) && reflect.DeepEqual(a.Data(), b.Data())
 }
 
 func TestDense_String(t *testing.T) {
