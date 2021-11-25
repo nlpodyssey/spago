@@ -169,19 +169,4 @@ which is providing full support for development by promoting the project and giv
 We appreciate contributions of all kinds. We especially want to thank spaGO fiscal sponsors who contribute to ongoing
 project maintenance.
 
-![Faire.ai logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/faire_ai_logo.png)
-
-> Our aim is simplifying people's life by making lending easy, fast and accessible, leveraging Open Banking and Artificial Intelligence.
-> https://www.faire.ai/
-
-![Hype logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/hype_design_logo.png)
-
-> We work on Artificial Intelligence based hardware and software systems, declining them in areas such as Energy Management, Personal Safety, E-Health and Sports equipment.
-> https://hype-design.it/
-
-![BoxxApps logo](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/sponsors/boxxapps_logo.png)
-
-> Professional services in the IT sector for Local Administrations, Enterprises and Local Authorities.
-> https://www.boxxapps.com/
-
 See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.
