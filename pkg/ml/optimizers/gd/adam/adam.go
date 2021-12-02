@@ -19,6 +19,7 @@ type Config struct {
 	Beta1    mat.Float
 	Beta2    mat.Float
 	Epsilon  mat.Float
+	Lambda   mat.Float // AdamW
 }
 
 // NewConfig returns a new Adam Config.
@@ -34,6 +35,24 @@ func NewConfig(stepSize, beta1, beta2, epsilon mat.Float) Config {
 		Beta1:    beta1,
 		Beta2:    beta2,
 		Epsilon:  epsilon,
+		Lambda:   0.0,
+	}
+}
+
+// NewAdamWConfig returns a new Adam Config.
+func NewAdamWConfig(stepSize, beta1, beta2, epsilon, lambda mat.Float) Config {
+	if !(beta1 >= 0.0 && beta1 < 1.0) {
+		panic("adam: `beta1` must be in the range [0.0, 1.0)")
+	}
+	if !(beta2 >= 0.0 && beta2 < 1.0) {
+		panic("adam: `beta2` must be in the range [0.0, 1.0)")
+	}
+	return Config{
+		StepSize: stepSize,
+		Beta1:    beta1,
+		Beta2:    beta2,
+		Epsilon:  epsilon,
+		Lambda:   lambda,
 	}
 }
 
@@ -54,6 +73,7 @@ type Adam struct {
 	Config
 	Alpha    mat.Float
 	TimeStep int
+	adamw    bool
 }
 
 // New returns a new Adam optimizer, initialized according to the given configuration.
@@ -61,6 +81,7 @@ func New(c Config) *Adam {
 	adam := &Adam{
 		Config: c,
 		Alpha:  c.StepSize,
+		adamw:  c.Lambda != 0.0,
 	}
 	adam.IncExample() // initialize 'alpha' coefficient
 	return adam
@@ -105,6 +126,9 @@ func (o *Adam) updateAlpha() {
 
 // Delta returns the difference between the current params and where the method wants it to be.
 func (o *Adam) Delta(param nn.Param) mat.Matrix {
+	if o.adamw {
+		return o.calcDeltaW(param.Grad(), gd.GetOrSetPayload(param, o).Data, param.Value())
+	}
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
@@ -117,6 +141,22 @@ func (o *Adam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
+	defer mat.ReleaseMatrix(suppDiv)
+	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
+	return supp[buf3]
+}
+
+// v = v*beta1 + grads*(1.0-beta1)
+// m = m*beta2 + (grads*grads)*(1.0-beta2)
+// d = (v / (sqrt(m) + eps))  + (lambda * weights) + alpha
+func (o *Adam) calcDeltaW(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix) mat.Matrix {
+	updateV(grads, supp, o.Beta1)
+	updateM(grads, supp, o.Beta2)
+	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
+	defer mat.ReleaseMatrix(buf)
+	suppDiv := supp[v].Div(buf)
+	scaledW := weights.ProdScalar(o.Lambda)
+	suppDiv.AddInPlace(scaledW)
 	defer mat.ReleaseMatrix(suppDiv)
 	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
 	return supp[buf3]
