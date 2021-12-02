@@ -222,7 +222,7 @@ func (m *Model) projection(inStackedVectors ag.Node, length int) []ag.Node {
 	stackedProjectedXs := m.Graph().Stack(projectedXs...)
 	stackedProjectedXs = m.Graph().T(stackedProjectedXs)
 	convolvedEmbeddings := make([]ag.Node, stackedProjectedXs.Value().Rows())
-	for i, _ := range convolvedEmbeddings {
+	for i := range convolvedEmbeddings {
 		convolvedEmbeddings[i] = m.Graph().RowView(stackedProjectedXs, i)
 	}
 	return convolvedEmbeddings
