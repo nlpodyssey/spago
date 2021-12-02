@@ -115,24 +115,16 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 }
 
 // SplitVec splits the x Node into multiple chunks.
-// It panics if the x Node is not a vector.
-// TODO: optimize, this is extremely inefficient!
 func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
+	if x.Value().Size()%chunks != 0 {
+		panic("nn: incompatible chunks size")
+	}
+	l := 0
 	size := int(mat.Ceil(mat.Float(x.Value().Size()) / mat.Float(chunks)))
-	lastSize := x.Value().Size() % chunks
 	ys := make([]ag.Node, chunks)
-	for c := 0; c < chunks; c++ {
-		length := 0
-		if c == chunks-1 && lastSize > 0 {
-			length = lastSize
-		} else {
-			length = size
-		}
-		tmp := make([]ag.Node, length)
-		for i := 0; i < length; i++ {
-			tmp[i] = g.AtVec(x, i+c*size)
-		}
-		ys[c] = g.Concat(tmp...)
+	for i := 0; i < chunks; i++ {
+		ys[i] = g.View(x, l, 0, size, 1)
+		l += size
 	}
 	return ys
 }
