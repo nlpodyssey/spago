@@ -127,7 +127,7 @@ func (o *Lamb) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix
 	}
 	weightsNorm := norm(weights)
 	adamStepNorm := norm(suppDiv)
-	trustRatio := float32(1.0)
+	trustRatio := mat.Float(1.0)
 	if !(weightsNorm == 0.0 || adamStepNorm == 0.0) {
 		trustRatio = weightsNorm / adamStepNorm
 	}
@@ -153,7 +153,7 @@ func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 mat.Float) {
 }
 
 func norm(grads mat.Matrix) mat.Float {
-	sum := float32(0.0)
+	sum := mat.Float(0.0)
 	for _, d := range grads.Data() {
 		sum += d * d
 	}
