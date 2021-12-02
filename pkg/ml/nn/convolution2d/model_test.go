@@ -1,15 +1,16 @@
-// Copyright 2019 spaGO Authors. All rights reserved.
+// Copyright 2021 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package convolution
+package convolution2d
 
 import (
+	"testing"
+
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 //gocyclo:ignore
@@ -144,6 +145,54 @@ func TestModel_Forward(t *testing.T) {
 	}, x3.Grad().Data(), 1.0e-05)
 }
 
+func TestDepthwise_Forward(t *testing.T) {
+	model := newTestModel2()
+	g := ag.NewGraph()
+
+	// == Forward
+
+	x1 := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
+		0.2, 0.1, 0.5, 0.8,
+		0.4, -0.3, -0.2, -0.3,
+		0.5, -0.6, -0.4, 0.6,
+		-0.3, 0.9, 0.5, 0.5,
+	}), true)
+
+	x2 := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
+		-0.2, 0.1, 0.5, 0.8,
+		0.4, -0.3, -0.2, -0.9,
+		0.5, 0.2, 0.2, 0.9,
+		0.9, 0.3, 0.2, 0.7,
+	}), true)
+
+	x3 := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
+		0.2, 0.5, 0.9, 0.8,
+		0.4, -0.5, -0.3, -0.2,
+		0.5, 0.6, -0.9, 0.0,
+		0.3, 0.9, 0.2, 0.1,
+	}), true)
+
+	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
+
+	assert.InDeltaSlice(t, []mat.Float{
+		0.09, -0.3, -0.22,
+		0.29, -0.37, 0.08,
+		0.67, 0.28, -0.14,
+	}, y[0].Value().Data(), 1.0e-05)
+
+	assert.InDeltaSlice(t, []mat.Float{
+		0.14, 0.06, -0.66,
+		0.19, 0.51, 0.88,
+		0.46, 0.4, 1.04,
+	}, y[1].Value().Data(), 1.0e-05)
+
+	assert.InDeltaSlice(t, []mat.Float{
+		0.51, 0.69, 0.92,
+		0.97, -0.21, 0.14,
+		1.48, 0.77, 0.24,
+	}, y[2].Value().Data(), 1.0e-05)
+}
+
 func newTestModel() *Model {
 	model := New(Config{
 		KernelSizeX:    2,
@@ -153,6 +202,7 @@ func newTestModel() *Model {
 		InputChannels:  3,
 		OutputChannels: 2,
 		Mask:           []int{1, 1, 1},
+		DepthWise:      false,
 		Activation:     ag.OpTanh,
 	})
 	model.K[0].Value().SetData([]mat.Float{
@@ -185,5 +235,35 @@ func newTestModel() *Model {
 	model.B[3].Value().SetData([]mat.Float{0.4})
 	model.B[4].Value().SetData([]mat.Float{0.1})
 	model.B[5].Value().SetData([]mat.Float{0.5})
+	return model
+}
+
+func newTestModel2() *Model {
+	model := New(Config{
+		KernelSizeX:    2,
+		KernelSizeY:    2,
+		XStride:        1,
+		YStride:        1,
+		InputChannels:  3,
+		OutputChannels: 3,
+		Mask:           []int{1, 1, 1},
+		DepthWise:      true,
+		Activation:     ag.OpIdentity,
+	})
+	model.K[0].Value().SetData([]mat.Float{
+		0.5, -0.4,
+		0.3, 0.3,
+	})
+	model.K[1].Value().SetData([]mat.Float{
+		-0.5, 0.3,
+		0.2, 0.9,
+	})
+	model.K[2].Value().SetData([]mat.Float{
+		0.4, 0.3,
+		0.2, 0.6,
+	})
+	model.B[0].Value().SetData([]mat.Float{0.0})
+	model.B[1].Value().SetData([]mat.Float{0.2})
+	model.B[2].Value().SetData([]mat.Float{0.5})
 	return model
 }

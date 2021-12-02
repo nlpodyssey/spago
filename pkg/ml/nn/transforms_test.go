@@ -11,8 +11,46 @@ import (
 	"testing"
 )
 
+func TestConv1D(t *testing.T) {
+	g := ag.NewGraph()
+
+	x := g.NewVariable(mat.NewDense(3, 4, []mat.Float{
+		0.2, 0.1, 0.5, 0.8,
+		0.4, -0.3, -0.2, -0.3,
+		0.5, -0.6, -0.4, 0.6,
+	}), true)
+
+	w := g.NewVariable(mat.NewDense(3, 2, []mat.Float{
+		0.5, -0.4,
+		0.3, 0.3,
+		0.4, -0.3,
+	}), true)
+
+	out := Conv1D(g, w, x, 1)
+
+	assert.InDeltaSlice(t, []mat.Float{
+		0.47, -0.42, -0.56,
+	}, out.Value().Data(), 0.005)
+
+	g.Backward(out, ag.OutputGrad(mat.NewDense(1, 3, []mat.Float{
+		1.0, -0.5, -1.0,
+	})))
+
+	assert.InDeltaSlice(t, []mat.Float{
+		-0.35, -0.95,
+		0.75, 0.1,
+		1.2, -1.0,
+	}, w.Grad().Data(), 0.005)
+
+	assert.InDeltaSlice(t, []mat.Float{
+		0.5, -0.65, -0.3, 0.4,
+		0.3, 0.15, -0.45, -0.3,
+		0.4, -0.5, -0.25, 0.3,
+	}, x.Grad().Data(), 0.005)
+}
+
 func TestConv2D(t *testing.T) {
-	var g = ag.NewGraph()
+	g := ag.NewGraph()
 
 	x := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
 		0.2, 0.1, 0.5, 0.8,
@@ -54,8 +92,7 @@ func TestConv2D(t *testing.T) {
 }
 
 func TestConv2DStride2(t *testing.T) {
-
-	var g = ag.NewGraph()
+	g := ag.NewGraph()
 
 	x := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
 		0.2, 0.1, 0.5, 0.8,

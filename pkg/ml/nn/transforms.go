@@ -44,6 +44,25 @@ func BiAffine(g *ag.Graph, w, u, v, b, x1, x2 ag.Node) ag.Node {
 	return g.Add(g.Add(g.Add(BiLinear(g, w, x1, x2), g.Mul(g.T(u), x1)), g.Mul(g.T(v), x2)), b)
 }
 
+// Conv1D performs a 1D convolution.
+func Conv1D(g *ag.Graph, w, x ag.Node, stride int) ag.Node {
+	var dim int
+	wr, wc := w.Value().Rows(), w.Value().Columns()
+	xr, xc := x.Value().Rows(), x.Value().Columns()
+	if (xc-wc)%stride != 0 {
+		panic("Incompatible stride value for columns")
+	}
+	if xr != wr {
+		panic("Incompatible stride value for rows")
+	}
+	dim = (xc-wc)/stride + 1
+	ys := make([]ag.Node, dim)
+	for i := 0; i < dim; i++ {
+		ys[i] = g.Dot(g.View(x, 0, i*stride, wr, wc), w)
+	}
+	return g.Concat(ys...)
+}
+
 // Conv2D performs a 2D convolution.
 func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 	var dimx, dimy int

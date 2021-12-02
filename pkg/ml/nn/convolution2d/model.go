@@ -1,16 +1,17 @@
-// Copyright 2019 spaGO Authors. All rights reserved.
+// Copyright 2021 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package convolution
+package convolution2d
 
 import (
 	"encoding/gob"
 	"fmt"
+	"sync"
+
 	mat "github.com/nlpodyssey/spago/pkg/mat32"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
-	"sync"
 )
 
 var (
@@ -26,6 +27,7 @@ type Config struct {
 	InputChannels  int
 	OutputChannels int
 	Mask           []int
+	DepthWise      bool // Special case od depthwise convolution, where outputchannels == inputchannels
 	Activation     ag.OpName
 }
 
@@ -46,7 +48,16 @@ func New(config Config) *Model {
 	if config.Mask != nil && config.InputChannels != len(config.Mask) {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
 	}
-	paramsSize := config.InputChannels * config.OutputChannels
+	var paramsSize int
+	if config.DepthWise {
+		if config.OutputChannels != config.InputChannels {
+			panic(fmt.Sprint("convolution: DepthWise convolution input channels must be equals to output channels"))
+		}
+		paramsSize = config.OutputChannels
+	} else {
+		paramsSize = config.InputChannels * config.OutputChannels
+	}
+
 	kernels := make([]nn.Param, paramsSize, paramsSize)
 	biases := make([]nn.Param, paramsSize, paramsSize)
 	for i := 0; i < paramsSize; i++ {
@@ -95,10 +106,15 @@ func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
 	g := m.Graph()
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node
-	for i := 0; i < len(xs); i++ {
-		if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-			out = g.Add(out, nn.Conv2D(g, m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
-			out = g.AddScalar(out, m.B[i+offset])
+	if m.Config.DepthWise {
+		out = nn.Conv2D(g, m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
+		out = g.AddScalar(out, m.B[outputChannel])
+	} else {
+		for i := 0; i < len(xs); i++ {
+			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
+				out = g.Add(out, nn.Conv2D(g, m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+				out = g.AddScalar(out, m.B[i+offset])
+			}
 		}
 	}
 	return g.Invoke(m.Config.Activation, out)
