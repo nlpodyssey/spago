@@ -22,6 +22,8 @@ const (
 	RAdam
 	// RMSProp represents the RMSProp gradient descent optimization method.
 	RMSProp
+	// Lamb represents the Lamb gradient descent optimization method.
+	Lamb
 )
 
 // MethodConfig is an empty interface implemented by the configuration structures of
