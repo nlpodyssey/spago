@@ -114,24 +114,25 @@ func (m *Model) padToMultiple(xs ...ag.Node) []ag.Node {
 // blockMean applies the average pooling of different size blocks. For example, considering blocks size 2
 // out[0] = out[1] = average(in[0], in[1]);   out[2] = out[3] = average(in[2], in[3]) and so on.
 func (m *Model) blockMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node {
+	g := m.Graph()
 	out := make([]ag.Node, outputSize)
 	l := len(sequence)
 	for i := 0; i < l; i++ {
 		if i < outputSize {
 			if i%blockSize == 0 {
 				if i+blockSize <= l {
-					out[i] = m.Graph().Mean(sequence[i : i+blockSize])
+					out[i] = g.Mean(sequence[i : i+blockSize])
 				} else {
-					out[i] = m.Graph().Mean(sequence[i:l])
+					out[i] = g.Mean(sequence[i:l])
 				}
 			} else {
-				out[i] = m.Graph().Identity(out[i-1])
+				out[i] = g.Identity(out[i-1])
 			}
 		}
 	}
 	if l < outputSize {
 		for k := l; k < outputSize; k++ {
-			out[k] = m.Graph().Identity(out[l-1])
+			out[k] = g.Identity(out[l-1])
 		}
 	}
 
@@ -143,16 +144,17 @@ func (m *Model) blockMean(sequence []ag.Node, outputSize, blockSize int) []ag.No
 // For example, considering blocks size 2
 // out[0] =  average(in[0], in[1]);   out[1] = average(in[2], in[3]) and so on.
 func (m *Model) seqMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node {
+	g := m.Graph()
 	out := make([]ag.Node, outputSize)
 	l := len(sequence)
 	j := 0
 	for i := 0; i < l; i++ {
 		if i%blockSize == 0 {
 			if i+blockSize <= l {
-				out[j] = m.Graph().Mean(sequence[i : i+blockSize])
+				out[j] = g.Mean(sequence[i : i+blockSize])
 				j++
 			} else {
-				out[j] = m.Graph().Mean(sequence[i:l])
+				out[j] = g.Mean(sequence[i:l])
 			}
 		}
 	}
@@ -161,14 +163,14 @@ func (m *Model) seqMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node
 
 // scorer is a parametrized linear function that produce a score for each candidate block.
 func (m *Model) scorer(blocksSequence [][]ag.Node, length int) []ag.Node {
+	g := m.Graph()
 	scores := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
 		ff := make([]ag.Node, len(m.BlockSize))
 		for j, seq := range blocksSequence {
-			ff[j] = m.Scorer.Forward(m.Graph().T(seq[i]))[0]
+			ff[j] = m.Scorer.Forward(g.T(seq[i]))[0]
 		}
-		s := m.Graph().Concat(ff...)
-		scores[i] = m.Graph().Softmax(s)
+		scores[i] = g.Softmax(g.Concat(ff...))
 	}
 	if m.Config.ScoreConsensusAttention {
 		return m.scoreWithConsensusAttention(scores, length)
@@ -177,26 +179,27 @@ func (m *Model) scorer(blocksSequence [][]ag.Node, length int) []ag.Node {
 }
 
 func (m *Model) scoreWithConsensusAttention(scores []ag.Node, length int) []ag.Node {
+	g := m.Graph()
 	scoresAttention := make([]ag.Node, length)
-	stackedScores := m.Graph().Stack(scores...)
-	dotProd := m.Graph().Mul(stackedScores, m.Graph().T(stackedScores))
+	stackedScores := g.Stack(scores...)
+	dotProd := g.Mul(stackedScores, g.T(stackedScores))
 	for i := 0; i < length; i++ {
-		row := m.Graph().RowView(dotProd, i)
-		softmaxAttention := m.Graph().Softmax(row)
-		scoresAttention[i] = m.Graph().T(m.Graph().Mul(m.Graph().T(softmaxAttention), stackedScores))
+		row := g.RowView(dotProd, i)
+		softmaxAttention := g.Softmax(row)
+		scoresAttention[i] = g.T(g.Mul(g.T(softmaxAttention), stackedScores))
 	}
 	return scoresAttention
 }
 
 // weightSequence calculates the weighted sum between all blocks and their score.
 func (m *Model) weightSequence(blocksSequence [][]ag.Node, scores []ag.Node, length int) []ag.Node {
+	g := m.Graph()
 	out := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
 		sepScores := nn.SeparateVec(m.Graph(), scores[i])
 		weightedScore := m.Graph().NewVariable(mat.NewEmptyVecDense(m.InputSize), true)
 		for j, seq := range blocksSequence {
-			weightedScore = m.Graph().Add(weightedScore,
-				m.Graph().ProdScalar(seq[i], sepScores[j]))
+			weightedScore = g.Add(weightedScore, g.ProdScalar(seq[i], sepScores[j]))
 		}
 		out[i] = weightedScore
 	}
