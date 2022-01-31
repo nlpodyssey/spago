@@ -184,7 +184,7 @@ type worker struct {
 func (w *worker) process(input premiseHypothesisPair) mat.Matrix {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
 	defer g.Clear()
-	proc := nn.ReifyForInference(w.model, g).(*sequenceclassification.Model)
+	proc := nn.ReifyForInference(w.model, g)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Classify(inputIds)
 	g.Forward()

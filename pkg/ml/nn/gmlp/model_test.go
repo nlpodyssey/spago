@@ -131,7 +131,7 @@ func TestModel_Forward(t *testing.T) {
 
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := nn.ReifyForTraining(model, g).(*Model)
+	proc := nn.ReifyForTraining(model, g)
 
 	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.11, 0.12, 0.13, 0.14}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.21, 0.22, 0.23, 0.24}), true)

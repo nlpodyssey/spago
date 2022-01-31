@@ -58,19 +58,19 @@ type StandardModel interface {
 }
 
 // Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
-func Reify(m Model, g *ag.Graph, mode ProcessingMode) Model {
-	return newReifier(g, mode).reify(m)
+func Reify[T Model](m T, g *ag.Graph, mode ProcessingMode) T {
+	return newReifier(g, mode).reify(m).(T)
 }
 
 // ReifyForTraining returns a new reified model (a.k.a. processor) with the
 // given Graph, setting the mode to Training.
-func ReifyForTraining(m Model, g *ag.Graph) Model {
+func ReifyForTraining[T Model](m T, g *ag.Graph) T {
 	return Reify(m, g, Training)
 }
 
 // ReifyForInference returns a new reified model (a.k.a. processor) with the
 // given Graph, setting the mode to Inference.
-func ReifyForInference(m Model, g *ag.Graph) Model {
+func ReifyForInference[T Model](m T, g *ag.Graph) T {
 	return Reify(m, g, Inference)
 }
 

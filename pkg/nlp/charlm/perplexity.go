@@ -17,7 +17,7 @@ import (
 func CalculatePerplexity(m *Model, text string) mat.Float {
 	g := ag.NewGraph()
 	defer g.Clear()
-	proc := nn.ReifyForInference(m, g).(*Model)
+	proc := nn.ReifyForInference(m, g)
 	sequence := utils.SplitByRune(text)
 	prediction := proc.Forward(sequence).([]ag.Node)
 	targets := targetsIds(sequence, m.Vocabulary, m.UnknownToken)

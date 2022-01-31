@@ -108,7 +108,7 @@ func TestModel_Forward_Params(t *testing.T) {
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
-			y = nn.ReifyForTraining(model, g).(*Model).Forward(x...)
+			y = nn.ReifyForTraining(model, g).Forward(x...)
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -133,7 +133,7 @@ func TestModel_Inference(t *testing.T) {
 	proc := nn.ReifyForInference(model, g)
 	data := []mat.Float{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense(data), false)
-	y := proc.(*Model).Forward(x)
+	y := proc.Forward(x)
 	require.Equal(t, 1, len(y))
 	assert.InDeltaSlice(t, []mat.Float{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
@@ -170,7 +170,7 @@ func TestModel_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(g, nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(g, nn.ReifyForTraining(model, g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []mat.Float{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)

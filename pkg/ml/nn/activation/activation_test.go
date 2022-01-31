@@ -15,7 +15,7 @@ import (
 func TestModelReLU_Forward(t *testing.T) {
 	g := ag.NewGraph()
 	m := New(ag.OpReLU)
-	p := nn.ReifyForTraining(m, g).(*Model)
+	p := nn.ReifyForTraining(m, g)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}), true)
@@ -34,7 +34,7 @@ func TestModelSwish_Forward(t *testing.T) {
 
 	beta := nn.NewParam(mat.NewScalar(2.0))
 	model := New(ag.OpSwishB, beta)
-	p := nn.ReifyForTraining(model, g).(*Model)
+	p := nn.ReifyForTraining(model, g)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}), true)

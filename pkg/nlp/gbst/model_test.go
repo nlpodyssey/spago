@@ -15,7 +15,7 @@ import (
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
 	g := ag.NewGraph()
-	proc := nn.ReifyForTraining(model, g).(*Model)
+	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
 	sequence := []ag.Node{
@@ -44,7 +44,7 @@ func TestModel_ForwardScoreConsensusAttention(t *testing.T) {
 	model := newTestModel()
 	model.Config.ScoreConsensusAttention = true
 	g := ag.NewGraph()
-	proc := nn.ReifyForTraining(model, g).(*Model)
+	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
 	sequence := []ag.Node{
@@ -73,7 +73,7 @@ func TestModel_ForwardDownsampled(t *testing.T) {
 	model := newTestModel()
 	model.Config.DownsampleFactor = 4
 	g := ag.NewGraph()
-	proc := nn.ReifyForTraining(model, g).(*Model)
+	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
 	sequence := []ag.Node{

@@ -30,21 +30,21 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	}
 
 	g := ag.NewGraph()
-	proc := nn.ReifyForTraining(model, g).(*Model)
+	proc := nn.ReifyForTraining(model, g)
 	res := proc.Encode([]string{"foo"})[0]
 	assert.InDeltaSlice(t, wordInContext1.Vector.ZerosLike().Data(), res.Value().Data(), 1.0e-6)
 
 	model.Aggregate([]*WordVectorPair{wordInContext1})
 
 	g = ag.NewGraph()
-	proc = nn.ReifyForTraining(model, g).(*Model)
+	proc = nn.ReifyForTraining(model, g)
 	res = proc.Encode([]string{"foo"})[0]
 	assert.InDeltaSlice(t, wordInContext1.Vector.Data(), res.Value().Data(), 1.0e-6)
 
 	model.Aggregate([]*WordVectorPair{sameWordInContext2})
 
 	g = ag.NewGraph()
-	proc = nn.ReifyForTraining(model, g).(*Model)
+	proc = nn.ReifyForTraining(model, g)
 	res = proc.Encode([]string{"foo"})[0]
 	assert.InDeltaSlice(t, []mat.Float{
 		0.1, 0.2, 0.3, 0.0, 0.4, -0.6, -0.8, 0.7, -0.8, -3, -0.3, -0.9,
@@ -56,7 +56,7 @@ func TestModel_NewAggregateDropAll(t *testing.T) {
 	}
 
 	g = ag.NewGraph()
-	proc = nn.ReifyForTraining(model, g).(*Model)
+	proc = nn.ReifyForTraining(model, g)
 	res = proc.Encode([]string{"foo"})[0]
 	assert.InDeltaSlice(t, []mat.Float{
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

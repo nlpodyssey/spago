@@ -44,7 +44,7 @@ func (t *BartForConditionalGeneration) Generate(text string) (string, error) {
 	g := ag.NewGraph(ag.IncrementalForward(false))
 	defer g.Clear()
 
-	proc := nn.ReifyForInference(t.Model, g).(*conditionalgeneration.Model)
+	proc := nn.ReifyForInference(t.Model, g)
 	bartConfig := proc.BART.Config
 
 	tokens := t.Tokenizer.Tokenize(text)

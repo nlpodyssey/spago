@@ -94,7 +94,7 @@ func (t *Trainer) trainPassage(text string) {
 
 	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForTraining(t.model, g).(*Model)
+	proc := nn.ReifyForTraining(t.model, g)
 
 	maskedTokens, maskedIds := t.applyMask(tokenized)
 	if len(maskedIds) == 0 {

@@ -35,7 +35,7 @@ func TestModel_Forward(t *testing.T) {
 		g := ag.NewGraph()
 		defer g.Clear()
 
-		proc := nn.ReifyForInference(model, g).(*Model)
+		proc := nn.ReifyForInference(model, g)
 
 		xs := []ag.Node{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1, 2, 4, 0, -1}), false),
@@ -69,7 +69,7 @@ func TestModel_Forward(t *testing.T) {
 		g := ag.NewGraph()
 		defer g.Clear()
 
-		proc := nn.ReifyForInference(model, g).(*Model)
+		proc := nn.ReifyForInference(model, g)
 
 		xs := []ag.Node{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.2, 0.9, 0.1}), false),

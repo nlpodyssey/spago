@@ -80,7 +80,7 @@ func (s *Server) discriminate(text string) *Response {
 
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(s.model, g).(*Model)
+	proc := nn.ReifyForInference(s.model, g)
 	encoded := proc.Encode(tokenized)
 
 	fakeTokens := make(map[int]bool, 0)

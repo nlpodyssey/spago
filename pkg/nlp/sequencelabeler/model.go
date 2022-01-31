@@ -158,7 +158,7 @@ type AnalysisResult struct {
 func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) AnalysisResult {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(m, g).(*Model)
+	proc := nn.ReifyForInference(m, g)
 	tokenized := basetokenizer.New().Tokenize(text)
 	annotated := proc.Forward(tokenized)
 	if mergeEntities {

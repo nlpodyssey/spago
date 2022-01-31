@@ -23,7 +23,7 @@ func TestModelConcat_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, -0.7}), true)
 
-	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.187746, -0.50052, 0.109558, -0.005277, -0.084306, -0.628766,
@@ -97,7 +97,7 @@ func TestModelSum_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, -0.7}), true)
 
-	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{0.182469, -0.584826, -0.519207}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []mat.Float{-1.033731, -0.036692, -0.513732}, y[1].Value().Data(), 1.0e-06)
@@ -114,7 +114,7 @@ func TestModelAvg_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, -0.7}), true)
 
-	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{0.0912345, -0.292413, -0.2596035}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []mat.Float{-0.5168655, -0.018346, -0.256866}, y[1].Value().Data(), 1.0e-06)
@@ -131,7 +131,7 @@ func TestModelProd_Forward(t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, -0.7}), true)
 
-	y := nn.ReifyForTraining(model, g).(*Model).Forward(x1, x2, x3)
+	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []mat.Float{-0.00099, 0.042197, -0.068886}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []mat.Float{0.231888, -0.047735, 0.028804}, y[1].Value().Data(), 1.0e-06)
