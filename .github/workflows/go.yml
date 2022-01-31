@@ -8,7 +8,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: '^go1.18beta1'
+        stable: 'false'
+        go-version: '1.18.0-beta1'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Build
@@ -21,7 +22,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: '^go1.18beta1'
+        stable: 'false'
+        go-version: '1.18.0-beta1'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Run tests and generate coverage report
@@ -38,7 +40,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: '^go1.18beta1'
+        stable: 'false'
+        go-version: '1.18.0-beta1'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Change float type to float64
@@ -52,7 +55,8 @@ jobs:
     steps:
     - uses: actions/setup-go@v2
       with:
-        go-version: '^go1.18beta1'
+        stable: 'false'
+        go-version: '1.18.0-beta1'
     - name: Get dependencies
       run: go get -u golang.org/x/lint/golint github.com/fzipp/gocyclo/cmd/gocyclo
     - uses: actions/checkout@v2
