@@ -1,6 +1,6 @@
 module github.com/nlpodyssey/spago
 
-go 1.17
+go 1.18
 
 require (
 	github.com/awalterschulze/gographviz v2.0.3+incompatible
