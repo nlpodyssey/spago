@@ -58,7 +58,9 @@ jobs:
         stable: 'false'
         go-version: '1.18.0-beta1'
     - name: Get dependencies
-      run: go get -u golang.org/x/lint/golint github.com/fzipp/gocyclo/cmd/gocyclo
+      run: |
+        go install golang.org/x/lint/golint@latest && \
+          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
     - uses: actions/checkout@v2
     - name: golint
       run: golint -set_exit_status -min_confidence 0.81 ./...
