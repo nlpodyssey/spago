@@ -33,12 +33,12 @@ fi
 
 case $1 in
   32)
-    from_package=mat64
-    to_package=mat32
+    from_bits=64
+    to_bits=32
     ;;
   64)
-    from_package=mat32
-    to_package=mat64
+    from_bits=32
+    to_bits=64
     ;;
   -h | -help | --help)
     echo "$usage"
@@ -53,4 +53,6 @@ esac
 
 script_path=$(dirname "$0")
 find "$script_path" \( -type d -name "mat??" -prune \) -name "*.go" -o -type f -print0 \
-  | xargs -0 sed -i "s/\"github.com\/nlpodyssey\/spago\/pkg\/$from_package/\"github.com\/nlpodyssey\/spago\/pkg\/$to_package/g"
+  | xargs -0 sed -i "s/\"github.com\/nlpodyssey\/spago\/pkg\/mat$from_bits/\"github.com\/nlpodyssey\/spago\/pkg\/mat$to_bits/g"
+
+sed -i "s/type Float = float$from_bits/type Float = float$to_bits/g" ./pkg/mat/float.go
