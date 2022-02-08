@@ -9,7 +9,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         stable: 'false'
-        go-version: '1.18.0-beta1'
+        go-version: '1.18.0-beta2'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Build
@@ -23,7 +23,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         stable: 'false'
-        go-version: '1.18.0-beta1'
+        go-version: '1.18.0-beta2'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Run tests and generate coverage report
@@ -41,7 +41,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         stable: 'false'
-        go-version: '1.18.0-beta1'
+        go-version: '1.18.0-beta2'
     - name: Get dependencies
       run: go get -v -t -d ./...
     - name: Change float type to float64
@@ -56,7 +56,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         stable: 'false'
-        go-version: '1.18.0-beta1'
+        go-version: '1.18.0-beta2'
     - name: Get dependencies
       run: |
         go install golang.org/x/lint/golint@latest && \
