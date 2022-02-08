@@ -178,3 +178,47 @@ type Matrix[T DType] interface {
 	// String returns a string representation of the matrix.
 	String() string
 }
+
+// ConcatV returns a new Matrix created concatenating the input matrices vertically.
+func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
+	cup := 0
+	for _, v := range vs {
+		cup += v.Size()
+	}
+	data := make([]T, 0, cup)
+	for _, v := range vs {
+		if !v.IsVector() {
+			panic("mat: required vector, found matrix")
+		}
+		data = append(data, v.Data()...)
+	}
+	return NewVecDense(data)
+}
+
+// ConcatH returns a new Matrix created concatenating the input matrices horizontally.
+func ConcatH[T DType](ms ...Matrix[T]) *Dense[T] {
+	rows := len(ms)
+	cols := ms[0].Rows()
+	out := NewEmptyDense[T](rows, cols)
+	for i, x := range ms {
+		for j := 0; j < cols; j++ {
+			out.Set(i, j, x.At(j, 0))
+		}
+	}
+	return out
+}
+
+// Stack returns a new Matrix created concatenating the input vectors horizontally.
+func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
+	rows := len(vs)
+	cols := vs[0].Size()
+	out := GetDensePool[T]().Get(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
+	start := 0
+	end := cols
+	for _, v := range vs {
+		copy(out.data[start:end], v.Data())
+		start = end
+		end += cols
+	}
+	return out
+}
