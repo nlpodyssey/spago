@@ -31,6 +31,9 @@ type Matrix[T DType] interface {
 	// SameDims reports whether the receiver matrix has the same dimensions
 	// of the other matrix.
 	SameDims(other Matrix[T]) bool
+	// VectorOfSameSize reports whether both the receiver and the other matrix
+	// are vectors and have the same size.
+	VectorOfSameSize(other Matrix[T]) bool
 	// ZerosLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with zeroes.
 	ZerosLike() Matrix[T]

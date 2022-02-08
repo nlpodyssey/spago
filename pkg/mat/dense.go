@@ -185,6 +185,12 @@ func (d *Dense[T]) SameDims(other Matrix[T]) bool {
 	return d.rows == other.Rows() && d.cols == other.Columns()
 }
 
+// VectorOfSameSize reports whether both the receiver and the other matrix
+// are vectors and have the same size.
+func (d *Dense[T]) VectorOfSameSize(other Matrix[T]) bool {
+	return d.IsVector() && other.IsVector() && d.Size() == other.Size()
+}
+
 // ZerosLike returns a new matrix with the same dimensions of the
 // receiver, initialized with zeroes.
 func (d *Dense[T]) ZerosLike() Matrix[T] {

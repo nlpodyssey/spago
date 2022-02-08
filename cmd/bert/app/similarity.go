@@ -7,7 +7,7 @@ package app
 import (
 	"context"
 	"github.com/nlpodyssey/spago/cmd/clientutils"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"github.com/urfave/cli/v2"
 	"math"
@@ -69,7 +69,7 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) erro
 	}
 }
 
-func normalize(xs []mat.Float) mat.Matrix {
+func normalize(xs []mat.Float) mat.Matrix[mat.Float] {
 	return mat.NewVecDense(xs).Normalize2()
 }
 
