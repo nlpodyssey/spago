@@ -8,12 +8,13 @@ set -e
 
 script_name=$(basename "$0")
 usage="
+DEPRECATED: this is a deprecated utility, temporary useful only while
+developing the adoption of generics.
+
 This is a small utility script to modify all source code files of spaGO in
-order to use the desired floating point precision. It simply modifies import
-statements, choosing between the packages \"mat32\" or \"mat64\" (including
-nested packages). Since \"mat32\" and \"mat64\" are always aliased as \"mat\",
-and \"mat.Float\" is always preferred over explicit float32 or float64 types,
-there is no need to change anything else.
+order to use the desired floating point precision. It simply modifies
+the alias value of the type \"mat.Float\", changing it to either \"float32\"
+or \"float64\".
 
 Usage: $script_name [OPTION]
 
@@ -52,7 +53,5 @@ case $1 in
 esac
 
 script_path=$(dirname "$0")
-find "$script_path" \( -type d -name "mat??" -prune \) -name "*.go" -o -type f -print0 \
-  | xargs -0 sed -i "s/\"github.com\/nlpodyssey\/spago\/pkg\/mat$from_bits/\"github.com\/nlpodyssey\/spago\/pkg\/mat$to_bits/g"
 
 sed -i "s/type Float = float$from_bits/type Float = float$to_bits/g" ./pkg/mat/float.go

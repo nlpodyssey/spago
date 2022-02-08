@@ -6,7 +6,7 @@ package multiheadattention
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
@@ -66,7 +66,7 @@ type Output struct {
 	// Result of the multi-head attention.
 	AttOutput []ag.Node
 	// AttWeights attention scores.
-	AttWeights [][]mat.Matrix
+	AttWeights [][]mat.Matrix[mat.Float]
 	// ProjKeysValues contains the attention.KeysValuesPair for each attention head.
 	ProjKeysValues KeysValuesPairs
 }
@@ -84,7 +84,7 @@ func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, pastProjKeysValues 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) forward(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
 	headsAttNodes := make([][]ag.Node, m.NumOfHeads)
-	headsAttWeights := make([][]mat.Matrix, m.NumOfHeads)
+	headsAttWeights := make([][]mat.Matrix[mat.Float], m.NumOfHeads)
 	attProjKeysValues := make(KeysValuesPairs, m.NumOfHeads)
 
 	for h, proc := range m.Attention {

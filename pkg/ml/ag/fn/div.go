@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Div{}
@@ -22,21 +22,21 @@ func NewDiv(x1, x2 Operand) *Div {
 }
 
 // Forward computes the output of the function.
-func (r *Div) Forward() mat.Matrix {
+func (r *Div) Forward() mat.Matrix[mat.Float] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+	if !(x1v.SameDims(x2v) || x1v.VectorOfSameSize(x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
 	return x1v.Div(x2v)
 }
 
 // Backward computes the backward pass.
-func (r *Div) Backward(gy mat.Matrix) {
+func (r *Div) Backward(gy mat.Matrix[mat.Float]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&
-		!(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
+	if !(x1v.SameDims(gy) || x1v.VectorOfSameSize(gy)) &&
+		!(x2v.SameDims(gy) || x2v.VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

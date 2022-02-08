@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Identity{}
 
@@ -20,13 +20,13 @@ func NewIdentity(x Operand) *Identity {
 }
 
 // Forward computes the output of the function.
-func (r *Identity) Forward() mat.Matrix {
+func (r *Identity) Forward() mat.Matrix[mat.Float] {
 	return r.x.Value().Clone()
 }
 
 // Backward computes the backward pass.
-func (r *Identity) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *Identity) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	r.x.PropagateGrad(gy)

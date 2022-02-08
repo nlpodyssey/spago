@@ -7,7 +7,7 @@ package embeddings
 import (
 	"bytes"
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings/syncmap"
@@ -60,7 +60,7 @@ func New(config Config) *Model {
 			ForceNew: config.ForceNewDB,
 		}),
 		UsedEmbeddings: syncmap.New(),
-		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
+		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
 	return m
@@ -116,7 +116,7 @@ func (m *Model) Count() int {
 
 // SetEmbedding inserts a new word embedding.
 // If the word is already on the map, it overwrites the existing value with the new one.
-func (m *Model) SetEmbedding(word string, value mat.Matrix) {
+func (m *Model) SetEmbedding(word string, value mat.Matrix[mat.Float]) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}

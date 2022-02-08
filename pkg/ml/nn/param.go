@@ -6,7 +6,7 @@ package nn
 
 import (
 	"bytes"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"log"
@@ -28,9 +28,9 @@ type Param interface {
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.
-	ReplaceValue(value mat.Matrix)
+	ReplaceValue(value mat.Matrix[mat.Float])
 	// ApplyDelta updates the value of the underlying storage applying the delta.
-	ApplyDelta(delta mat.Matrix)
+	ApplyDelta(delta mat.Matrix[mat.Float])
 	// Payload returns the optimizer support structure (can be nil).
 	Payload() *Payload
 	// SetPayload is a thread safe operation to set the given Payload on the
@@ -56,11 +56,11 @@ var _ Param = &param{}
 
 type param struct {
 	name         string
-	pType        ParamsType // lazy initialization
-	mu           sync.Mutex // to avoid data race
-	value        mat.Matrix // store the results of a forward evaluation.
-	grad         mat.Matrix // TODO: support of sparse gradients
-	payload      *Payload   // additional data used for example by gradient-descend optimization methods
+	pType        ParamsType            // lazy initialization
+	mu           sync.Mutex            // to avoid data race
+	value        mat.Matrix[mat.Float] // store the results of a forward evaluation.
+	grad         mat.Matrix[mat.Float] // TODO: support of sparse gradients
+	payload      *Payload              // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
 	storage      *kvdb.KeyValueDB // default nil
@@ -86,7 +86,7 @@ func SetStorage(storage *kvdb.KeyValueDB) ParamOption {
 }
 
 // NewParam returns a new param.
-func NewParam(value mat.Matrix, opts ...ParamOption) Param {
+func NewParam(value mat.Matrix[mat.Float], opts ...ParamOption) Param {
 	p := &param{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
@@ -124,12 +124,12 @@ func (r *param) Type() ParamsType {
 }
 
 // Value returns the value of the delegate itself.
-func (r *param) Value() mat.Matrix {
+func (r *param) Value() mat.Matrix[mat.Float] {
 	return r.value
 }
 
 // ReplaceValue replaces the value of the parameter and clears the support structure.
-func (r *param) ReplaceValue(value mat.Matrix) {
+func (r *param) ReplaceValue(value mat.Matrix[mat.Float]) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.value = value
@@ -147,19 +147,19 @@ func (r *param) ScalarValue() mat.Float {
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *param) Grad() mat.Matrix {
+func (r *param) Grad() mat.Matrix[mat.Float] {
 	return r.grad
 }
 
 // PropagateGrad accumulate the gradients
-func (r *param) PropagateGrad(grad mat.Matrix) {
+func (r *param) PropagateGrad(grad mat.Matrix[mat.Float]) {
 	if !r.requiresGrad {
 		return
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.grad == nil {
-		r.grad = mat.GetEmptyDenseWorkspace(r.value.Dims()) // this could reduce the number of allocations
+		r.grad = mat.GetDensePool[mat.Float]().GetEmpty(r.value.Dims()) // this could reduce the number of allocations
 	}
 	r.grad.AddInPlace(grad)
 	r.hasGrad = true
@@ -193,7 +193,7 @@ func (r *param) ZeroGrad() {
 }
 
 // ApplyDelta updates the value of the underlying storage applying the delta.
-func (r *param) ApplyDelta(delta mat.Matrix) {
+func (r *param) ApplyDelta(delta mat.Matrix[mat.Float]) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.Value().SubInPlace(delta)
@@ -289,12 +289,12 @@ func (r *wrappedParam) Graph() *ag.Graph {
 }
 
 // Grad dispatches the call to the Node.
-func (r *wrappedParam) Grad() mat.Matrix {
+func (r *wrappedParam) Grad() mat.Matrix[mat.Float] {
 	return r.Node.Grad()
 }
 
 // PropagateGrad dispatches the call to the Node.
-func (r *wrappedParam) PropagateGrad(gx mat.Matrix) {
+func (r *wrappedParam) PropagateGrad(gx mat.Matrix[mat.Float]) {
 	r.Node.PropagateGrad(gx)
 }
 

@@ -5,7 +5,7 @@
 package gd
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd/clipper"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
@@ -123,7 +123,7 @@ func (o *GradientDescent) clipGrads() {
 	if o.gradClipper == nil {
 		return
 	}
-	var gs []mat.Matrix
+	var gs []mat.Matrix[mat.Float]
 	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() { // don't consider grad at zero
 			gs = append(gs, param.Grad())

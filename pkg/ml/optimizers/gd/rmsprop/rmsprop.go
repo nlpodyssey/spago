@@ -5,7 +5,7 @@
 package rmsprop
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -64,21 +64,21 @@ const v = 0
 func (o *RMSProp) NewSupport(r, c int) *nn.Payload {
 	return &nn.Payload{
 		Label: gd.RMSProp,
-		Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // v at index 0
+		Data:  []mat.Matrix[mat.Float]{mat.NewEmptyDense[mat.Float](r, c)}, // v at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RMSProp) Delta(param nn.Param) mat.Matrix {
+func (o *RMSProp) Delta(param nn.Param) mat.Matrix[mat.Float] {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
-func (o *RMSProp) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *RMSProp) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	supp[v].ProdScalarInPlace(o.Decay)
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)
 	supp[v].AddInPlace(buf)
-	buf2 := mat.SqrtMatrix(supp[v])
+	buf2 := supp[v].Sqrt() // TODO: this was "buf2 := mat.SqrtMatrix(supp[v])", is it the same?
 	buf2.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)

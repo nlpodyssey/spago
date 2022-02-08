@@ -5,7 +5,7 @@
 package attention
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"sync"
 )
@@ -24,7 +24,7 @@ type Output struct {
 	// AttOutput is the result of the self-attention.
 	AttOutput []ag.Node
 	// AttWeights are the attention scores for each element of the sequence.
-	AttWeights []mat.Matrix
+	AttWeights []mat.Matrix[mat.Float]
 	// ProjKeysValues is the list of Keys and Values used to compute the self-attention.
 	ProjKeysValues KeysValuesPair
 }
@@ -48,9 +48,9 @@ func ToQKV(xs []ag.Node) QKV {
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useCausalMask bool) (context []ag.Node, prob []mat.Matrix) {
+func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useCausalMask bool) (context []ag.Node, prob []mat.Matrix[mat.Float]) {
 	context = make([]ag.Node, len(qkv.Queries))
-	prob = make([]mat.Matrix, len(qkv.Queries))
+	prob = make([]mat.Matrix[mat.Float], len(qkv.Queries))
 	keys := g.Stack(qkv.Keys...)
 	values := g.T(g.Stack(qkv.Values...))
 	factor := g.NewScalar(scaleFactor)
@@ -74,15 +74,15 @@ func ScaledDotProductAttention(g *ag.Graph, qkv QKV, scaleFactor mat.Float, useC
 func MakeCausalMask(curIndex, seqLength int) []mat.Float {
 	causalMask := make([]mat.Float, seqLength)
 	for k := curIndex + 1; k < seqLength; k++ {
-		causalMask[k] = mat.Inf(-1)
+		causalMask[k] = mat.Inf[mat.Float](-1)
 	}
 	return causalMask
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent(g *ag.Graph, qkv QKV, scaleFactor mat.Float) (context []ag.Node, prob []mat.Matrix) {
+func ScaledDotProductAttentionConcurrent(g *ag.Graph, qkv QKV, scaleFactor mat.Float) (context []ag.Node, prob []mat.Matrix[mat.Float]) {
 	context = make([]ag.Node, len(qkv.Queries))
-	prob = make([]mat.Matrix, len(qkv.Queries))
+	prob = make([]mat.Matrix[mat.Float], len(qkv.Queries))
 	keys := g.Stack(qkv.Keys...)
 	values := g.T(g.Stack(qkv.Values...))
 	factor := g.NewScalar(scaleFactor)

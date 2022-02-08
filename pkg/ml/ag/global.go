@@ -5,8 +5,8 @@
 package ag
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 )
 
@@ -14,7 +14,7 @@ import (
  * Top-level convenience functions
  */
 
-var globalGraph = NewGraph(Rand(rand.NewLockedRand(42)))
+var globalGraph = NewGraph(Rand(rand.NewLockedRand[mat.Float](42)))
 
 // GetGlobalGraph returns the global graph.
 // Although technically you could reassign the returned graph, please do not do so; imagine that its reference is immutable.
@@ -43,7 +43,7 @@ func ZeroGrad() {
 }
 
 // NewVariable creates and returns a new node.
-func NewVariable(value mat.Matrix, requiresGrad bool) Node {
+func NewVariable(value mat.Matrix[mat.Float], requiresGrad bool) Node {
 	return globalGraph.NewVariable(value, requiresGrad)
 }
 
@@ -71,7 +71,7 @@ func NewWrapNoGrad(value GradValue) Node {
 
 // ReplaceValue replaces the current value of a variable Node with the given value,
 // on the global graph. It panics if node is not a variable.
-func ReplaceValue(node Node, value mat.Matrix) {
+func ReplaceValue(node Node, value mat.Matrix[mat.Float]) {
 	globalGraph.ReplaceValue(node, value)
 }
 

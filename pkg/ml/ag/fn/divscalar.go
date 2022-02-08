@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &DivScalar{}
@@ -22,13 +22,13 @@ func NewDivScalar(x1, x2 Operand) *DivScalar {
 }
 
 // Forward computes the output of the function.
-func (r *DivScalar) Forward() mat.Matrix {
+func (r *DivScalar) Forward() mat.Matrix[mat.Float] {
 	return r.x1.Value().ProdScalar(1.0 / r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *DivScalar) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+func (r *DivScalar) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x1.Value().SameDims(gy) || r.x1.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

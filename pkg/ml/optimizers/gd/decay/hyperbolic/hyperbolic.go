@@ -4,7 +4,7 @@
 
 package hyperbolic
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // Hyperbolic defines an hyperbolic decay depending on the time step
 //     lr = lr / (1 + rate*t).

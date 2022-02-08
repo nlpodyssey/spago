@@ -6,8 +6,8 @@ package ag
 
 import (
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -56,7 +56,7 @@ func TestNewGraph(t *testing.T) {
 	})
 
 	t.Run("with Rand option", func(t *testing.T) {
-		r := rand.NewLockedRand(42)
+		r := rand.NewLockedRand[mat.Float](42)
 		g := NewGraph(Rand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
@@ -65,7 +65,7 @@ func TestNewGraph(t *testing.T) {
 	})
 
 	t.Run("with RandSeed option", func(t *testing.T) {
-		r := rand.NewLockedRand(42)
+		r := rand.NewLockedRand[mat.Float](42)
 		g := NewGraph(RandSeed(42))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
@@ -84,7 +84,7 @@ func TestConcurrentComputations(t *testing.T) {
 func TestGraph_NewVariable(t *testing.T) {
 	t.Run("with requiresGrad true", func(t *testing.T) {
 		g := NewGraph()
-		s := mat.NewScalar(1)
+		s := mat.NewScalar[mat.Float](1)
 		v := g.NewVariable(s, true)
 		assert.NotNil(t, v)
 		assert.Same(t, s, v.Value())
@@ -93,7 +93,7 @@ func TestGraph_NewVariable(t *testing.T) {
 
 	t.Run("with requiresGrad false", func(t *testing.T) {
 		g := NewGraph()
-		s := mat.NewScalar(1)
+		s := mat.NewScalar[mat.Float](1)
 		v := g.NewVariable(s, false)
 		assert.NotNil(t, v)
 		assert.Same(t, s, v.Value())
@@ -102,8 +102,8 @@ func TestGraph_NewVariable(t *testing.T) {
 
 	t.Run("it assigns the correct ID to the nodes and adds them to the graph", func(t *testing.T) {
 		g := NewGraph()
-		a := mat.NewScalar(1)
-		b := mat.NewScalar(2)
+		a := mat.NewScalar[mat.Float](1)
+		b := mat.NewScalar[mat.Float](2)
 		va := g.NewVariable(a, true)
 		vb := g.NewVariable(b, false)
 		assert.Equal(t, 0, va.ID())
@@ -150,15 +150,15 @@ func TestGraph_IncTimeStep(t *testing.T) {
 func TestNodesTimeStep(t *testing.T) {
 	g := NewGraph()
 
-	a := g.NewVariable(mat.NewScalar(1), false)
+	a := g.NewVariable(mat.NewScalar[mat.Float](1), false)
 	assert.Equal(t, 0, a.TimeStep())
 
 	g.IncTimeStep()
-	b := g.NewVariable(mat.NewScalar(2), false)
+	b := g.NewVariable(mat.NewScalar[mat.Float](2), false)
 	assert.Equal(t, 1, b.TimeStep())
 
 	g.IncTimeStep()
-	c := g.NewVariable(mat.NewScalar(3), false)
+	c := g.NewVariable(mat.NewScalar[mat.Float](3), false)
 	assert.Equal(t, 2, c.TimeStep())
 }
 
@@ -207,8 +207,8 @@ func TestGraph_Clear(t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
 		g := NewGraph()
 		op := g.Add(
-			g.NewVariable(mat.NewScalar(1), true),
-			g.NewVariable(mat.NewScalar(2), true),
+			g.NewVariable(mat.NewScalar[mat.Float](1), true),
+			g.NewVariable(mat.NewScalar[mat.Float](2), true),
 		)
 		g.Backward(op)
 
@@ -234,8 +234,8 @@ func TestGraph_ClearForReuse(t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
 		g := NewGraph()
 		op := g.Add(
-			g.NewVariable(mat.NewScalar(1), true),
-			g.NewVariable(mat.NewScalar(2), true),
+			g.NewVariable(mat.NewScalar[mat.Float](1), true),
+			g.NewVariable(mat.NewScalar[mat.Float](2), true),
 		)
 		g.Backward(op)
 
@@ -256,8 +256,8 @@ func TestGraph_ClearForReuse(t *testing.T) {
 
 func TestGraph_ZeroGrad(t *testing.T) {
 	g := NewGraph()
-	v1 := g.NewVariable(mat.NewScalar(1), true)
-	v2 := g.NewVariable(mat.NewScalar(2), true)
+	v1 := g.NewVariable(mat.NewScalar[mat.Float](1), true)
+	v2 := g.NewVariable(mat.NewScalar[mat.Float](2), true)
 	op := g.Add(v1, v2)
 	g.Backward(op)
 

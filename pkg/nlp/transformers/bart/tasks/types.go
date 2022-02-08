@@ -1,6 +1,6 @@
 package tasks
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // ClassConfidencePair is a JSON-serializable pair of Class and Confidence.
 type ClassConfidencePair struct {

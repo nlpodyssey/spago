@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Add{}
 
@@ -21,31 +21,31 @@ func NewAdd(x1, x2 Operand) *Add {
 }
 
 // Forward computes the output of the function.
-func (r *Add) Forward() mat.Matrix {
+func (r *Add) Forward() mat.Matrix[mat.Float] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if x1v == nil {
 		x1v = x2v.ZerosLike()
 		defer mat.ReleaseMatrix(x1v)
 	}
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+	if !(x1v.SameDims(x2v) || x1v.VectorOfSameSize(x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
 	return x1v.Add(x2v)
 }
 
 // Backward computes the backward pass.
-func (r *Add) Backward(gy mat.Matrix) {
+func (r *Add) Backward(gy mat.Matrix[mat.Float]) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
-		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {
+		if !(x1v.SameDims(gy) || x1v.VectorOfSameSize(gy)) {
 			panic("fn: matrices with not compatible size")
 		}
 		r.x1.PropagateGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
 		x2v := r.x2.Value()
-		if !(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
+		if !(x2v.SameDims(gy) || x2v.VectorOfSameSize(gy)) {
 			panic("fn: matrices with not compatible size")
 		}
 		r.x2.PropagateGrad(gy)

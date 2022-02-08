@@ -10,7 +10,7 @@ package slstm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"sync"
@@ -100,26 +100,26 @@ func New(config Config) *Model {
 		NonLocalSentCellGate:   newGate3(out),
 		NonLocalInputGate:      newGate3(out),
 		NonLocalSentOutputGate: newGate3(out),
-		StartH:                 nn.NewParam(mat.NewEmptyVecDense(out)),
-		EndH:                   nn.NewParam(mat.NewEmptyVecDense(out)),
-		InitValue:              nn.NewParam(mat.NewEmptyVecDense(out)),
+		StartH:                 nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		EndH:                   nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		InitValue:              nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 }
 
 func newGate4(in, out int) *HyperLinear4 {
 	return &HyperLinear4{
-		W: nn.NewParam(mat.NewEmptyDense(out, out*windowSize)),
-		U: nn.NewParam(mat.NewEmptyDense(out, in)),
-		V: nn.NewParam(mat.NewEmptyDense(out, out)),
-		B: nn.NewParam(mat.NewEmptyVecDense(out)),
+		W: nn.NewParam(mat.NewEmptyDense[mat.Float](out, out*windowSize)),
+		U: nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		V: nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 }
 
 func newGate3(size int) *HyperLinear3 {
 	return &HyperLinear3{
-		W: nn.NewParam(mat.NewEmptyDense(size, size)),
-		U: nn.NewParam(mat.NewEmptyDense(size, size)),
-		B: nn.NewParam(mat.NewEmptyVecDense(size)),
+		W: nn.NewParam(mat.NewEmptyDense[mat.Float](size, size)),
+		U: nn.NewParam(mat.NewEmptyDense[mat.Float](size, size)),
+		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
 	}
 }
 

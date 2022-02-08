@@ -5,7 +5,7 @@
 package bert
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -35,7 +35,7 @@ func (m *Model) PredictMLM(text string) []Token {
 
 	retTokens := make(TokenSlice, 0)
 	for tokenID, prediction := range proc.PredictMasked(encoded, masked) {
-		bestPredictedWordIndex := floatutils.ArgMax(prediction.Value().Data())
+		bestPredictedWordIndex := matutils.ArgMax(prediction.Value().Data())
 		word, ok := m.Vocabulary.Term(bestPredictedWordIndex)
 		if !ok {
 			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary

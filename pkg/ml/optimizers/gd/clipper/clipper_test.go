@@ -5,7 +5,7 @@
 package clipper
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -38,7 +38,7 @@ func TestClip2Norm(t *testing.T) {
 
 func TestClipNormInf(t *testing.T) {
 	gs := buildTestGrads()
-	(&ClipNorm{MaxNorm: 0.5, NormType: mat.Inf(+1)}).Clip(gs)
+	(&ClipNorm{MaxNorm: 0.5, NormType: mat.Inf[mat.Float](+1)}).Clip(gs)
 	assert.InDeltaSlice(t, []mat.Float{
 		0.25, 0.3, -0.4, -0.3,
 		0.35, -0.2, 0.05, -0.4,
@@ -49,8 +49,8 @@ func TestClipNormInf(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.45, 0.35, 0.2, 0.4, 0.05}, gs[1].Data(), 1.0e-06)
 }
 
-func buildTestGrads() []mat.Matrix {
-	return []mat.Matrix{
+func buildTestGrads() []mat.Matrix[mat.Float] {
+	return []mat.Matrix[mat.Float]{
 		mat.NewDense(4, 5, []mat.Float{
 			0.5, 0.6, -0.8, -0.6,
 			0.7, -0.4, 0.1, -0.8,

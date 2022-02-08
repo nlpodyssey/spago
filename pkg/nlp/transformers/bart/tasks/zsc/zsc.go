@@ -6,8 +6,8 @@ package zsc
 
 import (
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
@@ -75,7 +75,7 @@ func (t *BartForZeroShotClassification) Classify(
 	}
 
 	numOfCandidateLabels := len(candidateLabels)
-	logits := make([]mat.Matrix, numOfCandidateLabels)
+	logits := make([]mat.Matrix[mat.Float], numOfCandidateLabels)
 
 	numWorkers := runtime.NumCPU() / 2 // leave some space for other concurrent computations
 	wp := workerpool.New(numWorkers)
@@ -108,7 +108,7 @@ func (t *BartForZeroShotClassification) Classify(
 		return getScores(logits, entailmentID)
 	}()
 
-	best := floatutils.ArgMax(scores)
+	best := matutils.ArgMax(scores)
 	class := candidateLabels[best]
 
 	distribution := make([]tasks.ClassConfidencePair, len(scores))
@@ -131,22 +131,22 @@ func (t *BartForZeroShotClassification) Classify(
 }
 
 // getMultiClassScores softmax over the entailment vs. contradiction for each label independently
-func getMultiClassScores(logits []mat.Matrix, entailmentID, contradictionID int) []mat.Float {
+func getMultiClassScores(logits []mat.Matrix[mat.Float], entailmentID, contradictionID int) []mat.Float {
 	scores := make([]mat.Float, len(logits))
 	for i, v := range logits {
-		prob := floatutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
+		prob := matutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
 		scores[i] = prob[0]
 	}
 	return scores
 }
 
 // getScores softmax the "entailment" over all candidate labels
-func getScores(logits []mat.Matrix, entailmentID int) []mat.Float {
+func getScores(logits []mat.Matrix[mat.Float], entailmentID int) []mat.Float {
 	scores := make([]mat.Float, len(logits))
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
 	}
-	return floatutils.SoftMax(scores)
+	return matutils.SoftMax(scores)
 }
 
 func (t *BartForZeroShotClassification) getEntailmentAndContradictionIDs() (
@@ -181,7 +181,7 @@ type worker struct {
 	model     *sequenceclassification.Model
 }
 
-func (w *worker) process(input premiseHypothesisPair) mat.Matrix {
+func (w *worker) process(input premiseHypothesisPair) mat.Matrix[mat.Float] {
 	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
 	defer g.Clear()
 	proc := nn.ReifyForInference(w.model, g)

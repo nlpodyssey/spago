@@ -18,7 +18,7 @@ package bls
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -65,17 +65,17 @@ func New(c Config) *Model {
 	wz := make([]nn.Param, length)
 	bz := make([]nn.Param, length)
 	for i := 0; i < length; i++ {
-		wz[i] = nn.NewParam(mat.NewEmptyDense(c.FeaturesSize, c.InputSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
-		bz[i] = nn.NewParam(mat.NewEmptyVecDense(c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
+		wz[i] = nn.NewParam(mat.NewEmptyDense[mat.Float](c.FeaturesSize, c.InputSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
+		bz[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
 	}
 	return &Model{
 		Config: c,
 		Wz:     wz,
 		Bz:     bz,
-		Wh:     nn.NewParam(mat.NewEmptyDense(c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		Bh:     nn.NewParam(mat.NewEmptyVecDense(c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		W:      nn.NewParam(mat.NewEmptyDense(c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
-		B:      nn.NewParam(mat.NewEmptyVecDense(c.OutputSize)),
+		Wh:     nn.NewParam(mat.NewEmptyDense[mat.Float](c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		Bh:     nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
+		W:      nn.NewParam(mat.NewEmptyDense[mat.Float](c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
+		B:      nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.OutputSize)),
 	}
 }
 

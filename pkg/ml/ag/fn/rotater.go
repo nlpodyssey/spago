@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &RotateR{}
 
@@ -21,13 +21,13 @@ func NewRotateR(x Operand, i int) *RotateR {
 }
 
 // Forward computes the output of the function.
-func (r *RotateR) Forward() mat.Matrix {
+func (r *RotateR) Forward() mat.Matrix[mat.Float] {
 	xv := r.x.Value().Data()
 	return mat.NewVecDense(rotateR(xv, r.i))
 }
 
 // Backward computes the backward pass.
-func (r *RotateR) Backward(gy mat.Matrix) {
+func (r *RotateR) Backward(gy mat.Matrix[mat.Float]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewVecDense(rotateL(gy.Data(), r.i))
 		defer mat.ReleaseDense(gx)

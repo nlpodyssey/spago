@@ -5,7 +5,7 @@
 package ag
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"sync"
 )
@@ -22,9 +22,9 @@ type Variable struct {
 	timeStep     int
 	id           int
 	name         string
-	value        mat.Matrix // store the results of a forward evaluation.
-	mu           sync.Mutex // to avoid data race during gradients accumulation
-	grad         mat.Matrix // TODO: support of sparse gradients
+	value        mat.Matrix[mat.Float] // store the results of a forward evaluation.
+	mu           sync.Mutex            // to avoid data race during gradients accumulation
+	grad         mat.Matrix[mat.Float] // TODO: support of sparse gradients
 	hasGrad      bool
 	requiresGrad bool
 }
@@ -47,7 +47,7 @@ func (r *Variable) Graph() *Graph {
 }
 
 // Value returns the value of the variable itself.
-func (r *Variable) Value() mat.Matrix {
+func (r *Variable) Value() mat.Matrix[mat.Float] {
 	return r.value
 }
 
@@ -59,19 +59,19 @@ func (r *Variable) ScalarValue() mat.Float {
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Variable) Grad() mat.Matrix {
+func (r *Variable) Grad() mat.Matrix[mat.Float] {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *Variable) PropagateGrad(grad mat.Matrix) {
+func (r *Variable) PropagateGrad(grad mat.Matrix[mat.Float]) {
 	if !r.requiresGrad {
 		return
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.grad == nil {
-		r.grad = mat.GetEmptyDenseWorkspace(r.value.Dims()) // this could reduce the number of allocations
+		r.grad = mat.GetDensePool[mat.Float]().GetEmpty(r.value.Dims()) // this could reduce the number of allocations
 	}
 	r.grad.AddInPlace(grad)
 	r.hasGrad = true

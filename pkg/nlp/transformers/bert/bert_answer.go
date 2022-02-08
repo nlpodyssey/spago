@@ -5,13 +5,13 @@
 package bert
 
 import (
-	matsort "github.com/nlpodyssey/spago/pkg/mat32/sort"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
+	matsort "github.com/nlpodyssey/spago/pkg/mat/sort"
 	"runtime"
 	"sort"
 	"strings"
 
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -113,7 +113,7 @@ func adjustLogitsForInference(
 }
 
 func getBestIndices(logits []mat.Float, size int) []int {
-	s := matsort.NewFloatSlice(logits...)
+	s := matsort.NewDTSlice(logits...)
 	sort.Sort(sort.Reverse(s))
 	if len(s.Indices) < size {
 		return s.Indices
@@ -161,7 +161,7 @@ func searchCandidateAnswers(
 }
 
 func assignScoresAndFilterUnlikelyCandidates(candidates Answers, scores []mat.Float) Answers {
-	probs := floatutils.SoftMax(scores)
+	probs := matutils.SoftMax(scores)
 	answers := make(Answers, 0)
 	for i, candidate := range candidates {
 		if probs[i] >= defaultMinConfidence {

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Concat{}
@@ -25,9 +25,9 @@ func NewConcat(xs []Operand) *Concat {
 }
 
 // Forward computes the output of the function.
-func (r *Concat) Forward() mat.Matrix {
+func (r *Concat) Forward() mat.Matrix[mat.Float] {
 	r.ySize = 0 // reset output size
-	ms := make([]mat.Matrix, len(r.xs))
+	ms := make([]mat.Matrix[mat.Float], len(r.xs))
 	for i, x := range r.xs {
 		value := x.Value()
 		ms[i] = value
@@ -37,7 +37,7 @@ func (r *Concat) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Concat) Backward(gy mat.Matrix) {
+func (r *Concat) Backward(gy mat.Matrix[mat.Float]) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")
 	}

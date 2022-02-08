@@ -6,7 +6,7 @@ package ltm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -43,10 +43,10 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in int) *Model {
 	return &Model{
-		W1:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		W2:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		W3:    nn.NewParam(mat.NewEmptyDense(in, in)),
-		WCell: nn.NewParam(mat.NewEmptyDense(in, in)),
+		W1:    nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
+		W2:    nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
+		W3:    nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
+		WCell: nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
 	}
 }
 

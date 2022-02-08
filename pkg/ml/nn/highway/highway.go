@@ -6,7 +6,7 @@ package highway
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -32,10 +32,10 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in int, activation ag.OpName) *Model {
 	return &Model{
-		WIn:        nn.NewParam(mat.NewEmptyDense(in, in)),
-		BIn:        nn.NewParam(mat.NewEmptyVecDense(in)),
-		WT:         nn.NewParam(mat.NewEmptyDense(in, in)),
-		BT:         nn.NewParam(mat.NewEmptyVecDense(in)),
+		WIn:        nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
+		BIn:        nn.NewParam(mat.NewEmptyVecDense[mat.Float](in)),
+		WT:         nn.NewParam(mat.NewEmptyDense[mat.Float](in, in)),
+		BT:         nn.NewParam(mat.NewEmptyVecDense[mat.Float](in)),
 		Activation: activation,
 	}
 }

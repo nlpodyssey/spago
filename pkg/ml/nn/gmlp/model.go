@@ -8,7 +8,7 @@ package gmlp
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
@@ -71,7 +71,7 @@ func (m *Model) addPadding(xs ...ag.Node) []ag.Node {
 		return xs
 	}
 
-	pn := m.Graph().NewVariable(mat.NewEmptyVecDense(m.Config.Dim), false)
+	pn := m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.Config.Dim), false)
 	padded := make([]ag.Node, m.Config.SeqLen)
 	copy(padded[:len(xs)], xs)
 	for i := len(xs); i < len(padded); i++ {

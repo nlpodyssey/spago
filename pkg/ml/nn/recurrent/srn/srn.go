@@ -6,7 +6,7 @@ package srn
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -37,9 +37,9 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int) *Model {
 	return &Model{
-		W:    nn.NewParam(mat.NewEmptyDense(out, in)),
-		WRec: nn.NewParam(mat.NewEmptyDense(out, out)),
-		B:    nn.NewParam(mat.NewEmptyVecDense(out)),
+		W:    nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		WRec: nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		B:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 }
 

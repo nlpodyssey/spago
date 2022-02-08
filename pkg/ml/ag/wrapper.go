@@ -5,7 +5,7 @@
 package ag
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 )
 
@@ -35,7 +35,7 @@ func (r *Wrapper) Graph() *Graph {
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Wrapper) Grad() mat.Matrix {
+func (r *Wrapper) Grad() mat.Matrix[mat.Float] {
 	if !r.wrapGrad {
 		return nil
 	}
@@ -43,7 +43,7 @@ func (r *Wrapper) Grad() mat.Matrix {
 }
 
 // PropagateGrad propagates the gradients to the node.
-func (r *Wrapper) PropagateGrad(gx mat.Matrix) {
+func (r *Wrapper) PropagateGrad(gx mat.Matrix[mat.Float]) {
 	if !r.wrapGrad {
 		return
 	}

@@ -10,8 +10,8 @@ package charlm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -84,13 +84,13 @@ func New(config Config) *Model {
 func newEmptyEmbeddings(vocabularySize, embeddingSize int) []nn.Param {
 	embeddings := make([]nn.Param, vocabularySize)
 	for i := range embeddings {
-		embeddings[i] = nn.NewParam(mat.NewEmptyVecDense(embeddingSize))
+		embeddings[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](embeddingSize))
 	}
 	return embeddings
 }
 
 // Initialize initializes the Model m using the given random generator.
-func (m *Model) Initialize(rndGen *rand.LockedRand) {
+func (m *Model) Initialize(rndGen *rand.LockedRand[mat.Float]) {
 	nn.ForEachParam(m, func(param nn.Param) {
 		if param.Type() == nn.Weights {
 			initializers.XavierUniform(param.Value(), 1, rndGen)

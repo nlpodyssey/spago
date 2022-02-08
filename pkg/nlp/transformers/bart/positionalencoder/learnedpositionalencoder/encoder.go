@@ -6,7 +6,7 @@ package learnedpositionalencoder
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -40,7 +40,7 @@ func init() {
 func New(config Config) *LearnedPositionalEncoder {
 	vectors := make([]nn.Param, config.NumEmbeddings+config.Offset)
 	for i := 0; i < len(vectors); i++ {
-		vectors[i] = nn.NewParam(mat.NewEmptyVecDense(config.EmbeddingDim))
+		vectors[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.EmbeddingDim))
 	}
 	return &LearnedPositionalEncoder{
 		Config:  config,

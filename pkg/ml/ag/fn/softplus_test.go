@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,12 +17,12 @@ func TestSoftPlusForward(t *testing.T) {
 		requiresGrad: true,
 	}
 	beta := &variable{
-		value:        mat.NewScalar(2.0),
+		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 	threshold := &variable{
-		value:        mat.NewScalar(20.0),
+		value:        mat.NewScalar[mat.Float](20.0),
 		grad:         nil,
 		requiresGrad: false,
 	}

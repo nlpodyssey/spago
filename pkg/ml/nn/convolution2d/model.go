@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sync"
 
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -62,8 +62,8 @@ func New(config Config) *Model {
 	biases := make([]nn.Param, paramsSize, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
-		kernels[i] = nn.NewParam(mat.NewEmptyDense(config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))
-		biases[i] = nn.NewParam(mat.NewEmptyVecDense(1), nn.RequiresGrad(requireGrad))
+		kernels[i] = nn.NewParam(mat.NewEmptyDense[mat.Float](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))
+		biases[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](1), nn.RequiresGrad(requireGrad))
 	}
 	return &Model{
 		Config: config,

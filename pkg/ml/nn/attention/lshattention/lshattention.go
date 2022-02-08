@@ -11,8 +11,8 @@ package lshattention
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -46,7 +46,7 @@ type ContextProb struct {
 	// Context encodings.
 	Context []ag.Node
 	// Prob attention scores.
-	Prob []mat.Matrix
+	Prob []mat.Matrix[mat.Float]
 }
 
 func init() {
@@ -58,7 +58,7 @@ func New(config Config) *Model {
 	return &Model{
 		Config: config,
 		Query:  linear.New(config.InputSize, config.QuerySize),
-		R:      nn.NewParam(mat.NewEmptyDense(config.QuerySize, config.BucketSize)),
+		R:      nn.NewParam(mat.NewEmptyDense[mat.Float](config.QuerySize, config.BucketSize)),
 		Value:  linear.New(config.InputSize, config.ValueSize),
 	}
 }
@@ -70,10 +70,10 @@ type indexedNodes struct {
 
 // getHash returns the hash for the dense matrix `x`.
 // Since the hash does not require the use of gradients, it is calculated outside the graph to reduce overhead.
-func (m *Model) getHash(x mat.Matrix) int {
+func (m *Model) getHash(x mat.Matrix[mat.Float]) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
-	return floatutils.ArgMax(concat.Data())
+	return matutils.ArgMax(concat.Data())
 }
 
 // TODO: implement concurrent computation?
@@ -84,8 +84,8 @@ func (m *Model) lshScaledDotProductAttention(
 	vs *indexedNodes,
 	length int,
 	scaleFactor mat.Float,
-) (context ag.Node, prob mat.Matrix) {
-	prob = mat.NewEmptyVecDense(length)
+) (context ag.Node, prob mat.Matrix[mat.Float]) {
+	prob = mat.NewEmptyVecDense[mat.Float](length)
 	keys := g.Stack(ks.node...)
 	values := g.T(g.Stack(vs.node...))
 	factor := g.NewScalar(scaleFactor)
@@ -131,7 +131,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	}
 
 	context := make([]ag.Node, length)
-	prob := make([]mat.Matrix, length)
+	prob := make([]mat.Matrix[mat.Float], length)
 	for i, q := range qs {
 		j := m.getHash(q.Value())
 		c, p := m.lshScaledDotProductAttention(g, q, mapk[j], mapv[j], length, m.Config.ScaleFactor)

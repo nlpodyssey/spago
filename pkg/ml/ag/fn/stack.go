@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Stack{}
 
@@ -20,8 +20,8 @@ func NewStack(xs []Operand) *Stack {
 }
 
 // Forward computes the output of the function.
-func (r *Stack) Forward() mat.Matrix {
-	vs := make([]mat.Matrix, len(r.xs))
+func (r *Stack) Forward() mat.Matrix[mat.Float] {
+	vs := make([]mat.Matrix[mat.Float], len(r.xs))
 	for i, x := range r.xs {
 		vs[i] = x.Value()
 	}
@@ -29,7 +29,7 @@ func (r *Stack) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Stack) Backward(gy mat.Matrix) {
+func (r *Stack) Backward(gy mat.Matrix[mat.Float]) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")
 	}

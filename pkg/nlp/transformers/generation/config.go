@@ -6,7 +6,7 @@
 
 package generation
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // GeneratorConfig provides configuration options for the generation search algorithm.
 type GeneratorConfig struct {

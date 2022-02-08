@@ -6,8 +6,8 @@ package ag
 
 import (
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
 	"log"
@@ -42,7 +42,7 @@ type Graph struct {
 		height []int
 	}
 	// randGen is the generator of random numbers
-	randGen *rand.LockedRand
+	randGen *rand.LockedRand[mat.Float]
 	// processingQueue allows proper handling for computationally heavy operations
 	// such as forward and backward steps.
 	// The default size is defaultProcessingQueueSize.
@@ -56,7 +56,7 @@ var defaultProcessingQueueSize = runtime.NumCPU()
 type GraphOption func(*Graph)
 
 // Rand sets the generator of random numbers.
-func Rand(rand *rand.LockedRand) GraphOption {
+func Rand(rand *rand.LockedRand[mat.Float]) GraphOption {
 	return func(g *Graph) {
 		g.randGen = rand
 	}
@@ -65,7 +65,7 @@ func Rand(rand *rand.LockedRand) GraphOption {
 // RandSeed set a new generator of random numbers with the given seed.
 func RandSeed(seed uint64) GraphOption {
 	return func(g *Graph) {
-		g.randGen = rand.NewLockedRand(seed)
+		g.randGen = rand.NewLockedRand[mat.Float](seed)
 	}
 }
 
@@ -107,7 +107,7 @@ func NewGraph(opts ...GraphOption) *Graph {
 		opt(g)
 	}
 	if g.randGen == nil {
-		g.randGen = rand.NewLockedRand(1) // set default random generator
+		g.randGen = rand.NewLockedRand[mat.Float](1) // set default random generator
 	}
 	return g
 }
@@ -201,7 +201,7 @@ func (g *Graph) ZeroGrad() {
 }
 
 // NewVariable creates and returns a new node.
-func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
+func (g *Graph) NewVariable(value mat.Matrix[mat.Float], requiresGrad bool) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newNode := &Variable{
@@ -219,7 +219,7 @@ func (g *Graph) NewVariable(value mat.Matrix, requiresGrad bool) Node {
 }
 
 // NewVariableWithName creates and returns a new node.
-func (g *Graph) NewVariableWithName(value mat.Matrix, requiresGrad bool, name string) Node {
+func (g *Graph) NewVariableWithName(value mat.Matrix[mat.Float], requiresGrad bool, name string) Node {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	newNode := &Variable{
@@ -272,7 +272,7 @@ func (g *Graph) NewOperator(f fn.Function, operands ...Node) Node {
 				"You may consider wrapping the nodes you need with NewWrap().")
 		}
 	}
-	var value mat.Matrix = nil
+	var value mat.Matrix[mat.Float] = nil
 	if g.incrementalForward {
 		// the calculation is out of the lock so it can run concurrently with other operators
 		g.processingQueue.Run(func() {
@@ -405,7 +405,7 @@ func Truncate(backSteps int) BackwardOption {
 
 // OutputGrad is an option that sets the output gradients which are the starting
 // point for the back-propagation (Backward).
-func OutputGrad(grad mat.Matrix) BackwardOption {
+func OutputGrad(grad mat.Matrix[mat.Float]) BackwardOption {
 	return func(f *backwardHandler) {
 		f.outputGrad = grad
 	}
@@ -469,7 +469,7 @@ func (g *Graph) BackwardAll() {
 // The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
-func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
+func (g *Graph) GetCopiedValue(node Node) mat.Matrix[mat.Float] {
 	if node.Value() == nil {
 		return nil
 	}
@@ -480,7 +480,7 @@ func (g *Graph) GetCopiedValue(node Node) mat.Matrix {
 // The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
-func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
+func (g *Graph) GetCopiedGrad(node Node) mat.Matrix[mat.Float] {
 	if node.Grad() == nil {
 		return nil
 	}
@@ -489,7 +489,7 @@ func (g *Graph) GetCopiedGrad(node Node) mat.Matrix {
 
 // ReplaceValue replaces the current value of a variable Node with the given value.
 // It panics if node is not a variable.
-func (g *Graph) ReplaceValue(node Node, value mat.Matrix) {
+func (g *Graph) ReplaceValue(node Node, value mat.Matrix[mat.Float]) {
 	if node, ok := node.(*Variable); !ok {
 		panic("ag: invalid node. Only variables are allowed to change their value.")
 	} else {

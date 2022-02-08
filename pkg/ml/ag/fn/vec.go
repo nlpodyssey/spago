@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Vec{}
@@ -21,13 +21,13 @@ func NewVec(x Operand) *Vec {
 }
 
 // Forward computes the output of the node.
-func (r *Vec) Forward() mat.Matrix {
+func (r *Vec) Forward() mat.Matrix[mat.Float] {
 	return r.x.Value().Reshape(r.x.Value().Size(), 1)
 }
 
 // Backward computes the backward pass.
-func (r *Vec) Backward(gy mat.Matrix) {
-	if !(gy.IsVector() && mat.SameSize(r.x.Value(), gy)) {
+func (r *Vec) Backward(gy mat.Matrix[mat.Float]) {
+	if !(gy.IsVector() && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {

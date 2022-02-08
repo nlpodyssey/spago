@@ -6,7 +6,7 @@ package lstm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -78,9 +78,9 @@ func New(in, out int, options ...Option) *Model {
 }
 
 func newGateParams(in, out int) (w, wRec, b nn.Param) {
-	w = nn.NewParam(mat.NewEmptyDense(out, in))
-	wRec = nn.NewParam(mat.NewEmptyDense(out, out))
-	b = nn.NewParam(mat.NewEmptyVecDense(out))
+	w = nn.NewParam(mat.NewEmptyDense[mat.Float](out, in))
+	wRec = nn.NewParam(mat.NewEmptyDense[mat.Float](out, out))
+	b = nn.NewParam(mat.NewEmptyVecDense[mat.Float](out))
 	return
 }
 

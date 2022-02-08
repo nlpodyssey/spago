@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,12 +17,12 @@ func TestSELUForward(t *testing.T) {
 		requiresGrad: true,
 	}
 	alpha := &variable{
-		value:        mat.NewScalar(2.0),
+		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 	scale := &variable{
-		value:        mat.NewScalar(1.6),
+		value:        mat.NewScalar[mat.Float](1.6),
 		grad:         nil,
 		requiresGrad: false,
 	}

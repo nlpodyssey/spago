@@ -4,15 +4,15 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // variable used in the tests
 type variable struct {
-	value        mat.Matrix
-	grad         mat.Matrix
+	value        mat.Matrix[mat.Float]
+	grad         mat.Matrix[mat.Float]
 	requiresGrad bool
 }
 
-func (v *variable) Value() mat.Matrix           { return v.value }
-func (v *variable) PropagateGrad(gx mat.Matrix) { v.grad = gx.Clone() }
-func (v *variable) RequiresGrad() bool          { return v.requiresGrad }
+func (v *variable) Value() mat.Matrix[mat.Float]           { return v.value }
+func (v *variable) PropagateGrad(gx mat.Matrix[mat.Float]) { v.grad = gx.Clone() }
+func (v *variable) RequiresGrad() bool                     { return v.requiresGrad }

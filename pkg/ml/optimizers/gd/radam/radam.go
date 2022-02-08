@@ -5,7 +5,7 @@
 package radam
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -82,12 +82,12 @@ const (
 
 // NewSupport returns a new support structure with the given dimensions.
 func (o *RAdam) NewSupport(r, c int) *nn.Payload {
-	supp := make([]mat.Matrix, 5)
-	supp[m] = mat.NewEmptyDense(r, c)
-	supp[v] = mat.NewEmptyDense(r, c)
-	supp[buf1] = mat.NewEmptyDense(r, c)
-	supp[buf2] = mat.NewEmptyDense(r, c)
-	supp[buf3] = mat.NewEmptyDense(r, c)
+	supp := make([]mat.Matrix[mat.Float], 5)
+	supp[m] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[v] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[buf1] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[buf2] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[buf3] = mat.NewEmptyDense[mat.Float](r, c)
 	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
@@ -100,11 +100,11 @@ func (o *RAdam) IncBatch() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RAdam) Delta(param nn.Param) mat.Matrix {
+func (o *RAdam) Delta(param nn.Param) mat.Matrix[mat.Float] {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
-func (o *RAdam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *RAdam) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	updateM(grads, supp, o.Beta1)
 	updateV(grads, supp, o.Beta2)
 	sqrtB2T := mat.Sqrt(1.0 - mat.Pow(o.Beta2, mat.Float(o.TimeStep)))
@@ -118,14 +118,14 @@ func (o *RAdam) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 }
 
 // m = m*beta1 + grads*(1.0-beta1)
-func updateM(grads mat.Matrix, supp []mat.Matrix, beta1 mat.Float) {
+func updateM(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float], beta1 mat.Float) {
 	supp[m].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[m].AddInPlace(supp[buf1])
 }
 
 // v = v*beta2 + (grads*grads)*(1.0-beta2)
-func updateV(grads mat.Matrix, supp []mat.Matrix, beta2 mat.Float) {
+func updateV(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float], beta2 mat.Float) {
 	supp[v].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)

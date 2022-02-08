@@ -5,7 +5,7 @@
 package fofe
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"sort"
 )
 
@@ -15,7 +15,7 @@ type item struct {
 }
 
 // Decode is the FOFE decoding function.
-func Decode(alpha mat.Float, z mat.Matrix) []int {
+func Decode(alpha mat.Float, z mat.Matrix[mat.Float]) []int {
 	if alpha <= 0 || alpha > 0.5 {
 		panic("fofe: alpha doesn't satisfy 0 < alpha ≤ 0.5")
 	}

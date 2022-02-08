@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Tan is an operator to perform element-wise tangent.
@@ -322,7 +322,7 @@ func safeLog(_, _ int, v mat.Float) mat.Float {
 		return mat.Log(v)
 	}
 	if v == 0.0 {
-		return mat.Log(1.0e-08)
+		return mat.Log[mat.Float](1.0e-08)
 	}
 	panic("ag: invalid log for negative values")
 }
@@ -601,7 +601,7 @@ func mishDeriv(_, _ int, v mat.Float) mat.Float {
 }
 
 func gelu(_, _ int, v mat.Float) mat.Float {
-	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi)*(v+0.044715*mat.Pow(v, 3.0))))
+	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi[mat.Float]())*(v+0.044715*mat.Pow(v, 3.0))))
 }
 
 func geluDeriv(_, _ int, x mat.Float) mat.Float {

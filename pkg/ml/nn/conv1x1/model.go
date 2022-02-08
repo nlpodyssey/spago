@@ -7,7 +7,7 @@ package conv1x1
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -37,8 +37,8 @@ func init() {
 func New(config Config) *Model {
 	return &Model{
 		Config: config,
-		W:      nn.NewParam(mat.NewEmptyDense(config.OutputChannels, config.InputChannels)),
-		B:      nn.NewParam(mat.NewEmptyVecDense(config.OutputChannels)),
+		W:      nn.NewParam(mat.NewEmptyDense[mat.Float](config.OutputChannels, config.InputChannels)),
+		B:      nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.OutputChannels)),
 	}
 }
 

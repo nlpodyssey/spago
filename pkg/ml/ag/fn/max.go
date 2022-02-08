@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Max{}
 
@@ -21,21 +21,21 @@ func NewMax(x1, x2 Operand) *Max {
 }
 
 // Forward computes the output of the function.
-func (r *Max) Forward() mat.Matrix {
+func (r *Max) Forward() mat.Matrix[mat.Float] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+	if !(x1v.SameDims(x2v) || x1v.VectorOfSameSize(x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
 	return x1v.Maximum(x2v)
 }
 
 // Backward computes the backward pass.
-func (r *Max) Backward(gy mat.Matrix) {
+func (r *Max) Backward(gy mat.Matrix[mat.Float]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&
-		!(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
+	if !(x1v.SameDims(gy) || x1v.VectorOfSameSize(gy)) &&
+		!(x2v.SameDims(gy) || x2v.VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 

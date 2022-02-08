@@ -5,7 +5,7 @@
 package nn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
@@ -99,7 +99,7 @@ func ClearSupport(m Model) {
 }
 
 // DumpParamsVector dumps all params of a Model into a single Dense vector.
-func DumpParamsVector(model Model) mat.Matrix {
+func DumpParamsVector(model Model) mat.Matrix[mat.Float] {
 	data := make([]mat.Float, 0)
 	ForEachParam(model, func(param Param) {
 		data = append(data, param.Value().Data()...)
@@ -108,7 +108,7 @@ func DumpParamsVector(model Model) mat.Matrix {
 }
 
 // LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
-func LoadParamsVector(model Model, vector mat.Matrix) {
+func LoadParamsVector(model Model, vector mat.Matrix[mat.Float]) {
 	data := vector.Data()
 	offset := 0
 	ForEachParam(model, func(param Param) {

@@ -5,7 +5,7 @@
 package ag
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"sync"
 )
 
@@ -53,7 +53,7 @@ func (h *forwardHandler) runConcurrent() {
 type backwardHandler struct {
 	g              *Graph
 	node           Node
-	outputGrad     mat.Matrix
+	outputGrad     mat.Matrix[mat.Float]
 	stopAtTimeStep int // default -1 (full backward)
 }
 

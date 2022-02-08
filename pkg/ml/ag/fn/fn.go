@@ -4,14 +4,14 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // Operand is implemented by any value that implements automatic differentiation features.
 type Operand interface {
 	// Value returns the value of the operand.
-	Value() mat.Matrix
+	Value() mat.Matrix[mat.Float]
 	// PropagateGrad propagates the gradients gx to the operands.
-	PropagateGrad(gx mat.Matrix)
+	PropagateGrad(gx mat.Matrix[mat.Float])
 	// RequiresGrad returns true if the operand requires gradients.
 	RequiresGrad() bool
 }
@@ -19,7 +19,7 @@ type Operand interface {
 // Function represents a function with automatic differentiation features.
 type Function interface {
 	// Forward computes the output of the function.
-	Forward() mat.Matrix
+	Forward() mat.Matrix[mat.Float]
 	// Backward computes the backward pass.
-	Backward(gy mat.Matrix)
+	Backward(gy mat.Matrix[mat.Float])
 }

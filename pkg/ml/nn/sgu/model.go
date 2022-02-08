@@ -8,8 +8,8 @@ package sgu
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -64,7 +64,7 @@ func New(config Config) *Model {
 
 // Initialize set the projection weights as near-zero values and the biases as ones to improve training stability.
 func (m *Model) Initialize(seed uint64) {
-	r := rand.NewLockedRand(seed)
+	r := rand.NewLockedRand[mat.Float](seed)
 	eps := m.Config.InitEps / mat.Float(m.Config.DimSeq)
 	initializers.Uniform(m.Proj.W.Value(), -eps, eps, r)
 	initializers.Constant(m.Proj.B.Value(), 1)

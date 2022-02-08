@@ -5,7 +5,7 @@
 package server
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/sequenceclassification"
@@ -26,8 +26,8 @@ func (s *Server) classify(text string, text2 string) *tasks.ClassifyResponse {
 	logits := proc.Classify(inputIds)
 	g.Forward()
 
-	probs := floatutils.SoftMax(g.GetCopiedValue(logits).Data())
-	best := floatutils.ArgMax(probs)
+	probs := matutils.SoftMax(g.GetCopiedValue(logits).Data())
+	best := matutils.ArgMax(probs)
 	classes := s.model.(*sequenceclassification.Model).BART.Config.ID2Label
 	class := classes[strconv.Itoa(best)]
 

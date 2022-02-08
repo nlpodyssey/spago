@@ -5,9 +5,9 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand/bernulli"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
+	"github.com/nlpodyssey/spago/pkg/mat/rand/bernulli"
 )
 
 var _ Function = &Dropout{}
@@ -17,12 +17,12 @@ type Dropout struct {
 	x       Operand
 	prob    mat.Float
 	q       mat.Float // 1 - p
-	randGen *rand.LockedRand
-	mask    mat.Matrix // filled during the forward
+	randGen *rand.LockedRand[mat.Float]
+	mask    mat.Matrix[mat.Float] // filled during the forward
 }
 
 // NewDropout returns a new Dropout Function.
-func NewDropout(x Operand, p mat.Float, randGen *rand.LockedRand) *Dropout {
+func NewDropout(x Operand, p mat.Float, randGen *rand.LockedRand[mat.Float]) *Dropout {
 	return &Dropout{
 		x:       x,
 		prob:    p,
@@ -33,7 +33,7 @@ func NewDropout(x Operand, p mat.Float, randGen *rand.LockedRand) *Dropout {
 }
 
 // Forward computes the output of the function.
-func (r *Dropout) Forward() mat.Matrix {
+func (r *Dropout) Forward() mat.Matrix[mat.Float] {
 	if r.q > 0.0 {
 		r.mask = bernulli.Distribution(r.x.Value().Rows(), r.x.Value().Columns(), r.prob, r.randGen)
 		r.mask.ProdScalarInPlace(1.0 / r.q)
@@ -44,8 +44,8 @@ func (r *Dropout) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Dropout) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *Dropout) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	defer mat.ReleaseMatrix(r.mask)

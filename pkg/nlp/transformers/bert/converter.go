@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
@@ -84,7 +84,7 @@ type huggingFacePreTrainedConverter struct {
 }
 
 type mappedParam struct {
-	value mat.Matrix
+	value mat.Matrix[mat.Float]
 	used  bool
 }
 
@@ -255,8 +255,8 @@ func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabulary *
 	}
 }
 
-func mapBertEncoder(model *Encoder) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapBertEncoder(model *Encoder) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	for i := 0; i < model.NumOfLayers; i++ {
 		layer := model.Layers[i].(*EncoderLayer)
 		prefixBase := fmt.Sprintf("bert.encoder.layer.%d", i)
@@ -287,8 +287,8 @@ func mapBertEncoder(model *Encoder) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapPredictor(predictor *Predictor) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapPredictor(predictor *Predictor) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["cls.predictions.transform.dense.weight"] = predictor.Layers[0].(*linear.Model).W.Value()
 	paramsMap["cls.predictions.transform.dense.bias"] = predictor.Layers[0].(*linear.Model).B.Value()
 	paramsMap["cls.predictions.transform.LayerNorm.weight"] = predictor.Layers[2].(*layernorm.Model).W.Value()
@@ -298,8 +298,8 @@ func mapPredictor(predictor *Predictor) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapDiscriminator(discriminator *Discriminator) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapDiscriminator(discriminator *Discriminator) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["discriminator_predictions.dense.weight"] = discriminator.Layers[0].(*linear.Model).W.Value()
 	paramsMap["discriminator_predictions.dense.bias"] = discriminator.Layers[0].(*linear.Model).B.Value()
 	paramsMap["discriminator_predictions.dense_prediction.weight"] = discriminator.Layers[2].(*linear.Model).W.Value()
@@ -307,52 +307,52 @@ func mapDiscriminator(discriminator *Discriminator) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapPooler(pooler *Pooler) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapPooler(pooler *Pooler) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["bert.pooler.dense.weight"] = pooler.Layers[0].(*linear.Model).W.Value()
 	paramsMap["bert.pooler.dense.bias"] = pooler.Layers[0].(*linear.Model).B.Value()
 	return paramsMap
 }
 
-func mapSeqRelationship(seqRelationship *linear.Model) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapSeqRelationship(seqRelationship *linear.Model) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["cls.seq_relationship.weight"] = seqRelationship.W.Value()
 	paramsMap["cls.seq_relationship.bias"] = seqRelationship.B.Value()
 	return paramsMap
 }
 
-func mapEmbeddingsLayerNorm(embeddingsNorm *layernorm.Model) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapEmbeddingsLayerNorm(embeddingsNorm *layernorm.Model) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["bert.embeddings.LayerNorm.weight"] = embeddingsNorm.W.Value()
 	paramsMap["bert.embeddings.LayerNorm.bias"] = embeddingsNorm.B.Value()
 	return paramsMap
 }
 
-func mapEmbeddingsProjection(embeddingsProjection *linear.Model) map[string]mat.Matrix {
+func mapEmbeddingsProjection(embeddingsProjection *linear.Model) map[string]mat.Matrix[mat.Float] {
 	if embeddingsProjection == nil {
-		return map[string]mat.Matrix{}
+		return map[string]mat.Matrix[mat.Float]{}
 	}
-	paramsMap := make(map[string]mat.Matrix)
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["bert.embeddings_project.weight"] = embeddingsProjection.W.Value()
 	paramsMap["bert.embeddings_project.bias"] = embeddingsProjection.B.Value()
 	return paramsMap
 }
 
-func mapSpanClassifier(classifier *SpanClassifier) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapSpanClassifier(classifier *SpanClassifier) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["qa_outputs.weight"] = classifier.W.Value()
 	paramsMap["qa_outputs.bias"] = classifier.B.Value()
 	return paramsMap
 }
 
-func mapClassifier(classifier *Classifier) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapClassifier(classifier *Classifier) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["classifier.weight"] = classifier.W.Value()
 	paramsMap["classifier.bias"] = classifier.B.Value()
 	return paramsMap
 }
 
-func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix) {
+func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix[mat.Float]) {
 	for k, v := range paramsMap {
 		c.modelMapping[k] = &mappedParam{
 			value: v,

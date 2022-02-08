@@ -6,7 +6,7 @@ package batchnorm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -35,11 +35,11 @@ func init() {
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum(size int, momentum mat.Float) *Model {
 	return &Model{
-		W:        nn.NewParam(mat.NewInitVecDense(size, epsilon)),
-		B:        nn.NewParam(mat.NewEmptyVecDense(size)),
-		Mean:     nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		StdDev:   nn.NewParam(mat.NewEmptyVecDense(size), nn.RequiresGrad(false)),
-		Momentum: nn.NewParam(mat.NewScalar(momentum), nn.RequiresGrad(false)),
+		W:        nn.NewParam(mat.NewInitVecDense[mat.Float](size, epsilon)),
+		B:        nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
+		Mean:     nn.NewParam(mat.NewEmptyVecDense[mat.Float](size), nn.RequiresGrad(false)),
+		StdDev:   nn.NewParam(mat.NewEmptyVecDense[mat.Float](size), nn.RequiresGrad(false)),
+		Momentum: nn.NewParam(mat.NewScalar[mat.Float](momentum), nn.RequiresGrad(false)),
 	}
 }
 
@@ -73,7 +73,7 @@ func (m *Model) process(g *ag.Graph, xs []ag.Node, devVector ag.Node, meanVector
 	return ys
 }
 
-func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
+func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix[mat.Float]) {
 	momentum := m.Momentum.Value().Scalar()
 
 	m.Mean.ReplaceValue(

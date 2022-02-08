@@ -7,14 +7,14 @@ package bert
 import (
 	"context"
 	"encoding/json"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert/grpcapi"
 	"net/http"
 	"runtime"
 	"sort"
 	"time"
 
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -111,8 +111,8 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	encoded := proc.Encode(tokenized)
 
 	logits := proc.SequenceClassification(encoded)
-	probs := floatutils.SoftMax(logits.Value().Data())
-	best := floatutils.ArgMax(probs)
+	probs := matutils.SoftMax(logits.Value().Data())
+	best := matutils.ArgMax(probs)
 	class := s.model.Classifier.Config.Labels[best]
 
 	distribution := make([]ClassConfidencePair, len(probs))

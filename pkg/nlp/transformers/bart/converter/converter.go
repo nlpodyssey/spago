@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings"
@@ -92,7 +92,7 @@ type huggingFacePreTrainedConverter struct {
 }
 
 type mappedParam struct {
-	value mat.Matrix
+	value mat.Matrix[mat.Float]
 	used  bool
 }
 
@@ -203,8 +203,8 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	return nil
 }
 
-func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	for i := 0; i < model.Config.EncoderLayers; i++ {
 		layer := model.Layers.Layers[i].(*encoderlayer.Layer)
 		prefixBase := fmt.Sprintf("model.encoder.layers.%d", i)
@@ -240,8 +240,8 @@ func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	for i := 0; i < model.Config.DecoderLayers; i++ {
 		layer := model.Layers[i]
 		prefixBase := fmt.Sprintf("model.decoder.layers.%d", i)
@@ -293,8 +293,8 @@ func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix {
 	return paramsMap
 }
 
-func mapClassificationHead(model *sequenceclassification.Classifier) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapClassificationHead(model *sequenceclassification.Classifier) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["classification_head.dense.weight"] = model.Layers[0].(*linear.Model).W.Value()
 	paramsMap["classification_head.dense.bias"] = model.Layers[0].(*linear.Model).B.Value()
 	paramsMap["classification_head.out_proj.weight"] = model.Layers[2].(*linear.Model).W.Value()
@@ -302,8 +302,8 @@ func mapClassificationHead(model *sequenceclassification.Classifier) map[string]
 	return paramsMap
 }
 
-func mapGenerationHead(model *linear.Model) map[string]mat.Matrix {
-	paramsMap := make(map[string]mat.Matrix)
+func mapGenerationHead(model *linear.Model) map[string]mat.Matrix[mat.Float] {
+	paramsMap := make(map[string]mat.Matrix[mat.Float])
 	paramsMap["model.shared.weight"] = model.W.Value()
 	paramsMap["final_logits_bias"] = model.B.Value()
 	return paramsMap
@@ -429,7 +429,7 @@ func normalizeParamName(orig string) (normalized string) {
 	return
 }
 
-func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix) {
+func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix[mat.Float]) {
 	for k, v := range paramsMap {
 		c.modelMapping[k] = &mappedParam{
 			value: v,

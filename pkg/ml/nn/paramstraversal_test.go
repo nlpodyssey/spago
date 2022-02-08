@@ -5,7 +5,7 @@
 package nn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings/syncmap"
 	"reflect"
 	"sync"
@@ -90,8 +90,8 @@ func TestParamsTraversal(t *testing.T) {
 		}
 
 		m := &TestModel{
-			A: NewParam(mat.NewScalar(1)),
-			B: NewParam(mat.NewScalar(2)),
+			A: NewParam(mat.NewScalar[mat.Float](1)),
+			B: NewParam(mat.NewScalar[mat.Float](2)),
 		}
 		tt := NewParamsTraversalTester()
 
@@ -113,12 +113,12 @@ func TestParamsTraversal(t *testing.T) {
 
 		m := &TestModel{
 			A: []Param{
-				NewParam(mat.NewScalar(1)),
-				NewParam(mat.NewScalar(2)),
+				NewParam(mat.NewScalar[mat.Float](1)),
+				NewParam(mat.NewScalar[mat.Float](2)),
 			},
 			B: []Param{
-				NewParam(mat.NewScalar(3)),
-				NewParam(mat.NewScalar(4)),
+				NewParam(mat.NewScalar[mat.Float](3)),
+				NewParam(mat.NewScalar[mat.Float](4)),
 			},
 		}
 		tt := NewParamsTraversalTester()
@@ -140,12 +140,12 @@ func TestParamsTraversal(t *testing.T) {
 		}
 
 		nestedModel := &TestModel{
-			P: NewParam(mat.NewScalar(100)),
+			P: NewParam(mat.NewScalar[mat.Float](100)),
 			M: &ParamsTraversalBaseModel{},
 		}
 
 		m := &TestModel{
-			P: NewParam(mat.NewScalar(1)),
+			P: NewParam(mat.NewScalar[mat.Float](1)),
 			M: nestedModel,
 		}
 
@@ -179,11 +179,11 @@ func TestParamsTraversal(t *testing.T) {
 			M []Model
 		}
 
-		mA := &TestModel{P: NewParam(mat.NewScalar(100))}
-		mB := &TestModel{P: NewParam(mat.NewScalar(200))}
+		mA := &TestModel{P: NewParam(mat.NewScalar[mat.Float](100))}
+		mB := &TestModel{P: NewParam(mat.NewScalar[mat.Float](200))}
 
 		m := &TestModel{
-			P: NewParam(mat.NewScalar(1)),
+			P: NewParam(mat.NewScalar[mat.Float](1)),
 			M: []Model{mA, mB},
 		}
 
@@ -217,11 +217,11 @@ func TestParamsTraversal(t *testing.T) {
 			M []interface{}
 		}
 
-		mA := &TestModel{P: NewParam(mat.NewScalar(100))}
-		mB := &TestModel{P: NewParam(mat.NewScalar(200))}
+		mA := &TestModel{P: NewParam(mat.NewScalar[mat.Float](100))}
+		mB := &TestModel{P: NewParam(mat.NewScalar[mat.Float](200))}
 
 		m := &TestModel{
-			P: NewParam(mat.NewScalar(1)),
+			P: NewParam(mat.NewScalar[mat.Float](1)),
 			M: []interface{}{mA, mB},
 		}
 
@@ -261,12 +261,12 @@ func TestParamsTraversal(t *testing.T) {
 
 		m := &TestModel{
 			Ignored: []MyStruct{
-				{P: NewParam(mat.NewScalar(1))},
-				{P: NewParam(mat.NewScalar(2))},
+				{P: NewParam(mat.NewScalar[mat.Float](1))},
+				{P: NewParam(mat.NewScalar[mat.Float](2))},
 			},
 			S: []MyStruct{
-				{P: NewParam(mat.NewScalar(10))},
-				{P: NewParam(mat.NewScalar(20))},
+				{P: NewParam(mat.NewScalar[mat.Float](10))},
+				{P: NewParam(mat.NewScalar[mat.Float](20))},
 			},
 		}
 
@@ -290,10 +290,10 @@ func TestParamsTraversal(t *testing.T) {
 
 		m := &TestModel{
 			MI: map[int]Param{
-				0: NewParam(mat.NewScalar(1)),
+				0: NewParam(mat.NewScalar[mat.Float](1)),
 			},
 			MS: map[string]Param{
-				"a": NewParam(mat.NewScalar(3)),
+				"a": NewParam(mat.NewScalar[mat.Float](3)),
 			},
 		}
 
@@ -320,8 +320,8 @@ func TestParamsTraversal(t *testing.T) {
 		}
 
 		m := &TestModel{
-			MS: MyStruct{P: NewParam(mat.NewScalar(1))},
-			MP: &MyStruct{P: NewParam(mat.NewScalar(2))},
+			MS: MyStruct{P: NewParam(mat.NewScalar[mat.Float](1))},
+			MP: &MyStruct{P: NewParam(mat.NewScalar[mat.Float](2))},
 		}
 
 		tt := NewParamsTraversalTester()
@@ -344,7 +344,7 @@ func TestParamsTraversal(t *testing.T) {
 		m := &TestModel{
 			MS: &sync.Map{},
 		}
-		m.MS.Store("a", NewParam(mat.NewScalar(3)))
+		m.MS.Store("a", NewParam(mat.NewScalar[mat.Float](3)))
 
 		tt := NewParamsTraversalTester()
 
@@ -367,7 +367,7 @@ func TestParamsTraversal(t *testing.T) {
 		m := &TestModel{
 			MS: syncmap.New(),
 		}
-		m.MS.Store("a", NewParam(mat.NewScalar(3)))
+		m.MS.Store("a", NewParam(mat.NewScalar[mat.Float](3)))
 
 		tt := NewParamsTraversalTester()
 

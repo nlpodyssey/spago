@@ -7,7 +7,7 @@
 package generation
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Hypotheses provides hypotheses data for a generation Scorer.

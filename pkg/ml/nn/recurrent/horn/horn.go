@@ -7,7 +7,7 @@ package horn
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -40,12 +40,12 @@ func init() {
 func New(in, out, order int) *Model {
 	wRec := make([]nn.Param, order, order)
 	for i := 0; i < order; i++ {
-		wRec[i] = nn.NewParam(mat.NewEmptyDense(out, out))
+		wRec[i] = nn.NewParam(mat.NewEmptyDense[mat.Float](out, out))
 	}
 	return &Model{
-		W:    nn.NewParam(mat.NewEmptyDense(out, in)),
+		W:    nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
 		WRec: wRec,
-		B:    nn.NewParam(mat.NewEmptyVecDense(out)),
+		B:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 }
 

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Pow{}
@@ -22,13 +22,13 @@ func NewPow(x Operand, power mat.Float) *Pow {
 }
 
 // Forward computes the output of the function.
-func (r *Pow) Forward() mat.Matrix {
+func (r *Pow) Forward() mat.Matrix[mat.Float] {
 	return r.x.Value().Pow(r.power)
 }
 
 // Backward computes the backward pass.
-func (r *Pow) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *Pow) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {

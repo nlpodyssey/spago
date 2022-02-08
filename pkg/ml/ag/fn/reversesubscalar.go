@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &ReverseSubScalar{}
 
@@ -20,13 +20,13 @@ func NewReverseSubScalar(x1, x2 Operand) *ReverseSubScalar {
 }
 
 // Forward computes the output of the function.
-func (r *ReverseSubScalar) Forward() mat.Matrix {
+func (r *ReverseSubScalar) Forward() mat.Matrix[mat.Float] {
 	return mat.NewInitDense(r.x1.Value().Rows(), r.x1.Value().Columns(), r.x2.Value().Scalar()).Sub(r.x1.Value())
 }
 
 // Backward computes the backward pass.
-func (r *ReverseSubScalar) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+func (r *ReverseSubScalar) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x1.Value().SameDims(gy) || r.x1.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

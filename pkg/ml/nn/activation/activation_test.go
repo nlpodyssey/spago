@@ -5,7 +5,7 @@
 package activation
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ func TestModelReLU_Forward(t *testing.T) {
 func TestModelSwish_Forward(t *testing.T) {
 	g := ag.NewGraph()
 
-	beta := nn.NewParam(mat.NewScalar(2.0))
+	beta := nn.NewParam(mat.NewScalar[mat.Float](2.0))
 	model := New(ag.OpSwishB, beta)
 	p := nn.ReifyForTraining(model, g)
 

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Reshape{}
@@ -24,7 +24,7 @@ func NewReshape(x Operand, r, c int) *Reshape {
 }
 
 // Forward computes the output of the node.
-func (r *Reshape) Forward() mat.Matrix {
+func (r *Reshape) Forward() mat.Matrix[mat.Float] {
 	if r.x.Value().Size() != r.rows*r.cols {
 		panic("fn: incompatible sizes")
 	}
@@ -32,7 +32,7 @@ func (r *Reshape) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Reshape) Backward(gy mat.Matrix) {
+func (r *Reshape) Backward(gy mat.Matrix[mat.Float]) {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
 		panic("fn: matrices with not compatible size")
 	}

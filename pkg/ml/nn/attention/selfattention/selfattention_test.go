@@ -5,7 +5,7 @@
 package selfattention
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/attention"
@@ -70,7 +70,7 @@ func newTestModel() *Model {
 		QuerySize:   3,
 		KeySize:     3,
 		ValueSize:   3,
-		ScaleFactor: 1.0 / mat.Sqrt(3.0),
+		ScaleFactor: 1.0 / mat.Sqrt[mat.Float](3.0),
 	})
 	model.Value.W.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, 0.7,

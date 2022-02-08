@@ -5,9 +5,9 @@
 package charlm
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/nlp/vocabulary"
 )
 
@@ -30,8 +30,8 @@ func sample(prediction []mat.Float, temperature mat.Float) int {
 	for i := range prediction {
 		prediction[i] *= 1.0 / temperature
 	}
-	prediction = floatutils.SoftMax(prediction)
-	p := rand.Float() // TODO: use a local random generator?
+	prediction = matutils.SoftMax(prediction)
+	p := rand.Float[mat.Float]() // TODO: use a local random generator?
 	for i, x := range prediction {
 		p -= x
 		if p < 0 {

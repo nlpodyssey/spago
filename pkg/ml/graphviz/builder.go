@@ -7,7 +7,7 @@ package graphviz
 import (
 	"fmt"
 	"github.com/awalterschulze/gographviz"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -214,7 +214,7 @@ func (b *builder) findNodesWithoutEdges() intSet {
 	return ids
 }
 
-func matrixShapeString(m mat.Matrix) string {
+func matrixShapeString(m mat.Matrix[mat.Float]) string {
 	if m == nil {
 		return ""
 	}

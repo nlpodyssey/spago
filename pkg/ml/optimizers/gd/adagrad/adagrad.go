@@ -5,7 +5,7 @@
 package adagrad
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -61,20 +61,20 @@ func (o *AdaGrad) Label() int {
 func (o *AdaGrad) NewSupport(r, c int) *nn.Payload {
 	return &nn.Payload{
 		Label: o.Label(),
-		Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // m at index 0
+		Data:  []mat.Matrix[mat.Float]{mat.NewEmptyDense[mat.Float](r, c)}, // m at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *AdaGrad) Delta(param nn.Param) mat.Matrix {
+func (o *AdaGrad) Delta(param nn.Param) mat.Matrix[mat.Float] {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 // m = m + grads*grads
 // delta = (grads / (sqrt(m) + eps)) * lr
-func (o *AdaGrad) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *AdaGrad) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	supp[m].AddInPlace(grads.Prod(grads))
-	buf := mat.SqrtMatrix(supp[m])
+	buf := supp[m].Sqrt() // TODO: this was "buf := mat.SqrtMatrix(supp[m])", is it the same?
 	buf.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf)
 	delta.ProdScalarInPlace(o.LR)

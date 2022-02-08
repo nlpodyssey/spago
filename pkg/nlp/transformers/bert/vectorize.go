@@ -6,7 +6,7 @@ package bert
 
 import (
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers"
@@ -29,7 +29,7 @@ const (
 )
 
 // Vectorize transforms the text into a dense vector representation.
-func (m *Model) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix, error) {
+func (m *Model) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix[mat.Float], error) {
 	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))

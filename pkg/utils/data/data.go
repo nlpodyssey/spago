@@ -5,8 +5,8 @@
 package data
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -66,7 +66,7 @@ func SplitDataset(size int, splitRatio mat.Float, seed uint64, class func(i int)
 	}
 	usedClassCount := make(map[string]int)
 	indices := utils.MakeIndices(size)
-	rand.ShuffleInPlace(indices, rand.NewLockedRand(seed))
+	rand.ShuffleInPlace(indices, rand.NewLockedRand[mat.Float](seed))
 	for _, i := range indices {
 		c := class(i)
 		usedClassCount[c] = usedClassCount[c] + 1

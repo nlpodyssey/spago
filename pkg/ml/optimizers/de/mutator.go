@@ -5,8 +5,8 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -72,7 +72,7 @@ func NewDeglMutation(NeighborhoodRadius, bound mat.Float) *DeglMutation {
 //    yi = clip(w * L + (1-w) * G)
 func (m *DeglMutation) Mutate(p *Population) {
 	windowSize := int(mat.Float(len(p.Members)) * m.NeighborhoodRadius)
-	bestIndex, _ := p.FindBest(0, len(p.Members)-1, mat.Inf(+1), 0)
+	bestIndex, _ := p.FindBest(0, len(p.Members)-1, mat.Inf[mat.Float](+1), 0)
 	for i, member := range p.Members {
 		except := func(r int) bool { return r != i }
 		extracted := rand.GetUniqueRandomInt(2, len(p.Members), except)

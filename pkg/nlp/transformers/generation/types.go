@@ -7,7 +7,7 @@
 package generation
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
@@ -31,7 +31,7 @@ type Decoder interface {
 }
 
 // Scores is just an alias of a Matrix
-type Scores = mat.Matrix
+type Scores = mat.Matrix[mat.Float]
 
 // Cache is just an alias of interface{}
 type Cache interface{}

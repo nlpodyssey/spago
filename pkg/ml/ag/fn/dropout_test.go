@@ -5,8 +5,8 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,7 +17,7 @@ func TestDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.25, rand.NewLockedRand(1))
+	f := NewDropout(x, 0.25, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{
@@ -37,7 +37,7 @@ func TestZeroDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.0, rand.NewLockedRand(1))
+	f := NewDropout(x, 0.0, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{
@@ -57,7 +57,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 1.0, rand.NewLockedRand(1))
+	f := NewDropout(x, 1.0, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Softmax{}
@@ -13,7 +13,7 @@ var _ Function = &Softmax{}
 // Softmax is a single-input softmax function.
 type Softmax struct {
 	x Operand
-	y mat.Matrix // initialized during the forward pass (required by the backward pass)
+	y mat.Matrix[mat.Float] // initialized during the forward pass (required by the backward pass)
 }
 
 // NewSoftmax returns a new Softmax Function.
@@ -22,19 +22,19 @@ func NewSoftmax(x Operand) *Softmax {
 }
 
 // Forward computes the output of this function.
-func (r *Softmax) Forward() mat.Matrix {
+func (r *Softmax) Forward() mat.Matrix[mat.Float] {
 	r.y = mat.NewVecDense(softmax(r.x.Value().Data()))
 	return r.y
 }
 
 // Backward computes the backward pass.
-func (r *Softmax) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *Softmax) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		n := r.y.Size()
-		jb := mat.GetDenseWorkspace(n, n)
+		jb := mat.GetDensePool[mat.Float]().Get(n, n)
 		defer mat.ReleaseDense(jb)
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {

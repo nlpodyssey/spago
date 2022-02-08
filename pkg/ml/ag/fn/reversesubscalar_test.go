@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,7 +17,7 @@ func TestReverseSubScalar_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewScalar(2.0),
+		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: true,
 	}

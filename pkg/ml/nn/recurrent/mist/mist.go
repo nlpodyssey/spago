@@ -11,7 +11,7 @@ package mist
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -49,15 +49,15 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out, numOfDelays int) *Model {
 	return &Model{
-		Wx:          nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wh:          nn.NewParam(mat.NewEmptyDense(out, out)),
-		B:           nn.NewParam(mat.NewEmptyVecDense(out)),
-		Wax:         nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wah:         nn.NewParam(mat.NewEmptyDense(out, out)),
-		Ba:          nn.NewParam(mat.NewEmptyVecDense(out)),
-		Wrx:         nn.NewParam(mat.NewEmptyDense(out, in)),
-		Wrh:         nn.NewParam(mat.NewEmptyDense(out, out)),
-		Br:          nn.NewParam(mat.NewEmptyVecDense(out)),
+		Wx:          nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		Wh:          nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		B:           nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		Wax:         nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		Wah:         nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		Ba:          nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		Wrx:         nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		Wrh:         nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		Br:          nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 		NumOfDelays: numOfDelays,
 	}
 }

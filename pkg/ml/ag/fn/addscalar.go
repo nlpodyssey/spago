@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &AddScalar{}
@@ -23,13 +23,13 @@ func NewAddScalar(x1, x2 Operand) *AddScalar {
 
 // Forward computes the output of the function.
 // It doesn't backward on the scalar value x2.
-func (r *AddScalar) Forward() mat.Matrix {
+func (r *AddScalar) Forward() mat.Matrix[mat.Float] {
 	return r.x1.Value().AddScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *AddScalar) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+func (r *AddScalar) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x1.Value().SameDims(gy) || r.x1.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

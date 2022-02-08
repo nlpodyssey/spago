@@ -5,8 +5,8 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
 // DifferentialEvolution implements a simple and efficient heuristic for global optimization over continuous spaces.
@@ -21,9 +21,9 @@ type DifferentialEvolution struct {
 	// The crossover strategy
 	crossover Crossover
 	// The fitness function to minimize
-	fitnessFunc func(solution mat.Matrix, batch int) mat.Float
+	fitnessFunc func(solution mat.Matrix[mat.Float], batch int) mat.Float
 	// The validation function to maximize
-	validate func(solution mat.Matrix) mat.Float
+	validate func(solution mat.Matrix[mat.Float]) mat.Float
 	// Method to call after finding a new best solution
 	onNewBest func(solution *ScoredVector)
 	// The current best solution (can be nil)
@@ -74,7 +74,7 @@ type Config struct {
 
 // ScoredVector is a pair which associates a Score to a Vector corresponding to a specific solution.
 type ScoredVector struct {
-	Vector mat.Matrix
+	Vector mat.Matrix[mat.Float]
 	Score  mat.Float
 }
 
@@ -83,8 +83,8 @@ func NewOptimizer(
 	config Config,
 	mutation Mutator,
 	crossover Crossover,
-	score func(solution mat.Matrix, batch int) mat.Float,
-	validate func(solution mat.Matrix) mat.Float,
+	score func(solution mat.Matrix[mat.Float], batch int) mat.Float,
+	validate func(solution mat.Matrix[mat.Float]) mat.Float,
 	onNewBest func(solution *ScoredVector),
 ) *DifferentialEvolution {
 	return &DifferentialEvolution{
@@ -93,7 +93,7 @@ func NewOptimizer(
 			config.PopulationSize,
 			config.VectorSize,
 			config.Bound,
-			rand.NewLockedRand(config.Seed),
+			rand.NewLockedRand[mat.Float](config.Seed),
 			MemberHyperParams{
 				MutationFactor: config.MutationFactor,
 				CrossoverRate:  config.CrossoverRate,
@@ -183,7 +183,7 @@ func (o *DifferentialEvolution) validateTargets() {
 // checkForBetterSolution compares the overall best solution with all current solutions, updating it if a new best is found.
 func (o *DifferentialEvolution) checkForBetterSolution() {
 	bestIndex := 0
-	bestValidationScore := mat.Inf(-1)
+	bestValidationScore := mat.Inf[mat.Float](-1)
 	for i, member := range o.population.Members {
 		if member.ValidationScore > bestValidationScore {
 			bestValidationScore = member.ValidationScore
@@ -208,7 +208,7 @@ func (o *DifferentialEvolution) resetPopulation() {
 		o.PopulationSize,
 		o.VectorSize,
 		o.Bound,
-		rand.NewLockedRand(o.Seed),
+		rand.NewLockedRand[mat.Float](o.Seed),
 		MemberHyperParams{
 			MutationFactor: o.MutationFactor,
 			CrossoverRate:  o.CrossoverRate,

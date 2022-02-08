@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &ReduceMean{}
@@ -21,12 +21,12 @@ func NewReduceMean(x Operand) *ReduceMean {
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean) Forward() mat.Matrix {
+func (r *ReduceMean) Forward() mat.Matrix[mat.Float] {
 	return mat.NewScalar(r.x.Value().Sum() / mat.Float(r.x.Value().Size()))
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean) Backward(gy mat.Matrix) {
+func (r *ReduceMean) Backward(gy mat.Matrix[mat.Float]) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")
 	}

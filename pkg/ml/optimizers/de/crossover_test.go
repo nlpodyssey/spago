@@ -5,15 +5,15 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestCrossover(t *testing.T) {
 	population := newTestCrossover()
-	crossover := NewBinomialCrossover(rand.NewLockedRand(0))
+	crossover := NewBinomialCrossover(rand.NewLockedRand[mat.Float](0))
 	crossover.Crossover(population)
 
 	assert.InDeltaSlice(t,
@@ -35,7 +35,7 @@ func TestCrossover(t *testing.T) {
 
 func newTestCrossover() *Population {
 	hyperParams := MemberHyperParams{MutationFactor: 0.5, CrossoverRate: 0.9, WeightFactor: 0.5}
-	population := NewRandomPopulation(3, 8, 6.0, rand.NewLockedRand(42), hyperParams)
+	population := NewRandomPopulation(3, 8, 6.0, rand.NewLockedRand[mat.Float](42), hyperParams)
 	population.Members[0].TargetVector.SetData([]mat.Float{0.0, 0.6, 0.8, 1.2, 1.6, 2.5, -2.6, -0.5})
 	population.Members[1].TargetVector.SetData([]mat.Float{-0.4, 0.9, 1.8, -1.5, 2.6, -3.5, -2.0, 0.0})
 	population.Members[2].TargetVector.SetData([]mat.Float{3.0, -0.8, 0.9, 2.2, 0.6, 0.3, 0.2, 0.1})

@@ -4,7 +4,7 @@
 
 package decay
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // Function is implemented by any value that has the Decay method.
 type Function interface {

@@ -5,7 +5,7 @@
 package attention
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -32,7 +32,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 		},
 	}
 
-	context, _ := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt(3), false)
+	context, _ := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt[mat.Float](3), false)
 
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -65,7 +65,7 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	}
 
 	// == Forward
-	context, probs := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt(2), false)
+	context, probs := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt[mat.Float](2), false)
 
 	if len(context) != 3 {
 		t.Error("The context doesn't have the expected length")

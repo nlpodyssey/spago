@@ -5,7 +5,7 @@
 package bls
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -17,8 +17,8 @@ import (
 // The parameters of the enhanced nodes remain the initial ones and are not optimized.
 type BroadLearningAlgorithm struct {
 	Model                  *Model
-	Input                  []mat.Matrix
-	DesiredOutput          []mat.Matrix
+	Input                  []mat.Matrix[mat.Float]
+	DesiredOutput          []mat.Matrix[mat.Float]
 	Penalty                mat.Float
 	OptimizeFeaturesWeight bool // skip optimization if you don't want to
 	Verbose                bool
@@ -40,7 +40,7 @@ func (l *BroadLearningAlgorithm) Do() {
 }
 
 func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
-	featuresMap := make([][]mat.Matrix, l.Model.NumOfFeatures)
+	featuresMap := make([][]mat.Matrix[mat.Float], l.Model.NumOfFeatures)
 	for _, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
@@ -57,8 +57,8 @@ func (l *BroadLearningAlgorithm) optimizeFeaturesWeight() {
 	}
 }
 
-func (l *BroadLearningAlgorithm) zhs() []mat.Matrix {
-	zhs := make([]mat.Matrix, len(l.Input))
+func (l *BroadLearningAlgorithm) zhs() []mat.Matrix[mat.Float] {
+	zhs := make([]mat.Matrix[mat.Float], len(l.Input))
 	for i, x := range l.Input {
 		g := ag.NewGraph()
 		x := g.NewVariable(x, false)
@@ -68,7 +68,7 @@ func (l *BroadLearningAlgorithm) zhs() []mat.Matrix {
 	return zhs
 }
 
-func (l *BroadLearningAlgorithm) updateOutputWeights(w mat.Matrix) {
+func (l *BroadLearningAlgorithm) updateOutputWeights(w mat.Matrix[mat.Float]) {
 	l.Model.W.Value().SetData(w.T().Data())
 }
 
@@ -78,7 +78,7 @@ func (l *BroadLearningAlgorithm) log(message string) {
 	}
 }
 
-func singleZH(m *Model, x ag.Node) mat.Matrix {
+func singleZH(m *Model, x ag.Node) mat.Matrix[mat.Float] {
 	g := m.Graph()
 	z := m.useFeaturesDropout(m.featuresMapping(x))
 	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
@@ -86,21 +86,21 @@ func singleZH(m *Model, x ag.Node) mat.Matrix {
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y
-func ridgeRegression(x mat.Matrix, y mat.Matrix, c mat.Float) mat.Matrix {
-	i2 := mat.I(x.Columns()).ProdScalar(c)
+func ridgeRegression(x mat.Matrix[mat.Float], y mat.Matrix[mat.Float], c mat.Float) mat.Matrix[mat.Float] {
+	i2 := mat.NewIdentityDense[mat.Float](x.Columns()).ProdScalar(c)
 	x2 := x.T().Mul(x).Add(i2)
 	invX2 := x2.Inverse()
 	return invX2.Mul(x.T()).Mul(y)
 }
 
 // admn is a naive implementation of the alternating direction method of multipliers method (Goldstein et al. 2014).
-func admn(z mat.Matrix, x mat.Matrix, lam mat.Float, iterations int) mat.Matrix {
+func admn(z mat.Matrix[mat.Float], x mat.Matrix[mat.Float], lam mat.Float, iterations int) mat.Matrix[mat.Float] {
 	ZZ := z.T().Mul(z)
-	var Wk mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
-	var Ok mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
-	var Uk mat.Matrix = mat.NewEmptyDense(z.Columns(), x.Columns())
+	var Wk mat.Matrix[mat.Float] = mat.NewEmptyDense[mat.Float](z.Columns(), x.Columns())
+	var Ok mat.Matrix[mat.Float] = mat.NewEmptyDense[mat.Float](z.Columns(), x.Columns())
+	var Uk mat.Matrix[mat.Float] = mat.NewEmptyDense[mat.Float](z.Columns(), x.Columns())
 
-	L1 := ZZ.AddInPlace(mat.I(z.Columns()))
+	L1 := ZZ.AddInPlace(mat.NewIdentityDense[mat.Float](z.Columns()))
 	L1 = L1.Inverse()
 	L2 := L1.Mul(z.T()).Mul(x)
 
@@ -114,8 +114,8 @@ func admn(z mat.Matrix, x mat.Matrix, lam mat.Float, iterations int) mat.Matrix 
 	return Wk
 }
 
-func shrinkage(X mat.Matrix, k mat.Float) mat.Matrix {
-	Zeros := mat.NewEmptyDense(X.Rows(), X.Columns())
+func shrinkage(X mat.Matrix[mat.Float], k mat.Float) mat.Matrix[mat.Float] {
+	Zeros := mat.NewEmptyDense[mat.Float](X.Rows(), X.Columns())
 	X1 := X.SubScalar(k)
 	X2 := X.ProdScalar(-1.0).SubScalar(k)
 	X2 = X2.Maximum(Zeros)

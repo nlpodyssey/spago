@@ -5,7 +5,7 @@
 package nn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -53,7 +53,7 @@ func TestModelContextualizer(t *testing.T) {
 
 		g := ag.NewGraph()
 		sourceModel := &TestModel{
-			A: NewParam(mat.NewScalar(1)).(*param).wrappedParam(g),
+			A: NewParam(mat.NewScalar[mat.Float](1)).(*param).wrappedParam(g),
 		}
 
 		assert.Panics(t, func() {
@@ -71,8 +71,8 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{
-			A: NewParam(mat.NewScalar(1)),
-			B: NewParam(mat.NewScalar(2)),
+			A: NewParam(mat.NewScalar[mat.Float](1)),
+			B: NewParam(mat.NewScalar[mat.Float](2)),
 		}
 		g := ag.NewGraph()
 		result := ReifyForTraining(sourceModel, g)
@@ -93,8 +93,8 @@ func TestModelContextualizer(t *testing.T) {
 
 		sourceModel := &TestModel{
 			A: []Param{
-				NewParam(mat.NewScalar(1)),
-				NewParam(mat.NewScalar(2)),
+				NewParam(mat.NewScalar[mat.Float](1)),
+				NewParam(mat.NewScalar[mat.Float](2)),
 			},
 		}
 		g := ag.NewGraph()
@@ -123,19 +123,19 @@ func TestModelContextualizer(t *testing.T) {
 
 		sourceModel := &TestModel{
 			Foo: MyStruct{
-				A: NewParam(mat.NewScalar(1)),
+				A: NewParam(mat.NewScalar[mat.Float](1)),
 				X: 11,
 				Z: &MyStruct{
-					A: NewParam(mat.NewScalar(2)),
+					A: NewParam(mat.NewScalar[mat.Float](2)),
 					X: 22,
 					Z: nil,
 				},
 			},
 			Bar: MyStruct{
-				A: NewParam(mat.NewScalar(10)),
+				A: NewParam(mat.NewScalar[mat.Float](10)),
 				X: 33,
 				Z: &MyStruct{
-					A: NewParam(mat.NewScalar(20)),
+					A: NewParam(mat.NewScalar[mat.Float](20)),
 					X: 44,
 					Z: nil,
 				},
@@ -216,10 +216,10 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{
-			Foo: []MyStruct{{P: NewParam(mat.NewScalar(1))}},
-			Bar: []MyStruct{{P: NewParam(mat.NewScalar(2))}},
-			Baz: []*MyStruct{{P: NewParam(mat.NewScalar(3))}},
-			Qux: []*MyStruct{{P: NewParam(mat.NewScalar(4))}},
+			Foo: []MyStruct{{P: NewParam(mat.NewScalar[mat.Float](1))}},
+			Bar: []MyStruct{{P: NewParam(mat.NewScalar[mat.Float](2))}},
+			Baz: []*MyStruct{{P: NewParam(mat.NewScalar[mat.Float](3))}},
+			Qux: []*MyStruct{{P: NewParam(mat.NewScalar[mat.Float](4))}},
 		}
 		g := ag.NewGraph()
 		result := ReifyForTraining(sourceModel, g)
@@ -268,8 +268,8 @@ func TestModelContextualizer(t *testing.T) {
 
 		sourceModel := &TestModel{
 			A: map[string]Param{
-				"a": NewParam(mat.NewScalar(1)),
-				"b": NewParam(mat.NewScalar(2)),
+				"a": NewParam(mat.NewScalar[mat.Float](1)),
+				"b": NewParam(mat.NewScalar[mat.Float](2)),
 			},
 		}
 		g := ag.NewGraph()
@@ -297,10 +297,10 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{
-			Foo: map[string]MyStruct{"a": {P: NewParam(mat.NewScalar(1))}},
-			Bar: map[string]MyStruct{"b": {P: NewParam(mat.NewScalar(2))}},
-			Baz: map[string]*MyStruct{"c": {P: NewParam(mat.NewScalar(3))}},
-			Qux: map[string]*MyStruct{"d": {P: NewParam(mat.NewScalar(4))}},
+			Foo: map[string]MyStruct{"a": {P: NewParam(mat.NewScalar[mat.Float](1))}},
+			Bar: map[string]MyStruct{"b": {P: NewParam(mat.NewScalar[mat.Float](2))}},
+			Baz: map[string]*MyStruct{"c": {P: NewParam(mat.NewScalar[mat.Float](3))}},
+			Qux: map[string]*MyStruct{"d": {P: NewParam(mat.NewScalar[mat.Float](4))}},
 		}
 		g := ag.NewGraph()
 		result := ReifyForTraining(sourceModel, g)

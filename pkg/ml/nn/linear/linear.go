@@ -8,7 +8,7 @@ import (
 	"encoding/gob"
 	"sync"
 
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -41,8 +41,8 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int, options ...Option) *Model {
 	model := &Model{
-		W: nn.NewParam(mat.NewEmptyDense(out, in)),
-		B: nn.NewParam(mat.NewEmptyVecDense(out)),
+		W: nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 	for _, option := range options {
 		option(model)

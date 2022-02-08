@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &View{}
@@ -25,8 +25,8 @@ func NewView(x Operand, sx, sy, lx, ly int) *View {
 }
 
 // Forward computes the output of the function.
-func (r *View) Forward() mat.Matrix {
-	y := mat.NewEmptyDense(r.lx, r.ly)
+func (r *View) Forward() mat.Matrix[mat.Float] {
+	y := mat.NewEmptyDense[mat.Float](r.lx, r.ly)
 	for i := 0; i < r.lx; i++ {
 		for j := 0; j < r.ly; j++ {
 			y.Set(i, j, r.x.Value().At(i+r.sx, j+r.sy))
@@ -36,12 +36,12 @@ func (r *View) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *View) Backward(gy mat.Matrix) {
+func (r *View) Backward(gy mat.Matrix[mat.Float]) {
 	if !(gy.Rows() == r.lx && gy.Columns() == r.ly) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewEmptyDense(r.x.Value().Dims())
+		gx := mat.NewEmptyDense[mat.Float](r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
 		for i := 0; i < r.lx; i++ {
 			for j := 0; j < r.ly; j++ {

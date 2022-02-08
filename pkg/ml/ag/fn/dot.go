@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &Dot{}
 
@@ -21,10 +21,10 @@ func NewDot(x1, x2 Operand) *Dot {
 }
 
 // Forward computes the output of the function.
-func (r *Dot) Forward() mat.Matrix {
+func (r *Dot) Forward() mat.Matrix[mat.Float] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
+	if !(x1v.SameDims(x2v) || x1v.VectorOfSameSize(x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
 	var y mat.Float = 0.0
@@ -41,12 +41,12 @@ func (r *Dot) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Dot) Backward(gy mat.Matrix) {
+func (r *Dot) Backward(gy mat.Matrix[mat.Float]) {
 	if !gy.IsScalar() {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x1.RequiresGrad() {
-		dx := mat.GetDenseWorkspace(r.x1.Value().Dims())
+		dx := mat.GetDensePool[mat.Float]().Get(r.x1.Value().Dims())
 		defer mat.ReleaseDense(dx)
 		for i := 0; i < r.x1.Value().Rows(); i++ {
 			for j := 0; j < r.x1.Value().Columns(); j++ {
@@ -56,7 +56,7 @@ func (r *Dot) Backward(gy mat.Matrix) {
 		r.x1.PropagateGrad(dx)
 	}
 	if r.x2.RequiresGrad() {
-		dx := mat.GetDenseWorkspace(r.x2.Value().Dims())
+		dx := mat.GetDensePool[mat.Float]().Get(r.x2.Value().Dims())
 		defer mat.ReleaseDense(dx)
 		for i := 0; i < r.x2.Value().Rows(); i++ {
 			for j := 0; j < r.x2.Value().Columns(); j++ {

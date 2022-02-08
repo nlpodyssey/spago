@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils"
@@ -126,13 +126,13 @@ func TestModel_Forward_Params(t *testing.T) {
 func TestModel_Inference(t *testing.T) {
 
 	model := New(3)
-	model.Mean = nn.NewParam(mat.NewVecDense([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam(mat.NewVecDense([]mat.Float{1.0, 0.5, 1.0}))
-	model.W = nn.NewParam(mat.NewInitVecDense(3, 1.0))
+	model.Mean = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
+	model.W = nn.NewParam(mat.NewInitVecDense[mat.Float](3, 1.0))
 	g := ag.NewGraph()
 	proc := nn.ReifyForInference(model, g)
 	data := []mat.Float{1.0, 2.0, 3.0}
-	x := g.NewVariable(mat.NewVecDense(data), false)
+	x := g.NewVariable(mat.NewVecDense[mat.Float](data), false)
 	y := proc.Forward(x)
 	require.Equal(t, 1, len(y))
 	assert.InDeltaSlice(t, []mat.Float{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
@@ -140,8 +140,8 @@ func TestModel_Inference(t *testing.T) {
 
 func Test_Serialize(t *testing.T) {
 	model := NewWithMomentum(3, 0.777)
-	model.Mean = nn.NewParam(mat.NewVecDense([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam(mat.NewVecDense([]mat.Float{1.0, 0.5, 1.0}))
+	model.Mean = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
 	tempFile, err := os.CreateTemp("", "test_serialize")
 	require.Nil(t, err)
 	tempFile.Close()
@@ -166,9 +166,9 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{0.4, 0.8, -0.7, -0.5}), true)
+	x2 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{-0.4, -0.6, -0.2, -0.9}), true)
+	x3 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{0.4, 0.4, 0.2, 0.8}), true)
 
 	y := rectify(g, nn.ReifyForTraining(model, g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
@@ -178,9 +178,9 @@ func TestModel_Forward(t *testing.T) {
 
 	// == Backward
 
-	y[0].PropagateGrad(mat.NewVecDense([]mat.Float{-1.0, -0.2, 0.4, 0.6}))
-	y[1].PropagateGrad(mat.NewVecDense([]mat.Float{-0.3, 0.1, 0.7, 0.9}))
-	y[2].PropagateGrad(mat.NewVecDense([]mat.Float{0.3, -0.4, 0.7, -0.8}))
+	y[0].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{-1.0, -0.2, 0.4, 0.6}))
+	y[1].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{-0.3, 0.1, 0.7, 0.9}))
+	y[2].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{0.3, -0.4, 0.7, -0.8}))
 	g.BackwardAll()
 
 	assert.InDeltaSlice(t, []mat.Float{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-04)

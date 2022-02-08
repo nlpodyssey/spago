@@ -6,7 +6,7 @@ package config
 
 import (
 	"encoding/json"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"os"
 )
 

@@ -11,7 +11,7 @@ package evolvingembeddings
 import (
 	"bytes"
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
@@ -72,7 +72,7 @@ func New(config Config) *Model {
 			ReadOnly: false,
 			ForceNew: config.ForceNewDB,
 		}),
-		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense(config.Size), nn.RequiresGrad(false)),
+		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.Size), nn.RequiresGrad(false)),
 	}
 	allModels = append(allModels, m)
 	return m
@@ -108,7 +108,7 @@ func (m *Model) Count() int {
 // WordVectorPair associates a Vector to a Word.
 type WordVectorPair struct {
 	Word   string
-	Vector mat.Matrix
+	Vector mat.Matrix[mat.Float]
 }
 
 // Aggregate performs a pooling operation over the list of WordVectorPair elements.
@@ -124,7 +124,7 @@ func (m *Model) Aggregate(list []*WordVectorPair) {
 	}
 }
 
-func (m *Model) pooling(a, b mat.Matrix) mat.Matrix {
+func (m *Model) pooling(a, b mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	switch m.PoolingOperation {
 	case Max:
 		return a.Maximum(b)
@@ -137,7 +137,7 @@ func (m *Model) pooling(a, b mat.Matrix) mat.Matrix {
 
 // SetEmbeddings inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
-func (m *Model) setEmbedding(word string, value mat.Matrix) {
+func (m *Model) setEmbedding(word string, value mat.Matrix[mat.Float]) {
 	var err error
 	var data []byte = nil
 
@@ -159,7 +159,7 @@ func (m *Model) setEmbedding(word string, value mat.Matrix) {
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
 // If no embedding is found, nil is returned.
 // It panics in case of Storage errors.
-func (m *Model) getStorageEmbedding(word string) mat.Matrix {
+func (m *Model) getStorageEmbedding(word string) mat.Matrix[mat.Float] {
 	if found := m.getEmbeddingExactMatch(word); found != nil {
 		return found
 	}
@@ -172,7 +172,7 @@ func (m *Model) getStorageEmbedding(word string) mat.Matrix {
 // getEmbeddingExactMatch returns the vector (the word embedding) associated with the given word (exact correspondence).
 // If no embedding is found, nil is returned.
 // It panics in case of Storage errors.
-func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix {
+func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix[mat.Float] {
 	data, ok, err := m.Storage.Get([]byte(word))
 	if err != nil {
 		log.Fatal(err)
@@ -181,7 +181,7 @@ func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix {
 		return nil // embedding not found, or nil Dense matrix
 	}
 
-	embedding, err := mat.UnmarshalBinaryMatrix(bytes.NewReader(data))
+	embedding, err := mat.UnmarshalBinaryMatrix[mat.Float](bytes.NewReader(data))
 	if err != nil {
 		log.Fatal(err)
 	}

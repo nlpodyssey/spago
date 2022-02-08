@@ -7,20 +7,20 @@ package nn
 import (
 	"bytes"
 	"encoding/binary"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Payload contains the support data used for example by the optimization methods
 type Payload struct {
 	Label int
-	Data  []mat.Matrix
+	Data  []mat.Matrix[mat.Float]
 }
 
 // NewPayload returns an empty support structure, not connected to any optimization method.
 func NewPayload() *Payload {
 	return &Payload{
 		Label: 0, // important set the label to zero
-		Data:  make([]mat.Matrix, 0),
+		Data:  make([]mat.Matrix[mat.Float], 0),
 	}
 }
 
@@ -54,9 +54,9 @@ func (p *Payload) UnmarshalBinary(data []byte) error {
 	var err error
 	r := bytes.NewReader(data[12:])
 
-	p.Data = make([]mat.Matrix, dataLen)
+	p.Data = make([]mat.Matrix[mat.Float], dataLen)
 	for i := range p.Data {
-		p.Data[i], err = mat.UnmarshalBinaryMatrix(r)
+		p.Data[i], err = mat.UnmarshalBinaryMatrix[mat.Float](r)
 		if err != nil {
 			return err
 		}

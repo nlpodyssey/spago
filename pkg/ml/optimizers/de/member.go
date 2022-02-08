@@ -5,8 +5,8 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
 // Member represents a member of the Population.
@@ -14,9 +14,9 @@ type Member struct {
 	// The hyper-params tha might change over the generations
 	MemberHyperParams
 	// The target vector
-	TargetVector mat.Matrix
+	TargetVector mat.Matrix[mat.Float]
 	// The donor vector
-	DonorVector mat.Matrix
+	DonorVector mat.Matrix[mat.Float]
 	// The score of the target vector obtained during the last evaluation
 	TargetScore mat.Float
 	// The score of the trial vector obtained during the last evaluation
@@ -38,24 +38,24 @@ type MemberHyperParams struct {
 // MutateHyperParams mutates the hyper-parameters according to l and u.
 // Suggested values: l = 0.1, u = 0.9.
 func (a *MemberHyperParams) MutateHyperParams(l, u mat.Float) {
-	if rand.Float() < 0.1 {
-		a.MutationFactor = l + rand.Float()*u
+	if rand.Float[mat.Float]() < 0.1 {
+		a.MutationFactor = l + rand.Float[mat.Float]()*u
 	}
-	if rand.Float() < 0.1 {
-		a.CrossoverRate = rand.Float()
+	if rand.Float[mat.Float]() < 0.1 {
+		a.CrossoverRate = rand.Float[mat.Float]()
 	}
-	if rand.Float() < 0.1 {
-		a.WeightFactor = l + rand.Float()*u
+	if rand.Float[mat.Float]() < 0.1 {
+		a.WeightFactor = l + rand.Float[mat.Float]()*u
 	}
 }
 
 // NewMember returns a new population member.
-func NewMember(vector mat.Matrix, hyperParams MemberHyperParams) *Member {
+func NewMember(vector mat.Matrix[mat.Float], hyperParams MemberHyperParams) *Member {
 	return &Member{
 		MemberHyperParams: hyperParams,
 		TargetVector:      vector,
 		DonorVector:       vector.ZerosLike(),
-		TargetScore:       mat.Inf(1),
-		TrialScore:        mat.Inf(1),
+		TargetScore:       mat.Inf[mat.Float](1),
+		TrialScore:        mat.Inf[mat.Float](1),
 	}
 }

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &SubScalar{}
@@ -22,13 +22,13 @@ func NewSubScalar(x1, x2 Operand) *SubScalar {
 }
 
 // Forward computes the output of the node.
-func (r *SubScalar) Forward() mat.Matrix {
+func (r *SubScalar) Forward() mat.Matrix[mat.Float] {
 	return r.x1.Value().SubScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *SubScalar) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
+func (r *SubScalar) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x1.Value().SameDims(gy) || r.x1.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

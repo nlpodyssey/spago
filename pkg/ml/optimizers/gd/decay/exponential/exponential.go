@@ -5,7 +5,7 @@
 package exponential
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // Exponential defines an exponential decay depending on the time step:

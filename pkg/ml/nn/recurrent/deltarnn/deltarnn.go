@@ -6,7 +6,7 @@ package deltarnn
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -45,13 +45,13 @@ type State struct {
 // New returns a new model with parameters initialized to zeros.
 func New(in, out int) *Model {
 	return &Model{
-		W:     nn.NewParam(mat.NewEmptyDense(out, in)),
-		WRec:  nn.NewParam(mat.NewEmptyDense(out, out)),
-		B:     nn.NewParam(mat.NewEmptyVecDense(out)),
-		BPart: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Alpha: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Beta1: nn.NewParam(mat.NewEmptyVecDense(out)),
-		Beta2: nn.NewParam(mat.NewEmptyVecDense(out)),
+		W:     nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
+		WRec:  nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
+		B:     nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		BPart: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		Alpha: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		Beta1: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		Beta2: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
 	}
 }
 

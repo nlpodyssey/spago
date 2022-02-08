@@ -11,7 +11,7 @@ import (
 	"encoding/gob"
 	"math"
 
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/convolution1d"
@@ -105,7 +105,7 @@ func (m *Model) padToMultiple(xs ...ag.Node) []ag.Node {
 	n := nextDivisibleLength(len(xs), m.PadUntil)
 	for i := 0; i < n; i++ {
 		if i >= len(xs) {
-			xs = append(xs, m.Graph().NewVariable(mat.NewEmptyVecDense(m.InputSize), false))
+			xs = append(xs, m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.InputSize), false))
 		}
 	}
 	return xs
@@ -197,7 +197,7 @@ func (m *Model) weightSequence(blocksSequence [][]ag.Node, scores []ag.Node, len
 	out := make([]ag.Node, length)
 	for i := 0; i < length; i++ {
 		sepScores := nn.SeparateVec(m.Graph(), scores[i])
-		weightedScore := m.Graph().NewVariable(mat.NewEmptyVecDense(m.InputSize), true)
+		weightedScore := m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.InputSize), true)
 		for j, seq := range blocksSequence {
 			weightedScore = g.Add(weightedScore, g.ProdScalar(seq[i], sepScores[j]))
 		}

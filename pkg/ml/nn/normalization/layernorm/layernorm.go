@@ -10,7 +10,7 @@ package layernorm
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -33,8 +33,8 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(size int) *Model {
 	return &Model{
-		W: nn.NewParam(mat.NewEmptyVecDense(size)),
-		B: nn.NewParam(mat.NewEmptyVecDense(size)),
+		W: nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
+		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
 	}
 }
 

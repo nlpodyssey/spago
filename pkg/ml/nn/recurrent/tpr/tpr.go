@@ -6,7 +6,7 @@ package tpr
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"log"
@@ -46,14 +46,14 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in, nSymbols, dSymbols, nRoles, dRoles int) *Model {
 	return &Model{
-		WInS:  nn.NewParam(mat.NewEmptyDense(nSymbols, in)),
-		WInR:  nn.NewParam(mat.NewEmptyDense(nRoles, in)),
-		WRecS: nn.NewParam(mat.NewEmptyDense(nSymbols, dRoles*dSymbols)),
-		WRecR: nn.NewParam(mat.NewEmptyDense(nRoles, dRoles*dSymbols)),
-		BS:    nn.NewParam(mat.NewEmptyVecDense(nSymbols)),
-		BR:    nn.NewParam(mat.NewEmptyVecDense(nRoles)),
-		S:     nn.NewParam(mat.NewEmptyDense(dSymbols, nSymbols)),
-		R:     nn.NewParam(mat.NewEmptyDense(dRoles, nRoles)),
+		WInS:  nn.NewParam(mat.NewEmptyDense[mat.Float](nSymbols, in)),
+		WInR:  nn.NewParam(mat.NewEmptyDense[mat.Float](nRoles, in)),
+		WRecS: nn.NewParam(mat.NewEmptyDense[mat.Float](nSymbols, dRoles*dSymbols)),
+		WRecR: nn.NewParam(mat.NewEmptyDense[mat.Float](nRoles, dRoles*dSymbols)),
+		BS:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](nSymbols)),
+		BR:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](nRoles)),
+		S:     nn.NewParam(mat.NewEmptyDense[mat.Float](dSymbols, nSymbols)),
+		R:     nn.NewParam(mat.NewEmptyDense[mat.Float](dRoles, nRoles)),
 	}
 }
 

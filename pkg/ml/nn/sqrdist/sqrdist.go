@@ -6,7 +6,7 @@ package sqrdist
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -28,7 +28,7 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New(in, rank int) *Model {
 	return &Model{
-		B: nn.NewParam(mat.NewEmptyDense(rank, in)),
+		B: nn.NewParam(mat.NewEmptyDense[mat.Float](rank, in)),
 	}
 }
 

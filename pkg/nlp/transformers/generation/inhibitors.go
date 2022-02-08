@@ -7,7 +7,7 @@
 package generation
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -46,7 +46,7 @@ func (b *Generator) processBadWordsScores(inputIDs [][]int, scores []Scores) []S
 	// Set scores to -Inf for banned tokens
 	for idx, batchBannedTokens := range bannedTokens {
 		for _, tokenID := range batchBannedTokens {
-			scores[idx].SetVec(tokenID, mat.Inf(-1))
+			scores[idx].SetVec(tokenID, mat.Inf[mat.Float](-1))
 		}
 	}
 
@@ -73,7 +73,7 @@ func (b *Generator) processMinLengthScores(inputIDs [][]int, scores []Scores) []
 
 	eosTokenID := b.config.EOSTokenID
 	for _, n := range scores {
-		n.SetVec(eosTokenID, mat.Inf(-1))
+		n.SetVec(eosTokenID, mat.Inf[mat.Float](-1))
 	}
 
 	return scores

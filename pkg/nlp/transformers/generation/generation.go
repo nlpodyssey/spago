@@ -8,7 +8,7 @@
 package generation
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/utils/processingqueue"
 	"math"
@@ -213,13 +213,13 @@ func (b *Generator) adjustLogitsDuringGeneration(xs ag.Node, curLength int) ag.N
 }
 
 func makePadMask(g *ag.Graph, padTokenID int, vocabSize int) ag.Node {
-	mask := mat.NewInitVecDense(vocabSize, 0)
-	mask.SetVec(padTokenID, mat.Inf(-1))
+	mask := mat.NewInitVecDense[mat.Float](vocabSize, 0)
+	mask.SetVec(padTokenID, mat.Inf[mat.Float](-1))
 	return g.NewVariable(mask, false)
 }
 
 func makeEosMask(g *ag.Graph, eosTokenID int, vocabSize int) ag.Node {
-	mask := mat.NewInitVecDense(vocabSize, mat.Inf(-1))
+	mask := mat.NewInitVecDense(vocabSize, mat.Inf[mat.Float](-1))
 	mask.SetVec(eosTokenID, 0)
 	return g.NewVariable(mask, false)
 }

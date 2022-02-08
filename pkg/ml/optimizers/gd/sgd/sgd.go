@@ -5,7 +5,7 @@
 package sgd
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
@@ -60,23 +60,23 @@ func (o *SGD) NewSupport(r, c int) *nn.Payload {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
 		return &nn.Payload{
 			Label: o.Label(),
-			Data:  []mat.Matrix{mat.NewEmptyDense(r, c)}, // v at index 0
+			Data:  []mat.Matrix[mat.Float]{mat.NewEmptyDense[mat.Float](r, c)}, // v at index 0
 		}
 	}
 	if !o.Nesterov {
-		supp := make([]mat.Matrix, 2, 2)
-		supp[v] = mat.NewEmptyDense(r, c)
-		supp[buf] = mat.NewEmptyDense(r, c)
+		supp := make([]mat.Matrix[mat.Float], 2, 2)
+		supp[v] = mat.NewEmptyDense[mat.Float](r, c)
+		supp[buf] = mat.NewEmptyDense[mat.Float](r, c)
 		return &nn.Payload{
 			Label: o.Label(),
 			Data:  supp,
 		}
 	}
-	supp := make([]mat.Matrix, 4, 4)
-	supp[v] = mat.NewEmptyDense(r, c)
-	supp[buf] = mat.NewEmptyDense(r, c)
-	supp[vPrev] = mat.NewEmptyDense(r, c)
-	supp[vTmp] = mat.NewEmptyDense(r, c)
+	supp := make([]mat.Matrix[mat.Float], 4, 4)
+	supp[v] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[buf] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[vPrev] = mat.NewEmptyDense[mat.Float](r, c)
+	supp[vTmp] = mat.NewEmptyDense[mat.Float](r, c)
 	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
@@ -84,11 +84,11 @@ func (o *SGD) NewSupport(r, c int) *nn.Payload {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *SGD) Delta(param nn.Param) mat.Matrix {
+func (o *SGD) Delta(param nn.Param) mat.Matrix[mat.Float] {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
-func (o *SGD) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *SGD) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	if o.Mu == 0.0 {
 		return o.calcVanillaSGD(grads, supp)
 	} else if o.Nesterov {
@@ -98,19 +98,19 @@ func (o *SGD) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	}
 }
 
-func (o *SGD) calcVanillaSGD(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *SGD) calcVanillaSGD(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	supp[v].ProdMatrixScalarInPlace(grads, o.Alpha)
 	return supp[v]
 }
 
-func (o *SGD) calcMomentumDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *SGD) calcMomentumDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	supp[buf].ProdMatrixScalarInPlace(grads, o.Alpha)
 	supp[v].ProdScalarInPlace(o.Mu)
 	supp[v].AddInPlace(supp[buf])
 	return supp[v]
 }
 
-func (o *SGD) calcNesterovMomentumDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
+func (o *SGD) calcNesterovMomentumDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 	supp[buf].ProdMatrixScalarInPlace(grads, o.Alpha)
 	supp[vPrev].ProdMatrixScalarInPlace(supp[v], o.Mu)
 	supp[v].ProdScalarInPlace(o.Mu)

@@ -5,13 +5,13 @@
 package fofe
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
 // EncodeDense is similar to Encode, but it works with Dense matrices.
-func EncodeDense(alpha mat.Float, size int, seq []int) []mat.Matrix {
-	y := make([]mat.Matrix, len(seq), len(seq))
+func EncodeDense(alpha mat.Float, size int, seq []int) []mat.Matrix[mat.Float] {
+	y := make([]mat.Matrix[mat.Float], len(seq), len(seq))
 	for i, x := range Encode(alpha, size, seq) {
 		y[i] = mat.NewVecDense(x.Data())
 	}
@@ -21,10 +21,10 @@ func EncodeDense(alpha mat.Float, size int, seq []int) []mat.Matrix {
 // Encode is the FOFE encoding function, which works with Sparse matrices.
 //
 // Reference recursive formula: z(t) = α · z(t−1) + e(t), where 1 ≤ t ≤ T
-func Encode(alpha mat.Float, size int, seq []int) []mat.Matrix {
-	var z []mat.Matrix
+func Encode(alpha mat.Float, size int, seq []int) []mat.Matrix[mat.Float] {
+	var z []mat.Matrix[mat.Float]
 	for t, i := range seq {
-		x := mat.OneHotSparse(size, i)
+		x := mat.NewOneHotVecDense[mat.Float](size, i) // FIXME: this was a sparse matrix!
 		if len(z) > 0 {
 			z = append(z, z[t-1].ProdScalar(alpha).Add(x))
 		} else {
@@ -35,7 +35,7 @@ func Encode(alpha mat.Float, size int, seq []int) []mat.Matrix {
 }
 
 // BiEncode is the FOFE bidirectional encoding function.
-func BiEncode(alpha mat.Float, size int, seq []int) (fwd []mat.Matrix, bwd []mat.Matrix) {
+func BiEncode(alpha mat.Float, size int, seq []int) (fwd []mat.Matrix[mat.Float], bwd []mat.Matrix[mat.Float]) {
 	fwd = Encode(alpha, size, seq)
 	bwd = Encode(alpha, size, utils.ReverseIntSlice(seq))
 	utils.ReverseInPlace(bwd)

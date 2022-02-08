@@ -4,7 +4,7 @@
 
 package ag
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func (g *Graph) PositiveELU(x Node) Node {

@@ -7,7 +7,7 @@ package nn
 import (
 	"bytes"
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils/kvdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,10 +19,10 @@ func TestParam_Gob(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam(mat.NewScalar(12))
+		paramToEncode := NewParam(mat.NewScalar[mat.Float](12))
 		paramToEncode.SetPayload(&Payload{
 			Label: 42,
-			Data:  []mat.Matrix{mat.NewScalar(34)},
+			Data:  []mat.Matrix[mat.Float]{mat.NewScalar[mat.Float](34)},
 		})
 
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
@@ -67,7 +67,7 @@ func TestParam_Storage(t *testing.T) {
 
 	storage := kvdb.NewDefaultKeyValueDB(kvdb.Config{Path: dir, ReadOnly: false, ForceNew: true})
 	defer storage.Close()
-	p := NewParam(mat.NewScalar(123), SetStorage(storage))
+	p := NewParam(mat.NewScalar[mat.Float](123), SetStorage(storage))
 	p.SetName("foo")
 	payload := NewPayload()
 	payload.Label = 42
@@ -95,7 +95,7 @@ func TestParamInterfaceBinaryMarshaling(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		paramToEncode := NewParam(mat.NewScalar(42))
+		paramToEncode := NewParam(mat.NewScalar[mat.Float](42))
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 

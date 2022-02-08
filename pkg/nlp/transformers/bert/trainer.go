@@ -9,8 +9,8 @@ import (
 	"bufio"
 	"compress/gzip"
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/losses"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
@@ -38,7 +38,7 @@ type TrainingConfig struct {
 // Trainer implements the training process for a BERT Model.
 type Trainer struct {
 	TrainingConfig
-	randGen       *rand.LockedRand
+	randGen       *rand.LockedRand[mat.Float]
 	optimizer     *gd.GradientDescent
 	bestLoss      mat.Float
 	lastBatchLoss mat.Float
@@ -54,7 +54,7 @@ func NewTrainer(model *Model, config TrainingConfig) *Trainer {
 	}
 	return &Trainer{
 		TrainingConfig: config,
-		randGen:        rand.NewLockedRand(config.Seed),
+		randGen:        rand.NewLockedRand[mat.Float](config.Seed),
 		optimizer:      optimizer,
 		model:          model,
 	}

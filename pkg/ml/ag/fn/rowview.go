@@ -4,7 +4,7 @@
 
 package fn
 
-import mat "github.com/nlpodyssey/spago/pkg/mat32"
+import "github.com/nlpodyssey/spago/pkg/mat"
 
 var _ Function = &RowView{}
 
@@ -23,13 +23,13 @@ func NewRowView(x Operand, i int) *RowView {
 }
 
 // Forward computes the output of the function.
-func (r *RowView) Forward() mat.Matrix {
+func (r *RowView) Forward() mat.Matrix[mat.Float] {
 	xv := r.x.Value()
 	rows, cols := xv.Dims()
 	if r.i >= rows {
 		panic("fn: matrix with not compatible size")
 	}
-	y := mat.GetDenseWorkspace(1, cols)
+	y := mat.GetDensePool[mat.Float]().Get(1, cols)
 	for j := 0; j < cols; j++ {
 		y.Set(0, j, xv.At(r.i, j))
 	}
@@ -37,12 +37,12 @@ func (r *RowView) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *RowView) Backward(gy mat.Matrix) {
+func (r *RowView) Backward(gy mat.Matrix[mat.Float]) {
 	if !(r.x.Value().Columns() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewEmptyDense(r.x.Value().Dims())
+		gx := mat.NewEmptyDense[mat.Float](r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
 		for j := 0; j < r.x.Value().Columns(); j++ {
 			gx.Set(r.i, j, gy.At(0, j))

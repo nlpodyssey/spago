@@ -5,8 +5,8 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/nlpodyssey/spago/pkg/ml/initializers"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
@@ -18,10 +18,10 @@ type Population struct {
 
 // NewRandomPopulation returns a new Population with members initialized randomly
 // according to the given configuration.
-func NewRandomPopulation(populationSize int, vectorSize int, bound mat.Float, rndGen *rand.LockedRand, initHyperParams MemberHyperParams) *Population {
+func NewRandomPopulation(populationSize int, vectorSize int, bound mat.Float, rndGen *rand.LockedRand[mat.Float], initHyperParams MemberHyperParams) *Population {
 	members := make([]*Member, populationSize)
 	for i := 0; i < populationSize; i++ {
-		vector := mat.NewEmptyVecDense(vectorSize)
+		vector := mat.NewEmptyVecDense[mat.Float](vectorSize)
 		initializers.XavierUniform(vector, 1.0, rndGen)
 		vector.ClipInPlace(-bound, +bound)
 		members[i] = NewMember(vector, initHyperParams)
@@ -52,7 +52,7 @@ func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minSco
 		panic("crossover: K must be less than population size")
 	}
 	argMin = 0
-	minScore = mat.Inf(1)
+	minScore = mat.Inf[mat.Float](1)
 	lowIndex := index - windowSize
 	highIndex := index + windowSize
 	if lowIndex < 0 {

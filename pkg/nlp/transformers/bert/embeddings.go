@@ -6,7 +6,7 @@ package bert
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -71,7 +71,7 @@ func (m *Embeddings) InitProcessor() {
 func newPositionEmbeddings(size, maxPositions int) []nn.Param {
 	out := make([]nn.Param, maxPositions)
 	for i := 0; i < maxPositions; i++ {
-		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
+		out[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](size))
 	}
 	return out
 }
@@ -79,7 +79,7 @@ func newPositionEmbeddings(size, maxPositions int) []nn.Param {
 func newTokenTypes(size, tokenTypes int) []nn.Param {
 	out := make([]nn.Param, tokenTypes)
 	for i := 0; i < tokenTypes; i++ {
-		out[i] = nn.NewParam(mat.NewEmptyVecDense(size))
+		out[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](size))
 	}
 	return out
 }

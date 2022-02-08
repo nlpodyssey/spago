@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/gopickle/pickle"
 	"github.com/nlpodyssey/gopickle/pytorch"
 	"github.com/nlpodyssey/gopickle/types"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnncrf"
@@ -55,11 +55,11 @@ func newConverter(pathToPyTorchModel string) *converter {
 }
 
 type mappedParam struct {
-	value mat.Matrix
+	value mat.Matrix[mat.Float]
 	used  bool
 }
 
-func newParam(value mat.Matrix) *mappedParam {
+func newParam(value mat.Matrix[mat.Float]) *mappedParam {
 	return &mappedParam{
 		value: value,
 		used:  false,

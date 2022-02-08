@@ -7,8 +7,8 @@ package embeddings
 import (
 	"bufio"
 	"github.com/gosuri/uiprogress"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/floatutils"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"log"
 	"os"
@@ -46,7 +46,7 @@ func (m *Model) Load(filename string) {
 		}
 		key := utils.BeforeSpace(line)
 		strVec := utils.AfterSpace(line)
-		data, err := floatutils.StrToFloatSlice(strVec)
+		data, err := matutils.StrToFloatSlice[mat.Float](strVec)
 		if err != nil {
 			log.Fatal(err)
 		}

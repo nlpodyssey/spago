@@ -5,13 +5,13 @@
 package clipper
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // GradClipper is implemented by any value that has the Clip method.
 type GradClipper interface {
 	// Clip clips the values of the matrix in place.
-	Clip(gs []mat.Matrix)
+	Clip(gs []mat.Matrix[mat.Float])
 }
 
 // ClipValue is a GradClipper which clips the values of a matrix between
@@ -21,7 +21,7 @@ type ClipValue struct {
 }
 
 // Clip clips the values of the matrix in place.
-func (c *ClipValue) Clip(gs []mat.Matrix) {
+func (c *ClipValue) Clip(gs []mat.Matrix[mat.Float]) {
 	for _, g := range gs {
 		g.ClipInPlace(-c.Value, c.Value)
 	}
@@ -35,7 +35,7 @@ type ClipNorm struct {
 
 // Clip clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
 // NormType is the n-norm. Can be ``Double.POSITIVE_INFINITY`` for infinity norm (default 2.0)
-func (c *ClipNorm) Clip(gs []mat.Matrix) {
+func (c *ClipNorm) Clip(gs []mat.Matrix[mat.Float]) {
 	if c.NormType <= 1 {
 		panic("gd: norm type required to be > 1.")
 	}

@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
@@ -17,7 +17,7 @@ type MaxPooling struct {
 	rows int
 	cols int
 	// initialized during the forward pass
-	y       mat.Matrix
+	y       mat.Matrix[mat.Float]
 	argmaxI [][]int
 	argmaxJ [][]int
 }
@@ -35,18 +35,18 @@ func NewMaxPooling(x Operand, r, c int) *MaxPooling {
 }
 
 // Forward computes the output of the function.
-func (r *MaxPooling) Forward() mat.Matrix {
+func (r *MaxPooling) Forward() mat.Matrix[mat.Float] {
 	if !(r.x.Value().Rows()%r.rows == 0 && r.x.Value().Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = mat.NewEmptyDense(r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
+	r.y = mat.NewEmptyDense[mat.Float](r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
 	r.argmaxI = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
 	r.argmaxJ = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Columns(); col++ {
-			maximum := mat.SmallestNonzeroFloat
+			maximum := mat.SmallestNonzero[mat.Float]()
 			for i := row * r.rows; i < (row*r.rows)+r.rows; i++ {
 				for j := col * r.cols; j < (col*r.cols)+r.rows; j++ {
 					val := r.x.Value().At(i, j)
@@ -65,7 +65,7 @@ func (r *MaxPooling) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling) Backward(gy mat.Matrix) {
+func (r *MaxPooling) Backward(gy mat.Matrix[mat.Float]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)

@@ -9,7 +9,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"fmt"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"io"
 	"log"
 )
@@ -48,7 +48,7 @@ func (r *param) UnmarshalBinary(data []byte) error {
 	var err error
 	buf := bytes.NewReader(data)
 
-	r.value, err = mat.UnmarshalBinaryMatrix(buf)
+	r.value, err = mat.UnmarshalBinaryMatrix[mat.Float](buf)
 	if err != nil {
 		return err
 	}

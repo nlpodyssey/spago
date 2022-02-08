@@ -5,7 +5,7 @@
 package pe
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 // SinusoidalPositionalEncoder uses the sine and cosine functions of different frequencies to compose position embeddings so to
@@ -16,7 +16,7 @@ type SinusoidalPositionalEncoder struct {
 	// Length is the max number of positions.
 	Length int
 	// Vectors contains the pre-computed encoding.
-	Vectors []mat.Matrix
+	Vectors []mat.Matrix[mat.Float]
 }
 
 // NewSinusoidalPositionalEncoder returns a new SinusoidalPositionalEncoder ready to use.
@@ -24,7 +24,7 @@ func NewSinusoidalPositionalEncoder(size, length int) *SinusoidalPositionalEncod
 	pe := &SinusoidalPositionalEncoder{
 		Size:    size,
 		Length:  length,
-		Vectors: make([]mat.Matrix, length),
+		Vectors: make([]mat.Matrix[mat.Float], length),
 	}
 
 	half := (size + (size % 2)) / 2
@@ -48,8 +48,8 @@ func NewSinusoidalPositionalEncoder(size, length int) *SinusoidalPositionalEncod
 }
 
 // Encode returns the positional encoding for the given positions.
-func (r *SinusoidalPositionalEncoder) Encode(xs ...int) []mat.Matrix {
-	ys := make([]mat.Matrix, len(xs))
+func (r *SinusoidalPositionalEncoder) Encode(xs ...int) []mat.Matrix[mat.Float] {
+	ys := make([]mat.Matrix[mat.Float], len(xs))
 	for i, x := range xs {
 		ys[i] = r.Vectors[x]
 	}

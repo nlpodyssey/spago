@@ -5,8 +5,8 @@
 package de
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -52,7 +52,7 @@ func newTestMutator() *Population {
 		WeightFactor:   0.5,
 	}
 
-	population := NewRandomPopulation(10, 5, 6.0, rand.NewLockedRand(42), hyperParams)
+	population := NewRandomPopulation(10, 5, 6.0, rand.NewLockedRand[mat.Float](42), hyperParams)
 
 	population.Members[0].TargetVector.SetData([]mat.Float{0.0, 0.6, 0.8, 1.2, 1.6})
 	population.Members[0].TrialScore = 0.3

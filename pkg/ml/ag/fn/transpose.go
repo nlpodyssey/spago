@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &Transpose{}
@@ -21,12 +21,12 @@ func NewTranspose(x Operand) *Transpose {
 }
 
 // Forward computes the output of the node.
-func (r *Transpose) Forward() mat.Matrix {
+func (r *Transpose) Forward() mat.Matrix[mat.Float] {
 	return r.x.Value().T()
 }
 
 // Backward computes the backward pass.
-func (r *Transpose) Backward(gy mat.Matrix) {
+func (r *Transpose) Backward(gy mat.Matrix[mat.Float]) {
 	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
 		panic("fn: matrices with not compatible size")
 	}

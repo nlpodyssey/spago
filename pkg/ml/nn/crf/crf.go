@@ -6,7 +6,7 @@ package crf
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
@@ -31,7 +31,7 @@ func init() {
 func New(size int) *Model {
 	return &Model{
 		Size:             size,
-		TransitionScores: nn.NewParam(mat.NewEmptyDense(size+1, size+1)), // +1 for start and end transitions
+		TransitionScores: nn.NewParam(mat.NewEmptyDense[mat.Float](size+1, size+1)), // +1 for start and end transitions
 	}
 }
 

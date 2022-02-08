@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &SwishB{}
@@ -25,25 +25,25 @@ func NewSwishB(x, beta Operand) *SwishB {
 }
 
 // Forward computes the output of the function.
-func (r *SwishB) Forward() mat.Matrix {
-	y := mat.GetDenseWorkspace(r.x.Value().Dims())
+func (r *SwishB) Forward() mat.Matrix[mat.Float] {
+	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
 	y.ApplyWithAlpha(swishB, r.x.Value(), r.beta.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SwishB) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *SwishB) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
+		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
 		gx.ApplyWithAlpha(swishBDeriv, r.x.Value(), r.beta.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
 	if r.beta.RequiresGrad() {
-		gb := mat.GetDenseWorkspace(r.beta.Value().Dims())
+		gb := mat.GetDensePool[mat.Float]().Get(r.beta.Value().Dims())
 		defer mat.ReleaseDense(gb)
 		for i, x := range r.x.Value().Data() {
 			gb.AddScalarInPlace(swishBBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])

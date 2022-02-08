@@ -5,7 +5,7 @@
 package fn
 
 import (
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
 var _ Function = &ELU{}
@@ -23,19 +23,19 @@ func NewELU(x, alpha Operand) *ELU {
 }
 
 // Forward computes the output of the function.
-func (r *ELU) Forward() mat.Matrix {
-	y := mat.GetDenseWorkspace(r.x.Value().Dims())
+func (r *ELU) Forward() mat.Matrix[mat.Float] {
+	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
 	y.ApplyWithAlpha(elu, r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *ELU) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
+func (r *ELU) Backward(gy mat.Matrix[mat.Float]) {
+	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDenseWorkspace(r.x.Value().Dims())
+		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
 		gx.ApplyWithAlpha(eluDeriv, r.x.Value(), r.alpha.Value().Scalar())
 		gx.ProdInPlace(gy)

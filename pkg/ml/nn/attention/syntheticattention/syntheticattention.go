@@ -9,7 +9,7 @@ package syntheticattention
 
 import (
 	"encoding/gob"
-	mat "github.com/nlpodyssey/spago/pkg/mat32"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -36,7 +36,7 @@ type ContextProb struct {
 	// Context encodings.
 	Context []ag.Node
 	// Prob attention scores.
-	Prob []mat.Matrix
+	Prob []mat.Matrix[mat.Float]
 }
 
 // Config provides configuration settings for a Synthetic Attention Model.
@@ -59,7 +59,7 @@ func New(config Config) *Model {
 			linear.New(config.InputSize, config.HiddenSize),
 			activation.New(ag.OpReLU),
 		),
-		W:     nn.NewParam(mat.NewEmptyDense(config.MaxLength, config.HiddenSize)),
+		W:     nn.NewParam(mat.NewEmptyDense[mat.Float](config.MaxLength, config.HiddenSize)),
 		Value: linear.New(config.InputSize, config.ValueSize),
 	}
 }
@@ -69,7 +69,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	g := m.Graph()
 	length := len(xs)
 	context := make([]ag.Node, length)
-	prob := make([]mat.Matrix, length)
+	prob := make([]mat.Matrix[mat.Float], length)
 	values := g.Stack(m.Value.Forward(xs...)...)
 	rectified := g.Stack(m.FFN.Forward(xs...)...)
 	attentionWeights := m.extractAttentionWeights(length)
