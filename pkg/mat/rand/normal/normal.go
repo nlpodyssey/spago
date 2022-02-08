@@ -1,24 +1,25 @@
-// Copyright 2019 spaGO Authors. All rights reserved.
+// Copyright 2022 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package normal
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat64/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
 // Normal is a source of normally distributed random numbers.
-type Normal struct {
-	Std       float64
-	Mean      float64
-	generator *rand.LockedRand
+type Normal[T mat.DType] struct {
+	Std       T
+	Mean      T
+	generator *rand.LockedRand[T]
 }
 
 // New returns a new Normal, initialized with the given standard deviation and
 // mean parameters.
-func New(std, mean float64, generator *rand.LockedRand) *Normal {
-	return &Normal{
+func New[T mat.DType](std, mean T, generator *rand.LockedRand[T]) *Normal[T] {
+	return &Normal[T]{
 		Std:       std,
 		Mean:      mean,
 		generator: generator,
@@ -26,6 +27,6 @@ func New(std, mean float64, generator *rand.LockedRand) *Normal {
 }
 
 // Next returns a random sample drawn from the distribution.
-func (u Normal) Next() float64 {
-	return u.generator.NormFloat64()*u.Std + u.Mean
+func (n Normal[T]) Next() T {
+	return n.generator.NormFloat()*n.Std + n.Mean
 }

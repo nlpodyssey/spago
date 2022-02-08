@@ -5,13 +5,15 @@
 package rand
 
 import (
+	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"golang.org/x/exp/rand"
 )
 
 // ShuffleInPlace pseudo-randomizes the order of elements, modifying the
 // given slice in-place.
-func ShuffleInPlace(xs []int, generator *LockedRand) []int {
+func ShuffleInPlace[T mat.DType](xs []int, generator *LockedRand[T]) []int {
 	swap := func(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
 	if generator != nil {
 		generator.Shuffle(len(xs), swap)
@@ -23,9 +25,17 @@ func ShuffleInPlace(xs []int, generator *LockedRand) []int {
 
 // WeightedChoice performs a random generation of the indices based of the probability distribution itself.
 // Please note that it uses the global random.
-func WeightedChoice(dist []float32) int {
-	rnd := rand.Float32() // // Warning: use global rand
-	var cumulativeProb float32 = 0.0
+func WeightedChoice[T mat.DType](dist []T) int {
+	var rnd T
+	switch any(T(0)).(type) {
+	case float32:
+		rnd = T(rand.Float32()) // Warning: use global rand
+	case float64:
+		rnd = T(rand.Float64()) // Warning: use global rand
+	default:
+		panic(fmt.Sprintf("rand: unexpected type %T", T(0)))
+	}
+	var cumulativeProb T
 	for i, prob := range dist {
 		cumulativeProb += prob
 		if rnd < cumulativeProb {
@@ -54,9 +64,11 @@ func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
 func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int {
 	a := make([]int, n)
 	for i := 0; i < len(a); i++ {
-		r := ShuffleInPlace(indices, nil)[0] // Warning: use global rand
+		// The generic type is irrelevant, since the given generator is nil.
+		// TODO: ugly API of ShuffleInPlace to be refactored
+		r := ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
 		for !valid(r) || utils.ContainsInt(a, r) {
-			r = ShuffleInPlace(indices, nil)[0] // Warning: use global rand
+			r = ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
 		}
 		a[i] = r
 	}

@@ -5,20 +5,21 @@
 package uniform
 
 import (
-	"github.com/nlpodyssey/spago/pkg/mat32/rand"
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"github.com/nlpodyssey/spago/pkg/mat/rand"
 )
 
 // Uniform is a source of uniformly distributed random numbers.
 // See: https://en.wikipedia.org/wiki/Continuous_uniform_distribution.
-type Uniform struct {
-	Min       float32
-	Max       float32
-	generator *rand.LockedRand
+type Uniform[T mat.DType] struct {
+	Min       T
+	Max       T
+	generator *rand.LockedRand[T]
 }
 
 // New returns a new Normal, initialized with the given min and max parameters.
-func New(min, max float32, generator *rand.LockedRand) *Uniform {
-	return &Uniform{
+func New[T mat.DType](min, max T, generator *rand.LockedRand[T]) *Uniform[T] {
+	return &Uniform[T]{
 		Min:       min,
 		Max:       max,
 		generator: generator,
@@ -26,6 +27,6 @@ func New(min, max float32, generator *rand.LockedRand) *Uniform {
 }
 
 // Next returns a random sample drawn from the distribution.
-func (u Uniform) Next() float32 {
-	return u.generator.Float32()*(u.Max-u.Min) + u.Min
+func (u Uniform[T]) Next() T {
+	return u.generator.Float()*(u.Max-u.Min) + u.Min
 }
