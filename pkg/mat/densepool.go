@@ -29,6 +29,7 @@ var (
 	densePoolFloat64 = NewDensePool[float64]()
 )
 
+// NewDensePool creates a new pool for handling matrices of a specific DType.
 func NewDensePool[T DType]() *DensePool[T] {
 	dp := new(DensePool[T])
 	for i := range dp {
@@ -37,6 +38,8 @@ func NewDensePool[T DType]() *DensePool[T] {
 	return dp
 }
 
+// GetDensePool returns the global (sort-of singleton) pre-instantiated pool
+// for a specific DType.
 func GetDensePool[T DType]() *DensePool[T] {
 	// TODO: review this code once stable go 1.18 is released
 	switch any(T(0)).(type) {
@@ -117,6 +120,9 @@ func (dp *DensePool[T]) Put(d *Dense[T]) {
 	dp[bitsLen].Put(d)
 }
 
+// ReleaseMatrix puts the given matrix in the appropriate global pool.
+// It currently works with Dense matrices only. For any other matrix
+// implementation, it panics.
 func ReleaseMatrix[T DType](m Matrix[T]) {
 	switch mt := m.(type) {
 	case *Dense[T]:
@@ -126,6 +132,7 @@ func ReleaseMatrix[T DType](m Matrix[T]) {
 	}
 }
 
+// ReleaseDense puts the given matrix in the appropriate global pool.
 func ReleaseDense[T DType](m *Dense[T]) {
 	GetDensePool[T]().Put(m)
 }

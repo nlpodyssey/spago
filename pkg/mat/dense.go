@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat/internal/f64/asm64"
 )
 
+// A Dense matrix implementation.
 type Dense[T DType] struct {
 	rows  int
 	cols  int

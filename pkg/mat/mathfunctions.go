@@ -24,7 +24,7 @@ func SmallestNonzero[T DType]() T {
 	}
 }
 
-// The Pi mathematical constant.
+// Pi mathematical constant.
 func Pi[T DType]() T {
 	return T(math.Pi)
 }

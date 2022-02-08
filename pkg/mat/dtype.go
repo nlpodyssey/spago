@@ -4,6 +4,7 @@
 
 package mat
 
+// DType is the primary type constraint for matrices defined in this package.
 type DType interface {
 	float32 | float64
 }
