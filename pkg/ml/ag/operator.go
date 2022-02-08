@@ -78,7 +78,7 @@ func (r *Operator) PropagateGrad(grad mat.Matrix[mat.Float]) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.grad == nil {
-		r.grad = mat.GetDensePool[mat.Float]().GetEmpty(r.value.Dims()) // this could reduce the number of allocations
+		r.grad = r.value.ZerosLike()
 	}
 	r.grad.AddInPlace(grad)
 	r.hasGrad = true

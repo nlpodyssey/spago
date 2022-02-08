@@ -29,8 +29,8 @@ func (r *AtVec) Forward() mat.Matrix[mat.Float] {
 // Backward computes the backward pass.
 func (r *AtVec) Backward(gy mat.Matrix[mat.Float]) {
 	if r.x.RequiresGrad() {
-		dx := mat.NewEmptyDense[mat.Float](r.x.Value().Dims())
-		defer mat.ReleaseDense(dx)
+		dx := r.x.Value().ZerosLike()
+		defer mat.ReleaseMatrix(dx)
 		dx.SetVec(r.i, gy.Scalar())
 		r.x.PropagateGrad(dx)
 	}

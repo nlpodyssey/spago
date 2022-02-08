@@ -42,8 +42,8 @@ func (r *RowView) Backward(gy mat.Matrix[mat.Float]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewEmptyDense[mat.Float](r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
+		gx := r.x.Value().ZerosLike()
+		defer mat.ReleaseMatrix(gx)
 		for j := 0; j < r.x.Value().Columns(); j++ {
 			gx.Set(r.i, j, gy.At(0, j))
 		}
