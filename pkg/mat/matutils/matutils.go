@@ -15,20 +15,6 @@ import (
 	"strings"
 )
 
-// Copy creates and return a copy of the given slice.
-func Copy[T mat.DType](in []T) []T {
-	out := make([]T, len(in))
-	copy(out, in)
-	return out
-}
-
-// FillFloatSlice fills the given slice's elements with value.
-func FillFloatSlice[T mat.DType](slice []T, value T) {
-	for i := range slice {
-		slice[i] = value
-	}
-}
-
 // Sign returns +1 if a is positive, -1 if a is negative, or 0 if a is 0.
 func Sign[T mat.DType](a T) int {
 	switch {
@@ -83,21 +69,6 @@ func ArgMinMax[T mat.DType](v []T) (imin, imax int) {
 func ArgMax[T mat.DType](v []T) int {
 	_, imax := ArgMinMax(v)
 	return imax
-}
-
-// ArgMin finds the index of the min argument.
-func ArgMin[T mat.DType](v []T) int {
-	imin, _ := ArgMinMax(v)
-	return imin
-}
-
-// MakeFloatMatrix returns a new 2-dimensional slice.
-func MakeFloatMatrix[T mat.DType](rows, cols int) [][]T {
-	matrix := make([][]T, rows)
-	for i := 0; i < rows; i++ {
-		matrix[i] = make([]T, cols)
-	}
-	return matrix
 }
 
 // StrToFloatSlice parses a string representation of a slice of T values.
