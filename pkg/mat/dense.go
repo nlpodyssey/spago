@@ -1067,7 +1067,6 @@ func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
 	u = NewDense(d.rows, d.cols, d.data)
 	p = NewIdentityDense[T](d.cols)
 	l = NewEmptyDense[T](d.cols, d.cols)
-	uData := u.Data()
 	lData := l.Data()
 	for i := 0; i < d.cols; i++ {
 		_, swap, positions := u.Pivoting(i)
@@ -1078,6 +1077,7 @@ func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
 		}
 		lt := NewIdentityDense[T](d.cols)
 		ltData := lt.data
+		uData := u.Data()
 		for k := i + 1; k < d.cols; k++ {
 			ltData[k*d.cols+i] = -uData[k*d.cols+i] / (uData[i*d.cols+i])
 			lData[k*d.cols+i] = uData[k*d.cols+i] / (uData[i*d.cols+i])
@@ -1096,7 +1096,9 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 		panic("mat: matrix must be square")
 	}
 	out := NewEmptyDense[T](d.cols, d.cols)
+	outData := out.data
 	s := NewEmptyDense[T](d.cols, d.cols)
+	sData := s.data
 	l, u, p := d.LU()
 	lData := l.Data()
 	uData := u.Data()
@@ -1106,17 +1108,17 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 		for i := 0; i < l.Rows(); i++ {
 			var sum T
 			for j := 0; j < i; j++ {
-				sum += lData[i*d.cols+j] * s.data[j*d.cols+b]
+				sum += lData[i*d.cols+j] * sData[j*d.cols+b]
 			}
-			s.data[i*d.cols+b] = pData[i*d.cols+b] - sum
+			sData[i*d.cols+b] = pData[i*d.cols+b] - sum
 		}
 		// find solution of Ux = y
 		for i := d.cols - 1; i >= 0; i-- {
 			var sum T
 			for j := i + 1; j < d.cols; j++ {
-				sum += uData[i*d.cols+j] * out.data[j*d.cols+b]
+				sum += uData[i*d.cols+j] * outData[j*d.cols+b]
 			}
-			out.data[i*d.cols+b] = (1.0 / uData[i*d.cols+i]) * (s.data[i*d.cols+b] - sum)
+			outData[i*d.cols+b] = (1.0 / uData[i*d.cols+i]) * (sData[i*d.cols+b] - sum)
 		}
 	}
 	return out
