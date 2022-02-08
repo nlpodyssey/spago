@@ -171,7 +171,7 @@ func chunkTensor(t *pytorch.Tensor, chunks int) [][]mat.Float {
 	return result
 }
 
-func chunkTensorBy4(t *pytorch.Tensor) ([]mat.Float, []mat.Float, []mat.Float, []mat.Float) {
+func chunkTensorBy4(t *pytorch.Tensor) (c0, c1, c2, c3 []mat.Float) {
 	c := chunkTensor(t, 4)
 	return c[0], c[1], c[2], c[3]
 }

@@ -68,7 +68,7 @@ func translateInput(v []mat.Float) []mat.Float {
 	return translated
 }
 
-func sparseMaxCommon(v []mat.Float) (zs []mat.Float, bounds []mat.Float, cumSumInput []mat.Float, tau mat.Float) {
+func sparseMaxCommon(v []mat.Float) (zs, bounds, cumSumInput []mat.Float, tau mat.Float) {
 	zs = make([]mat.Float, len(v))
 	copy(zs, v)
 

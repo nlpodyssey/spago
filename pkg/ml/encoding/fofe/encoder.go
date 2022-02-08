@@ -35,7 +35,7 @@ func Encode(alpha mat.Float, size int, seq []int) []mat.Matrix[mat.Float] {
 }
 
 // BiEncode is the FOFE bidirectional encoding function.
-func BiEncode(alpha mat.Float, size int, seq []int) (fwd []mat.Matrix[mat.Float], bwd []mat.Matrix[mat.Float]) {
+func BiEncode(alpha mat.Float, size int, seq []int) (fwd, bwd []mat.Matrix[mat.Float]) {
 	fwd = Encode(alpha, size, seq)
 	bwd = Encode(alpha, size, utils.ReverseIntSlice(seq))
 	utils.ReverseInPlace(bwd)

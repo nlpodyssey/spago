@@ -39,7 +39,7 @@ func Decode(alpha mat.Float, z mat.Matrix[mat.Float]) []int {
 	return seq
 }
 
-func offsets(base mat.Float, v mat.Float) []int {
+func offsets(base, v mat.Float) []int {
 	const limit = 400 // arbitrary limit
 	var lst []int
 	n := v

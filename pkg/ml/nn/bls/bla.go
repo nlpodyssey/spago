@@ -86,7 +86,7 @@ func singleZH(m *Model, x ag.Node) mat.Matrix[mat.Float] {
 }
 
 // ridgeRegression obtains the solution of output weight solving W = Inv(T(A)A+λI)T(A)Y
-func ridgeRegression(x mat.Matrix[mat.Float], y mat.Matrix[mat.Float], c mat.Float) mat.Matrix[mat.Float] {
+func ridgeRegression(x, y mat.Matrix[mat.Float], c mat.Float) mat.Matrix[mat.Float] {
 	i2 := mat.NewIdentityDense[mat.Float](x.Columns()).ProdScalar(c)
 	x2 := x.T().Mul(x).Add(i2)
 	invX2 := x2.Inverse()

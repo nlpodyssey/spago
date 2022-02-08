@@ -41,7 +41,7 @@ func Viterbi(transitionMatrix mat.Matrix[mat.Float], xs []ag.Node) []int {
 	return ys
 }
 
-func viterbiStepStart(transitionMatrix mat.Matrix[mat.Float], maxVec mat.Matrix[mat.Float]) *ViterbiStructure {
+func viterbiStepStart(transitionMatrix, maxVec mat.Matrix[mat.Float]) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		score := maxVec.At(i, 0) + transitionMatrix.At(0, i+1)
@@ -53,7 +53,7 @@ func viterbiStepStart(transitionMatrix mat.Matrix[mat.Float], maxVec mat.Matrix[
 	return y
 }
 
-func viterbiStepEnd(transitionMatrix mat.Matrix[mat.Float], maxVec mat.Matrix[mat.Float]) *ViterbiStructure {
+func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix[mat.Float]) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		score := maxVec.At(i, 0) + transitionMatrix.At(i+1, 0)
@@ -65,7 +65,7 @@ func viterbiStepEnd(transitionMatrix mat.Matrix[mat.Float], maxVec mat.Matrix[ma
 	return y
 }
 
-func viterbiStep(transitionMatrix mat.Matrix[mat.Float], maxVec mat.Matrix[mat.Float], stepVec mat.Matrix[mat.Float]) *ViterbiStructure {
+func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix[mat.Float]) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
