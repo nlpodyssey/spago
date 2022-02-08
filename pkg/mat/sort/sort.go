@@ -1,26 +1,29 @@
-// Copyright 2019 spaGO Authors. All rights reserved.
+// Copyright 2022 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 package sort
 
-import "sort"
+import (
+	"github.com/nlpodyssey/spago/pkg/mat"
+	"sort"
+)
 
-// FloatSlice attaches the methods of sort.Interface to []float32, sorting in increasing order
+// DTSlice attaches the methods of sort.Interface to []T, sorting in increasing order
 // (not-a-number values are treated as less than other values).
-type FloatSlice []float32
+type DTSlice[T mat.DType] []T
 
-func (p FloatSlice) Len() int           { return len(p) }
-func (p FloatSlice) Less(i, j int) bool { return p[i] < p[j] || isNaN(p[i]) && !isNaN(p[j]) }
-func (p FloatSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p DTSlice[_]) Len() int           { return len(p) }
+func (p DTSlice[_]) Less(i, j int) bool { return p[i] < p[j] || isNaN(p[i]) && !isNaN(p[j]) }
+func (p DTSlice[_]) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// isNaN is a copy of math.IsNaN to avoid a dependency on the math package.
-func isNaN(f float32) bool {
+// isNaN is a copy of math.IsNaN.
+func isNaN[T mat.DType](f T) bool {
 	return f != f
 }
 
 // Sort is a convenience method.
-func (p FloatSlice) Sort() { sort.Sort(p) }
+func (p DTSlice[_]) Sort() { sort.Sort(p) }
 
 // Code from `https://stackoverflow.com/questions/31141202/get-the-indices-of-the-array-after-sorting-in-golang`
 
@@ -51,9 +54,9 @@ func NewIntSlice(n ...int) *Slice {
 	return NewSlice(sort.IntSlice(n))
 }
 
-// NewFloatSlice returns a new Slice for the given sequence of float32 values.
-func NewFloatSlice(n ...float32) *Slice {
-	return NewSlice(FloatSlice(n))
+// NewDTSlice returns a new Slice for the given sequence of float32 values.
+func NewDTSlice[T mat.DType](n ...T) *Slice {
+	return NewSlice(DTSlice[T](n))
 }
 
 // NewStringSlice returns a new Slice for the given sequence of string values.
