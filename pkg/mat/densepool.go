@@ -109,14 +109,23 @@ func (dp *DensePool[T]) get(rows, cols int) *Dense[T] {
 //
 // It MUST not be called with a matrix where references to the underlying data
 // slice have been kept.
-func (dp *DensePool[T]) Put(d Matrix[T]) {
-	dt, ok := d.(*Dense[T])
-	if !ok {
-		panic(fmt.Sprintf("mat: cannot put into DensePool a matrix of type %T", d))
+func (dp *DensePool[T]) Put(d *Dense[T]) {
+	if d.flags&denseIsFromPool == 0 {
+		panic("mat: only matrices originated from the workspace can return to it")
 	}
-	if dt.flags&denseIsFromPool == 0 {
-		panic("mat32: only matrices originated from the workspace can return to it")
-	}
-	bitsLen := bits.Len(uint(cap(dt.data)))
+	bitsLen := bits.Len(uint(cap(d.data)))
 	dp[bitsLen].Put(d)
+}
+
+func ReleaseMatrix[T DType](m Matrix[T]) {
+	switch mt := m.(type) {
+	case *Dense[T]:
+		GetDensePool[T]().Put(mt)
+	default:
+		panic(fmt.Sprintf("mat: cannot release matrix of type %T", mt))
+	}
+}
+
+func ReleaseDense[T DType](m *Dense[T]) {
+	GetDensePool[T]().Put(m)
 }

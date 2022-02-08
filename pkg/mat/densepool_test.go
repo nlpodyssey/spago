@@ -193,6 +193,6 @@ func testDensePoolPut[T DType](t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
 		defer GetDensePool[T]().Put(d)
 		view := d.View(4, 3)
-		assert.Panics(t, func() { GetDensePool[T]().Put(view) })
+		assert.Panics(t, func() { GetDensePool[T]().Put(view.(*Dense[T])) })
 	})
 }
