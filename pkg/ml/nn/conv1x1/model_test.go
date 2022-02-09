@@ -44,9 +44,9 @@ func TestModel_Forward(t *testing.T) {
 		}
 		ys := proc.Forward(xs...)
 		require.Len(t, ys, 2)
-		require.True(t, ys[0].Value().IsVector())
+		require.True(t, mat.IsVector(ys[0].Value()))
 		require.Equal(t, 5, ys[0].Value().Size())
-		require.True(t, ys[1].Value().IsVector())
+		require.True(t, mat.IsVector(ys[1].Value()))
 		require.Equal(t, 5, ys[1].Value().Size())
 		assert.InDeltaSlice(t, []mat.Float{6.1, 20.1, 16.1, 0.1, -5.9}, ys[0].Value().Data(), 0.001)
 		assert.InDeltaSlice(t, []mat.Float{15.2, 47.2, 43.2, 0.2, -14.8}, ys[1].Value().Data(), 0.001)

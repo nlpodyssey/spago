@@ -28,7 +28,7 @@ func (r *ProdScalar) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 func (r *ProdScalar) Backward(gy mat.Matrix[mat.Float]) {
-	if !(r.x1.Value().SameDims(gy) || r.x1.Value().VectorOfSameSize(gy)) {
+	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {

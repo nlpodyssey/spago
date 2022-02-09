@@ -27,7 +27,7 @@ func (r *Vec) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 func (r *Vec) Backward(gy mat.Matrix[mat.Float]) {
-	if !(gy.IsVector() && r.x.Value().Size() == gy.Size()) {
+	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {

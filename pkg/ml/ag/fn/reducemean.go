@@ -27,7 +27,7 @@ func (r *ReduceMean) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 func (r *ReduceMean) Backward(gy mat.Matrix[mat.Float]) {
-	if !gy.IsScalar() {
+	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {

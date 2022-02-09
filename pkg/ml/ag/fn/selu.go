@@ -31,7 +31,7 @@ func (r *SELU) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 func (r *SELU) Backward(gy mat.Matrix[mat.Float]) {
-	if !(r.x.Value().SameDims(gy) || r.x.Value().VectorOfSameSize(gy)) {
+	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {

@@ -218,7 +218,7 @@ func matrixShapeString(m mat.Matrix[mat.Float]) string {
 	if m == nil {
 		return ""
 	}
-	if m.IsScalar() {
+	if mat.IsScalar(m) {
 		return "scalar"
 	}
 	return fmt.Sprintf("%d × %d", m.Rows(), m.Columns())

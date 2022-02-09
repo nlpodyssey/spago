@@ -23,17 +23,6 @@ type Matrix[T DType] interface {
 	// SetData sets the content of the matrix, copying the given raw
 	// data representation as one-dimensional slice.
 	SetData(data []T)
-	// IsVector returns whether the matrix is either a row or column vector
-	// (N×1 or 1×N).
-	IsVector() bool
-	// IsScalar returns whether the matrix contains exactly one scalar value (1×1).
-	IsScalar() bool
-	// SameDims reports whether the receiver matrix has the same dimensions
-	// of the other matrix.
-	SameDims(other Matrix[T]) bool
-	// VectorOfSameSize reports whether both the receiver and the other matrix
-	// are vectors and have the same size.
-	VectorOfSameSize(other Matrix[T]) bool
 	// ZerosLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with zeroes.
 	ZerosLike() Matrix[T]
@@ -179,6 +168,29 @@ type Matrix[T DType] interface {
 	String() string
 }
 
+// IsVector returns whether the matrix is either a row or column vector
+// (dimensions N×1 or 1×N).
+func IsVector[T DType](m Matrix[T]) bool {
+	return m.Rows() == 1 || m.Columns() == 1
+}
+
+// IsScalar returns whether the matrix contains exactly one scalar value
+// (dimensions 1×1).
+func IsScalar[T DType](m Matrix[T]) bool {
+	return m.Size() == 1
+}
+
+// SameDims reports whether the two matrices have the same dimensions.
+func SameDims[T DType](a, b Matrix[T]) bool {
+	return a.Rows() == b.Rows() && a.Columns() == b.Columns()
+}
+
+// VectorsOfSameSize reports whether both matrices are vectors (indifferently
+// row or column vectors) and have the same size.
+func VectorsOfSameSize[T DType](a, b Matrix[T]) bool {
+	return a.Size() == b.Size() && IsVector(a) && IsVector(b)
+}
+
 // ConcatV returns a new Matrix created concatenating the input matrices vertically.
 func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
 	cup := 0
@@ -187,7 +199,7 @@ func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
 	}
 	data := make([]T, 0, cup)
 	for _, v := range vs {
-		if !v.IsVector() {
+		if !IsVector(v) {
 			panic("mat: required vector, found matrix")
 		}
 		data = append(data, v.Data()...)

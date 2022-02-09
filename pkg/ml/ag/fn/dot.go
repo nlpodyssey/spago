@@ -24,11 +24,11 @@ func NewDot(x1, x2 Operand) *Dot {
 func (r *Dot) Forward() mat.Matrix[mat.Float] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(x1v.SameDims(x2v) || x1v.VectorOfSameSize(x2v)) {
+	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
 	var y mat.Float = 0.0
-	if r.x1.Value().IsVector() && r.x2.Value().IsVector() {
+	if mat.IsVector(r.x1.Value()) && mat.IsVector(r.x2.Value()) {
 		y = r.x1.Value().DotUnitary(r.x2.Value())
 	} else {
 		for i := 0; i < r.x1.Value().Rows(); i++ {
@@ -42,7 +42,7 @@ func (r *Dot) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 func (r *Dot) Backward(gy mat.Matrix[mat.Float]) {
-	if !gy.IsScalar() {
+	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x1.RequiresGrad() {
