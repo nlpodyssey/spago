@@ -15,17 +15,6 @@ import (
 	"strings"
 )
 
-// Sign returns +1 if a is positive, -1 if a is negative, or 0 if a is 0.
-func Sign[T mat.DType](a T) int {
-	switch {
-	case a < 0:
-		return -1
-	case a > 0:
-		return +1
-	}
-	return 0
-}
-
 // Max returns the maximum value from the given slice, which MUST NOT be empty.
 func Max[T mat.DType](v []T) (m T) {
 	m = v[len(v)-1]
