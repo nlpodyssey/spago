@@ -15,26 +15,6 @@ import (
 	"strings"
 )
 
-// ArgMinMax finds the indices of min and max arguments.
-func ArgMinMax[T mat.DType](v []T) (imin, imax int) {
-	if len(v) < 1 {
-		return
-	}
-	vmin, vmax := v[0], v[0]
-	imin, imax = 0, 0
-	for i := 1; i < len(v); i++ {
-		if v[i] < vmin {
-			imin = i
-			vmin = v[i]
-		}
-		if v[i] > vmax {
-			imax = i
-			vmax = v[i]
-		}
-	}
-	return
-}
-
 // ArgMax finds the index of the max argument.
 func ArgMax[T mat.DType](v []T) int {
 	if len(v) == 0 {
