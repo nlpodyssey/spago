@@ -159,10 +159,10 @@ func (s *SparseMaxLoss) Backward(gy mat.Matrix[mat.Float]) {
 		}
 		gx := mat.GetDensePool[mat.Float]().Get(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
+		gySum := gy.Sum()
 		gyData := gy.Data()
-		gySum := matutils.Sum(gyData)
-		for i := range gyData {
-			gx.Set(i, 0, gy.At(i, 0)-gySum*sparseMax[i])
+		for i, v := range gyData {
+			gx.Set(i, 0, v-gySum*sparseMax[i])
 		}
 		s.x.PropagateGrad(gx)
 	}
