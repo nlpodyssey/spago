@@ -15,14 +15,6 @@ import (
 	"strings"
 )
 
-// Sum returns the sum of all values from the given slice.
-func Sum[T mat.DType](v []T) (s T) {
-	for _, e := range v {
-		s += e
-	}
-	return
-}
-
 // ArgMinMax finds the indices of min and max arguments.
 func ArgMinMax[T mat.DType](v []T) (imin, imax int) {
 	if len(v) < 1 {
