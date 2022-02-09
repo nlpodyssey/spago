@@ -6,8 +6,6 @@ package bert
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/pkg/mat"
-	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -51,9 +49,11 @@ func NewDiscriminator(config DiscriminatorConfig) *Discriminator {
 // Discriminate returns 0 or 1 for each encoded element, where 1 means that
 // the word is out of context.
 func (m *Discriminator) Discriminate(encoded []ag.Node) []int {
-	ys := make([]int, len(encoded))
+	ys := make([]int, len(encoded)) // all zeros by default
 	for i, x := range m.Forward(encoded...) {
-		ys[i] = int(mat.Round(mat.Float(matutils.Sign(x.ScalarValue())+1.0) / 2.0))
+		if x.ScalarValue() >= 0 {
+			ys[i] = 1
+		}
 	}
 	return ys
 }
