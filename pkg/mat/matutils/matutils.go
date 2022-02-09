@@ -15,17 +15,6 @@ import (
 	"strings"
 )
 
-// Max returns the maximum value from the given slice, which MUST NOT be empty.
-func Max[T mat.DType](v []T) (m T) {
-	m = v[len(v)-1]
-	for _, e := range v {
-		if m <= e {
-			m = e
-		}
-	}
-	return
-}
-
 // Sum returns the sum of all values from the given slice.
 func Sum[T mat.DType](v []T) (s T) {
 	for _, e := range v {
@@ -91,7 +80,7 @@ func StrToFloatSlice[T mat.DType](str string) ([]T, error) {
 
 // SoftMax returns the results of the softmax function.
 func SoftMax[T mat.DType](v []T) (sm []T) {
-	c := Max(v)
+	c := max(v)
 	var sum T = 0
 	sm = make([]T, len(v))
 
@@ -127,4 +116,15 @@ func CumSum[T mat.DType](dst, src []T) []T {
 	default:
 		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
 	}
+}
+
+// max returns the maximum value from the given slice, which MUST NOT be empty.
+func max[T mat.DType](v []T) (m T) {
+	m = v[len(v)-1]
+	for _, e := range v {
+		if m <= e {
+			m = e
+		}
+	}
+	return
 }
