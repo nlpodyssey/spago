@@ -16,14 +16,14 @@ import (
 
 // PredictMLM performs the Masked-Language-Model (MLM) prediction.
 // It returns the best guess for the masked (i.e. `[MASK]`) tokens in the input text.
-func (m *Model[T]) PredictMLM(text string) []Token {
-	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
+func (a *Model[T]) PredictMLM(text string) []Token {
+	tokenizer := wordpiecetokenizer.New(a.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
 	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(m, g)
+	proc := nn.ReifyForInference(a, g)
 	encoded := proc.Encode(tokenized)
 
 	masked := make([]int, 0)
@@ -36,7 +36,7 @@ func (m *Model[T]) PredictMLM(text string) []Token {
 	retTokens := make(TokenSlice, 0)
 	for tokenID, prediction := range proc.PredictMasked(encoded, masked) {
 		bestPredictedWordIndex := matutils.ArgMax(prediction.Value().Data())
-		word, ok := m.Vocabulary.Term(bestPredictedWordIndex)
+		word, ok := a.Vocabulary.Term(bestPredictedWordIndex)
 		if !ok {
 			word = wordpiecetokenizer.DefaultUnknownToken // if this is returned, there's a misalignment with the vocabulary
 		}

@@ -181,11 +181,11 @@ type worker[T mat.DType] struct {
 	model     *sequenceclassification.Model[T]
 }
 
-func (w *worker[T]) process(input premiseHypothesisPair) mat.Matrix[T] {
+func (t *worker[T]) process(input premiseHypothesisPair) mat.Matrix[T] {
 	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()), ag.IncrementalForward[T](false))
 	defer g.Clear()
-	proc := nn.ReifyForInference(w.model, g)
-	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)
+	proc := nn.ReifyForInference(t.model, g)
+	inputIds := getInputIDs(t.tokenizer, input.premise, input.hypothesis)
 	logits := proc.Classify(inputIds)
 	g.Forward()
 	return g.GetCopiedValue(logits)

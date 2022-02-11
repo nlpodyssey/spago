@@ -181,41 +181,41 @@ func LoadModel[T mat.DType](modelPath string) (*Model[T], error) {
 }
 
 // Encode transforms a string sequence into an encoded representation.
-func (m *Model[T]) Encode(tokens []string) []ag.Node[T] {
-	tokensEncoding := m.Embeddings.Encode(tokens)
-	return m.Encoder.Forward(tokensEncoding...)
+func (a *Model[T]) Encode(tokens []string) []ag.Node[T] {
+	tokensEncoding := a.Embeddings.Encode(tokens)
+	return a.Encoder.Forward(tokensEncoding...)
 }
 
 // PredictMasked performs a masked prediction task. It returns the predictions
 // for indices associated to the masked nodes.
-func (m *Model[T]) PredictMasked(transformed []ag.Node[T], masked []int) map[int]ag.Node[T] {
-	return m.Predictor.PredictMasked(transformed, masked)
+func (a *Model[T]) PredictMasked(transformed []ag.Node[T], masked []int) map[int]ag.Node[T] {
+	return a.Predictor.PredictMasked(transformed, masked)
 }
 
 // Discriminate returns 0 or 1 for each encoded element, where 1 means that
 // the word is out of context.
-func (m *Model[T]) Discriminate(encoded []ag.Node[T]) []int {
-	return m.Discriminator.Discriminate(encoded)
+func (a *Model[T]) Discriminate(encoded []ag.Node[T]) []int {
+	return a.Discriminator.Discriminate(encoded)
 }
 
 // Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
-func (m *Model[T]) Pool(transformed []ag.Node[T]) ag.Node[T] {
-	return nn.ToNode[T](m.Pooler.Forward(transformed[0]))
+func (a *Model[T]) Pool(transformed []ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](a.Pooler.Forward(transformed[0]))
 }
 
 // PredictSeqRelationship predicts if the second sentence in the pair is the
 // subsequent sentence in the original document.
-func (m *Model[T]) PredictSeqRelationship(pooled ag.Node[T]) ag.Node[T] {
-	return nn.ToNode[T](m.SeqRelationship.Forward(pooled))
+func (a *Model[T]) PredictSeqRelationship(pooled ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](a.SeqRelationship.Forward(pooled))
 }
 
 // TokenClassification performs a classification for each element in the sequence.
-func (m *Model[T]) TokenClassification(transformed []ag.Node[T]) []ag.Node[T] {
-	return m.Classifier.Forward(transformed...)
+func (a *Model[T]) TokenClassification(transformed []ag.Node[T]) []ag.Node[T] {
+	return a.Classifier.Forward(transformed...)
 }
 
 // SequenceClassification performs a single sentence-level classification,
 // using the pooled CLS token.
-func (m *Model[T]) SequenceClassification(transformed []ag.Node[T]) ag.Node[T] {
-	return nn.ToNode[T](m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
+func (a *Model[T]) SequenceClassification(transformed []ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](a.Classifier.Forward(a.Pooler.Forward(transformed[0])...))
 }

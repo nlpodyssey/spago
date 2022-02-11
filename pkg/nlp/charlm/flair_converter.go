@@ -262,7 +262,7 @@ type flairDictionary struct {
 var _ types.PyNewable = flairDictionaryClass{}
 var _ types.PyDictSettable = &flairDictionary{}
 
-func (c flairDictionaryClass) PyNew(args ...interface{}) (interface{}, error) {
+func (flairDictionaryClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("flairDictionaryClass: unsupported arguments: %#v", args)
 	}

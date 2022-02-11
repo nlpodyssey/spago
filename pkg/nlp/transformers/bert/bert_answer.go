@@ -58,15 +58,15 @@ func (a Answers[_]) Sort() {
 
 // Answer returns a slice of candidate answers for the given question-passage pair.
 // The answers are sorted by confidence level in descending order.
-func (m *Model[T]) Answer(question string, passage string) Answers[T] {
-	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
+func (a *Model[T]) Answer(question string, passage string) Answers[T] {
+	tokenizer := wordpiecetokenizer.New(a.Vocabulary)
 	questionTokens := tokenizer.Tokenize(question)
 	passageTokens := tokenizer.Tokenize(passage)
 	tokenized := mixQuestionAndPassageTokens(questionTokens, passageTokens)
 
 	g := ag.NewGraph[T](ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(m, g)
+	proc := nn.ReifyForInference(a, g)
 	encoded := proc.Encode(tokenized)
 
 	startLogits, endLogits := proc.SpanClassifier.Classify(encoded)

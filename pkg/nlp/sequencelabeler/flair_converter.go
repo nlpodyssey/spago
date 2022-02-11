@@ -357,7 +357,7 @@ func (c *converter[T]) transitionWeights() []T {
 	return out
 }
 
-func (c *converter[T]) extractWordEmbeddings(we *wordEmbeddings[T], dest *embeddings.Model[T]) {
+func (*converter[T]) extractWordEmbeddings(we *wordEmbeddings[T], dest *embeddings.Model[T]) {
 	vectorSize := we.PrecomputedWordEmbeddings.Vectors.Shape[1]
 	data := we.PrecomputedWordEmbeddings.Vectors.FloatSlice()
 
@@ -540,26 +540,26 @@ func (stackedEmbeddingsClass[T]) PyNew(args ...interface{}) (interface{}, error)
 	}, nil
 }
 
-func (s *stackedEmbeddings[T]) PyDictSet(key, value interface{}) error {
+func (c *stackedEmbeddings[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "embeddings":
-		s.Embeddings = value.(*types.List)
+		c.Embeddings = value.(*types.List)
 	default:
-		s.pyDict[k] = value
+		c.pyDict[k] = value
 	}
 	return nil
 }
 
 type wordEmbeddingsByName[T mat.DType] []*wordEmbeddings[T]
 
-func (e wordEmbeddingsByName[_]) Len() int           { return len(e) }
-func (e wordEmbeddingsByName[_]) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
-func (e wordEmbeddingsByName[_]) Less(i, j int) bool { return e[i].name < e[j].name }
+func (c wordEmbeddingsByName[_]) Len() int           { return len(c) }
+func (c wordEmbeddingsByName[_]) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+func (c wordEmbeddingsByName[_]) Less(i, j int) bool { return c[i].name < c[j].name }
 
-func (s *stackedEmbeddings[T]) WordEmbeddings() []*wordEmbeddings[T] {
-	result := make([]*wordEmbeddings[T], 0, s.Embeddings.Len())
-	for _, e := range *s.Embeddings {
+func (c *stackedEmbeddings[T]) WordEmbeddings() []*wordEmbeddings[T] {
+	result := make([]*wordEmbeddings[T], 0, c.Embeddings.Len())
+	for _, e := range *c.Embeddings {
 		if we, ok := e.(*wordEmbeddings[T]); ok {
 			result = append(result, we)
 		}
@@ -571,8 +571,8 @@ func (s *stackedEmbeddings[T]) WordEmbeddings() []*wordEmbeddings[T] {
 	return result
 }
 
-func (s *stackedEmbeddings[T]) FlairEmbeddings() (forward *flairEmbeddings, backward *flairEmbeddings) {
-	for _, e := range *s.Embeddings {
+func (c *stackedEmbeddings[T]) FlairEmbeddings() (forward *flairEmbeddings, backward *flairEmbeddings) {
+	for _, e := range *c.Embeddings {
 		fe, isFlairEmbeddings := e.(*flairEmbeddings)
 		if !isFlairEmbeddings {
 			continue
@@ -619,15 +619,15 @@ func (wordEmbeddingsClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	}, nil
 }
 
-func (w *wordEmbeddings[T]) PyDictSet(key, value interface{}) error {
+func (c *wordEmbeddings[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "precomputed_word_embeddings":
-		w.PrecomputedWordEmbeddings = value.(*word2VecKeyedVectors[T])
+		c.PrecomputedWordEmbeddings = value.(*word2VecKeyedVectors[T])
 	case "name":
-		w.name = value.(string)
+		c.name = value.(string)
 	default:
-		w.pyDict[k] = value
+		c.pyDict[k] = value
 	}
 	return nil
 }
@@ -903,17 +903,17 @@ func (word2VecKeyedVectorsClass[T]) PyNew(args ...interface{}) (interface{}, err
 	}, nil
 }
 
-func (w *word2VecKeyedVectors[T]) PyDictSet(key, value interface{}) error {
+func (c *word2VecKeyedVectors[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "vectors":
-		w.Vectors = value.(*ndarray[T])
+		c.Vectors = value.(*ndarray[T])
 	case "index2word":
-		w.IndexToWord = value.(*types.List)
+		c.IndexToWord = value.(*types.List)
 	case "vector_size":
-		w.VectorSize = value.(int)
+		c.VectorSize = value.(int)
 	default:
-		w.pyDict[k] = value
+		c.pyDict[k] = value
 	}
 	return nil
 }
@@ -1023,39 +1023,39 @@ func (ndarrayClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	}, nil
 }
 
-func (n *ndarray[T]) PySetState(state interface{}) error {
+func (c *ndarray[T]) PySetState(state interface{}) error {
 	t := state.(*types.Tuple)
 
 	// [0] version : int - optional pickle version. If omitted defaults to 0.
 	// [1] shape : tuple
 	shapeTuple := t.Get(1).(*types.Tuple)
-	n.Shape = make([]int, shapeTuple.Len())
-	for i := range n.Shape {
-		n.Shape[i] = shapeTuple.Get(i).(int)
+	c.Shape = make([]int, shapeTuple.Len())
+	for i := range c.Shape {
+		c.Shape[i] = shapeTuple.Get(i).(int)
 	}
 	// [2] dtype : data-type
-	n.DataType = t.Get(2).(*dtypeInstance)
+	c.DataType = t.Get(2).(*dtypeInstance)
 	// [3] isFortran : bool
 	// [4] rawdata : string or list - a binary string with the data (or a list if 'a' is an object array)
-	n.rawData = t.Get(4).([]uint8)
+	c.rawData = t.Get(4).([]uint8)
 	return nil
 }
 
-func (n *ndarray[T]) FloatSlice() []T {
-	dataType := n.DataType.Value.(string)
+func (c *ndarray[T]) FloatSlice() []T {
+	dataType := c.DataType.Value.(string)
 	if dataType != "f4" {
 		panic(fmt.Errorf("ndarray.FloatSlice(): only DataType `f4` is supported, actual: %v", dataType))
 	}
 	span := 4
-	length := len(n.rawData)
+	length := len(c.rawData)
 
 	if length%span != 0 {
-		panic(fmt.Errorf("ndarray.FloatSlice(): cannot use span %d on raw data with length %d", span, len(n.rawData)))
+		panic(fmt.Errorf("ndarray.FloatSlice(): cannot use span %d on raw data with length %d", span, len(c.rawData)))
 	}
 
 	result := make([]T, 0, length/span)
 	for i := 0; i < length; i += span {
-		bytes := n.rawData[i : i+span]
+		bytes := c.rawData[i : i+span]
 		result = append(result, T(math.Float32frombits(binary.LittleEndian.Uint32(bytes))))
 	}
 	return result

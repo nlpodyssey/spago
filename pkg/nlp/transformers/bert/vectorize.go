@@ -29,14 +29,14 @@ const (
 )
 
 // Vectorize transforms the text into a dense vector representation.
-func (m *Model[T]) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix[T], error) {
-	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
+func (a *Model[T]) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix[T], error) {
+	tokenizer := wordpiecetokenizer.New(a.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
 	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(m, g)
+	proc := nn.ReifyForInference(a, g)
 	encoded := proc.Encode(tokenized)
 
 	var pooled ag.Node[T]
