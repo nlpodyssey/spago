@@ -33,28 +33,25 @@ func ArgMax[T mat.DType](v []T) int {
 
 // StrToFloatSlice parses a string representation of a slice of T values.
 func StrToFloatSlice[T mat.DType](str string) ([]T, error) {
+	var bitSize int
+	switch any(T(0)).(type) {
+	case float32:
+		bitSize = 32
+	case float64:
+		bitSize = 64
+	default:
+		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
+	}
+
 	spl := strings.Fields(str)
 	data := make([]T, len(spl))
 
-	switch any(T(0)).(type) {
-	case float32:
-		for i, v := range spl {
-			num, err := strconv.ParseFloat(v, 32)
-			if err != nil {
-				return nil, err
-			}
-			data[i] = T(num)
+	for i, v := range spl {
+		num, err := strconv.ParseFloat(v, bitSize)
+		if err != nil {
+			return nil, err
 		}
-	case float64:
-		for i, v := range spl {
-			num, err := strconv.ParseFloat(v, 64)
-			if err != nil {
-				return nil, err
-			}
-			data[i] = T(num)
-		}
-	default:
-		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
+		data[i] = T(num)
 	}
 
 	return data, nil
