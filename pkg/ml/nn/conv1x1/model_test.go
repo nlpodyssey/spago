@@ -15,7 +15,7 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	t.Run("input 3, output 2", func(t *testing.T) {
-		model := New(Config{
+		model := New[mat.Float](Config{
 			InputChannels:  3,
 			OutputChannels: 2,
 		})
@@ -32,12 +32,12 @@ func TestModel_Forward(t *testing.T) {
 			4, 5, 6,
 		})
 
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		defer g.Clear()
 
 		proc := nn.ReifyForInference(model, g)
 
-		xs := []ag.Node{
+		xs := []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1, 2, 4, 0, -1}), false),
 			g.NewVariable(mat.NewVecDense([]mat.Float{1, 3, 3, 0, -1}), false),
 			g.NewVariable(mat.NewVecDense([]mat.Float{1, 4, 2, 0, -1}), false),
@@ -53,7 +53,7 @@ func TestModel_Forward(t *testing.T) {
 	})
 
 	t.Run("input 4, output 3", func(t *testing.T) {
-		model := New(Config{
+		model := New[mat.Float](Config{
 			InputChannels:  4,
 			OutputChannels: 3,
 		})
@@ -66,12 +66,12 @@ func TestModel_Forward(t *testing.T) {
 			0.9, 0.8, 0.7, 0.6,
 		})
 
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		defer g.Clear()
 
 		proc := nn.ReifyForInference(model, g)
 
-		xs := []ag.Node{
+		xs := []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.2, 0.9, 0.1}), false),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.4, 0.7, 0.1}), false),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.6, 0.5, 0.1}), false),

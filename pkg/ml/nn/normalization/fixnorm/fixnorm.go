@@ -10,32 +10,34 @@ package fixnorm
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model is an empty model used to instantiate a new Processor.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model.
-func New() *Model {
-	return &Model{}
+func New[T mat.DType]() *Model[T] {
+	return &Model[T]{}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.Node[T], len(xs))
 	eps := g.NewScalar(1e-10)
 	for i, x := range xs {
 		norm := g.Sqrt(g.ReduceSum(g.Square(x)))

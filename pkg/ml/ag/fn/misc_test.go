@@ -11,12 +11,12 @@ import (
 )
 
 func TestAbs_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewAbs(x)
+	f := NewAbs[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
@@ -27,12 +27,12 @@ func TestAbs_Forward(t *testing.T) {
 }
 
 func TestSafeLog_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewLog(x)
+	f := NewLog[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{-2.3025855, -1.6094379, -1.203972, -18.420680}, y.Data(), 1.0e-5)
@@ -43,12 +43,12 @@ func TestSafeLog_Forward(t *testing.T) {
 }
 
 func TestTan_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewTan(x)
+	f := NewTan[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1003346, 0.20271, 0.3093362, 0.0}, y.Data(), 1.0e-6)
@@ -59,12 +59,12 @@ func TestTan_Forward(t *testing.T) {
 }
 
 func TestTanh_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewTanh(x)
+	f := NewTanh[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.09966799, 0.19737532, 0.29131261, 0.0}, y.Data(), 1.0e-6)
@@ -75,12 +75,12 @@ func TestTanh_Forward(t *testing.T) {
 }
 
 func TestSigmoid_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSigmoid(x)
+	f := NewSigmoid[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.5249791, 0.54983399, 0.574442516, 0.5}, y.Data(), 1.0e-6)
@@ -91,12 +91,12 @@ func TestSigmoid_Forward(t *testing.T) {
 }
 
 func TestHardSigmoid_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewHardSigmoid(x)
+	f := NewHardSigmoid[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.52, 0.54, 0.56, 0.5}, y.Data(), 1.0e-6)
@@ -107,12 +107,12 @@ func TestHardSigmoid_Forward(t *testing.T) {
 }
 
 func TestHardTanh_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewHardTanh(x)
+	f := NewHardTanh[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
@@ -123,12 +123,12 @@ func TestHardTanh_Forward(t *testing.T) {
 }
 
 func TestRelu_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReLU(x)
+	f := NewReLU[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, 0.0, 0.3, 0.0}, y.Data(), 1.0e-6)
@@ -139,12 +139,12 @@ func TestRelu_Forward(t *testing.T) {
 }
 
 func TestNewSoftsignForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSoftsign(x)
+	f := NewSoftsign[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.09090909, 0.16666666, 0.23076923, 0.0}, y.Data(), 1.0e-6)
@@ -155,12 +155,12 @@ func TestNewSoftsignForward(t *testing.T) {
 }
 
 func TestNewCosForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewCos(x)
+	f := NewCos[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.9950041, 0.9800665, 0.9553364, 1.0}, y.Data(), 1.0e-6)
@@ -171,12 +171,12 @@ func TestNewCosForward(t *testing.T) {
 }
 
 func TestNewSinForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSin(x)
+	f := NewSin[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.09983341, 0.19866933, 0.2955202, 0.0}, y.Data(), 1.0e-6)
@@ -187,12 +187,12 @@ func TestNewSinForward(t *testing.T) {
 }
 
 func TestNewExpForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewExp(x)
+	f := NewExp[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{1.10517091, 1.22140275, 1.3498588, 1.0}, y.Data(), 1.0e-6)
@@ -203,12 +203,12 @@ func TestNewExpForward(t *testing.T) {
 }
 
 func TestNewNegForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewNeg(x)
+	f := NewNeg[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{-0.1, -0.2, -0.3, 0.0}, y.Data(), 1.0e-6)
@@ -219,12 +219,12 @@ func TestNewNegForward(t *testing.T) {
 }
 
 func TestNewReciprocalForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReciprocal(x)
+	f := NewReciprocal[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{10.0, 5.0, 3.33333333, -10}, y.Data(), 1.0e-6)
@@ -235,12 +235,12 @@ func TestNewReciprocalForward(t *testing.T) {
 }
 
 func TestNewMishForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewMish(x)
+	f := NewMish[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.0631794175, 0.1325990019, 0.2080013723, -0.0567885752}, y.Data(), 1.0e-6)
@@ -251,12 +251,12 @@ func TestNewMishForward(t *testing.T) {
 }
 
 func TestNewGELUForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.0, 0.1, 0.01, -0.1, -0.01, 1.0, 10.0, -1.0, -10.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewGELU(x)
+	f := NewGELU[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, y.Data(), 1.0e-6)

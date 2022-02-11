@@ -6,12 +6,13 @@ package graphviz
 
 import (
 	"github.com/awalterschulze/gographviz"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"os"
 )
 
 // BuildGraph creates a gographviz representation of the Graph.
-func BuildGraph(g *ag.Graph, options Options) (gographviz.Interface, error) {
+func BuildGraph[T mat.DType](g *ag.Graph[T], options Options) (gographviz.Interface, error) {
 	return newBuilder(g, options).build()
 }
 

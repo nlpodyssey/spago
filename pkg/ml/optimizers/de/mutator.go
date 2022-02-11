@@ -11,20 +11,20 @@ import (
 )
 
 // Mutator is implemented by values that provides mutation operations.
-type Mutator interface {
-	Mutate(p *Population)
+type Mutator[T mat.DType] interface {
+	Mutate(p *Population[T])
 }
 
-var _ Mutator = &RandomMutation{}
+var _ Mutator[float32] = &RandomMutation[float32]{}
 
 // RandomMutation implements a random mutation operation.
-type RandomMutation struct {
-	Bound mat.Float
+type RandomMutation[T mat.DType] struct {
+	Bound T
 }
 
 // NewRandomMutation returns a new RandomMutation.
-func NewRandomMutation(bound mat.Float) *RandomMutation {
-	return &RandomMutation{
+func NewRandomMutation[T mat.DType](bound T) *RandomMutation[T] {
+	return &RandomMutation[T]{
 		Bound: bound,
 	}
 }
@@ -33,7 +33,7 @@ func NewRandomMutation(bound mat.Float) *RandomMutation {
 // For each vector xi in the current generation, called target vector, a vector yi, called donor vector, is obtained
 // as linear combination of some vectors in the population selected according to DE/rand/1 strategy, where
 //   yi = clip(xa + MutationFactor * (xb − xc))
-func (m *RandomMutation) Mutate(p *Population) {
+func (m *RandomMutation[T]) Mutate(p *Population[T]) {
 	for i, member := range p.Members {
 		extracted := rand.GetUniqueRandomInt(3, len(p.Members), func(r int) bool { return r != i })
 		xc := p.Members[extracted[2]].TargetVector
@@ -45,7 +45,7 @@ func (m *RandomMutation) Mutate(p *Population) {
 	}
 }
 
-var _ Mutator = &DeglMutation{}
+var _ Mutator[float32] = &DeglMutation[float32]{}
 
 // DeglMutation implements Differential Evolution with Global and Local Neighborhoods mutation strategy.
 //
@@ -53,14 +53,14 @@ var _ Mutator = &DeglMutation{}
 //   "Design of Two-Channel Quadrature Mirror Filter Banks Using Differential Evolution with Global and Local Neighborhoods"
 //   Authors: Pradipta Ghosh, Hamim Zafar, Joydeep Banerjee, Swagatam Das (2011)
 //   (https://www.springerprofessional.de/en/design-of-two-channel-quadrature-mirror-filter-banks-using-diffe/3805398)
-type DeglMutation struct {
-	NeighborhoodRadius mat.Float
-	Bound              mat.Float
+type DeglMutation[T mat.DType] struct {
+	NeighborhoodRadius T
+	Bound              T
 }
 
 // NewDeglMutation returns a new DeglMutation.
-func NewDeglMutation(NeighborhoodRadius, bound mat.Float) *DeglMutation {
-	return &DeglMutation{
+func NewDeglMutation[T mat.DType](NeighborhoodRadius, bound T) *DeglMutation[T] {
+	return &DeglMutation[T]{
 		NeighborhoodRadius: NeighborhoodRadius,
 		Bound:              bound,
 	}
@@ -70,9 +70,9 @@ func NewDeglMutation(NeighborhoodRadius, bound mat.Float) *DeglMutation {
 //    G = xi + MutationFactor (best − xi) + MutationFactor (xa − xb)
 //    L = xi + MutationFactor (bestNeighbor − xi) + MutationFactor (xc − xd)
 //    yi = clip(w * L + (1-w) * G)
-func (m *DeglMutation) Mutate(p *Population) {
-	windowSize := int(mat.Float(len(p.Members)) * m.NeighborhoodRadius)
-	bestIndex, _ := p.FindBest(0, len(p.Members)-1, mat.Inf[mat.Float](+1), 0)
+func (m *DeglMutation[T]) Mutate(p *Population[T]) {
+	windowSize := int(T(len(p.Members)) * m.NeighborhoodRadius)
+	bestIndex, _ := p.FindBest(0, len(p.Members)-1, mat.Inf[T](+1), 0)
 	for i, member := range p.Members {
 		except := func(r int) bool { return r != i }
 		extracted := rand.GetUniqueRandomInt(2, len(p.Members), except)

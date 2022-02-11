@@ -8,27 +8,27 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &AddScalar{}
+var _ Function[float32] = &AddScalar[float32]{}
 
 // AddScalar is an operator to perform element-wise addition over two values.
-type AddScalar struct {
-	x1 Operand
-	x2 Operand // scalar
+type AddScalar[T mat.DType] struct {
+	x1 Operand[T]
+	x2 Operand[T] // scalar
 }
 
 // NewAddScalar returns a new AddScalar Function.
-func NewAddScalar(x1, x2 Operand) *AddScalar {
-	return &AddScalar{x1: x1, x2: x2}
+func NewAddScalar[T mat.DType](x1, x2 Operand[T]) *AddScalar[T] {
+	return &AddScalar[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the function.
 // It doesn't backward on the scalar value x2.
-func (r *AddScalar) Forward() mat.Matrix[mat.Float] {
+func (r *AddScalar[T]) Forward() mat.Matrix[T] {
 	return r.x1.Value().AddScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *AddScalar) Backward(gy mat.Matrix[mat.Float]) {
+func (r *AddScalar[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

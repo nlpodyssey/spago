@@ -9,6 +9,7 @@ package stackedembeddings
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -16,38 +17,39 @@ import (
 
 // WordsEncoderProcessor extends an nn.Processor providing the Encode method to
 // transform a string sequence into an encoded representation.
-type WordsEncoderProcessor interface {
-	nn.Model
+type WordsEncoderProcessor[T mat.DType] interface {
+	nn.Model[T]
 	// Encode transforms a string sequence into an encoded representation.
-	Encode([]string) []ag.Node
+	Encode([]string) []ag.Node[T]
 }
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model implements a stacked embeddings model.
 // TODO: optional use of the projection layer?
 // TODO: include an optional layer normalization?
-type Model struct {
-	nn.BaseModel
-	WordsEncoders   []WordsEncoderProcessor
-	ProjectionLayer *linear.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	WordsEncoders   []WordsEncoderProcessor[T]
+	ProjectionLayer *linear.Model[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // Encode transforms a string sequence into an encoded representation.
-func (m *Model) Encode(words []string) []ag.Node {
-	encodingsPerWord := make([][]ag.Node, len(words))
+func (m *Model[T]) Encode(words []string) []ag.Node[T] {
+	encodingsPerWord := make([][]ag.Node[T], len(words))
 	for _, encoder := range m.WordsEncoders {
 		for wordIndex, encoding := range encoder.Encode(words) {
 			encodingsPerWord[wordIndex] = append(encodingsPerWord[wordIndex], encoding)
 		}
 	}
-	intermediateEncoding := make([]ag.Node, len(words))
+	intermediateEncoding := make([]ag.Node[T], len(words))
 	for wordIndex, encoding := range encodingsPerWord {
 		if len(encoding) == 1 { // optimization
 			intermediateEncoding[wordIndex] = encoding[0]

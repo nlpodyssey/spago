@@ -11,13 +11,13 @@ import (
 )
 
 func ExampleToNode() {
-	g := ag.NewGraph()
+	g := ag.NewGraph[float32]()
 
 	a := g.NewScalar(1)
-	b := []ag.Node{g.NewScalar(2)}
+	b := []ag.Node[float32]{g.NewScalar(2)}
 
-	fmt.Println(nn.ToNode(a).Value())
-	fmt.Println(nn.ToNode(b).Value())
+	fmt.Println(nn.ToNode[float32](a).Value())
+	fmt.Println(nn.ToNode[float32](b).Value())
 
 	// Output:
 	// [1]
@@ -25,13 +25,13 @@ func ExampleToNode() {
 }
 
 func ExampleToNodes() {
-	g := ag.NewGraph()
+	g := ag.NewGraph[float32]()
 
 	a := g.NewScalar(1)
-	b := []ag.Node{g.NewScalar(2), g.NewScalar(3)}
+	b := []ag.Node[float32]{g.NewScalar(2), g.NewScalar(3)}
 
-	fmt.Printf("len: %d, first value: %v\n", len(nn.ToNodes(a)), nn.ToNodes(a)[0].Value())
-	fmt.Printf("len: %d, first value: %v\n", len(nn.ToNodes(b)), nn.ToNodes(b)[0].Value())
+	fmt.Printf("len: %d, first value: %v\n", len(nn.ToNodes[float32](a)), nn.ToNodes[float32](a)[0].Value())
+	fmt.Printf("len: %d, first value: %v\n", len(nn.ToNodes[float32](b)), nn.ToNodes[float32](b)[0].Value())
 
 	// Output:
 	// len: 1, first value: [1]

@@ -26,42 +26,42 @@ import (
 )
 
 // TrainingConfig provides configuration settings for a BERT Trainer.
-type TrainingConfig struct {
+type TrainingConfig[T mat.DType] struct {
 	Seed             uint64
 	BatchSize        int
-	GradientClipping mat.Float
+	GradientClipping T
 	UpdateMethod     gd.MethodConfig
 	CorpusPath       string
 	ModelPath        string
 }
 
 // Trainer implements the training process for a BERT Model.
-type Trainer struct {
-	TrainingConfig
-	randGen       *rand.LockedRand[mat.Float]
-	optimizer     *gd.GradientDescent
-	bestLoss      mat.Float
-	lastBatchLoss mat.Float
-	model         *Model
+type Trainer[T mat.DType] struct {
+	TrainingConfig[T]
+	randGen       *rand.LockedRand[T]
+	optimizer     *gd.GradientDescent[T]
+	bestLoss      T
+	lastBatchLoss T
+	model         *Model[T]
 	countLine     int
 }
 
 // NewTrainer returns a new BERT Trainer.
-func NewTrainer(model *Model, config TrainingConfig) *Trainer {
-	optimizer := gd.NewOptimizer(gdmbuilder.NewMethod(config.UpdateMethod), nn.NewDefaultParamsIterator(model))
+func NewTrainer[T mat.DType](model *Model[T], config TrainingConfig[T]) *Trainer[T] {
+	optimizer := gd.NewOptimizer[T](gdmbuilder.NewMethod[T](config.UpdateMethod), nn.NewDefaultParamsIterator[T](model))
 	if config.GradientClipping != 0.0 {
 		gd.ClipGradByNorm(config.GradientClipping, 2.0)(optimizer)
 	}
-	return &Trainer{
+	return &Trainer[T]{
 		TrainingConfig: config,
-		randGen:        rand.NewLockedRand[mat.Float](config.Seed),
+		randGen:        rand.NewLockedRand[T](config.Seed),
 		optimizer:      optimizer,
 		model:          model,
 	}
 }
 
 // Train executes the training process.
-func (t *Trainer) Train() {
+func (t *Trainer[T]) Train() {
 	t.forEachLine(func(i int, text string) {
 		t.trainPassage(text)
 		t.optimizer.IncBatch()
@@ -80,19 +80,19 @@ func (t *Trainer) Train() {
 	})
 }
 
-func (t *Trainer) tokenize(text string) []string {
+func (t *Trainer[T]) tokenize(text string) []string {
 	tokenizer := wordpiecetokenizer.New(t.model.Vocabulary)
 	tokenized := append(tokenizers.GetStrings(tokenizer.Tokenize(text)), wordpiecetokenizer.DefaultSequenceSeparator)
 	return append([]string{wordpiecetokenizer.DefaultClassToken}, tokenized...)
 }
 
-func (t *Trainer) trainPassage(text string) {
+func (t *Trainer[T]) trainPassage(text string) {
 	tokenized := t.tokenize(text)
 	if len(tokenized) > t.model.Embeddings.MaxPositions {
 		return // skip, sequence too long
 	}
 
-	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph(ag.Rand(t.randGen), ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForTraining(t.model, g)
 
@@ -104,7 +104,7 @@ func (t *Trainer) trainPassage(text string) {
 	encoded := proc.Encode(maskedTokens)
 	predicted := proc.PredictMasked(encoded, maskedIds)
 
-	var loss ag.Node
+	var loss ag.Node[T]
 	for _, id := range maskedIds {
 		target, _ := t.model.Vocabulary.ID(tokenized[id])
 		loss = g.Add(loss, losses.CrossEntropy(g, predicted[id], target))
@@ -118,7 +118,7 @@ func (t *Trainer) trainPassage(text string) {
 	fmt.Printf("Cnt: %d Loss: %.6f\n", t.countLine, t.lastBatchLoss)
 }
 
-func (t *Trainer) applyMask(tokens []string) (newTokens []string, maskedIds []int) {
+func (t *Trainer[T]) applyMask(tokens []string) (newTokens []string, maskedIds []int) {
 	for id, word := range tokens {
 		if wordpiecetokenizer.IsDefaultSpecial(word) { // don't mask special tokens
 			newTokens = append(newTokens, word)
@@ -134,13 +134,13 @@ func (t *Trainer) applyMask(tokens []string) (newTokens []string, maskedIds []in
 	return
 }
 
-func (t *Trainer) getMaskedForm(orig string) string {
+func (t *Trainer[T]) getMaskedForm(orig string) string {
 	prob := t.randGen.Float()
 	switch {
 	case prob < 0.80:
 		return wordpiecetokenizer.DefaultMaskToken
 	case prob < 0.90:
-		randomID := int(mat.Floor(t.randGen.Float() * mat.Float(t.model.Vocabulary.Size())))
+		randomID := int(mat.Floor(t.randGen.Float() * T(t.model.Vocabulary.Size())))
 		newWord, _ := t.model.Vocabulary.Term(randomID)
 		return newWord
 	default:
@@ -148,7 +148,7 @@ func (t *Trainer) getMaskedForm(orig string) string {
 	}
 }
 
-func (t *Trainer) forEachLine(callback func(i int, line string)) {
+func (t *Trainer[T]) forEachLine(callback func(i int, line string)) {
 	f, err := os.Open(t.CorpusPath)
 	if err != nil {
 		log.Fatal(err)

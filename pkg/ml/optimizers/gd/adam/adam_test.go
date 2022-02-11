@@ -11,7 +11,7 @@ import (
 )
 
 func Test_IncExample(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -22,7 +22,7 @@ func Test_IncExample(t *testing.T) {
 }
 
 func Test_Update(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -42,7 +42,7 @@ func Test_Update(t *testing.T) {
 }
 
 func Test_Update2(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -117,7 +117,7 @@ func Test_Update2(t *testing.T) {
 }
 
 func Test_AdamWUpdate(t *testing.T) {
-	updater := New(NewAdamWConfig(
+	updater := New(NewAdamWConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -138,7 +138,7 @@ func Test_AdamWUpdate(t *testing.T) {
 }
 
 func Test_AdamWUpdate2(t *testing.T) {
-	updater := New(NewAdamWConfig(
+	updater := New(NewAdamWConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2

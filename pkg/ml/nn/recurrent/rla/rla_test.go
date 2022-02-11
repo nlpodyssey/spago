@@ -14,7 +14,7 @@ import (
 
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
@@ -31,8 +31,8 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.5996537, -0.545537, -0.63689751, 0.453609420}, s1.Y.Value().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(Config{
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](Config{
 		InputSize: 4,
 	})
 	model.Wv.Value().SetData([]mat.Float{

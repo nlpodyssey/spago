@@ -14,7 +14,7 @@ import (
 
 func TestModel_LshAttention(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.3, 0.5, -0.8, 0.1, 0.3}), true)
@@ -65,8 +65,8 @@ func TestModel_LshAttention(t *testing.T) {
 	}, model.Query.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(Config{
+func newTestModel() *Model[mat.Float] {
+	model := New(Config[mat.Float]{
 		InputSize:   5,
 		QuerySize:   4,
 		BucketSize:  3,

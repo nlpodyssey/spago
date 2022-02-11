@@ -11,18 +11,18 @@ import (
 )
 
 func TestProd_Forward(t *testing.T) {
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.4, 0.3, 0.5, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewProd(x1, x2)
+	f := NewProd[mat.Float](x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.04, 0.06, 0.15, 0}, y.Data(), 1.0e-6)

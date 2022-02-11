@@ -15,13 +15,13 @@ type item struct {
 }
 
 // Decode is the FOFE decoding function.
-func Decode(alpha mat.Float, z mat.Matrix[mat.Float]) []int {
+func Decode[T mat.DType](alpha T, z mat.Matrix[T]) []int {
 	if alpha <= 0 || alpha > 0.5 {
 		panic("fofe: alpha doesn't satisfy 0 < alpha ≤ 0.5")
 	}
 
 	var buf []item
-	z.DoNonZero(func(i, _ int, v mat.Float) {
+	z.DoNonZero(func(i, _ int, v T) {
 		for _, k := range offsets(alpha, v) {
 			buf = append(buf, item{id: i, offset: k})
 		}
@@ -39,7 +39,7 @@ func Decode(alpha mat.Float, z mat.Matrix[mat.Float]) []int {
 	return seq
 }
 
-func offsets(base, v mat.Float) []int {
+func offsets[T mat.DType](base, v T) []int {
 	const limit = 400 // arbitrary limit
 	var lst []int
 	n := v

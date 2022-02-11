@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"github.com/manifoldco/promptui"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"os"
 	"path"
 )
@@ -28,7 +29,7 @@ const promptSelectItemOther = "Enter name"
 const promptSelectItemSearch = "Search"
 
 // ConfigureInteractive uses the CLI to configure.
-func (a *ImporterArgs) ConfigureInteractive(repo string) error {
+func (a *ImporterArgs[T]) ConfigureInteractive(repo string) error {
 	pr := newPromptSelect(a)
 	var err error
 	_, a.Model, err = pr.Run()
@@ -99,7 +100,7 @@ func (a *ImporterArgs) ConfigureInteractive(repo string) error {
 	return nil
 }
 
-func newPromptSelect(a *ImporterArgs) *promptui.Select {
+func newPromptSelect[T mat.DType](a *ImporterArgs[T]) *promptui.Select {
 	items := make([]string, len(SuggestedModels)+2)
 	copy(items, SuggestedModels)
 	items[len(items)-1] = promptSelectItemOther

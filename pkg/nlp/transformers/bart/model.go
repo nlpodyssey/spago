@@ -20,60 +20,61 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model implements a BART model.
-type Model struct {
-	nn.BaseModel
-	Config     config.Config
-	Embeddings *embeddings.Model
-	Encoder    *encoder.Model
-	Decoder    *decoder.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config     config.Config[T]
+	Embeddings *embeddings.Model[T]
+	Encoder    *encoder.Model[T]
+	Decoder    *decoder.Model[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new BART Model.
-func New(config config.Config, embeddingsStoragePath string) *Model {
-	return &Model{
+func New[T mat.DType](config config.Config[T], embeddingsStoragePath string) *Model[T] {
+	return &Model[T]{
 		Config: config,
-		Embeddings: embeddings.New(embeddings.Config{
+		Embeddings: embeddings.New[T](embeddings.Config{
 			Size:       config.DModel,
 			DBPath:     embeddingsStoragePath,
 			ReadOnly:   !config.Training,
 			ForceNewDB: false, // TODO: from config?
 		}),
-		Encoder: encoder.New(config),
-		Decoder: decoder.New(config),
+		Encoder: encoder.New[T](config),
+		Decoder: decoder.New[T](config),
 	}
 }
 
 // Close closes the BART model's embeddings DB.
-func (m *Model) Close() {
+func (m *Model[T]) Close() {
 	m.Embeddings.Close()
 }
 
 // Process performs the forward step for each input and returns the result.
-func (m *Model) Process(inputIDs []int) []ag.Node {
+func (m *Model[T]) Process(inputIDs []int) []ag.Node[T] {
 	encoded := m.Encode(inputIDs)
 	decoded, _ := m.Decode(shiftR(inputIDs, 1), encoded, nil)
 	return decoded
 }
 
 // Encode performs the BART encoding.
-func (m *Model) Encode(inputIDs []int) []ag.Node {
+func (m *Model[T]) Encode(inputIDs []int) []ag.Node[T] {
 	return m.Encoder.Encode(m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))))
 }
 
 // Decode performs the BART decoding.
-func (m *Model) Decode(
+func (m *Model[T]) Decode(
 	inputIDs []int,
-	encoderHiddenStates []ag.Node,
-	pastKeysValuesPairs decoder.KeysValuesPairs,
-) ([]ag.Node, decoder.KeysValuesPairs) {
+	encoderHiddenStates []ag.Node[T],
+	pastKeysValuesPairs decoder.KeysValuesPairs[T],
+) ([]ag.Node[T], decoder.KeysValuesPairs[T]) {
 	return m.Decoder.Decode(
 		m.useScaledEmbeddings(m.Embeddings.Encode(intToStringSlice(inputIDs))),
 		encoderHiddenStates,
@@ -81,13 +82,13 @@ func (m *Model) Decode(
 	)
 }
 
-func (m *Model) useScaledEmbeddings(xs []ag.Node) []ag.Node {
+func (m *Model[T]) useScaledEmbeddings(xs []ag.Node[T]) []ag.Node[T] {
 	if !m.Config.ScaleEmbedding {
 		return xs
 	}
 
-	embedScale := m.Graph().Constant(mat.Sqrt(mat.Float(m.Config.DModel)))
-	scaled := func(x ag.Node) ag.Node {
+	embedScale := m.Graph().Constant(mat.Sqrt(T(m.Config.DModel)))
+	scaled := func(x ag.Node[T]) ag.Node[T] {
 		return m.Graph().ProdScalar(x, embedScale)
 	}
 	return ag.Map(scaled, xs)

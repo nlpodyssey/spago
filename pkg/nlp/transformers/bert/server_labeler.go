@@ -7,7 +7,6 @@ package bert
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/mat/matutils"
 	"net/http"
 	"strings"
@@ -32,7 +31,7 @@ type TokenClassifierBody struct {
 }
 
 // LabelerHandler handles a labeling request over HTTP.
-func (s *Server) LabelerHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) LabelerHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -60,7 +59,7 @@ func (s *Server) LabelerHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // TODO: This method is too long; it needs to be refactored.
-func (s *Server) label(text string, merge bool, filter bool) *Response {
+func (s *Server[T]) label(text string, merge bool, filter bool) *Response {
 	start := time.Now()
 
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
@@ -69,14 +68,14 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 	groupedTokens := wordpiecetokenizer.MakeOffsetPairsFromGroups(text, origTokens, tokensRange)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
-	g := ag.NewGraph()
+	g := ag.NewGraph[T]()
 	defer g.Clear()
 	proc := nn.ReifyForInference(s.model, g)
 	encoded := proc.Encode(tokenized)
 	encoded = encoded[1 : len(encoded)-1] // trim [CLS] and [SEP]
 
 	// average pooling
-	avgEncoded := make([]ag.Node, len(tokensRange))
+	avgEncoded := make([]ag.Node[T], len(tokensRange))
 	for i, group := range tokensRange {
 		cnt := 0
 		for j := group.Start; j <= group.End; j++ {
@@ -84,7 +83,7 @@ func (s *Server) label(text string, merge bool, filter bool) *Response {
 			cnt++
 		}
 		if cnt > 1 {
-			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(mat.Float(cnt)))
+			avgEncoded[i] = g.DivScalar(avgEncoded[i], g.NewScalar(T(cnt)))
 		}
 	}
 

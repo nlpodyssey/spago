@@ -16,7 +16,7 @@ import (
 //gocyclo:ignore
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
@@ -101,9 +101,9 @@ func TestModel_Forward(t *testing.T) {
 //gocyclo:ignore
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
-	proc.SetInitialState(&State{
+	proc.SetInitialState(&State[mat.Float]{
 		Cell: g.NewVariable(mat.NewVecDense([]mat.Float{0.8, -0.6, 1.0, 0.1, 0.1}), true),
 		Y:    g.NewVariable(mat.NewVecDense([]mat.Float{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
 	})
@@ -206,8 +206,8 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	}, model.BFor.Grad().Data(), 0.005)
 }
 
-func newTestModel() *Model {
-	model := New(4, 5)
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](4, 5)
 	model.WIn.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
@@ -274,9 +274,9 @@ func newTestModel() *Model {
 //gocyclo:ignore
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
-	proc.SetInitialState(&State{
+	proc.SetInitialState(&State[mat.Float]{
 		Cell: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true),
 		Y:    g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true),
 	})
@@ -364,8 +364,8 @@ func TestModel_ForwardSeq(t *testing.T) {
 	}, model.BFor.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel2() *Model {
-	model := New(3, 2)
+func newTestModel2() *Model[mat.Float] {
+	model := New[mat.Float](3, 2)
 	model.WIn.Value().SetData([]mat.Float{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,

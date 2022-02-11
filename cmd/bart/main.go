@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	if err := app.NewBartApp().Run(os.Args); err != nil {
+	if err := app.NewBartApp[float32]().Run(os.Args); err != nil {
 		log.Fatalln(err)
 	}
 }

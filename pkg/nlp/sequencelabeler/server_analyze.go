@@ -33,7 +33,7 @@ type Response struct {
 	Took int64 `json:"took"`
 }
 
-func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) analyze(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -68,7 +68,7 @@ func (s *Server) analyze(w http.ResponseWriter, req *http.Request) {
 
 // Analyze sends a request to /analyze.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Analyze(_ context.Context, req *grpcapi.AnalyzeRequest) (*grpcapi.AnalyzeReply, error) {
+func (s *Server[T]) Analyze(_ context.Context, req *grpcapi.AnalyzeRequest) (*grpcapi.AnalyzeReply, error) {
 	start := time.Now()
 	analysis := s.model.Analyze(
 		req.GetText(),

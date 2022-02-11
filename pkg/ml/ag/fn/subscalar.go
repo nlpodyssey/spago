@@ -8,26 +8,26 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &SubScalar{}
+var _ Function[float32] = &SubScalar[float32]{}
 
 // SubScalar is an element-wise subtraction function with a scalar value.
-type SubScalar struct {
-	x1 Operand
-	x2 Operand // scalar
+type SubScalar[T mat.DType] struct {
+	x1 Operand[T]
+	x2 Operand[T] // scalar
 }
 
 // NewSubScalar returns a new SubScalar Function.
-func NewSubScalar(x1, x2 Operand) *SubScalar {
-	return &SubScalar{x1: x1, x2: x2}
+func NewSubScalar[T mat.DType](x1, x2 Operand[T]) *SubScalar[T] {
+	return &SubScalar[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the node.
-func (r *SubScalar) Forward() mat.Matrix[mat.Float] {
+func (r *SubScalar[T]) Forward() mat.Matrix[T] {
 	return r.x1.Value().SubScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *SubScalar) Backward(gy mat.Matrix[mat.Float]) {
+func (r *SubScalar[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
@@ -35,7 +35,7 @@ func (r *SubScalar) Backward(gy mat.Matrix[mat.Float]) {
 		r.x1.PropagateGrad(gy) // equals to gy.ProdScalar(1.0)
 	}
 	if r.x2.RequiresGrad() {
-		var gx mat.Float = 0.0
+		var gx T = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
 				gx -= gy.At(i, j)

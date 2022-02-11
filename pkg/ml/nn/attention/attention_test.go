@@ -12,20 +12,20 @@ import (
 )
 
 func TestScaledDotProductAttention(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
-	attIn := QKV{
-		Queries: []ag.Node{
+	attIn := QKV[mat.Float]{
+		Queries: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1.1, 0.0, 2.3}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{2.2, -0.5, 0.3}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{3.2, 0.5, 0.4}), true),
 		},
-		Keys: []ag.Node{
+		Keys: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 1.2, 1.3}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{4.5, 4.3, 0.2}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{2.7, 3.6, 2.1}), true),
 		},
-		Values: []ag.Node{
+		Values: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1.2, 2.3, 3.4}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{2.2, 8.5, 0.0}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{2.3, 6.5, 3.5}), true),
@@ -44,20 +44,20 @@ func TestScaledDotProductAttention(t *testing.T) {
 
 //gocyclo:ignore
 func TestScaledDotProductAttention2(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
-	attIn := QKV{
-		Queries: []ag.Node{
+	attIn := QKV[mat.Float]{
+		Queries: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.22, 0.3}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{-0.17, 0.24}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{-0.15, 0.23}), true),
 		},
-		Keys: []ag.Node{
+		Keys: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1.66, 0.12}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.88, -0.02}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{-0.3, -0.46}), true),
 		},
-		Values: []ag.Node{
+		Values: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.83, 0.7, -0.25, -0.58}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.2, 0.57, -2.08}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{-0.07, 0.0, 0.29, 0.5}), true),
@@ -100,27 +100,27 @@ func TestScaledDotProductAttention2(t *testing.T) {
 }
 
 func TestLinearAttention(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
-	attIn := QKV{
-		Queries: []ag.Node{
+	attIn := QKV[mat.Float]{
+		Queries: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{1.8, 1.35, -1.89}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.08, 1.27, -1.06}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.28, 0.12, -0.67}), true),
 		},
-		Keys: []ag.Node{
+		Keys: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.71, -0.5, -1.58}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{1.43, -0.16, 0.49}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.58, -0.27, -0.25}), true),
 		},
-		Values: []ag.Node{
+		Values: []ag.Node[mat.Float]{
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.88, -1.09, -0.45}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.43, -0.21, -0.75}), true),
 			g.NewVariable(mat.NewVecDense([]mat.Float{0.84, 0.01, 0.01}), true),
 		},
 	}
 
-	defaultMappingFunction := func(g *ag.Graph, x ag.Node) ag.Node {
+	defaultMappingFunction := func(g *ag.Graph[mat.Float], x ag.Node[mat.Float]) ag.Node[mat.Float] {
 		return g.PositiveELU(x)
 	}
 	output := LinearAttention(g, attIn, defaultMappingFunction, 1e-12)

@@ -15,14 +15,14 @@ import (
 
 func TestModel_SelfAttention(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.8, -0.3, 0.5, 0.3}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.2, 0.7, 0.2, 0.4}), true)
 
-	output := proc.Forward(attention.ToQKV([]ag.Node{x1, x2, x3})).AttOutput
+	output := proc.Forward(attention.ToQKV([]ag.Node[mat.Float]{x1, x2, x3})).AttOutput
 
 	assert.InDeltaSlice(t, []mat.Float{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)
@@ -64,8 +64,8 @@ func TestModel_SelfAttention(t *testing.T) {
 	}, model.Query.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(Config{
+func newTestModel() *Model[mat.Float] {
+	model := New(Config[mat.Float]{
 		InputSize:   4,
 		QuerySize:   3,
 		KeySize:     3,

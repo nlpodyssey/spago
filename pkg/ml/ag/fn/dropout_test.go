@@ -12,12 +12,12 @@ import (
 )
 
 func TestDropout_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.25, rand.NewLockedRand[mat.Float](1))
+	f := NewDropout[mat.Float](x, 0.25, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{
@@ -32,12 +32,12 @@ func TestDropout_Forward(t *testing.T) {
 }
 
 func TestZeroDropout_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 0.0, rand.NewLockedRand[mat.Float](1))
+	f := NewDropout[mat.Float](x, 0.0, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{
@@ -52,12 +52,12 @@ func TestZeroDropout_Forward(t *testing.T) {
 }
 
 func TestTotalDropout_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout(x, 1.0, rand.NewLockedRand[mat.Float](1))
+	f := NewDropout[mat.Float](x, 1.0, rand.NewLockedRand[mat.Float](1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{

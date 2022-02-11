@@ -10,18 +10,18 @@ import (
 
 // Exponential defines an exponential decay depending on the time step:
 //     lr = exp((times - t) * log(lr) + log(final))
-type Exponential struct {
-	init  mat.Float
-	final mat.Float
+type Exponential[T mat.DType] struct {
+	init  T
+	final T
 	times int
 }
 
 // New returns a new Exponential decay optimizer.
-func New(init, final mat.Float, iter int) *Exponential {
+func New[T mat.DType](init, final T, iter int) *Exponential[T] {
 	if init < final {
 		panic("decay: the initial learning rate must be >= than the final one")
 	}
-	return &Exponential{
+	return &Exponential[T]{
 		init:  init,
 		final: final,
 		times: iter,
@@ -29,9 +29,9 @@ func New(init, final mat.Float, iter int) *Exponential {
 }
 
 // Decay calculates the decay of the learning rate lr at time t.
-func (d *Exponential) Decay(lr mat.Float, t int) mat.Float {
+func (d *Exponential[T]) Decay(lr T, t int) T {
 	if t > 1 && lr > d.final {
-		return mat.Exp((mat.Float(d.times-t)*mat.Log(lr) + mat.Log(d.final)) / mat.Float(d.times-t+1))
+		return mat.Exp((T(d.times-t)*mat.Log(lr) + mat.Log(d.final)) / T(d.times-t+1))
 	}
 	return lr
 }

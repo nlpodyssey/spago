@@ -11,7 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
-func (b *Generator) inhibitInvalidTokens(inputIDs [][]int, scores []Scores) []Scores {
+func (b *Generator[T]) inhibitInvalidTokens(inputIDs [][]int, scores []Scores[T]) []Scores[T] {
 	if b.config.MinLength >= 0 && b.config.EOSTokenID >= 0 {
 		scores = b.processMinLengthScores(inputIDs, scores)
 	}
@@ -21,7 +21,7 @@ func (b *Generator) inhibitInvalidTokens(inputIDs [][]int, scores []Scores) []Sc
 	return scores
 }
 
-func (b *Generator) processBadWordsScores(inputIDs [][]int, scores []Scores) []Scores {
+func (b *Generator[T]) processBadWordsScores(inputIDs [][]int, scores []Scores[T]) []Scores[T] {
 	BadWordsIDs := make([][]int, 0, len(b.config.BadWordsIDs))
 	for _, v := range b.config.BadWordsIDs {
 		if len(v) == 1 && v[0] == b.config.EOSTokenID {
@@ -46,7 +46,7 @@ func (b *Generator) processBadWordsScores(inputIDs [][]int, scores []Scores) []S
 	// Set scores to -Inf for banned tokens
 	for idx, batchBannedTokens := range bannedTokens {
 		for _, tokenID := range batchBannedTokens {
-			scores[idx].SetVec(tokenID, mat.Inf[mat.Float](-1))
+			scores[idx].SetVec(tokenID, mat.Inf[T](-1))
 		}
 	}
 
@@ -65,7 +65,7 @@ func bannedTokensMatch(prevTokens []int, bannedTokens []int) bool {
 	return utils.IntSliceEqual(prevTokens[len(prevTokens)-len(bannedTokens):], bannedTokens)
 }
 
-func (b *Generator) processMinLengthScores(inputIDs [][]int, scores []Scores) []Scores {
+func (b *Generator[T]) processMinLengthScores(inputIDs [][]int, scores []Scores[T]) []Scores[T] {
 	curLen := len(inputIDs[0])
 	if curLen >= b.config.MinLength {
 		return scores
@@ -73,7 +73,7 @@ func (b *Generator) processMinLengthScores(inputIDs [][]int, scores []Scores) []
 
 	eosTokenID := b.config.EOSTokenID
 	for _, n := range scores {
-		n.SetVec(eosTokenID, mat.Inf[mat.Float](-1))
+		n.SetVec(eosTokenID, mat.Inf[T](-1))
 	}
 
 	return scores

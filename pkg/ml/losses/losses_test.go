@@ -12,7 +12,7 @@ import (
 )
 
 func TestMSELoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.1, 0.2, 0.3}), true)
 	y := g.NewVariable(mat.NewVecDense([]mat.Float{0.3, 0.2, 0.1, 0.0}), false)
 	loss := MSE(g, x, y, false)
@@ -25,7 +25,7 @@ func TestMSELoss(t *testing.T) {
 }
 
 func TestNLLLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-500, 0, 0.693147, 1.94591}), true)
 	y := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0, 1.0, 0.0}), false)
 	loss := NLL(g, g.Softmax(x), y)
@@ -38,7 +38,7 @@ func TestNLLLoss(t *testing.T) {
 }
 
 func TestCrossEntropyLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-500, 0, 0.693147, 1.94591}), true)
 	loss := CrossEntropy(g, x, 2)
 
@@ -50,7 +50,7 @@ func TestCrossEntropyLoss(t *testing.T) {
 }
 
 func TestWeightedCrossEntropyLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-500, 0, 0.693147, 1.94591}), true)
 	w := []mat.Float{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedCrossEntropy(w)
@@ -64,7 +64,7 @@ func TestWeightedCrossEntropyLoss(t *testing.T) {
 }
 
 func TestFocalLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4}), true)
 	loss := FocalLoss(g, x, 2, 2.0)
 
@@ -76,7 +76,7 @@ func TestFocalLoss(t *testing.T) {
 }
 
 func TestWeightedFocalLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4}), true)
 	w := []mat.Float{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedFocalLoss(w)
@@ -90,7 +90,7 @@ func TestWeightedFocalLoss(t *testing.T) {
 }
 
 func TestZeroOneQuantization(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := ZeroOneQuantization(g, x)
 
@@ -102,7 +102,7 @@ func TestZeroOneQuantization(t *testing.T) {
 }
 
 func TestNorm2Quantization(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := Norm2Quantization(g, x)
 
@@ -114,7 +114,7 @@ func TestNorm2Quantization(t *testing.T) {
 }
 
 func TestOneHotQuantization(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := OneHotQuantization(g, x, 0.1)
 
@@ -126,12 +126,12 @@ func TestOneHotQuantization(t *testing.T) {
 }
 
 func TestMSESeqLoss(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.1, 0.2, 0.3}), true)
 	y1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.3, 0.2, 0.1, 0.0}), false)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.1, 0.2, 0.3}), true)
 	y2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.3, 0.2, 0.1, 0.0}), false)
-	loss := MSESeq(g, []ag.Node{x1, x2}, []ag.Node{y1, y2}, true)
+	loss := MSESeq(g, []ag.Node[mat.Float]{x1, x2}, []ag.Node[mat.Float]{y1, y2}, true)
 
 	assertEqualApprox(t, 0.1, loss.Value().Scalar())
 

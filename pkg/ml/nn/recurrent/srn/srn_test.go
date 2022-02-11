@@ -15,12 +15,12 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 
-	y := nn.ToNode(nn.ReifyForTraining(model, g).Forward(x))
+	y := nn.ToNode[mat.Float](nn.ReifyForTraining(model, g).Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
@@ -51,14 +51,14 @@ func TestModel_Forward(t *testing.T) {
 
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 	yPrev := g.Tanh(g.NewVariable(mat.NewVecDense([]mat.Float{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
 	proc := nn.ReifyForTraining(model, g)
-	proc.SetInitialState(&State{Y: yPrev})
-	y := nn.ToNode(proc.Forward(x))
+	proc.SetInitialState(&State[mat.Float]{Y: yPrev})
+	y := nn.ToNode[mat.Float](proc.Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{0.59539, -0.8115, 0.17565, 0.88075, 0.08444}, y.Value().Data(), 1.0e-05)
 
@@ -91,8 +91,8 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	params := New(4, 5)
+func newTestModel() *Model[mat.Float] {
+	params := New[mat.Float](4, 5)
 	params.W.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
@@ -113,9 +113,9 @@ func newTestModel() *Model {
 
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
-	proc.SetInitialState(&State{
+	proc.SetInitialState(&State[mat.Float]{
 		Y: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true),
 	})
 
@@ -158,8 +158,8 @@ func TestModel_ForwardSeq(t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel2() *Model {
-	model := New(3, 2)
+func newTestModel2() *Model[mat.Float] {
+	model := New[mat.Float](3, 2)
 	model.W.Value().SetData([]mat.Float{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,

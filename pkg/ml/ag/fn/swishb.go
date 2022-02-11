@@ -8,42 +8,42 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &SwishB{}
+var _ Function[float32] = &SwishB[float32]{}
 
 // SwishB function: f(x) = x * sigmoid.
 //
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
-type SwishB struct {
-	x    Operand
-	beta Operand // scalar
+type SwishB[T mat.DType] struct {
+	x    Operand[T]
+	beta Operand[T] // scalar
 }
 
 // NewSwishB returns a new SwishB Function.
-func NewSwishB(x, beta Operand) *SwishB {
-	return &SwishB{x: x, beta: beta}
+func NewSwishB[T mat.DType](x, beta Operand[T]) *SwishB[T] {
+	return &SwishB[T]{x: x, beta: beta}
 }
 
 // Forward computes the output of the function.
-func (r *SwishB) Forward() mat.Matrix[mat.Float] {
-	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(swishB, r.x.Value(), r.beta.Value().Scalar())
+func (r *SwishB[T]) Forward() mat.Matrix[T] {
+	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
+	y.ApplyWithAlpha(swishB[T], r.x.Value(), r.beta.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SwishB) Backward(gy mat.Matrix[mat.Float]) {
+func (r *SwishB[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
-		gx.ApplyWithAlpha(swishBDeriv, r.x.Value(), r.beta.Value().Scalar())
+		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
+		gx.ApplyWithAlpha(swishBDeriv[T], r.x.Value(), r.beta.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
 	if r.beta.RequiresGrad() {
-		gb := mat.GetDensePool[mat.Float]().Get(r.beta.Value().Dims())
+		gb := mat.GetDensePool[T]().Get(r.beta.Value().Dims())
 		defer mat.ReleaseDense(gb)
 		for i, x := range r.x.Value().Data() {
 			gb.AddScalarInPlace(swishBBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])

@@ -5,10 +5,11 @@
 package app
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/urfave/cli/v2"
 )
 
-func newClientCommandFor(app *BertApp) *cli.Command {
+func newClientCommandFor[T mat.DType](app *BertApp) *cli.Command {
 	return &cli.Command{
 		Name:  "client",
 		Usage: "Run the " + programName + " client.",
@@ -17,7 +18,7 @@ func newClientCommandFor(app *BertApp) *cli.Command {
 			newClientDiscriminateCommandFor(app),
 			newClientPredictCommandFor(app),
 			newClientEncodeCommandFor(app),
-			newClientSimilarityCommandFor(app),
+			newClientSimilarityCommandFor[T](app),
 			newClientClassifyCommandFor(app),
 		},
 	}

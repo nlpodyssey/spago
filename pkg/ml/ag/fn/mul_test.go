@@ -11,7 +11,7 @@ import (
 )
 
 func TestMul_ForwardMatrixMatrix(t *testing.T) {
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -21,7 +21,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value: mat.NewDense(4, 3, []mat.Float{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
@@ -32,7 +32,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewMul(x1, x2)
+	f := NewMul[mat.Float](x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{
@@ -62,7 +62,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 }
 
 func TestMul_ForwardMatrixVector(t *testing.T) {
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -72,13 +72,13 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewMul(x1, x2)
+	f := NewMul[mat.Float](x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)

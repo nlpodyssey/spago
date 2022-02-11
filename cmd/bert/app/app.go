@@ -5,6 +5,7 @@
 package app
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/urfave/cli/v2"
 )
 
@@ -32,7 +33,7 @@ type BertApp struct {
 }
 
 // NewBertApp returns BertApp objects. The app can be used as both a client and a server.
-func NewBertApp() *BertApp {
+func NewBertApp[T mat.DType]() *BertApp {
 	app := &BertApp{
 		App: cli.NewApp(),
 	}
@@ -40,8 +41,8 @@ func NewBertApp() *BertApp {
 	app.HelpName = programName
 	app.Usage = "A demo for question-answering based on BERT."
 	app.Commands = []*cli.Command{
-		newClientCommandFor(app),
-		newServerCommandFor(app),
+		newClientCommandFor[T](app),
+		newServerCommandFor[T](app),
 	}
 	return app
 }

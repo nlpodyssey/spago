@@ -6,26 +6,26 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
-var _ Function = &Identity{}
+var _ Function[float32] = &Identity[float32]{}
 
 // Identity is an operator to perform identity function.
 // y = x
-type Identity struct {
-	x Operand
+type Identity[T mat.DType] struct {
+	x Operand[T]
 }
 
 // NewIdentity returns a new Identity Function.
-func NewIdentity(x Operand) *Identity {
-	return &Identity{x: x}
+func NewIdentity[T mat.DType](x Operand[T]) *Identity[T] {
+	return &Identity[T]{x: x}
 }
 
 // Forward computes the output of the function.
-func (r *Identity) Forward() mat.Matrix[mat.Float] {
+func (r *Identity[T]) Forward() mat.Matrix[T] {
 	return r.x.Value().Clone()
 }
 
 // Backward computes the backward pass.
-func (r *Identity) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Identity[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

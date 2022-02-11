@@ -5,6 +5,7 @@
 package app
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/urfave/cli/v2"
 )
 
@@ -41,7 +42,7 @@ type NERApp struct {
 }
 
 // NewNERApp returns NerApp objects.
-func NewNERApp() *NERApp {
+func NewNERApp[T mat.DType]() *NERApp {
 	app := &NERApp{
 		App: cli.NewApp(),
 	}
@@ -50,8 +51,8 @@ func NewNERApp() *NERApp {
 	app.Usage = "A demo for named entities recognition."
 	app.Commands = []*cli.Command{
 		newClientCommandFor(app),
-		newServerCommandFor(app),
-		newConvertCommandFor(app),
+		newServerCommandFor[T](app),
+		newConvertCommandFor[T](app),
 	}
 	return app
 }

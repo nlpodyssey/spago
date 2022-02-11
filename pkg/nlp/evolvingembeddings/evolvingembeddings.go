@@ -21,18 +21,20 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
-var allModels []*Model
+var allModels []interface {
+	Close()
+}
 
 // Model implements an Evolving Pooled Contextualized Embeddings model.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config
 	Storage       *kvdb.KeyValueDB
 	Mu            sync.Mutex
-	ZeroEmbedding nn.Param `spago:"type:weights"`
+	ZeroEmbedding nn.Param[T] `spago:"type:weights"`
 }
 
 // PoolingType is the enumeration-like type used to distinguish different types
@@ -60,31 +62,32 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new embedding Model.
-func New(config Config) *Model {
-	m := &Model{
+func New[T mat.DType](config Config) *Model[T] {
+	m := &Model[T]{
 		Config: config,
 		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,
 			ReadOnly: false,
 			ForceNew: config.ForceNewDB,
 		}),
-		ZeroEmbedding: nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.Size), nn.RequiresGrad(false)),
+		ZeroEmbedding: nn.NewParam[T](mat.NewEmptyVecDense[T](config.Size), nn.RequiresGrad[T](false)),
 	}
 	allModels = append(allModels, m)
 	return m
 }
 
 // Close closes the DB underlying the model of the embeddings mam.
-func (m *Model) Close() {
+func (m *Model[T]) Close() {
 	_ = m.Storage.Close() // explicitly ignore errors here
 }
 
 // DropAll drops all the data stored in the DB.
-func (m *Model) DropAll() error {
+func (m *Model[T]) DropAll() error {
 	return m.Storage.DropAll()
 }
 
@@ -97,7 +100,7 @@ func Close() {
 
 // Count counts how many embeddings are stored in the DB.
 // It invokes log.Fatal in case of reading errors.
-func (m *Model) Count() int {
+func (m *Model[T]) Count() int {
 	keys, err := m.Storage.Keys()
 	if err != nil {
 		log.Fatal(err)
@@ -106,13 +109,13 @@ func (m *Model) Count() int {
 }
 
 // WordVectorPair associates a Vector to a Word.
-type WordVectorPair struct {
+type WordVectorPair[T mat.DType] struct {
 	Word   string
-	Vector mat.Matrix[mat.Float]
+	Vector mat.Matrix[T]
 }
 
 // Aggregate performs a pooling operation over the list of WordVectorPair elements.
-func (m *Model) Aggregate(list []*WordVectorPair) {
+func (m *Model[T]) Aggregate(list []*WordVectorPair[T]) {
 	for _, item := range list {
 		word := item.Word
 		vector := item.Vector
@@ -124,7 +127,7 @@ func (m *Model) Aggregate(list []*WordVectorPair) {
 	}
 }
 
-func (m *Model) pooling(a, b mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (m *Model[T]) pooling(a, b mat.Matrix[T]) mat.Matrix[T] {
 	switch m.PoolingOperation {
 	case Max:
 		return a.Maximum(b)
@@ -137,7 +140,7 @@ func (m *Model) pooling(a, b mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
 
 // SetEmbeddings inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
-func (m *Model) setEmbedding(word string, value mat.Matrix[mat.Float]) {
+func (m *Model[T]) setEmbedding(word string, value mat.Matrix[T]) {
 	var err error
 	var data []byte = nil
 
@@ -159,7 +162,7 @@ func (m *Model) setEmbedding(word string, value mat.Matrix[mat.Float]) {
 // It first looks for the exact correspondence of the word. If there is no match, it tries the word lowercase.
 // If no embedding is found, nil is returned.
 // It panics in case of Storage errors.
-func (m *Model) getStorageEmbedding(word string) mat.Matrix[mat.Float] {
+func (m *Model[T]) getStorageEmbedding(word string) mat.Matrix[T] {
 	if found := m.getEmbeddingExactMatch(word); found != nil {
 		return found
 	}
@@ -172,7 +175,7 @@ func (m *Model) getStorageEmbedding(word string) mat.Matrix[mat.Float] {
 // getEmbeddingExactMatch returns the vector (the word embedding) associated with the given word (exact correspondence).
 // If no embedding is found, nil is returned.
 // It panics in case of Storage errors.
-func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix[mat.Float] {
+func (m *Model[T]) getEmbeddingExactMatch(word string) mat.Matrix[T] {
 	data, ok, err := m.Storage.Get([]byte(word))
 	if err != nil {
 		log.Fatal(err)
@@ -181,7 +184,7 @@ func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix[mat.Float] {
 		return nil // embedding not found, or nil Dense matrix
 	}
 
-	embedding, err := mat.UnmarshalBinaryMatrix[mat.Float](bytes.NewReader(data))
+	embedding, err := mat.UnmarshalBinaryMatrix[T](bytes.NewReader(data))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -189,9 +192,9 @@ func (m *Model) getEmbeddingExactMatch(word string) mat.Matrix[mat.Float] {
 }
 
 // Encode returns the embeddings associated with the input words.
-func (m *Model) Encode(words []string) []ag.Node {
-	encoding := make([]ag.Node, len(words))
-	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
+func (m *Model[T]) Encode(words []string) []ag.Node[T] {
+	encoding := make([]ag.Node[T], len(words))
+	cache := make(map[string]ag.Node[T]) // be smart, don't create two nodes for the same word!
 	for i, word := range words {
 		if item, ok := cache[word]; ok {
 			encoding[i] = item
@@ -203,7 +206,7 @@ func (m *Model) Encode(words []string) []ag.Node {
 	return encoding
 }
 
-func (m *Model) getEmbedding(words string) ag.Node {
+func (m *Model[T]) getEmbedding(words string) ag.Node[T] {
 	switch vector := m.getStorageEmbedding(words); {
 	case vector == nil:
 		return m.ZeroEmbedding // must not be nil; important no grad

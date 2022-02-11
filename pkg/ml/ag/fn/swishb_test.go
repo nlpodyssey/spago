@@ -11,17 +11,17 @@ import (
 )
 
 func TestSwishBForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	beta := &variable{
+	beta := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSwishB(x, beta)
+	f := NewSwishB[mat.Float](x, beta)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Data(), 1.0e-6)

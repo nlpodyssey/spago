@@ -6,6 +6,7 @@ package charlm
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"log"
 	"path"
 
@@ -13,7 +14,7 @@ import (
 )
 
 // LoadModel loads a Model model from file.
-func LoadModel(modelPath string) (*Model, error) {
+func LoadModel[T mat.DType](modelPath string) (*Model[T], error) {
 	configFilename := path.Join(modelPath, defaultConfigFilename)
 	modelFilename := path.Join(modelPath, defaultModelFilename)
 
@@ -25,7 +26,7 @@ func LoadModel(modelPath string) (*Model, error) {
 	}
 	fmt.Printf("ok\n")
 
-	model := New(config)
+	model := New[T](config)
 
 	fmt.Printf("[2/2] Loading model weights... ")
 	err = utils.DeserializeFromFile(modelFilename, model)

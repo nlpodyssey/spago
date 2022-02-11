@@ -14,12 +14,12 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
-var _ nn.Model = &Model{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
-type Model struct {
+type Model[T mat.DType] struct {
 	Config Config
-	*stack.Model
+	*stack.Model[T]
 }
 
 // Config provides configuration parameters for a the gMLP Model.
@@ -29,20 +29,21 @@ type Config struct {
 	SeqLen     int
 	FFMult     int
 	Activation ag.OpName
-	// TODO: ProbSurvival mat.Float
+	// TODO: ProbSurvival T
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new Model.
-func New(config Config) *Model {
-	layer := func(_ int) nn.StandardModel {
+func New[T mat.DType](config Config) *Model[T] {
+	layer := func(_ int) nn.StandardModel[T] {
 		return NewResidual(
 			NewPreNorm(
 				config.Dim,
-				NewBlock(BlockConfig{
+				NewBlock[T](BlockConfig{
 					Dim:        config.Dim,
 					DimFF:      config.Dim * config.FFMult,
 					SeqLen:     config.SeqLen,
@@ -51,19 +52,19 @@ func New(config Config) *Model {
 			),
 		)
 	}
-	return &Model{
+	return &Model[T]{
 		Config: config,
 		Model:  stack.Make(config.Depth, layer), // TODO: add "prob to survive" in the `stack` pkg
 	}
 }
 
 // Forward performs the forward step. It adds pads if necessary.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	padded := m.addPadding(xs...)
 	return m.Model.Forward(padded...)
 }
 
-func (m *Model) addPadding(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) addPadding(xs ...ag.Node[T]) []ag.Node[T] {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
@@ -71,8 +72,8 @@ func (m *Model) addPadding(xs ...ag.Node) []ag.Node {
 		return xs
 	}
 
-	pn := m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.Config.Dim), false)
-	padded := make([]ag.Node, m.Config.SeqLen)
+	pn := m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
+	padded := make([]ag.Node[T], m.Config.SeqLen)
 	copy(padded[:len(xs)], xs)
 	for i := len(xs); i < len(padded); i++ {
 		padded[i] = pn

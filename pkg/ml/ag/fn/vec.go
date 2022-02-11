@@ -8,25 +8,25 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &Vec{}
+var _ Function[float32] = &Vec[float32]{}
 
 // Vec is a Function to reshape an matrix-operand into a column vector.
-type Vec struct {
-	x Operand
+type Vec[T mat.DType] struct {
+	x Operand[T]
 }
 
 // NewVec returns a new Vec Function.
-func NewVec(x Operand) *Vec {
-	return &Vec{x: x}
+func NewVec[T mat.DType](x Operand[T]) *Vec[T] {
+	return &Vec[T]{x: x}
 }
 
 // Forward computes the output of the node.
-func (r *Vec) Forward() mat.Matrix[mat.Float] {
+func (r *Vec[T]) Forward() mat.Matrix[T] {
 	return r.x.Value().Reshape(r.x.Value().Size(), 1)
 }
 
 // Backward computes the backward pass.
-func (r *Vec) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Vec[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

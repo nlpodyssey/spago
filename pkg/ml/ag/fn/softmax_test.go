@@ -11,12 +11,12 @@ import (
 )
 
 func TestSoftmax_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{-0.41, -1.08, 0, 0.87, -0.19, -0.75}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSoftmax(x)
+	f := NewSoftmax[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1166451, 0.0596882, 0.1757629, 0.4195304, 0.1453487, 0.083024}, y.Data(), 1.0e-6)

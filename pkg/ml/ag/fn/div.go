@@ -8,21 +8,21 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &Div{}
+var _ Function[float32] = &Div[float32]{}
 
 // Div is an operator to perform element-wise division over two values.
-type Div struct {
-	x1 Operand
-	x2 Operand
+type Div[T mat.DType] struct {
+	x1 Operand[T]
+	x2 Operand[T]
 }
 
 // NewDiv returns a new Div Function.
-func NewDiv(x1, x2 Operand) *Div {
-	return &Div{x1: x1, x2: x2}
+func NewDiv[T mat.DType](x1, x2 Operand[T]) *Div[T] {
+	return &Div[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the function.
-func (r *Div) Forward() mat.Matrix[mat.Float] {
+func (r *Div[T]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -32,7 +32,7 @@ func (r *Div) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *Div) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Div[T]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

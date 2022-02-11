@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	if err := app.NewNERApp().Run(os.Args); err != nil {
+	if err := app.NewNERApp[float32]().Run(os.Args); err != nil {
 		log.Fatalln(err)
 	}
 }

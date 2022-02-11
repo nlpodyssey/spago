@@ -26,12 +26,12 @@ func targetsIds(sequence []string, vocab *vocabulary.Vocabulary, unknownToken st
 
 // sample extracts the next character from the probability multinomial distribution.
 // Note that the softmax must NOT have been applied to the prediction values.
-func sample(prediction []mat.Float, temperature mat.Float) int {
+func sample[T mat.DType](prediction []T, temperature T) int {
 	for i := range prediction {
 		prediction[i] *= 1.0 / temperature
 	}
 	prediction = matutils.SoftMax(prediction)
-	p := rand.Float[mat.Float]() // TODO: use a local random generator?
+	p := rand.Float[T]() // TODO: use a local random generator?
 	for i, x := range prediction {
 		p -= x
 		if p < 0 {

@@ -13,53 +13,54 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	WInS   nn.Param `spago:"type:weights"`
-	WInR   nn.Param `spago:"type:weights"`
-	WRecS  nn.Param `spago:"type:weights"`
-	WRecR  nn.Param `spago:"type:weights"`
-	BS     nn.Param `spago:"type:biases"`
-	BR     nn.Param `spago:"type:biases"`
-	S      nn.Param `spago:"type:weights"`
-	R      nn.Param `spago:"type:weights"`
-	States []*State `spago:"scope:processor"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	WInS   nn.Param[T] `spago:"type:weights"`
+	WInR   nn.Param[T] `spago:"type:weights"`
+	WRecS  nn.Param[T] `spago:"type:weights"`
+	WRecR  nn.Param[T] `spago:"type:weights"`
+	BS     nn.Param[T] `spago:"type:biases"`
+	BR     nn.Param[T] `spago:"type:biases"`
+	S      nn.Param[T] `spago:"type:weights"`
+	R      nn.Param[T] `spago:"type:weights"`
+	States []*State[T] `spago:"scope:processor"`
 }
 
 // State represent a state of the TPR recurrent network.
-type State struct {
-	AR ag.Node
-	AS ag.Node
-	S  ag.Node
-	R  ag.Node
-	Y  ag.Node
+type State[T mat.DType] struct {
+	AR ag.Node[T]
+	AS ag.Node[T]
+	S  ag.Node[T]
+	R  ag.Node[T]
+	Y  ag.Node[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(in, nSymbols, dSymbols, nRoles, dRoles int) *Model {
-	return &Model{
-		WInS:  nn.NewParam(mat.NewEmptyDense[mat.Float](nSymbols, in)),
-		WInR:  nn.NewParam(mat.NewEmptyDense[mat.Float](nRoles, in)),
-		WRecS: nn.NewParam(mat.NewEmptyDense[mat.Float](nSymbols, dRoles*dSymbols)),
-		WRecR: nn.NewParam(mat.NewEmptyDense[mat.Float](nRoles, dRoles*dSymbols)),
-		BS:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](nSymbols)),
-		BR:    nn.NewParam(mat.NewEmptyVecDense[mat.Float](nRoles)),
-		S:     nn.NewParam(mat.NewEmptyDense[mat.Float](dSymbols, nSymbols)),
-		R:     nn.NewParam(mat.NewEmptyDense[mat.Float](dRoles, nRoles)),
+func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model[T] {
+	return &Model[T]{
+		WInS:  nn.NewParam[T](mat.NewEmptyDense[T](nSymbols, in)),
+		WInR:  nn.NewParam[T](mat.NewEmptyDense[T](nRoles, in)),
+		WRecS: nn.NewParam[T](mat.NewEmptyDense[T](nSymbols, dRoles*dSymbols)),
+		WRecR: nn.NewParam[T](mat.NewEmptyDense[T](nRoles, dRoles*dSymbols)),
+		BS:    nn.NewParam[T](mat.NewEmptyVecDense[T](nSymbols)),
+		BR:    nn.NewParam[T](mat.NewEmptyVecDense[T](nRoles)),
+		S:     nn.NewParam[T](mat.NewEmptyDense[T](dSymbols, nSymbols)),
+		R:     nn.NewParam[T](mat.NewEmptyDense[T](dRoles, nRoles)),
 	}
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (m *Model) SetInitialState(state *State) {
+func (m *Model[T]) SetInitialState(state *State[T]) {
 	if len(m.States) > 0 {
 		log.Fatal("tpr: the initial state must be set before any input")
 	}
@@ -67,8 +68,8 @@ func (m *Model) SetInitialState(state *State) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		s := m.forward(x)
 		m.States = append(m.States, s)
@@ -79,7 +80,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (m *Model) LastState() *State {
+func (m *Model[T]) LastState() *State[T] {
 	n := len(m.States)
 	if n == 0 {
 		return nil
@@ -93,16 +94,16 @@ func (m *Model) LastState() *State {
 // s = embS (dot) aS
 // b = s (dot) rT
 // y = vec(b)
-func (m *Model) forward(x ag.Node) (st *State) {
+func (m *Model[T]) forward(x ag.Node[T]) (st *State[T]) {
 	sPrev := m.LastState()
-	var yPrev ag.Node
+	var yPrev ag.Node[T]
 	if sPrev != nil {
 		yPrev = sPrev.Y
 	}
-	st = new(State)
+	st = new(State[T])
 	g := m.Graph()
-	st.AR = g.Sigmoid(nn.Affine(g, m.BR, m.WInR, x, m.WRecR, yPrev))
-	st.AS = g.Sigmoid(nn.Affine(g, m.BS, m.WInS, x, m.WRecS, yPrev))
+	st.AR = g.Sigmoid(nn.Affine[T](g, m.BR, m.WInR, x, m.WRecR, yPrev))
+	st.AS = g.Sigmoid(nn.Affine[T](g, m.BS, m.WInS, x, m.WRecS, yPrev))
 	st.R = g.Mul(m.R, st.AR)
 	st.S = g.Mul(m.S, st.AS)
 	b := g.Mul(st.S, g.T(st.R))

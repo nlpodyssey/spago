@@ -16,7 +16,7 @@ import (
 //gocyclo:ignore
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -147,7 +147,7 @@ func TestModel_Forward(t *testing.T) {
 
 func TestDepthwise_Forward(t *testing.T) {
 	model := newTestModel2()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -193,8 +193,8 @@ func TestDepthwise_Forward(t *testing.T) {
 	}, y[2].Value().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(Config{
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,
 		XStride:        1,
@@ -238,8 +238,8 @@ func newTestModel() *Model {
 	return model
 }
 
-func newTestModel2() *Model {
-	model := New(Config{
+func newTestModel2() *Model[mat.Float] {
+	model := New[mat.Float](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,
 		XStride:        1,

@@ -24,11 +24,11 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Config provides configuration settings for a BLS Model.
-type Config struct {
+type Config[T mat.DType] struct {
 	InputSize                    int
 	FeaturesSize                 int
 	NumOfFeatures                int
@@ -39,80 +39,81 @@ type Config struct {
 	OutputActivation             ag.OpName
 	KeepFeaturesParamsFixed      bool
 	KeepEnhancedNodesParamsFixed bool
-	FeaturesDropout              mat.Float
-	EnhancedNodesDropout         mat.Float
+	FeaturesDropout              T
+	EnhancedNodesDropout         T
 }
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Config
-	Wz []nn.Param `spago:"type:weights"`
-	Bz []nn.Param `spago:"type:biases"`
-	Wh nn.Param   `spago:"type:weights"`
-	Bh nn.Param   `spago:"type:biases"`
-	W  nn.Param   `spago:"type:weights"`
-	B  nn.Param   `spago:"type:biases"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config[T]
+	Wz []nn.Param[T] `spago:"type:weights"`
+	Bz []nn.Param[T] `spago:"type:biases"`
+	Wh nn.Param[T]   `spago:"type:weights"`
+	Bh nn.Param[T]   `spago:"type:biases"`
+	W  nn.Param[T]   `spago:"type:weights"`
+	B  nn.Param[T]   `spago:"type:biases"`
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(c Config) *Model {
+func New[T mat.DType](c Config[T]) *Model[T] {
 	length := c.NumOfFeatures
-	wz := make([]nn.Param, length)
-	bz := make([]nn.Param, length)
+	wz := make([]nn.Param[T], length)
+	bz := make([]nn.Param[T], length)
 	for i := 0; i < length; i++ {
-		wz[i] = nn.NewParam(mat.NewEmptyDense[mat.Float](c.FeaturesSize, c.InputSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
-		bz[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.FeaturesSize), nn.RequiresGrad(!c.KeepFeaturesParamsFixed))
+		wz[i] = nn.NewParam[T](mat.NewEmptyDense[T](c.FeaturesSize, c.InputSize), nn.RequiresGrad[T](!c.KeepFeaturesParamsFixed))
+		bz[i] = nn.NewParam[T](mat.NewEmptyVecDense[T](c.FeaturesSize), nn.RequiresGrad[T](!c.KeepFeaturesParamsFixed))
 	}
-	return &Model{
+	return &Model[T]{
 		Config: c,
 		Wz:     wz,
 		Bz:     bz,
-		Wh:     nn.NewParam(mat.NewEmptyDense[mat.Float](c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		Bh:     nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.EnhancedNodesSize), nn.RequiresGrad(!c.KeepEnhancedNodesParamsFixed)),
-		W:      nn.NewParam(mat.NewEmptyDense[mat.Float](c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
-		B:      nn.NewParam(mat.NewEmptyVecDense[mat.Float](c.OutputSize)),
+		Wh:     nn.NewParam[T](mat.NewEmptyDense[T](c.EnhancedNodesSize, c.NumOfFeatures*c.FeaturesSize), nn.RequiresGrad[T](!c.KeepEnhancedNodesParamsFixed)),
+		Bh:     nn.NewParam[T](mat.NewEmptyVecDense[T](c.EnhancedNodesSize), nn.RequiresGrad[T](!c.KeepEnhancedNodesParamsFixed)),
+		W:      nn.NewParam[T](mat.NewEmptyDense[T](c.OutputSize, c.NumOfFeatures*c.FeaturesSize+c.EnhancedNodesSize)),
+		B:      nn.NewParam[T](mat.NewEmptyVecDense[T](c.OutputSize)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (m *Model) forward(x ag.Node) ag.Node {
+func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	z := m.useFeaturesDropout(m.featuresMapping(x))
-	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine(g, m.Bh, m.Wh, z)))
-	y := g.Invoke(m.OutputActivation, nn.Affine(g, m.B, m.W, g.Concat([]ag.Node{z, h}...)))
+	h := m.useEnhancedNodesDropout(g.Invoke(m.EnhancedNodesActivation, nn.Affine[T](g, m.Bh, m.Wh, z)))
+	y := g.Invoke(m.OutputActivation, nn.Affine[T](g, m.B, m.W, g.Concat([]ag.Node[T]{z, h}...)))
 	return y
 }
 
-func (m *Model) featuresMapping(x ag.Node) ag.Node {
+func (m *Model[T]) featuresMapping(x ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
-	z := make([]ag.Node, m.NumOfFeatures)
+	z := make([]ag.Node[T], m.NumOfFeatures)
 	for i := range z {
-		z[i] = nn.Affine(g, m.Bz[i], m.Wz[i], x)
+		z[i] = nn.Affine[T](g, m.Bz[i], m.Wz[i], x)
 	}
 	return g.Invoke(m.FeaturesActivation, g.Concat(z...))
 }
 
-func (m *Model) useFeaturesDropout(x ag.Node) ag.Node {
+func (m *Model[T]) useFeaturesDropout(x ag.Node[T]) ag.Node[T] {
 	if m.Mode() == nn.Training && m.FeaturesDropout > 0.0 {
 		return m.Graph().Dropout(x, m.FeaturesDropout)
 	}
 	return x
 }
 
-func (m *Model) useEnhancedNodesDropout(x ag.Node) ag.Node {
+func (m *Model[T]) useEnhancedNodesDropout(x ag.Node[T]) ag.Node[T] {
 	if m.Mode() == nn.Training && m.EnhancedNodesDropout > 0.0 {
 		return m.Graph().Dropout(x, m.EnhancedNodesDropout)
 	}

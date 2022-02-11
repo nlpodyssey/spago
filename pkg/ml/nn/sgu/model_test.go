@@ -9,7 +9,7 @@ import (
 )
 
 func TestModel_Forward(t *testing.T) {
-	model := New(Config{
+	model := New(Config[mat.Float]{
 		Dim:        16,
 		DimSeq:     2,
 		InitEps:    0.001,
@@ -32,12 +32,12 @@ func TestModel_Forward(t *testing.T) {
 		0.48, 0.49,
 	})
 
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	defer g.Clear()
 
 	proc := nn.ReifyForInference(model, g)
 
-	xs := []ag.Node{
+	xs := []ag.Node[mat.Float]{
 		g.NewVariable(mat.NewVecDense([]mat.Float{
 			0.572342, 0.70716673, 0.8478436, 0.9926679, 1.2340385, 1.2887437, 1.4375468, 1.5856494, 1.7324576, 1.8776046, 2.0209146, 2.162365, 2.3020453, 2.44012, 2.5767968, 2.7122996,
 		}), false),

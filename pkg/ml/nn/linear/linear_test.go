@@ -17,15 +17,15 @@ import (
 func TestModel_Forward(t *testing.T) {
 
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
 
-	actProc := nn.ReifyForTraining(activation.New(ag.OpTanh), g)
+	actProc := nn.ReifyForTraining(activation.New[mat.Float](ag.OpTanh), g)
 	proc := nn.ReifyForTraining(model, g)
-	y := nn.ToNode(actProc.Forward(proc.Forward(x)...)) // TODO: test linear only
+	y := nn.ToNode[mat.Float](actProc.Forward(proc.Forward(x)...)) // TODO: test linear only
 
 	assert.InDeltaSlice(t, []mat.Float{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
@@ -50,8 +50,8 @@ func TestModel_Forward(t *testing.T) {
 	}, model.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(4, 5)
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](4, 5)
 	model.W.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,

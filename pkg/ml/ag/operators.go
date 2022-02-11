@@ -6,7 +6,6 @@ package ag
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"reflect"
 	"strings"
@@ -237,323 +236,323 @@ func GetOpName(str string) (OpName, error) {
 }
 
 // Invoke returns a new node as a result of the application of the input operator.
-func (g *Graph) Invoke(operator OpName, xs ...Node) Node {
+func (g *Graph[T]) Invoke(operator OpName, xs ...Node[T]) Node[T] {
 	v := reflect.ValueOf(g).MethodByName(opNameToMethodName[operator])
 	args := make([]reflect.Value, len(xs))
 	for i, x := range xs {
 		args[i] = reflect.ValueOf(x)
 	}
 	ret := v.Call(args)
-	return ret[0].Interface().(Node)
+	return ret[0].Interface().(Node[T])
 }
 
 // Identity returns a new operator node as a result of the fn.Identity function.
-func (g *Graph) Identity(x Node) Node {
-	return g.NewOperator(fn.NewIdentity(x), x)
+func (g *Graph[T]) Identity(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewIdentity[T](x), x)
 }
 
 // Dropout returns a new operator node as a result of the fn.Dropout function.
-func (g *Graph) Dropout(x Node, p mat.Float) Node {
-	return g.NewOperator(fn.NewDropout(x, p, g.randGen), x)
+func (g *Graph[T]) Dropout(x Node[T], p T) Node[T] {
+	return g.NewOperator(fn.NewDropout[T](x, p, g.randGen), x)
 }
 
 // AtVec returns a new operator node as a result of the fn.AtVec function.
-func (g *Graph) AtVec(x Node, i int) Node {
-	return g.NewOperator(fn.NewAtVec(x, i), x)
+func (g *Graph[T]) AtVec(x Node[T], i int) Node[T] {
+	return g.NewOperator(fn.NewAtVec[T](x, i), x)
 }
 
 // At returns a new operator node as a result of the fn.At function.
-func (g *Graph) At(x Node, i int, j int) Node {
-	return g.NewOperator(fn.NewAt(x, i, j), x)
+func (g *Graph[T]) At(x Node[T], i int, j int) Node[T] {
+	return g.NewOperator(fn.NewAt[T](x, i, j), x)
 }
 
 // Add returns a new operator node as a result of the fn.Add function.
 // The first node may be null. This help to keep the code as concise as possible e.g. during accumulation.
-func (g *Graph) Add(x1 Node, x2 Node) Node {
+func (g *Graph[T]) Add(x1 Node[T], x2 Node[T]) Node[T] {
 	if x1 != nil {
-		return g.NewOperator(fn.NewAdd(x1, x2), x1, x2)
+		return g.NewOperator(fn.NewAdd[T](x1, x2), x1, x2)
 	}
 	fake := g.NewVariable(nil, false)
-	return g.NewOperator(fn.NewAdd(fake, x2), fake, x2)
+	return g.NewOperator(fn.NewAdd[T](fake, x2), fake, x2)
 }
 
 // Sub returns a new operator node as a result of the fn.Sub function.
-func (g *Graph) Sub(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewSub(x1, x2), x1, x2)
+func (g *Graph[T]) Sub(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSub[T](x1, x2), x1, x2)
 }
 
 // SubScalar returns a new operator node as a result of the fn.SubScalar function.
-func (g *Graph) SubScalar(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewSubScalar(x1, x2), x1, x2)
+func (g *Graph[T]) SubScalar(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSubScalar[T](x1, x2), x1, x2)
 }
 
 // AddScalar returns a new operator node as a result of the fn.AddScalar function.
-func (g *Graph) AddScalar(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewAddScalar(x1, x2), x1, x2)
+func (g *Graph[T]) AddScalar(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewAddScalar[T](x1, x2), x1, x2)
 }
 
 // ReverseSub returns a new operator node as a result of the fn.ReverseSub function.
-func (g *Graph) ReverseSub(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewReverseSubScalar(x1, x2), x1, x2)
+func (g *Graph[T]) ReverseSub(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewReverseSubScalar[T](x1, x2), x1, x2)
 }
 
 // Prod returns a new operator node as a result of the fn.Prod function.
-func (g *Graph) Prod(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewProd(x1, x2), x1, x2)
+func (g *Graph[T]) Prod(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewProd[T](x1, x2), x1, x2)
 }
 
 // Div returns a new operator node as a result of the fn.Div function.
-func (g *Graph) Div(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewDiv(x1, x2), x1, x2)
+func (g *Graph[T]) Div(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewDiv[T](x1, x2), x1, x2)
 }
 
 // ProdScalar returns a new operator node as a result of the fn.ProdScalar function.
-func (g *Graph) ProdScalar(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewProdScalar(x1, x2), x1, x2)
+func (g *Graph[T]) ProdScalar(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewProdScalar[T](x1, x2), x1, x2)
 }
 
 // DivScalar returns a new operator node as a result of the fn.DivScalar function.
-func (g *Graph) DivScalar(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewDivScalar(x1, x2), x1, x2)
+func (g *Graph[T]) DivScalar(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewDivScalar[T](x1, x2), x1, x2)
 }
 
 // Mul returns a new operator node as a result of the fn.Mul function.
-func (g *Graph) Mul(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewMul(x1, x2), x1, x2)
+func (g *Graph[T]) Mul(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewMul[T](x1, x2), x1, x2)
 }
 
 // Dot returns a new operator node as a result of the fn.Dot function.
-func (g *Graph) Dot(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewDot(x1, x2), x1, x2)
+func (g *Graph[T]) Dot(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewDot[T](x1, x2), x1, x2)
 }
 
 // Max returns a new operator node as a result of the fn.Max function.
-func (g *Graph) Max(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewMax(x1, x2), x1, x2)
+func (g *Graph[T]) Max(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewMax[T](x1, x2), x1, x2)
 }
 
 // Min returns a new operator node as a result of the fn.Min function.
-func (g *Graph) Min(x1 Node, x2 Node) Node {
-	return g.NewOperator(fn.NewMin(x1, x2), x1, x2)
+func (g *Graph[T]) Min(x1, x2 Node[T]) Node[T] {
+	return g.NewOperator(fn.NewMin[T](x1, x2), x1, x2)
 }
 
 // Reshape returns a new operator node as a result of the fn.Reshape function.
-func (g *Graph) Reshape(x Node, rows, columns int) Node {
-	return g.NewOperator(fn.NewReshape(x, rows, columns), x)
+func (g *Graph[T]) Reshape(x Node[T], rows, columns int) Node[T] {
+	return g.NewOperator(fn.NewReshape[T](x, rows, columns), x)
 }
 
 // MaxPooling returns a new operator node as a result of the fn.MaxPooling function.
-func (g *Graph) MaxPooling(x Node, rows, columns int) Node {
-	return g.NewOperator(fn.NewMaxPooling(x, rows, columns), x)
+func (g *Graph[T]) MaxPooling(x Node[T], rows, columns int) Node[T] {
+	return g.NewOperator(fn.NewMaxPooling[T](x, rows, columns), x)
 }
 
 // View returns a new operator node as a result of the fn.View function.
-func (g *Graph) View(x Node, row, column, xStride, yStride int) Node {
-	return g.NewOperator(fn.NewView(x, row, column, xStride, yStride), x)
+func (g *Graph[T]) View(x Node[T], row, column, xStride, yStride int) Node[T] {
+	return g.NewOperator(fn.NewView[T](x, row, column, xStride, yStride), x)
 }
 
 // RowView returns a new operator node as a result of the fn.RowView function.
-func (g *Graph) RowView(x Node, row int) Node {
-	return g.NewOperator(fn.NewRowView(x, row), x)
+func (g *Graph[T]) RowView(x Node[T], row int) Node[T] {
+	return g.NewOperator(fn.NewRowView[T](x, row), x)
 }
 
 // RotateR performs the right circular shift.
 // `i` is the number of places by which the elements are shifted.
-func (g *Graph) RotateR(x Node, i int) Node {
-	return g.NewOperator(fn.NewRotateR(x, i), x)
+func (g *Graph[T]) RotateR(x Node[T], i int) Node[T] {
+	return g.NewOperator(fn.NewRotateR[T](x, i), x)
 }
 
 // ColView returns a new operator node as a result of the fn.ColView function.
-func (g *Graph) ColView(x Node, column int) Node {
-	return g.NewOperator(fn.NewColView(x, column), x)
+func (g *Graph[T]) ColView(x Node[T], column int) Node[T] {
+	return g.NewOperator(fn.NewColView[T](x, column), x)
 }
 
 // Vec returns a new operator node as a result of the fn.Vec function.
-func (g *Graph) Vec(x Node) Node {
-	return g.NewOperator(fn.NewVec(x), x)
+func (g *Graph[T]) Vec(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewVec[T](x), x)
 }
 
 // T returns a new operator node as a result of the fn.T function.
-func (g *Graph) T(x Node) Node {
-	return g.NewOperator(fn.NewTranspose(x), x)
+func (g *Graph[T]) T(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewTranspose[T](x), x)
 }
 
 // Square returns a new operator node as a result of the fn.Prod(x, x) function.
-func (g *Graph) Square(x Node) Node {
-	return g.NewOperator(fn.NewSquare(x), x)
+func (g *Graph[T]) Square(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSquare[T](x), x)
 }
 
 // Pow returns a new operator node as a result of the fn.Pow function.
-func (g *Graph) Pow(x Node, power mat.Float) Node {
-	return g.NewOperator(fn.NewPow(x, power), x)
+func (g *Graph[T]) Pow(x Node[T], power T) Node[T] {
+	return g.NewOperator(fn.NewPow[T](x, power), x)
 }
 
 // Sqrt returns a new operator node as a result of the `Sqrt` function.
-func (g *Graph) Sqrt(x Node) Node {
-	return g.NewOperator(fn.NewSqrt(x), x)
+func (g *Graph[T]) Sqrt(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSqrt[T](x), x)
 }
 
 // Tan returns a new operator node as a result of the `Tan` function.
-func (g *Graph) Tan(x Node) Node {
-	return g.NewOperator(fn.NewTan(x), x)
+func (g *Graph[T]) Tan(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewTan[T](x), x)
 }
 
 // Tanh returns a new operator node as a result of the `Tanh` function.
-func (g *Graph) Tanh(x Node) Node {
-	return g.NewOperator(fn.NewTanh(x), x)
+func (g *Graph[T]) Tanh(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewTanh[T](x), x)
 }
 
 // Sigmoid returns a new operator node as a result of the `Sigmoid` function.
-func (g *Graph) Sigmoid(x Node) Node {
-	return g.NewOperator(fn.NewSigmoid(x), x)
+func (g *Graph[T]) Sigmoid(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSigmoid[T](x), x)
 }
 
 // HardSigmoid returns a new operator node as a result of the `HardSigmoid` function.
-func (g *Graph) HardSigmoid(x Node) Node {
-	return g.NewOperator(fn.NewHardSigmoid(x), x)
+func (g *Graph[T]) HardSigmoid(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewHardSigmoid[T](x), x)
 }
 
 // HardTanh returns a new operator node as a result of the `HardTanh` function.
-func (g *Graph) HardTanh(x Node) Node {
-	return g.NewOperator(fn.NewHardTanh(x), x)
+func (g *Graph[T]) HardTanh(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewHardTanh[T](x), x)
 }
 
 // Softsign returns a new operator node as a result of the `SoftSign` function.
-func (g *Graph) Softsign(x Node) Node {
-	return g.NewOperator(fn.NewSoftsign(x), x)
+func (g *Graph[T]) Softsign(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSoftsign[T](x), x)
 }
 
 // ReLU returns a new operator node as a result of the `ReLU` function.
-func (g *Graph) ReLU(x Node) Node {
-	return g.NewOperator(fn.NewReLU(x), x)
+func (g *Graph[T]) ReLU(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewReLU[T](x), x)
 }
 
 // CELU returns a new operator node as a result of the fn.CELU function.
-func (g *Graph) CELU(x Node, alpha Node) Node {
-	return g.NewOperator(fn.NewCELU(x, alpha), x, alpha)
+func (g *Graph[T]) CELU(x, alpha Node[T]) Node[T] {
+	return g.NewOperator(fn.NewCELU[T](x, alpha), x, alpha)
 }
 
 // GELU returns a new operator node as a result of the fn.GELU function.
-func (g *Graph) GELU(x Node) Node {
-	return g.NewOperator(fn.NewGELU(x), x)
+func (g *Graph[T]) GELU(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewGELU[T](x), x)
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
-func (g *Graph) ELU(x Node, alpha Node) Node {
-	return g.NewOperator(fn.NewELU(x, alpha), x, alpha)
+func (g *Graph[T]) ELU(x, alpha Node[T]) Node[T] {
+	return g.NewOperator(fn.NewELU[T](x, alpha), x, alpha)
 }
 
 // SwishB returns a new operator node as a result of the fn.SwishB function.
-func (g *Graph) SwishB(x Node, beta Node) Node {
-	return g.NewOperator(fn.NewSwishB(x, beta), x, beta)
+func (g *Graph[T]) SwishB(x, beta Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSwishB[T](x, beta), x, beta)
 }
 
 // Swish returns a new operator node as a result of the fn.Swish function.
-func (g *Graph) Swish(x Node) Node {
-	return g.NewOperator(fn.NewSwish(x), x)
+func (g *Graph[T]) Swish(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSwish[T](x), x)
 }
 
 // SiLU returns a new operator node as a result of the fn.SiLU function.
-func (g *Graph) SiLU(x Node) Node {
-	return g.NewOperator(fn.NewSiLU(x), x)
+func (g *Graph[T]) SiLU(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSiLU[T](x), x)
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.
-func (g *Graph) Mish(x Node) Node {
-	return g.NewOperator(fn.NewMish(x), x)
+func (g *Graph[T]) Mish(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewMish[T](x), x)
 }
 
 // LeakyReLU returns a new operator node as a result of the fn.LeakyReLU function.
-func (g *Graph) LeakyReLU(x Node, alpha Node) Node {
-	return g.NewOperator(fn.NewLeakyReLU(x, alpha), x, alpha)
+func (g *Graph[T]) LeakyReLU(x, alpha Node[T]) Node[T] {
+	return g.NewOperator(fn.NewLeakyReLU[T](x, alpha), x, alpha)
 }
 
 // SELU returns a new operator node as a result of the fn.SELU function.
-func (g *Graph) SELU(x Node, alpha Node, scale Node) Node {
-	return g.NewOperator(fn.NewSELU(x, alpha, scale), x, alpha, scale)
+func (g *Graph[T]) SELU(x, alpha Node[T], scale Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSELU[T](x, alpha, scale), x, alpha, scale)
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.
-func (g *Graph) SoftPlus(x Node, beta Node, threshold Node) Node {
-	return g.NewOperator(fn.NewSoftPlus(x, beta, threshold), x, beta, threshold)
+func (g *Graph[T]) SoftPlus(x, beta, threshold Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSoftPlus[T](x, beta, threshold), x, beta, threshold)
 }
 
 // SoftShrink returns a new operator node as a result of the fn.SoftShrink function.
-func (g *Graph) SoftShrink(x Node, lambda Node) Node {
-	return g.NewOperator(fn.NewSoftShrink(x, lambda), x, lambda)
+func (g *Graph[T]) SoftShrink(x, lambda Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSoftShrink[T](x, lambda), x, lambda)
 }
 
 // Threshold returns a new operator node as a result of the fn.Threshold function.
-func (g *Graph) Threshold(x Node, threshold Node, k Node) Node {
-	return g.NewOperator(fn.NewThreshold(x, threshold, k), x, threshold, k)
+func (g *Graph[T]) Threshold(x, threshold, k Node[T]) Node[T] {
+	return g.NewOperator(fn.NewThreshold[T](x, threshold, k), x, threshold, k)
 }
 
 // Softmax returns a new operator node as a result of the fn.Softmax function.
-func (g *Graph) Softmax(x Node) Node {
-	return g.NewOperator(fn.NewSoftmax(x), x)
+func (g *Graph[T]) Softmax(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSoftmax[T](x), x)
 }
 
 // SparseMax returns a new operator node as a result of the fn.SparseMax function.
-func (g *Graph) SparseMax(x Node) Node {
-	return g.NewOperator(fn.NewSparseMax(x), x)
+func (g *Graph[T]) SparseMax(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSparseMax[T](x), x)
 }
 
 // SparseMaxLoss returns a new operator node as a result of the fn.SparseMaxLoss function.
-func (g *Graph) SparseMaxLoss(x Node) Node {
-	return g.NewOperator(fn.NewSparseMaxLoss(x), x)
+func (g *Graph[T]) SparseMaxLoss(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSparseMaxLoss[T](x), x)
 }
 
 // Sin returns a new operator node as a result of the `Sin` function.
-func (g *Graph) Sin(x Node) Node {
-	return g.NewOperator(fn.NewSin(x), x)
+func (g *Graph[T]) Sin(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewSin[T](x), x)
 }
 
 // Cos returns a new operator node as a result of the `Cos` function.
-func (g *Graph) Cos(x Node) Node {
-	return g.NewOperator(fn.NewCos(x), x)
+func (g *Graph[T]) Cos(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewCos[T](x), x)
 }
 
 // Exp returns a new operator node as a result of the `Exp` function.
-func (g *Graph) Exp(x Node) Node {
-	return g.NewOperator(fn.NewExp(x), x)
+func (g *Graph[T]) Exp(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewExp[T](x), x)
 }
 
 // Log returns a new operator node as a result of the `Log` function.
-func (g *Graph) Log(x Node) Node {
-	return g.NewOperator(fn.NewLog(x), x)
+func (g *Graph[T]) Log(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewLog[T](x), x)
 }
 
 // Abs returns a new operator node as a result of the `Abs` function.
-func (g *Graph) Abs(x Node) Node {
-	return g.NewOperator(fn.NewAbs(x), x)
+func (g *Graph[T]) Abs(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewAbs[T](x), x)
 }
 
 // Neg returns a new operator node as a result of the `Neg` function.
-func (g *Graph) Neg(x Node) Node {
-	return g.NewOperator(fn.NewNeg(x), x)
+func (g *Graph[T]) Neg(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewNeg[T](x), x)
 }
 
 // Reciprocal returns a new operator node as a result of the `Reciprocal` function.
-func (g *Graph) Reciprocal(x Node) Node {
-	return g.NewOperator(fn.NewReciprocal(x), x)
+func (g *Graph[T]) Reciprocal(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewReciprocal[T](x), x)
 }
 
 // ReduceSum returns a new operator node as a result of the fn.ReduceSum function.
-func (g *Graph) ReduceSum(x Node) Node {
-	return g.NewOperator(fn.NewReduceSum(x), x)
+func (g *Graph[T]) ReduceSum(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewReduceSum[T](x), x)
 }
 
 // ReduceMean returns a new operator node as a result of the fn.ReduceMean function.
-func (g *Graph) ReduceMean(x Node) Node {
-	return g.NewOperator(fn.NewReduceMean(x), x)
+func (g *Graph[T]) ReduceMean(x Node[T]) Node[T] {
+	return g.NewOperator(fn.NewReduceMean[T](x), x)
 }
 
 // Concat returns a new operator node as a result of the fn.Concat function.
-func (g *Graph) Concat(xs ...Node) Node {
+func (g *Graph[T]) Concat(xs ...Node[T]) Node[T] {
 	return g.NewOperator(fn.NewConcat(Operands(xs)), xs...)
 }
 
 // Stack returns a new operator node as a result of the fn.Stack function.
-func (g *Graph) Stack(xs ...Node) Node {
+func (g *Graph[T]) Stack(xs ...Node[T]) Node[T] {
 	return g.NewOperator(fn.NewStack(Operands(xs)), xs...)
 }

@@ -13,7 +13,7 @@ import (
 
 func TestRandomMutator(t *testing.T) {
 	population := newTestMutator()
-	mutation := NewRandomMutation(6.0)
+	mutation := NewRandomMutation[mat.Float](6.0)
 	mutation.Mutate(population)
 
 	assert.InDeltaSlice(t, []mat.Float{0.85, -0.1, 2.1, 0.2, 2.85}, population.Members[0].DonorVector.Data(), 0.0001)
@@ -30,7 +30,7 @@ func TestRandomMutator(t *testing.T) {
 
 func TestDeglMutator(t *testing.T) {
 	population := newTestMutator()
-	mutation := NewDeglMutation(0.3, 6.0)
+	mutation := NewDeglMutation[mat.Float](0.3, 6.0)
 	mutation.Mutate(population)
 
 	assert.InDeltaSlice(t, []mat.Float{-1.35, 0.05, 0.15, 1.075, 1.875}, population.Members[0].DonorVector.Data(), 0.0001)
@@ -45,8 +45,8 @@ func TestDeglMutator(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{-0.275, -0.625, -0.675, 0.075, 0.175}, population.Members[9].DonorVector.Data(), 0.0001)
 }
 
-func newTestMutator() *Population {
-	hyperParams := MemberHyperParams{
+func newTestMutator() *Population[mat.Float] {
+	hyperParams := MemberHyperParams[mat.Float]{
 		MutationFactor: 0.5,
 		CrossoverRate:  0.9,
 		WeightFactor:   0.5,

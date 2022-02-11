@@ -9,7 +9,7 @@ package generation
 import "github.com/nlpodyssey/spago/pkg/mat"
 
 // GeneratorConfig provides configuration options for the generation search algorithm.
-type GeneratorConfig struct {
+type GeneratorConfig[T mat.DType] struct {
 	// NumBeams is the number of beams for generation search.
 	NumBeams int
 	// MinLength is the minimum length of the sequence to be generated.
@@ -33,7 +33,7 @@ type GeneratorConfig struct {
 	// 1.0 means no penalty. Set to values < 1.0 in order to encourage the
 	// model to generate shorter sequences, to a value > 1.0 in order to
 	// encourage the model to produce longer sequences.
-	LengthPenalty mat.Float
+	LengthPenalty T
 	// EarlyStopping reports whether to stop the generation search when at least
 	// NumBeams sentences are finished per batch or not.
 	EarlyStopping bool

@@ -13,56 +13,57 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	WIn     nn.Param `spago:"type:weights"`
-	WInRec  nn.Param `spago:"type:weights"`
-	BIn     nn.Param `spago:"type:biases"`
-	WFor    nn.Param `spago:"type:weights"`
-	WForRec nn.Param `spago:"type:weights"`
-	BFor    nn.Param `spago:"type:biases"`
-	WCand   nn.Param `spago:"type:weights"`
-	BCand   nn.Param `spago:"type:biases"`
-	States  []*State `spago:"scope:processor"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	WIn     nn.Param[T] `spago:"type:weights"`
+	WInRec  nn.Param[T] `spago:"type:weights"`
+	BIn     nn.Param[T] `spago:"type:biases"`
+	WFor    nn.Param[T] `spago:"type:weights"`
+	WForRec nn.Param[T] `spago:"type:weights"`
+	BFor    nn.Param[T] `spago:"type:biases"`
+	WCand   nn.Param[T] `spago:"type:weights"`
+	BCand   nn.Param[T] `spago:"type:biases"`
+	States  []*State[T] `spago:"scope:processor"`
 }
 
 // State represent a state of the RAN recurrent network.
-type State struct {
-	InG  ag.Node
-	ForG ag.Node
-	Cand ag.Node
-	C    ag.Node
-	Y    ag.Node
+type State[T mat.DType] struct {
+	InG  ag.Node[T]
+	ForG ag.Node[T]
+	Cand ag.Node[T]
+	C    ag.Node[T]
+	Y    ag.Node[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(in, out int) *Model {
-	m := &Model{}
-	m.WIn, m.WInRec, m.BIn = newGateParams(in, out)
-	m.WFor, m.WForRec, m.BFor = newGateParams(in, out)
-	m.WCand = nn.NewParam(mat.NewEmptyDense[mat.Float](out, in))
-	m.BCand = nn.NewParam(mat.NewEmptyVecDense[mat.Float](out))
+func New[T mat.DType](in, out int) *Model[T] {
+	m := &Model[T]{}
+	m.WIn, m.WInRec, m.BIn = newGateParams[T](in, out)
+	m.WFor, m.WForRec, m.BFor = newGateParams[T](in, out)
+	m.WCand = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
+	m.BCand = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
 	return m
 }
 
-func newGateParams(in, out int) (w, wRec, b nn.Param) {
-	w = nn.NewParam(mat.NewEmptyDense[mat.Float](out, in))
-	wRec = nn.NewParam(mat.NewEmptyDense[mat.Float](out, out))
-	b = nn.NewParam(mat.NewEmptyVecDense[mat.Float](out))
+func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
+	w = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
+	wRec = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
+	b = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
 	return
 }
 
 // SetInitialState sets the initial state of the recurrent network.
 // It panics if one or more states are already present.
-func (m *Model) SetInitialState(state *State) {
+func (m *Model[T]) SetInitialState(state *State[T]) {
 	if len(m.States) > 0 {
 		log.Fatal("ran: the initial state must be set before any input")
 	}
@@ -70,8 +71,8 @@ func (m *Model) SetInitialState(state *State) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		s := m.forward(x)
 		m.States = append(m.States, s)
@@ -82,7 +83,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 
 // LastState returns the last state of the recurrent network.
 // It returns nil if there are no states.
-func (m *Model) LastState() *State {
+func (m *Model[T]) LastState() *State[T] {
 	n := len(m.States)
 	if n == 0 {
 		return nil
@@ -95,13 +96,13 @@ func (m *Model) LastState() *State {
 // cand = wc (dot) x + bc
 // c = inG * c + forG * cPrev
 // y = f(c)
-func (m *Model) forward(x ag.Node) (s *State) {
+func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
-	s = new(State)
+	s = new(State[T])
 	yPrev, cPrev := m.prev()
-	s.InG = g.Sigmoid(nn.Affine(g, m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine(g, m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = nn.Affine(g, m.BCand, m.WCand, x)
+	s.InG = g.Sigmoid(nn.Affine[T](g, m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = g.Sigmoid(nn.Affine[T](g, m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = nn.Affine[T](g, m.BCand, m.WCand, x)
 	s.C = g.Prod(s.InG, s.Cand)
 	if cPrev != nil {
 		s.C = g.Add(s.C, g.Prod(s.ForG, cPrev))
@@ -110,7 +111,7 @@ func (m *Model) forward(x ag.Node) (s *State) {
 	return
 }
 
-func (m *Model) prev() (yPrev, cPrev ag.Node) {
+func (m *Model[T]) prev() (yPrev, cPrev ag.Node[T]) {
 	s := m.LastState()
 	if s != nil {
 		yPrev = s.Y
@@ -120,8 +121,8 @@ func (m *Model) prev() (yPrev, cPrev ag.Node) {
 }
 
 // Importance returns the "importance" score for each element of the processed sequence.
-func (m *Model) Importance() [][]mat.Float {
-	importance := make([][]mat.Float, len(m.States))
+func (m *Model[T]) Importance() [][]T {
+	importance := make([][]T, len(m.States))
 	for i := range importance {
 		importance[i] = m.scores(i)
 	}
@@ -130,9 +131,9 @@ func (m *Model) Importance() [][]mat.Float {
 
 // importance computes the importance score of the previous states respect to the i-state.
 // The output contains the importance score for each k-previous states.
-func (m *Model) scores(i int) []mat.Float {
+func (m *Model[T]) scores(i int) []T {
 	states := m.States
-	scores := make([]mat.Float, len(states))
+	scores := make([]T, len(states))
 	incForgetProd := states[i].ForG.Value().Clone()
 	for k := i; k >= 0; k-- {
 		inG := states[k].InG.Value()

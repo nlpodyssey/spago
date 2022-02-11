@@ -11,43 +11,43 @@ import (
 )
 
 // Hypotheses provides hypotheses data for a generation Scorer.
-type Hypotheses struct {
-	config     GeneratorConfig
-	beams      []Hypothesis
-	worstScore mat.Float
+type Hypotheses[T mat.DType] struct {
+	config     GeneratorConfig[T]
+	beams      []Hypothesis[T]
+	worstScore T
 }
 
 // Hypothesis represents a single generation hypothesis, which is a sequence of
 // Token IDs paired with a score.
-type Hypothesis struct {
+type Hypothesis[T mat.DType] struct {
 	TokenIDs []int
-	Score    mat.Float
+	Score    T
 }
 
-const defaultHypothesisWorstScore mat.Float = 1e9
+const defaultHypothesisWorstScore = 1e9
 
 // NewHypotheses returns a new Hypotheses.
-func NewHypotheses(config GeneratorConfig) *Hypotheses {
-	return &Hypotheses{
+func NewHypotheses[T mat.DType](config GeneratorConfig[T]) *Hypotheses[T] {
+	return &Hypotheses[T]{
 		config:     config,
-		beams:      make([]Hypothesis, 0),
+		beams:      make([]Hypothesis[T], 0),
 		worstScore: 1e9,
 	}
 }
 
 // Len returns the number of hypotheses in the list.
-func (h *Hypotheses) Len() int {
+func (h *Hypotheses[T]) Len() int {
 	return len(h.beams)
 }
 
 // Add adds a new hypothesis to the list.
-func (h *Hypotheses) Add(hypVector []int, sumLogProbs mat.Float) {
-	score := sumLogProbs / mat.Pow(mat.Float(len(hypVector)), h.config.LengthPenalty)
+func (h *Hypotheses[T]) Add(hypVector []int, sumLogProbs T) {
+	score := sumLogProbs / mat.Pow(T(len(hypVector)), h.config.LengthPenalty)
 	if h.Len() == h.config.NumBeams && score <= h.worstScore {
 		return
 	}
 
-	h.beams = append(h.beams, Hypothesis{TokenIDs: hypVector, Score: score})
+	h.beams = append(h.beams, Hypothesis[T]{TokenIDs: hypVector, Score: score})
 	if h.Len() <= h.config.NumBeams {
 		if score < h.worstScore {
 			h.worstScore = score
@@ -61,7 +61,7 @@ func (h *Hypotheses) Add(hypVector []int, sumLogProbs mat.Float) {
 	h.worstScore, _, _ = h.findWorst()
 }
 
-func (h *Hypotheses) findWorst() (worstScore mat.Float, worstIndex int, ok bool) {
+func (h *Hypotheses[T]) findWorst() (worstScore T, worstIndex int, ok bool) {
 	if h.Len() == 0 {
 		return defaultHypothesisWorstScore, -1, false
 	}
@@ -81,18 +81,18 @@ func (h *Hypotheses) findWorst() (worstScore mat.Float, worstIndex int, ok bool)
 
 // IsDone reports whether there are enough hypotheses and none of the hypotheses
 // being generated can become better than the worst one in the heap.
-func (h *Hypotheses) IsDone(bestSumLogProbs mat.Float, curLen int) bool {
+func (h *Hypotheses[T]) IsDone(bestSumLogProbs T, curLen int) bool {
 	if h.Len() < h.config.NumBeams {
 		return false
 	}
 	if h.config.EarlyStopping {
 		return true
 	}
-	curScore := bestSumLogProbs / mat.Pow(mat.Float(curLen), h.config.LengthPenalty)
+	curScore := bestSumLogProbs / mat.Pow(T(curLen), h.config.LengthPenalty)
 	return h.worstScore >= curScore
 }
 
 // Beams returns the hypothesis beams.
-func (h *Hypotheses) Beams() []Hypothesis {
+func (h *Hypotheses[T]) Beams() []Hypothesis[T] {
 	return h.beams
 }

@@ -14,7 +14,7 @@ import (
 // The class is given by the callback for each i-th element up to size.
 // The size of each batch depends on number of classes (batchFactor * nClasses).
 // Each batch consists in a list of indices.
-func GenerateBatches(size, batchFactor int, class func(i int) int) [][]int {
+func GenerateBatches[T mat.DType](size, batchFactor int, class func(i int) int) [][]int {
 	groupsByClass := make(map[int][]int)
 	for i := 0; i < size; i++ {
 		c := class(i)
@@ -28,9 +28,9 @@ func GenerateBatches(size, batchFactor int, class func(i int) int) [][]int {
 			batchList = append(batchList, []int{})
 		}
 	}
-	distribution := make([]mat.Float, nClasses)
+	distribution := make([]T, nClasses)
 	for i := 0; i < nClasses; i++ {
-		distribution[i] = mat.Float(len(groupsByClass[i])) / mat.Float(size)
+		distribution[i] = T(len(groupsByClass[i])) / T(size)
 	}
 	k := 0
 	for k < size {
@@ -58,7 +58,7 @@ func ForEachBatch(datasetSize, batchSize int, callback func(start, end int)) {
 // SplitDataset splits the dataset into two parts. Each part consists in a list of indices.
 // The split ratio regulates the percentage of the total assigned to `b` so that `a` contains the rest.
 // For example a split ratio of 0.20 means that `b` should contain the 20% of the total and `a` the rest 80%.
-func SplitDataset(size int, splitRatio mat.Float, seed uint64, class func(i int) string) (a []int, b []int) {
+func SplitDataset[T mat.DType](size int, splitRatio T, seed uint64, class func(i int) string) (a []int, b []int) {
 	classCount := make(map[string]int)
 	for i := 0; i < size; i++ {
 		c := class(i)
@@ -66,11 +66,11 @@ func SplitDataset(size int, splitRatio mat.Float, seed uint64, class func(i int)
 	}
 	usedClassCount := make(map[string]int)
 	indices := utils.MakeIndices(size)
-	rand.ShuffleInPlace(indices, rand.NewLockedRand[mat.Float](seed))
+	rand.ShuffleInPlace(indices, rand.NewLockedRand[T](seed))
 	for _, i := range indices {
 		c := class(i)
 		usedClassCount[c] = usedClassCount[c] + 1
-		if usedClassCount[c] <= int(splitRatio*mat.Float(classCount[c])) {
+		if usedClassCount[c] <= int(splitRatio*T(classCount[c])) {
 			b = append(b, i)
 		} else {
 			a = append(a, i)

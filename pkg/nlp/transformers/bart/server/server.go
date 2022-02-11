@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
@@ -22,8 +23,8 @@ import (
 )
 
 // Server contains everything needed to run a BART server.
-type Server struct {
-	model           nn.Model
+type Server[T mat.DType] struct {
+	model           nn.Model[T]
 	bpeTokenizer    *bpetokenizer.BPETokenizer
 	spTokenizer     *sentencepiece.Tokenizer
 	TimeoutSeconds  int
@@ -34,17 +35,17 @@ type Server struct {
 }
 
 // NewServer returns a new Server.
-func NewServer(
-	model nn.Model,
+func NewServer[T mat.DType](
+	model nn.Model[T],
 	bpeTokenizer *bpetokenizer.BPETokenizer,
 	spTokenizer *sentencepiece.Tokenizer,
-) *Server {
+) *Server[T] {
 	switch model.(type) {
-	case *sequenceclassification.Model, *conditionalgeneration.Model: // ok
+	case *sequenceclassification.Model[T], *conditionalgeneration.Model[T]: // ok
 	default:
 		panic("bart: invalid model type")
 	}
-	return &Server{
+	return &Server[T]{
 		model:        model,
 		bpeTokenizer: bpeTokenizer,
 		spTokenizer:  spTokenizer,
@@ -52,7 +53,7 @@ func NewServer(
 }
 
 // StartDefaultServer is used to start a basic BART gRPC server.
-func (s *Server) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server[T]) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	grpcServer := grpcutils.NewGRPCServer(grpcutils.GRPCServerConfig{
 		TLSDisable:      tlsDisable,
 		TLSCert:         tlsCert,
@@ -67,14 +68,14 @@ func (s *Server) StartDefaultServer(grpcAddress, tlsCert, tlsKey string, tlsDisa
 // StartDefaultHTTPServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
-func (s *Server) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server[T]) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
 	switch s.model.(type) {
-	case *sequenceclassification.Model:
+	case *sequenceclassification.Model[T]:
 		mux.HandleFunc("/classify-nli-ui", bartnli.Handler)
 		mux.HandleFunc("/classify", s.ClassifyHandler)
 		mux.HandleFunc("/classify-nli", s.ClassifyNLIHandler)
-	case *conditionalgeneration.Model:
+	case *conditionalgeneration.Model[T]:
 		mux.HandleFunc("/generate", s.GenerateHandler)
 	default:
 		panic("bart: invalid model type")
@@ -91,13 +92,13 @@ func (s *Server) StartDefaultHTTPServer(address, tlsCert, tlsKey string, tlsDisa
 }
 
 // Classify handles a classification request over gRPC.
-func (s *Server) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
+func (s *Server[T]) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
 	result := s.classify(req.GetText(), req.GetText2())
 	return classificationFrom(result), nil
 }
 
 // ClassifyNLI handles a zero-shot classification request over gRPC.
-func (s *Server) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest) (*grpcapi.ClassifyReply, error) {
+func (s *Server[T]) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest) (*grpcapi.ClassifyReply, error) {
 	result, err := s.classifyNLI(
 		req.GetText(),
 		req.GetHypothesisTemplate(),
@@ -111,7 +112,7 @@ func (s *Server) ClassifyNLI(_ context.Context, req *grpcapi.ClassifyNLIRequest)
 }
 
 // Generate handles a conditional generation request over gRPC.
-func (s *Server) Generate(_ context.Context, req *grpcapi.GenerateRequest) (*grpcapi.GenerateReply, error) {
+func (s *Server[T]) Generate(_ context.Context, req *grpcapi.GenerateRequest) (*grpcapi.GenerateReply, error) {
 	result, err := s.generate(req.GetText())
 	if err != nil {
 		return nil, err
@@ -132,7 +133,7 @@ type body struct {
 }
 
 // ClassifyHandler handles a classify request over HTTP.
-func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -159,7 +160,7 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // ClassifyNLIHandler handles a classify request over HTTP.
-func (s *Server) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -196,7 +197,7 @@ func (s *Server) ClassifyNLIHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // GenerateHandler handles a conditional generation request over HTTP.
-func (s *Server) GenerateHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) GenerateHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -235,7 +236,7 @@ type GenerateResponse struct {
 	Took int64 `json:"took"`
 }
 
-func classificationFrom(resp *tasks.ClassifyResponse) *grpcapi.ClassifyReply {
+func classificationFrom[T mat.DType](resp *tasks.ClassifyResponse[T]) *grpcapi.ClassifyReply {
 	distribution := make([]*grpcapi.ClassConfidencePair, len(resp.Distribution))
 	for i, t := range resp.Distribution {
 		distribution[i] = &grpcapi.ClassConfidencePair{

@@ -12,47 +12,48 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Size             int
-	TransitionScores nn.Param    `spago:"type:weights"`
-	Scores           [][]ag.Node `spago:"scope:processor"`
+	TransitionScores nn.Param[T]    `spago:"type:weights"`
+	Scores           [][]ag.Node[T] `spago:"scope:processor"`
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New(size int) *Model {
-	return &Model{
+func New[T mat.DType](size int) *Model[T] {
+	return &Model[T]{
 		Size:             size,
-		TransitionScores: nn.NewParam(mat.NewEmptyDense[mat.Float](size+1, size+1)), // +1 for start and end transitions
+		TransitionScores: nn.NewParam[T](mat.NewEmptyDense[T](size+1, size+1)), // +1 for start and end transitions
 	}
 }
 
 // InitProcessor initializes structures and data useful for the decoding.
-func (m *Model) InitProcessor() {
-	m.Scores = nn.Separate(m.Graph(), m.TransitionScores) // TODO: lazy initialization
+func (m *Model[T]) InitProcessor() {
+	m.Scores = nn.Separate[T](m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 
 // Decode performs viterbi decoding.
-func (m *Model) Decode(emissionScores []ag.Node) []int {
+func (m *Model[T]) Decode(emissionScores []ag.Node[T]) []int {
 	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.
-func (m *Model) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
+func (m *Model[T]) NegativeLogLoss(emissionScores []ag.Node[T], target []int) ag.Node[T] {
 	goldScore := m.goldScore(emissionScores, target)
 	totalScore := m.totalScore(emissionScores)
 	return m.Graph().Sub(totalScore, goldScore)
 }
 
-func (m *Model) goldScore(emissionScores []ag.Node, target []int) ag.Node {
+func (m *Model[T]) goldScore(emissionScores []ag.Node[T], target []int) ag.Node[T] {
 	g := m.Graph()
 	goldScore := g.At(emissionScores[0], target[0], 0)
 	goldScore = g.Add(goldScore, m.Scores[0][target[0]+1]) // start transition
@@ -66,7 +67,7 @@ func (m *Model) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 	return goldScore
 }
 
-func (m *Model) totalScore(predicted []ag.Node) ag.Node {
+func (m *Model[T]) totalScore(predicted []ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
@@ -77,9 +78,9 @@ func (m *Model) totalScore(predicted []ag.Node) ag.Node {
 
 }
 
-func (m *Model) totalScoreStart(stepVec ag.Node) []ag.Node {
+func (m *Model[T]) totalScoreStart(stepVec ag.Node[T]) []ag.Node[T] {
 	firstTransitionScores := m.Scores[0]
-	scores := make([]ag.Node, m.Size)
+	scores := make([]ag.Node[T], m.Size)
 	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		scores[i] = g.Add(g.AtVec(stepVec, i), firstTransitionScores[i+1])
@@ -87,8 +88,8 @@ func (m *Model) totalScoreStart(stepVec ag.Node) []ag.Node {
 	return scores
 }
 
-func (m *Model) totalScoreEnd(stepVec []ag.Node) []ag.Node {
-	scores := make([]ag.Node, m.Size)
+func (m *Model[T]) totalScoreEnd(stepVec []ag.Node[T]) []ag.Node[T] {
+	scores := make([]ag.Node[T], m.Size)
 	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		vecTrans := g.Add(stepVec[i], m.Scores[i+1][0])
@@ -97,8 +98,8 @@ func (m *Model) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	return scores
 }
 
-func (m *Model) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
-	scores := make([]ag.Node, m.Size)
+func (m *Model[T]) totalScoreStep(totalVec []ag.Node[T], stepVec []ag.Node[T]) []ag.Node[T] {
+	scores := make([]ag.Node[T], m.Size)
 	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		nodei := totalVec[i]

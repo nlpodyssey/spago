@@ -14,8 +14,8 @@ import (
 )
 
 // Param is the interface for a Model parameter.
-type Param interface {
-	ag.Node // it implies fn.Operand and ag.GradValue too
+type Param[T mat.DType] interface {
+	ag.Node[T] // it implies fn.Operand and ag.GradValue too
 
 	// Name returns the params name (can be empty string).
 	Name() string
@@ -28,50 +28,50 @@ type Param interface {
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.
-	ReplaceValue(value mat.Matrix[mat.Float])
+	ReplaceValue(value mat.Matrix[T])
 	// ApplyDelta updates the value of the underlying storage applying the delta.
-	ApplyDelta(delta mat.Matrix[mat.Float])
+	ApplyDelta(delta mat.Matrix[T])
 	// Payload returns the optimizer support structure (can be nil).
-	Payload() *Payload
+	Payload() *Payload[T]
 	// SetPayload is a thread safe operation to set the given Payload on the
 	// receiver Param.
-	SetPayload(payload *Payload)
+	SetPayload(payload *Payload[T])
 	// ClearPayload clears the support structure.
 	ClearPayload()
 }
 
 // Params extends a slice of Param with Nodes() method.
-type Params []Param
+type Params[T mat.DType] []Param[T]
 
 // Nodes converts the slice of Param into a slice of ag.Node.
-func (ps Params) Nodes() []ag.Node {
-	ns := make([]ag.Node, len(ps))
-	for i, p := range ps {
-		ns[i] = p
+func (p Params[T]) Nodes() []ag.Node[T] {
+	ns := make([]ag.Node[T], len(p))
+	for i, v := range p {
+		ns[i] = v
 	}
 	return ns
 }
 
-var _ Param = &param{}
+var _ Param[float32] = &param[float32]{}
 
-type param struct {
+type param[T mat.DType] struct {
 	name         string
-	pType        ParamsType            // lazy initialization
-	mu           sync.Mutex            // to avoid data race
-	value        mat.Matrix[mat.Float] // store the results of a forward evaluation.
-	grad         mat.Matrix[mat.Float] // TODO: support of sparse gradients
-	payload      *Payload              // additional data used for example by gradient-descend optimization methods
+	pType        ParamsType    // lazy initialization
+	mu           sync.Mutex    // to avoid data race
+	value        mat.Matrix[T] // store the results of a forward evaluation.
+	grad         mat.Matrix[T] // TODO: support of sparse gradients
+	payload      *Payload[T]   // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
 	storage      *kvdb.KeyValueDB // default nil
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
-type ParamOption func(*param)
+type ParamOption[T mat.DType] func(*param[T])
 
 // RequiresGrad is an option to specify whether a Param should be trained or not.
-func RequiresGrad(value bool) ParamOption {
-	return func(p *param) {
+func RequiresGrad[T mat.DType](value bool) ParamOption[T] {
+	return func(p *param[T]) {
 		p.requiresGrad = value
 	}
 }
@@ -79,15 +79,15 @@ func RequiresGrad(value bool) ParamOption {
 // SetStorage is an option to specify a kvdb.KeyValueDB storage.
 // This is useful, for example, for a memory-efficient embeddings
 // Param implementation.
-func SetStorage(storage *kvdb.KeyValueDB) ParamOption {
-	return func(p *param) {
+func SetStorage[T mat.DType](storage *kvdb.KeyValueDB) ParamOption[T] {
+	return func(p *param[T]) {
 		p.storage = storage
 	}
 }
 
 // NewParam returns a new param.
-func NewParam(value mat.Matrix[mat.Float], opts ...ParamOption) Param {
-	p := &param{
+func NewParam[T mat.DType](value mat.Matrix[T], opts ...ParamOption[T]) Param[T] {
+	p := &param[T]{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
@@ -104,211 +104,211 @@ func NewParam(value mat.Matrix[mat.Float], opts ...ParamOption) Param {
 }
 
 // SetName set the params name (can be empty string).
-func (r *param) SetName(name string) {
-	r.name = name
+func (p *param[_]) SetName(name string) {
+	p.name = name
 }
 
 // SetType set the params type (weights, biases, undefined).
-func (r *param) SetType(pType ParamsType) {
-	r.pType = pType
+func (p *param[_]) SetType(pType ParamsType) {
+	p.pType = pType
 }
 
 // Name returns the params name (can be empty string).
-func (r *param) Name() string {
-	return r.name
+func (p *param[_]) Name() string {
+	return p.name
 }
 
 // Type returns the params type (weights, biases, undefined).
-func (r *param) Type() ParamsType {
-	return r.pType
+func (p *param[_]) Type() ParamsType {
+	return p.pType
 }
 
 // Value returns the value of the delegate itself.
-func (r *param) Value() mat.Matrix[mat.Float] {
-	return r.value
+func (p *param[T]) Value() mat.Matrix[T] {
+	return p.value
 }
 
 // ReplaceValue replaces the value of the parameter and clears the support structure.
-func (r *param) ReplaceValue(value mat.Matrix[mat.Float]) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.value = value
-	r.payload = nil
-	if r.storage != nil {
-		r.updateStorage()
+func (p *param[T]) ReplaceValue(value mat.Matrix[T]) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.value = value
+	p.payload = nil
+	if p.storage != nil {
+		p.updateStorage()
 	}
 }
 
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *param) ScalarValue() mat.Float {
-	return r.value.Scalar()
+func (p *param[T]) ScalarValue() T {
+	return p.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *param) Grad() mat.Matrix[mat.Float] {
-	return r.grad
+func (p *param[T]) Grad() mat.Matrix[T] {
+	return p.grad
 }
 
 // PropagateGrad accumulate the gradients
-func (r *param) PropagateGrad(grad mat.Matrix[mat.Float]) {
-	if !r.requiresGrad {
+func (p *param[T]) PropagateGrad(grad mat.Matrix[T]) {
+	if !p.requiresGrad {
 		return
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if r.grad == nil {
-		r.grad = r.value.ZerosLike()
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.grad == nil {
+		p.grad = p.value.ZerosLike()
 	}
-	r.grad.AddInPlace(grad)
-	r.hasGrad = true
+	p.grad.AddInPlace(grad)
+	p.hasGrad = true
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *param) HasGrad() bool {
-	return r.hasGrad
+func (p *param[_]) HasGrad() bool {
+	return p.hasGrad
 }
 
 // RequiresGrad returns true if the param requires gradients.
-func (r *param) RequiresGrad() bool {
-	return r.requiresGrad
+func (p *param[_]) RequiresGrad() bool {
+	return p.requiresGrad
 }
 
 // SetRequiresGrad is an option to specify whether a Param should be trained or not.
-func (r *param) SetRequiresGrad(value bool) {
-	r.requiresGrad = value
+func (p *param[_]) SetRequiresGrad(value bool) {
+	p.requiresGrad = value
 }
 
 // ZeroGrad clears the gradients.
-func (r *param) ZeroGrad() {
-	if r.grad == nil {
+func (p *param[_]) ZeroGrad() {
+	if p.grad == nil {
 		return
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	defer mat.ReleaseMatrix(r.grad) //  release memory
-	r.grad = nil
-	r.hasGrad = false
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	defer mat.ReleaseMatrix(p.grad) //  release memory
+	p.grad = nil
+	p.hasGrad = false
 }
 
 // ApplyDelta updates the value of the underlying storage applying the delta.
-func (r *param) ApplyDelta(delta mat.Matrix[mat.Float]) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.Value().SubInPlace(delta)
-	if r.storage != nil {
-		r.updateStorage()
+func (p *param[T]) ApplyDelta(delta mat.Matrix[T]) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.Value().SubInPlace(delta)
+	if p.storage != nil {
+		p.updateStorage()
 	}
 }
 
 // Payload returns the optimizer support structure (can be nil).
-func (r *param) Payload() *Payload {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return r.payload
+func (p *param[T]) Payload() *Payload[T] {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.payload
 }
 
 // SetPayload is a thread safe operation to set the given Payload on the
 // receiver Param.
-func (r *param) SetPayload(payload *Payload) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.payload = payload
-	if r.storage != nil {
-		r.updateStorage()
+func (p *param[T]) SetPayload(payload *Payload[T]) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.payload = payload
+	if p.storage != nil {
+		p.updateStorage()
 	}
 }
 
 // ClearPayload clears the support structure.
-func (r *param) ClearPayload() {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.payload = nil
-	if r.storage != nil {
-		r.updateStorage()
+func (p *param[_]) ClearPayload() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.payload = nil
+	if p.storage != nil {
+		p.updateStorage()
 	}
 }
 
-func (r *param) updateStorage() {
-	if r.storage == nil {
+func (p *param[T]) updateStorage() {
+	if p.storage == nil {
 		return
 	}
 
 	buf := new(bytes.Buffer)
-	err := MarshalBinaryParam(r, buf)
+	err := MarshalBinaryParam[T](p, buf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = r.storage.Put([]byte(r.name), buf.Bytes())
+	err = p.storage.Put([]byte(p.name), buf.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 // Graph returns always nil since the "pure" parameter is not associated with any graph.
-func (r *param) Graph() *ag.Graph {
+func (p *param[T]) Graph() *ag.Graph[T] {
 	return nil
 }
 
 // ID returns always -1 since the "pure" parameter is not associated with any graph.
-func (r *param) ID() int {
+func (p *param[_]) ID() int {
 	return -1
 }
 
 // TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
-func (r *param) TimeStep() int {
+func (p *param[_]) TimeStep() int {
 	return 0
 }
 
 // wrappedParam returns a new wrappedParam from the param itself.
-func (r *param) wrappedParam(g *ag.Graph) *wrappedParam {
-	if r.requiresGrad {
-		return &wrappedParam{param: r, Node: g.NewWrap(r)}
+func (p *param[T]) wrappedParam(g *ag.Graph[T]) *wrappedParam[T] {
+	if p.requiresGrad {
+		return &wrappedParam[T]{param: p, Node: g.NewWrap(p)}
 	}
-	return &wrappedParam{param: r, Node: g.NewWrapNoGrad(r)}
+	return &wrappedParam[T]{param: p, Node: g.NewWrapNoGrad(p)}
 }
 
-var _ Param = &wrappedParam{}
+var _ Param[float32] = &wrappedParam[float32]{}
 
 // wrappedParam enriches a Param with a Node.
-type wrappedParam struct {
-	*param
-	Node ag.Node
+type wrappedParam[T mat.DType] struct {
+	*param[T]
+	Node ag.Node[T]
 }
 
 // ID dispatches the call to the Node.
-func (r *wrappedParam) ID() int {
-	return r.Node.ID()
+func (p *wrappedParam[_]) ID() int {
+	return p.Node.ID()
 }
 
 // Graph dispatches the call to the Node.
-func (r *wrappedParam) Graph() *ag.Graph {
-	return r.Node.Graph()
+func (p *wrappedParam[T]) Graph() *ag.Graph[T] {
+	return p.Node.Graph()
 }
 
 // Grad dispatches the call to the Node.
-func (r *wrappedParam) Grad() mat.Matrix[mat.Float] {
-	return r.Node.Grad()
+func (p *wrappedParam[T]) Grad() mat.Matrix[T] {
+	return p.Node.Grad()
 }
 
 // PropagateGrad dispatches the call to the Node.
-func (r *wrappedParam) PropagateGrad(gx mat.Matrix[mat.Float]) {
-	r.Node.PropagateGrad(gx)
+func (p *wrappedParam[T]) PropagateGrad(gx mat.Matrix[T]) {
+	p.Node.PropagateGrad(gx)
 }
 
 // HasGrad dispatches the call to the Node.
-func (r *wrappedParam) HasGrad() bool {
-	return r.Node.HasGrad()
+func (p *wrappedParam[_]) HasGrad() bool {
+	return p.Node.HasGrad()
 }
 
 // RequiresGrad dispatches the call to the Node.
-func (r *wrappedParam) RequiresGrad() bool {
-	return r.Node.RequiresGrad()
+func (p *wrappedParam[_]) RequiresGrad() bool {
+	return p.Node.RequiresGrad()
 }
 
 // ZeroGrad dispatches the call to the Node.
-func (r *wrappedParam) ZeroGrad() {
-	r.Node.ZeroGrad()
+func (p *wrappedParam[_]) ZeroGrad() {
+	p.Node.ZeroGrad()
 }

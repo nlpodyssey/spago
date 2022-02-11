@@ -15,7 +15,7 @@ import (
 )
 
 // SentenceEncoderHandler handles a sentence encoding request over HTTP.
-func (s *Server) SentenceEncoderHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) SentenceEncoderHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -46,15 +46,15 @@ func (s *Server) SentenceEncoderHandler(w http.ResponseWriter, req *http.Request
 }
 
 // EncodeResponse is a JSON-serializable server response for BERT "encode" requests.
-type EncodeResponse struct {
-	Data []mat.Float `json:"data"`
+type EncodeResponse[T mat.DType] struct {
+	Data []T `json:"data"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
 
 // Encode handles an encoding request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi.EncodeReply, error) {
+func (s *Server[T]) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi.EncodeReply, error) {
 	result, err := s.encode(req.GetText(), req.GetPoolingStrategy())
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (s *Server) Encode(_ context.Context, req *grpcapi.EncodeRequest) (*grpcapi
 	}, nil
 }
 
-func (s *Server) encode(text string, poolingStrategy grpcapi.EncodeRequest_PoolingStrategy) (*EncodeResponse, error) {
+func (s *Server[T]) encode(text string, poolingStrategy grpcapi.EncodeRequest_PoolingStrategy) (*EncodeResponse[T], error) {
 	start := time.Now()
 	ps, err := getPoolingStrategyFromEncodeRequest(poolingStrategy)
 	if err != nil {
@@ -81,7 +81,7 @@ func (s *Server) encode(text string, poolingStrategy grpcapi.EncodeRequest_Pooli
 	if err != nil {
 		return nil, err
 	}
-	return &EncodeResponse{
+	return &EncodeResponse[T]{
 		Data: encoded.Data(),
 		Took: time.Since(start).Milliseconds(),
 	}, nil

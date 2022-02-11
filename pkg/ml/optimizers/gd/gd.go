@@ -14,11 +14,11 @@ import (
 )
 
 // GradientDescent implements Gradients Descent (GD) optimization.
-type GradientDescent struct {
-	method           Method // optimization method (SGD, AdaGrad, Adam, ...)
-	gradClipper      clipper.GradClipper
-	paramsGetter     nn.ParamsGetter
-	paramsToOptimize []nn.Param
+type GradientDescent[T mat.DType] struct {
+	method           Method[T] // optimization method (SGD, AdaGrad, Adam, ...)
+	gradClipper      clipper.GradClipper[T]
+	paramsGetter     nn.ParamsGetter[T]
+	paramsToOptimize []nn.Param[T]
 	// processingQueue allows proper handling for computationally heavy operations
 	// such as the params update step.
 	// The default size is defaultProcessingQueueSize.
@@ -29,20 +29,20 @@ type GradientDescent struct {
 var defaultProcessingQueueSize = runtime.NumCPU()
 
 // Option allows to configure a new GradientDescent with your specific needs.
-type Option func(*GradientDescent)
+type Option[T mat.DType] func(*GradientDescent[T])
 
 // ClipGradByValue is an option to clip the gradients during the training between
 // -value and +value.
-func ClipGradByValue(value mat.Float) Option {
-	return func(f *GradientDescent) {
-		f.gradClipper = &clipper.ClipValue{Value: value}
+func ClipGradByValue[T mat.DType](value T) Option[T] {
+	return func(f *GradientDescent[T]) {
+		f.gradClipper = &clipper.ClipValue[T]{Value: value}
 	}
 }
 
 // ClipGradByNorm is an option to clip the gradients during the training by norm.
-func ClipGradByNorm(max, normType mat.Float) Option {
-	return func(f *GradientDescent) {
-		f.gradClipper = &clipper.ClipNorm{
+func ClipGradByNorm[T mat.DType](max, normType T) Option[T] {
+	return func(f *GradientDescent[T]) {
+		f.gradClipper = &clipper.ClipNorm[T]{
 			MaxNorm:  max,
 			NormType: normType,
 		}
@@ -52,21 +52,21 @@ func ClipGradByNorm(max, normType mat.Float) Option {
 // ConcurrentComputations sets the maximum number of concurrent computations handled by the GradientDescent
 // for heavy tasks such as the params update steps.
 // The value 1 corresponds to sequential execution.
-func ConcurrentComputations(value int) Option {
+func ConcurrentComputations[T mat.DType](value int) Option[T] {
 	if value < 1 {
 		panic("gd: ConcurrentComputations value must be greater than zero")
 	}
-	return func(f *GradientDescent) {
+	return func(f *GradientDescent[T]) {
 		f.processingQueue = processingqueue.New(value)
 	}
 }
 
 // NewOptimizer returns a new GradientDescent optimizer. The gradient clipper can be set to nil.
-func NewOptimizer(method Method, paramsIterator nn.ParamsGetter, opts ...Option) *GradientDescent {
-	optimizer := &GradientDescent{
+func NewOptimizer[T mat.DType](method Method[T], paramsIterator nn.ParamsGetter[T], opts ...Option[T]) *GradientDescent[T] {
+	optimizer := &GradientDescent[T]{
 		method:           method,
 		paramsGetter:     paramsIterator,
-		paramsToOptimize: make([]nn.Param, 0),
+		paramsToOptimize: make([]nn.Param[T], 0),
 		processingQueue:  processingqueue.New(defaultProcessingQueueSize),
 	}
 	for _, opt := range opts {
@@ -77,7 +77,7 @@ func NewOptimizer(method Method, paramsIterator nn.ParamsGetter, opts ...Option)
 
 // Optimize optimize the params, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
-func (o *GradientDescent) Optimize() {
+func (o *GradientDescent[_]) Optimize() {
 	o.paramsToOptimize = o.paramsGetter.Params()
 	if o.paramsToOptimize == nil {
 		return
@@ -88,7 +88,7 @@ func (o *GradientDescent) Optimize() {
 }
 
 // updateParamsSerial applies the optimization method to all the observed parameters.
-func (o *GradientDescent) updateParamsSerial() {
+func (o *GradientDescent[_]) updateParamsSerial() {
 	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() {
 			delta := o.method.Delta(param) // important: don't release delta here
@@ -99,14 +99,14 @@ func (o *GradientDescent) updateParamsSerial() {
 }
 
 // updateParams applies the optimization method to all the observed parameters concurrently.
-func (o *GradientDescent) updateParams() {
+func (o *GradientDescent[T]) updateParams() {
 	var wg sync.WaitGroup
 	for _, param := range o.paramsToOptimize {
 		if !param.HasGrad() {
 			continue
 		}
 		wg.Add(1)
-		go func(param nn.Param) {
+		go func(param nn.Param[T]) {
 			defer wg.Done()
 			o.processingQueue.Run(func() {
 				delta := o.method.Delta(param)
@@ -119,11 +119,11 @@ func (o *GradientDescent) updateParams() {
 }
 
 // clipGrad applies the gradient clipping to all the observed parameters.
-func (o *GradientDescent) clipGrads() {
+func (o *GradientDescent[T]) clipGrads() {
 	if o.gradClipper == nil {
 		return
 	}
-	var gs []mat.Matrix[mat.Float]
+	var gs []mat.Matrix[T]
 	for _, param := range o.paramsToOptimize {
 		if param.HasGrad() { // don't consider grad at zero
 			gs = append(gs, param.Grad())
@@ -133,21 +133,21 @@ func (o *GradientDescent) clipGrads() {
 }
 
 // IncExample beats the occurrence of a new example.
-func (o *GradientDescent) IncExample() {
+func (o *GradientDescent[_]) IncExample() {
 	if method, ok := o.method.(ExampleScheduler); ok {
 		method.IncExample()
 	}
 }
 
 // IncBatch beats the occurrence of a new batch.
-func (o *GradientDescent) IncBatch() {
+func (o *GradientDescent[_]) IncBatch() {
 	if method, ok := o.method.(BatchScheduler); ok {
 		method.IncBatch()
 	}
 }
 
 // IncEpoch beats the occurrence of a new epoch.
-func (o *GradientDescent) IncEpoch() {
+func (o *GradientDescent[_]) IncEpoch() {
 	if method, ok := o.method.(EpochScheduler); ok {
 		method.IncEpoch()
 	}

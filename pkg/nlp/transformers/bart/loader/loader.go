@@ -6,6 +6,7 @@ package loader
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/config"
@@ -17,20 +18,20 @@ import (
 )
 
 // Load loads a Model model from file.
-func Load(modelPath string) (nn.Model, error) {
+func Load[T mat.DType](modelPath string) (nn.Model[T], error) {
 	configFilename := path.Join(modelPath, config.DefaultConfigurationFile)
 	embeddingsPath := path.Join(modelPath, config.DefaultEmbeddingsStorage)
 	modelFilename := path.Join(modelPath, config.DefaultModelFile)
 
 	fmt.Printf("Start loading pre-trained model from \"%s\"\n", modelPath)
 	fmt.Printf("[1/2] Loading configuration... ")
-	c, err := config.Load(configFilename)
+	c, err := config.Load[T](configFilename)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("ok\n")
 
-	var model nn.Model
+	var model nn.Model[T]
 	if len(c.Architecture) == 0 {
 		model = bart.New(c, embeddingsPath) // BART base
 	} else {

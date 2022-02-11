@@ -14,56 +14,57 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Config
-	Query *linear.Model
-	Key   *linear.Model
-	Value *linear.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config[T]
+	Query *linear.Model[T]
+	Key   *linear.Model[T]
+	Value *linear.Model[T]
 }
 
 // Config provides configuration settings for a Self-Attention Model.
-type Config struct {
+type Config[T mat.DType] struct {
 	InputSize     int
 	QuerySize     int
 	KeySize       int
 	ValueSize     int
-	ScaleFactor   mat.Float
+	ScaleFactor   T
 	UseCausalMask bool
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(config Config) *Model {
-	return &Model{
+func New[T mat.DType](config Config[T]) *Model[T] {
+	return &Model[T]{
 		Config: config,
-		Query:  linear.New(config.InputSize, config.QuerySize),
-		Key:    linear.New(config.InputSize, config.KeySize),
-		Value:  linear.New(config.InputSize, config.ValueSize),
+		Query:  linear.New[T](config.InputSize, config.QuerySize),
+		Key:    linear.New[T](config.InputSize, config.KeySize),
+		Value:  linear.New[T](config.InputSize, config.ValueSize),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // It generates the queries, keys and values from the same input xs.
-func (m *Model) Forward(qkv attention.QKV) attention.Output {
-	projAtt := attention.QKV{
+func (m *Model[T]) Forward(qkv attention.QKV[T]) attention.Output[T] {
+	projAtt := attention.QKV[T]{
 		Queries: m.Query.Forward(qkv.Queries...),
 		Keys:    m.Key.Forward(qkv.Keys...),
 		Values:  m.Value.Forward(qkv.Values...),
 	}
 	attOutput, attWeights := attention.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
 
-	return attention.Output{
+	return attention.Output[T]{
 		AttOutput:  attOutput,
 		AttWeights: attWeights,
-		ProjKeysValues: attention.KeysValuesPair{
+		ProjKeysValues: attention.KeysValuesPair[T]{
 			Keys:   projAtt.Keys,
 			Values: projAtt.Values,
 		},
@@ -72,11 +73,11 @@ func (m *Model) Forward(qkv attention.QKV) attention.Output {
 
 // ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
 // It generates the queries, keys and values from the same input xs.
-func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, past attention.KeysValuesPair) attention.Output {
-	projAtt := attention.QKV{
+func (m *Model[T]) ForwardWithPastKeysValues(qkv attention.QKV[T], past attention.KeysValuesPair[T]) attention.Output[T] {
+	projAtt := attention.QKV[T]{
 		Queries: m.Query.Forward(qkv.Queries...),
-		Keys:    append([]ag.Node{}, past.Keys...),   // this append is important
-		Values:  append([]ag.Node{}, past.Values...), // this append is important
+		Keys:    append([]ag.Node[T]{}, past.Keys...),   // this append is important
+		Values:  append([]ag.Node[T]{}, past.Values...), // this append is important
 	}
 
 	if qkv.Keys != nil { // the qkv.Values shall not be null as well
@@ -86,10 +87,10 @@ func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, past attention.Keys
 
 	attOutput, attWeights := attention.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
 
-	return attention.Output{
+	return attention.Output[T]{
 		AttOutput:  attOutput,
 		AttWeights: attWeights,
-		ProjKeysValues: attention.KeysValuesPair{
+		ProjKeysValues: attention.KeysValuesPair[T]{
 			Keys:   projAtt.Keys,
 			Values: projAtt.Values,
 		},

@@ -11,7 +11,7 @@ import (
 )
 
 func Test_Update(t *testing.T) {
-	updater := New(NewConfig(0.001, 1e-06, 0.9))
+	updater := New(NewConfig[mat.Float](0.001, 1e-06, 0.9))
 	params := mat.NewVecDense([]mat.Float{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]mat.Float{0.9, 0.7, 0.4, 0.8, 0.1})
 	supp := updater.NewSupport(params.Dims()).Data
@@ -23,7 +23,7 @@ func Test_Update(t *testing.T) {
 }
 
 func Test_Update2(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		1e-08, // epsilon
 		0.9,   // decay

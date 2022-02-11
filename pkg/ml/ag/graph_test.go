@@ -14,7 +14,7 @@ import (
 )
 
 func TestNewGraph(t *testing.T) {
-	runCommonAssertions := func(t *testing.T, g *Graph) {
+	runCommonAssertions := func(t *testing.T, g *Graph[mat.Float]) {
 		t.Helper()
 		assert.NotNil(t, g)
 		assert.Equal(t, -1, g.maxID)
@@ -27,7 +27,7 @@ func TestNewGraph(t *testing.T) {
 	}
 
 	t.Run("without option", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.incrementalForward)
@@ -35,7 +35,7 @@ func TestNewGraph(t *testing.T) {
 	})
 
 	t.Run("with IncrementalForward(false) option", func(t *testing.T) {
-		g := NewGraph(IncrementalForward(false))
+		g := NewGraph[mat.Float](IncrementalForward[mat.Float](false))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.False(t, g.incrementalForward)
@@ -46,7 +46,7 @@ func TestNewGraph(t *testing.T) {
 		for i := 1; i < 4; i++ {
 			size := i
 			t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
-				g := NewGraph(ConcurrentComputations(size))
+				g := NewGraph[mat.Float](ConcurrentComputations[mat.Float](size))
 				runCommonAssertions(t, g)
 				assert.NotNil(t, g.randGen)
 				assert.True(t, g.incrementalForward)
@@ -57,7 +57,7 @@ func TestNewGraph(t *testing.T) {
 
 	t.Run("with Rand option", func(t *testing.T) {
 		r := rand.NewLockedRand[mat.Float](42)
-		g := NewGraph(Rand(r))
+		g := NewGraph[mat.Float](Rand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
 		assert.True(t, g.incrementalForward)
@@ -66,7 +66,7 @@ func TestNewGraph(t *testing.T) {
 
 	t.Run("with RandSeed option", func(t *testing.T) {
 		r := rand.NewLockedRand[mat.Float](42)
-		g := NewGraph(RandSeed(42))
+		g := NewGraph[mat.Float](RandSeed[mat.Float](42))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
@@ -77,13 +77,13 @@ func TestNewGraph(t *testing.T) {
 
 func TestConcurrentComputations(t *testing.T) {
 	t.Run("it panics if value < 1", func(t *testing.T) {
-		assert.Panics(t, func() { ConcurrentComputations(0) })
+		assert.Panics(t, func() { ConcurrentComputations[mat.Float](0) })
 	})
 }
 
 func TestGraph_NewVariable(t *testing.T) {
 	t.Run("with requiresGrad true", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		s := mat.NewScalar[mat.Float](1)
 		v := g.NewVariable(s, true)
 		assert.NotNil(t, v)
@@ -92,7 +92,7 @@ func TestGraph_NewVariable(t *testing.T) {
 	})
 
 	t.Run("with requiresGrad false", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		s := mat.NewScalar[mat.Float](1)
 		v := g.NewVariable(s, false)
 		assert.NotNil(t, v)
@@ -101,19 +101,19 @@ func TestGraph_NewVariable(t *testing.T) {
 	})
 
 	t.Run("it assigns the correct ID to the nodes and adds them to the graph", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		a := mat.NewScalar[mat.Float](1)
 		b := mat.NewScalar[mat.Float](2)
 		va := g.NewVariable(a, true)
 		vb := g.NewVariable(b, false)
 		assert.Equal(t, 0, va.ID())
 		assert.Equal(t, 1, vb.ID())
-		assert.Equal(t, []Node{va, vb}, g.nodes)
+		assert.Equal(t, []Node[mat.Float]{va, vb}, g.nodes)
 	})
 }
 
 func TestGraph_NewScalar(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph[mat.Float]()
 	s := g.NewScalar(42)
 	assert.NotNil(t, s)
 	assert.False(t, s.RequiresGrad())
@@ -124,7 +124,7 @@ func TestGraph_NewScalar(t *testing.T) {
 }
 
 func TestGraph_Constant(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph[mat.Float]()
 	c := g.Constant(42)
 	assert.NotNil(t, c)
 	assert.False(t, c.RequiresGrad())
@@ -137,7 +137,7 @@ func TestGraph_Constant(t *testing.T) {
 }
 
 func TestGraph_IncTimeStep(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph[mat.Float]()
 	assert.Equal(t, 0, g.TimeStep())
 
 	g.IncTimeStep()
@@ -148,7 +148,7 @@ func TestGraph_IncTimeStep(t *testing.T) {
 }
 
 func TestNodesTimeStep(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph[mat.Float]()
 
 	a := g.NewVariable(mat.NewScalar[mat.Float](1), false)
 	assert.Equal(t, 0, a.TimeStep())
@@ -164,7 +164,7 @@ func TestNodesTimeStep(t *testing.T) {
 
 func TestGraph_Clear(t *testing.T) {
 	t.Run("it resets maxID", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		g.NewScalar(42)
 		assert.Equal(t, 0, g.maxID)
 		g.Clear()
@@ -172,7 +172,7 @@ func TestGraph_Clear(t *testing.T) {
 	})
 
 	t.Run("it resets curTimeStep", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		g.NewScalar(42)
 		g.IncTimeStep()
 		assert.Equal(t, 1, g.curTimeStep)
@@ -181,7 +181,7 @@ func TestGraph_Clear(t *testing.T) {
 	})
 
 	t.Run("it resets nodes", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		g.NewScalar(42)
 		assert.NotNil(t, g.nodes)
 		g.Clear()
@@ -189,7 +189,7 @@ func TestGraph_Clear(t *testing.T) {
 	})
 
 	t.Run("it resets the cache", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		g.Add(g.NewScalar(1), g.NewScalar(2))
 		g.groupNodesByHeight() // it's just a function which uses the cache
 
@@ -205,7 +205,7 @@ func TestGraph_Clear(t *testing.T) {
 	})
 
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		op := g.Add(
 			g.NewVariable(mat.NewScalar[mat.Float](1), true),
 			g.NewVariable(mat.NewScalar[mat.Float](2), true),
@@ -222,7 +222,7 @@ func TestGraph_Clear(t *testing.T) {
 	})
 
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		g.Clear()
 		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
@@ -232,7 +232,7 @@ func TestGraph_Clear(t *testing.T) {
 
 func TestGraph_ClearForReuse(t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		op := g.Add(
 			g.NewVariable(mat.NewScalar[mat.Float](1), true),
 			g.NewVariable(mat.NewScalar[mat.Float](2), true),
@@ -249,13 +249,13 @@ func TestGraph_ClearForReuse(t *testing.T) {
 	})
 
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
-		g := NewGraph()
+		g := NewGraph[mat.Float]()
 		assert.NotPanics(t, func() { g.ClearForReuse() })
 	})
 }
 
 func TestGraph_ZeroGrad(t *testing.T) {
-	g := NewGraph()
+	g := NewGraph[mat.Float]()
 	v1 := g.NewVariable(mat.NewScalar[mat.Float](1), true)
 	v2 := g.NewVariable(mat.NewScalar[mat.Float](2), true)
 	op := g.Add(v1, v2)
@@ -274,21 +274,21 @@ func TestGraph_ZeroGrad(t *testing.T) {
 
 func TestGraph_NewOperator(t *testing.T) {
 	t.Run("it panics if operands belong to a different Graph", func(t *testing.T) {
-		g1 := NewGraph()
-		g2 := NewGraph()
+		g1 := NewGraph[mat.Float]()
+		g2 := NewGraph[mat.Float]()
 		x := g2.NewScalar(42)
-		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt(x), x) })
+		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt[mat.Float](x), x) })
 	})
 }
 
 func TestGraph_NewWrap(t *testing.T) {
-	s := NewGraph().NewScalar(42)
-	g := NewGraph()
+	s := NewGraph[mat.Float]().NewScalar(42)
+	g := NewGraph[mat.Float]()
 	g.IncTimeStep()
 
 	result := g.NewWrap(s)
-	assert.IsType(t, &Wrapper{}, result)
-	w := result.(*Wrapper)
+	assert.IsType(t, &Wrapper[mat.Float]{}, result)
+	w := result.(*Wrapper[mat.Float])
 
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)
@@ -298,13 +298,13 @@ func TestGraph_NewWrap(t *testing.T) {
 }
 
 func TestGraph_NewWrapNoGrad(t *testing.T) {
-	s := NewGraph().NewScalar(42)
-	g := NewGraph()
+	s := NewGraph[mat.Float]().NewScalar(42)
+	g := NewGraph[mat.Float]()
 	g.IncTimeStep()
 
 	result := g.NewWrapNoGrad(s)
-	assert.IsType(t, &Wrapper{}, result)
-	w := result.(*Wrapper)
+	assert.IsType(t, &Wrapper[mat.Float]{}, result)
+	w := result.(*Wrapper[mat.Float])
 
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)
@@ -314,7 +314,7 @@ func TestGraph_NewWrapNoGrad(t *testing.T) {
 }
 
 func TestGraph_Forward(t *testing.T) {
-	g := NewGraph(IncrementalForward(false))
+	g := NewGraph[mat.Float](IncrementalForward[mat.Float](false))
 	op := g.Add(g.NewScalar(40), g.NewScalar(2))
 	assert.Nil(t, op.Value())
 	g.Forward()

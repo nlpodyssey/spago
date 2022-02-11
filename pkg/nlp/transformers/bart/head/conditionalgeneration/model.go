@@ -6,6 +6,7 @@ package conditionalgeneration
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -17,48 +18,49 @@ import (
 )
 
 var (
-	_ nn.Model                  = &Model{}
-	_ generation.EncoderDecoder = &Model{}
+	_ nn.Model[float32]                  = &Model[float32]{}
+	_ generation.EncoderDecoder[float32] = &Model[float32]{}
 )
 
 // Model is a model for conditional generation tasks
 // which embeds a BART pre-trained model.
-type Model struct {
-	nn.BaseModel
-	BART       *bart.Model
-	Projection *linear.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	BART       *bart.Model[T]
+	Projection *linear.Model[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new Model for conditional generation.
-func New(config config.Config, embeddingsPath string) *Model {
-	return &Model{
-		BART:       bart.New(config, embeddingsPath),
-		Projection: linear.New(config.DModel, config.VocabSize),
+func New[T mat.DType](config config.Config[T], embeddingsPath string) *Model[T] {
+	return &Model[T]{
+		BART:       bart.New[T](config, embeddingsPath),
+		Projection: linear.New[T](config.DModel, config.VocabSize),
 	}
 }
 
 // Close closes the BART model's embeddings DB.
-func (m *Model) Close() {
+func (m *Model[_]) Close() {
 	m.BART.Close()
 }
 
 // PredictNext returns the logits for the next possible tokens.
-func (m *Model) PredictNext(
-	encoderOutLastHiddenState []ag.Node,
+func (m *Model[T]) PredictNext(
+	encoderOutLastHiddenState []ag.Node[T],
 	decoderInputIDs []int,
-	pastKeyValues decoder.KeysValuesPairs,
-) (ag.Node, decoder.KeysValuesPairs) {
+	pastKeyValues decoder.KeysValuesPairs[T],
+) (ag.Node[T], decoder.KeysValuesPairs[T]) {
 	decoded, nextCache := m.BART.Decode(decoderInputIDs, encoderOutLastHiddenState, pastKeyValues)
 	logits := m.Projection.Forward(decoded...)
-	return nn.ToNode(logits), nextCache
+	return nn.ToNode[T](logits), nextCache
 }
 
 // Generate generates sequences using generation-search decoding.
-func (m *Model) Generate(inputIDs []int) []int {
+func (m *Model[T]) Generate(inputIDs []int) []int {
 	incrementalForward := m.Graph().IncrementalForwardEnabled()
 
 	maxConcurrentComputations := runtime.NumCPU()
@@ -66,7 +68,7 @@ func (m *Model) Generate(inputIDs []int) []int {
 		maxConcurrentComputations = runtime.NumCPU() / 2
 	}
 
-	generator := generation.NewGenerator(generation.GeneratorConfig{
+	generator := generation.NewGenerator[T](generation.GeneratorConfig[T]{
 		NumBeams:                  m.BART.Config.NumBeams,
 		MinLength:                 0,
 		MaxLength:                 m.BART.Config.MaxLength,
@@ -87,13 +89,13 @@ func (m *Model) Generate(inputIDs []int) []int {
 }
 
 // Encode satisfies pkg/nlp/transformers/generation/Encoder.
-func (m *Model) Encode(InputIDs []int) []ag.Node {
+func (m *Model[T]) Encode(InputIDs []int) []ag.Node[T] {
 	return m.BART.Encode(InputIDs)
 }
 
 // Decode satisfies pkg/nlp/transformers/generation/Decoder.
-func (m *Model) Decode(encodedInput []ag.Node, inputIDs []int, pastCache generation.Cache) (ag.Node, generation.Cache) {
-	pastKeysValues, _ := pastCache.(decoder.KeysValuesPairs)
+func (m *Model[T]) Decode(encodedInput []ag.Node[T], inputIDs []int, pastCache generation.Cache) (ag.Node[T], generation.Cache) {
+	pastKeysValues, _ := pastCache.(decoder.KeysValuesPairs[T])
 	if pastKeysValues != nil {
 		// cut input ids if past is used
 		inputIDs = inputIDs[len(inputIDs)-1:]

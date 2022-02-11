@@ -11,7 +11,7 @@ import (
 )
 
 func TestAt_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -21,7 +21,7 @@ func TestAt_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewAt(x, 2, 3)
+	f := NewAt[mat.Float](x, 2, 3)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{-0.1}, y.Data(), 1.0e-6)

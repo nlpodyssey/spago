@@ -5,6 +5,7 @@
 package sequencelabeler
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"net/http"
 
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler/grpcapi"
@@ -15,8 +16,8 @@ import (
 
 // Server is the spaGO built-in implementation of HTTP and gRPC server for
 // sequence labeling.
-type Server struct {
-	model           *Model
+type Server[T mat.DType] struct {
+	model           *Model[T]
 	TimeoutSeconds  int
 	MaxRequestBytes int
 
@@ -25,14 +26,14 @@ type Server struct {
 }
 
 // NewServer returns a new Server.
-func NewServer(model *Model) *Server {
-	return &Server{
+func NewServer[T mat.DType](model *Model[T]) *Server[T] {
+	return &Server[T]{
 		model: model,
 	}
 }
 
 // Start starts the HTTP and gRPC servers.
-func (s *Server) Start(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server[T]) Start(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ner-ui", ner.Handler)
 	mux.HandleFunc("/analyze", s.analyze)

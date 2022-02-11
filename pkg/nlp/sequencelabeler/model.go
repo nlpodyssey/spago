@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/birnn"
@@ -29,25 +30,26 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model implements a sequence labeling model.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config          Config
-	EmbeddingsLayer *stackedembeddings.Model
-	TaggerLayer     *birnncrf.Model
+	EmbeddingsLayer *stackedembeddings.Model[T]
+	TaggerLayer     *birnncrf.Model[T]
 	Labels          []string
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // NewDefaultModel returns a new sequence labeler built based on the architecture of Flair.
 // See https://github.com/flairNLP/flair for more information.
-func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) *Model {
+func NewDefaultModel[T mat.DType](config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) *Model[T] {
 	CharLanguageModelConfig := charlm.Config{
 		VocabularySize:    config.ContextualStringEmbeddings.VocabularySize,
 		EmbeddingSize:     config.ContextualStringEmbeddings.EmbeddingSize,
@@ -57,10 +59,10 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		UnknownToken:      config.ContextualStringEmbeddings.UnknownToken,
 	}
 
-	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor, len(config.WordEmbeddings))
+	wordLevelEmbeddings := make([]stackedembeddings.WordsEncoderProcessor[T], len(config.WordEmbeddings))
 
 	for i, weConfig := range config.WordEmbeddings {
-		wordLevelEmbeddings[i] = embeddings.New(embeddings.Config{
+		wordLevelEmbeddings[i] = embeddings.New[T](embeddings.Config{
 			Size:             weConfig.WordEmbeddingsSize,
 			UseZeroEmbedding: true,
 			DBPath:           filepath.Join(path, weConfig.WordEmbeddingsFilename),
@@ -69,38 +71,38 @@ func NewDefaultModel(config Config, path string, readOnlyEmbeddings bool, forceN
 		})
 	}
 
-	return &Model{
+	return &Model[T]{
 		Config: config,
-		EmbeddingsLayer: &stackedembeddings.Model{
+		EmbeddingsLayer: &stackedembeddings.Model[T]{
 			WordsEncoders: append(
 				wordLevelEmbeddings,
-				contextualstringembeddings.New(
-					charlm.New(CharLanguageModelConfig),
-					charlm.New(CharLanguageModelConfig),
+				contextualstringembeddings.New[T](
+					charlm.New[T](CharLanguageModelConfig),
+					charlm.New[T](CharLanguageModelConfig),
 					contextualstringembeddings.Concat,
 					'\n',
 					' ',
 				),
 			),
-			ProjectionLayer: linear.New(config.EmbeddingsProjectionInputSize, config.EmbeddingsProjectionOutputSize),
+			ProjectionLayer: linear.New[T](config.EmbeddingsProjectionInputSize, config.EmbeddingsProjectionOutputSize),
 		},
-		TaggerLayer: birnncrf.New(
-			birnn.New(
-				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
-				lstm.New(config.RecurrentInputSize, config.RecurrentOutputSize),
+		TaggerLayer: birnncrf.New[T](
+			birnn.New[T](
+				lstm.New[T](config.RecurrentInputSize, config.RecurrentOutputSize),
+				lstm.New[T](config.RecurrentInputSize, config.RecurrentOutputSize),
 				birnn.Concat,
 			),
-			linear.New(config.ScorerInputSize, config.ScorerOutputSize),
-			crf.New(len(config.Labels)),
+			linear.New[T](config.ScorerInputSize, config.ScorerOutputSize),
+			crf.New[T](len(config.Labels)),
 		),
 		Labels: config.Labels,
 	}
 }
 
 // LoadModel loads a Model from file.
-func LoadModel(modelPath string) (*Model, error) {
+func LoadModel[T mat.DType](modelPath string) (*Model[T], error) {
 	config := LoadConfig(filepath.Join(modelPath, "config.json"))
-	model := NewDefaultModel(
+	model := NewDefaultModel[T](
 		config,
 		modelPath,
 		true,  // read-only embeddings
@@ -125,9 +127,9 @@ func LoadModel(modelPath string) (*Model, error) {
 }
 
 // loadEmbeddings sets the embeddings into the model.
-func (m *Model) loadEmbeddings(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) {
+func (m *Model[T]) loadEmbeddings(config Config, path string, readOnlyEmbeddings bool, forceNewEmbeddingsDB bool) {
 	for i, weConfig := range config.WordEmbeddings {
-		m.EmbeddingsLayer.WordsEncoders[i] = embeddings.New(embeddings.Config{
+		m.EmbeddingsLayer.WordsEncoders[i] = embeddings.New[T](embeddings.Config{
 			Size:             weConfig.WordEmbeddingsSize,
 			UseZeroEmbedding: true,
 			DBPath:           filepath.Join(path, weConfig.WordEmbeddingsFilename),
@@ -155,8 +157,8 @@ type AnalysisResult struct {
 // The result can be adjusted according to the options of merge entities and filter non-entities,
 // respectively to merge into one token the pieces of a single recognized entity (e.g. formed by "B-" and "E-"),
 // and to discard all tokens that are not recognized as entities (i.e. tag "O").
-func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool) AnalysisResult {
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+func (m *Model[T]) Analyze(text string, mergeEntities bool, filterNotEntities bool) AnalysisResult {
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForInference(m, g)
 	tokenized := basetokenizer.New().Tokenize(text)
@@ -173,7 +175,7 @@ func (m *Model) Analyze(text string, mergeEntities bool, filterNotEntities bool)
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []Token {
+func (m *Model[T]) Forward(tokens []tokenizers.StringOffsetsPair) []Token {
 	words := tokenizers.GetStrings(tokens)
 	encodings := m.EmbeddingsLayer.Encode(words)
 	prediction := m.TaggerLayer.Predict(encodings)
@@ -192,12 +194,12 @@ func (m *Model) Forward(tokens []tokenizers.StringOffsetsPair) []Token {
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.
 // TODO: it could be more consistent if the targets were the string labels
-func (m *Model) NegativeLogLoss(emissionScores []ag.Node, targets []int) ag.Node {
+func (m *Model[T]) NegativeLogLoss(emissionScores []ag.Node[T], targets []int) ag.Node[T] {
 	return m.TaggerLayer.NegativeLogLoss(emissionScores, targets)
 }
 
 // TODO: make sure that the input label sequence is valid
-func (m *Model) mergeEntities(tokens []Token) []Token {
+func (m *Model[T]) mergeEntities(tokens []Token) []Token {
 	newTokens := make([]Token, 0)
 	buf := Token{}
 	text := bytes.NewBufferString("")
@@ -227,7 +229,7 @@ func (m *Model) mergeEntities(tokens []Token) []Token {
 	return newTokens
 }
 
-func (m *Model) filterNotEntities(tokens []Token) []Token {
+func (m *Model[T]) filterNotEntities(tokens []Token) []Token {
 	ret := make([]Token, 0)
 	for _, token := range tokens {
 		if token.Label == "O" { // not an entity

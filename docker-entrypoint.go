@@ -48,13 +48,13 @@ func main() {
 	case "help":
 		fmt.Print(help)
 	case "bert-server":
-		err = bertapp.NewBertApp().Run(args)
+		err = bertapp.NewBertApp[float32]().Run(args)
 	case "bart-server":
-		err = bartapp.NewBartApp().Run(args)
+		err = bartapp.NewBartApp[float32]().Run(args)
 	case "huggingface-importer":
 		err = huggingfaceimporterapp.New().Run(args)
 	case "ner-server":
-		err = nerapp.NewNERApp().Run(args)
+		err = nerapp.NewNERApp[float32]().Run(args)
 	default:
 		logger.Fatalf("Invalid command.\n%s", help)
 	}

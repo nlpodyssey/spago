@@ -12,21 +12,21 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
-type builder struct {
-	g   *ag.Graph
+type builder[T mat.DType] struct {
+	g   *ag.Graph[T]
 	gv  gographviz.Interface
 	opt Options
 }
 
-func newBuilder(g *ag.Graph, options Options) *builder {
-	return &builder{
+func newBuilder[T mat.DType](g *ag.Graph[T], options Options) *builder[T] {
+	return &builder[T]{
 		g:   g,
 		gv:  gographviz.NewEscape(),
 		opt: options,
 	}
 }
 
-func (b *builder) build() (gographviz.Interface, error) {
+func (b *builder[T]) build() (gographviz.Interface, error) {
 	if err := b.gv.SetDir(true); err != nil {
 		return nil, err
 	}
@@ -52,15 +52,15 @@ func (b *builder) build() (gographviz.Interface, error) {
 		}
 
 		switch nt := node.(type) {
-		case *ag.Variable:
+		case *ag.Variable[T]:
 			if err := b.addVariable(nt); err != nil {
 				return nil, err
 			}
-		case *ag.Operator:
+		case *ag.Operator[T]:
 			if err := b.addOperator(nt); err != nil {
 				return nil, err
 			}
-		case *ag.Wrapper:
+		case *ag.Wrapper[T]:
 			if err := b.addWrapper(nt); err != nil {
 				return nil, err
 			}
@@ -71,7 +71,7 @@ func (b *builder) build() (gographviz.Interface, error) {
 	return b.gv, nil
 }
 
-func (b *builder) addVariable(v *ag.Variable) error {
+func (b *builder[T]) addVariable(v *ag.Variable[T]) error {
 	id := fmt.Sprintf("%d", v.ID())
 	name := v.Name()
 	if name == "" {
@@ -96,8 +96,8 @@ func (b *builder) addVariable(v *ag.Variable) error {
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
-func (b *builder) addWrapper(v *ag.Wrapper) error {
-	if param, ok := v.GradValue.(nn.Param); ok {
+func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
+	if param, ok := v.GradValue.(nn.Param[T]); ok {
 		return b.addParam(v, param.Name())
 	}
 
@@ -120,7 +120,7 @@ func (b *builder) addWrapper(v *ag.Wrapper) error {
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
-func (b *builder) addParam(v *ag.Wrapper, name string) error {
+func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
 	name1 := name
 	if name1 == "" {
 		name1 = "-"
@@ -145,7 +145,7 @@ func (b *builder) addParam(v *ag.Wrapper, name string) error {
 	return b.gv.AddNode(parentGraph, id, attrs)
 }
 
-func (b *builder) addOperator(op *ag.Operator) error {
+func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
 	operatorID := fmt.Sprintf("%d", op.ID())
 	label := fmt.Sprintf(
 		`<
@@ -175,7 +175,7 @@ func (b *builder) addOperator(op *ag.Operator) error {
 	return nil
 }
 
-func (b *builder) addTimeStepSubGraph(timeStep int) error {
+func (b *builder[_]) addTimeStepSubGraph(timeStep int) error {
 	attrs := map[string]string{
 		"label":     fmt.Sprintf("Time Step %d", timeStep),
 		"color":     b.timeStepColor(timeStep),
@@ -185,24 +185,24 @@ func (b *builder) addTimeStepSubGraph(timeStep int) error {
 	return b.gv.AddSubGraph("", b.timeStepGraphName(timeStep), attrs)
 }
 
-func (b *builder) timeStepColor(timeStep int) string {
+func (b *builder[_]) timeStepColor(timeStep int) string {
 	if !b.opt.ColoredTimeSteps {
 		return "#000000"
 	}
 	return timeStepColors[timeStep%len(timeStepColors)]
 }
 
-func (b *builder) timeStepGraphName(timeStep int) string {
+func (b *builder[_]) timeStepGraphName(timeStep int) string {
 	if b.g.TimeStep() == 0 {
 		return fmt.Sprintf("time_step_%d", timeStep)
 	}
 	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
 
-func (b *builder) findNodesWithoutEdges() intSet {
+func (b *builder[T]) findNodesWithoutEdges() intSet {
 	ids := newIntSet()
 	for _, node := range b.g.Nodes() {
-		operator, isOperator := node.(*ag.Operator)
+		operator, isOperator := node.(*ag.Operator[T])
 		if !isOperator || len(operator.Operands()) == 0 {
 			ids.Add(node.ID())
 			continue
@@ -214,7 +214,7 @@ func (b *builder) findNodesWithoutEdges() intSet {
 	return ids
 }
 
-func matrixShapeString(m mat.Matrix[mat.Float]) string {
+func matrixShapeString[T mat.DType](m mat.Matrix[T]) string {
 	if m == nil {
 		return ""
 	}

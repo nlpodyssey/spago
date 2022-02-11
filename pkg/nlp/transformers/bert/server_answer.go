@@ -7,6 +7,7 @@ package bert
 import (
 	"context"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"net/http"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 )
 
 // QaHandler is the HTTP server handler function for BERT question-answering requests.
-func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) QaHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -27,7 +28,7 @@ func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 
 	start := time.Now()
 	answers := s.model.Answer(body.Question, body.Passage)
-	result := &QuestionAnsweringResponse{
+	result := &QuestionAnsweringResponse[T]{
 		Answers: answers,
 		Took:    time.Since(start).Milliseconds(),
 	}
@@ -48,7 +49,7 @@ func (s *Server) QaHandler(w http.ResponseWriter, req *http.Request) {
 
 // Answer handles a question-answering request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Answer(_ context.Context, req *grpcapi.AnswerRequest) (*grpcapi.AnswerReply, error) {
+func (s *Server[T]) Answer(_ context.Context, req *grpcapi.AnswerRequest) (*grpcapi.AnswerReply, error) {
 	start := time.Now()
 	result := s.model.Answer(req.GetQuestion(), req.GetPassage())
 	return &grpcapi.AnswerReply{
@@ -57,7 +58,7 @@ func (s *Server) Answer(_ context.Context, req *grpcapi.AnswerRequest) (*grpcapi
 	}, nil
 }
 
-func answersFrom(answers Answers) []*grpcapi.Answer {
+func answersFrom[T mat.DType](answers Answers[T]) []*grpcapi.Answer {
 	result := make([]*grpcapi.Answer, len(answers))
 	for i, a := range answers {
 		result[i] = &grpcapi.Answer{

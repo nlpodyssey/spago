@@ -19,73 +19,74 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Config
-	Query     *linear.Model
-	R         nn.Param `spago:"type:weights"`
-	Value     *linear.Model
-	Attention *ContextProb `spago:"scope:processor"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config[T]
+	Query     *linear.Model[T]
+	R         nn.Param[T] `spago:"type:weights"`
+	Value     *linear.Model[T]
+	Attention *ContextProb[T] `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a LSH-Attention Model.
-type Config struct {
+type Config[T mat.DType] struct {
 	InputSize   int
 	QuerySize   int
 	ValueSize   int
 	BucketSize  int // num of buckets / 2
-	ScaleFactor mat.Float
+	ScaleFactor T
 }
 
 // ContextProb is a pair of Context encodings and Prob attention scores.
-type ContextProb struct {
+type ContextProb[T mat.DType] struct {
 	// Context encodings.
-	Context []ag.Node
+	Context []ag.Node[T]
 	// Prob attention scores.
-	Prob []mat.Matrix[mat.Float]
+	Prob []mat.Matrix[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(config Config) *Model {
-	return &Model{
+func New[T mat.DType](config Config[T]) *Model[T] {
+	return &Model[T]{
 		Config: config,
-		Query:  linear.New(config.InputSize, config.QuerySize),
-		R:      nn.NewParam(mat.NewEmptyDense[mat.Float](config.QuerySize, config.BucketSize)),
-		Value:  linear.New(config.InputSize, config.ValueSize),
+		Query:  linear.New[T](config.InputSize, config.QuerySize),
+		R:      nn.NewParam[T](mat.NewEmptyDense[T](config.QuerySize, config.BucketSize)),
+		Value:  linear.New[T](config.InputSize, config.ValueSize),
 	}
 }
 
-type indexedNodes struct {
-	node  []ag.Node
+type indexedNodes[T mat.DType] struct {
+	node  []ag.Node[T]
 	index []int
 }
 
 // getHash returns the hash for the dense matrix `x`.
 // Since the hash does not require the use of gradients, it is calculated outside the graph to reduce overhead.
-func (m *Model) getHash(x mat.Matrix[mat.Float]) int {
+func (m *Model[T]) getHash(x mat.Matrix[T]) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
 	return matutils.ArgMax(concat.Data())
 }
 
 // TODO: implement concurrent computation?
-func (m *Model) lshScaledDotProductAttention(
-	g *ag.Graph,
-	q ag.Node,
+func (m *Model[T]) lshScaledDotProductAttention(
+	g *ag.Graph[T],
+	q ag.Node[T],
 	ks,
-	vs *indexedNodes,
+	vs *indexedNodes[T],
 	length int,
-	scaleFactor mat.Float,
-) (context ag.Node, prob mat.Matrix[mat.Float]) {
-	prob = mat.NewEmptyVecDense[mat.Float](length)
+	scaleFactor T,
+) (context ag.Node[T], prob mat.Matrix[T]) {
+	prob = mat.NewEmptyVecDense[T](length)
 	keys := g.Stack(ks.node...)
 	values := g.T(g.Stack(vs.node...))
 	factor := g.NewScalar(scaleFactor)
@@ -102,9 +103,9 @@ func (m *Model) lshScaledDotProductAttention(
 	return context, prob
 }
 
-func insertNode(m map[int]*indexedNodes, node ag.Node, i, h int) {
+func insertNode[T mat.DType](m map[int]*indexedNodes[T], node ag.Node[T], i, h int) {
 	if _, found := m[h]; !found {
-		m[h] = &indexedNodes{node: []ag.Node{}, index: []int{}}
+		m[h] = &indexedNodes[T]{node: []ag.Node[T]{}, index: []int{}}
 	}
 	element := m[h]
 	element.node = append(element.node, node)
@@ -112,14 +113,14 @@ func insertNode(m map[int]*indexedNodes, node ag.Node, i, h int) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	length := len(xs)
 	qs := m.Query.Forward(xs...)
-	ks := make([]ag.Node, length)
+	ks := make([]ag.Node[T], length)
 	vs := m.Value.Forward(xs...)
-	mapk := make(map[int]*indexedNodes)
-	mapv := make(map[int]*indexedNodes)
+	mapk := make(map[int]*indexedNodes[T])
+	mapv := make(map[int]*indexedNodes[T])
 
 	// TODO: can it be implemented in a concurrent fashion?
 	for i, q := range qs {
@@ -130,15 +131,15 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		insertNode(mapv, vs[i], i, h)
 	}
 
-	context := make([]ag.Node, length)
-	prob := make([]mat.Matrix[mat.Float], length)
+	context := make([]ag.Node[T], length)
+	prob := make([]mat.Matrix[T], length)
 	for i, q := range qs {
 		j := m.getHash(q.Value())
 		c, p := m.lshScaledDotProductAttention(g, q, mapk[j], mapv[j], length, m.Config.ScaleFactor)
 		context[i], prob[i] = c, p
 	}
 
-	m.Attention = &ContextProb{
+	m.Attention = &ContextProb[T]{
 		Context: context,
 		Prob:    prob,
 	}

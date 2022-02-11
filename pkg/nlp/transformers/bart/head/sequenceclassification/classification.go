@@ -15,38 +15,39 @@ import (
 )
 
 var (
-	_ nn.Model = &Classifier{}
+	_ nn.Model[float32] = &Classifier[float32]{}
 )
 
 // ClassifierConfig provides configuration settings for a BART head for sentence-level
 // Classifier model.
-type ClassifierConfig struct {
+type ClassifierConfig[T mat.DType] struct {
 	InputSize     int
 	HiddenSize    int
 	OutputSize    int
-	PoolerDropout mat.Float
+	PoolerDropout T
 }
 
 // Classifier is a model for BART head for sentence-level classification tasks.
-type Classifier struct {
-	Config ClassifierConfig
-	*stack.Model
+type Classifier[T mat.DType] struct {
+	Config ClassifierConfig[T]
+	*stack.Model[T]
 }
 
 func init() {
-	gob.Register(&Classifier{})
+	gob.Register(&Classifier[float32]{})
+	gob.Register(&Classifier[float64]{})
 }
 
 // NewClassifier returns a new Classifier.
-func NewClassifier(config ClassifierConfig) *Classifier {
-	return &Classifier{
+func NewClassifier[T mat.DType](config ClassifierConfig[T]) *Classifier[T] {
+	return &Classifier[T]{
 		Config: config,
-		Model: stack.New(
+		Model: stack.New[T](
 			// dropout.New(pooler_dropout),
-			linear.New(config.InputSize, config.HiddenSize),
-			activation.New(ag.OpTanh),
-			// dropout.New(pooler_dropout),
-			linear.New(config.HiddenSize, config.OutputSize),
+			linear.New[T](config.InputSize, config.HiddenSize),
+			activation.New[T](ag.OpTanh),
+			// dropout.New[T(pooler_dropout),
+			linear.New[T](config.HiddenSize, config.OutputSize),
 		),
 	}
 }

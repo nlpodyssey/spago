@@ -11,7 +11,7 @@ import (
 )
 
 func TestRAdam_DeltaTimeStep1(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -31,7 +31,7 @@ func TestRAdam_DeltaTimeStep1(t *testing.T) {
 }
 
 func TestRAdam_DeltaTimeStep6(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2

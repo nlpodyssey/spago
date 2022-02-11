@@ -8,36 +8,36 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &ELU{}
+var _ Function[float32] = &ELU[float32]{}
 
 // ELU is an operator to perform the ELU activation function.
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))
-type ELU struct {
-	x     Operand
-	alpha Operand // scalar
+type ELU[T mat.DType] struct {
+	x     Operand[T]
+	alpha Operand[T] // scalar
 }
 
 // NewELU returns a new ELU Function.
-func NewELU(x, alpha Operand) *ELU {
-	return &ELU{x: x, alpha: alpha}
+func NewELU[T mat.DType](x, alpha Operand[T]) *ELU[T] {
+	return &ELU[T]{x: x, alpha: alpha}
 }
 
 // Forward computes the output of the function.
-func (r *ELU) Forward() mat.Matrix[mat.Float] {
-	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(elu, r.x.Value(), r.alpha.Value().Scalar())
+func (r *ELU[T]) Forward() mat.Matrix[T] {
+	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
+	y.ApplyWithAlpha(elu[T], r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *ELU) Backward(gy mat.Matrix[mat.Float]) {
+func (r *ELU[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
+		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(eluDeriv, r.x.Value(), r.alpha.Value().Scalar())
+		gx.ApplyWithAlpha(eluDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

@@ -13,8 +13,8 @@ import (
 )
 
 func TestModel_Forward(t *testing.T) {
-	model := New(0.8)
-	g := ag.NewGraph()
+	model := New[mat.Float](0.8)
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.0, 2.0, 0.0, 4.0}), true)

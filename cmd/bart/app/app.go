@@ -5,6 +5,7 @@
 package app
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/urfave/cli/v2"
 )
 
@@ -32,7 +33,7 @@ type BartApp struct {
 }
 
 // NewBartApp returns a new BartApp object, which can be used as either client or server.
-func NewBartApp() *BartApp {
+func NewBartApp[T mat.DType]() *BartApp {
 	app := &BartApp{
 		App: cli.NewApp(),
 	}
@@ -40,7 +41,7 @@ func NewBartApp() *BartApp {
 	app.HelpName = programName
 	app.Usage = "A demo for sequence-classification based on BART."
 	app.Commands = []*cli.Command{
-		newServerCommandFor(app),
+		newServerCommandFor[T](app),
 		newClientCommandFor(app),
 	}
 	return app

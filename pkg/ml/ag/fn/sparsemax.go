@@ -12,32 +12,32 @@ import (
 )
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
-type SparseMax struct {
-	x Operand
-	y mat.Matrix[mat.Float] // initialized during the forward pass, required by the backward pass
+type SparseMax[T mat.DType] struct {
+	x Operand[T]
+	y mat.Matrix[T] // initialized during the forward pass, required by the backward pass
 }
 
-var _ Function = &SparseMax{}
-var _ Function = &SparseMaxLoss{}
+var _ Function[float32] = &SparseMax[float32]{}
+var _ Function[float32] = &SparseMaxLoss[float32]{}
 
 // NewSparseMax returns a new SparseMax Function.
-func NewSparseMax(x Operand) *SparseMax {
-	return &SparseMax{x: x}
+func NewSparseMax[T mat.DType](x Operand[T]) *SparseMax[T] {
+	return &SparseMax[T]{x: x}
 }
 
 // Forward computes the output of the function.
-func (s *SparseMax) Forward() mat.Matrix[mat.Float] {
+func (s *SparseMax[T]) Forward() mat.Matrix[T] {
 	s.y = mat.NewVecDense(sparseMax(translateInput(s.x.Value().Data())))
 	return s.y
 }
 
 // Backward computes the backward pass.
-func (s *SparseMax) Backward(gy mat.Matrix[mat.Float]) {
+func (s *SparseMax[T]) Backward(gy mat.Matrix[T]) {
 	if s.x.RequiresGrad() {
 		output := s.y.Data()
-		var nzSum mat.Float = 0.0
-		var nzCount mat.Float = 0.0
-		gx := mat.GetDensePool[mat.Float]().Get(s.x.Value().Rows(), s.x.Value().Columns())
+		var nzSum T = 0.0
+		var nzCount T = 0.0
+		gx := mat.GetDensePool[T]().Get(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
 		for i := range output {
 			if output[i] != 0 {
@@ -59,28 +59,28 @@ func (s *SparseMax) Backward(gy mat.Matrix[mat.Float]) {
 }
 
 // translateInput translates the input by max for numerical stability
-func translateInput(v []mat.Float) []mat.Float {
+func translateInput[T mat.DType](v []T) []T {
 	maximum := max(v)
-	translated := make([]mat.Float, len(v))
+	translated := make([]T, len(v))
 	for i := range v {
 		translated[i] = v[i] - maximum
 	}
 	return translated
 }
 
-func sparseMaxCommon(v []mat.Float) (zs, bounds, cumSumInput []mat.Float, tau mat.Float) {
-	zs = make([]mat.Float, len(v))
+func sparseMaxCommon[T mat.DType](v []T) (zs, bounds, cumSumInput []T, tau T) {
+	zs = make([]T, len(v))
 	copy(zs, v)
 
 	// Sort zs in descending order.
-	sort.Sort(sort.Reverse(matsort.DTSlice[mat.Float](zs)))
+	sort.Sort(sort.Reverse(matsort.DTSlice[T](zs)))
 
-	bounds = make([]mat.Float, len(zs))
+	bounds = make([]T, len(zs))
 	for i := range bounds {
-		bounds[i] = 1 + mat.Float(i+1)*zs[i]
+		bounds[i] = 1 + T(i+1)*zs[i]
 	}
 
-	cumSumInput = make([]mat.Float, len(zs))
+	cumSumInput = make([]T, len(zs))
 	matutils.CumSum(cumSumInput, zs)
 
 	k := -1
@@ -93,12 +93,12 @@ func sparseMaxCommon(v []mat.Float) (zs, bounds, cumSumInput []mat.Float, tau ma
 			tau += zs[i]
 		}
 	}
-	tau = (tau - 1) / mat.Float(k)
+	tau = (tau - 1) / T(k)
 
 	return zs, bounds, cumSumInput, tau
 }
 
-func sparseMax(v []mat.Float) []mat.Float {
+func sparseMax[T mat.DType](v []T) []T {
 	zs, _, _, tau := sparseMaxCommon(v)
 
 	//Reuses zs to avoid allocating new slice
@@ -109,22 +109,22 @@ func sparseMax(v []mat.Float) []mat.Float {
 }
 
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
-type SparseMaxLoss struct {
-	x   Operand
-	tau mat.Float             // computed during the forward pass
-	y   mat.Matrix[mat.Float] // computed during forward pass
+type SparseMaxLoss[T mat.DType] struct {
+	x   Operand[T]
+	tau T             // computed during the forward pass
+	y   mat.Matrix[T] // computed during forward pass
 }
 
 // NewSparseMaxLoss returns a new SparseMaxLoss Function.
-func NewSparseMaxLoss(x Operand) *SparseMaxLoss {
-	return &SparseMaxLoss{x: x}
+func NewSparseMaxLoss[T mat.DType](x Operand[T]) *SparseMaxLoss[T] {
+	return &SparseMaxLoss[T]{x: x}
 }
 
 // sparseMaxLoss computes the sparseMax loss function and returns
 // the loss and the tau parameter (needed by backward)
-func sparseMaxLoss(v []mat.Float) ([]mat.Float, mat.Float) {
+func sparseMaxLoss[T mat.DType](v []T) ([]T, T) {
 	zs, bounds, cumSumInput, tau := sparseMaxCommon(v)
-	var regTerm mat.Float = 0.0
+	var regTerm T = 0.0
 	tauSquared := tau * tau
 
 	for i := range zs {
@@ -142,7 +142,7 @@ func sparseMaxLoss(v []mat.Float) ([]mat.Float, mat.Float) {
 }
 
 // Forward computes the output of the function.
-func (s *SparseMaxLoss) Forward() mat.Matrix[mat.Float] {
+func (s *SparseMaxLoss[T]) Forward() mat.Matrix[T] {
 	output, tau := sparseMaxLoss(s.x.Value().Data())
 	s.y = mat.NewVecDense(output)
 	s.tau = tau
@@ -150,14 +150,14 @@ func (s *SparseMaxLoss) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (s *SparseMaxLoss) Backward(gy mat.Matrix[mat.Float]) {
+func (s *SparseMaxLoss[T]) Backward(gy mat.Matrix[T]) {
 	if s.x.RequiresGrad() {
 		input := s.x.Value().Data()
-		sparseMax := make([]mat.Float, len(input))
+		sparseMax := make([]T, len(input))
 		for i := range sparseMax {
 			sparseMax[i] = mat.Max(0, input[i]-s.tau)
 		}
-		gx := mat.GetDensePool[mat.Float]().Get(s.x.Value().Rows(), s.x.Value().Columns())
+		gx := mat.GetDensePool[T]().Get(s.x.Value().Rows(), s.x.Value().Columns())
 		defer mat.ReleaseDense(gx)
 		gySum := gy.Sum()
 		gyData := gy.Data()

@@ -31,33 +31,33 @@ const (
 	defaultUnknownToken      = "<unk>"
 )
 
-type flairConverter struct {
+type flairConverter[T mat.DType] struct {
 	pathToPyTorchModel string
 	tagger             *types.Dict
-	params             map[string]*mappedParam
+	params             map[string]*mappedParam[T]
 }
 
-func newConverter(pathToPyTorchModel string) *flairConverter {
-	return &flairConverter{
+func newConverter[T mat.DType](pathToPyTorchModel string) *flairConverter[T] {
+	return &flairConverter[T]{
 		pathToPyTorchModel: pathToPyTorchModel,
-		params:             map[string]*mappedParam{},
+		params:             map[string]*mappedParam[T]{},
 	}
 }
 
-type mappedParam struct {
-	value mat.Matrix[mat.Float]
+type mappedParam[T mat.DType] struct {
+	value mat.Matrix[T]
 	used  bool
 }
 
-func newParam(value mat.Matrix[mat.Float]) *mappedParam {
-	return &mappedParam{
+func newParam[T mat.DType](value mat.Matrix[T]) *mappedParam[T] {
+	return &mappedParam[T]{
 		value: value,
 		used:  false,
 	}
 }
 
 // Convert converts the parameters of a Flair model into spaGO structures.
-func Convert(modelPath string, flairModelName, configFileName, modelFileName string) {
+func Convert[T mat.DType](modelPath string, flairModelName, configFileName, modelFileName string) {
 	defer embeddings.Close()
 
 	if configFileName == "" {
@@ -67,7 +67,7 @@ func Convert(modelPath string, flairModelName, configFileName, modelFileName str
 		modelFileName = defaultModelFilename
 	}
 
-	c := newConverter(path.Join(modelPath, flairModelName))
+	c := newConverter[T](path.Join(modelPath, flairModelName))
 	c.unpickleModel()
 
 	config := c.buildConfig()
@@ -81,7 +81,7 @@ func Convert(modelPath string, flairModelName, configFileName, modelFileName str
 
 	stateDict := c.buildStateDict()
 
-	lm := New(config)
+	lm := New[T](config)
 
 	dict := c.tagger.MustGet("dictionary").(*flairDictionary)
 	lm.Vocabulary = vocabulary.New(dict.GetItems())
@@ -124,7 +124,7 @@ func Convert(modelPath string, flairModelName, configFileName, modelFileName str
 	log.Println("Conversion done!")
 }
 
-func (c *flairConverter) buildConfig() Config {
+func (c *flairConverter[_]) buildConfig() Config {
 	dictionary := c.tagger.MustGet("dictionary").(*flairDictionary)
 	embeddingSize := c.tagger.MustGet("embedding_size").(int)
 	hiddenSize := c.tagger.MustGet("hidden_size").(int)
@@ -139,41 +139,41 @@ func (c *flairConverter) buildConfig() Config {
 	}
 }
 
-func (c *flairConverter) buildStateDict() map[string][]mat.Float {
-	stateDict := make(map[string][]mat.Float)
+func (c *flairConverter[T]) buildStateDict() map[string][]T {
+	stateDict := make(map[string][]T)
 	lmStateDict := c.tagger.MustGet("state_dict").(*types.OrderedDict)
-	stateDict["embeddings.weight"] = gopickleutils.GetData(lmStateDict.MustGet("encoder.weight").(*pytorch.Tensor))
-	stateDict["decoder.weight"] = gopickleutils.GetData(lmStateDict.MustGet("decoder.weight").(*pytorch.Tensor))
-	stateDict["decoder.bias"] = gopickleutils.GetData(lmStateDict.MustGet("decoder.bias").(*pytorch.Tensor))
+	stateDict["embeddings.weight"] = gopickleutils.GetData[T](lmStateDict.MustGet("encoder.weight").(*pytorch.Tensor))
+	stateDict["decoder.weight"] = gopickleutils.GetData[T](lmStateDict.MustGet("decoder.weight").(*pytorch.Tensor))
+	stateDict["decoder.bias"] = gopickleutils.GetData[T](lmStateDict.MustGet("decoder.bias").(*pytorch.Tensor))
 	extractLSTMParams(lmStateDict, stateDict)
 	return stateDict
 }
 
-func (c *flairConverter) mapLSTM(model *lstm.Model, prefix string) {
-	c.params[fmt.Sprintf("%sw_ii", prefix)] = newParam(model.WIn.Value())
-	c.params[fmt.Sprintf("%sw_hi", prefix)] = newParam(model.WInRec.Value())
-	c.params[fmt.Sprintf("%sb_i", prefix)] = newParam(model.BIn.Value())
-	c.params[fmt.Sprintf("%sw_if", prefix)] = newParam(model.WFor.Value())
-	c.params[fmt.Sprintf("%sw_hf", prefix)] = newParam(model.WForRec.Value())
-	c.params[fmt.Sprintf("%sb_f", prefix)] = newParam(model.BFor.Value())
-	c.params[fmt.Sprintf("%sw_io", prefix)] = newParam(model.WOut.Value())
-	c.params[fmt.Sprintf("%sw_ho", prefix)] = newParam(model.WOutRec.Value())
-	c.params[fmt.Sprintf("%sb_o", prefix)] = newParam(model.BOut.Value())
-	c.params[fmt.Sprintf("%sw_ic", prefix)] = newParam(model.WCand.Value())
-	c.params[fmt.Sprintf("%sw_hc", prefix)] = newParam(model.WCandRec.Value())
-	c.params[fmt.Sprintf("%sb_c", prefix)] = newParam(model.BCand.Value())
+func (c *flairConverter[T]) mapLSTM(model *lstm.Model[T], prefix string) {
+	c.params[fmt.Sprintf("%sw_ii", prefix)] = newParam[T](model.WIn.Value())
+	c.params[fmt.Sprintf("%sw_hi", prefix)] = newParam[T](model.WInRec.Value())
+	c.params[fmt.Sprintf("%sb_i", prefix)] = newParam[T](model.BIn.Value())
+	c.params[fmt.Sprintf("%sw_if", prefix)] = newParam[T](model.WFor.Value())
+	c.params[fmt.Sprintf("%sw_hf", prefix)] = newParam[T](model.WForRec.Value())
+	c.params[fmt.Sprintf("%sb_f", prefix)] = newParam[T](model.BFor.Value())
+	c.params[fmt.Sprintf("%sw_io", prefix)] = newParam[T](model.WOut.Value())
+	c.params[fmt.Sprintf("%sw_ho", prefix)] = newParam[T](model.WOutRec.Value())
+	c.params[fmt.Sprintf("%sb_o", prefix)] = newParam[T](model.BOut.Value())
+	c.params[fmt.Sprintf("%sw_ic", prefix)] = newParam[T](model.WCand.Value())
+	c.params[fmt.Sprintf("%sw_hc", prefix)] = newParam[T](model.WCandRec.Value())
+	c.params[fmt.Sprintf("%sb_c", prefix)] = newParam[T](model.BCand.Value())
 }
 
-func (c *flairConverter) mapLinear(model *linear.Model, prefix string) {
-	c.params[fmt.Sprintf("%sweight", prefix)] = newParam(model.W.Value())
-	c.params[fmt.Sprintf("%sbias", prefix)] = newParam(model.B.Value())
+func (c *flairConverter[T]) mapLinear(model *linear.Model[T], prefix string) {
+	c.params[fmt.Sprintf("%sweight", prefix)] = newParam[T](model.W.Value())
+	c.params[fmt.Sprintf("%sbias", prefix)] = newParam[T](model.B.Value())
 }
 
-func extractLSTMParams(orig *types.OrderedDict, dest map[string][]mat.Float) {
-	wII, wIF, wIC, wIO := chunkTensorBy4(orig.MustGet("rnn.weight_ih_l0").(*pytorch.Tensor))
-	wHI, wHF, wHC, wHO := chunkTensorBy4(orig.MustGet("rnn.weight_hh_l0").(*pytorch.Tensor))
-	bHI, bHF, bHC, bHO := chunkTensorBy4(orig.MustGet("rnn.bias_hh_l0").(*pytorch.Tensor))
-	bII, bIF, bIC, bIO := chunkTensorBy4(orig.MustGet("rnn.bias_ih_l0").(*pytorch.Tensor))
+func extractLSTMParams[T mat.DType](orig *types.OrderedDict, dest map[string][]T) {
+	wII, wIF, wIC, wIO := chunkTensorBy4[T](orig.MustGet("rnn.weight_ih_l0").(*pytorch.Tensor))
+	wHI, wHF, wHC, wHO := chunkTensorBy4[T](orig.MustGet("rnn.weight_hh_l0").(*pytorch.Tensor))
+	bHI, bHF, bHC, bHO := chunkTensorBy4[T](orig.MustGet("rnn.bias_hh_l0").(*pytorch.Tensor))
+	bII, bIF, bIC, bIO := chunkTensorBy4[T](orig.MustGet("rnn.bias_ih_l0").(*pytorch.Tensor))
 
 	dest["lstm.w_ii"] = wII
 	dest["lstm.w_hi"] = wHI
@@ -189,8 +189,8 @@ func extractLSTMParams(orig *types.OrderedDict, dest map[string][]mat.Float) {
 	dest["lstm.b_c"] = sumVectors(bHC, bIC)
 }
 
-func chunkTensor(t *pytorch.Tensor, chunks int) [][]mat.Float {
-	data := gopickleutils.GetData(t)
+func chunkTensor[T mat.DType](t *pytorch.Tensor, chunks int) [][]T {
+	data := gopickleutils.GetData[T](t)
 
 	size := len(data)
 	if size%chunks != 0 {
@@ -198,36 +198,36 @@ func chunkTensor(t *pytorch.Tensor, chunks int) [][]mat.Float {
 	}
 
 	chunkSize := size / chunks
-	result := make([][]mat.Float, chunks)
+	result := make([][]T, chunks)
 	for i := range result {
 		result[i] = data[i*chunkSize : i*chunkSize+chunkSize]
 	}
 	return result
 }
 
-func chunkTensorBy4(t *pytorch.Tensor) (c0, c1, c2, c3 []mat.Float) {
-	c := chunkTensor(t, 4)
+func chunkTensorBy4[T mat.DType](t *pytorch.Tensor) (c0, c1, c2, c3 []T) {
+	c := chunkTensor[T](t, 4)
 	return c[0], c[1], c[2], c[3]
 }
 
-func sumVectors(a, b []mat.Float) []mat.Float {
+func sumVectors[T mat.DType](a, b []T) []T {
 	if len(a) != len(b) {
 		panic(fmt.Errorf("cannot sum vectors with different size: %d, %d", len(a), len(b)))
 	}
-	y := make([]mat.Float, len(a))
+	y := make([]T, len(a))
 	for i, av := range a {
 		y[i] = av + b[i]
 	}
 	return y
 }
 
-func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
+func assignToParamsList[T mat.DType](source []T, dest []nn.Param[T], rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
 }
 
-func (c *flairConverter) unpickleModel() {
+func (c *flairConverter[_]) unpickleModel() {
 	newUnpickler := func(r io.Reader) pickle.Unpickler {
 		u := pickle.NewUnpickler(r)
 		u.FindClass = unpicklerFindClass

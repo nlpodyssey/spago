@@ -11,6 +11,7 @@ package srnn
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -21,54 +22,55 @@ import (
 )
 
 var (
-	_ nn.Model = &BiModel{}
+	_ nn.Model[float32] = &BiModel[float32]{}
 )
 
 // BiModel contains the serializable parameters.
-type BiModel struct {
-	nn.BaseModel
+type BiModel[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config    Config
-	FC        *stack.Model
-	FC2       *linear.Model
-	FC3       *linear.Model
-	LayerNorm *layernorm.Model
+	FC        *stack.Model[T]
+	FC2       *linear.Model[T]
+	FC3       *linear.Model[T]
+	LayerNorm *layernorm.Model[T]
 }
 
 func init() {
-	gob.Register(&BiModel{})
+	gob.Register(&BiModel[float32]{})
+	gob.Register(&BiModel[float64]{})
 }
 
 // NewBidirectional returns a new model with parameters initialized to zeros.
-func NewBidirectional(config Config) *BiModel {
-	layers := []nn.StandardModel{
-		linear.New(config.InputSize, config.HyperSize),
-		activation.New(ag.OpReLU),
+func NewBidirectional[T mat.DType](config Config) *BiModel[T] {
+	layers := []nn.StandardModel[T]{
+		linear.New[T](config.InputSize, config.HyperSize),
+		activation.New[T](ag.OpReLU),
 	}
 	for i := 1; i < config.NumLayers; i++ {
 		layers = append(layers,
-			linear.New(config.HyperSize, config.HyperSize),
-			activation.New(ag.OpReLU),
+			linear.New[T](config.HyperSize, config.HyperSize),
+			activation.New[T](ag.OpReLU),
 		)
 	}
-	layers = append(layers, linear.New(config.HyperSize, config.HiddenSize))
-	return &BiModel{
+	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
+	return &BiModel[T]{
 		Config:    config,
 		FC:        stack.New(layers...),
-		FC2:       linear.New(config.InputSize, config.HiddenSize),
-		FC3:       linear.New(config.HiddenSize*2, config.OutputSize),
-		LayerNorm: layernorm.New(config.OutputSize),
+		FC2:       linear.New[T](config.InputSize, config.HiddenSize),
+		FC3:       linear.New[T](config.HiddenSize*2, config.OutputSize),
+		LayerNorm: layernorm.New[T](config.OutputSize),
 	}
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (m *BiModel) Forward(xs ...ag.Node) []ag.Node {
+func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	n := len(xs)
-	ys := make([]ag.Node, n)
+	ys := make([]ag.Node[T], n)
 	b := m.transformInputConcurrent(xs)
 
-	var hfwd []ag.Node
-	var hbwd []ag.Node
+	var hfwd []ag.Node[T]
+	var hbwd []ag.Node[T]
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -89,10 +91,10 @@ func (m *BiModel) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
-func (m *BiModel) forwardHidden(b []ag.Node) []ag.Node {
+func (m *BiModel[T]) forwardHidden(b []ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	n := len(b)
-	h := make([]ag.Node, n)
+	h := make([]ag.Node[T], n)
 	h[0] = g.ReLU(b[0])
 	for i := 1; i < n; i++ {
 		h[i] = g.ReLU(g.Add(b[i], g.RotateR(h[i-1], 1)))
@@ -100,7 +102,7 @@ func (m *BiModel) forwardHidden(b []ag.Node) []ag.Node {
 	return h
 }
 
-func (m *BiModel) transformInput(x ag.Node) ag.Node {
+func (m *BiModel[T]) transformInput(x ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	b := m.FC.Forward(x)[0]
 	if m.Config.MultiHead {
@@ -110,11 +112,11 @@ func (m *BiModel) transformInput(x ag.Node) ag.Node {
 	return b
 }
 
-func (m *BiModel) transformInputConcurrent(xs []ag.Node) []ag.Node {
+func (m *BiModel[T]) transformInputConcurrent(xs []ag.Node[T]) []ag.Node[T] {
 	var wg sync.WaitGroup
 	n := len(xs)
 	wg.Add(n)
-	ys := make([]ag.Node, n)
+	ys := make([]ag.Node[T], n)
 	for i := 0; i < n; i++ {
 		go func(i int) {
 			defer wg.Done()
@@ -125,8 +127,8 @@ func (m *BiModel) transformInputConcurrent(xs []ag.Node) []ag.Node {
 	return ys
 }
 
-func reversed(ns []ag.Node) []ag.Node {
-	r := make([]ag.Node, len(ns))
+func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
+	r := make([]ag.Node[T], len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1

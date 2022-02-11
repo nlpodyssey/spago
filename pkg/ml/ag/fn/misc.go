@@ -9,232 +9,232 @@ import (
 )
 
 // Tan is an operator to perform element-wise tangent.
-type Tan struct {
-	*UnaryElementwise
+type Tan[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewTan returns a new UnaryElementwise tangent function.
-func NewTan(x Operand) *Tan {
-	return &Tan{
-		UnaryElementwise: &UnaryElementwise{
+func NewTan[T mat.DType](x Operand[T]) *Tan[T] {
+	return &Tan[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  tan,
-			df: tanDeriv,
+			f:  tan[T],
+			df: tanDeriv[T],
 		},
 	}
 }
 
 // Tanh is an operator to perform element-wise hyperbolic tangent.
-type Tanh struct {
-	*UnaryElementwise
+type Tanh[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewTanh returns a new UnaryElementwise hyperbolic tangent function.
-func NewTanh(x Operand) *Tanh {
-	return &Tanh{
-		UnaryElementwise: &UnaryElementwise{
+func NewTanh[T mat.DType](x Operand[T]) *Tanh[T] {
+	return &Tanh[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  tanh,
-			df: tanhDeriv,
+			f:  tanh[T],
+			df: tanhDeriv[T],
 		},
 	}
 }
 
 // Sigmoid is an operator to perform element-wise sigmoid.
-type Sigmoid struct {
-	*UnaryElementwise
+type Sigmoid[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewSigmoid returns a new UnaryElementwise sigmoid function.
-func NewSigmoid(x Operand) *Sigmoid {
-	return &Sigmoid{
-		UnaryElementwise: &UnaryElementwise{
+func NewSigmoid[T mat.DType](x Operand[T]) *Sigmoid[T] {
+	return &Sigmoid[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  sigmoid,
-			df: sigmoidDeriv,
+			f:  sigmoid[T],
+			df: sigmoidDeriv[T],
 		},
 	}
 }
 
 // HardSigmoid is an operator to perform element-wise hard sigmoid.
-type HardSigmoid struct {
-	*UnaryElementwise
+type HardSigmoid[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewHardSigmoid returns a new UnaryElementwise hard sigmoid function.
-func NewHardSigmoid(x Operand) *HardSigmoid {
-	return &HardSigmoid{
-		UnaryElementwise: &UnaryElementwise{
+func NewHardSigmoid[T mat.DType](x Operand[T]) *HardSigmoid[T] {
+	return &HardSigmoid[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  hardSigmoid,
-			df: hardSigmoidDeriv,
+			f:  hardSigmoid[T],
+			df: hardSigmoidDeriv[T],
 		},
 	}
 }
 
 // HardTanh is an operator to perform element-wise hard hyperbolic tangent.
-type HardTanh struct {
-	*UnaryElementwise
+type HardTanh[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewHardTanh returns a new UnaryElementwise hard hyperbolic tangent function.
-func NewHardTanh(x Operand) *HardTanh {
-	return &HardTanh{
-		UnaryElementwise: &UnaryElementwise{
+func NewHardTanh[T mat.DType](x Operand[T]) *HardTanh[T] {
+	return &HardTanh[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  hardTanh,
-			df: hardTanhDeriv,
+			f:  hardTanh[T],
+			df: hardTanhDeriv[T],
 		},
 	}
 }
 
 // ReLU is an operator to perform element-wise Rectified Linear Unit (ReLU)
-type ReLU struct {
-	*UnaryElementwise
+type ReLU[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewReLU returns a new UnaryElementwise Rectified Linear Unit (ReLU) function.
-func NewReLU(x Operand) *ReLU {
-	return &ReLU{
-		UnaryElementwise: &UnaryElementwise{
+func NewReLU[T mat.DType](x Operand[T]) *ReLU[T] {
+	return &ReLU[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  relu,
-			df: reluDeriv,
+			f:  relu[T],
+			df: reluDeriv[T],
 		},
 	}
 }
 
 // Softsign is an operator to perform element-wise softsign.
-type Softsign struct {
-	*UnaryElementwise
+type Softsign[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewSoftsign returns a new UnaryElementwise softsign function.
-func NewSoftsign(x Operand) *Softsign {
-	return &Softsign{
-		UnaryElementwise: &UnaryElementwise{
+func NewSoftsign[T mat.DType](x Operand[T]) *Softsign[T] {
+	return &Softsign[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  softsign,
-			df: softsignDeriv,
+			f:  softsign[T],
+			df: softsignDeriv[T],
 		},
 	}
 }
 
 // Cos is an operator to perform element-wise cos.
-type Cos struct {
-	*UnaryElementwise
+type Cos[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewCos returns a new UnaryElementwise cos function.
-func NewCos(x Operand) *Cos {
-	return &Cos{
-		UnaryElementwise: &UnaryElementwise{
+func NewCos[T mat.DType](x Operand[T]) *Cos[T] {
+	return &Cos[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
-			df: func(i, j int, v mat.Float) mat.Float { return -mat.Sin(v) },
+			f:  func(i, j int, v T) T { return mat.Cos(v) },
+			df: func(i, j int, v T) T { return -mat.Sin(v) },
 		},
 	}
 }
 
 // Sin is an operator to perform element-wise sin.
-type Sin struct {
-	*UnaryElementwise
+type Sin[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewSin returns a new UnaryElementwise sine function.
-func NewSin(x Operand) *Sin {
-	return &Sin{
-		UnaryElementwise: &UnaryElementwise{
+func NewSin[T mat.DType](x Operand[T]) *Sin[T] {
+	return &Sin[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return mat.Sin(v) },
-			df: func(i, j int, v mat.Float) mat.Float { return mat.Cos(v) },
+			f:  func(i, j int, v T) T { return mat.Sin(v) },
+			df: func(i, j int, v T) T { return mat.Cos(v) },
 		},
 	}
 }
 
 // Exp is an operator to perform element-wise base-e exponential.
-type Exp struct {
-	*UnaryElementwise
+type Exp[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewExp returns a new UnaryElementwise base-e exponential function.
-func NewExp(x Operand) *Exp {
-	return &Exp{
-		UnaryElementwise: &UnaryElementwise{
+func NewExp[T mat.DType](x Operand[T]) *Exp[T] {
+	return &Exp[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
-			df: func(i, j int, v mat.Float) mat.Float { return mat.Exp(v) },
+			f:  func(i, j int, v T) T { return mat.Exp(v) },
+			df: func(i, j int, v T) T { return mat.Exp(v) },
 		},
 	}
 }
 
 // Log is an operator to perform element-wise natural logarithm.
-type Log struct {
-	*UnaryElementwise
+type Log[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewLog returns a new UnaryElementwise natural logarithm function.
-func NewLog(x Operand) *Log {
-	return &Log{
-		UnaryElementwise: &UnaryElementwise{
+func NewLog[T mat.DType](x Operand[T]) *Log[T] {
+	return &Log[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  safeLog,
-			df: safeLogDeriv,
+			f:  safeLog[T],
+			df: safeLogDeriv[T],
 		},
 	}
 }
 
 // Neg is an operator to perform element-wise f(x) = -x
-type Neg struct {
-	*UnaryElementwise
+type Neg[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewNeg returns a new UnaryElementwise f(x) = -x function.
-func NewNeg(x Operand) *Neg {
-	return &Neg{
-		UnaryElementwise: &UnaryElementwise{
+func NewNeg[T mat.DType](x Operand[T]) *Neg[T] {
+	return &Neg[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return -v },
-			df: func(i, j int, v mat.Float) mat.Float { return -1.0 },
+			f:  func(i, j int, v T) T { return -v },
+			df: func(i, j int, v T) T { return -1.0 },
 		},
 	}
 }
 
 // Reciprocal is an operator to perform element-wise reciprocal.
-type Reciprocal struct {
-	*UnaryElementwise
+type Reciprocal[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewReciprocal returns a new UnaryElementwise reciprocal function.
-func NewReciprocal(x Operand) *Reciprocal {
-	return &Reciprocal{
-		UnaryElementwise: &UnaryElementwise{
+func NewReciprocal[T mat.DType](x Operand[T]) *Reciprocal[T] {
+	return &Reciprocal[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return 1.0 / v },
-			df: func(i, j int, v mat.Float) mat.Float { return -1.0 / (v * v) },
+			f:  func(i, j int, v T) T { return 1.0 / v },
+			df: func(i, j int, v T) T { return -1.0 / (v * v) },
 		},
 	}
 }
 
 // Abs is an operator to perform element-wise absolute value function.
-type Abs struct {
-	*UnaryElementwise
+type Abs[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewAbs returns a new UnaryElementwise absolute value function.
-func NewAbs(x Operand) *Abs {
-	return &Abs{
-		UnaryElementwise: &UnaryElementwise{
+func NewAbs[T mat.DType](x Operand[T]) *Abs[T] {
+	return &Abs[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return mat.Abs(v) },
-			df: absDeriv,
+			f:  func(i, j int, v T) T { return mat.Abs(v) },
+			df: absDeriv[T],
 		},
 	}
 }
 
 // Mish is an operator to perform element-wise mish.
-type Mish struct {
-	*UnaryElementwise
+type Mish[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewMish returns a new UnaryElementwise Mish function.
@@ -244,69 +244,71 @@ type Mish struct {
 //
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function"
 // by Diganta Misra, 2019 (https://arxiv.org/pdf/1908.08681.pdf)
-func NewMish(x Operand) *Mish {
-	return &Mish{
-		UnaryElementwise: &UnaryElementwise{
+func NewMish[T mat.DType](x Operand[T]) *Mish[T] {
+	return &Mish[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  mish,
-			df: mishDeriv,
+			f:  mish[T],
+			df: mishDeriv[T],
 		},
 	}
 }
 
 // GELU is an operator to perform element-wise GELU.
-type GELU struct {
-	*UnaryElementwise
+type GELU[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
-func NewGELU(x Operand) *GELU {
-	return &GELU{
-		UnaryElementwise: &UnaryElementwise{
+func NewGELU[T mat.DType](x Operand[T]) *GELU[T] {
+	return &GELU[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  gelu,
-			df: geluDeriv,
+			f:  gelu[T],
+			df: geluDeriv[T],
 		},
 	}
 }
 
 // Sqrt is an operator to perform element-wise square root.
-type Sqrt struct {
-	*UnaryElementwise
+type Sqrt[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewSqrt returns a new UnaryElementwise square root function.
-func NewSqrt(x Operand) *Sqrt {
-	return &Sqrt{
-		UnaryElementwise: &UnaryElementwise{
+func NewSqrt[T mat.DType](x Operand[T]) *Sqrt[T] {
+	return &Sqrt[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  func(i, j int, v mat.Float) mat.Float { return mat.Sqrt(v) },
-			df: func(i, j int, v mat.Float) mat.Float { return 0.5 * mat.Pow(v, -0.5) },
+			f:  func(i, j int, v T) T { return mat.Sqrt(v) },
+			df: func(i, j int, v T) T { return 0.5 * mat.Pow(v, -0.5) },
 		},
 	}
 }
 
 // Swish is an operator to perform element-wise x * sigmoid(x).
-type Swish struct {
-	*UnaryElementwise
+type Swish[T mat.DType] struct {
+	*UnaryElementwise[T]
 }
 
 // NewSwish returns a new function of the form f(x) = x * sigmoid(x).
-func NewSwish(x Operand) *Swish {
-	return &Swish{
-		UnaryElementwise: &UnaryElementwise{
+func NewSwish[T mat.DType](x Operand[T]) *Swish[T] {
+	return &Swish[T]{
+		UnaryElementwise: &UnaryElementwise[T]{
 			x:  x,
-			f:  swish,
-			df: swishDeriv,
+			f:  swish[T],
+			df: swishDeriv[T],
 		},
 	}
 }
 
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
 // The function in an alias of NewSwish.
-var NewSiLU = NewSwish
+func NewSiLU[T mat.DType](x Operand[T]) *Swish[T] {
+	return NewSwish(x)
+}
 
-func absDeriv(_, _ int, v mat.Float) mat.Float {
+func absDeriv[T mat.DType](_, _ int, v T) T {
 	if v < 0 {
 		return -1
 	} else if v > 0 {
@@ -317,17 +319,17 @@ func absDeriv(_, _ int, v mat.Float) mat.Float {
 }
 
 // safeLog is a simple work-around that make the math.Log() safe for zero or negative values
-func safeLog(_, _ int, v mat.Float) mat.Float {
+func safeLog[T mat.DType](_, _ int, v T) T {
 	if v > 0.0 {
 		return mat.Log(v)
 	}
 	if v == 0.0 {
-		return mat.Log[mat.Float](1.0e-08)
+		return mat.Log[T](1.0e-08)
 	}
 	panic("ag: invalid log for negative values")
 }
 
-func safeLogDeriv(_, _ int, v mat.Float) mat.Float {
+func safeLogDeriv[T mat.DType](_, _ int, v T) T {
 	if v > 0.0 {
 		return 1.0 / v
 	} else if v == 0.0 {
@@ -337,36 +339,36 @@ func safeLogDeriv(_, _ int, v mat.Float) mat.Float {
 	}
 }
 
-func tan(_, _ int, v mat.Float) mat.Float {
+func tan[T mat.DType](_, _ int, v T) T {
 	return mat.Tan(v)
 }
 
-func tanDeriv(i, j int, v mat.Float) mat.Float {
+func tanDeriv[T mat.DType](i, j int, v T) T {
 	return 1.0 / square(i, j, mat.Cos(v))
 }
 
-func square(_, _ int, v mat.Float) mat.Float {
+func square[T mat.DType](_, _ int, v T) T {
 	return v * v
 }
 
-func tanh(_, _ int, v mat.Float) mat.Float {
+func tanh[T mat.DType](_, _ int, v T) T {
 	return mat.Tanh(v)
 }
 
-func tanhDeriv(_, _ int, v mat.Float) mat.Float {
+func tanhDeriv[T mat.DType](_, _ int, v T) T {
 	return 1.0 - mat.Pow(mat.Tanh(v), 2.0)
 }
 
-func sigmoid(_, _ int, v mat.Float) mat.Float {
+func sigmoid[T mat.DType](_, _ int, v T) T {
 	return 1.0 / (1 + mat.Exp(-v))
 }
 
-func sigmoidDeriv(i, j int, v mat.Float) mat.Float {
+func sigmoidDeriv[T mat.DType](i, j int, v T) T {
 	fx := sigmoid(i, j, v)
 	return fx * (1.0 - fx)
 }
 
-func hardSigmoid(_, _ int, v mat.Float) mat.Float {
+func hardSigmoid[T mat.DType](_, _ int, v T) T {
 	if v > 2.5 {
 		return 1.0
 	} else if v < -2.5 {
@@ -376,14 +378,14 @@ func hardSigmoid(_, _ int, v mat.Float) mat.Float {
 	}
 }
 
-func hardSigmoidDeriv(_, _ int, v mat.Float) mat.Float {
+func hardSigmoidDeriv[T mat.DType](_, _ int, v T) T {
 	if v < 2.5 && v > -2.5 {
 		return 0.2
 	}
 	return 0.0
 }
 
-func hardTanh(_, _ int, v mat.Float) mat.Float {
+func hardTanh[T mat.DType](_, _ int, v T) T {
 	if v > 1.0 {
 		return 1.0
 	} else if v < -1.0 {
@@ -393,33 +395,33 @@ func hardTanh(_, _ int, v mat.Float) mat.Float {
 	}
 }
 
-func hardTanhDeriv(_, _ int, v mat.Float) mat.Float {
+func hardTanhDeriv[T mat.DType](_, _ int, v T) T {
 	if v < 1.0 && v > -1.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func relu(_, _ int, v mat.Float) mat.Float {
+func relu[T mat.DType](_, _ int, v T) T {
 	return mat.Max(0.0, v)
 }
 
-func reluDeriv(_, _ int, v mat.Float) mat.Float {
+func reluDeriv[T mat.DType](_, _ int, v T) T {
 	if v >= 0.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func softsign(_, _ int, v mat.Float) mat.Float {
+func softsign[T mat.DType](_, _ int, v T) T {
 	return v / (1.0 + mat.Abs(v))
 }
 
-func softsignDeriv(i, j int, v mat.Float) mat.Float {
+func softsignDeriv[T mat.DType](i, j int, v T) T {
 	return mat.Pow(1.0-mat.Abs(softsign(i, j, v)), 2.0)
 }
 
-func celu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func celu[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return alpha[0] * (mat.Exp(v/alpha[0]) - 1)
 	} else if v > 0 {
@@ -428,7 +430,7 @@ func celu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func celuDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func celuDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return mat.Exp(v / alpha[0])
 	} else if v > 0 {
@@ -437,7 +439,7 @@ func celuDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func elu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func elu[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return alpha[0] * (mat.Exp(v) - 1)
 	} else if v > 0 {
@@ -446,7 +448,7 @@ func elu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func eluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func eluDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return alpha[0] * mat.Exp(v)
 	} else if v > 0 {
@@ -455,7 +457,7 @@ func eluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func leakyReLU(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func leakyReLU[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return alpha[0] * v // slope * v
 	} else if v > 0 {
@@ -464,7 +466,7 @@ func leakyReLU(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func leakyReLUDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func leakyReLUDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	if v <= 0 {
 		return alpha[0] // slope
 	} else if v > 0 {
@@ -475,7 +477,7 @@ func leakyReLUDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func selu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func selu[T mat.DType](_, _ int, v T, alpha ...T) T {
 	scale := alpha[1]
 	if v <= 0 {
 		return scale * alpha[0] * (mat.Exp(v) - 1)
@@ -487,7 +489,7 @@ func selu(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func seluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func seluDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	scale := alpha[1]
 	if v <= 0 {
 		return scale * alpha[0] * mat.Exp(v)
@@ -497,7 +499,7 @@ func seluDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softPlus(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softPlus[T mat.DType](_, _ int, v T, alpha ...T) T {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
@@ -508,7 +510,7 @@ func softPlus(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softPlusDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softPlusDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
@@ -520,7 +522,7 @@ func softPlusDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softShrink(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softShrink[T mat.DType](_, _ int, v T, alpha ...T) T {
 	lambda := alpha[0]
 	if v < -lambda {
 		return v + lambda
@@ -530,7 +532,7 @@ func softShrink(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func softShrinkDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func softShrinkDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	lambda := alpha[0]
 	if v < -lambda {
 		return 1
@@ -540,7 +542,7 @@ func softShrinkDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func threshold(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func threshold[T mat.DType](_, _ int, v T, alpha ...T) T {
 	value := alpha[1]
 	threshold := alpha[0]
 	if v <= threshold {
@@ -551,7 +553,7 @@ func threshold(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func thresholdDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
+func thresholdDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 	threshold := alpha[0]
 	if v <= threshold {
 		return 0
@@ -561,25 +563,25 @@ func thresholdDeriv(_, _ int, v mat.Float, alpha ...mat.Float) mat.Float {
 	return 0
 }
 
-func swish(_, _ int, v mat.Float) mat.Float {
+func swish[T mat.DType](_, _ int, v T) T {
 	return v * (1.0 / (1 + mat.Exp(-v)))
 }
 
-func swishDeriv(i, j int, v mat.Float) mat.Float {
+func swishDeriv[T mat.DType](i, j int, v T) T {
 	return swishBDeriv(i, j, v, 1.0)
 }
 
-func swishB(_, _ int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishB[T mat.DType](_, _ int, v T, beta ...T) T {
 	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
 }
 
-func swishBDeriv(_, _ int, v mat.Float, beta ...mat.Float) mat.Float {
+func swishBDeriv[T mat.DType](_, _ int, v T, beta ...T) T {
 	prod := v * beta[0]
 	exp := mat.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 
-func swishBBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
+func swishBBetaDeriv[T mat.DType](v T, beta T) T {
 	prod := v * beta
 	exp := mat.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))
@@ -587,11 +589,11 @@ func swishBBetaDeriv(v mat.Float, beta mat.Float) mat.Float {
 
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function" by Diganta Misra, 2019.
 // (https://arxiv.org/pdf/1908.08681.pdf)
-func mish(_, _ int, v mat.Float) mat.Float {
+func mish[T mat.DType](_, _ int, v T) T {
 	return v * mat.Tanh(mat.Log(1+mat.Exp(v)))
 }
 
-func mishDeriv(_, _ int, v mat.Float) mat.Float {
+func mishDeriv[T mat.DType](_, _ int, v T) T {
 	exp := mat.Exp(v)
 	exp2 := mat.Exp(2 * v)
 	exp3 := mat.Exp(3 * v)
@@ -600,11 +602,11 @@ func mishDeriv(_, _ int, v mat.Float) mat.Float {
 	return exp * (omega / (delta * delta))
 }
 
-func gelu(_, _ int, v mat.Float) mat.Float {
-	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi[mat.Float]())*(v+0.044715*mat.Pow(v, 3.0))))
+func gelu[T mat.DType](_, _ int, v T) T {
+	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi[T]())*(v+0.044715*mat.Pow(v, 3.0))))
 }
 
-func geluDeriv(_, _ int, x mat.Float) mat.Float {
+func geluDeriv[T mat.DType](_, _ int, x T) T {
 	x3 := mat.Pow(x, 3)
 	return 0.5*mat.Tanh(0.0356774*x3+0.797885*x) +
 		(0.0535161*x3+0.398942*x)*

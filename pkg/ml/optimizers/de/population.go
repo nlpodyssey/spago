@@ -12,27 +12,33 @@ import (
 )
 
 // Population represents the population.
-type Population struct {
-	Members []*Member
+type Population[T mat.DType] struct {
+	Members []*Member[T]
 }
 
 // NewRandomPopulation returns a new Population with members initialized randomly
 // according to the given configuration.
-func NewRandomPopulation(populationSize int, vectorSize int, bound mat.Float, rndGen *rand.LockedRand[mat.Float], initHyperParams MemberHyperParams) *Population {
-	members := make([]*Member, populationSize)
+func NewRandomPopulation[T mat.DType](
+	populationSize int,
+	vectorSize int,
+	bound T,
+	rndGen *rand.LockedRand[T],
+	initHyperParams MemberHyperParams[T],
+) *Population[T] {
+	members := make([]*Member[T], populationSize)
 	for i := 0; i < populationSize; i++ {
-		vector := mat.NewEmptyVecDense[mat.Float](vectorSize)
-		initializers.XavierUniform(vector, 1.0, rndGen)
+		vector := mat.NewEmptyVecDense[T](vectorSize)
+		initializers.XavierUniform[T](vector, 1.0, rndGen)
 		vector.ClipInPlace(-bound, +bound)
-		members[i] = NewMember(vector, initHyperParams)
+		members[i] = NewMember[T](vector, initHyperParams)
 	}
-	return &Population{
+	return &Population[T]{
 		Members: members,
 	}
 }
 
 // FindBest finds the best member from the Population.
-func (p *Population) FindBest(lowIndex, highIndex int, upperBound mat.Float, initArgMin int) (argMin int, minScore mat.Float) {
+func (p *Population[T]) FindBest(lowIndex, highIndex int, upperBound T, initArgMin int) (argMin int, minScore T) {
 	minScore = upperBound
 	argMin = initArgMin
 	for i := lowIndex; i <= highIndex; i++ {
@@ -46,13 +52,13 @@ func (p *Population) FindBest(lowIndex, highIndex int, upperBound mat.Float, ini
 }
 
 // FindBestNeighbor finds the best neighbor member from the Population.
-func (p *Population) FindBestNeighbor(index, windowSize int) (argMin int, minScore mat.Float) {
+func (p *Population[T]) FindBestNeighbor(index, windowSize int) (argMin int, minScore T) {
 	size := len(p.Members)
 	if 2*windowSize > size {
 		panic("crossover: K must be less than population size")
 	}
 	argMin = 0
-	minScore = mat.Inf[mat.Float](1)
+	minScore = mat.Inf[T](1)
 	lowIndex := index - windowSize
 	highIndex := index + windowSize
 	if lowIndex < 0 {

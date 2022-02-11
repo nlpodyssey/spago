@@ -17,18 +17,21 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
-var allModels []*Model
+var allModels []interface {
+	Close()
+	ClearUsedEmbeddings()
+}
 
 // Model implements an embeddings model.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config
 	Storage        *kvdb.KeyValueDB
 	UsedEmbeddings *syncmap.Map `spago:"type:params;scope:model"`
-	ZeroEmbedding  nn.Param     `spago:"type:weights"`
+	ZeroEmbedding  nn.Param[T]  `spago:"type:weights"`
 }
 
 // Config provides configuration settings for an embeddings Model.
@@ -47,12 +50,13 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new embedding model.
-func New(config Config) *Model {
-	m := &Model{
+func New[T mat.DType](config Config) *Model[T] {
+	m := &Model[T]{
 		Config: config,
 		Storage: kvdb.NewDefaultKeyValueDB(kvdb.Config{
 			Path:     config.DBPath,
@@ -60,7 +64,7 @@ func New(config Config) *Model {
 			ForceNew: config.ForceNewDB,
 		}),
 		UsedEmbeddings: syncmap.New(),
-		ZeroEmbedding:  nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.Size), nn.RequiresGrad(false)),
+		ZeroEmbedding:  nn.NewParam[T](mat.NewEmptyVecDense[T](config.Size), nn.RequiresGrad[T](false)),
 	}
 	allModels = append(allModels, m)
 	return m
@@ -68,14 +72,14 @@ func New(config Config) *Model {
 
 // Close closes the DB underlying the model of the embeddings map.
 // It automatically clears the cache.
-func (m *Model) Close() {
+func (m *Model[T]) Close() {
 	_ = m.Storage.Close() // explicitly ignore errors here
 	m.ClearUsedEmbeddings()
 }
 
 // ClearUsedEmbeddings clears the cache of the used embeddings.
 // Beware of any external references to the values of m.UsedEmbeddings. These are weak references!
-func (m *Model) ClearUsedEmbeddings() {
+func (m *Model[T]) ClearUsedEmbeddings() {
 	m.UsedEmbeddings.Range(func(key interface{}, value interface{}) bool {
 		m.UsedEmbeddings.Delete(key)
 		return true
@@ -83,7 +87,7 @@ func (m *Model) ClearUsedEmbeddings() {
 }
 
 // DropAll clears the cache of used embeddings and drops all the data stored in the DB.
-func (m *Model) DropAll() error {
+func (m *Model[T]) DropAll() error {
 	m.ClearUsedEmbeddings()
 	return m.Storage.DropAll()
 }
@@ -106,7 +110,7 @@ func ClearUsedEmbeddings() {
 
 // Count counts how many embeddings are stored in the DB.
 // It invokes log.Fatal in case of reading errors.
-func (m *Model) Count() int {
+func (m *Model[T]) Count() int {
 	keys, err := m.Storage.Keys()
 	if err != nil {
 		log.Fatal(err)
@@ -116,13 +120,13 @@ func (m *Model) Count() int {
 
 // SetEmbedding inserts a new word embedding.
 // If the word is already on the map, it overwrites the existing value with the new one.
-func (m *Model) SetEmbedding(word string, value mat.Matrix[mat.Float]) {
+func (m *Model[T]) SetEmbedding(word string, value mat.Matrix[T]) {
 	if m.ReadOnly {
 		log.Fatal("embedding: set operation not permitted in read-only mode")
 	}
 
-	embedding := nn.NewParam(value)
-	embedding.SetPayload(nn.NewPayload())
+	embedding := nn.NewParam[T](value)
+	embedding.SetPayload(nn.NewPayload[T]())
 
 	buf := new(bytes.Buffer)
 	err := nn.MarshalBinaryParam(embedding, buf)
@@ -138,7 +142,7 @@ func (m *Model) SetEmbedding(word string, value mat.Matrix[mat.Float]) {
 
 // SetEmbeddingFromData inserts a new word embeddings.
 // If the word is already on the map, overwrites the existing value with the new one.
-func (m *Model) SetEmbeddingFromData(word string, data []mat.Float) {
+func (m *Model[T]) SetEmbeddingFromData(word string, data []T) {
 	vec := mat.NewVecDense(data)
 	defer mat.ReleaseDense(vec)
 	m.SetEmbedding(word, vec)
@@ -153,7 +157,7 @@ func (m *Model) SetEmbeddingFromData(word string, data []mat.Float) {
 //
 // If no embedding is found, nil is returned.
 // It panics in case of Storage errors.
-func (m *Model) GetStoredEmbedding(word string) nn.Param {
+func (m *Model[T]) GetStoredEmbedding(word string) nn.Param[T] {
 	if found := m.getStoredEmbedding(word); found != nil {
 		return found
 	}
@@ -168,7 +172,7 @@ func (m *Model) GetStoredEmbedding(word string) nn.Param {
 //     - to allow a faster recovery;
 //     - to keep track of used embeddings, should they be optimized.
 // It panics in case of Storage errors.
-func (m *Model) getStoredEmbedding(word string) nn.Param {
+func (m *Model[T]) getStoredEmbedding(word string) nn.Param[T] {
 	if embedding, ok := m.getUsedEmbedding(word); ok {
 		return embedding
 	}
@@ -180,7 +184,7 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 		return nil // embedding not found
 	}
 
-	embedding := nn.NewParam(nil, nn.SetStorage(m.Storage), nn.RequiresGrad(!m.ReadOnly))
+	embedding := nn.NewParam[T](nil, nn.SetStorage[T](m.Storage), nn.RequiresGrad[T](!m.ReadOnly))
 	embedding.SetName(word)
 	err = nn.UnmarshalBinaryParamWithReceiver(bytes.NewReader(data), embedding)
 	if err != nil {
@@ -191,9 +195,9 @@ func (m *Model) getStoredEmbedding(word string) nn.Param {
 	return embedding
 }
 
-func (m *Model) getUsedEmbedding(word string) (nn.Param, bool) {
+func (m *Model[T]) getUsedEmbedding(word string) (nn.Param[T], bool) {
 	if value, ok := m.UsedEmbeddings.Load(word); ok {
-		return value.(nn.Param), true
+		return value.(nn.Param[T]), true
 	}
 	return nil, false
 }
@@ -202,9 +206,9 @@ func (m *Model) getUsedEmbedding(word string) (nn.Param, bool) {
 // The embeddings are returned as Node(s) already inserted in the graph.
 // To words that have no embeddings, the corresponding nodes
 // are nil or the `ZeroEmbedding`, depending on the configuration.
-func (m *Model) Encode(words []string) []ag.Node {
-	encoding := make([]ag.Node, len(words))
-	cache := make(map[string]ag.Node) // be smart, don't create two nodes for the same word!
+func (m *Model[T]) Encode(words []string) []ag.Node[T] {
+	encoding := make([]ag.Node[T], len(words))
+	cache := make(map[string]ag.Node[T]) // be smart, don't create two nodes for the same word!
 	for i, word := range words {
 		if item, ok := cache[word]; ok {
 			encoding[i] = item
@@ -218,7 +222,7 @@ func (m *Model) Encode(words []string) []ag.Node {
 
 // getStoredEmbedding returns the embedding associated to the word.
 // If no embedding is found, nil or the `ZeroEmbedding` is returned, depending on the model configuration.
-func (m *Model) getEmbedding(word string) ag.Node {
+func (m *Model[T]) getEmbedding(word string) ag.Node[T] {
 	switch param := m.GetStoredEmbedding(word); {
 	case param == nil:
 		if m.Config.UseZeroEmbedding {

@@ -7,12 +7,12 @@ package fn
 import "github.com/nlpodyssey/spago/pkg/mat"
 
 // variable used in the tests
-type variable struct {
-	value        mat.Matrix[mat.Float]
-	grad         mat.Matrix[mat.Float]
+type variable[T mat.DType] struct {
+	value        mat.Matrix[T]
+	grad         mat.Matrix[T]
 	requiresGrad bool
 }
 
-func (v *variable) Value() mat.Matrix[mat.Float]           { return v.value }
-func (v *variable) PropagateGrad(gx mat.Matrix[mat.Float]) { v.grad = gx.Clone() }
-func (v *variable) RequiresGrad() bool                     { return v.requiresGrad }
+func (v *variable[T]) Value() mat.Matrix[T]           { return v.value }
+func (v *variable[T]) PropagateGrad(gx mat.Matrix[T]) { v.grad = gx.Clone() }
+func (v *variable[_]) RequiresGrad() bool             { return v.requiresGrad }

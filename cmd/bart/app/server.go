@@ -6,6 +6,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/bpetokenizer"
 	"github.com/nlpodyssey/spago/pkg/nlp/tokenizers/sentencepiece"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/head/conditionalgeneration"
@@ -22,13 +23,13 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *BartApp) *cli.Command {
+func newServerCommandFor[T mat.DType](app *BartApp) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "Run the " + programName + " indicating the model path (NOT the model file).",
 		Flags:       newServerCommandFlagsFor(app),
-		Action:      newServerCommandActionFor(app),
+		Action:      newServerCommandActionFor[T](app),
 	}
 }
 
@@ -95,15 +96,15 @@ func newServerCommandFlagsFor(app *BartApp) []cli.Flag {
 	}
 }
 
-func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
+func newServerCommandActionFor[T mat.DType](app *BartApp) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
-		if err := pullModel(app); err != nil {
+		if err := pullModel[T](app); err != nil {
 			return err
 		}
 
 		modelPath := filepath.Join(app.repo, app.model)
 
-		model, err := loader.Load(modelPath)
+		model, err := loader.Load[T](modelPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -113,12 +114,12 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 		var spTokenizer *sentencepiece.Tokenizer
 
 		switch model.(type) {
-		case *sequenceclassification.Model:
+		case *sequenceclassification.Model[T]:
 			bpeTokenizer, err = bpetokenizer.NewFromModelFolder(modelPath)
 			if err != nil {
 				return err
 			}
-		case *conditionalgeneration.Model:
+		case *conditionalgeneration.Model[T]:
 			spTokenizer, err = sentencepiece.NewFromModelFolder(modelPath, false)
 			if err != nil {
 				return err
@@ -158,7 +159,7 @@ func newServerCommandActionFor(app *BartApp) func(c *cli.Context) error {
 
 const defaultModelFile = "spago_model.bin"
 
-func pullModel(app *BartApp) error {
+func pullModel[T mat.DType](app *BartApp) error {
 	modelPath := filepath.Join(app.repo, app.model)
 	if _, err := os.Stat(modelPath); os.IsNotExist(err) {
 		fmt.Printf("Unable to find `%s` locally.\n", modelPath)
@@ -174,7 +175,7 @@ func pullModel(app *BartApp) error {
 			return err
 		}
 		fmt.Printf("Converting model...\n")
-		err = huggingface.NewConverter(app.repo, app.model).Convert()
+		err = huggingface.NewConverter[T](app.repo, app.model).Convert()
 		if err != nil {
 			return err
 		}
@@ -185,7 +186,7 @@ func pullModel(app *BartApp) error {
 	if _, err := os.Stat(path.Join(modelPath, defaultModelFile)); os.IsNotExist(err) {
 		fmt.Printf("Unable to find `%s` in the model directory.\n", defaultModelFile)
 		fmt.Printf("Assuming there is a Hugging Face model to convert...\n")
-		err = huggingface.NewConverter(app.repo, app.model).Convert()
+		err = huggingface.NewConverter[T](app.repo, app.model).Convert()
 		if err != nil {
 			return err
 		}

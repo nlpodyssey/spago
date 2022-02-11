@@ -14,7 +14,7 @@ import (
 )
 
 // PredictHandler handles a predict request over HTTP.
-func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) PredictHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -46,7 +46,7 @@ func (s *Server) PredictHandler(w http.ResponseWriter, req *http.Request) {
 
 // Predict handles a predict request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Predict(_ context.Context, req *grpcapi.PredictRequest) (*grpcapi.PredictReply, error) {
+func (s *Server[T]) Predict(_ context.Context, req *grpcapi.PredictRequest) (*grpcapi.PredictReply, error) {
 	start := time.Now()
 	result := s.model.PredictMLM(req.GetText())
 	return &grpcapi.PredictReply{

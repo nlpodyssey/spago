@@ -6,6 +6,7 @@ package gmlp
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -14,12 +15,12 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/nn/stack"
 )
 
-var _ nn.Model = &Block{}
+var _ nn.Model[float32] = &Block[float32]{}
 
 // Block is the core model of the gMLP.
-type Block struct {
-	nn.BaseModel
-	*stack.Model
+type Block[T mat.DType] struct {
+	nn.BaseModel[T]
+	*stack.Model[T]
 }
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.
@@ -31,22 +32,23 @@ type BlockConfig struct {
 }
 
 func init() {
-	gob.Register(&Block{})
+	gob.Register(&Block[float32]{})
+	gob.Register(&Block[float64]{})
 }
 
 // NewBlock returns a new Block.
-func NewBlock(config BlockConfig) *Block {
-	return &Block{
-		Model: stack.New(
-			linear.New(config.Dim, config.DimFF),
-			activation.New(ag.OpGELU),
-			sgu.New(sgu.Config{
+func NewBlock[T mat.DType](config BlockConfig) *Block[T] {
+	return &Block[T]{
+		Model: stack.New[T](
+			linear.New[T](config.Dim, config.DimFF),
+			activation.New[T](ag.OpGELU),
+			sgu.New(sgu.Config[T]{
 				Dim:        config.DimFF,
 				DimSeq:     config.SeqLen,
 				InitEps:    1e-3,
 				Activation: config.Activation,
 			}),
-			linear.New(config.DimFF/2, config.Dim),
+			linear.New[T](config.DimFF/2, config.Dim),
 		),
 	}
 }

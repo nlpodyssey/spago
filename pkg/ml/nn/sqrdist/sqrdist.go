@@ -12,36 +12,37 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	B nn.Param `spago:"type:weights"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	B nn.Param[T] `spago:"type:weights"`
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(in, rank int) *Model {
-	return &Model{
-		B: nn.NewParam(mat.NewEmptyDense[mat.Float](rank, in)),
+func New[T mat.DType](in, rank int) *Model[T] {
+	return &Model[T]{
+		B: nn.NewParam[T](mat.NewEmptyDense[T](rank, in)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (m *Model) forward(x ag.Node) ag.Node {
+func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	bh := g.Mul(m.B, x)
 	return g.Mul(g.T(bh), bh)

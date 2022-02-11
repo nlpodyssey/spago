@@ -101,10 +101,10 @@ func TestModel_Forward_Params(t *testing.T) {
 			}
 		}
 
-		x := make([]ag.Node, len(testData))
-		var y []ag.Node
+		x := make([]ag.Node[mat.Float], len(testData))
+		var y []ag.Node[mat.Float]
 		for i := 0; i < tt.forwardSteps; i++ {
-			g := ag.NewGraph()
+			g := ag.NewGraph[mat.Float]()
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
@@ -125,11 +125,11 @@ func TestModel_Forward_Params(t *testing.T) {
 
 func TestModel_Inference(t *testing.T) {
 
-	model := New(3)
-	model.Mean = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
-	model.W = nn.NewParam(mat.NewInitVecDense[mat.Float](3, 1.0))
-	g := ag.NewGraph()
+	model := New[mat.Float](3)
+	model.Mean = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
+	model.W = nn.NewParam[mat.Float](mat.NewInitVecDense[mat.Float](3, 1.0))
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForInference(model, g)
 	data := []mat.Float{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense[mat.Float](data), false)
@@ -139,9 +139,9 @@ func TestModel_Inference(t *testing.T) {
 }
 
 func Test_Serialize(t *testing.T) {
-	model := NewWithMomentum(3, 0.777)
-	model.Mean = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam(mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
+	model := NewWithMomentum[mat.Float](3, 0.777)
+	model.Mean = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
 	tempFile, err := os.CreateTemp("", "test_serialize")
 	require.Nil(t, err)
 	tempFile.Close()
@@ -151,7 +151,7 @@ func Test_Serialize(t *testing.T) {
 	err = utils.SerializeToFile(tempFile.Name(), &model)
 	require.Nil(t, err)
 
-	model2 := New(3)
+	model2 := New[mat.Float](3)
 	err = utils.DeserializeFromFile(tempFile.Name(), &model2)
 	require.NoError(t, err)
 	require.Equal(t, model.Momentum.Value().Scalar(), model2.Momentum.Value().Scalar())
@@ -162,7 +162,7 @@ func Test_Serialize(t *testing.T) {
 func TestModel_Forward(t *testing.T) {
 
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -190,16 +190,16 @@ func TestModel_Forward(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
-func rectify(g *ag.Graph, xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func rectify(g *ag.Graph[mat.Float], xs []ag.Node[mat.Float]) []ag.Node[mat.Float] {
+	ys := make([]ag.Node[mat.Float], len(xs))
 	for i, x := range xs {
 		ys[i] = g.ReLU(x)
 	}
 	return ys
 }
 
-func newTestModel() *Model {
-	model := New(4)
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](4)
 	model.W.Value().SetData([]mat.Float{0.4, 0.0, -0.3, 0.8})
 	model.B.Value().SetData([]mat.Float{0.9, 0.2, -0.9, 0.2})
 	return model

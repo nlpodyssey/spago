@@ -6,6 +6,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
 	"github.com/urfave/cli/v2"
@@ -16,13 +17,13 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *NERApp) *cli.Command {
+func newServerCommandFor[T mat.DType](app *NERApp) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "You must indicate the directory that contains the spaGO neural models.",
 		Flags:       newServerCommandFlagsFor(app),
-		Action:      newServerCommandActionFor(app),
+		Action:      newServerCommandActionFor[T](app),
 	}
 }
 
@@ -89,7 +90,7 @@ func newServerCommandFlagsFor(app *NERApp) []cli.Flag {
 	}
 }
 
-func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
+func newServerCommandActionFor[T mat.DType](app *NERApp) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		fmt.Printf("TLS Cert path is %s\n", app.tlsCert)
 		fmt.Printf("TLS private key path is %s\n", app.tlsKey)
@@ -120,7 +121,7 @@ func newServerCommandActionFor(app *NERApp) func(c *cli.Context) error {
 			}
 		}
 
-		model, err := sequencelabeler.LoadModel(modelPath)
+		model, err := sequencelabeler.LoadModel[T](modelPath)
 		if err != nil {
 			return err
 		}

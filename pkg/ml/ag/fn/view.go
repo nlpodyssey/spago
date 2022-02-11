@@ -8,11 +8,11 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &View{}
+var _ Function[float32] = &View[float32]{}
 
 // View is a function to extract a portion of a matrix.
-type View struct {
-	x  Operand
+type View[T mat.DType] struct {
+	x  Operand[T]
 	sx int
 	sy int
 	lx int // x length
@@ -20,13 +20,13 @@ type View struct {
 }
 
 // NewView returns a new View Function.
-func NewView(x Operand, sx, sy, lx, ly int) *View {
-	return &View{x: x, sx: sx, sy: sy, lx: lx, ly: ly}
+func NewView[T mat.DType](x Operand[T], sx, sy, lx, ly int) *View[T] {
+	return &View[T]{x: x, sx: sx, sy: sy, lx: lx, ly: ly}
 }
 
 // Forward computes the output of the function.
-func (r *View) Forward() mat.Matrix[mat.Float] {
-	y := mat.NewEmptyDense[mat.Float](r.lx, r.ly)
+func (r *View[T]) Forward() mat.Matrix[T] {
+	y := mat.NewEmptyDense[T](r.lx, r.ly)
 	for i := 0; i < r.lx; i++ {
 		for j := 0; j < r.ly; j++ {
 			y.Set(i, j, r.x.Value().At(i+r.sx, j+r.sy))
@@ -36,7 +36,7 @@ func (r *View) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *View) Backward(gy mat.Matrix[mat.Float]) {
+func (r *View[T]) Backward(gy mat.Matrix[T]) {
 	if !(gy.Rows() == r.lx && gy.Columns() == r.ly) {
 		panic("fn: matrices with not compatible size")
 	}

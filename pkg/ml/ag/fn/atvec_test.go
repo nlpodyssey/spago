@@ -11,13 +11,13 @@ import (
 )
 
 func TestAtVec_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewAtVec(x, 1)
+	f := NewAtVec[mat.Float](x, 1)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.2}, y.Data(), 1.0e-6)

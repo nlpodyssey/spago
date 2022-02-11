@@ -21,18 +21,18 @@ import (
 	"sync"
 )
 
-var _ nn.Model = &BartForZeroShotClassification{}
+var _ nn.Model[float32] = &BartForZeroShotClassification[float32]{}
 
 // BartForZeroShotClassification combines a sequence classification BART
 // model with a BPE tokenizer to perform Zero-Shot Text Classification.
-type BartForZeroShotClassification struct {
-	*sequenceclassification.Model
+type BartForZeroShotClassification[T mat.DType] struct {
+	*sequenceclassification.Model[T]
 	Tokenizer *bpetokenizer.BPETokenizer
 }
 
 // LoadModel loads a BartForZeroShotClassification from file.
-func LoadModel(modelPath string) (*BartForZeroShotClassification, error) {
-	model, err := loader.Load(modelPath)
+func LoadModel[T mat.DType](modelPath string) (*BartForZeroShotClassification[T], error) {
+	model, err := loader.Load[T](modelPath)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func LoadModel(modelPath string) (*BartForZeroShotClassification, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &BartForZeroShotClassification{
-		Model:     model.(*sequenceclassification.Model),
+	return &BartForZeroShotClassification[T]{
+		Model:     model.(*sequenceclassification.Model[T]),
 		Tokenizer: tokenizer,
 	}, nil
 }
@@ -59,12 +59,12 @@ const (
 )
 
 // Classify performs a text classification using the zero-shot technique.
-func (t *BartForZeroShotClassification) Classify(
+func (t *BartForZeroShotClassification[T]) Classify(
 	text string,
 	hypothesisTemplate string,
 	candidateLabels []string,
 	multiClass bool,
-) (*tasks.ClassifyResponse, error) {
+) (*tasks.ClassifyResponse[T], error) {
 	if hypothesisTemplate == "" {
 		hypothesisTemplate = defaultHypothesisTemplate
 	}
@@ -75,7 +75,7 @@ func (t *BartForZeroShotClassification) Classify(
 	}
 
 	numOfCandidateLabels := len(candidateLabels)
-	logits := make([]mat.Matrix[mat.Float], numOfCandidateLabels)
+	logits := make([]mat.Matrix[T], numOfCandidateLabels)
 
 	numWorkers := runtime.NumCPU() / 2 // leave some space for other concurrent computations
 	wp := workerpool.New(numWorkers)
@@ -101,7 +101,7 @@ func (t *BartForZeroShotClassification) Classify(
 		multiClass = true
 	}
 
-	scores := func() []mat.Float {
+	scores := func() []T {
 		if multiClass {
 			return getMultiClassScores(logits, entailmentID, contradictionID)
 		}
@@ -111,9 +111,9 @@ func (t *BartForZeroShotClassification) Classify(
 	best := matutils.ArgMax(scores)
 	class := candidateLabels[best]
 
-	distribution := make([]tasks.ClassConfidencePair, len(scores))
+	distribution := make([]tasks.ClassConfidencePair[T], len(scores))
 	for i := 0; i < len(scores); i++ {
-		distribution[i] = tasks.ClassConfidencePair{
+		distribution[i] = tasks.ClassConfidencePair[T]{
 			Class:      candidateLabels[i],
 			Confidence: scores[i],
 		}
@@ -123,7 +123,7 @@ func (t *BartForZeroShotClassification) Classify(
 		return distribution[i].Confidence > distribution[j].Confidence
 	})
 
-	return &tasks.ClassifyResponse{
+	return &tasks.ClassifyResponse[T]{
 		Class:        class,
 		Confidence:   scores[best],
 		Distribution: distribution,
@@ -131,25 +131,25 @@ func (t *BartForZeroShotClassification) Classify(
 }
 
 // getMultiClassScores softmax over the entailment vs. contradiction for each label independently
-func getMultiClassScores(logits []mat.Matrix[mat.Float], entailmentID, contradictionID int) []mat.Float {
-	scores := make([]mat.Float, len(logits))
+func getMultiClassScores[T mat.DType](logits []mat.Matrix[T], entailmentID, contradictionID int) []T {
+	scores := make([]T, len(logits))
 	for i, v := range logits {
-		prob := matutils.SoftMax([]mat.Float{v.AtVec(entailmentID), v.AtVec(contradictionID)})
+		prob := matutils.SoftMax([]T{v.AtVec(entailmentID), v.AtVec(contradictionID)})
 		scores[i] = prob[0]
 	}
 	return scores
 }
 
 // getScores softmax the "entailment" over all candidate labels
-func getScores(logits []mat.Matrix[mat.Float], entailmentID int) []mat.Float {
-	scores := make([]mat.Float, len(logits))
+func getScores[T mat.DType](logits []mat.Matrix[T], entailmentID int) []T {
+	scores := make([]T, len(logits))
 	for i, l := range logits {
 		scores[i] = l.AtVec(entailmentID)
 	}
 	return matutils.SoftMax(scores)
 }
 
-func (t *BartForZeroShotClassification) getEntailmentAndContradictionIDs() (
+func (t *BartForZeroShotClassification[_]) getEntailmentAndContradictionIDs() (
 	entailmentID, contradictionID int, err error,
 ) {
 	labels2id := t.Model.BART.Config.Label2ID
@@ -165,10 +165,10 @@ func (t *BartForZeroShotClassification) getEntailmentAndContradictionIDs() (
 	return
 }
 
-func (t *BartForZeroShotClassification) newWorkers(workersSize int) []*worker {
-	workers := make([]*worker, workersSize)
+func (t *BartForZeroShotClassification[T]) newWorkers(workersSize int) []*worker[T] {
+	workers := make([]*worker[T], workersSize)
 	for i := range workers {
-		workers[i] = &worker{
+		workers[i] = &worker[T]{
 			tokenizer: t.Tokenizer,
 			model:     t.Model,
 		}
@@ -176,13 +176,13 @@ func (t *BartForZeroShotClassification) newWorkers(workersSize int) []*worker {
 	return workers
 }
 
-type worker struct {
+type worker[T mat.DType] struct {
 	tokenizer *bpetokenizer.BPETokenizer
-	model     *sequenceclassification.Model
+	model     *sequenceclassification.Model[T]
 }
 
-func (w *worker) process(input premiseHypothesisPair) mat.Matrix[mat.Float] {
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()), ag.IncrementalForward(false))
+func (w *worker[T]) process(input premiseHypothesisPair) mat.Matrix[T] {
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()), ag.IncrementalForward[T](false))
 	defer g.Clear()
 	proc := nn.ReifyForInference(w.model, g)
 	inputIds := getInputIDs(w.tokenizer, input.premise, input.hypothesis)

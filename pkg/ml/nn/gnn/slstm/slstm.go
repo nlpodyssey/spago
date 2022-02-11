@@ -17,30 +17,30 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // TODO(1): code refactoring using a structure to maintain states.
 // TODO(2): use a gradient policy (i.e. reinforcement learning) to increase the context with dynamic skip connections.
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config                 Config
-	InputGate              *HyperLinear4 `spago:"type:params"`
-	LeftCellGate           *HyperLinear4 `spago:"type:params"`
-	RightCellGate          *HyperLinear4 `spago:"type:params"`
-	CellGate               *HyperLinear4 `spago:"type:params"`
-	SentCellGate           *HyperLinear4 `spago:"type:params"`
-	OutputGate             *HyperLinear4 `spago:"type:params"`
-	InputActivation        *HyperLinear4 `spago:"type:params"`
-	NonLocalSentCellGate   *HyperLinear3 `spago:"type:params"`
-	NonLocalInputGate      *HyperLinear3 `spago:"type:params"`
-	NonLocalSentOutputGate *HyperLinear3 `spago:"type:params"`
-	StartH                 nn.Param      `spago:"type:weights"`
-	EndH                   nn.Param      `spago:"type:weights"`
-	InitValue              nn.Param      `spago:"type:weights"`
-	Support                Support       `spago:"scope:processor"`
+	InputGate              *HyperLinear4[T] `spago:"type:params"`
+	LeftCellGate           *HyperLinear4[T] `spago:"type:params"`
+	RightCellGate          *HyperLinear4[T] `spago:"type:params"`
+	CellGate               *HyperLinear4[T] `spago:"type:params"`
+	SentCellGate           *HyperLinear4[T] `spago:"type:params"`
+	OutputGate             *HyperLinear4[T] `spago:"type:params"`
+	InputActivation        *HyperLinear4[T] `spago:"type:params"`
+	NonLocalSentCellGate   *HyperLinear3[T] `spago:"type:params"`
+	NonLocalInputGate      *HyperLinear3[T] `spago:"type:params"`
+	NonLocalSentOutputGate *HyperLinear3[T] `spago:"type:params"`
+	StartH                 nn.Param[T]      `spago:"type:weights"`
+	EndH                   nn.Param[T]      `spago:"type:weights"`
+	InitValue              nn.Param[T]      `spago:"type:weights"`
+	Support                Support[T]       `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.
@@ -53,86 +53,87 @@ type Config struct {
 const windowSize = 3 // the window is fixed in this implementation
 
 // HyperLinear4 groups multiple params for an affine transformation.
-type HyperLinear4 struct {
-	W nn.Param `spago:"type:weights"`
-	U nn.Param `spago:"type:weights"`
-	V nn.Param `spago:"type:weights"`
-	B nn.Param `spago:"type:biases"`
+type HyperLinear4[T mat.DType] struct {
+	W nn.Param[T] `spago:"type:weights"`
+	U nn.Param[T] `spago:"type:weights"`
+	V nn.Param[T] `spago:"type:weights"`
+	B nn.Param[T] `spago:"type:biases"`
 }
 
 // HyperLinear3 groups multiple params for an affine transformation.
-type HyperLinear3 struct {
-	W nn.Param `spago:"type:weights"`
-	U nn.Param `spago:"type:weights"`
-	B nn.Param `spago:"type:biases"`
+type HyperLinear3[T mat.DType] struct {
+	W nn.Param[T] `spago:"type:weights"`
+	U nn.Param[T] `spago:"type:weights"`
+	B nn.Param[T] `spago:"type:biases"`
 }
 
 // Support contains nodes used during the forward step.
-type Support struct {
+type Support[T mat.DType] struct {
 	// Shared among all steps
-	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node
+	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node[T]
 	// Shared among all nodes at the same step
-	ViPrevG ag.Node
-	VlPrevG ag.Node
-	VrPrevG ag.Node
-	VfPrevG ag.Node
-	VsPrevG ag.Node
-	VoPrevG ag.Node
-	VuPrevG ag.Node
+	ViPrevG ag.Node[T]
+	VlPrevG ag.Node[T]
+	VrPrevG ag.Node[T]
+	VfPrevG ag.Node[T]
+	VsPrevG ag.Node[T]
+	VoPrevG ag.Node[T]
+	VuPrevG ag.Node[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(config Config) *Model {
+func New[T mat.DType](config Config) *Model[T] {
 	in, out := config.InputSize, config.OutputSize
-	return &Model{
+	return &Model[T]{
 		Config:                 config,
-		InputGate:              newGate4(in, out),
-		LeftCellGate:           newGate4(in, out),
-		RightCellGate:          newGate4(in, out),
-		CellGate:               newGate4(in, out),
-		SentCellGate:           newGate4(in, out),
-		OutputGate:             newGate4(in, out),
-		InputActivation:        newGate4(in, out),
-		NonLocalSentCellGate:   newGate3(out),
-		NonLocalInputGate:      newGate3(out),
-		NonLocalSentOutputGate: newGate3(out),
-		StartH:                 nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
-		EndH:                   nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
-		InitValue:              nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+		InputGate:              newGate4[T](in, out),
+		LeftCellGate:           newGate4[T](in, out),
+		RightCellGate:          newGate4[T](in, out),
+		CellGate:               newGate4[T](in, out),
+		SentCellGate:           newGate4[T](in, out),
+		OutputGate:             newGate4[T](in, out),
+		InputActivation:        newGate4[T](in, out),
+		NonLocalSentCellGate:   newGate3[T](out),
+		NonLocalInputGate:      newGate3[T](out),
+		NonLocalSentOutputGate: newGate3[T](out),
+		StartH:                 nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		EndH:                   nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		InitValue:              nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
 	}
 }
 
-func newGate4(in, out int) *HyperLinear4 {
-	return &HyperLinear4{
-		W: nn.NewParam(mat.NewEmptyDense[mat.Float](out, out*windowSize)),
-		U: nn.NewParam(mat.NewEmptyDense[mat.Float](out, in)),
-		V: nn.NewParam(mat.NewEmptyDense[mat.Float](out, out)),
-		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](out)),
+func newGate4[T mat.DType](in, out int) *HyperLinear4[T] {
+	return &HyperLinear4[T]{
+		W: nn.NewParam[T](mat.NewEmptyDense[T](out, out*windowSize)),
+		U: nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+		V: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
+		B: nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
 	}
 }
 
-func newGate3(size int) *HyperLinear3 {
-	return &HyperLinear3{
-		W: nn.NewParam(mat.NewEmptyDense[mat.Float](size, size)),
-		U: nn.NewParam(mat.NewEmptyDense[mat.Float](size, size)),
-		B: nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
+func newGate3[T mat.DType](size int) *HyperLinear3[T] {
+	return &HyperLinear3[T]{
+		W: nn.NewParam[T](mat.NewEmptyDense[T](size, size)),
+		U: nn.NewParam[T](mat.NewEmptyDense[T](size, size)),
+		B: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	steps := m.Config.Steps
 	n := len(xs)
-	h := make([][]ag.Node, steps)
-	c := make([][]ag.Node, steps)
-	g := make([]ag.Node, steps)
-	cg := make([]ag.Node, steps)
-	h[0] = make([]ag.Node, n)
-	c[0] = make([]ag.Node, n)
+	h := make([][]ag.Node[T], steps)
+	c := make([][]ag.Node[T], steps)
+	g := make([]ag.Node[T], steps)
+	cg := make([]ag.Node[T], steps)
+	h[0] = make([]ag.Node[T], n)
+	c[0] = make([]ag.Node[T], n)
 
 	g[0] = m.InitValue
 	cg[0] = m.InitValue
@@ -151,16 +152,16 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	return h[len(h)-1]
 }
 
-func (m *Model) computeUx(xs []ag.Node) {
+func (m *Model[T]) computeUx(xs []ag.Node[T]) {
 	g := m.Graph()
 	n := len(xs)
-	m.Support.xUi = make([]ag.Node, n)
-	m.Support.xUl = make([]ag.Node, n)
-	m.Support.xUr = make([]ag.Node, n)
-	m.Support.xUf = make([]ag.Node, n)
-	m.Support.xUs = make([]ag.Node, n)
-	m.Support.xUo = make([]ag.Node, n)
-	m.Support.xUu = make([]ag.Node, n)
+	m.Support.xUi = make([]ag.Node[T], n)
+	m.Support.xUl = make([]ag.Node[T], n)
+	m.Support.xUr = make([]ag.Node[T], n)
+	m.Support.xUf = make([]ag.Node[T], n)
+	m.Support.xUs = make([]ag.Node[T], n)
+	m.Support.xUo = make([]ag.Node[T], n)
+	m.Support.xUu = make([]ag.Node[T], n)
 
 	var wg sync.WaitGroup
 	wg.Add(n)
@@ -179,7 +180,7 @@ func (m *Model) computeUx(xs []ag.Node) {
 	wg.Wait()
 }
 
-func (m *Model) computeVg(prevG ag.Node) {
+func (m *Model[T]) computeVg(prevG ag.Node[T]) {
 	g := m.Graph()
 	var wg sync.WaitGroup
 	wg.Add(7)
@@ -207,7 +208,7 @@ func (m *Model) computeVg(prevG ag.Node) {
 	wg.Wait()
 }
 
-func (m *Model) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
+func (m *Model[T]) processNode(i int, prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (h ag.Node[T], c ag.Node[T]) {
 	g := m.Graph()
 	n := len(prevH)
 	first := 0
@@ -215,14 +216,14 @@ func (m *Model) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG ag.No
 	j := i - 1
 	k := i + 1
 
-	prevHj, prevCj := func() (ag.Node, ag.Node) {
+	prevHj, prevCj := func() (ag.Node[T], ag.Node[T]) {
 		if j < first {
 			return m.StartH, m.StartH
 		}
 		return prevH[j], prevC[j]
 	}()
 
-	prevHk, prevCk := func() (ag.Node, ag.Node) {
+	prevHk, prevCk := func() (ag.Node[T], ag.Node[T]) {
 		if k > last {
 			return m.EndH, m.EndH
 		}
@@ -247,12 +248,12 @@ func (m *Model) processNode(i int, prevH []ag.Node, prevC []ag.Node, prevG ag.No
 	return
 }
 
-func (m *Model) updateHiddenNodes(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) ([]ag.Node, []ag.Node) {
+func (m *Model[T]) updateHiddenNodes(prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) ([]ag.Node[T], []ag.Node[T]) {
 	var wg sync.WaitGroup
 	n := len(prevH)
 	wg.Add(n)
-	h := make([]ag.Node, n)
-	c := make([]ag.Node, n)
+	h := make([]ag.Node[T], n)
+	c := make([]ag.Node[T], n)
 	for i := 0; i < n; i++ {
 		go func(i int) {
 			defer wg.Done()
@@ -263,20 +264,20 @@ func (m *Model) updateHiddenNodes(prevH []ag.Node, prevC []ag.Node, prevG ag.Nod
 	return h, c
 }
 
-func (m *Model) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
+func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (ag.Node[T], ag.Node[T]) {
 	g := m.Graph()
 	n := len(prevH)
 	avgH := g.Mean(prevH)
-	fG := g.Sigmoid(nn.Affine(g, m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
-	oG := g.Sigmoid(nn.Affine(g, m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
+	fG := g.Sigmoid(nn.Affine[T](g, m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
+	oG := g.Sigmoid(nn.Affine[T](g, m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
-	hG := make([]ag.Node, n)
-	gG := nn.Affine(g, m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
+	hG := make([]ag.Node[T], n)
+	gG := nn.Affine[T](g, m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
 		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}
 
-	var sum ag.Node
+	var sum ag.Node[T]
 	for i := 0; i < n; i++ {
 		sum = g.Add(sum, g.Prod(hG[i], prevC[i]))
 	}

@@ -8,33 +8,33 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &Softmax{}
+var _ Function[float32] = &Softmax[float32]{}
 
 // Softmax is a single-input softmax function.
-type Softmax struct {
-	x Operand
-	y mat.Matrix[mat.Float] // initialized during the forward pass (required by the backward pass)
+type Softmax[T mat.DType] struct {
+	x Operand[T]
+	y mat.Matrix[T] // initialized during the forward pass (required by the backward pass)
 }
 
 // NewSoftmax returns a new Softmax Function.
-func NewSoftmax(x Operand) *Softmax {
-	return &Softmax{x: x}
+func NewSoftmax[T mat.DType](x Operand[T]) *Softmax[T] {
+	return &Softmax[T]{x: x}
 }
 
 // Forward computes the output of this function.
-func (r *Softmax) Forward() mat.Matrix[mat.Float] {
+func (r *Softmax[T]) Forward() mat.Matrix[T] {
 	r.y = mat.NewVecDense(softmax(r.x.Value().Data()))
 	return r.y
 }
 
 // Backward computes the backward pass.
-func (r *Softmax) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Softmax[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		n := r.y.Size()
-		jb := mat.GetDensePool[mat.Float]().Get(n, n)
+		jb := mat.GetDensePool[T]().Get(n, n)
 		defer mat.ReleaseDense(jb)
 		for i := 0; i < n; i++ {
 			for j := 0; j < n; j++ {
@@ -51,7 +51,7 @@ func (r *Softmax) Backward(gy mat.Matrix[mat.Float]) {
 	}
 }
 
-func max(v []mat.Float) (m mat.Float) {
+func max[T mat.DType](v []T) (m T) {
 	m = v[len(v)-1]
 	for _, e := range v {
 		if m <= e {
@@ -61,10 +61,10 @@ func max(v []mat.Float) (m mat.Float) {
 	return
 }
 
-func softmax(v []mat.Float) []mat.Float {
+func softmax[T mat.DType](v []T) []T {
 	maximum := max(v)
-	var sum mat.Float = 0.0
-	out := make([]mat.Float, len(v))
+	var sum T = 0.0
+	out := make([]T, len(v))
 	for i, x := range v {
 		e := mat.Exp(x - maximum)
 		out[i] = e

@@ -22,7 +22,7 @@ import (
 )
 
 // ClassifyHandler handles a classify request over HTTP.
-func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -49,28 +49,28 @@ func (s *Server) ClassifyHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // ClassConfidencePair associates a Confidence to a symbolic Class.
-type ClassConfidencePair struct {
-	Class      string    `json:"class"`
-	Confidence mat.Float `json:"confidence"`
+type ClassConfidencePair[T mat.DType] struct {
+	Class      string `json:"class"`
+	Confidence T      `json:"confidence"`
 }
 
 // ClassifyResponse is a JSON-serializable server response for BERT "classify" requests.
-type ClassifyResponse struct {
-	Class        string                `json:"class"`
-	Confidence   mat.Float             `json:"confidence"`
-	Distribution []ClassConfidencePair `json:"distribution"`
+type ClassifyResponse[T mat.DType] struct {
+	Class        string                   `json:"class"`
+	Confidence   T                        `json:"confidence"`
+	Distribution []ClassConfidencePair[T] `json:"distribution"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }
 
 // Classify handles a classification request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
+func (s *Server[T]) Classify(_ context.Context, req *grpcapi.ClassifyRequest) (*grpcapi.ClassifyReply, error) {
 	result := s.classify(req.GetText(), req.GetText2())
 	return classificationFrom(result), nil
 }
 
-func classificationFrom(resp *ClassifyResponse) *grpcapi.ClassifyReply {
+func classificationFrom[T mat.DType](resp *ClassifyResponse[T]) *grpcapi.ClassifyReply {
 	distribution := make([]*grpcapi.ClassConfidencePair, len(resp.Distribution))
 	for i, t := range resp.Distribution {
 		distribution[i] = &grpcapi.ClassConfidencePair{
@@ -87,7 +87,7 @@ func classificationFrom(resp *ClassifyResponse) *grpcapi.ClassifyReply {
 	}
 }
 
-func (s *Server) getTokenized(text, text2 string) []string {
+func (s *Server[T]) getTokenized(text, text2 string) []string {
 	cls := wordpiecetokenizer.DefaultClassToken
 	sep := wordpiecetokenizer.DefaultSequenceSeparator
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
@@ -100,12 +100,12 @@ func (s *Server) getTokenized(text, text2 string) []string {
 
 // TODO: This method is too long; it needs to be refactored.
 // For the textual inference task, text is the premise and text2 is the hypothesis.
-func (s *Server) classify(text string, text2 string) *ClassifyResponse {
+func (s *Server[T]) classify(text string, text2 string) *ClassifyResponse[T] {
 	start := time.Now()
 
 	tokenized := s.getTokenized(text, text2)
 
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForInference(s.model, g)
 	encoded := proc.Encode(tokenized)
@@ -115,9 +115,9 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 	best := matutils.ArgMax(probs)
 	class := s.model.Classifier.Config.Labels[best]
 
-	distribution := make([]ClassConfidencePair, len(probs))
+	distribution := make([]ClassConfidencePair[T], len(probs))
 	for i := 0; i < len(probs); i++ {
-		distribution[i] = ClassConfidencePair{
+		distribution[i] = ClassConfidencePair[T]{
 			Class:      s.model.Classifier.Config.Labels[i],
 			Confidence: probs[i],
 		}
@@ -127,7 +127,7 @@ func (s *Server) classify(text string, text2 string) *ClassifyResponse {
 		return distribution[i].Confidence > distribution[j].Confidence
 	})
 
-	return &ClassifyResponse{
+	return &ClassifyResponse[T]{
 		Class:        class,
 		Confidence:   probs[best],
 		Distribution: distribution,

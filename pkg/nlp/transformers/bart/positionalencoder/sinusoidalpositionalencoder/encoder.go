@@ -6,13 +6,14 @@ package sinusoidalpositionalencoder
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/encoding/pe"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
 var (
-	_ nn.Model = &SinusoidalPositionalEncoder{}
+	_ nn.Model[float32] = &SinusoidalPositionalEncoder[float32]{}
 )
 
 // Config provides configuration settings for a SinusoidalPositionalEncoder Model.
@@ -23,27 +24,28 @@ type Config struct {
 
 // SinusoidalPositionalEncoder contains positional embeddings fine-tuned during
 // the training phase.
-type SinusoidalPositionalEncoder struct {
-	nn.BaseModel
+type SinusoidalPositionalEncoder[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config   Config
-	Delegate *pe.SinusoidalPositionalEncoder
+	Delegate *pe.SinusoidalPositionalEncoder[T]
 }
 
 func init() {
-	gob.Register(&SinusoidalPositionalEncoder{})
+	gob.Register(&SinusoidalPositionalEncoder[float32]{})
+	gob.Register(&SinusoidalPositionalEncoder[float64]{})
 }
 
 // New returns a new SinusoidalPositionalEncoder.
-func New(config Config) *SinusoidalPositionalEncoder {
-	return &SinusoidalPositionalEncoder{
+func New[T mat.DType](config Config) *SinusoidalPositionalEncoder[T] {
+	return &SinusoidalPositionalEncoder[T]{
 		Config:   config,
-		Delegate: pe.NewSinusoidalPositionalEncoder(config.EmbeddingDim, config.NumEmbeddings),
+		Delegate: pe.NewSinusoidalPositionalEncoder[T](config.EmbeddingDim, config.NumEmbeddings),
 	}
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *SinusoidalPositionalEncoder) Encode(positions []int) []ag.Node {
-	embeddings := make([]ag.Node, len(positions))
+func (m *SinusoidalPositionalEncoder[T]) Encode(positions []int) []ag.Node[T] {
+	embeddings := make([]ag.Node[T], len(positions))
 	for i, vector := range m.Delegate.Encode(positions...) {
 		embeddings[i] = m.Graph().NewVariable(vector, false)
 	}

@@ -8,35 +8,35 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &SoftShrink{}
+var _ Function[float32] = &SoftShrink[float32]{}
 
 // SoftShrink function: f(x) = x − λ if x > λ; x + λ if x < −λ; 0 otherwise.
-type SoftShrink struct {
-	x      Operand
-	lambda Operand // scalar
+type SoftShrink[T mat.DType] struct {
+	x      Operand[T]
+	lambda Operand[T] // scalar
 }
 
 // NewSoftShrink returns a new SoftShrink Function.
-func NewSoftShrink(x, lambda Operand) *SoftShrink {
-	return &SoftShrink{x: x, lambda: lambda}
+func NewSoftShrink[T mat.DType](x, lambda Operand[T]) *SoftShrink[T] {
+	return &SoftShrink[T]{x: x, lambda: lambda}
 }
 
 // Forward computes the output of the function.
-func (r *SoftShrink) Forward() mat.Matrix[mat.Float] {
-	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(softShrink, r.x.Value(), r.lambda.Value().Scalar())
+func (r *SoftShrink[T]) Forward() mat.Matrix[T] {
+	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
+	y.ApplyWithAlpha(softShrink[T], r.x.Value(), r.lambda.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SoftShrink) Backward(gy mat.Matrix[mat.Float]) {
+func (r *SoftShrink[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
+		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(softShrinkDeriv, r.x.Value(), r.lambda.Value().Scalar())
+		gx.ApplyWithAlpha(softShrinkDeriv[T], r.x.Value(), r.lambda.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

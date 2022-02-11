@@ -8,36 +8,36 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &SoftPlus{}
+var _ Function[float32] = &SoftPlus[float32]{}
 
 // SoftPlus function: f(x) = 1 / β ∗ log(1 + exp(β ∗ x))
-type SoftPlus struct {
-	x         Operand
-	beta      Operand
-	threshold Operand
+type SoftPlus[T mat.DType] struct {
+	x         Operand[T]
+	beta      Operand[T]
+	threshold Operand[T]
 }
 
 // NewSoftPlus returns a new SoftPlus Function.
-func NewSoftPlus(x, beta, threshold Operand) *SoftPlus {
-	return &SoftPlus{x: x, beta: beta, threshold: threshold}
+func NewSoftPlus[T mat.DType](x, beta, threshold Operand[T]) *SoftPlus[T] {
+	return &SoftPlus[T]{x: x, beta: beta, threshold: threshold}
 }
 
 // Forward computes the output of the function.
-func (r *SoftPlus) Forward() mat.Matrix[mat.Float] {
-	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(softPlus, r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+func (r *SoftPlus[T]) Forward() mat.Matrix[T] {
+	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
+	y.ApplyWithAlpha(softPlus[T], r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SoftPlus) Backward(gy mat.Matrix[mat.Float]) {
+func (r *SoftPlus[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
+		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(softPlusDeriv, r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+		gx.ApplyWithAlpha(softPlusDeriv[T], r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

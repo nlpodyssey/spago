@@ -11,7 +11,7 @@ import (
 )
 
 func TestSGD_Update(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		0.0,   // momentum
 		false, // nesterov
@@ -27,7 +27,7 @@ func TestSGD_Update(t *testing.T) {
 }
 
 func TestSGDMomentum_Update(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		0.9,   // momentum
 		false, // nesterov
@@ -45,7 +45,7 @@ func TestSGDMomentum_Update(t *testing.T) {
 }
 
 func TestSGDMomentum_Update2(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		0.9,   // momentum
 		false, // nesterov
@@ -105,7 +105,7 @@ func TestSGDMomentum_Update2(t *testing.T) {
 }
 
 func TestSGDNesterovMomentum_Update(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		0.9,   // momentum
 		true,  // nesterov
@@ -123,7 +123,7 @@ func TestSGDNesterovMomentum_Update(t *testing.T) {
 }
 
 func TestSGDNesterovMomentum_Update2(t *testing.T) {
-	updater := New(NewConfig(
+	updater := New(NewConfig[mat.Float](
 		0.001, // learning rate
 		0.9,   // momentum
 		true,  // nesterov

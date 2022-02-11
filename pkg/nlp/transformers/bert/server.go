@@ -7,6 +7,7 @@ package bert
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/webui/bertclassification"
 	"net/http"
 	"sort"
@@ -21,8 +22,8 @@ import (
 // TODO: This code needs to be refactored. Pull requests are welcome!
 
 // Server contains everything needed to run a BERT server.
-type Server struct {
-	model           *Model
+type Server[T mat.DType] struct {
+	model           *Model[T]
 	TimeoutSeconds  int
 	MaxRequestBytes int
 
@@ -31,8 +32,8 @@ type Server struct {
 }
 
 // NewServer returns Server objects.
-func NewServer(model *Model) *Server {
-	return &Server{
+func NewServer[T mat.DType](model *Model[T]) *Server[T] {
+	return &Server[T]{
 		model: model,
 	}
 }
@@ -40,7 +41,7 @@ func NewServer(model *Model) *Server {
 // StartDefaultServer is used to start a basic BERT HTTP server.
 // If you want more control of the HTTP server you can run your own
 // HTTP router using the public handler functions
-func (s *Server) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
+func (s *Server[T]) StartDefaultServer(address, grpcAddress, tlsCert, tlsKey string, tlsDisable bool) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/bert-qa-ui", bertqa.Handler)
 	mux.HandleFunc("/bert-classify-ui", bertclassification.Handler)
@@ -104,8 +105,8 @@ const DefaultPredictedLabel = "PREDICTED"
 
 // QuestionAnsweringResponse is the JSON-serializable structure for BERT
 // question-answering server response.
-type QuestionAnsweringResponse struct {
-	Answers Answers `json:"answers"`
+type QuestionAnsweringResponse[T mat.DType] struct {
+	Answers Answers[T] `json:"answers"`
 	// Took is the number of milliseconds it took the server to execute the request.
 	Took int64 `json:"took"`
 }

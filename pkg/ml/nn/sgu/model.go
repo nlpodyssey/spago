@@ -19,36 +19,37 @@ import (
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Config Config
-	Norm   *layernorm.Model
-	Proj   *conv1x1.Model
-	Act    *activation.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config Config[T]
+	Norm   *layernorm.Model[T]
+	Proj   *conv1x1.Model[T]
+	Act    *activation.Model[T]
 }
 
-var _ nn.Model = &Model{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Config provides configuration parameters for Model.
-type Config struct {
+type Config[T mat.DType] struct {
 	Dim        int
 	DimSeq     int
-	InitEps    mat.Float
+	InitEps    T
 	Activation ag.OpName
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new Model initialized to zeros.
-func New(config Config) *Model {
+func New[T mat.DType](config Config[T]) *Model[T] {
 	dimOut := config.Dim / 2
 
-	m := &Model{
+	m := &Model[T]{
 		Config: config,
-		Norm:   layernorm.New(dimOut),
-		Proj: conv1x1.New(conv1x1.Config{
+		Norm:   layernorm.New[T](dimOut),
+		Proj: conv1x1.New[T](conv1x1.Config{
 			InputChannels:  config.DimSeq,
 			OutputChannels: config.DimSeq,
 		}),
@@ -56,27 +57,27 @@ func New(config Config) *Model {
 	}
 
 	if config.Activation != ag.OpIdentity {
-		m.Act = activation.New(config.Activation)
+		m.Act = activation.New[T](config.Activation)
 	}
 
 	return m
 }
 
 // Initialize set the projection weights as near-zero values and the biases as ones to improve training stability.
-func (m *Model) Initialize(seed uint64) {
-	r := rand.NewLockedRand[mat.Float](seed)
-	eps := m.Config.InitEps / mat.Float(m.Config.DimSeq)
-	initializers.Uniform(m.Proj.W.Value(), -eps, eps, r)
-	initializers.Constant(m.Proj.B.Value(), 1)
+func (m *Model[T]) Initialize(seed uint64) {
+	r := rand.NewLockedRand[T](seed)
+	eps := m.Config.InitEps / T(m.Config.DimSeq)
+	initializers.Uniform[T](m.Proj.W.Value(), -eps, eps, r)
+	initializers.Constant[T](m.Proj.B.Value(), 1)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	halfSize := xs[0].Value().Size() / 2
 
-	res := make([]ag.Node, len(xs))
-	gate := make([]ag.Node, len(xs))
+	res := make([]ag.Node[T], len(xs))
+	gate := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		res[i] = g.View(x, 0, 0, halfSize, 1)
 		gate[i] = g.View(x, halfSize, 0, halfSize, 1)
@@ -89,7 +90,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		gate = m.Act.Forward(gate...)
 	}
 
-	y := make([]ag.Node, len(gate))
+	y := make([]ag.Node[T], len(gate))
 	for i := range y {
 		y[i] = g.Prod(gate[i], res[i])
 	}

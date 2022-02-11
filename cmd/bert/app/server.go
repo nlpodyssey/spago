@@ -6,6 +6,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/httputils"
@@ -17,13 +18,13 @@ import (
 	"path/filepath"
 )
 
-func newServerCommandFor(app *BertApp) *cli.Command {
+func newServerCommandFor[T mat.DType](app *BertApp) *cli.Command {
 	return &cli.Command{
 		Name:        "server",
 		Usage:       "Run the " + programName + " as gRPC/HTTP server.",
 		Description: "Run the " + programName + " indicating the model path (NOT the model file).",
 		Flags:       newServerCommandFlagsFor(app),
-		Action:      newServerCommandActionFor(app),
+		Action:      newServerCommandActionFor[T](app),
 	}
 }
 
@@ -92,7 +93,7 @@ func newServerCommandFlagsFor(app *BertApp) []cli.Flag {
 
 const defaultModelFile = "spago_model.bin"
 
-func newServerCommandActionFor(app *BertApp) func(c *cli.Context) error {
+func newServerCommandActionFor[T mat.DType](app *BertApp) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		modelPath := filepath.Join(app.repo, app.model)
 
@@ -110,20 +111,20 @@ func newServerCommandActionFor(app *BertApp) func(c *cli.Context) error {
 				return err
 			}
 			fmt.Printf("Converting model...\n")
-			err = huggingface.NewConverter(app.repo, app.model).Convert()
+			err = huggingface.NewConverter[T](app.repo, app.model).Convert()
 			if err != nil {
 				return err
 			}
 		} else if _, err := os.Stat(path.Join(modelPath, defaultModelFile)); os.IsNotExist(err) {
 			fmt.Printf("Unable to find `%s` in the model directory.\n", defaultModelFile)
 			fmt.Printf("Assuming there is a Hugging Face model to convert...\n")
-			err = huggingface.NewConverter(app.repo, app.model).Convert()
+			err = huggingface.NewConverter[T](app.repo, app.model).Convert()
 			if err != nil {
 				return err
 			}
 		}
 
-		model, err := bert.LoadModel(modelPath)
+		model, err := bert.LoadModel[T](modelPath)
 		if err != nil {
 			log.Fatalf("error during model loading (%v)\n", err)
 		}

@@ -10,52 +10,52 @@ import (
 )
 
 // Member represents a member of the Population.
-type Member struct {
+type Member[T mat.DType] struct {
 	// The hyper-params tha might change over the generations
-	MemberHyperParams
+	MemberHyperParams[T]
 	// The target vector
-	TargetVector mat.Matrix[mat.Float]
+	TargetVector mat.Matrix[T]
 	// The donor vector
-	DonorVector mat.Matrix[mat.Float]
+	DonorVector mat.Matrix[T]
 	// The score of the target vector obtained during the last evaluation
-	TargetScore mat.Float
+	TargetScore T
 	// The score of the trial vector obtained during the last evaluation
-	TrialScore mat.Float
+	TrialScore T
 	// The score of the target vector on the validation set
-	ValidationScore mat.Float
+	ValidationScore T
 }
 
 // MemberHyperParams contains the hyper-parameters of a Member.
-type MemberHyperParams struct {
+type MemberHyperParams[T mat.DType] struct {
 	// Differential weight (default 0.5)
-	MutationFactor mat.Float
+	MutationFactor T
 	// Crossover probability (default 0.9)
-	CrossoverRate mat.Float
+	CrossoverRate T
 	// Weight factor used by DEGL mutation (default 0.5)
-	WeightFactor mat.Float
+	WeightFactor T
 }
 
 // MutateHyperParams mutates the hyper-parameters according to l and u.
 // Suggested values: l = 0.1, u = 0.9.
-func (a *MemberHyperParams) MutateHyperParams(l, u mat.Float) {
-	if rand.Float[mat.Float]() < 0.1 {
-		a.MutationFactor = l + rand.Float[mat.Float]()*u
+func (a *MemberHyperParams[T]) MutateHyperParams(l, u T) {
+	if rand.Float[T]() < 0.1 {
+		a.MutationFactor = l + rand.Float[T]()*u
 	}
-	if rand.Float[mat.Float]() < 0.1 {
-		a.CrossoverRate = rand.Float[mat.Float]()
+	if rand.Float[T]() < 0.1 {
+		a.CrossoverRate = rand.Float[T]()
 	}
-	if rand.Float[mat.Float]() < 0.1 {
-		a.WeightFactor = l + rand.Float[mat.Float]()*u
+	if rand.Float[T]() < 0.1 {
+		a.WeightFactor = l + rand.Float[T]()*u
 	}
 }
 
 // NewMember returns a new population member.
-func NewMember(vector mat.Matrix[mat.Float], hyperParams MemberHyperParams) *Member {
-	return &Member{
+func NewMember[T mat.DType](vector mat.Matrix[T], hyperParams MemberHyperParams[T]) *Member[T] {
+	return &Member[T]{
 		MemberHyperParams: hyperParams,
 		TargetVector:      vector,
 		DonorVector:       vector.ZerosLike(),
-		TargetScore:       mat.Inf[mat.Float](1),
-		TrialScore:        mat.Inf[mat.Float](1),
+		TargetScore:       mat.Inf[T](1),
+		TrialScore:        mat.Inf[T](1),
 	}
 }

@@ -10,40 +10,40 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
-var _ gd.MethodConfig = &Config{}
+var _ gd.MethodConfig = &Config[float32]{}
 
 // Config provides configuration settings for an SGD optimizer.
-type Config struct {
+type Config[T mat.DType] struct {
 	gd.MethodConfig
-	LR       mat.Float
-	Mu       mat.Float
+	LR       T
+	Mu       T
 	Nesterov bool
 }
 
 // NewConfig returns a new SGD Config.
-func NewConfig(lr, momentum mat.Float, nesterov bool) Config {
-	return Config{
+func NewConfig[T mat.DType](lr, momentum T, nesterov bool) Config[T] {
+	return Config[T]{
 		LR:       lr,
 		Mu:       momentum,
 		Nesterov: nesterov,
 	}
 }
 
-var _ gd.Method = &SGD{}
+var _ gd.Method[float32] = &SGD[float32]{}
 
 // SGD implements the SGD gradient descent optimization method.
-type SGD struct {
-	Config
-	Alpha mat.Float
+type SGD[T mat.DType] struct {
+	Config[T]
+	Alpha T
 }
 
 // New returns a new SGD optimizer, initialized according to the given configuration.
-func New(c Config) *SGD {
-	return &SGD{Config: c, Alpha: c.LR}
+func New[T mat.DType](c Config[T]) *SGD[T] {
+	return &SGD[T]{Config: c, Alpha: c.LR}
 }
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *SGD) Label() int {
+func (o *SGD[_]) Label() int {
 	return gd.SGD
 }
 
@@ -55,40 +55,40 @@ const (
 )
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *SGD) NewSupport(r, c int) *nn.Payload {
+func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
-		return &nn.Payload{
+		return &nn.Payload[T]{
 			Label: o.Label(),
-			Data:  []mat.Matrix[mat.Float]{mat.NewEmptyDense[mat.Float](r, c)}, // v at index 0
+			Data:  []mat.Matrix[T]{mat.NewEmptyDense[T](r, c)}, // v at index 0
 		}
 	}
 	if !o.Nesterov {
-		supp := make([]mat.Matrix[mat.Float], 2, 2)
-		supp[v] = mat.NewEmptyDense[mat.Float](r, c)
-		supp[buf] = mat.NewEmptyDense[mat.Float](r, c)
-		return &nn.Payload{
+		supp := make([]mat.Matrix[T], 2, 2)
+		supp[v] = mat.NewEmptyDense[T](r, c)
+		supp[buf] = mat.NewEmptyDense[T](r, c)
+		return &nn.Payload[T]{
 			Label: o.Label(),
 			Data:  supp,
 		}
 	}
-	supp := make([]mat.Matrix[mat.Float], 4, 4)
-	supp[v] = mat.NewEmptyDense[mat.Float](r, c)
-	supp[buf] = mat.NewEmptyDense[mat.Float](r, c)
-	supp[vPrev] = mat.NewEmptyDense[mat.Float](r, c)
-	supp[vTmp] = mat.NewEmptyDense[mat.Float](r, c)
-	return &nn.Payload{
+	supp := make([]mat.Matrix[T], 4, 4)
+	supp[v] = mat.NewEmptyDense[T](r, c)
+	supp[buf] = mat.NewEmptyDense[T](r, c)
+	supp[vPrev] = mat.NewEmptyDense[T](r, c)
+	supp[vTmp] = mat.NewEmptyDense[T](r, c)
+	return &nn.Payload[T]{
 		Label: o.Label(),
 		Data:  supp,
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *SGD) Delta(param nn.Param) mat.Matrix[mat.Float] {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
+func (o *SGD[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
 }
 
-func (o *SGD) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (o *SGD[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	if o.Mu == 0.0 {
 		return o.calcVanillaSGD(grads, supp)
 	} else if o.Nesterov {
@@ -98,19 +98,19 @@ func (o *SGD) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float
 	}
 }
 
-func (o *SGD) calcVanillaSGD(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (o *SGD[T]) calcVanillaSGD(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[v].ProdMatrixScalarInPlace(grads, o.Alpha)
 	return supp[v]
 }
 
-func (o *SGD) calcMomentumDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (o *SGD[T]) calcMomentumDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[buf].ProdMatrixScalarInPlace(grads, o.Alpha)
 	supp[v].ProdScalarInPlace(o.Mu)
 	supp[v].AddInPlace(supp[buf])
 	return supp[v]
 }
 
-func (o *SGD) calcNesterovMomentumDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (o *SGD[T]) calcNesterovMomentumDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[buf].ProdMatrixScalarInPlace(grads, o.Alpha)
 	supp[vPrev].ProdMatrixScalarInPlace(supp[v], o.Mu)
 	supp[v].ProdScalarInPlace(o.Mu)

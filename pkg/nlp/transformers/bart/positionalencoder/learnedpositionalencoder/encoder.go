@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	_ nn.Model = &LearnedPositionalEncoder{}
+	_ nn.Model[float32] = &LearnedPositionalEncoder[float32]{}
 )
 
 // Config provides configuration settings for a LearnedPositionalEncoder Model.
@@ -25,33 +25,34 @@ type Config struct {
 
 // LearnedPositionalEncoder contains positional embeddings fine-tuned during
 // the training phase.
-type LearnedPositionalEncoder struct {
-	nn.BaseModel
+type LearnedPositionalEncoder[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config  Config
-	Vectors []nn.Param `spago:"type:weights;scope:model"`
+	Vectors []nn.Param[T] `spago:"type:weights;scope:model"`
 }
 
 func init() {
-	gob.Register(&LearnedPositionalEncoder{})
+	gob.Register(&LearnedPositionalEncoder[float32]{})
+	gob.Register(&LearnedPositionalEncoder[float64]{})
 }
 
 // New returns a new LearnedPositionalEncoder.
 // TODO: PaddingIDX
-func New(config Config) *LearnedPositionalEncoder {
-	vectors := make([]nn.Param, config.NumEmbeddings+config.Offset)
+func New[T mat.DType](config Config) *LearnedPositionalEncoder[T] {
+	vectors := make([]nn.Param[T], config.NumEmbeddings+config.Offset)
 	for i := 0; i < len(vectors); i++ {
-		vectors[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](config.EmbeddingDim))
+		vectors[i] = nn.NewParam[T](mat.NewEmptyVecDense[T](config.EmbeddingDim))
 	}
-	return &LearnedPositionalEncoder{
+	return &LearnedPositionalEncoder[T]{
 		Config:  config,
 		Vectors: vectors,
 	}
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *LearnedPositionalEncoder) Encode(positions []int) []ag.Node {
+func (m *LearnedPositionalEncoder[T]) Encode(positions []int) []ag.Node[T] {
 	g := m.Graph()
-	embeddings := make([]ag.Node, len(positions))
+	embeddings := make([]ag.Node[T], len(positions))
 	for i, pos := range positions {
 		embeddings[i] = g.NewWrap(m.Vectors[pos+m.Config.Offset])
 	}

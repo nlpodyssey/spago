@@ -16,24 +16,24 @@ import (
 	"time"
 )
 
-func (s *Server) classify(text string, text2 string) *tasks.ClassifyResponse {
+func (s *Server[T]) classify(text string, text2 string) *tasks.ClassifyResponse[T] {
 	start := time.Now()
 
-	g := ag.NewGraph(ag.IncrementalForward(false), ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph[T](ag.IncrementalForward[T](false), ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
-	proc := nn.ReifyForInference(s.model, g).(*sequenceclassification.Model)
+	proc := nn.ReifyForInference(s.model, g).(*sequenceclassification.Model[T])
 	inputIds := getInputIDs(s.bpeTokenizer, text, text2)
 	logits := proc.Classify(inputIds)
 	g.Forward()
 
 	probs := matutils.SoftMax(g.GetCopiedValue(logits).Data())
 	best := matutils.ArgMax(probs)
-	classes := s.model.(*sequenceclassification.Model).BART.Config.ID2Label
+	classes := s.model.(*sequenceclassification.Model[T]).BART.Config.ID2Label
 	class := classes[strconv.Itoa(best)]
 
-	distribution := make([]tasks.ClassConfidencePair, len(probs))
+	distribution := make([]tasks.ClassConfidencePair[T], len(probs))
 	for i := 0; i < len(probs); i++ {
-		distribution[i] = tasks.ClassConfidencePair{
+		distribution[i] = tasks.ClassConfidencePair[T]{
 			Class:      classes[strconv.Itoa(i)],
 			Confidence: probs[i],
 		}
@@ -43,7 +43,7 @@ func (s *Server) classify(text string, text2 string) *tasks.ClassifyResponse {
 		return distribution[i].Confidence > distribution[j].Confidence
 	})
 
-	return &tasks.ClassifyResponse{
+	return &tasks.ClassifyResponse[T]{
 		Class:        class,
 		Confidence:   probs[best],
 		Distribution: distribution,

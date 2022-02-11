@@ -16,7 +16,7 @@ import (
 )
 
 // Load inserts the pre-trained embeddings into the model.
-func (m *Model) Load(filename string) {
+func (m *Model[T]) Load(filename string) {
 	count, err := utils.CountLines(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -46,11 +46,11 @@ func (m *Model) Load(filename string) {
 		}
 		key := utils.BeforeSpace(line)
 		strVec := utils.AfterSpace(line)
-		data, err := matutils.StrToFloatSlice[mat.Float](strVec)
+		data, err := matutils.StrToFloatSlice[T](strVec)
 		if err != nil {
 			log.Fatal(err)
 		}
-		vector := mat.NewVecDense(data)
+		vector := mat.NewVecDense[T](data)
 		m.SetEmbedding(key, vector)
 		mat.ReleaseDense(vector)
 	}

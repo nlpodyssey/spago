@@ -6,6 +6,7 @@ package encoder
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
@@ -19,31 +20,32 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model implements a BART encoder.
-type Model struct {
-	nn.BaseModel
-	Config             config.Config
-	Layers             *stack.Model
-	PositionalEncoder  positionalencoder.Encoder
-	EmbeddingLayerNorm *layernorm.Model
-	LayerNorm          *layernorm.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config             config.Config[T]
+	Layers             *stack.Model[T]
+	PositionalEncoder  positionalencoder.Encoder[T]
+	EmbeddingLayerNorm *layernorm.Model[T]
+	LayerNorm          *layernorm.Model[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
-func newPositionalEncoder(config config.Config) positionalencoder.Encoder {
+func newPositionalEncoder[T mat.DType](config config.Config[T]) positionalencoder.Encoder[T] {
 	if config.StaticPositionEmbeddings {
-		return sinusoidalpositionalencoder.New(sinusoidalpositionalencoder.Config{
+		return sinusoidalpositionalencoder.New[T](sinusoidalpositionalencoder.Config{
 			NumEmbeddings: config.VocabSize,
 			EmbeddingDim:  config.DModel,
 		})
 	}
-	return learnedpositionalencoder.New(
+	return learnedpositionalencoder.New[T](
 		learnedpositionalencoder.Config{
 			NumEmbeddings: config.VocabSize,
 			EmbeddingDim:  config.DModel,
@@ -53,21 +55,21 @@ func newPositionalEncoder(config config.Config) positionalencoder.Encoder {
 }
 
 // New returns a new BART encoder Model.
-func New(config config.Config) *Model {
-	return &Model{
+func New[T mat.DType](config config.Config[T]) *Model[T] {
+	return &Model[T]{
 		Config:             config,
-		PositionalEncoder:  newPositionalEncoder(config),
-		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel {
-			return layer.NewLayer(config)
+		PositionalEncoder:  newPositionalEncoder[T](config),
+		EmbeddingLayerNorm: layernorm.New[T](config.DModel),
+		Layers: stack.Make(config.EncoderLayers, func(_ int) nn.StandardModel[T] {
+			return layer.NewLayer[T](config)
 			// add LayerDrop to skip layers during training? (see https://arxiv.org/abs/1909.11556 for description)
 		}),
-		LayerNorm: layernorm.New(config.DModel),
+		LayerNorm: layernorm.New[T](config.DModel),
 	}
 }
 
 // Encode performs the forward step for each input node and returns the result.
-func (m *Model) Encode(xs []ag.Node) []ag.Node {
+func (m *Model[T]) Encode(xs []ag.Node[T]) []ag.Node[T] {
 	embedPos := m.PositionalEncoder.Encode(utils.MakeIndices(len(xs)))
 	ys := add(m.Graph(), xs, embedPos)
 	if m.Config.NormalizeEmbedding {
@@ -81,8 +83,8 @@ func (m *Model) Encode(xs []ag.Node) []ag.Node {
 	return ys // TODO: return all hidden states?
 }
 
-func add(g *ag.Graph, a []ag.Node, b []ag.Node) []ag.Node {
-	c := make([]ag.Node, len(a))
+func add[T mat.DType](g *ag.Graph[T], a []ag.Node[T], b []ag.Node[T]) []ag.Node[T] {
+	c := make([]ag.Node[T], len(a))
 	for i := 0; i < len(a); i++ {
 		c[i] = g.Add(a[i], b[i])
 	}

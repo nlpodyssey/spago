@@ -41,36 +41,36 @@ const (
 	defaultUnknownToken         = "<unk>"
 )
 
-type converter struct {
+type converter[T mat.DType] struct {
 	pathToPyTorchModel string
 	tagger             *types.Dict
-	params             map[string]*mappedParam
+	params             map[string]*mappedParam[T]
 }
 
-func newConverter(pathToPyTorchModel string) *converter {
-	return &converter{
+func newConverter[T mat.DType](pathToPyTorchModel string) *converter[T] {
+	return &converter[T]{
 		pathToPyTorchModel: pathToPyTorchModel,
-		params:             map[string]*mappedParam{},
+		params:             map[string]*mappedParam[T]{},
 	}
 }
 
-type mappedParam struct {
-	value mat.Matrix[mat.Float]
+type mappedParam[T mat.DType] struct {
+	value mat.Matrix[T]
 	used  bool
 }
 
-func newParam(value mat.Matrix[mat.Float]) *mappedParam {
-	return &mappedParam{
+func newParam[T mat.DType](value mat.Matrix[T]) *mappedParam[T] {
+	return &mappedParam[T]{
 		value: value,
 		used:  false,
 	}
 }
 
 // Convert converts the parameters of a Flair model into spaGO structures.
-func Convert(modelPath string, flairModelName string) {
+func Convert[T mat.DType](modelPath string, flairModelName string) {
 	defer embeddings.Close()
 
-	c := newConverter(path.Join(modelPath, flairModelName))
+	c := newConverter[T](path.Join(modelPath, flairModelName))
 	c.unpickleModel()
 
 	config := c.config()
@@ -86,17 +86,17 @@ func Convert(modelPath string, flairModelName string) {
 
 	// ---
 
-	model := NewDefaultModel(config, modelPath, false, true)
+	model := NewDefaultModel[T](config, modelPath, false, true)
 
 	for i, we := range c.embeddings().WordEmbeddings() {
 		log.Printf("Load word embeddings %d...", i)
-		c.extractWordEmbeddings(we, model.EmbeddingsLayer.WordsEncoders[i].(*embeddings.Model))
+		c.extractWordEmbeddings(we, model.EmbeddingsLayer.WordsEncoders[i].(*embeddings.Model[T]))
 		log.Println("ok")
 	}
 
 	lmIndex := len(config.WordEmbeddings)
-	lm := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model).LeftToRight
-	lmRev := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model).RightToLeft
+	lm := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model[T]).LeftToRight
+	lmRev := model.EmbeddingsLayer.WordsEncoders[lmIndex].(*contextualstringembeddings.Model[T]).RightToLeft
 
 	if lm.Config.VocabularySize != lmRev.VocabularySize || lm.Config.EmbeddingSize != lmRev.EmbeddingSize {
 		panic("language model size mismatch")
@@ -155,8 +155,8 @@ func Convert(modelPath string, flairModelName string) {
 	log.Println("Conversion done!")
 }
 
-func chunkTensor(t *pytorch.Tensor, chunks int) [][]mat.Float {
-	data := gopickleutils.GetData(t)
+func chunkTensor[T mat.DType](t *pytorch.Tensor, chunks int) [][]T {
+	data := gopickleutils.GetData[T](t)
 
 	size := len(data)
 	if size%chunks != 0 {
@@ -164,36 +164,36 @@ func chunkTensor(t *pytorch.Tensor, chunks int) [][]mat.Float {
 	}
 
 	chunkSize := size / chunks
-	result := make([][]mat.Float, chunks)
+	result := make([][]T, chunks)
 	for i := range result {
 		result[i] = data[i*chunkSize : i*chunkSize+chunkSize]
 	}
 	return result
 }
 
-func chunkTensorBy4(t *pytorch.Tensor) (c0, c1, c2, c3 []mat.Float) {
-	c := chunkTensor(t, 4)
+func chunkTensorBy4[T mat.DType](t *pytorch.Tensor) (c0, c1, c2, c3 []T) {
+	c := chunkTensor[T](t, 4)
 	return c[0], c[1], c[2], c[3]
 }
 
-func sumVectors(a, b []mat.Float) []mat.Float {
+func sumVectors[T mat.DType](a, b []T) []T {
 	if len(a) != len(b) {
 		panic(fmt.Errorf("cannot sum vectors with different size: %d, %d", len(a), len(b)))
 	}
-	y := make([]mat.Float, len(a))
+	y := make([]T, len(a))
 	for i, av := range a {
 		y[i] = av + b[i]
 	}
 	return y
 }
 
-func extractLSTMParams(lm *flairLanguageModel, keyPrefix string, dest map[string][]mat.Float) {
+func extractLSTMParams[T mat.DType](lm *flairLanguageModel, keyPrefix string, dest map[string][]T) {
 	params := lm.modules.MustGet("rnn").(*torchLSTM).parameters
 
-	wII, wIF, wIC, wIO := chunkTensorBy4(wrapTensor(params.MustGet("weight_ih_l0")))
-	wHI, wHF, wHC, wHO := chunkTensorBy4(wrapTensor(params.MustGet("weight_hh_l0")))
-	bHI, bHF, bHC, bHO := chunkTensorBy4(wrapTensor(params.MustGet("bias_hh_l0")))
-	bII, bIF, bIC, bIO := chunkTensorBy4(wrapTensor(params.MustGet("bias_ih_l0")))
+	wII, wIF, wIC, wIO := chunkTensorBy4[T](wrapTensor(params.MustGet("weight_ih_l0")))
+	wHI, wHF, wHC, wHO := chunkTensorBy4[T](wrapTensor(params.MustGet("weight_hh_l0")))
+	bHI, bHF, bHC, bHO := chunkTensorBy4[T](wrapTensor(params.MustGet("bias_hh_l0")))
+	bII, bIF, bIC, bIO := chunkTensorBy4[T](wrapTensor(params.MustGet("bias_ih_l0")))
 
 	dest[keyPrefix+"lstm.w_ii"] = wII
 	dest[keyPrefix+"lstm.w_hi"] = wHI
@@ -209,11 +209,11 @@ func extractLSTMParams(lm *flairLanguageModel, keyPrefix string, dest map[string
 	dest[keyPrefix+"lstm.b_c"] = sumVectors(bHC, bIC)
 }
 
-func (c *converter) embeddings() *stackedEmbeddings {
-	return c.tagger.MustGet("embeddings").(*stackedEmbeddings)
+func (c *converter[T]) embeddings() *stackedEmbeddings[T] {
+	return c.tagger.MustGet("embeddings").(*stackedEmbeddings[T])
 }
 
-func (c *converter) buildStateDict() map[string][]mat.Float {
+func (c *converter[T]) buildStateDict() map[string][]T {
 	flairEmbeddingsForward, flairEmbeddingsBackward := c.embeddings().FlairEmbeddings()
 
 	embeddingsLMForward := flairEmbeddingsForward.modules.MustGet("lm").(*flairLanguageModel)
@@ -230,54 +230,54 @@ func (c *converter) buildStateDict() map[string][]mat.Float {
 		panic(fmt.Errorf("different charlm and charlm_rev dictionaries"))
 	}
 
-	stateDict := make(map[string][]mat.Float)
+	stateDict := make(map[string][]T)
 
-	stateDict["lm.forward.decoder.weight"] = gopickleutils.GetData(wrapTensor(forwardDecoderParams.MustGet("weight")))
-	stateDict["lm.forward.decoder.bias"] = gopickleutils.GetData(wrapTensor(forwardDecoderParams.MustGet("bias")))
-	stateDict["lm.forward.embeddings.weight"] = gopickleutils.GetData(wrapTensor(forwardEncoderParams.MustGet("weight")))
+	stateDict["lm.forward.decoder.weight"] = gopickleutils.GetData[T](wrapTensor(forwardDecoderParams.MustGet("weight")))
+	stateDict["lm.forward.decoder.bias"] = gopickleutils.GetData[T](wrapTensor(forwardDecoderParams.MustGet("bias")))
+	stateDict["lm.forward.embeddings.weight"] = gopickleutils.GetData[T](wrapTensor(forwardEncoderParams.MustGet("weight")))
 	extractLSTMParams(embeddingsLMForward, "lm.forward.", stateDict)
 
 	if proj, ok := embeddingsLMForward.modules.Get("proj"); ok && proj != nil {
 		forwardLMProjParams := proj.(*torchLinear).parameters
-		stateDict["lm.forward.projection.weight"] = gopickleutils.GetData(wrapTensor(forwardLMProjParams.MustGet("weight")))
-		stateDict["lm.forward.projection.bias"] = gopickleutils.GetData(wrapTensor(forwardLMProjParams.MustGet("bias")))
+		stateDict["lm.forward.projection.weight"] = gopickleutils.GetData[T](wrapTensor(forwardLMProjParams.MustGet("weight")))
+		stateDict["lm.forward.projection.bias"] = gopickleutils.GetData[T](wrapTensor(forwardLMProjParams.MustGet("bias")))
 	}
 
-	stateDict["lm.backward.decoder.weight"] = gopickleutils.GetData(wrapTensor(backwardDecoderParams.MustGet("weight")))
-	stateDict["lm.backward.decoder.bias"] = gopickleutils.GetData(wrapTensor(backwardDecoderParams.MustGet("bias")))
-	stateDict["lm.backward.embeddings.weight"] = gopickleutils.GetData(wrapTensor(backwardEncoderParams.MustGet("weight")))
+	stateDict["lm.backward.decoder.weight"] = gopickleutils.GetData[T](wrapTensor(backwardDecoderParams.MustGet("weight")))
+	stateDict["lm.backward.decoder.bias"] = gopickleutils.GetData[T](wrapTensor(backwardDecoderParams.MustGet("bias")))
+	stateDict["lm.backward.embeddings.weight"] = gopickleutils.GetData[T](wrapTensor(backwardEncoderParams.MustGet("weight")))
 	extractLSTMParams(embeddingsLMBackward, "lm.backward.", stateDict)
 
 	if proj, ok := embeddingsLMBackward.modules.Get("proj"); ok && proj != nil {
 		backwardLMProjParams := proj.(*torchLinear).parameters
-		stateDict["lm.backward.projection.weight"] = gopickleutils.GetData(wrapTensor(backwardLMProjParams.MustGet("weight")))
-		stateDict["lm.backward.projection.bias"] = gopickleutils.GetData(wrapTensor(backwardLMProjParams.MustGet("bias")))
+		stateDict["lm.backward.projection.weight"] = gopickleutils.GetData[T](wrapTensor(backwardLMProjParams.MustGet("weight")))
+		stateDict["lm.backward.projection.bias"] = gopickleutils.GetData[T](wrapTensor(backwardLMProjParams.MustGet("bias")))
 	}
 
-	stateDict["embeddings_projection.weight"] = gopickleutils.GetData(taggerStateDict.MustGet("embedding2nn.weight").(*pytorch.Tensor))
-	stateDict["embeddings_projection.bias"] = gopickleutils.GetData(taggerStateDict.MustGet("embedding2nn.bias").(*pytorch.Tensor))
+	stateDict["embeddings_projection.weight"] = gopickleutils.GetData[T](taggerStateDict.MustGet("embedding2nn.weight").(*pytorch.Tensor))
+	stateDict["embeddings_projection.bias"] = gopickleutils.GetData[T](taggerStateDict.MustGet("embedding2nn.bias").(*pytorch.Tensor))
 
 	c.extractBiLSTMParams(stateDict)
 
-	stateDict["scorer.weight"] = gopickleutils.GetData(taggerStateDict.MustGet("linear.weight").(*pytorch.Tensor))
-	stateDict["scorer.bias"] = gopickleutils.GetData(taggerStateDict.MustGet("linear.bias").(*pytorch.Tensor))
+	stateDict["scorer.weight"] = gopickleutils.GetData[T](taggerStateDict.MustGet("linear.weight").(*pytorch.Tensor))
+	stateDict["scorer.bias"] = gopickleutils.GetData[T](taggerStateDict.MustGet("linear.bias").(*pytorch.Tensor))
 
 	stateDict["crf.transitions"] = c.transitionWeights()
 	return stateDict
 }
 
-func (c *converter) extractBiLSTMParams(dest map[string][]mat.Float) {
+func (c *converter[T]) extractBiLSTMParams(dest map[string][]T) {
 	StateDict := c.tagger.MustGet("state_dict").(*types.OrderedDict)
 
-	wII, wIF, wIC, wIO := chunkTensorBy4(StateDict.MustGet("rnn.weight_ih_l0").(*pytorch.Tensor))
-	wHI, wHF, wHC, wHO := chunkTensorBy4(StateDict.MustGet("rnn.weight_hh_l0").(*pytorch.Tensor))
-	bHI, bHF, bHC, bHO := chunkTensorBy4(StateDict.MustGet("rnn.bias_hh_l0").(*pytorch.Tensor))
-	bII, bIF, bIC, bIO := chunkTensorBy4(StateDict.MustGet("rnn.bias_ih_l0").(*pytorch.Tensor))
+	wII, wIF, wIC, wIO := chunkTensorBy4[T](StateDict.MustGet("rnn.weight_ih_l0").(*pytorch.Tensor))
+	wHI, wHF, wHC, wHO := chunkTensorBy4[T](StateDict.MustGet("rnn.weight_hh_l0").(*pytorch.Tensor))
+	bHI, bHF, bHC, bHO := chunkTensorBy4[T](StateDict.MustGet("rnn.bias_hh_l0").(*pytorch.Tensor))
+	bII, bIF, bIC, bIO := chunkTensorBy4[T](StateDict.MustGet("rnn.bias_ih_l0").(*pytorch.Tensor))
 
-	revWII, revWIF, revWIC, revWIO := chunkTensorBy4(StateDict.MustGet("rnn.weight_ih_l0_reverse").(*pytorch.Tensor))
-	revWHI, revWHF, revWHC, revWHO := chunkTensorBy4(StateDict.MustGet("rnn.weight_hh_l0_reverse").(*pytorch.Tensor))
-	revBHI, revBHF, revBHC, revBHO := chunkTensorBy4(StateDict.MustGet("rnn.bias_hh_l0_reverse").(*pytorch.Tensor))
-	revBII, revBIF, revBIC, revBIO := chunkTensorBy4(StateDict.MustGet("rnn.bias_ih_l0_reverse").(*pytorch.Tensor))
+	revWII, revWIF, revWIC, revWIO := chunkTensorBy4[T](StateDict.MustGet("rnn.weight_ih_l0_reverse").(*pytorch.Tensor))
+	revWHI, revWHF, revWHC, revWHO := chunkTensorBy4[T](StateDict.MustGet("rnn.weight_hh_l0_reverse").(*pytorch.Tensor))
+	revBHI, revBHF, revBHC, revBHO := chunkTensorBy4[T](StateDict.MustGet("rnn.bias_hh_l0_reverse").(*pytorch.Tensor))
+	revBII, revBIF, revBIC, revBIO := chunkTensorBy4[T](StateDict.MustGet("rnn.bias_ih_l0_reverse").(*pytorch.Tensor))
 
 	dest["bilstm.forward.w_ii"] = wII
 	dest["bilstm.forward.w_hi"] = wHI
@@ -306,17 +306,17 @@ func (c *converter) extractBiLSTMParams(dest map[string][]mat.Float) {
 	dest["bilstm.backward.b_c"] = sumVectors(revBHC, revBIC)
 }
 
-func (c *converter) transitionWeights() []mat.Float {
+func (c *converter[T]) transitionWeights() []T {
 	labels := c.tagger.MustGet("tag_dictionary").(*flairDictionary).GetItems()
 	labelsSize := len(labels)
-	weights := gopickleutils.GetData(c.tagger.MustGet("state_dict").(*types.OrderedDict).MustGet("transitions").(*pytorch.Tensor))
+	weights := gopickleutils.GetData[T](c.tagger.MustGet("state_dict").(*types.OrderedDict).MustGet("transitions").(*pytorch.Tensor))
 
 	// TODO: is it guaranteed that "<START>" and "<STOP>" are always the last two items?
 	startIndex := len(labels) - 2
 	stopIndex := len(labels) - 1
 
 	length := len(labels) - 1
-	out := make([]mat.Float, length*length)
+	out := make([]T, length*length)
 	for i := range out {
 		out[i] = -10000
 	}
@@ -357,7 +357,7 @@ func (c *converter) transitionWeights() []mat.Float {
 	return out
 }
 
-func (c *converter) extractWordEmbeddings(we *wordEmbeddings, dest *embeddings.Model) {
+func (c *converter[T]) extractWordEmbeddings(we *wordEmbeddings[T], dest *embeddings.Model[T]) {
 	vectorSize := we.PrecomputedWordEmbeddings.Vectors.Shape[1]
 	data := we.PrecomputedWordEmbeddings.Vectors.FloatSlice()
 
@@ -372,37 +372,39 @@ func (c *converter) extractWordEmbeddings(we *wordEmbeddings, dest *embeddings.M
 	}
 }
 
-var unpicklerClasses = map[string]interface{}{
-	"flair.embeddings.StackedEmbeddings":              stackedEmbeddingsClass{},
-	"flair.embeddings.WordEmbeddings":                 wordEmbeddingsClass{},
-	"flair.embeddings.FlairEmbeddings":                flairEmbeddingsClass{},
-	"flair.models.language_model.LanguageModel":       flairLanguageModelClass{},
-	"gensim.models.keyedvectors.Word2VecKeyedVectors": word2VecKeyedVectorsClass{},
-	"gensim.models.keyedvectors.Vocab":                vocabClass{},
-	"numpy.core.multiarray._reconstruct":              multiarrayReconstruct{},
-	"numpy.ndarray":                                   ndarrayClass{},
-	"numpy.dtype":                                     dtypeClass{},
-	"torch.nn.modules.dropout.Dropout":                dropoutClass{},
-	"torch.nn.modules.sparse.Embedding":               sparseEmbeddingClass{},
-	"torch._utils._rebuild_parameter":                 rebuildParameter{},
-	"torch.nn.modules.rnn.LSTM":                       torchLSTMClass{},
-	"torch.nn.modules.linear.Linear":                  torchLinearClass{},
-	"flair.data.Dictionary":                           flairDictionaryClass{},
-	"torch.backends.cudnn.rnn.Unserializable":         torchRNNUnserializableClass{},
+func unpicklerClasses[T mat.DType]() map[string]interface{} {
+	return map[string]interface{}{
+		"flair.embeddings.StackedEmbeddings":              stackedEmbeddingsClass[T]{},
+		"flair.embeddings.WordEmbeddings":                 wordEmbeddingsClass[T]{},
+		"flair.embeddings.FlairEmbeddings":                flairEmbeddingsClass{},
+		"flair.models.language_model.LanguageModel":       flairLanguageModelClass{},
+		"gensim.models.keyedvectors.Word2VecKeyedVectors": word2VecKeyedVectorsClass[T]{},
+		"gensim.models.keyedvectors.Vocab":                vocabClass{},
+		"numpy.core.multiarray._reconstruct":              multiarrayReconstruct{},
+		"numpy.ndarray":                                   ndarrayClass[T]{},
+		"numpy.dtype":                                     dtypeClass{},
+		"torch.nn.modules.dropout.Dropout":                dropoutClass{},
+		"torch.nn.modules.sparse.Embedding":               sparseEmbeddingClass{},
+		"torch._utils._rebuild_parameter":                 rebuildParameter{},
+		"torch.nn.modules.rnn.LSTM":                       torchLSTMClass{},
+		"torch.nn.modules.linear.Linear":                  torchLinearClass{},
+		"flair.data.Dictionary":                           flairDictionaryClass{},
+		"torch.backends.cudnn.rnn.Unserializable":         torchRNNUnserializableClass{},
+	}
 }
 
-func unpicklerFindClass(module, name string) (interface{}, error) {
-	c, ok := unpicklerClasses[fmt.Sprintf("%s.%s", module, name)]
+func unpicklerFindClass[T mat.DType](module, name string) (interface{}, error) {
+	c, ok := unpicklerClasses[T]()[fmt.Sprintf("%s.%s", module, name)]
 	if !ok {
 		return nil, fmt.Errorf("class not found: %s %s", module, name)
 	}
 	return c, nil
 }
 
-func (c *converter) unpickleModel() {
+func (c *converter[T]) unpickleModel() {
 	newUnpickler := func(r io.Reader) pickle.Unpickler {
 		u := pickle.NewUnpickler(r)
-		u.FindClass = unpicklerFindClass
+		u.FindClass = unpicklerFindClass[T]
 		return u
 	}
 
@@ -413,7 +415,7 @@ func (c *converter) unpickleModel() {
 	c.tagger = result.(*types.Dict)
 }
 
-func (c *converter) config() Config {
+func (c *converter[T]) config() Config {
 	// we don't care if it's forward or backward, we just need the dimensions
 	fembs, _ := c.embeddings().FlairEmbeddings()
 	embeddingsLM := fembs.modules.MustGet("lm").(*flairLanguageModel)
@@ -461,19 +463,19 @@ func (c *converter) config() Config {
 	}
 }
 
-func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
+func assignToParamsList[T mat.DType](source []T, dest []nn.Param[T], rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
 }
 
-func (c *converter) mapTagger(model *birnncrf.Model) {
+func (c *converter[T]) mapTagger(model *birnncrf.Model[T]) {
 	c.mapBiLSTM(model.BiRNN, "")
 	c.mapLinear(model.Scorer, "scorer.")
 	c.params["crf.transitions"] = newParam(model.CRF.TransitionScores.Value())
 }
 
-func (c *converter) mapCharLM(model *charlm.Model, prefix string) {
+func (c *converter[T]) mapCharLM(model *charlm.Model[T], prefix string) {
 	c.mapLSTM(model.RNN, fmt.Sprintf("%slstm.", prefix))
 	c.mapLinear(model.Decoder, fmt.Sprintf("%sdecoder.", prefix))
 	if model.Config.OutputSize > 0 {
@@ -481,7 +483,7 @@ func (c *converter) mapCharLM(model *charlm.Model, prefix string) {
 	}
 }
 
-func (c *converter) mapLSTM(model *lstm.Model, prefix string) {
+func (c *converter[T]) mapLSTM(model *lstm.Model[T], prefix string) {
 	c.params[fmt.Sprintf("%sw_ii", prefix)] = newParam(model.WIn.Value())
 	c.params[fmt.Sprintf("%sw_hi", prefix)] = newParam(model.WInRec.Value())
 	c.params[fmt.Sprintf("%sb_i", prefix)] = newParam(model.BIn.Value())
@@ -496,12 +498,12 @@ func (c *converter) mapLSTM(model *lstm.Model, prefix string) {
 	c.params[fmt.Sprintf("%sb_c", prefix)] = newParam(model.BCand.Value())
 }
 
-func (c *converter) mapBiLSTM(model *birnn.Model, prefix string) {
-	c.mapLSTM(model.Positive.(*lstm.Model), fmt.Sprintf("%sbilstm.forward.", prefix))
-	c.mapLSTM(model.Negative.(*lstm.Model), fmt.Sprintf("%sbilstm.backward.", prefix))
+func (c *converter[T]) mapBiLSTM(model *birnn.Model[T], prefix string) {
+	c.mapLSTM(model.Positive.(*lstm.Model[T]), fmt.Sprintf("%sbilstm.forward.", prefix))
+	c.mapLSTM(model.Negative.(*lstm.Model[T]), fmt.Sprintf("%sbilstm.backward.", prefix))
 }
 
-func (c *converter) mapLinear(model *linear.Model, prefix string) {
+func (c *converter[T]) mapLinear(model *linear.Model[T], prefix string) {
 	c.params[fmt.Sprintf("%sweight", prefix)] = newParam(model.W.Value())
 	c.params[fmt.Sprintf("%sbias", prefix)] = newParam(model.B.Value())
 }
@@ -519,26 +521,26 @@ func wrapTensor(value interface{}) *pytorch.Tensor {
 
 // Stacked Embeddings
 
-type stackedEmbeddingsClass struct{}
+type stackedEmbeddingsClass[T mat.DType] struct{}
 
-var _ types.PyNewable = stackedEmbeddingsClass{}
-var _ types.PyDictSettable = &stackedEmbeddings{}
+var _ types.PyNewable = stackedEmbeddingsClass[float32]{}
+var _ types.PyDictSettable = &stackedEmbeddings[float32]{}
 
-type stackedEmbeddings struct {
+type stackedEmbeddings[T mat.DType] struct {
 	Embeddings *types.List
 	pyDict     map[string]interface{}
 }
 
-func (c stackedEmbeddingsClass) PyNew(args ...interface{}) (interface{}, error) {
+func (stackedEmbeddingsClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("stackedEmbeddingsClass: unsupported arguments: %#v", args)
 	}
-	return &stackedEmbeddings{
+	return &stackedEmbeddings[T]{
 		pyDict: make(map[string]interface{}),
 	}, nil
 }
 
-func (s *stackedEmbeddings) PyDictSet(key, value interface{}) error {
+func (s *stackedEmbeddings[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "embeddings":
@@ -549,27 +551,27 @@ func (s *stackedEmbeddings) PyDictSet(key, value interface{}) error {
 	return nil
 }
 
-type wordEmbeddingsByName []*wordEmbeddings
+type wordEmbeddingsByName[T mat.DType] []*wordEmbeddings[T]
 
-func (e wordEmbeddingsByName) Len() int           { return len(e) }
-func (e wordEmbeddingsByName) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
-func (e wordEmbeddingsByName) Less(i, j int) bool { return e[i].name < e[j].name }
+func (e wordEmbeddingsByName[_]) Len() int           { return len(e) }
+func (e wordEmbeddingsByName[_]) Swap(i, j int)      { e[i], e[j] = e[j], e[i] }
+func (e wordEmbeddingsByName[_]) Less(i, j int) bool { return e[i].name < e[j].name }
 
-func (s *stackedEmbeddings) WordEmbeddings() []*wordEmbeddings {
-	result := make([]*wordEmbeddings, 0, s.Embeddings.Len())
+func (s *stackedEmbeddings[T]) WordEmbeddings() []*wordEmbeddings[T] {
+	result := make([]*wordEmbeddings[T], 0, s.Embeddings.Len())
 	for _, e := range *s.Embeddings {
-		if we, ok := e.(*wordEmbeddings); ok {
+		if we, ok := e.(*wordEmbeddings[T]); ok {
 			result = append(result, we)
 		}
 	}
 
 	// Word embeddings must be sorted by name, alphabetically
-	sort.Sort(wordEmbeddingsByName(result))
+	sort.Sort(wordEmbeddingsByName[T](result))
 
 	return result
 }
 
-func (s *stackedEmbeddings) FlairEmbeddings() (forward *flairEmbeddings, backward *flairEmbeddings) {
+func (s *stackedEmbeddings[T]) FlairEmbeddings() (forward *flairEmbeddings, backward *flairEmbeddings) {
 	for _, e := range *s.Embeddings {
 		fe, isFlairEmbeddings := e.(*flairEmbeddings)
 		if !isFlairEmbeddings {
@@ -598,30 +600,30 @@ func (s *stackedEmbeddings) FlairEmbeddings() (forward *flairEmbeddings, backwar
 
 // Word Embeddings
 
-type wordEmbeddingsClass struct{}
-type wordEmbeddings struct {
-	PrecomputedWordEmbeddings *word2VecKeyedVectors
+type wordEmbeddingsClass[T mat.DType] struct{}
+type wordEmbeddings[T mat.DType] struct {
+	PrecomputedWordEmbeddings *word2VecKeyedVectors[T]
 	name                      string
 	pyDict                    map[string]interface{}
 }
 
-var _ types.PyNewable = wordEmbeddingsClass{}
-var _ types.PyDictSettable = &wordEmbeddings{}
+var _ types.PyNewable = wordEmbeddingsClass[float32]{}
+var _ types.PyDictSettable = &wordEmbeddings[float32]{}
 
-func (c wordEmbeddingsClass) PyNew(args ...interface{}) (interface{}, error) {
+func (wordEmbeddingsClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("wordEmbeddingsClass: unsupported arguments: %#v", args)
 	}
-	return &wordEmbeddings{
+	return &wordEmbeddings[T]{
 		pyDict: make(map[string]interface{}),
 	}, nil
 }
 
-func (w *wordEmbeddings) PyDictSet(key, value interface{}) error {
+func (w *wordEmbeddings[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "precomputed_word_embeddings":
-		w.PrecomputedWordEmbeddings = value.(*word2VecKeyedVectors)
+		w.PrecomputedWordEmbeddings = value.(*word2VecKeyedVectors[T])
 	case "name":
 		w.name = value.(string)
 	default:
@@ -644,7 +646,7 @@ type flairEmbeddings struct {
 var _ types.PyNewable = flairEmbeddingsClass{}
 var _ types.PyDictSettable = &flairEmbeddings{}
 
-func (c flairEmbeddingsClass) PyNew(args ...interface{}) (interface{}, error) {
+func (flairEmbeddingsClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("flairEmbeddingsClass: unsupported arguments: %#v", args)
 	}
@@ -681,7 +683,7 @@ type flairLanguageModel struct {
 var _ types.PyNewable = flairLanguageModelClass{}
 var _ types.PyDictSettable = &flairLanguageModel{}
 
-func (c flairLanguageModelClass) PyNew(args ...interface{}) (interface{}, error) {
+func (flairLanguageModelClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("flairLanguageModelClass: unsupported arguments: %#v", args)
 	}
@@ -723,7 +725,7 @@ type dropout struct {
 var _ types.PyNewable = dropoutClass{}
 var _ types.PyDictSettable = &dropout{}
 
-func (c dropoutClass) PyNew(args ...interface{}) (interface{}, error) {
+func (dropoutClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("dropoutClass: unsupported arguments: %#v", args)
 	}
@@ -750,7 +752,7 @@ type torchLSTM struct {
 var _ types.PyNewable = torchLSTMClass{}
 var _ types.PyDictSettable = &torchLSTM{}
 
-func (c torchLSTMClass) PyNew(args ...interface{}) (interface{}, error) {
+func (torchLSTMClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("torchLSTMClass: unsupported arguments: %#v", args)
 	}
@@ -785,7 +787,7 @@ type torchLinear struct {
 var _ types.PyNewable = torchLinearClass{}
 var _ types.PyDictSettable = &torchLinear{}
 
-func (c torchLinearClass) PyNew(args ...interface{}) (interface{}, error) {
+func (torchLinearClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("torchLinearClass: unsupported arguments: %#v", args)
 	}
@@ -816,7 +818,7 @@ type flairDictionary struct {
 var _ types.PyNewable = flairDictionaryClass{}
 var _ types.PyDictSettable = &flairDictionary{}
 
-func (c flairDictionaryClass) PyNew(args ...interface{}) (interface{}, error) {
+func (flairDictionaryClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("flairDictionaryClass: unsupported arguments: %#v", args)
 	}
@@ -859,7 +861,7 @@ type sparseEmbedding struct {
 var _ types.PyNewable = sparseEmbeddingClass{}
 var _ types.PyDictSettable = &sparseEmbedding{}
 
-func (c sparseEmbeddingClass) PyNew(args ...interface{}) (interface{}, error) {
+func (sparseEmbeddingClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("sparseEmbeddingClass: unsupported arguments: %#v", args)
 	}
@@ -881,31 +883,31 @@ func (s *sparseEmbedding) PyDictSet(key, value interface{}) error {
 
 // Word2VecKeyedVectors
 
-type word2VecKeyedVectorsClass struct{}
-type word2VecKeyedVectors struct {
-	Vectors     *ndarray
+type word2VecKeyedVectorsClass[T mat.DType] struct{}
+type word2VecKeyedVectors[T mat.DType] struct {
+	Vectors     *ndarray[T]
 	IndexToWord *types.List
 	VectorSize  int
 	pyDict      map[string]interface{}
 }
 
-var _ types.PyNewable = word2VecKeyedVectorsClass{}
-var _ types.PyDictSettable = &word2VecKeyedVectors{}
+var _ types.PyNewable = word2VecKeyedVectorsClass[float32]{}
+var _ types.PyDictSettable = &word2VecKeyedVectors[float32]{}
 
-func (c word2VecKeyedVectorsClass) PyNew(args ...interface{}) (interface{}, error) {
+func (word2VecKeyedVectorsClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("word2VecKeyedVectorsClass: unsupported arguments: %#v", args)
 	}
-	return &word2VecKeyedVectors{
+	return &word2VecKeyedVectors[T]{
 		pyDict: make(map[string]interface{}),
 	}, nil
 }
 
-func (w *word2VecKeyedVectors) PyDictSet(key, value interface{}) error {
+func (w *word2VecKeyedVectors[T]) PyDictSet(key, value interface{}) error {
 	k := key.(string)
 	switch k {
 	case "vectors":
-		w.Vectors = value.(*ndarray)
+		w.Vectors = value.(*ndarray[T])
 	case "index2word":
 		w.IndexToWord = value.(*types.List)
 	case "vector_size":
@@ -926,7 +928,7 @@ type vocab struct {
 var _ types.PyNewable = vocabClass{}
 var _ types.PyDictSettable = &vocab{}
 
-func (c vocabClass) PyNew(args ...interface{}) (interface{}, error) {
+func (vocabClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) > 0 {
 		return nil, fmt.Errorf("vocabClass: unsupported arguments: %#v", args)
 	}
@@ -986,17 +988,17 @@ func (rebuildParameter) Call(args ...interface{}) (interface{}, error) {
 
 // Numpy ndarray
 
-type ndarrayClass struct{}
-type ndarray struct {
+type ndarrayClass[T mat.DType] struct{}
+type ndarray[T mat.DType] struct {
 	Shape    []int
 	DataType *dtypeInstance
 	rawData  []uint8
 }
 
-var _ types.PyNewable = ndarrayClass{}
-var _ types.PyStateSettable = &ndarray{}
+var _ types.PyNewable = ndarrayClass[float32]{}
+var _ types.PyStateSettable = &ndarray[float32]{}
 
-func (c ndarrayClass) PyNew(args ...interface{}) (interface{}, error) {
+func (ndarrayClass[T]) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) == 0 || len(args) > 2 {
 		return nil, fmt.Errorf("ndarrayClass: expected one or two arguments, actual: %#v", args)
 	}
@@ -1012,7 +1014,7 @@ func (c ndarrayClass) PyNew(args ...interface{}) (interface{}, error) {
 		dataType = args[1].(string)
 	}
 
-	return &ndarray{
+	return &ndarray[T]{
 		Shape: shape,
 		DataType: &dtypeInstance{
 			Value: dataType,
@@ -1021,7 +1023,7 @@ func (c ndarrayClass) PyNew(args ...interface{}) (interface{}, error) {
 	}, nil
 }
 
-func (n *ndarray) PySetState(state interface{}) error {
+func (n *ndarray[T]) PySetState(state interface{}) error {
 	t := state.(*types.Tuple)
 
 	// [0] version : int - optional pickle version. If omitted defaults to 0.
@@ -1039,7 +1041,7 @@ func (n *ndarray) PySetState(state interface{}) error {
 	return nil
 }
 
-func (n *ndarray) FloatSlice() []mat.Float {
+func (n *ndarray[T]) FloatSlice() []T {
 	dataType := n.DataType.Value.(string)
 	if dataType != "f4" {
 		panic(fmt.Errorf("ndarray.FloatSlice(): only DataType `f4` is supported, actual: %v", dataType))
@@ -1051,10 +1053,10 @@ func (n *ndarray) FloatSlice() []mat.Float {
 		panic(fmt.Errorf("ndarray.FloatSlice(): cannot use span %d on raw data with length %d", span, len(n.rawData)))
 	}
 
-	result := make([]mat.Float, 0, length/span)
+	result := make([]T, 0, length/span)
 	for i := 0; i < length; i += span {
 		bytes := n.rawData[i : i+span]
-		result = append(result, mat.Float(math.Float32frombits(binary.LittleEndian.Uint32(bytes))))
+		result = append(result, T(math.Float32frombits(binary.LittleEndian.Uint32(bytes))))
 	}
 	return result
 }
@@ -1077,7 +1079,7 @@ func (c dtypeClass) Call(args ...interface{}) (interface{}, error) {
 	return c.PyNew(args...)
 }
 
-func (c dtypeClass) PyNew(args ...interface{}) (interface{}, error) {
+func (dtypeClass) PyNew(args ...interface{}) (interface{}, error) {
 	if len(args) == 0 || len(args) > 3 {
 		return nil, fmt.Errorf("dtypeClass: expected one to three arguments, actual: %#v", args)
 	}
@@ -1122,6 +1124,6 @@ type torchRNNUnserializable struct{}
 
 var _ types.PyNewable = torchRNNUnserializableClass{}
 
-func (c torchRNNUnserializableClass) PyNew(_ ...interface{}) (interface{}, error) {
+func (torchRNNUnserializableClass) PyNew(_ ...interface{}) (interface{}, error) {
 	return &torchRNNUnserializable{}, nil
 }

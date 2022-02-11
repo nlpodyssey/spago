@@ -8,20 +8,20 @@ import "github.com/nlpodyssey/spago/pkg/mat"
 
 // GradValue extends the fn.Operand interface providing more convenient methods
 // to handle gradients in the context of automatic differentiation.
-type GradValue interface {
+type GradValue[T mat.DType] interface {
 	// Value returns the value of the node.
 	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.
-	Value() mat.Matrix[mat.Float]
+	Value() mat.Matrix[T]
 	// ScalarValue returns the scalar value of the node. It panics if the value is not a scalar.
-	ScalarValue() mat.Float
+	ScalarValue() T
 	// Grad returns the gradients accumulated during the backward pass.
-	Grad() mat.Matrix[mat.Float]
+	Grad() mat.Matrix[T]
 	// HasGrad returns true if there are accumulated gradients.
 	HasGrad() bool
 	// RequiresGrad returns true if the node requires gradients.
 	RequiresGrad() bool
 	// PropagateGrad propagates the gradients to the node.
-	PropagateGrad(gx mat.Matrix[mat.Float])
+	PropagateGrad(gx mat.Matrix[T])
 	// ZeroGrad set the gradients to zeros.
 	ZeroGrad()
 }

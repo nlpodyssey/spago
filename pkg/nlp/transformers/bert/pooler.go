@@ -6,6 +6,7 @@ package bert
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/activation"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Model = &Pooler{}
+	_ nn.Model[float32] = &Pooler[float32]{}
 )
 
 // PoolerConfig provides configuration settings for a BERT Pooler.
@@ -24,20 +25,21 @@ type PoolerConfig struct {
 }
 
 // Pooler is a BERT Pooler model.
-type Pooler struct {
-	*stack.Model
+type Pooler[T mat.DType] struct {
+	*stack.Model[T]
 }
 
 func init() {
-	gob.Register(&Pooler{})
+	gob.Register(&Pooler[float32]{})
+	gob.Register(&Pooler[float64]{})
 }
 
 // NewPooler returns a new BERT Pooler model.
-func NewPooler(config PoolerConfig) *Pooler {
-	return &Pooler{
-		Model: stack.New(
-			linear.New(config.InputSize, config.OutputSize),
-			activation.New(ag.OpTanh),
+func NewPooler[T mat.DType](config PoolerConfig) *Pooler[T] {
+	return &Pooler[T]{
+		Model: stack.New[T](
+			linear.New[T](config.InputSize, config.OutputSize),
+			activation.New[T](ag.OpTanh),
 		),
 	}
 }

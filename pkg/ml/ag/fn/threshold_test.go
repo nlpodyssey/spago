@@ -11,23 +11,23 @@ import (
 )
 
 func TestThresholdForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 3.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	threshold := &variable{
+	threshold := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	k := &variable{
+	k := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](1.6),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewThreshold(x, threshold, k)
+	f := NewThreshold[mat.Float](x, threshold, k)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{1.6, 1.6, 3.3, 1.6}, y.Data(), 1.0e-6)

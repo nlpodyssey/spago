@@ -10,32 +10,32 @@ import (
 )
 
 var (
-	_ fn.Operand = &Wrapper{}
-	_ GradValue  = &Wrapper{}
-	_ Node       = &Wrapper{}
+	_ fn.Operand[float32] = &Wrapper[float32]{}
+	_ GradValue[float32]  = &Wrapper[float32]{}
+	_ Node[float32]       = &Wrapper[float32]{}
 )
 
 // Wrapper is a type of node.
-type Wrapper struct {
-	GradValue
-	graph    *Graph
+type Wrapper[T mat.DType] struct {
+	GradValue[T]
+	graph    *Graph[T]
 	timeStep int
 	id       int
 	wrapGrad bool
 }
 
 // ID returns the ID of the node in the graph.
-func (r *Wrapper) ID() int {
+func (r *Wrapper[_]) ID() int {
 	return r.id
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Wrapper) Graph() *Graph {
+func (r *Wrapper[T]) Graph() *Graph[T] {
 	return r.graph
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Wrapper) Grad() mat.Matrix[mat.Float] {
+func (r *Wrapper[T]) Grad() mat.Matrix[T] {
 	if !r.wrapGrad {
 		return nil
 	}
@@ -43,7 +43,7 @@ func (r *Wrapper) Grad() mat.Matrix[mat.Float] {
 }
 
 // PropagateGrad propagates the gradients to the node.
-func (r *Wrapper) PropagateGrad(gx mat.Matrix[mat.Float]) {
+func (r *Wrapper[T]) PropagateGrad(gx mat.Matrix[T]) {
 	if !r.wrapGrad {
 		return
 	}
@@ -51,7 +51,7 @@ func (r *Wrapper) PropagateGrad(gx mat.Matrix[mat.Float]) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Wrapper) HasGrad() bool {
+func (r *Wrapper[_]) HasGrad() bool {
 	if !r.wrapGrad {
 		return false
 	}
@@ -59,7 +59,7 @@ func (r *Wrapper) HasGrad() bool {
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Wrapper) RequiresGrad() bool {
+func (r *Wrapper[_]) RequiresGrad() bool {
 	if !r.wrapGrad {
 		return false
 	}
@@ -67,7 +67,7 @@ func (r *Wrapper) RequiresGrad() bool {
 }
 
 // ZeroGrad set the gradients to zeros.
-func (r *Wrapper) ZeroGrad() {
+func (r *Wrapper[_]) ZeroGrad() {
 	if !r.wrapGrad {
 		return
 	}
@@ -75,6 +75,6 @@ func (r *Wrapper) ZeroGrad() {
 }
 
 // TimeStep returns the time-step of the node.
-func (r *Wrapper) TimeStep() int {
+func (r *Wrapper[_]) TimeStep() int {
 	return r.timeStep
 }

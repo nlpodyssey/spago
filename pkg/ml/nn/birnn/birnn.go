@@ -6,6 +6,7 @@ package birnn
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"sync"
@@ -27,24 +28,25 @@ const (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Positive  nn.StandardModel // positive time direction a.k.a. left-to-right
-	Negative  nn.StandardModel // negative time direction a.k.a. right-to-left
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Positive  nn.StandardModel[T] // positive time direction a.k.a. left-to-right
+	Negative  nn.StandardModel[T] // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(positive, negative nn.StandardModel, merge MergeType) *Model {
-	return &Model{
+func New[T mat.DType](positive, negative nn.StandardModel[T], merge MergeType) *Model[T] {
+	return &Model[T]{
 		Positive:  positive,
 		Negative:  negative,
 		MergeMode: merge,
@@ -52,9 +54,9 @@ func New(positive, negative nn.StandardModel, merge MergeType) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	var pos []ag.Node
-	var neg []ag.Node
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	var pos []ag.Node[T]
+	var neg []ag.Node[T]
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -66,15 +68,15 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		neg = m.Negative.Forward(reversed(xs)...)
 	}()
 	wg.Wait()
-	out := make([]ag.Node, len(pos))
+	out := make([]ag.Node[T], len(pos))
 	for i := range out {
 		out[i] = m.merge(pos[i], neg[len(out)-1-i])
 	}
 	return out
 }
 
-func reversed(ns []ag.Node) []ag.Node {
-	r := make([]ag.Node, len(ns))
+func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
+	r := make([]ag.Node[T], len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1
@@ -83,7 +85,7 @@ func reversed(ns []ag.Node) []ag.Node {
 	return r
 }
 
-func (m *Model) merge(a, b ag.Node) ag.Node {
+func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	switch m.MergeMode {
 	case Concat:

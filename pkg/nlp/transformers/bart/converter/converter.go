@@ -35,7 +35,7 @@ const defaultHuggingFaceModelFile = "pytorch_model.bin"
 
 // ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BART
 // transformer model to a corresponding spaGO model.
-func ConvertHuggingFacePreTrained(modelPath string) error {
+func ConvertHuggingFacePreTrained[T mat.DType](modelPath string) error {
 	configFilename, err := exists(path.Join(modelPath, pkgconfig.DefaultConfigurationFile))
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	if err != nil {
 		return err
 	}
-	config, err := pkgconfig.Load(configFilename)
+	config, err := pkgconfig.Load[T](configFilename)
 	if err != nil {
 		return err
 	}
@@ -55,13 +55,13 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 
 	model := bart.New(config, path.Join(modelPath, pkgconfig.DefaultEmbeddingsStorage))
 	defer model.Close()
-	classification := sequenceclassification.NewClassifier(sequenceclassification.ClassifierConfig{
+	classification := sequenceclassification.NewClassifier(sequenceclassification.ClassifierConfig[T]{
 		InputSize:     config.DModel,
 		HiddenSize:    config.DModel,
 		OutputSize:    config.NumLabels,
 		PoolerDropout: config.ClassifierDropout,
 	})
-	handler := &huggingFacePreTrainedConverter{
+	handler := &huggingFacePreTrainedConverter[T]{
 		config:               config,
 		modelPath:            modelPath,
 		configFilename:       configFilename,
@@ -69,8 +69,8 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 		modelFilename:        path.Join(modelPath, pkgconfig.DefaultModelFile),
 		model:                model,
 		classificationHead:   classification,
-		generationHead:       linear.New(config.DModel, config.VocabSize),
-		modelMapping:         make(map[string]*mappedParam), // lazy initialization
+		generationHead:       linear.New[T](config.DModel, config.VocabSize),
+		modelMapping:         make(map[string]*mappedParam[T]), // lazy initialization
 	}
 	err = handler.convert()
 	if err != nil {
@@ -79,20 +79,20 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	return nil
 }
 
-type huggingFacePreTrainedConverter struct {
-	config               pkgconfig.Config
+type huggingFacePreTrainedConverter[T mat.DType] struct {
+	config               pkgconfig.Config[T]
 	modelPath            string
 	configFilename       string
 	pyTorchModelFilename string
 	modelFilename        string
-	model                *bart.Model
-	classificationHead   *sequenceclassification.Classifier
-	generationHead       *linear.Model
-	modelMapping         map[string]*mappedParam
+	model                *bart.Model[T]
+	classificationHead   *sequenceclassification.Classifier[T]
+	generationHead       *linear.Model[T]
+	modelMapping         map[string]*mappedParam[T]
 }
 
-type mappedParam struct {
-	value mat.Matrix[mat.Float]
+type mappedParam[T mat.DType] struct {
+	value mat.Matrix[T]
 	used  bool
 }
 
@@ -103,7 +103,7 @@ func exists(filename string) (string, error) {
 	return filename, nil
 }
 
-func (c *huggingFacePreTrainedConverter) convert() error {
+func (c *huggingFacePreTrainedConverter[T]) convert() error {
 	log.Printf("Start converting `%s`\nConfiguration: %+v\n", c.pyTorchModelFilename, c.config)
 	log.Printf("Extracting Hugging Face params from the PyTorch model...")
 	pyTorchParams := c.extractHuggingFaceParams()
@@ -115,13 +115,13 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	c.addToModelMapping(mapBartEncoder(c.model.Encoder))
 	c.addToModelMapping(mapBartDecoder(c.model.Decoder))
 	c.addToModelMapping(mapClassificationHead(c.classificationHead))
-	c.addToModelMapping(mapGenerationHead(c.generationHead))
+	c.addToModelMapping(mapGenerationHead[T](c.generationHead))
 
 	if !c.config.StaticPositionEmbeddings {
 		fmt.Printf("Setting model.encoder.embed_positions.weight.... ")
 		assignToParamsList(
 			pyTorchParams["model.encoder.embed_positions.weight"],
-			c.model.Encoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder).Vectors,
+			c.model.Encoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder[T]).Vectors,
 			c.model.Encoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
 			c.model.Encoder.Config.DModel)
 		fmt.Print("ok\n")
@@ -129,7 +129,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 		fmt.Printf("Setting model.decoder.embed_positions.weight.... ")
 		assignToParamsList(
 			pyTorchParams["model.decoder.embed_positions.weight"],
-			c.model.Decoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder).Vectors,
+			c.model.Decoder.PositionalEncoder.(*learnedpositionalencoder.LearnedPositionalEncoder[T]).Vectors,
 			c.model.Decoder.Config.MaxPositionEmbeddings+c.model.Decoder.Config.ExtraPosEmbedding,
 			c.model.Decoder.Config.DModel)
 		fmt.Print("ok\n")
@@ -163,7 +163,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	return nil
 }
 
-func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabSize int) {
+func dumpWordEmbeddings[T mat.DType](source []T, dest *embeddings.Model[T], vocabSize int) {
 	size := dest.Size
 	for i := 0; i < vocabSize; i++ {
 		start := i * size
@@ -173,20 +173,20 @@ func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabSize in
 	}
 }
 
-func (c *huggingFacePreTrainedConverter) serializeModel() error {
-	var model nn.Model
+func (c *huggingFacePreTrainedConverter[T]) serializeModel() error {
+	var model nn.Model[T]
 
 	if len(c.config.Architecture) == 0 {
 		model = c.model // BART base
 	} else {
 		switch c.config.Architecture[0] {
 		case "BartForSequenceClassification":
-			model = &sequenceclassification.Model{
+			model = &sequenceclassification.Model[T]{
 				BART:       c.model,
 				Classifier: c.classificationHead,
 			}
 		case "MarianMTModel":
-			model = &conditionalgeneration.Model{
+			model = &conditionalgeneration.Model[T]{
 				BART:       c.model,
 				Projection: c.generationHead,
 			}
@@ -203,10 +203,10 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	return nil
 }
 
-func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapBartEncoder[T mat.DType](model *encoder.Model[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	for i := 0; i < model.Config.EncoderLayers; i++ {
-		layer := model.Layers.Layers[i].(*encoderlayer.Layer)
+		layer := model.Layers.Layers[i].(*encoderlayer.Layer[T])
 		prefixBase := fmt.Sprintf("model.encoder.layers.%d", i)
 		// Sublayer 1
 		for j := 0; j < model.Config.EncoderAttentionHeads; j++ {
@@ -224,10 +224,10 @@ func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix[mat.Float] {
 		paramsMap[fmt.Sprintf("%s.self_attn_layer_norm.weight", prefixBase)] = layer.SelfAttentionLayerNorm.W.Value()
 		paramsMap[fmt.Sprintf("%s.self_attn_layer_norm.bias", prefixBase)] = layer.SelfAttentionLayerNorm.B.Value()
 		// Sublayer 2
-		paramsMap[fmt.Sprintf("%s.fc1.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.fc1.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).B.Value()
-		paramsMap[fmt.Sprintf("%s.fc2.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.fc2.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).B.Value()
+		paramsMap[fmt.Sprintf("%s.fc1.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.fc1.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).B.Value()
+		paramsMap[fmt.Sprintf("%s.fc2.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.fc2.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).B.Value()
 		paramsMap[fmt.Sprintf("%s.final_layer_norm.weight", prefixBase)] = layer.LayerNorm.W.Value()
 		paramsMap[fmt.Sprintf("%s.final_layer_norm.bias", prefixBase)] = layer.LayerNorm.B.Value()
 	}
@@ -240,8 +240,8 @@ func mapBartEncoder(model *encoder.Model) map[string]mat.Matrix[mat.Float] {
 	return paramsMap
 }
 
-func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapBartDecoder[T mat.DType](model *decoder.Model[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	for i := 0; i < model.Config.DecoderLayers; i++ {
 		layer := model.Layers[i]
 		prefixBase := fmt.Sprintf("model.decoder.layers.%d", i)
@@ -278,10 +278,10 @@ func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix[mat.Float] {
 		paramsMap[fmt.Sprintf("%s.encoder_attn_layer_norm.bias", prefixBase)] = layer.EncoderAttentionLayerNorm.B.Value()
 
 		// Sublayer 2
-		paramsMap[fmt.Sprintf("%s.fc1.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.fc1.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).B.Value()
-		paramsMap[fmt.Sprintf("%s.fc2.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.fc2.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).B.Value()
+		paramsMap[fmt.Sprintf("%s.fc1.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.fc1.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).B.Value()
+		paramsMap[fmt.Sprintf("%s.fc2.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.fc2.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).B.Value()
 		paramsMap[fmt.Sprintf("%s.final_layer_norm.weight", prefixBase)] = layer.LayerNorm.W.Value()
 		paramsMap[fmt.Sprintf("%s.final_layer_norm.bias", prefixBase)] = layer.LayerNorm.B.Value()
 	}
@@ -293,30 +293,30 @@ func mapBartDecoder(model *decoder.Model) map[string]mat.Matrix[mat.Float] {
 	return paramsMap
 }
 
-func mapClassificationHead(model *sequenceclassification.Classifier) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
-	paramsMap["classification_head.dense.weight"] = model.Layers[0].(*linear.Model).W.Value()
-	paramsMap["classification_head.dense.bias"] = model.Layers[0].(*linear.Model).B.Value()
-	paramsMap["classification_head.out_proj.weight"] = model.Layers[2].(*linear.Model).W.Value()
-	paramsMap["classification_head.out_proj.bias"] = model.Layers[2].(*linear.Model).B.Value()
+func mapClassificationHead[T mat.DType](model *sequenceclassification.Classifier[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
+	paramsMap["classification_head.dense.weight"] = model.Layers[0].(*linear.Model[T]).W.Value()
+	paramsMap["classification_head.dense.bias"] = model.Layers[0].(*linear.Model[T]).B.Value()
+	paramsMap["classification_head.out_proj.weight"] = model.Layers[2].(*linear.Model[T]).W.Value()
+	paramsMap["classification_head.out_proj.bias"] = model.Layers[2].(*linear.Model[T]).B.Value()
 	return paramsMap
 }
 
-func mapGenerationHead(model *linear.Model) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapGenerationHead[T mat.DType](model *linear.Model[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["model.shared.weight"] = model.W.Value()
 	paramsMap["final_logits_bias"] = model.B.Value()
 	return paramsMap
 }
 
-func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
+func assignToParamsList[T mat.DType](source []T, dest []nn.Param[T], rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
 }
 
-func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][]mat.Float {
-	paramsMap := make(map[string][]mat.Float)
+func (c *huggingFacePreTrainedConverter[T]) extractHuggingFaceParams() map[string][]T {
+	paramsMap := make(map[string][]T)
 	result, err := pytorch.Load(c.pyTorchModelFilename)
 	if err != nil {
 		log.Fatal(err)
@@ -328,7 +328,7 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 		fmt.Printf("Reading %s.... ", paramName)
 		switch t.Source.(type) {
 		case *pytorch.FloatStorage:
-			paramsMap[paramName] = gopickleutils.GetData(t)
+			paramsMap[paramName] = gopickleutils.GetData[T](t)
 			fmt.Println("ok")
 		default:
 			fmt.Println("skip")
@@ -338,13 +338,13 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 	return paramsMap
 }
 
-func (c *huggingFacePreTrainedConverter) disaggregateParams(paramsMap map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) disaggregateParams(paramsMap map[string][]T) {
 	c.disaggregateEncoderSelfAttentionParams(paramsMap)
 	c.disaggregateDecoderSelfAttentionParams(paramsMap)
 	c.disaggregateDecoderCrossAttentionParams(paramsMap)
 }
 
-func (c *huggingFacePreTrainedConverter) disaggregateEncoderSelfAttentionParams(paramsMap map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) disaggregateEncoderSelfAttentionParams(paramsMap map[string][]T) {
 	for i := 0; i < c.config.EncoderLayers; i++ {
 		prefix := fmt.Sprintf("model.encoder.layers.%d.self_attn", i)
 		queryWeight := paramsMap[fmt.Sprintf("%s.q_proj.weight", prefix)]
@@ -369,7 +369,7 @@ func (c *huggingFacePreTrainedConverter) disaggregateEncoderSelfAttentionParams(
 	}
 }
 
-func (c *huggingFacePreTrainedConverter) disaggregateDecoderSelfAttentionParams(paramsMap map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) disaggregateDecoderSelfAttentionParams(paramsMap map[string][]T) {
 	for i := 0; i < c.config.DecoderLayers; i++ {
 		prefix := fmt.Sprintf("model.decoder.layers.%d.self_attn", i)
 		queryWeight := paramsMap[fmt.Sprintf("%s.q_proj.weight", prefix)]
@@ -394,7 +394,7 @@ func (c *huggingFacePreTrainedConverter) disaggregateDecoderSelfAttentionParams(
 	}
 }
 
-func (c *huggingFacePreTrainedConverter) disaggregateDecoderCrossAttentionParams(paramsMap map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) disaggregateDecoderCrossAttentionParams(paramsMap map[string][]T) {
 	for i := 0; i < c.config.DecoderLayers; i++ {
 		prefix := fmt.Sprintf("model.decoder.layers.%d.encoder_attn", i)
 		queryWeight := paramsMap[fmt.Sprintf("%s.q_proj.weight", prefix)]
@@ -429,9 +429,9 @@ func normalizeParamName(orig string) (normalized string) {
 	return
 }
 
-func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix[mat.Float]) {
+func (c *huggingFacePreTrainedConverter[T]) addToModelMapping(paramsMap map[string]mat.Matrix[T]) {
 	for k, v := range paramsMap {
-		c.modelMapping[k] = &mappedParam{
+		c.modelMapping[k] = &mappedParam[T]{
 			value: v,
 			used:  false,
 		}

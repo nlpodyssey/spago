@@ -6,22 +6,22 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
-var _ Function = &Stack{}
+var _ Function[float32] = &Stack[float32]{}
 
 // Stack is a Function which stacks together all given operand matrices,
 // producing a single bigger matrix as result.
-type Stack struct {
-	xs []Operand
+type Stack[T mat.DType] struct {
+	xs []Operand[T]
 }
 
 // NewStack returns a new Stack Function.
-func NewStack(xs []Operand) *Stack {
-	return &Stack{xs: xs}
+func NewStack[T mat.DType](xs []Operand[T]) *Stack[T] {
+	return &Stack[T]{xs: xs}
 }
 
 // Forward computes the output of the function.
-func (r *Stack) Forward() mat.Matrix[mat.Float] {
-	vs := make([]mat.Matrix[mat.Float], len(r.xs))
+func (r *Stack[T]) Forward() mat.Matrix[T] {
+	vs := make([]mat.Matrix[T], len(r.xs))
 	for i, x := range r.xs {
 		vs[i] = x.Value()
 	}
@@ -29,7 +29,7 @@ func (r *Stack) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *Stack) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Stack[T]) Backward(gy mat.Matrix[T]) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")
 	}

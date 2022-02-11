@@ -6,12 +6,13 @@
 package dot
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/graphviz"
 )
 
 // Marshal the graph in a dot (graphviz).
-func Marshal(g *ag.Graph) ([]byte, error) {
+func Marshal[T mat.DType](g *ag.Graph[T]) ([]byte, error) {
 	gv, err := graphviz.BuildGraph(g, graphviz.Options{ColoredTimeSteps: true})
 	if err != nil {
 		return nil, err

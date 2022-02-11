@@ -10,11 +10,11 @@ import (
 	"time"
 )
 
-func (s *Server) generate(text string) (*GenerateResponse, error) {
+func (s *Server[T]) generate(text string) (*GenerateResponse, error) {
 	start := time.Now()
 
-	task := seq2seq.BartForConditionalGeneration{
-		Model:     s.model.(*conditionalgeneration.Model),
+	task := seq2seq.BartForConditionalGeneration[T]{
+		Model:     s.model.(*conditionalgeneration.Model[T]),
 		Tokenizer: s.spTokenizer,
 	}
 

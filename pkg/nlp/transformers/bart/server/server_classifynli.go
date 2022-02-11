@@ -11,16 +11,16 @@ import (
 	"time"
 )
 
-func (s *Server) classifyNLI(
+func (s *Server[T]) classifyNLI(
 	text string,
 	hypothesisTemplate string,
 	candidateLabels []string,
 	multiClass bool,
-) (*tasks.ClassifyResponse, error) {
+) (*tasks.ClassifyResponse[T], error) {
 	start := time.Now()
 
-	task := zsc.BartForZeroShotClassification{
-		Model:     s.model.(*sequenceclassification.Model),
+	task := zsc.BartForZeroShotClassification[T]{
+		Model:     s.model.(*sequenceclassification.Model[T]),
 		Tokenizer: s.bpeTokenizer,
 	}
 

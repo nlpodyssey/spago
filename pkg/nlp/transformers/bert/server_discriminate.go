@@ -19,7 +19,7 @@ import (
 )
 
 // DiscriminateHandler handles a discriminate request over HTTP.
-func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
+func (s *Server[T]) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*") // that's intended for testing purposes only
 	w.Header().Set("Content-Type", "application/json")
 
@@ -47,7 +47,7 @@ func (s *Server) DiscriminateHandler(w http.ResponseWriter, req *http.Request) {
 
 // Discriminate handles a discriminate request over gRPC.
 // TODO(evanmcclure@gmail.com) Reuse the gRPC message type for HTTP requests.
-func (s *Server) Discriminate(_ context.Context, req *grpcapi.DiscriminateRequest) (*grpcapi.DiscriminateReply, error) {
+func (s *Server[T]) Discriminate(_ context.Context, req *grpcapi.DiscriminateRequest) (*grpcapi.DiscriminateReply, error) {
 	result := s.discriminate(req.GetText())
 
 	return &grpcapi.DiscriminateReply{
@@ -70,7 +70,7 @@ func tokensFrom(tokens []Token) []*grpcapi.Token {
 }
 
 // TODO: This method is too long; it needs to be refactored.
-func (s *Server) discriminate(text string) *Response {
+func (s *Server[T]) discriminate(text string) *Response {
 	start := time.Now()
 
 	tokenizer := wordpiecetokenizer.New(s.model.Vocabulary)
@@ -78,7 +78,7 @@ func (s *Server) discriminate(text string) *Response {
 	groupedTokens := wordpiecetokenizer.GroupPieces(origTokens)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForInference(s.model, g)
 	encoded := proc.Encode(tokenized)

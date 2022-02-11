@@ -29,17 +29,17 @@ const (
 )
 
 // Vectorize transforms the text into a dense vector representation.
-func (m *Model) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix[mat.Float], error) {
+func (m *Model[T]) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Matrix[T], error) {
 	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForInference(m, g)
 	encoded := proc.Encode(tokenized)
 
-	var pooled ag.Node
+	var pooled ag.Node[T]
 	switch poolingStrategy {
 	case ReduceMean:
 		pooled = g.Mean(encoded)
@@ -57,7 +57,7 @@ func (m *Model) Vectorize(text string, poolingStrategy PoolingStrategy) (mat.Mat
 }
 
 // Max returns the value that describes the maximum of the sample.
-func max(g *ag.Graph, xs []ag.Node) ag.Node {
+func max[T mat.DType](g *ag.Graph[T], xs []ag.Node[T]) ag.Node[T] {
 	maxVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		maxVector = g.Max(maxVector, xs[i])

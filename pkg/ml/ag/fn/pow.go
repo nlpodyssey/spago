@@ -8,26 +8,26 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &Pow{}
+var _ Function[float32] = &Pow[float32]{}
 
 // Pow is an operator to perform element-wise pow function.
-type Pow struct {
-	x     Operand
-	power mat.Float
+type Pow[T mat.DType] struct {
+	x     Operand[T]
+	power T
 }
 
 // NewPow returns a new Pow Function.
-func NewPow(x Operand, power mat.Float) *Pow {
-	return &Pow{x: x, power: power}
+func NewPow[T mat.DType](x Operand[T], power T) *Pow[T] {
+	return &Pow[T]{x: x, power: power}
 }
 
 // Forward computes the output of the function.
-func (r *Pow) Forward() mat.Matrix[mat.Float] {
+func (r *Pow[T]) Forward() mat.Matrix[T] {
 	return r.x.Value().Pow(r.power)
 }
 
 // Backward computes the backward pass.
-func (r *Pow) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Pow[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

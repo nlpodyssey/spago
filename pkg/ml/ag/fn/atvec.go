@@ -8,26 +8,26 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &AtVec{}
+var _ Function[float32] = &AtVec[float32]{}
 
 // AtVec is an operator to obtain the i-th value of a vector.
-type AtVec struct {
-	x Operand
+type AtVec[T mat.DType] struct {
+	x Operand[T]
 	i int
 }
 
 // NewAtVec returns a new AtVec Function.
-func NewAtVec(x Operand, i int) *AtVec {
-	return &AtVec{x: x, i: i}
+func NewAtVec[T mat.DType](x Operand[T], i int) *AtVec[T] {
+	return &AtVec[T]{x: x, i: i}
 }
 
 // Forward computes the output of the function.
-func (r *AtVec) Forward() mat.Matrix[mat.Float] {
+func (r *AtVec[T]) Forward() mat.Matrix[T] {
 	return mat.NewScalar(r.x.Value().AtVec(r.i))
 }
 
 // Backward computes the backward pass.
-func (r *AtVec) Backward(gy mat.Matrix[mat.Float]) {
+func (r *AtVec[T]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)

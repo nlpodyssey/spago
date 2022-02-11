@@ -17,17 +17,17 @@ import (
 )
 
 // Generator is an implementation of a generation search algorithm for conditional generation.
-type Generator struct {
-	config          GeneratorConfig
-	model           EncoderDecoder
+type Generator[T mat.DType] struct {
+	config          GeneratorConfig[T]
+	model           EncoderDecoder[T]
 	processingQueue processingqueue.ProcessingQueue
-	padMask         ag.Node
-	eosMask         ag.Node
+	padMask         ag.Node[T]
+	eosMask         ag.Node[T]
 }
 
 // NewGenerator creates a new Generator object.
-func NewGenerator(config GeneratorConfig, model EncoderDecoder) *Generator {
-	return &Generator{
+func NewGenerator[T mat.DType](config GeneratorConfig[T], model EncoderDecoder[T]) *Generator[T] {
+	return &Generator[T]{
 		config:          config,
 		model:           model,
 		processingQueue: processingqueue.New(config.MaxConcurrentComputations),
@@ -38,7 +38,7 @@ func NewGenerator(config GeneratorConfig, model EncoderDecoder) *Generator {
 
 // Generate generates sequences for models with a language modeling head, using
 // generation-search decoding.
-func (b *Generator) Generate(inputIDs []int) []int {
+func (b *Generator[T]) Generate(inputIDs []int) []int {
 	if !b.config.IsEncoderDecoder {
 		panic("generator: unsupported architecture")
 	}
@@ -48,15 +48,15 @@ func (b *Generator) Generate(inputIDs []int) []int {
 		b.performForward()
 	}
 
-	return b.beamSearch(NewScorer(b.config), encodedInput)
+	return b.beamSearch(NewScorer[T](b.config), encodedInput)
 }
 
-func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
+func (b *Generator[T]) beamSearch(scorer *Scorer[T], encodedInput []ag.Node[T]) []int {
 	var (
 		numBeams         = b.config.NumBeams
 		beamScores       = b.makeInitBeamScores()
 		decodingInputIDs = b.makeStartDecodingInputForBeamDecoding()
-		scores           = make([]Scores, numBeams)
+		scores           = make([]Scores[T], numBeams)
 		cache            = make([]Cache, numBeams)
 		curLen           = len(decodingInputIDs[0])
 	)
@@ -80,15 +80,15 @@ func (b *Generator) beamSearch(scorer *Scorer, encodedInput []ag.Node) []int {
 	return scorer.Finalize(decodingInputIDs, beamScores)
 }
 
-func (b *Generator) generateNext(
-	encodedInput []ag.Node,
+func (b *Generator[T]) generateNext(
+	encodedInput []ag.Node[T],
 	decodingInputIDs [][]int,
 	pastCache []Cache,
-) ([]Scores, []Cache) {
+) ([]Scores[T], []Cache) {
 	numBeams := b.config.NumBeams
-	logProbs := make([]ag.Node, numBeams)
-	logits := make([]ag.Node, numBeams)
-	scores := make([]Scores, numBeams)
+	logProbs := make([]ag.Node[T], numBeams)
+	logits := make([]ag.Node[T], numBeams)
+	scores := make([]Scores[T], numBeams)
 	nextCache := make([]Cache, numBeams)
 
 	var wg sync.WaitGroup
@@ -115,17 +115,17 @@ func (b *Generator) generateNext(
 	return scores, nextCache
 }
 
-func (b *Generator) performForward() {
+func (b *Generator[T]) performForward() {
 	g := b.model.Graph()
-	g.Forward(ag.Range(g.TimeStep(), -1))
+	g.Forward(ag.Range[T](g.TimeStep(), -1))
 	g.IncTimeStep() // mark the next block to be computed from here on
 }
 
-func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
+func (b *Generator[T]) getTopKScoredTokens(tokensScores []Scores[T]) ScoredTokens[T] {
 	resultSize := b.config.NumBeams * 2
-	result := make(ScoredTokens, 0, resultSize+1)
+	result := make(ScoredTokens[T], 0, resultSize+1)
 
-	var currentMinValue mat.Float = -math.MaxFloat32
+	var currentMinValue T = -math.MaxFloat32
 	var currentMinIndex int
 
 	for beamIndex, n := range tokensScores {
@@ -133,7 +133,7 @@ func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
 			if len(result) == resultSize && score <= currentMinValue {
 				continue
 			}
-			result = append(result, &ScoredToken{
+			result = append(result, &ScoredToken[T]{
 				BeamIndex:  beamIndex,
 				TokenIndex: tokenIndex,
 				Score:      score,
@@ -157,14 +157,14 @@ func (b *Generator) getTopKScoredTokens(tokensScores []Scores) ScoredTokens {
 	return result
 }
 
-func updateTokensScores(tokensScores []Scores, beamScores []mat.Float) {
+func updateTokensScores[T mat.DType](tokensScores []Scores[T], beamScores []T) {
 	_ = tokensScores[len(beamScores)-1]
 	for i, beamScore := range beamScores {
 		tokensScores[i].AddScalarInPlace(beamScore)
 	}
 }
 
-func makeNewInputIDs(inputIDs [][]int, scorerOut ScorerProcessOutput) [][]int {
+func makeNewInputIDs[T mat.DType](inputIDs [][]int, scorerOut ScorerProcessOutput[T]) [][]int {
 	newInputIDs := make([][]int, len(inputIDs))
 	for i, beamIndex := range scorerOut.nextBeamIndices {
 		prevValue := inputIDs[beamIndex]
@@ -183,7 +183,7 @@ func reorderCache(cache []Cache, nextBeamIndices []int) []Cache {
 	return reorderedCache
 }
 
-func (b *Generator) makeStartDecodingInputForBeamDecoding() [][]int {
+func (b *Generator[_]) makeStartDecodingInputForBeamDecoding() [][]int {
 	beamInputIDs := make([][]int, b.config.NumBeams)
 	for i := range beamInputIDs {
 		beamInputIDs[i] = []int{b.config.DecoderStartTokenID}
@@ -191,9 +191,9 @@ func (b *Generator) makeStartDecodingInputForBeamDecoding() [][]int {
 	return beamInputIDs
 }
 
-func (b *Generator) makeInitBeamScores() []mat.Float {
+func (b *Generator[T]) makeInitBeamScores() []T {
 	numBeams := b.config.NumBeams
-	beamScores := make([]mat.Float, numBeams)
+	beamScores := make([]T, numBeams)
 	beamScores[0] = 0
 	for i := 1; i < numBeams; i++ {
 		beamScores[i] = -1e9
@@ -201,7 +201,7 @@ func (b *Generator) makeInitBeamScores() []mat.Float {
 	return beamScores
 }
 
-func (b *Generator) adjustLogitsDuringGeneration(xs ag.Node, curLength int) ag.Node {
+func (b *Generator[T]) adjustLogitsDuringGeneration(xs ag.Node[T], curLength int) ag.Node[T] {
 	// Don't generate pad token
 	ys := b.model.Graph().Add(xs, b.padMask)
 
@@ -212,14 +212,14 @@ func (b *Generator) adjustLogitsDuringGeneration(xs ag.Node, curLength int) ag.N
 	return ys
 }
 
-func makePadMask(g *ag.Graph, padTokenID int, vocabSize int) ag.Node {
-	mask := mat.NewInitVecDense[mat.Float](vocabSize, 0)
-	mask.SetVec(padTokenID, mat.Inf[mat.Float](-1))
+func makePadMask[T mat.DType](g *ag.Graph[T], padTokenID int, vocabSize int) ag.Node[T] {
+	mask := mat.NewInitVecDense[T](vocabSize, 0)
+	mask.SetVec(padTokenID, mat.Inf[T](-1))
 	return g.NewVariable(mask, false)
 }
 
-func makeEosMask(g *ag.Graph, eosTokenID int, vocabSize int) ag.Node {
-	mask := mat.NewInitVecDense(vocabSize, mat.Inf[mat.Float](-1))
+func makeEosMask[T mat.DType](g *ag.Graph[T], eosTokenID int, vocabSize int) ag.Node[T] {
+	mask := mat.NewInitVecDense(vocabSize, mat.Inf[T](-1))
 	mask.SetVec(eosTokenID, 0)
 	return g.NewVariable(mask, false)
 }

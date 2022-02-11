@@ -14,12 +14,12 @@ import (
 
 // CalculatePerplexity returns the perplexity for the text calculated as Exp(CrossEntropyLoss).
 // The output of the language model is directly compared to the expected targets extracted from the input itself.
-func CalculatePerplexity(m *Model, text string) mat.Float {
-	g := ag.NewGraph()
+func CalculatePerplexity[T mat.DType](m *Model[T], text string) T {
+	g := ag.NewGraph[T]()
 	defer g.Clear()
 	proc := nn.ReifyForInference(m, g)
 	sequence := utils.SplitByRune(text)
-	prediction := proc.Forward(sequence).([]ag.Node)
+	prediction := proc.Forward(sequence).([]ag.Node[T])
 	targets := targetsIds(sequence, m.Vocabulary, m.UnknownToken)
 	loss := losses.CrossEntropySeq(g, prediction[:len(targets)], targets, true)
 	return g.Exp(loss).ScalarValue() // perplexity

@@ -19,7 +19,7 @@ func TestEncode(t *testing.T) {
 		xs = append(xs, id)
 	}
 
-	z := Encode(0.5, len(vocabulary), xs)
+	z := Encode[mat.Float](0.5, len(vocabulary), xs)
 
 	gold := map[int]mat.Float{
 		0: 1.00781250,
@@ -45,7 +45,7 @@ func TestBiEncode(t *testing.T) {
 		xs = append(xs, id)
 	}
 
-	l2r, r2l := BiEncode(0.5, len(vocabulary), xs)
+	l2r, r2l := BiEncode[mat.Float](0.5, len(vocabulary), xs)
 
 	gold := map[int]mat.Float{
 		0: 1.00781250,

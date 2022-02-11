@@ -10,13 +10,13 @@ import (
 )
 
 func TestSparseMax_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.8053, 0.4594, -0.6136, -0.9460, 1.0722}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewSparseMax(x)
+	f := NewSparseMax[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.3597, 0.0138, 0.0000, 0.0000, 0.6265}, y.Data(), 1.0e-3)
@@ -27,13 +27,13 @@ func TestSparseMax_Forward(t *testing.T) {
 }
 
 func TestSparseMaxLoss_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{-0.3218, 0.7395, -0.2319, 0.2312, 0.7185}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewSparseMaxLoss(x)
+	f := NewSparseMaxLoss[mat.Float](x)
 
 	y := f.Forward()
 	assert.InDeltaSlice(t, []mat.Float{-1.3009, -0.2396, -1.2110, -0.7479, -0.2606}, y.Data(), 1.0e-2)

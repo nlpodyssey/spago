@@ -11,7 +11,7 @@ import (
 )
 
 func TestMaxPool_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value: mat.NewDense(4, 4, []mat.Float{
 			0.4, 0.1, -0.9, -0.5,
 			-0.4, 0.3, 0.7, -0.3,
@@ -21,7 +21,7 @@ func TestMaxPool_Forward(t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewMaxPooling(x, 2, 2)
+	f := NewMaxPooling[mat.Float](x, 2, 2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{

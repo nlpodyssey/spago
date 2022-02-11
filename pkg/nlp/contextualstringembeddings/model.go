@@ -9,6 +9,7 @@ package contextualstringembeddings
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/nlp/charlm"
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // MergeType is the enumeration-like type used for the set of merging methods
@@ -37,22 +38,23 @@ const (
 )
 
 // Model contains the serializable parameters for a Contextual String Embeddings model.
-type Model struct {
-	nn.BaseModel
-	LeftToRight *charlm.Model
-	RightToLeft *charlm.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	LeftToRight *charlm.Model[T]
+	RightToLeft *charlm.Model[T]
 	MergeMode   MergeType
 	StartMarker rune
 	EndMarker   rune
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new Contextual String Embeddings Model.
-func New(leftToRight, rightToLeft *charlm.Model, merge MergeType, startMarker, endMarker rune) *Model {
-	return &Model{
+func New[T mat.DType](leftToRight, rightToLeft *charlm.Model[T], merge MergeType, startMarker, endMarker rune) *Model[T] {
+	return &Model[T]{
 		LeftToRight: leftToRight,
 		RightToLeft: rightToLeft,
 		MergeMode:   merge,
@@ -69,13 +71,13 @@ type wordBoundary struct {
 }
 
 // Encode performs the forward step for each input and returns the result.
-func (m *Model) Encode(words []string) []ag.Node {
+func (m *Model[T]) Encode(words []string) []ag.Node[T] {
 	text := strings.Join(words, " ")
 	boundaries := makeWordBoundaries(words, text)
 	sequence := utils.SplitByRune(text)
 
-	var hiddenStates []ag.Node
-	var reverseHiddenStates []ag.Node
+	var hiddenStates []ag.Node[T]
+	var reverseHiddenStates []ag.Node[T]
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -89,7 +91,7 @@ func (m *Model) Encode(words []string) []ag.Node {
 	}()
 	wg.Wait()
 
-	out := make([]ag.Node, len(words))
+	out := make([]ag.Node[T], len(words))
 	for i, boundary := range boundaries {
 		out[i] = m.merge(reverseHiddenStates[boundary.reverseEndIndex], hiddenStates[boundary.endIndex])
 	}
@@ -130,11 +132,11 @@ func padding(sequence []string, startMarker, endMarker rune) []string {
 	return padded
 }
 
-func process(proc *charlm.Model, sequence []string) []ag.Node {
+func process[T mat.DType](proc *charlm.Model[T], sequence []string) []ag.Node[T] {
 	return proc.UseProjection(proc.RNN.Forward(proc.GetEmbeddings(sequence)...))
 }
 
-func (m *Model) merge(a, b ag.Node) ag.Node {
+func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	switch m.MergeMode {
 	case Concat:

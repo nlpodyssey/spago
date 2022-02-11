@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag/fn"
 	"reflect"
@@ -12,66 +13,81 @@ import (
 )
 
 var (
-	_ fn.Operand = &Operator{}
-	_ GradValue  = &Operator{}
-	_ Node       = &Operator{}
+	_ fn.Operand[float32] = &Operator[float32]{}
+	_ GradValue[float32]  = &Operator[float32]{}
+	_ Node[float32]       = &Operator[float32]{}
 )
 
-var operatorPool = sync.Pool{
-	New: func() interface{} {
-		return new(Operator)
-	},
+var (
+	operatorPoolFloat32 = &sync.Pool{
+		New: func() interface{} { return new(Operator[float32]) },
+	}
+	operatorPoolFloat64 = &sync.Pool{
+		New: func() interface{} { return new(Operator[float64]) },
+	}
+)
+
+func getOperatorPool[T mat.DType]() *sync.Pool {
+	// TODO: review this code once stable go 1.18 is released
+	switch any(T(0)).(type) {
+	case float32:
+		return any(operatorPoolFloat32).(*sync.Pool)
+	case float64:
+		return any(operatorPoolFloat64).(*sync.Pool)
+	default:
+		panic(fmt.Sprintf("ag: no operator pool for type %T", T(0)))
+	}
 }
 
 // Operator is a type of node.
-type Operator struct {
-	graph        *Graph
+type Operator[T mat.DType] struct {
+	graph        *Graph[T]
 	timeStep     int
 	id           int
-	function     fn.Function
-	operands     []Node
-	value        mat.Matrix[mat.Float] // store the results of a forward evaluation
-	mu           sync.Mutex            // to avoid data race during gradients accumulation
-	grad         mat.Matrix[mat.Float] // TODO: support of sparse gradients
+	function     fn.Function[T]
+	operands     []Node[T]
+	value        mat.Matrix[T] // store the results of a forward evaluation
+	mu           sync.Mutex    // to avoid data race during gradients accumulation
+	grad         mat.Matrix[T] // TODO: support of sparse gradients
 	hasGrad      bool
 	requiresGrad bool
 }
 
 // ID returns the ID of the node in the graph.
-func (r *Operator) ID() int {
+func (r *Operator[_]) ID() int {
 	return r.id
 }
 
 // Name returns the Name of the operator.
-// The name is taken from the name of r.function via reflection.
-func (r *Operator) Name() string {
+// The name is taken from the name of r.function via/ reflection.
+func (r *Operator[_]) Name() string {
 	return reflect.ValueOf(r.function).Elem().Type().Name()
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Operator) Graph() *Graph {
+func (r *Operator[T]) Graph() *Graph[T] {
 	return r.graph
 }
 
 // Value returns the cached result of the function.
-func (r *Operator) Value() mat.Matrix[mat.Float] {
+func (r *Operator[T]) Value() mat.Matrix[T] {
 	return r.value
 }
 
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Operator) ScalarValue() mat.Float {
+func (r *Operator[T]) ScalarValue() T {
 	return r.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Operator) Grad() mat.Matrix[mat.Float] {
+func (r *Operator[T]) Grad() mat.Matrix[T] {
 	return r.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *Operator) PropagateGrad(grad mat.Matrix[mat.Float]) {
+func (r *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
 	if !r.requiresGrad {
 		return
 	}
@@ -85,17 +101,17 @@ func (r *Operator) PropagateGrad(grad mat.Matrix[mat.Float]) {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Operator) HasGrad() bool {
+func (r *Operator[_]) HasGrad() bool {
 	return r.hasGrad
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Operator) RequiresGrad() bool {
+func (r *Operator[_]) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *Operator) ZeroGrad() {
+func (r *Operator[_]) ZeroGrad() {
 	if r.grad == nil {
 		return
 	}
@@ -105,16 +121,16 @@ func (r *Operator) ZeroGrad() {
 }
 
 // TimeStep returns the time-step of the node.
-func (r *Operator) TimeStep() int {
+func (r *Operator[_]) TimeStep() int {
 	return r.timeStep
 }
 
 // Operands returns the operands of the operator.
-func (r *Operator) Operands() []Node {
+func (r *Operator[T]) Operands() []Node[T] {
 	return r.operands
 }
 
-func (r *Operator) backward() {
+func (r *Operator[_]) backward() {
 	if !r.hasGrad {
 		return
 	}

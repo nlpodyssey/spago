@@ -6,22 +6,22 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
-var _ Function = &Add{}
+var _ Function[float32] = &Add[float32]{}
 
 // Add is an operator to perform element-wise sum over two values.
 // y = x1 + x2
-type Add struct {
-	x1 Operand
-	x2 Operand
+type Add[T mat.DType] struct {
+	x1 Operand[T]
+	x2 Operand[T]
 }
 
 // NewAdd returns a new Add Function.
-func NewAdd(x1, x2 Operand) *Add {
-	return &Add{x1: x1, x2: x2}
+func NewAdd[T mat.DType](x1, x2 Operand[T]) *Add[T] {
+	return &Add[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the function.
-func (r *Add) Forward() mat.Matrix[mat.Float] {
+func (r *Add[T]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if x1v == nil {
@@ -35,7 +35,7 @@ func (r *Add) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *Add) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Add[T]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
 		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {

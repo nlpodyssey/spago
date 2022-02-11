@@ -6,28 +6,30 @@ package pooling
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 )
 
 var (
-	_ nn.Model = &MaxPooling{}
+	_ nn.Model[float32] = &MaxPooling[float32]{}
 )
 
 // MaxPooling is a parameter-free model used to instantiate a new Processor.
-type MaxPooling struct {
-	nn.BaseModel
+type MaxPooling[T mat.DType] struct {
+	nn.BaseModel[T]
 	Rows    int
 	Columns int
 }
 
 func init() {
-	gob.Register(&MaxPooling{})
+	gob.Register(&MaxPooling[float32]{})
+	gob.Register(&MaxPooling[float64]{})
 }
 
 // NewMax returns a new model.
-func NewMax(rows, columns int) *MaxPooling {
-	return &MaxPooling{
+func NewMax[T mat.DType](rows, columns int) *MaxPooling[T] {
+	return &MaxPooling[T]{
 		Rows:    rows,
 		Columns: columns,
 	}
@@ -35,9 +37,9 @@ func NewMax(rows, columns int) *MaxPooling {
 
 // Forward performs the forward step for each input node and returns the result.
 // The max pooling is applied independently to each input.
-func (m *MaxPooling) Forward(xs ...ag.Node) []ag.Node {
+func (m *MaxPooling[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
-	pooled := func(x ag.Node) ag.Node {
+	pooled := func(x ag.Node[T]) ag.Node[T] {
 		return g.MaxPooling(x, m.Rows, m.Columns)
 	}
 	return ag.Map(pooled, xs)

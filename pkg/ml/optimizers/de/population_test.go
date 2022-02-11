@@ -86,8 +86,8 @@ func TestFindBestNeighbor(t *testing.T) {
 	}
 }
 
-func newTestPopulation() *Population {
-	population := NewRandomPopulation(20, 50, 6.0, rand.NewLockedRand[mat.Float](42), MemberHyperParams{
+func newTestPopulation() *Population[mat.Float] {
+	population := NewRandomPopulation(20, 50, 6.0, rand.NewLockedRand[mat.Float](42), MemberHyperParams[mat.Float]{
 		MutationFactor: 0.5,
 		CrossoverRate:  0.9,
 		WeightFactor:   0.5,

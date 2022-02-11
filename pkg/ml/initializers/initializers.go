@@ -14,12 +14,12 @@ import (
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
 // Use it to find the gain value for Xavier initializations.
-func Gain(f ag.OpName) mat.Float {
+func Gain[T mat.DType](f ag.OpName) T {
 	switch f {
 	case ag.OpSigmoid:
 		return 1.0
 	case ag.OpReLU:
-		return mat.Sqrt[mat.Float](2.0)
+		return mat.Sqrt[T](2.0)
 	case ag.OpTanh:
 		return 5.0 / 3
 	default:
@@ -28,7 +28,7 @@ func Gain(f ag.OpName) mat.Float {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Uniform(m mat.Matrix[mat.Float], min, max mat.Float, generator *rand.LockedRand[mat.Float]) {
+func Uniform[T mat.DType](m mat.Matrix[T], min, max T, generator *rand.LockedRand[T]) {
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -39,7 +39,7 @@ func Uniform(m mat.Matrix[mat.Float], min, max mat.Float, generator *rand.Locked
 
 // Normal fills the input matrix with random samples from a normal (Gaussian)
 // distribution.
-func Normal(m mat.Matrix[mat.Float], mean, std mat.Float, generator *rand.LockedRand[mat.Float]) {
+func Normal[T mat.DType](m mat.Matrix[T], mean, std T, generator *rand.LockedRand[T]) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -49,7 +49,7 @@ func Normal(m mat.Matrix[mat.Float], mean, std mat.Float, generator *rand.Locked
 }
 
 // Constant fills the input matrix with the value n.
-func Constant(m mat.Matrix[mat.Float], n mat.Float) {
+func Constant[T mat.DType](m mat.Matrix[T], n T) {
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(i, j, n)
@@ -58,20 +58,20 @@ func Constant(m mat.Matrix[mat.Float], n mat.Float) {
 }
 
 // Ones fills the input matrix with the scalar value `1`.
-func Ones(m mat.Matrix[mat.Float]) {
+func Ones[T mat.DType](m mat.Matrix[T]) {
 	Constant(m, 1.0)
 }
 
 // Zeros fills the input matrix with the scalar value `0`.
-func Zeros(m mat.Matrix[mat.Float]) {
+func Zeros[T mat.DType](m mat.Matrix[T]) {
 	m.Zeros()
 }
 
 // XavierUniform fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
-func XavierUniform(m mat.Matrix[mat.Float], gain mat.Float, generator *rand.LockedRand[mat.Float]) {
+func XavierUniform[T mat.DType](m mat.Matrix[T], gain T, generator *rand.LockedRand[T]) {
 	rows, cols := m.Dims()
-	a := gain * mat.Sqrt(6.0/mat.Float(rows+cols))
+	a := gain * mat.Sqrt(6.0/T(rows+cols))
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -84,9 +84,9 @@ func XavierUniform(m mat.Matrix[mat.Float], gain mat.Float, generator *rand.Lock
 // described in "Understanding the difficulty of training deep feedforward
 // neural networks" - Glorot, X. & Bengio, Y. (2010), using a normal
 // distribution.
-func XavierNormal(m mat.Matrix[mat.Float], gain mat.Float, generator *rand.LockedRand[mat.Float]) {
+func XavierNormal[T mat.DType](m mat.Matrix[T], gain T, generator *rand.LockedRand[T]) {
 	rows, cols := m.Dims()
-	std := gain * mat.Sqrt(2.0/mat.Float(rows+cols))
+	std := gain * mat.Sqrt(2.0/T(rows+cols))
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -99,11 +99,11 @@ func XavierNormal(m mat.Matrix[mat.Float], gain mat.Float, generator *rand.Locke
 // described on "Database-friendly random projections: Johnson-Lindenstrauss
 // with binary coins", by Dimitris Achlioptas 2001
 // (https://core.ac.uk/download/pdf/82724427.pdf)
-func Achlioptas(m mat.Matrix[mat.Float], generator *rand.LockedRand[mat.Float]) {
+func Achlioptas[T mat.DType](m mat.Matrix[T], generator *rand.LockedRand[T]) {
 	dist := uniform.New(0.0, 1.0, generator)
-	lower := mat.Float(1.0 / 6.0)
+	lower := T(1.0 / 6.0)
 	upper := 1.0 - lower
-	a := mat.Sqrt[mat.Float](3.0)
+	a := mat.Sqrt[T](3.0)
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {

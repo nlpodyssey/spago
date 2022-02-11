@@ -6,6 +6,7 @@ package nn
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/embeddings/syncmap"
 	"github.com/nlpodyssey/spago/pkg/utils"
 	"reflect"
@@ -17,14 +18,14 @@ import (
 // The given callback is invoked for each parameter of the Model.
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
-type paramsTraversal struct {
-	callback         func(param Param)
+type paramsTraversal[T mat.DType] struct {
+	callback         func(param Param[T])
 	exploreSubModels bool
 }
 
 // newParamsTraversal returns a new paramsTraversal.
-func newParamsTraversal(callback func(param Param), exploreSubModels bool) paramsTraversal {
-	return paramsTraversal{
+func newParamsTraversal[T mat.DType](callback func(param Param[T]), exploreSubModels bool) paramsTraversal[T] {
+	return paramsTraversal[T]{
 		callback:         callback,
 		exploreSubModels: exploreSubModels,
 	}
@@ -32,7 +33,7 @@ func newParamsTraversal(callback func(param Param), exploreSubModels bool) param
 
 // walk iterates through all the parameters of m.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func (pt paramsTraversal) walk(m interface{}) {
+func (pt paramsTraversal[_]) walk(m interface{}) {
 	utils.ForEachField(m, func(field interface{}, name string, rTag reflect.StructTag) {
 		tag, err := parseModuleFieldTag(rTag.Get("spago"))
 		if err != nil {
@@ -50,15 +51,15 @@ func (pt paramsTraversal) walk(m interface{}) {
 	})
 }
 
-func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag moduleFieldTag) {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
 		return
 	}
 	switch itemT := item.(type) {
-	case *param:
+	case *param[T]:
 		pt.walkParam(itemT, name, tag)
-	case Model:
+	case Model[T]:
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}
@@ -73,7 +74,7 @@ func (pt paramsTraversal) walkStructOrPtr(item interface{}, name string, tag mod
 	}
 }
 
-func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
 	if tag.Type != paramsModuleFieldType {
 		return
 	}
@@ -99,7 +100,7 @@ func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldT
 	})
 }
 
-func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[_]) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
 	length := v.Len()
 	for i := 0; i < length; i++ {
 		p := v.Index(i)
@@ -112,7 +113,7 @@ func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFiel
 	}
 }
 
-func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
 	mapRange := v.MapRange()
 	for mapRange.Next() {
 		key := ""
@@ -135,7 +136,7 @@ func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldT
 	}
 }
 
-func (pt paramsTraversal) walkParam(item *param, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[T]) walkParam(item *param[T], name string, tag moduleFieldTag) {
 	if item.Name() == "" {
 		item.SetName(strings.ToLower(name))
 	}

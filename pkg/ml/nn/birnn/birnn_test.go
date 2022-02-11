@@ -15,7 +15,7 @@ import (
 
 func TestModelConcat_Forward(t *testing.T) {
 	model := newTestModel(Concat)
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -46,7 +46,7 @@ func TestModelConcat_Forward(t *testing.T) {
 	g.BackwardAll()
 
 	// Important! average params by sequence length
-	nn.ForEachParam(model, func(param nn.Param) {
+	nn.ForEachParam[mat.Float](model, func(param nn.Param[mat.Float]) {
 		param.Grad().ProdScalarInPlace(1.0 / 3.0)
 	})
 
@@ -58,38 +58,38 @@ func TestModelConcat_Forward(t *testing.T) {
 		0.001234, -0.107987,
 		0.175039, 0.015738,
 		0.213397, -0.046717,
-	}, model.Positive.(*srn.Model).W.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model[mat.Float]).W.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.041817, -0.059241, 0.013592,
 		0.042229, -0.086071, 0.019157,
 		0.035331, -0.11595, 0.02512,
-	}, model.Positive.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model[mat.Float]).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.071016, 0.268027, 0.345019,
-	}, model.Positive.(*srn.Model).B.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model[mat.Float]).B.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.145713, 0.234548,
 		0.050135, 0.070768,
 		-0.06125, -0.017281,
-	}, model.Negative.(*srn.Model).W.Grad().Data(), 1.0e-05)
+	}, model.Negative.(*srn.Model[mat.Float]).W.Grad().Data(), 1.0e-05)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.029278, -0.112568, -0.089725,
 		-0.074426, 0.003116, -0.070784,
 		0.022664, 0.040583, 0.044139,
-	}, model.Negative.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
+	}, model.Negative.(*srn.Model[mat.Float]).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.03906, 0.237598, -0.137858,
-	}, model.Negative.(*srn.Model).B.Grad().Data(), 1.0e-06)
+	}, model.Negative.(*srn.Model[mat.Float]).B.Grad().Data(), 1.0e-06)
 }
 
 func TestModelSum_Forward(t *testing.T) {
 	model := newTestModel(Sum)
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -106,7 +106,7 @@ func TestModelSum_Forward(t *testing.T) {
 
 func TestModelAvg_Forward(t *testing.T) {
 	model := newTestModel(Avg)
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -123,7 +123,7 @@ func TestModelAvg_Forward(t *testing.T) {
 
 func TestModelProd_Forward(t *testing.T) {
 	model := newTestModel(Prod)
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	// == Forward
 
@@ -138,18 +138,18 @@ func TestModelProd_Forward(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.033161, -0.519478, -0.206044}, y[2].Value().Data(), 1.0e-06)
 }
 
-func newTestModel(mergeType MergeType) *Model {
-	model := New(
-		srn.New(2, 3),
-		srn.New(2, 3),
+func newTestModel(mergeType MergeType) *Model[mat.Float] {
+	model := New[mat.Float](
+		srn.New[mat.Float](2, 3),
+		srn.New[mat.Float](2, 3),
 		mergeType,
 	)
-	initPos(model.Positive.(*srn.Model))
-	initNeg(model.Negative.(*srn.Model))
+	initPos(model.Positive.(*srn.Model[mat.Float]))
+	initNeg(model.Negative.(*srn.Model[mat.Float]))
 	return model
 }
 
-func initPos(m *srn.Model) {
+func initPos(m *srn.Model[mat.Float]) {
 	m.W.Value().SetData([]mat.Float{
 		-0.9, 0.4,
 		0.7, -1.0,
@@ -163,7 +163,7 @@ func initPos(m *srn.Model) {
 	m.B.Value().SetData([]mat.Float{0.4, -0.3, 0.8})
 }
 
-func initNeg(m *srn.Model) {
+func initNeg(m *srn.Model[mat.Float]) {
 	m.W.Value().SetData([]mat.Float{
 		0.3, 0.1,
 		0.6, 0.0,

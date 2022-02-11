@@ -14,11 +14,11 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
-	sequence := []ag.Node{
+	sequence := []ag.Node[mat.Float]{
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.5234, 0.8113}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{-1.7743, -0.5153}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.9396, -1.6837}), true),
@@ -43,11 +43,11 @@ func TestModel_Forward(t *testing.T) {
 func TestModel_ForwardScoreConsensusAttention(t *testing.T) {
 	model := newTestModel()
 	model.Config.ScoreConsensusAttention = true
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
-	sequence := []ag.Node{
+	sequence := []ag.Node[mat.Float]{
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.5234, 0.8113}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{-1.7743, -0.5153}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.9396, -1.6837}), true),
@@ -72,11 +72,11 @@ func TestModel_ForwardScoreConsensusAttention(t *testing.T) {
 func TestModel_ForwardDownsampled(t *testing.T) {
 	model := newTestModel()
 	model.Config.DownsampleFactor = 4
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
-	sequence := []ag.Node{
+	sequence := []ag.Node[mat.Float]{
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.5234, 0.8113}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{-1.7743, -0.5153}), true),
 		g.NewVariable(mat.NewVecDense([]mat.Float{0.9396, -1.6837}), true),
@@ -92,7 +92,7 @@ func TestModel_ForwardDownsampled(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.4379011, 0.0260435049}, y[1].Value().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
+func newTestModel() *Model[mat.Float] {
 	c := Config{
 		InputSize:               2,
 		MaxBlockSize:            4,
@@ -100,7 +100,7 @@ func newTestModel() *Model {
 		DownsampleFactor:        1,
 		ScoreConsensusAttention: false,
 	}
-	model := New(c)
+	model := New[mat.Float](c)
 	model.Conv[0].K[0].Value().SetData([]mat.Float{-0.4808, 0.1073, 0.4607, 0.0709})
 	model.Conv[1].K[0].Value().SetData([]mat.Float{0.3772, 0.3505, -0.0531, -0.2144})
 	model.Conv[0].B[0].Value().SetData([]mat.Float{0.4983})

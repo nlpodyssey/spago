@@ -11,17 +11,17 @@ import (
 )
 
 func TestLeakyReLUForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	alpha := &variable{
+	alpha := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	f := NewLeakyReLU(x, alpha)
+	f := NewLeakyReLU[mat.Float](x, alpha)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, -0.4, 0.3, 0}, y.Data(), 1.0e-6)

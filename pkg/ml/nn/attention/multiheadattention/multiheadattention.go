@@ -15,42 +15,43 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Attention   []*selfattention.Model
-	OutputMerge *linear.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Attention   []*selfattention.Model[T]
+	OutputMerge *linear.Model[T]
 	NumOfHeads  int // number of heads
 	Dm          int // input and output vectors dimension
 	Dk          int // hidden vectors dimension (Dm / NumOfHeads)
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(size, numOfHeads int, useCausalMask bool) *Model {
+func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model[T] {
 	dm := size
 	dk := size / numOfHeads
-	att := make([]*selfattention.Model, numOfHeads)
-	attentionConfig := selfattention.Config{
+	att := make([]*selfattention.Model[T], numOfHeads)
+	attentionConfig := selfattention.Config[T]{
 		InputSize:     dm,
 		QuerySize:     dk,
 		KeySize:       dk,
 		ValueSize:     dk,
-		ScaleFactor:   1.0 / mat.Sqrt(mat.Float(dk)),
+		ScaleFactor:   1.0 / mat.Sqrt(T(dk)),
 		UseCausalMask: useCausalMask,
 	}
 	for i := 0; i < numOfHeads; i++ {
 		att[i] = selfattention.New(attentionConfig)
 	}
-	return &Model{
+	return &Model[T]{
 		Attention:   att,
-		OutputMerge: linear.New(dk*numOfHeads, dm),
+		OutputMerge: linear.New[T](dk*numOfHeads, dm),
 		NumOfHeads:  numOfHeads,
 		Dm:          dm,
 		Dk:          dk,
@@ -58,37 +59,37 @@ func New(size, numOfHeads int, useCausalMask bool) *Model {
 }
 
 // KeysValuesPairs contains the attention.KeysValuesPair for each attention head.
-type KeysValuesPairs = []attention.KeysValuesPair
+type KeysValuesPairs[T mat.DType] []attention.KeysValuesPair[T]
 
 // Output aggregates the multiple output of the multi-head attentions,
 // incl. attention scores and last projected keys and values for each head.
-type Output struct {
+type Output[T mat.DType] struct {
 	// Result of the multi-head attention.
-	AttOutput []ag.Node
+	AttOutput []ag.Node[T]
 	// AttWeights attention scores.
-	AttWeights [][]mat.Matrix[mat.Float]
+	AttWeights [][]mat.Matrix[T]
 	// ProjKeysValues contains the attention.KeysValuesPair for each attention head.
-	ProjKeysValues KeysValuesPairs
+	ProjKeysValues KeysValuesPairs[T]
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(qkv attention.QKV) Output {
+func (m *Model[T]) Forward(qkv attention.QKV[T]) Output[T] {
 	return m.forward(qkv, nil)
 }
 
 // ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
-func (m *Model) ForwardWithPastKeysValues(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
+func (m *Model[T]) ForwardWithPastKeysValues(qkv attention.QKV[T], pastProjKeysValues KeysValuesPairs[T]) Output[T] {
 	return m.forward(qkv, pastProjKeysValues)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) forward(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) Output {
-	headsAttNodes := make([][]ag.Node, m.NumOfHeads)
-	headsAttWeights := make([][]mat.Matrix[mat.Float], m.NumOfHeads)
-	attProjKeysValues := make(KeysValuesPairs, m.NumOfHeads)
+func (m *Model[T]) forward(qkv attention.QKV[T], pastProjKeysValues KeysValuesPairs[T]) Output[T] {
+	headsAttNodes := make([][]ag.Node[T], m.NumOfHeads)
+	headsAttWeights := make([][]mat.Matrix[T], m.NumOfHeads)
+	attProjKeysValues := make(KeysValuesPairs[T], m.NumOfHeads)
 
 	for h, proc := range m.Attention {
-		var out attention.Output
+		var out attention.Output[T]
 		if pastProjKeysValues != nil {
 			out = proc.ForwardWithPastKeysValues(qkv, pastProjKeysValues[h])
 		} else {
@@ -99,16 +100,16 @@ func (m *Model) forward(qkv attention.QKV, pastProjKeysValues KeysValuesPairs) O
 		attProjKeysValues[h] = out.ProjKeysValues
 	}
 
-	concatHeads := make([]ag.Node, len(qkv.Queries))
+	concatHeads := make([]ag.Node[T], len(qkv.Queries))
 	for i := 0; i < len(concatHeads); i++ {
-		buf := make([]ag.Node, m.NumOfHeads)
+		buf := make([]ag.Node[T], m.NumOfHeads)
 		for j := 0; j < m.NumOfHeads; j++ {
 			buf[j] = headsAttNodes[j][i]
 		}
 		concatHeads[i] = m.Graph().Concat(buf...)
 	}
 
-	return Output{
+	return Output[T]{
 		AttOutput:      m.OutputMerge.Forward(concatHeads...),
 		AttWeights:     headsAttWeights,
 		ProjKeysValues: attProjKeysValues,

@@ -14,7 +14,7 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	// == Forward
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.0, 2.0, 0.0, 4.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]mat.Float{3.0, 2.0, 1.0, 6.0}), true)
@@ -37,8 +37,8 @@ func TestModel_Forward(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.0040284488, 0.0087283057, 0.0242825941, -0.1630402749}, x3.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel() *Model {
-	model := New(4)
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](4)
 	model.W.Value().SetData([]mat.Float{0.5, -0.2, 0.3, 0.8})
 	model.B.Value().SetData([]mat.Float{0.4, 0.3, 0.2, 0.1})
 	return model

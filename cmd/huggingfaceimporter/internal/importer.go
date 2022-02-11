@@ -6,6 +6,7 @@ package internal
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/huggingface"
 	"github.com/nlpodyssey/spago/pkg/utils/homedir"
 	"github.com/urfave/cli/v2"
@@ -29,7 +30,7 @@ const (
 )
 
 // ImporterArgs contain args for the import command (default)
-type ImporterArgs struct {
+type ImporterArgs[T mat.DType] struct {
 	Repo      string
 	Model     string
 	ModelsURL string
@@ -37,8 +38,8 @@ type ImporterArgs struct {
 }
 
 // NewImporterArgs builds args object.
-func NewImporterArgs(repo, model, modelsURL string, overwrite bool) *ImporterArgs {
-	return &ImporterArgs{
+func NewImporterArgs[T mat.DType](repo, model, modelsURL string, overwrite bool) *ImporterArgs[T] {
+	return &ImporterArgs[T]{
 		Repo:      repo,
 		Model:     model,
 		ModelsURL: modelsURL,
@@ -47,12 +48,12 @@ func NewImporterArgs(repo, model, modelsURL string, overwrite bool) *ImporterArg
 }
 
 // NewDefaultImporterArgs builds the args with defaults.
-func NewDefaultImporterArgs() *ImporterArgs {
-	return NewImporterArgs(DefaultRepoPath, "", DefaultModelsURL, false)
+func NewDefaultImporterArgs[T mat.DType]() *ImporterArgs[T] {
+	return NewImporterArgs[T](DefaultRepoPath, "", DefaultModelsURL, false)
 }
 
 // BuildFlags builds the flags for the args.
-func (a *ImporterArgs) BuildFlags() []cli.Flag {
+func (a *ImporterArgs[T]) BuildFlags() []cli.Flag {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
@@ -80,7 +81,7 @@ func (a *ImporterArgs) BuildFlags() []cli.Flag {
 }
 
 // RunImporter runs the importer.
-func (a *ImporterArgs) RunImporter() error {
+func (a *ImporterArgs[T]) RunImporter() error {
 	repo, err := homedir.Expand(a.Repo)
 	if err != nil {
 		return err
@@ -110,11 +111,11 @@ func (a *ImporterArgs) RunImporter() error {
 	}
 
 	fmt.Printf("Converting `%s` model...\n", a.Model)
-	return huggingface.NewConverter(a.Repo, a.Model).Convert()
+	return huggingface.NewConverter[T](a.Repo, a.Model).Convert()
 }
 
 // RunImporterCli runs the importer from the command line.
-func (a *ImporterArgs) RunImporterCli(_ *cli.Context) error {
+func (a *ImporterArgs[T]) RunImporterCli(_ *cli.Context) error {
 	return a.RunImporter()
 }
 

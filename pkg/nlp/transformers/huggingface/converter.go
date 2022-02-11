@@ -6,6 +6,7 @@ package huggingface
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bart/converter"
 	"github.com/nlpodyssey/spago/pkg/nlp/transformers/bert"
 	"path"
@@ -14,7 +15,7 @@ import (
 
 // Converter provides an easy interface for automatically converting
 // supported pre-trained models from huggingface.co repositories.
-type Converter struct {
+type Converter[T mat.DType] struct {
 	// The local path where all models should be saved.
 	modelsPath string
 	// The local path which should contain the current model's files.
@@ -26,9 +27,9 @@ type Converter struct {
 }
 
 // NewConverter creates a new Converter.
-func NewConverter(modelsPath, modelName string) *Converter {
+func NewConverter[T mat.DType](modelsPath, modelName string) *Converter[T] {
 	modelPath := filepath.Join(modelsPath, modelName)
-	return &Converter{
+	return &Converter[T]{
 		modelsPath:     modelsPath,
 		modelPath:      modelPath,
 		modelName:      modelName,
@@ -37,7 +38,7 @@ func NewConverter(modelsPath, modelName string) *Converter {
 }
 
 // Convert converts the pickle-serialized model to spaGO.
-func (c *Converter) Convert() error {
+func (c *Converter[T]) Convert() error {
 	config, err := ReadCommonModelConfig(c.configFilename)
 	if err != nil {
 		return err
@@ -45,12 +46,12 @@ func (c *Converter) Convert() error {
 
 	switch config.ModelType {
 	case "bart", "marian":
-		return converter.ConvertHuggingFacePreTrained(c.modelPath)
+		return converter.ConvertHuggingFacePreTrained[T](c.modelPath)
 	case "bert", "electra":
-		return bert.ConvertHuggingFacePreTrained(c.modelPath)
+		return bert.ConvertHuggingFacePreTrained[T](c.modelPath)
 	case "":
 		fmt.Println("model type empty; assuming it is BERT.")
-		return bert.ConvertHuggingFacePreTrained(c.modelPath)
+		return bert.ConvertHuggingFacePreTrained[T](c.modelPath)
 	default:
 		return fmt.Errorf("unsupported model type: `%s`", config.ModelType)
 	}

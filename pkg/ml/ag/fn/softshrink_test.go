@@ -11,18 +11,18 @@ import (
 )
 
 func TestSoftShrink_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0, 0.6, -0.6}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	lambda := &variable{
+	lambda := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](0.2),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewSoftShrink(x, lambda)
+	f := NewSoftShrink[mat.Float](x, lambda)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.0, 0.0, 0.1, 0, 0.4, -0.4}, y.Data(), 1.0e-6)

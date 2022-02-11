@@ -11,13 +11,13 @@ import (
 	"testing"
 )
 
-var _ Model = &BaseModelTest{}
+var _ Model[mat.Float] = &BaseModelTest{}
 
 // BaseModelTest can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Forward method.
 type BaseModelTest struct {
-	BaseModel
+	BaseModel[mat.Float]
 }
 
 func (p BaseModelTest) Forward(_ interface{}) interface{} {
@@ -36,7 +36,7 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{ID: 42}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 		assert.IsType(t, &TestModel{}, result)
 		assert.NotSame(t, sourceModel, result)
@@ -48,12 +48,12 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			BaseModelTest
-			A Param
+			A Param[mat.Float]
 		}
 
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		sourceModel := &TestModel{
-			A: NewParam(mat.NewScalar[mat.Float](1)).(*param).wrappedParam(g),
+			A: NewParam[mat.Float](mat.NewScalar[mat.Float](1)).(*param[mat.Float]).wrappedParam(g),
 		}
 
 		assert.Panics(t, func() {
@@ -66,21 +66,21 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			BaseModelTest
-			A Param
-			B Param
+			A Param[mat.Float]
+			B Param[mat.Float]
 		}
 
 		sourceModel := &TestModel{
-			A: NewParam(mat.NewScalar[mat.Float](1)),
-			B: NewParam(mat.NewScalar[mat.Float](2)),
+			A: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+			B: NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam{}, result.A)
-		assert.IsType(t, &wrappedParam{}, result.B)
-		assert.Same(t, sourceModel.A, result.A.(*wrappedParam).param)
-		assert.Same(t, sourceModel.B, result.B.(*wrappedParam).param)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.A)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.B)
+		assert.Same(t, sourceModel.A, result.A.(*wrappedParam[mat.Float]).param)
+		assert.Same(t, sourceModel.B, result.B.(*wrappedParam[mat.Float]).param)
 	})
 
 	t.Run("it contextualizes []Param fields", func(t *testing.T) {
@@ -88,29 +88,29 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			BaseModelTest
-			A []Param
+			A []Param[mat.Float]
 		}
 
 		sourceModel := &TestModel{
-			A: []Param{
-				NewParam(mat.NewScalar[mat.Float](1)),
-				NewParam(mat.NewScalar[mat.Float](2)),
+			A: []Param[mat.Float]{
+				NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+				NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
 			},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam{}, result.A[0])
-		assert.IsType(t, &wrappedParam{}, result.A[1])
-		assert.Same(t, sourceModel.A[0], result.A[0].(*wrappedParam).param)
-		assert.Same(t, sourceModel.A[1], result.A[1].(*wrappedParam).param)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.A[0])
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.A[1])
+		assert.Same(t, sourceModel.A[0], result.A[0].(*wrappedParam[mat.Float]).param)
+		assert.Same(t, sourceModel.A[1], result.A[1].(*wrappedParam[mat.Float]).param)
 	})
 
 	t.Run("it contextualizes tagged nested struct fields", func(t *testing.T) {
 		t.Parallel()
 
 		type MyStruct struct {
-			A Param
+			A Param[mat.Float]
 			X int
 			Z *MyStruct `spago:"type:params"`
 		}
@@ -123,40 +123,40 @@ func TestModelContextualizer(t *testing.T) {
 
 		sourceModel := &TestModel{
 			Foo: MyStruct{
-				A: NewParam(mat.NewScalar[mat.Float](1)),
+				A: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
 				X: 11,
 				Z: &MyStruct{
-					A: NewParam(mat.NewScalar[mat.Float](2)),
+					A: NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
 					X: 22,
 					Z: nil,
 				},
 			},
 			Bar: MyStruct{
-				A: NewParam(mat.NewScalar[mat.Float](10)),
+				A: NewParam[mat.Float](mat.NewScalar[mat.Float](10)),
 				X: 33,
 				Z: &MyStruct{
-					A: NewParam(mat.NewScalar[mat.Float](20)),
+					A: NewParam[mat.Float](mat.NewScalar[mat.Float](20)),
 					X: 44,
 					Z: nil,
 				},
 			},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param{}, result.Foo.A)
-		assert.IsType(t, &param{}, result.Foo.Z.A)
+		assert.IsType(t, &param[mat.Float]{}, result.Foo.A)
+		assert.IsType(t, &param[mat.Float]{}, result.Foo.Z.A)
 
 		assert.NotEqual(t, sourceModel.Bar, result.Bar)
 		assert.NotSame(t, sourceModel.Bar.Z, result.Bar.Z)
 
-		assert.IsType(t, &wrappedParam{}, result.Bar.A)
-		assert.IsType(t, &wrappedParam{}, result.Bar.Z.A)
-		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*wrappedParam).param)
-		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*wrappedParam).param)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Bar.A)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Bar.Z.A)
+		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*wrappedParam[mat.Float]).param)
+		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*wrappedParam[mat.Float]).param)
 
 		// Be sure X's were copied
 		assert.Equal(t, 11, result.Foo.X)
@@ -186,7 +186,7 @@ func TestModelContextualizer(t *testing.T) {
 			Bar: MyStruct{X: 22},
 			Baz: &MyStruct{X: 33},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
 		assert.Equal(t, 11, result.Foo.X)
@@ -204,7 +204,7 @@ func TestModelContextualizer(t *testing.T) {
 		t.Parallel()
 
 		type MyStruct struct {
-			P Param
+			P Param[mat.Float]
 		}
 
 		type TestModel struct {
@@ -216,12 +216,12 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{
-			Foo: []MyStruct{{P: NewParam(mat.NewScalar[mat.Float](1))}},
-			Bar: []MyStruct{{P: NewParam(mat.NewScalar[mat.Float](2))}},
-			Baz: []*MyStruct{{P: NewParam(mat.NewScalar[mat.Float](3))}},
-			Qux: []*MyStruct{{P: NewParam(mat.NewScalar[mat.Float](4))}},
+			Foo: []MyStruct{{P: NewParam[mat.Float](mat.NewScalar[mat.Float](1))}},
+			Bar: []MyStruct{{P: NewParam[mat.Float](mat.NewScalar[mat.Float](2))}},
+			Baz: []*MyStruct{{P: NewParam[mat.Float](mat.NewScalar[mat.Float](3))}},
+			Qux: []*MyStruct{{P: NewParam[mat.Float](mat.NewScalar[mat.Float](4))}},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
@@ -230,14 +230,14 @@ func TestModelContextualizer(t *testing.T) {
 		assert.NotEqual(t, sourceModel.Bar, result.Foo)
 		assert.NotSame(t, sourceModel.Qux[0], result.Baz[0])
 
-		assert.IsType(t, &wrappedParam{}, result.Bar[0].P)
-		assert.IsType(t, &wrappedParam{}, result.Qux[0].P)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Bar[0].P)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Qux[0].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param{}, sourceModel.Foo[0].P)
-		assert.IsType(t, &param{}, sourceModel.Bar[0].P)
-		assert.IsType(t, &param{}, sourceModel.Baz[0].P)
-		assert.IsType(t, &param{}, sourceModel.Qux[0].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Foo[0].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Bar[0].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Baz[0].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Qux[0].P)
 	})
 
 	t.Run("it panics with tagged slices of elements which are not structs nor pointers", func(t *testing.T) {
@@ -251,7 +251,7 @@ func TestModelContextualizer(t *testing.T) {
 		sourceModel := &TestModel{
 			Foo: []int{1, 2, 3},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 
 		assert.Panics(t, func() {
 			Reify(sourceModel, g, Training)
@@ -263,29 +263,29 @@ func TestModelContextualizer(t *testing.T) {
 
 		type TestModel struct {
 			BaseModelTest
-			A map[string]Param
+			A map[string]Param[mat.Float]
 		}
 
 		sourceModel := &TestModel{
-			A: map[string]Param{
-				"a": NewParam(mat.NewScalar[mat.Float](1)),
-				"b": NewParam(mat.NewScalar[mat.Float](2)),
+			A: map[string]Param[mat.Float]{
+				"a": NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+				"b": NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
 			},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam{}, result.A["a"])
-		assert.IsType(t, &wrappedParam{}, result.A["b"])
-		assert.Same(t, sourceModel.A["a"], result.A["a"].(*wrappedParam).param)
-		assert.Same(t, sourceModel.A["b"], result.A["b"].(*wrappedParam).param)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.A["a"])
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.A["b"])
+		assert.Same(t, sourceModel.A["a"], result.A["a"].(*wrappedParam[mat.Float]).param)
+		assert.Same(t, sourceModel.A["b"], result.A["b"].(*wrappedParam[mat.Float]).param)
 	})
 
 	t.Run("it contextualizes tagged maps of structs or pointers", func(t *testing.T) {
 		t.Parallel()
 
 		type MyStruct struct {
-			P Param
+			P Param[mat.Float]
 		}
 
 		type TestModel struct {
@@ -297,12 +297,12 @@ func TestModelContextualizer(t *testing.T) {
 		}
 
 		sourceModel := &TestModel{
-			Foo: map[string]MyStruct{"a": {P: NewParam(mat.NewScalar[mat.Float](1))}},
-			Bar: map[string]MyStruct{"b": {P: NewParam(mat.NewScalar[mat.Float](2))}},
-			Baz: map[string]*MyStruct{"c": {P: NewParam(mat.NewScalar[mat.Float](3))}},
-			Qux: map[string]*MyStruct{"d": {P: NewParam(mat.NewScalar[mat.Float](4))}},
+			Foo: map[string]MyStruct{"a": {P: NewParam[mat.Float](mat.NewScalar[mat.Float](1))}},
+			Bar: map[string]MyStruct{"b": {P: NewParam[mat.Float](mat.NewScalar[mat.Float](2))}},
+			Baz: map[string]*MyStruct{"c": {P: NewParam[mat.Float](mat.NewScalar[mat.Float](3))}},
+			Qux: map[string]*MyStruct{"d": {P: NewParam[mat.Float](mat.NewScalar[mat.Float](4))}},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 		result := ReifyForTraining(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
@@ -311,14 +311,14 @@ func TestModelContextualizer(t *testing.T) {
 		assert.NotEqual(t, sourceModel.Bar, result.Foo)
 		assert.NotSame(t, sourceModel.Qux["d"], result.Baz["c"])
 
-		assert.IsType(t, &wrappedParam{}, result.Bar["b"].P)
-		assert.IsType(t, &wrappedParam{}, result.Qux["d"].P)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Bar["b"].P)
+		assert.IsType(t, &wrappedParam[mat.Float]{}, result.Qux["d"].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param{}, sourceModel.Foo["a"].P)
-		assert.IsType(t, &param{}, sourceModel.Bar["b"].P)
-		assert.IsType(t, &param{}, sourceModel.Baz["c"].P)
-		assert.IsType(t, &param{}, sourceModel.Qux["d"].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Foo["a"].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Bar["b"].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Baz["c"].P)
+		assert.IsType(t, &param[mat.Float]{}, sourceModel.Qux["d"].P)
 	})
 
 	t.Run("it panics with tagged maps of elements which are not structs nor pointers", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestModelContextualizer(t *testing.T) {
 		sourceModel := &TestModel{
 			Foo: map[string]int{"a": 1, "b": 2},
 		}
-		g := ag.NewGraph()
+		g := ag.NewGraph[mat.Float]()
 
 		assert.Panics(t, func() {
 			Reify(sourceModel, g, Training)

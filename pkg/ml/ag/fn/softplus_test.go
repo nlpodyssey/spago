@@ -11,23 +11,23 @@ import (
 )
 
 func TestSoftPlusForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 20.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	beta := &variable{
+	beta := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	threshold := &variable{
+	threshold := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](20.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewSoftPlus(x, beta, threshold)
+	f := NewSoftPlus[mat.Float](x, beta, threshold)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.399069434, 0.25650762, 20.3, 0.346573590}, y.Data(), 1.0e-6)

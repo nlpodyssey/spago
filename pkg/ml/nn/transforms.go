@@ -14,7 +14,7 @@ import (
 // The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
 // The pairs except the first whose "x" is nil are not considered.
 // y = b + W1x1 + W2x2 + ... + WnXn
-func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
+func Affine[T mat.DType](g *ag.Graph[T], xs ...ag.Node[T]) ag.Node[T] {
 	if len(xs)%2 == 0 {
 		panic("nn: the number of arguments of the affine transformation should be odd")
 	}
@@ -35,17 +35,17 @@ func Affine(g *ag.Graph, xs ...ag.Node) ag.Node {
 }
 
 // BiLinear performs a bilinear transformation of the type (x_1 W x_2)
-func BiLinear(g *ag.Graph, w, x1, x2 ag.Node) ag.Node {
+func BiLinear[T mat.DType](g *ag.Graph[T], w, x1, x2 ag.Node[T]) ag.Node[T] {
 	return g.Mul(g.Mul(g.T(x1), w), x2)
 }
 
 // BiAffine performs a biaffine transformation.
-func BiAffine(g *ag.Graph, w, u, v, b, x1, x2 ag.Node) ag.Node {
+func BiAffine[T mat.DType](g *ag.Graph[T], w, u, v, b, x1, x2 ag.Node[T]) ag.Node[T] {
 	return g.Add(g.Add(g.Add(BiLinear(g, w, x1, x2), g.Mul(g.T(u), x1)), g.Mul(g.T(v), x2)), b)
 }
 
 // Conv1D performs a 1D convolution.
-func Conv1D(g *ag.Graph, w, x ag.Node, stride int) ag.Node {
+func Conv1D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], stride int) ag.Node[T] {
 	var dim int
 	wr, wc := w.Value().Rows(), w.Value().Columns()
 	xr, xc := x.Value().Rows(), x.Value().Columns()
@@ -56,7 +56,7 @@ func Conv1D(g *ag.Graph, w, x ag.Node, stride int) ag.Node {
 		panic("Incompatible stride value for rows")
 	}
 	dim = (xc-wc)/stride + 1
-	ys := make([]ag.Node, dim)
+	ys := make([]ag.Node[T], dim)
 	for i := 0; i < dim; i++ {
 		ys[i] = g.Dot(g.View(x, 0, i*stride, wr, wc), w)
 	}
@@ -64,7 +64,7 @@ func Conv1D(g *ag.Graph, w, x ag.Node, stride int) ag.Node {
 }
 
 // Conv2D performs a 2D convolution.
-func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
+func Conv2D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
 	var dimx, dimy int
 	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
 		panic("Incompatible stride value for rows")
@@ -75,7 +75,7 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 	dimx = (x.Value().Rows()-w.Value().Rows())/xStride + 1
 	dimy = (x.Value().Columns()-w.Value().Columns())/yStride + 1
 
-	var outList []ag.Node
+	var outList []ag.Node[T]
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
 			var view = g.View(x, i*xStride, j*yStride, w.Value().Rows(), w.Value().Columns())
@@ -89,11 +89,11 @@ func Conv2D(g *ag.Graph, w, x ag.Node, xStride, yStride int) ag.Node {
 
 // Separate returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
-func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
+func Separate[T mat.DType](g *ag.Graph[T], x ag.Node[T]) [][]ag.Node[T] {
 	rows, cols := x.Value().Dims()
-	ys := make([][]ag.Node, rows)
+	ys := make([][]ag.Node[T], rows)
 	for i := range ys {
-		row := make([]ag.Node, cols)
+		row := make([]ag.Node[T], cols)
 		for j := range row {
 			row[j] = g.At(x, i, j)
 		}
@@ -105,9 +105,9 @@ func Separate(g *ag.Graph, x ag.Node) [][]ag.Node {
 // SeparateVec returns a slice of Node(s) containing the elements extracted from the input.
 // The size of the vector equals the number of input elements.
 // You can think of this method as the inverse of the ag.Concat operator.
-func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
+func SeparateVec[T mat.DType](g *ag.Graph[T], x ag.Node[T]) []ag.Node[T] {
 	size := x.Value().Size()
-	ys := make([]ag.Node, size)
+	ys := make([]ag.Node[T], size)
 	for i := 0; i < size; i++ {
 		ys[i] = g.AtVec(x, i)
 	}
@@ -115,13 +115,13 @@ func SeparateVec(g *ag.Graph, x ag.Node) []ag.Node {
 }
 
 // SplitVec splits the x Node into multiple chunks.
-func SplitVec(g *ag.Graph, x ag.Node, chunks int) []ag.Node {
+func SplitVec[T mat.DType](g *ag.Graph[T], x ag.Node[T], chunks int) []ag.Node[T] {
 	if x.Value().Size()%chunks != 0 {
 		panic("nn: incompatible chunks size")
 	}
 	l := 0
-	size := int(mat.Ceil(mat.Float(x.Value().Size()) / mat.Float(chunks)))
-	ys := make([]ag.Node, chunks)
+	size := int(mat.Ceil(T(x.Value().Size()) / T(chunks)))
+	ys := make([]ag.Node[T], chunks)
 	for i := 0; i < chunks; i++ {
 		ys[i] = g.View(x, l, 0, size, 1)
 		l += size

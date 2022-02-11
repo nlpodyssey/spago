@@ -12,7 +12,7 @@ import (
 
 func TestDot_Forward(t *testing.T) {
 
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -22,7 +22,7 @@ func TestDot_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.8, 0.3, 0.1,
 			0.1, -0.5, -0.9, 0.2,
@@ -32,7 +32,7 @@ func TestDot_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewDot(x1, x2)
+	f := NewDot[mat.Float](x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{1.44}, y.Data(), 1.0e-6)

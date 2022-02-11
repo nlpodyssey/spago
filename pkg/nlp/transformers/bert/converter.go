@@ -28,7 +28,7 @@ const defaultHuggingFaceModelFile = "pytorch_model.bin"
 
 // ConvertHuggingFacePreTrained converts a HuggingFace pre-trained BERT
 // transformer model to a corresponding spaGO model.
-func ConvertHuggingFacePreTrained(modelPath string) error {
+func ConvertHuggingFacePreTrained[T mat.DType](modelPath string) error {
 	configFilename, err := exists(path.Join(modelPath, DefaultConfigurationFile))
 	if err != nil {
 		return err
@@ -52,10 +52,10 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	if err != nil {
 		return err
 	}
-	model := NewDefaultBERT(config, path.Join(modelPath, DefaultEmbeddingsStorage))
+	model := NewDefaultBERT[T](config, path.Join(modelPath, DefaultEmbeddingsStorage))
 	model.Vocabulary = vocab
 
-	handler := &huggingFacePreTrainedConverter{
+	handler := &huggingFacePreTrainedConverter[T]{
 		config:               config,
 		modelPath:            modelPath,
 		configFilename:       configFilename,
@@ -63,7 +63,7 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 		vocabFilename:        vocabFilename,
 		modelFilename:        path.Join(modelPath, DefaultModelFile),
 		model:                model,
-		modelMapping:         make(map[string]*mappedParam), // lazy initialization
+		modelMapping:         make(map[string]*mappedParam[T]), // lazy initialization
 	}
 	err = handler.convert()
 	if err != nil {
@@ -72,19 +72,19 @@ func ConvertHuggingFacePreTrained(modelPath string) error {
 	return nil
 }
 
-type huggingFacePreTrainedConverter struct {
+type huggingFacePreTrainedConverter[T mat.DType] struct {
 	config               Config
 	modelPath            string
 	configFilename       string
 	pyTorchModelFilename string
 	vocabFilename        string
 	modelFilename        string
-	model                *Model
-	modelMapping         map[string]*mappedParam
+	model                *Model[T]
+	modelMapping         map[string]*mappedParam[T]
 }
 
-type mappedParam struct {
-	value mat.Matrix[mat.Float]
+type mappedParam[T mat.DType] struct {
+	value mat.Matrix[T]
 	used  bool
 }
 
@@ -95,7 +95,7 @@ func exists(filename string) (string, error) {
 	return filename, nil
 }
 
-func (c *huggingFacePreTrainedConverter) convert() error {
+func (c *huggingFacePreTrainedConverter[T]) convert() error {
 	log.Printf("Start converting `%s`\nConfiguration: %+v\n", c.pyTorchModelFilename, c.config)
 	log.Printf("Extracting Hugging Face params from the PyTorch model...")
 	pyTorchParams := c.extractHuggingFaceParams()
@@ -139,7 +139,7 @@ func (c *huggingFacePreTrainedConverter) convert() error {
 	return nil
 }
 
-func (c *huggingFacePreTrainedConverter) serializeModel() error {
+func (c *huggingFacePreTrainedConverter[T]) serializeModel() error {
 	err := utils.SerializeToFile(c.modelFilename, c.model)
 	if err != nil {
 		return fmt.Errorf("bert: error during model serialization: %w", err)
@@ -148,8 +148,8 @@ func (c *huggingFacePreTrainedConverter) serializeModel() error {
 	return nil
 }
 
-func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][]mat.Float {
-	paramsMap := make(map[string][]mat.Float)
+func (c *huggingFacePreTrainedConverter[T]) extractHuggingFaceParams() map[string][]T {
+	paramsMap := make(map[string][]T)
 	result, err := pytorch.Load(c.pyTorchModelFilename)
 	if err != nil {
 		log.Fatal(err)
@@ -161,7 +161,7 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 		fmt.Printf("Reading %s.... ", paramName)
 		switch t.Source.(type) {
 		case *pytorch.FloatStorage:
-			paramsMap[paramName] = gopickleutils.GetData(t)
+			paramsMap[paramName] = gopickleutils.GetData[T](t)
 			fmt.Println("ok")
 		default:
 			fmt.Println("skip")
@@ -171,7 +171,7 @@ func (c *huggingFacePreTrainedConverter) extractHuggingFaceParams() map[string][
 	return paramsMap
 }
 
-func (c *huggingFacePreTrainedConverter) enrichHuggingFaceParams(paramsMap map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) enrichHuggingFaceParams(paramsMap map[string][]T) {
 	for i := 0; i < c.config.NumHiddenLayers; i++ {
 		prefix := fmt.Sprintf("bert.encoder.layer.%d.attention.self", i)
 		queryWeight := paramsMap[fmt.Sprintf("%s.query.weight", prefix)]
@@ -217,7 +217,7 @@ func normalizeParamName(orig string) (normalized string) {
 	return
 }
 
-func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[string][]mat.Float) {
+func (c *huggingFacePreTrainedConverter[T]) convertEmbeddings(pyTorchParams map[string][]T) {
 	assignToParamsList(
 		pyTorchParams["bert.embeddings.position_embeddings.weight"],
 		c.model.Embeddings.Position,
@@ -238,13 +238,13 @@ func (c *huggingFacePreTrainedConverter) convertEmbeddings(pyTorchParams map[str
 	c.model.Embeddings.Words.Close()
 }
 
-func assignToParamsList(source []mat.Float, dest []nn.Param, rows, cols int) {
+func assignToParamsList[T mat.DType](source []T, dest []nn.Param[T], rows, cols int) {
 	for i := 0; i < rows; i++ {
 		dest[i].Value().SetData(source[i*cols : (i+1)*cols])
 	}
 }
 
-func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabulary *vocabulary.Vocabulary) {
+func dumpWordEmbeddings[T mat.DType](source []T, dest *embeddings.Model[T], vocabulary *vocabulary.Vocabulary) {
 	size := dest.Size
 	for i := 0; i < vocabulary.Size(); i++ {
 		key, _ := vocabulary.Term(i)
@@ -255,10 +255,10 @@ func dumpWordEmbeddings(source []mat.Float, dest *embeddings.Model, vocabulary *
 	}
 }
 
-func mapBertEncoder(model *Encoder) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapBertEncoder[T mat.DType](model *Encoder[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	for i := 0; i < model.NumOfLayers; i++ {
-		layer := model.Layers[i].(*EncoderLayer)
+		layer := model.Layers[i].(*EncoderLayer[T])
 		prefixBase := fmt.Sprintf("bert.encoder.layer.%d", i)
 		// Sublayer 1
 		for j := 0; j < model.EncoderConfig.NumOfAttentionHeads; j++ {
@@ -277,84 +277,84 @@ func mapBertEncoder(model *Encoder) map[string]mat.Matrix[mat.Float] {
 		paramsMap[fmt.Sprintf("%s.output.LayerNorm.weight", prefix)] = layer.NormAttention.W.Value()
 		paramsMap[fmt.Sprintf("%s.output.LayerNorm.bias", prefix)] = layer.NormAttention.B.Value()
 		// Sublayer 2
-		paramsMap[fmt.Sprintf("%s.intermediate.dense.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.intermediate.dense.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model).B.Value()
-		paramsMap[fmt.Sprintf("%s.output.dense.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).W.Value()
-		paramsMap[fmt.Sprintf("%s.output.dense.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model).B.Value()
+		paramsMap[fmt.Sprintf("%s.intermediate.dense.weight", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.intermediate.dense.bias", prefixBase)] = layer.FFN.Layers[0].(*linear.Model[T]).B.Value()
+		paramsMap[fmt.Sprintf("%s.output.dense.weight", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).W.Value()
+		paramsMap[fmt.Sprintf("%s.output.dense.bias", prefixBase)] = layer.FFN.Layers[2].(*linear.Model[T]).B.Value()
 		paramsMap[fmt.Sprintf("%s.output.LayerNorm.weight", prefixBase)] = layer.NormFFN.W.Value()
 		paramsMap[fmt.Sprintf("%s.output.LayerNorm.bias", prefixBase)] = layer.NormFFN.B.Value()
 	}
 	return paramsMap
 }
 
-func mapPredictor(predictor *Predictor) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
-	paramsMap["cls.predictions.transform.dense.weight"] = predictor.Layers[0].(*linear.Model).W.Value()
-	paramsMap["cls.predictions.transform.dense.bias"] = predictor.Layers[0].(*linear.Model).B.Value()
-	paramsMap["cls.predictions.transform.LayerNorm.weight"] = predictor.Layers[2].(*layernorm.Model).W.Value()
-	paramsMap["cls.predictions.transform.LayerNorm.bias"] = predictor.Layers[2].(*layernorm.Model).B.Value()
-	paramsMap["cls.predictions.decoder.weight"] = predictor.Layers[3].(*linear.Model).W.Value()
-	paramsMap["cls.predictions.decoder.bias"] = predictor.Layers[3].(*linear.Model).B.Value()
+func mapPredictor[T mat.DType](predictor *Predictor[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
+	paramsMap["cls.predictions.transform.dense.weight"] = predictor.Layers[0].(*linear.Model[T]).W.Value()
+	paramsMap["cls.predictions.transform.dense.bias"] = predictor.Layers[0].(*linear.Model[T]).B.Value()
+	paramsMap["cls.predictions.transform.LayerNorm.weight"] = predictor.Layers[2].(*layernorm.Model[T]).W.Value()
+	paramsMap["cls.predictions.transform.LayerNorm.bias"] = predictor.Layers[2].(*layernorm.Model[T]).B.Value()
+	paramsMap["cls.predictions.decoder.weight"] = predictor.Layers[3].(*linear.Model[T]).W.Value()
+	paramsMap["cls.predictions.decoder.bias"] = predictor.Layers[3].(*linear.Model[T]).B.Value()
 	return paramsMap
 }
 
-func mapDiscriminator(discriminator *Discriminator) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
-	paramsMap["discriminator_predictions.dense.weight"] = discriminator.Layers[0].(*linear.Model).W.Value()
-	paramsMap["discriminator_predictions.dense.bias"] = discriminator.Layers[0].(*linear.Model).B.Value()
-	paramsMap["discriminator_predictions.dense_prediction.weight"] = discriminator.Layers[2].(*linear.Model).W.Value()
-	paramsMap["discriminator_predictions.dense_prediction.bias"] = discriminator.Layers[2].(*linear.Model).B.Value()
+func mapDiscriminator[T mat.DType](discriminator *Discriminator[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
+	paramsMap["discriminator_predictions.dense.weight"] = discriminator.Layers[0].(*linear.Model[T]).W.Value()
+	paramsMap["discriminator_predictions.dense.bias"] = discriminator.Layers[0].(*linear.Model[T]).B.Value()
+	paramsMap["discriminator_predictions.dense_prediction.weight"] = discriminator.Layers[2].(*linear.Model[T]).W.Value()
+	paramsMap["discriminator_predictions.dense_prediction.bias"] = discriminator.Layers[2].(*linear.Model[T]).B.Value()
 	return paramsMap
 }
 
-func mapPooler(pooler *Pooler) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
-	paramsMap["bert.pooler.dense.weight"] = pooler.Layers[0].(*linear.Model).W.Value()
-	paramsMap["bert.pooler.dense.bias"] = pooler.Layers[0].(*linear.Model).B.Value()
+func mapPooler[T mat.DType](pooler *Pooler[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
+	paramsMap["bert.pooler.dense.weight"] = pooler.Layers[0].(*linear.Model[T]).W.Value()
+	paramsMap["bert.pooler.dense.bias"] = pooler.Layers[0].(*linear.Model[T]).B.Value()
 	return paramsMap
 }
 
-func mapSeqRelationship(seqRelationship *linear.Model) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapSeqRelationship[T mat.DType](seqRelationship *linear.Model[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["cls.seq_relationship.weight"] = seqRelationship.W.Value()
 	paramsMap["cls.seq_relationship.bias"] = seqRelationship.B.Value()
 	return paramsMap
 }
 
-func mapEmbeddingsLayerNorm(embeddingsNorm *layernorm.Model) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapEmbeddingsLayerNorm[T mat.DType](embeddingsNorm *layernorm.Model[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["bert.embeddings.LayerNorm.weight"] = embeddingsNorm.W.Value()
 	paramsMap["bert.embeddings.LayerNorm.bias"] = embeddingsNorm.B.Value()
 	return paramsMap
 }
 
-func mapEmbeddingsProjection(embeddingsProjection *linear.Model) map[string]mat.Matrix[mat.Float] {
+func mapEmbeddingsProjection[T mat.DType](embeddingsProjection *linear.Model[T]) map[string]mat.Matrix[T] {
 	if embeddingsProjection == nil {
-		return map[string]mat.Matrix[mat.Float]{}
+		return map[string]mat.Matrix[T]{}
 	}
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["bert.embeddings_project.weight"] = embeddingsProjection.W.Value()
 	paramsMap["bert.embeddings_project.bias"] = embeddingsProjection.B.Value()
 	return paramsMap
 }
 
-func mapSpanClassifier(classifier *SpanClassifier) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapSpanClassifier[T mat.DType](classifier *SpanClassifier[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["qa_outputs.weight"] = classifier.W.Value()
 	paramsMap["qa_outputs.bias"] = classifier.B.Value()
 	return paramsMap
 }
 
-func mapClassifier(classifier *Classifier) map[string]mat.Matrix[mat.Float] {
-	paramsMap := make(map[string]mat.Matrix[mat.Float])
+func mapClassifier[T mat.DType](classifier *Classifier[T]) map[string]mat.Matrix[T] {
+	paramsMap := make(map[string]mat.Matrix[T])
 	paramsMap["classifier.weight"] = classifier.W.Value()
 	paramsMap["classifier.bias"] = classifier.B.Value()
 	return paramsMap
 }
 
-func (c *huggingFacePreTrainedConverter) addToModelMapping(paramsMap map[string]mat.Matrix[mat.Float]) {
+func (c *huggingFacePreTrainedConverter[T]) addToModelMapping(paramsMap map[string]mat.Matrix[T]) {
 	for k, v := range paramsMap {
-		c.modelMapping[k] = &mappedParam{
+		c.modelMapping[k] = &mappedParam[T]{
 			value: v,
 			used:  false,
 		}

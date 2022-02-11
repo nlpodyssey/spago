@@ -11,7 +11,7 @@ import (
 )
 
 func TestReshape_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value: mat.NewDense(3, 4, []mat.Float{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -21,7 +21,7 @@ func TestReshape_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewReshape(x, 4, 3)
+	f := NewReshape[mat.Float](x, 4, 3)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{

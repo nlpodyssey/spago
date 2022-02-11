@@ -8,30 +8,30 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &ReduceMean{}
+var _ Function[float32] = &ReduceMean[float32]{}
 
 // ReduceMean is an operator to perform reduce-mean function.
-type ReduceMean struct {
-	x Operand
+type ReduceMean[T mat.DType] struct {
+	x Operand[T]
 }
 
 // NewReduceMean returns a new ReduceMean Function.
-func NewReduceMean(x Operand) *ReduceMean {
-	return &ReduceMean{x: x}
+func NewReduceMean[T mat.DType](x Operand[T]) *ReduceMean[T] {
+	return &ReduceMean[T]{x: x}
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean) Forward() mat.Matrix[mat.Float] {
-	return mat.NewScalar(r.x.Value().Sum() / mat.Float(r.x.Value().Size()))
+func (r *ReduceMean[T]) Forward() mat.Matrix[T] {
+	return mat.NewScalar(r.x.Value().Sum() / T(r.x.Value().Size()))
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean) Backward(gy mat.Matrix[mat.Float]) {
+func (r *ReduceMean[T]) Backward(gy mat.Matrix[T]) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/mat.Float(r.x.Value().Size()))
+		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/T(r.x.Value().Size()))
 		defer mat.ReleaseDense(gx)
 		r.x.PropagateGrad(gx)
 	}

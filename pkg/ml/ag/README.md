@@ -25,15 +25,15 @@ import (
 
 func main() {
 	// create a new node of type variable with a scalar
-	a := ag.NewVariable(mat.NewScalar[mat.Float](2.0), true)
+	a := ag.NewVariable(mat.NewScalar[float32](2.0), true)
 	// create another node of type variable with a scalar
-	b := ag.NewVariable(mat.NewScalar[mat.Float](5.0), true)
+	b := ag.NewVariable(mat.NewScalar[float32](5.0), true)
 	// create an addition operator (the calculation is actually performed here)
 	c := ag.Add(a, b)
 	// print the result
 	fmt.Printf("c = %v\n", c.Value())
 
-	ag.Backward(c, ag.OutputGrad(mat.NewScalar[mat.Float](0.5)))
+	ag.Backward(c, ag.OutputGrad(mat.NewScalar[float32](0.5)))
 	fmt.Printf("ga = %v\n", a.Grad())
 	fmt.Printf("gb = %v\n", b.Grad())
 }

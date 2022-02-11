@@ -6,6 +6,7 @@ package decoder
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/normalization/layernorm"
@@ -17,42 +18,43 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model implements a BART decoder.
-type Model struct {
-	nn.BaseModel
-	Config             config.Config
-	PositionalEncoder  positionalencoder.Encoder
-	Layers             []*layer.Layer
-	EmbeddingLayerNorm *layernorm.Model
-	LayerNorm          *layernorm.Model
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Config             config.Config[T]
+	PositionalEncoder  positionalencoder.Encoder[T]
+	Layers             []*layer.Layer[T]
+	EmbeddingLayerNorm *layernorm.Model[T]
+	LayerNorm          *layernorm.Model[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new BART decoder Model.
-func New(config config.Config) *Model {
-	return &Model{
+func New[T mat.DType](config config.Config[T]) *Model[T] {
+	return &Model[T]{
 		Config:             config,
 		PositionalEncoder:  newPositionalEncoder(config),
-		EmbeddingLayerNorm: layernorm.New(config.DModel),
-		Layers:             makeLayers(config),
-		LayerNorm:          layernorm.New(config.DModel),
+		EmbeddingLayerNorm: layernorm.New[T](config.DModel),
+		Layers:             makeLayers[T](config),
+		LayerNorm:          layernorm.New[T](config.DModel),
 	}
 }
 
-func newPositionalEncoder(config config.Config) positionalencoder.Encoder {
+func newPositionalEncoder[T mat.DType](config config.Config[T]) positionalencoder.Encoder[T] {
 	if config.StaticPositionEmbeddings {
-		return sinusoidalpositionalencoder.New(sinusoidalpositionalencoder.Config{
+		return sinusoidalpositionalencoder.New[T](sinusoidalpositionalencoder.Config{
 			NumEmbeddings: config.VocabSize,
 			EmbeddingDim:  config.DModel,
 		})
 	}
-	return learnedpositionalencoder.New(
+	return learnedpositionalencoder.New[T](
 		learnedpositionalencoder.Config{
 			NumEmbeddings: config.VocabSize,
 			EmbeddingDim:  config.DModel,
@@ -61,19 +63,19 @@ func newPositionalEncoder(config config.Config) positionalencoder.Encoder {
 		})
 }
 
-func makeLayers(config config.Config) []*layer.Layer {
-	layers := make([]*layer.Layer, config.DecoderLayers)
+func makeLayers[T mat.DType](config config.Config[T]) []*layer.Layer[T] {
+	layers := make([]*layer.Layer[T], config.DecoderLayers)
 	for i := range layers {
-		layers[i] = layer.NewLayer(config)
+		layers[i] = layer.NewLayer[T](config)
 		// TODO: add LayerDrop to skip layers during training (see https://arxiv.org/abs/1909.11556 for description)
 	}
 	return layers
 }
 
 // KeysValuesPairs contains the layer.KeysValuesPairs for each decoding layer.
-type KeysValuesPairs = []layer.KeysValuesPairs
+type KeysValuesPairs[T mat.DType] []layer.KeysValuesPairs[T]
 
-func getPastSequenceLength(pkv KeysValuesPairs) int {
+func getPastSequenceLength[T mat.DType](pkv KeysValuesPairs[T]) int {
 	if pkv == nil {
 		return 0
 	}
@@ -81,11 +83,11 @@ func getPastSequenceLength(pkv KeysValuesPairs) int {
 }
 
 // Decode performs the forward step for each input and returns the result.
-func (m *Model) Decode(
-	xs []ag.Node,
-	encoderHiddenStates []ag.Node,
-	pastKeysValuesPairs KeysValuesPairs,
-) ([]ag.Node, KeysValuesPairs) {
+func (m *Model[T]) Decode(
+	xs []ag.Node[T],
+	encoderHiddenStates []ag.Node[T],
+	pastKeysValuesPairs KeysValuesPairs[T],
+) ([]ag.Node[T], KeysValuesPairs[T]) {
 
 	embedPos := m.PositionalEncoder.Encode(makePositions(len(xs), getPastSequenceLength(pastKeysValuesPairs)))
 	ys := m.add(xs, embedPos)
@@ -95,13 +97,13 @@ func (m *Model) Decode(
 	}
 	// TODO: ys = m.Dropout(ys)
 
-	var nextCache KeysValuesPairs
+	var nextCache KeysValuesPairs[T]
 	for i, l := range m.Layers {
-		var kvp layer.KeysValuesPairs
+		var kvp layer.KeysValuesPairs[T]
 		if pastKeysValuesPairs != nil {
 			ys, kvp = l.Forward(ys, encoderHiddenStates, pastKeysValuesPairs[i])
 		} else {
-			ys, kvp = l.Forward(ys, encoderHiddenStates, layer.KeysValuesPairs{})
+			ys, kvp = l.Forward(ys, encoderHiddenStates, layer.KeysValuesPairs[T]{})
 		}
 		nextCache = append(nextCache, kvp)
 	}
@@ -122,8 +124,8 @@ func makePositions(size, offset int) []int {
 	return indices
 }
 
-func (m *Model) add(a []ag.Node, b []ag.Node) []ag.Node {
-	c := make([]ag.Node, len(a))
+func (m *Model[T]) add(a []ag.Node[T], b []ag.Node[T]) []ag.Node[T] {
+	c := make([]ag.Node[T], len(a))
 	for i := 0; i < len(a); i++ {
 		c[i] = m.Graph().Add(a[i], b[i])
 	}

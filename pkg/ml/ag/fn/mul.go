@@ -9,21 +9,21 @@ import (
 	"sync"
 )
 
-var _ Function = &Mul{}
+var _ Function[float32] = &Mul[float32]{}
 
 // Mul is an operator to perform matrix-vector multiplication.
-type Mul struct {
-	x1 Operand // matrix
-	x2 Operand // vector
+type Mul[T mat.DType] struct {
+	x1 Operand[T] // matrix
+	x2 Operand[T] // vector
 }
 
 // NewMul returns a new Mul Function.
-func NewMul(x1, x2 Operand) *Mul {
-	return &Mul{x1: x1, x2: x2}
+func NewMul[T mat.DType](x1, x2 Operand[T]) *Mul[T] {
+	return &Mul[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the function.
-func (r *Mul) Forward() mat.Matrix[mat.Float] {
+func (r *Mul[T]) Forward() mat.Matrix[T] {
 	if r.x1.Value().Columns() != r.x2.Value().Rows() {
 		panic("fn: matrices with not compatible size")
 	}
@@ -32,7 +32,7 @@ func (r *Mul) Forward() mat.Matrix[mat.Float] {
 
 // Backward computes the backward pass.
 // TODO: backward of sparse gradients
-func (r *Mul) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Mul[T]) Backward(gy mat.Matrix[T]) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}

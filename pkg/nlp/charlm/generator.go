@@ -13,21 +13,21 @@ import (
 )
 
 // Generator is a character-level language model text generator.
-type Generator struct {
-	GeneratorConfig
-	model *Model
+type Generator[T mat.DType] struct {
+	GeneratorConfig[T]
+	model *Model[T]
 }
 
 // GeneratorConfig provides configuration settings for a Character-level Language Model Generator.
-type GeneratorConfig struct {
+type GeneratorConfig[T mat.DType] struct {
 	MaxCharacters int
 	StopAtEOS     bool
-	Temperature   mat.Float
+	Temperature   T
 }
 
 // NewGenerator returns a new Generator.
-func NewGenerator(model *Model, config GeneratorConfig) *Generator {
-	return &Generator{
+func NewGenerator[T mat.DType](model *Model[T], config GeneratorConfig[T]) *Generator[T] {
+	return &Generator[T]{
 		GeneratorConfig: config,
 		model:           model,
 	}
@@ -37,11 +37,11 @@ func NewGenerator(model *Model, config GeneratorConfig) *Generator {
 // The output text has a maximum length defined in the generator configuration.
 // The text is incrementally constructed character by character, using all previously sampled characters as input
 // to predict the next one.
-func (m *Generator) GenerateText(prefix string) (text string, logProb mat.Float) {
+func (m *Generator[T]) GenerateText(prefix string) (text string, logProb T) {
 	if prefix == "" {
 		prefix = m.model.SequenceSeparator
 	}
-	g := ag.NewGraph()
+	g := ag.NewGraph[T]()
 	proc := nn.ReifyForInference(m.model, g)
 	characters := make([]string, 0)
 	next, prob := m.generateNext(proc, utils.SplitByRune(prefix)...)
@@ -57,13 +57,13 @@ func (m *Generator) GenerateText(prefix string) (text string, logProb mat.Float)
 		logProb += prob
 	}
 	text = prefix + strings.Join(characters, "")
-	logProb /= mat.Float(len(characters))
+	logProb /= T(len(characters))
 	return
 }
 
-func (m *Generator) generateNext(proc *Model, xs ...string) (next string, prob mat.Float) {
+func (m *Generator[T]) generateNext(proc *Model[T], xs ...string) (next string, prob T) {
 	lastIndex := len(xs) - 1
-	prediction := proc.Forward(xs).([]ag.Node)[lastIndex].Value().Data() // keep the last prediction only
+	prediction := proc.Forward(xs).([]ag.Node[T])[lastIndex].Value().Data() // keep the last prediction only
 	index := sample(prediction, m.Temperature)
 	next = m.model.Vocabulary.MustTerm(index)
 	prob = prediction[index]

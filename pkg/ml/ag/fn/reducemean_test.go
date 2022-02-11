@@ -11,12 +11,12 @@ import (
 )
 
 func TestReduceMean_Forward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReduceMean(x)
+	f := NewReduceMean[mat.Float](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.15}, y.Data(), 1.0e-6)

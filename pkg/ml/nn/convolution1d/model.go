@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Config provides configuration settings for a convolution Model.
@@ -31,19 +31,20 @@ type Config struct {
 }
 
 // Model contains the serializable parameters for a convolutional neural network model.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config Config
-	K      []nn.Param `spago:"type:weights"`
-	B      []nn.Param `spago:"type:biases"`
+	K      []nn.Param[T] `spago:"type:weights"`
+	B      []nn.Param[T] `spago:"type:biases"`
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New(config Config) *Model {
+func New[T mat.DType](config Config) *Model[T] {
 	if config.Mask != nil && config.InputChannels != len(config.Mask) {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
 	}
@@ -57,14 +58,14 @@ func New(config Config) *Model {
 		paramsSize = config.InputChannels * config.OutputChannels
 	}
 
-	kernels := make([]nn.Param, paramsSize, paramsSize)
-	biases := make([]nn.Param, paramsSize, paramsSize)
+	kernels := make([]nn.Param[T], paramsSize, paramsSize)
+	biases := make([]nn.Param[T], paramsSize, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
-		kernels[i] = nn.NewParam(mat.NewEmptyDense[mat.Float](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))
-		biases[i] = nn.NewParam(mat.NewEmptyVecDense[mat.Float](1), nn.RequiresGrad(requireGrad))
+		kernels[i] = nn.NewParam[T](mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad[T](requireGrad))
+		biases[i] = nn.NewParam[T](mat.NewEmptyVecDense[T](1), nn.RequiresGrad[T](requireGrad))
 	}
-	return &Model{
+	return &Model[T]{
 		Config: config,
 		K:      kernels,
 		B:      biases,
@@ -72,23 +73,23 @@ func New(config Config) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	if m.Config.OutputChannels > 1 && m.Graph().ConcurrentComputations() > 1 {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
 }
 
-func (m *Model) fwdSerial(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, m.Config.OutputChannels)
+func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = m.forward(xs, i)
 	}
 	return ys
 }
 
-func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, m.Config.OutputChannels)
+func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], m.Config.OutputChannels)
 	var wg sync.WaitGroup
 	wg.Add(m.Config.OutputChannels)
 	for i := 0; i < m.Config.OutputChannels; i++ {
@@ -101,17 +102,17 @@ func (m *Model) fwdConcurrent(xs []ag.Node) []ag.Node {
 	return ys
 }
 
-func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
+func (m *Model[T]) forward(xs []ag.Node[T], outputChannel int) ag.Node[T] {
 	g := m.Graph()
 	offset := outputChannel * m.Config.InputChannels
-	var out ag.Node
+	var out ag.Node[T]
 	if m.Config.DepthWise {
-		out = nn.Conv1D(g, m.K[outputChannel], xs[outputChannel], m.Config.YStride)
+		out = nn.Conv1D[T](g, m.K[outputChannel], xs[outputChannel], m.Config.YStride)
 		out = g.AddScalar(out, m.B[outputChannel])
 	} else {
 		for i := 0; i < len(xs); i++ {
 			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-				out = g.Add(out, nn.Conv1D(g, m.K[i+offset], xs[i], m.Config.YStride))
+				out = g.Add(out, nn.Conv1D[T](g, m.K[i+offset], xs[i], m.Config.YStride))
 				out = g.AddScalar(out, m.B[i+offset])
 			}
 		}

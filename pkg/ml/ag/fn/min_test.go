@@ -11,18 +11,18 @@ import (
 )
 
 func TestMin_Forward(t *testing.T) {
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.5, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.4, 0.3, 0.1, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewMin(x1, x2)
+	f := NewMin[mat.Float](x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, 0.2, 0.1, 0.0}, y.Data(), 1.0e-6)

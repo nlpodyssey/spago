@@ -26,7 +26,7 @@ func Test_ridgeRegression(t *testing.T) {
 		-0.2, 0.5,
 	})
 
-	b := ridgeRegression(x, y, 0.9)
+	b := ridgeRegression[mat.Float](x, y, 0.9)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.13276582, 0.3392879,
@@ -52,7 +52,7 @@ func Test_admn(t *testing.T) {
 		-0.2, 0.5,
 	})
 
-	b := admn(a, xaugm, 0.001, 2)
+	b := admn[mat.Float](a, xaugm, 0.001, 2)
 
 	assert.InDeltaSlice(t, []mat.Float{
 		0.15778322, 0.4546243,

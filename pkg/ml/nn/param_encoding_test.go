@@ -19,8 +19,8 @@ func TestParam_Gob(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam(mat.NewScalar[mat.Float](12))
-		paramToEncode.SetPayload(&Payload{
+		paramToEncode := NewParam[mat.Float](mat.NewScalar[mat.Float](12))
+		paramToEncode.SetPayload(&Payload[mat.Float]{
 			Label: 42,
 			Data:  []mat.Matrix[mat.Float]{mat.NewScalar[mat.Float](34)},
 		})
@@ -28,7 +28,7 @@ func TestParam_Gob(t *testing.T) {
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param
+		var decodedParam Param[mat.Float]
 
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
@@ -46,12 +46,12 @@ func TestParam_Gob(t *testing.T) {
 	t.Run("nil value and payload", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam(nil)
+		paramToEncode := NewParam[mat.Float](nil)
 
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param
+		var decodedParam Param[mat.Float]
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
@@ -67,9 +67,9 @@ func TestParam_Storage(t *testing.T) {
 
 	storage := kvdb.NewDefaultKeyValueDB(kvdb.Config{Path: dir, ReadOnly: false, ForceNew: true})
 	defer storage.Close()
-	p := NewParam(mat.NewScalar[mat.Float](123), SetStorage(storage))
+	p := NewParam[mat.Float](mat.NewScalar[mat.Float](123), SetStorage[mat.Float](storage))
 	p.SetName("foo")
-	payload := NewPayload()
+	payload := NewPayload[mat.Float]()
 	payload.Label = 42
 
 	// Just run an operation which will update the storage
@@ -84,7 +84,7 @@ func TestParam_Storage(t *testing.T) {
 	require.True(t, ok)
 	assert.NotEmpty(t, value)
 
-	decodedParam, err := UnmarshalBinaryParam(bytes.NewReader(value))
+	decodedParam, err := UnmarshalBinaryParam[mat.Float](bytes.NewReader(value))
 	require.Nil(t, err)
 	require.NotNil(t, decodedParam)
 	require.Equal(t, mat.Float(123), decodedParam.Value().Scalar())
@@ -95,11 +95,11 @@ func TestParamInterfaceBinaryMarshaling(t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		paramToEncode := NewParam(mat.NewScalar[mat.Float](42))
+		paramToEncode := NewParam[mat.Float](mat.NewScalar[mat.Float](42))
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
-		decodedParam, err := UnmarshalBinaryParam(buf)
+		decodedParam, err := UnmarshalBinaryParam[mat.Float](buf)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
 		assert.Equal(t, mat.Float(42), decodedParam.Value().Scalar())
@@ -108,11 +108,11 @@ func TestParamInterfaceBinaryMarshaling(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		var paramToEncode Param = nil
+		var paramToEncode Param[mat.Float] = nil
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
-		decodedParam, err := UnmarshalBinaryParam(buf)
+		decodedParam, err := UnmarshalBinaryParam[mat.Float](buf)
 		require.Nil(t, err)
 		assert.Nil(t, decodedParam)
 	})

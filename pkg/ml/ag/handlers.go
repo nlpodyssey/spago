@@ -9,15 +9,15 @@ import (
 	"sync"
 )
 
-type forwardHandler struct {
-	g            *Graph
+type forwardHandler[T mat.DType] struct {
+	g            *Graph[T]
 	fromTimeStep int // default 0
 	toTimeStep   int // default -1 (no limit)
 }
 
-func (h *forwardHandler) runSerial() {
+func (h *forwardHandler[T]) runSerial() {
 	for _, node := range h.g.nodes {
-		if op, ok := node.(*Operator); ok {
+		if op, ok := node.(*Operator[T]); ok {
 			if op.timeStep < h.fromTimeStep {
 				continue
 			}
@@ -29,14 +29,14 @@ func (h *forwardHandler) runSerial() {
 	}
 }
 
-func (h *forwardHandler) runConcurrent() {
+func (h *forwardHandler[T]) runConcurrent() {
 	fromTS, toTS := h.fromTimeStep, h.toTimeStep
 	groups := h.g.groupNodesByHeight()
 
 	var wg sync.WaitGroup
 	for _, group := range groups {
 		for _, node := range group {
-			op, isOperator := node.(*Operator)
+			op, isOperator := node.(*Operator[T])
 			if !isOperator || (op.timeStep < fromTS || (toTS != -1 && op.timeStep > toTS)) {
 				continue
 			}
@@ -50,14 +50,14 @@ func (h *forwardHandler) runConcurrent() {
 	}
 }
 
-type backwardHandler struct {
-	g              *Graph
-	node           Node
-	outputGrad     mat.Matrix[mat.Float]
+type backwardHandler[T mat.DType] struct {
+	g              *Graph[T]
+	node           Node[T]
+	outputGrad     mat.Matrix[T]
 	stopAtTimeStep int // default -1 (full backward)
 }
 
-func (h *backwardHandler) propagateOutputGrad() {
+func (h *backwardHandler[_]) propagateOutputGrad() {
 	gx := h.outputGrad
 	if gx == nil {
 		gx = h.node.Value().OnesLike()
@@ -66,7 +66,7 @@ func (h *backwardHandler) propagateOutputGrad() {
 	h.node.PropagateGrad(gx)
 }
 
-func (h *backwardHandler) runSerial() {
+func (h *backwardHandler[T]) runSerial() {
 	nodes := h.g.nodes
 	lastIndex := h.node.ID()
 	stopAtTimeStep := h.stopAtTimeStep
@@ -76,13 +76,13 @@ func (h *backwardHandler) runSerial() {
 		if truncated && nodes[i].TimeStep() <= stopAtTimeStep {
 			break
 		}
-		if node, ok := nodes[i].(*Operator); ok {
+		if node, ok := nodes[i].(*Operator[T]); ok {
 			node.backward()
 		}
 	}
 }
 
-func (h *backwardHandler) runConcurrent() {
+func (h *backwardHandler[T]) runConcurrent() {
 	stopAtTimeStep := h.stopAtTimeStep
 	truncated := stopAtTimeStep > -1
 	groups := h.g.groupNodesByHeight()
@@ -94,7 +94,7 @@ func (h *backwardHandler) runConcurrent() {
 			if truncated && node.TimeStep() <= stopAtTimeStep {
 				break
 			}
-			op, isOperator := node.(*Operator)
+			op, isOperator := node.(*Operator[T])
 			if !isOperator {
 				continue
 			}

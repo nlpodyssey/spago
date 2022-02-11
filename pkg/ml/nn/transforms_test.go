@@ -12,7 +12,7 @@ import (
 )
 
 func TestConv1D(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	x := g.NewVariable(mat.NewDense(3, 4, []mat.Float{
 		0.2, 0.1, 0.5, 0.8,
@@ -32,7 +32,7 @@ func TestConv1D(t *testing.T) {
 		0.47, -0.42, -0.56,
 	}, out.Value().Data(), 0.005)
 
-	g.Backward(out, ag.OutputGrad(mat.NewDense(1, 3, []mat.Float{
+	g.Backward(out, ag.OutputGrad[mat.Float](mat.NewDense(1, 3, []mat.Float{
 		1.0, -0.5, -1.0,
 	})))
 
@@ -50,7 +50,7 @@ func TestConv1D(t *testing.T) {
 }
 
 func TestConv2D(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	x := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
 		0.2, 0.1, 0.5, 0.8,
@@ -72,7 +72,7 @@ func TestConv2D(t *testing.T) {
 		0.67, 0.28, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	g.Backward(out, ag.OutputGrad(mat.NewDense(3, 3, []mat.Float{
+	g.Backward(out, ag.OutputGrad[mat.Float](mat.NewDense(3, 3, []mat.Float{
 		1.0, -0.5, -1.0,
 		0.5, 0.3, 0.5,
 		0.2, 0.5, -0.5,
@@ -92,7 +92,7 @@ func TestConv2D(t *testing.T) {
 }
 
 func TestConv2DStride2(t *testing.T) {
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 
 	x := g.NewVariable(mat.NewDense(4, 4, []mat.Float{
 		0.2, 0.1, 0.5, 0.8,
@@ -113,7 +113,7 @@ func TestConv2DStride2(t *testing.T) {
 		0.67, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	g.Backward(out, ag.OutputGrad(mat.NewDense(2, 2, []mat.Float{
+	g.Backward(out, ag.OutputGrad[mat.Float](mat.NewDense(2, 2, []mat.Float{
 		1.0, -0.5,
 		0.5, 0.3,
 	})))

@@ -15,7 +15,7 @@ import (
 
 func TestModel_SyntheticAttention(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
@@ -52,10 +52,10 @@ func TestModel_SyntheticAttention(t *testing.T) {
 		0.0, 0.0, 0.0, 0.0,
 		-0.0075098, 0.0028162, -0.0046936, -0.00281620,
 		0.00989979, -0.034649, -0.0098997, -0.01979958,
-	}, model.FFN.Layers[0].(*linear.Model).W.Grad().Data(), 1.0e-05)
+	}, model.FFN.Layers[0].(*linear.Model[mat.Float]).W.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.0779462, 0.0, -0.0093873, -0.04949895,
-	}, model.FFN.Layers[0].(*linear.Model).B.Grad().Data(), 1.0e-05)
+	}, model.FFN.Layers[0].(*linear.Model[mat.Float]).B.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []mat.Float{
 		-0.0589030, 0.0, 0.02524230, -0.02234341,
 		-0.0300720, 0.0, -0.0014955, -0.01170433,
@@ -65,8 +65,8 @@ func TestModel_SyntheticAttention(t *testing.T) {
 	}, model.W.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel() *Model {
-	model := New(Config{
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](Config{
 		InputSize:  4,
 		HiddenSize: 4,
 		MaxLength:  5,
@@ -78,13 +78,13 @@ func newTestModel() *Model {
 		0.3, 0.8, -0.9, 0.0,
 	})
 	model.Value.B.Value().SetData([]mat.Float{0.4, 0.0, -0.3})
-	model.FFN.Layers[0].(*linear.Model).W.Value().SetData([]mat.Float{
+	model.FFN.Layers[0].(*linear.Model[mat.Float]).W.Value().SetData([]mat.Float{
 		0.7, -0.2, -0.1, 0.2,
 		-0.1, -0.1, 0.3, -0.2,
 		0.6, 0.1, 0.9, 0.3,
 		-0.3, 0.3, 0.4, -0.8,
 	})
-	model.FFN.Layers[0].(*linear.Model).B.Value().SetData([]mat.Float{0.8, -0.2, -0.5, 0.2})
+	model.FFN.Layers[0].(*linear.Model[mat.Float]).B.Value().SetData([]mat.Float{0.8, -0.2, -0.5, 0.2})
 	model.W.Value().SetData([]mat.Float{
 		0.4, 0.3, 0.2, -0.5,
 		-0.9, -0.4, 0.1, -0.4,

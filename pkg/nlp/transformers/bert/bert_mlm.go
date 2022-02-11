@@ -16,12 +16,12 @@ import (
 
 // PredictMLM performs the Masked-Language-Model (MLM) prediction.
 // It returns the best guess for the masked (i.e. `[MASK]`) tokens in the input text.
-func (m *Model) PredictMLM(text string) []Token {
+func (m *Model[T]) PredictMLM(text string) []Token {
 	tokenizer := wordpiecetokenizer.New(m.Vocabulary)
 	origTokens := tokenizer.Tokenize(text)
 	tokenized := pad(tokenizers.GetStrings(origTokens))
 
-	g := ag.NewGraph(ag.ConcurrentComputations(runtime.NumCPU()))
+	g := ag.NewGraph(ag.ConcurrentComputations[T](runtime.NumCPU()))
 	defer g.Clear()
 	proc := nn.ReifyForInference(m, g)
 	encoded := proc.Encode(tokenized)

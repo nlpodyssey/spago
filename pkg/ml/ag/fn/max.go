@@ -6,22 +6,22 @@ package fn
 
 import "github.com/nlpodyssey/spago/pkg/mat"
 
-var _ Function = &Max{}
+var _ Function[float32] = &Max[float32]{}
 
 // Max is an operator to perform element-wise max.
 // y = max(x1, x2)
-type Max struct {
-	x1 Operand
-	x2 Operand
+type Max[T mat.DType] struct {
+	x1 Operand[T]
+	x2 Operand[T]
 }
 
 // NewMax returns a new Max Function.
-func NewMax(x1, x2 Operand) *Max {
-	return &Max{x1: x1, x2: x2}
+func NewMax[T mat.DType](x1, x2 Operand[T]) *Max[T] {
+	return &Max[T]{x1: x1, x2: x2}
 }
 
 // Forward computes the output of the function.
-func (r *Max) Forward() mat.Matrix[mat.Float] {
+func (r *Max[T]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -31,7 +31,7 @@ func (r *Max) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *Max) Backward(gy mat.Matrix[mat.Float]) {
+func (r *Max[T]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

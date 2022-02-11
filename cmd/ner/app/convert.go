@@ -5,11 +5,12 @@
 package app
 
 import (
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/nlp/sequencelabeler"
 	"github.com/urfave/cli/v2"
 )
 
-func newConvertCommandFor(app *NERApp) *cli.Command {
+func newConvertCommandFor[T mat.DType](app *NERApp) *cli.Command {
 	return &cli.Command{
 		Name:        "convert",
 		Usage:       "Run the " + programName + " to convert a pre-processed Flair model.",
@@ -27,7 +28,7 @@ func newConvertCommandFor(app *NERApp) *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			sequencelabeler.Convert(app.modelFolder, app.modelName)
+			sequencelabeler.Convert[T](app.modelFolder, app.modelName)
 			return nil
 		},
 	}

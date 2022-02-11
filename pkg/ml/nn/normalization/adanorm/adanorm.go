@@ -17,38 +17,39 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the scaling factor.
-type Model struct {
-	nn.BaseModel
-	Scale  mat.Float
-	consts consts `spago:"scope:processor"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Scale  T
+	consts consts[T] `spago:"scope:processor"`
 }
 
-type consts struct {
-	eps ag.Node
-	one ag.Node
-	k   ag.Node
-	c   ag.Node
+type consts[T mat.DType] struct {
+	eps ag.Node[T]
+	one ag.Node[T]
+	k   ag.Node[T]
+	c   ag.Node[T]
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model.
-func New(scale mat.Float) *Model {
-	return &Model{
+func New[T mat.DType](scale T) *Model[T] {
+	return &Model[T]{
 		Scale: scale,
 	}
 }
 
 // InitProcessor initializes constants needed by the Forward().
-func (m *Model) InitProcessor() {
+func (m *Model[T]) InitProcessor() {
 	g := m.Graph()
-	m.consts = consts{
+	m.consts = consts[T]{
 		eps: g.Constant(1e-10),
 		one: g.Constant(1.0),
 		k:   g.Constant(0.1),
@@ -57,11 +58,11 @@ func (m *Model) InitProcessor() {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
-	zs := make([]ag.Node, len(xs))
+	zs := make([]ag.Node[T], len(xs))
 
 	for i, x := range xs {
 		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], m.consts.eps))
@@ -72,8 +73,8 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Mean computes the mean of the input.
-func (m *Model) Mean(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model[T]) Mean(xs []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = m.Graph().ReduceMean(x)
 	}
@@ -81,9 +82,9 @@ func (m *Model) Mean(xs []ag.Node) []ag.Node {
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+func (m *Model[T]) StdDev(meanVectors []ag.Node[T], xs []ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
-	devVectors := make([]ag.Node, len(xs))
+	devVectors := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))
 		devVectors[i] = g.Sqrt(g.ReduceMean(diffVector))

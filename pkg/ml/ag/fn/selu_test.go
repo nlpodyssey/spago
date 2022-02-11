@@ -11,23 +11,23 @@ import (
 )
 
 func TestSELUForward(t *testing.T) {
-	x := &variable{
+	x := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	alpha := &variable{
+	alpha := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	scale := &variable{
+	scale := &variable[mat.Float]{
 		value:        mat.NewScalar[mat.Float](1.6),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewSELU(x, alpha, scale)
+	f := NewSELU[mat.Float](x, alpha, scale)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.16, -0.58006159, 0.48, 0}, y.Data(), 1.0e-6)

@@ -12,26 +12,28 @@ import (
 )
 
 // EncoderDecoder is a model able to perform encoder-decoder conditional generation.
-type EncoderDecoder interface {
-	Encoder
-	Decoder
-	Graph() *ag.Graph
+type EncoderDecoder[T mat.DType] interface {
+	Encoder[T]
+	Decoder[T]
+	Graph() *ag.Graph[T]
 }
 
 // Encoder is a model able to encode each input of a sequence into a vector representation.
-type Encoder interface {
+type Encoder[T mat.DType] interface {
 	// Encode transforms a sequence of input IDs in a sequence of nodes.
-	Encode(InputIDs []int) []ag.Node
+	Encode(InputIDs []int) []ag.Node[T]
 }
 
 // Decoder is a model able to encode.
-type Decoder interface {
+type Decoder[T mat.DType] interface {
 	// Decode returns the log probabilities for each possible next element of a sequence.
-	Decode(encodedInput []ag.Node, decodingInputIDs []int, pastCache Cache) (ag.Node, Cache)
+	Decode(encodedInput []ag.Node[T], decodingInputIDs []int, pastCache Cache) (ag.Node[T], Cache)
 }
 
 // Scores is just an alias of a Matrix
-type Scores = mat.Matrix[mat.Float]
+type Scores[T mat.DType] interface {
+	mat.Matrix[T]
+}
 
 // Cache is just an alias of interface{}
 type Cache interface{}

@@ -11,30 +11,30 @@ import (
 )
 
 // Crossover is implemented by values that provides crossover operations.
-type Crossover interface {
-	Crossover(p *Population)
+type Crossover[T mat.DType] interface {
+	Crossover(p *Population[T])
 }
 
-var _ Crossover = &BinomialCrossover{}
+var _ Crossover[float32] = &BinomialCrossover[float32]{}
 
 // BinomialCrossover implements a binomial crossover operation.
-type BinomialCrossover struct {
-	rndGen *rand.LockedRand[mat.Float]
+type BinomialCrossover[T mat.DType] struct {
+	rndGen *rand.LockedRand[T]
 }
 
 // NewBinomialCrossover returns a new BinomialCrossover.
-func NewBinomialCrossover(rndGen *rand.LockedRand[mat.Float]) *BinomialCrossover {
-	return &BinomialCrossover{rndGen: rndGen}
+func NewBinomialCrossover[T mat.DType](rndGen *rand.LockedRand[T]) *BinomialCrossover[T] {
+	return &BinomialCrossover[T]{rndGen: rndGen}
 }
 
 // Crossover performs the crossover operation over the p population.
-func (c *BinomialCrossover) Crossover(p *Population) {
-	seed := rand.NewLockedRand[mat.Float](0)
+func (c *BinomialCrossover[T]) Crossover(p *Population[T]) {
+	seed := rand.NewLockedRand[T](0)
 	for _, member := range p.Members {
-		randomVector := mat.NewEmptyVecDense[mat.Float](p.Members[0].DonorVector.Size())
-		initializers.Uniform(randomVector, -1.0, +1.0, c.rndGen)
+		randomVector := mat.NewEmptyVecDense[T](p.Members[0].DonorVector.Size())
+		initializers.Uniform[T](randomVector, -1.0, +1.0, c.rndGen)
 		size := member.DonorVector.Size()
-		rn := rand.NewLockedRand[mat.Float](seed.Uint64n(100))
+		rn := rand.NewLockedRand[T](seed.Uint64n(100))
 		k := rn.Intn(size)
 		for i := 0; i < size; i++ {
 			if mat.Abs(randomVector.At(i, 0)) > member.CrossoverRate || i == k { // Fixed range trick

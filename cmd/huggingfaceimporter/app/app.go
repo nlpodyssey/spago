@@ -15,7 +15,7 @@ const (
 
 // New returns a new CLI App for importing pickle-serialized Hugging Face models.
 func New() *cli.App {
-	importerArgs := internal.NewDefaultImporterArgs()
+	importerArgs := internal.NewDefaultImporterArgs[float32]()
 	importerFlags := importerArgs.BuildFlags()
 
 	app := cli.NewApp()

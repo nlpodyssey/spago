@@ -10,19 +10,19 @@ import (
 	"github.com/nlpodyssey/spago/pkg/ml/optimizers/gd"
 )
 
-var _ gd.MethodConfig = &Config{}
+var _ gd.MethodConfig = &Config[float32]{}
 
 // Config provides configuration settings for an RMSProp optimizer.
-type Config struct {
+type Config[T mat.DType] struct {
 	gd.MethodConfig
-	LR      mat.Float
-	Epsilon mat.Float
-	Decay   mat.Float
+	LR      T
+	Epsilon T
+	Decay   T
 }
 
 // NewConfig returns a new RMSProp Config.
-func NewConfig(lr, epsilon, decay mat.Float) Config {
-	return Config{
+func NewConfig[T mat.DType](lr, epsilon, decay T) Config[T] {
+	return Config[T]{
 		LR:      lr,
 		Epsilon: epsilon,
 		Decay:   decay,
@@ -30,50 +30,50 @@ func NewConfig(lr, epsilon, decay mat.Float) Config {
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig() Config {
-	return Config{
+func NewDefaultConfig[T mat.DType]() Config[T] {
+	return Config[T]{
 		LR:      0.001,
 		Epsilon: 1e-08,
 		Decay:   0.95,
 	}
 }
 
-var _ gd.Method = &RMSProp{}
+var _ gd.Method[float32] = &RMSProp[float32]{}
 
 // The RMSProp method is a variant of AdaGrad where the squared sum of previous gradients is replaced with a moving average.
 // References:
 //     RMSProp: Divide the gradient by a running average of its recent magnitude
 //     http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
-type RMSProp struct {
-	Config
+type RMSProp[T mat.DType] struct {
+	Config[T]
 }
 
 // New returns a new RMSProp optimizer, initialized according to the given configuration.
-func New(c Config) *RMSProp {
-	return &RMSProp{Config: c}
+func New[T mat.DType](c Config[T]) *RMSProp[T] {
+	return &RMSProp[T]{Config: c}
 }
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *RMSProp) Label() int {
+func (o *RMSProp[_]) Label() int {
 	return gd.RMSProp
 }
 
 const v = 0
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *RMSProp) NewSupport(r, c int) *nn.Payload {
-	return &nn.Payload{
+func (o *RMSProp[T]) NewSupport(r, c int) *nn.Payload[T] {
+	return &nn.Payload[T]{
 		Label: gd.RMSProp,
-		Data:  []mat.Matrix[mat.Float]{mat.NewEmptyDense[mat.Float](r, c)}, // v at index 0
+		Data:  []mat.Matrix[T]{mat.NewEmptyDense[T](r, c)}, // v at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RMSProp) Delta(param nn.Param) mat.Matrix[mat.Float] {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
+func (o *RMSProp[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
 }
 
-func (o *RMSProp) calcDelta(grads mat.Matrix[mat.Float], supp []mat.Matrix[mat.Float]) mat.Matrix[mat.Float] {
+func (o *RMSProp[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[v].ProdScalarInPlace(o.Decay)
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)

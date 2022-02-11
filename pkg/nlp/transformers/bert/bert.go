@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 	"github.com/nlpodyssey/spago/pkg/ml/nn"
 	"github.com/nlpodyssey/spago/pkg/ml/nn/linear"
@@ -31,7 +32,7 @@ const (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Config provides configuration settings for a BERT Model.
@@ -49,7 +50,8 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // LoadConfig loads a BERT model Config from file.
@@ -68,26 +70,26 @@ func LoadConfig(file string) (Config, error) {
 }
 
 // Model implements a BERT model.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config          Config
 	Vocabulary      *vocabulary.Vocabulary
-	Embeddings      *Embeddings
-	Encoder         *Encoder
-	Predictor       *Predictor
-	Discriminator   *Discriminator // used by "ELECTRA" training method
-	Pooler          *Pooler
-	SeqRelationship *linear.Model
-	SpanClassifier  *SpanClassifier
-	Classifier      *Classifier
+	Embeddings      *Embeddings[T]
+	Encoder         *Encoder[T]
+	Predictor       *Predictor[T]
+	Discriminator   *Discriminator[T] // used by "ELECTRA" training method
+	Pooler          *Pooler[T]
+	SeqRelationship *linear.Model[T]
+	SpanClassifier  *SpanClassifier[T]
+	Classifier      *Classifier[T]
 }
 
 // NewDefaultBERT returns a new model based on the original BERT architecture.
-func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
-	return &Model{
+func NewDefaultBERT[T mat.DType](config Config, embeddingsStoragePath string) *Model[T] {
+	return &Model[T]{
 		Config:     config,
 		Vocabulary: nil,
-		Embeddings: NewEmbeddings(EmbeddingsConfig{
+		Embeddings: NewEmbeddings[T](EmbeddingsConfig{
 			Size:                config.HiddenSize,
 			OutputSize:          config.HiddenSize,
 			MaxPositions:        config.MaxPositionEmbeddings,
@@ -96,35 +98,35 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 			WordsMapReadOnly:    !config.Training,
 			DeletePreEmbeddings: false,
 		}),
-		Encoder: NewBertEncoder(EncoderConfig{
+		Encoder: NewBertEncoder[T](EncoderConfig{
 			Size:                   config.HiddenSize,
 			NumOfAttentionHeads:    config.NumAttentionHeads,
 			IntermediateSize:       config.IntermediateSize,
 			IntermediateActivation: ag.OpGELU,
 			NumOfLayers:            config.NumHiddenLayers,
 		}),
-		Predictor: NewPredictor(PredictorConfig{
+		Predictor: NewPredictor[T](PredictorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
 			OutputSize:       config.VocabSize,
 			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Softmax (trained with CrossEntropyLoss)
 		}),
-		Discriminator: NewDiscriminator(DiscriminatorConfig{
+		Discriminator: NewDiscriminator[T](DiscriminatorConfig{
 			InputSize:        config.HiddenSize,
 			HiddenSize:       config.HiddenSize,
 			HiddenActivation: ag.OpGELU,
 			OutputActivation: ag.OpIdentity, // implicit Sigmoid (trained with BCEWithLogitsLoss)
 		}),
-		Pooler: NewPooler(PoolerConfig{
+		Pooler: NewPooler[T](PoolerConfig{
 			InputSize:  config.HiddenSize,
 			OutputSize: config.HiddenSize,
 		}),
-		SeqRelationship: linear.New(config.HiddenSize, 2),
-		SpanClassifier: NewSpanClassifier(SpanClassifierConfig{
+		SeqRelationship: linear.New[T](config.HiddenSize, 2),
+		SpanClassifier: NewSpanClassifier[T](SpanClassifierConfig{
 			InputSize: config.HiddenSize,
 		}),
-		Classifier: NewTokenClassifier(ClassifierConfig{
+		Classifier: NewTokenClassifier[T](ClassifierConfig{
 			InputSize: config.HiddenSize,
 			Labels: func(x map[string]string) []string {
 				if len(x) == 0 {
@@ -145,7 +147,7 @@ func NewDefaultBERT(config Config, embeddingsStoragePath string) *Model {
 }
 
 // LoadModel loads a BERT Model from file.
-func LoadModel(modelPath string) (*Model, error) {
+func LoadModel[T mat.DType](modelPath string) (*Model[T], error) {
 	configFilename := path.Join(modelPath, DefaultConfigurationFile)
 	vocabFilename := path.Join(modelPath, DefaultVocabularyFile)
 	embeddingsFilename := path.Join(modelPath, DefaultEmbeddingsStorage)
@@ -159,7 +161,7 @@ func LoadModel(modelPath string) (*Model, error) {
 	}
 
 	log.Printf("[2/4] Instantiate a new model... ")
-	model := NewDefaultBERT(config, embeddingsFilename)
+	model := NewDefaultBERT[T](config, embeddingsFilename)
 
 	log.Printf("[3/4] Load vocabulary... ")
 	vocab, err := vocabulary.NewFromFile(vocabFilename)
@@ -179,41 +181,41 @@ func LoadModel(modelPath string) (*Model, error) {
 }
 
 // Encode transforms a string sequence into an encoded representation.
-func (m *Model) Encode(tokens []string) []ag.Node {
+func (m *Model[T]) Encode(tokens []string) []ag.Node[T] {
 	tokensEncoding := m.Embeddings.Encode(tokens)
 	return m.Encoder.Forward(tokensEncoding...)
 }
 
 // PredictMasked performs a masked prediction task. It returns the predictions
 // for indices associated to the masked nodes.
-func (m *Model) PredictMasked(transformed []ag.Node, masked []int) map[int]ag.Node {
+func (m *Model[T]) PredictMasked(transformed []ag.Node[T], masked []int) map[int]ag.Node[T] {
 	return m.Predictor.PredictMasked(transformed, masked)
 }
 
 // Discriminate returns 0 or 1 for each encoded element, where 1 means that
 // the word is out of context.
-func (m *Model) Discriminate(encoded []ag.Node) []int {
+func (m *Model[T]) Discriminate(encoded []ag.Node[T]) []int {
 	return m.Discriminator.Discriminate(encoded)
 }
 
 // Pool "pools" the model by simply taking the hidden state corresponding to the `[CLS]` token.
-func (m *Model) Pool(transformed []ag.Node) ag.Node {
-	return nn.ToNode(m.Pooler.Forward(transformed[0]))
+func (m *Model[T]) Pool(transformed []ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](m.Pooler.Forward(transformed[0]))
 }
 
 // PredictSeqRelationship predicts if the second sentence in the pair is the
 // subsequent sentence in the original document.
-func (m *Model) PredictSeqRelationship(pooled ag.Node) ag.Node {
-	return nn.ToNode(m.SeqRelationship.Forward(pooled))
+func (m *Model[T]) PredictSeqRelationship(pooled ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](m.SeqRelationship.Forward(pooled))
 }
 
 // TokenClassification performs a classification for each element in the sequence.
-func (m *Model) TokenClassification(transformed []ag.Node) []ag.Node {
+func (m *Model[T]) TokenClassification(transformed []ag.Node[T]) []ag.Node[T] {
 	return m.Classifier.Forward(transformed...)
 }
 
 // SequenceClassification performs a single sentence-level classification,
 // using the pooled CLS token.
-func (m *Model) SequenceClassification(transformed []ag.Node) ag.Node {
-	return nn.ToNode(m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
+func (m *Model[T]) SequenceClassification(transformed []ag.Node[T]) ag.Node[T] {
+	return nn.ToNode[T](m.Classifier.Forward(m.Pooler.Forward(transformed[0])...))
 }

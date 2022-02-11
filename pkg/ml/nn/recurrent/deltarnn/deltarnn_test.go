@@ -15,13 +15,13 @@ import (
 
 func TestModel_Forward(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.ToNode(proc.Forward(x))
+	y := nn.ToNode[mat.Float](proc.Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{0.287518, 0.06939, -0.259175, 0.20769, -0.263768}, y.Value().Data(), 1.0e-05)
 
@@ -60,16 +60,16 @@ func TestModel_Forward(t *testing.T) {
 
 func TestModel_ForwardWithPrev(t *testing.T) {
 	model := newTestModel()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 	proc.SetInitialState(
-		&State{Y: g.NewVariable(mat.NewVecDense([]mat.Float{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)},
+		&State[mat.Float]{Y: g.NewVariable(mat.NewVecDense([]mat.Float{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)},
 	)
 
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]mat.Float{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.ToNode(proc.Forward(x))
+	y := nn.ToNode[mat.Float](proc.Forward(x))
 
 	assert.InDeltaSlice(t, []mat.Float{0.202158, 0.228591, -0.240679, -0.350224, -0.476828}, y.Value().Data(), 1.0e-05)
 
@@ -104,8 +104,8 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	assert.InDeltaSlice(t, []mat.Float{0.1111, -0.003156, -0.002889, -0.017586, -0.020393}, model.Alpha.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel() *Model {
-	model := New(4, 5)
+func newTestModel() *Model[mat.Float] {
+	model := New[mat.Float](4, 5)
 	model.W.Value().SetData([]mat.Float{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
@@ -130,10 +130,10 @@ func newTestModel() *Model {
 
 func TestModel_ForwardSeq(t *testing.T) {
 	model := newTestModel2()
-	g := ag.NewGraph()
+	g := ag.NewGraph[mat.Float]()
 	proc := nn.ReifyForTraining(model, g)
 	proc.SetInitialState(
-		&State{Y: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true)},
+		&State[mat.Float]{Y: g.NewVariable(mat.NewVecDense([]mat.Float{0.0, 0.0}), true)},
 	)
 
 	// == Forward
@@ -180,8 +180,8 @@ func TestModel_ForwardSeq(t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel2() *Model {
-	model := New(3, 2)
+func newTestModel2() *Model[mat.Float] {
+	model := New[mat.Float](3, 2)
 	model.W.Value().SetData([]mat.Float{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,

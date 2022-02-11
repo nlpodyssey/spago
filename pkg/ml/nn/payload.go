@@ -11,21 +11,21 @@ import (
 )
 
 // Payload contains the support data used for example by the optimization methods
-type Payload struct {
+type Payload[T mat.DType] struct {
 	Label int
-	Data  []mat.Matrix[mat.Float]
+	Data  []mat.Matrix[T]
 }
 
 // NewPayload returns an empty support structure, not connected to any optimization method.
-func NewPayload() *Payload {
-	return &Payload{
+func NewPayload[T mat.DType]() *Payload[T] {
+	return &Payload[T]{
 		Label: 0, // important set the label to zero
-		Data:  make([]mat.Matrix[mat.Float], 0),
+		Data:  make([]mat.Matrix[T], 0),
 	}
 }
 
 // MarshalBinary encodes the Payload into binary form.
-func (p Payload) MarshalBinary() ([]byte, error) {
+func (p Payload[_]) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	binLabel := make([]byte, 8)
@@ -47,16 +47,16 @@ func (p Payload) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary decodes a Payload from binary form.
-func (p *Payload) UnmarshalBinary(data []byte) error {
+func (p *Payload[T]) UnmarshalBinary(data []byte) error {
 	p.Label = int(binary.LittleEndian.Uint64(data))
 	dataLen := int(binary.LittleEndian.Uint32(data[8:]))
 
 	var err error
 	r := bytes.NewReader(data[12:])
 
-	p.Data = make([]mat.Matrix[mat.Float], dataLen)
+	p.Data = make([]mat.Matrix[T], dataLen)
 	for i := range p.Data {
-		p.Data[i], err = mat.UnmarshalBinaryMatrix[mat.Float](r)
+		p.Data[i], err = mat.UnmarshalBinaryMatrix[T](r)
 		if err != nil {
 			return err
 		}

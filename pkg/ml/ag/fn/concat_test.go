@@ -11,23 +11,23 @@ import (
 )
 
 func TestConcat_Forward(t *testing.T) {
-	x1 := &variable{
+	x1 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable{
+	x2 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.4, 0.5, 0.6, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x3 := &variable{
+	x3 := &variable[mat.Float]{
 		value:        mat.NewVecDense([]mat.Float{0.8, 0.9}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewConcat([]Operand{x1, x2, x3})
+	f := NewConcat([]Operand[mat.Float]{x1, x2, x3})
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []mat.Float{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, y.Data(), 1.0e-6)

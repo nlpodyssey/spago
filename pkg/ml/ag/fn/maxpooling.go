@@ -9,22 +9,22 @@ import (
 	"github.com/nlpodyssey/spago/pkg/utils"
 )
 
-var _ Function = &MaxPooling{}
+var _ Function[float32] = &MaxPooling[float32]{}
 
 // MaxPooling is an operator to perform max pooling.
-type MaxPooling struct {
-	x    Operand
+type MaxPooling[T mat.DType] struct {
+	x    Operand[T]
 	rows int
 	cols int
 	// initialized during the forward pass
-	y       mat.Matrix[mat.Float]
+	y       mat.Matrix[T]
 	argmaxI [][]int
 	argmaxJ [][]int
 }
 
 // NewMaxPooling returns a new MaxPooling Function.
-func NewMaxPooling(x Operand, r, c int) *MaxPooling {
-	return &MaxPooling{
+func NewMaxPooling[T mat.DType](x Operand[T], r, c int) *MaxPooling[T] {
+	return &MaxPooling[T]{
 		x:       x,
 		rows:    r,
 		cols:    c,
@@ -35,18 +35,18 @@ func NewMaxPooling(x Operand, r, c int) *MaxPooling {
 }
 
 // Forward computes the output of the function.
-func (r *MaxPooling) Forward() mat.Matrix[mat.Float] {
+func (r *MaxPooling[T]) Forward() mat.Matrix[T] {
 	if !(r.x.Value().Rows()%r.rows == 0 && r.x.Value().Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = mat.NewEmptyDense[mat.Float](r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
+	r.y = mat.NewEmptyDense[T](r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
 	r.argmaxI = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
 	r.argmaxJ = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Columns(); col++ {
-			maximum := mat.SmallestNonzero[mat.Float]()
+			maximum := mat.SmallestNonzero[T]()
 			for i := row * r.rows; i < (row*r.rows)+r.rows; i++ {
 				for j := col * r.cols; j < (col*r.cols)+r.rows; j++ {
 					val := r.x.Value().At(i, j)
@@ -65,7 +65,7 @@ func (r *MaxPooling) Forward() mat.Matrix[mat.Float] {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling) Backward(gy mat.Matrix[mat.Float]) {
+func (r *MaxPooling[T]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)

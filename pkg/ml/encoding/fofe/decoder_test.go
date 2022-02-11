@@ -26,7 +26,7 @@ func TestDecode(t *testing.T) {
 		4: 0.18750000,
 	})
 
-	decoding := Decode(0.5, z)
+	decoding := Decode[mat.Float](0.5, z)
 
 	var xs string
 	for _, id := range decoding {

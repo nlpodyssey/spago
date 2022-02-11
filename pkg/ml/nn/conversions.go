@@ -6,6 +6,7 @@ package nn
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/pkg/mat"
 	"github.com/nlpodyssey/spago/pkg/ml/ag"
 )
 
@@ -14,12 +15,12 @@ import (
 // If the value is already of type []ag.Node, it is simply returned unmodified.
 // If the value is a single ag.Node, the method returns a new slice of nodes, containing just
 // that node. In case of any other type, the method panics.
-func ToNodes(i interface{}) []ag.Node {
+func ToNodes[T mat.DType](i interface{}) []ag.Node[T] {
 	switch ii := i.(type) {
-	case []ag.Node:
+	case []ag.Node[T]:
 		return ii
-	case ag.Node:
-		return []ag.Node{ii}
+	case ag.Node[T]:
+		return []ag.Node[T]{ii}
 	default:
 		panic(fmt.Errorf("nn: cannot coerce to []ag.Node a value of type %T", ii))
 	}
@@ -31,11 +32,11 @@ func ToNodes(i interface{}) []ag.Node {
 // If the value is a slice of nodes []ag.Node which contains exactly one item, the method returns
 // just that node. If the value is a slice of zero, two or more nodes, the method panics.
 // In case of any other type, the method panics as well.
-func ToNode(i interface{}) ag.Node {
+func ToNode[T mat.DType](i interface{}) ag.Node[T] {
 	switch ii := i.(type) {
-	case ag.Node:
+	case ag.Node[T]:
 		return ii
-	case []ag.Node:
+	case []ag.Node[T]:
 		if len(ii) != 1 {
 			panic(fmt.Errorf("nn: cannot coerce to ag.Node a slice of nodes with len %d", len(ii)))
 		}

@@ -18,25 +18,25 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config
-	FFN       *stack.Model
-	Value     *linear.Model
-	W         nn.Param     `spago:"type:weights"`
-	Attention *ContextProb `spago:"scope:processor"`
+	FFN       *stack.Model[T]
+	Value     *linear.Model[T]
+	W         nn.Param[T]     `spago:"type:weights"`
+	Attention *ContextProb[T] `spago:"scope:processor"`
 }
 
 // ContextProb is a pair of Context encodings and Prob attention scores.
-type ContextProb struct {
+type ContextProb[T mat.DType] struct {
 	// Context encodings.
-	Context []ag.Node
+	Context []ag.Node[T]
 	// Prob attention scores.
-	Prob []mat.Matrix[mat.Float]
+	Prob []mat.Matrix[T]
 }
 
 // Config provides configuration settings for a Synthetic Attention Model.
@@ -48,28 +48,29 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(config Config) *Model {
-	return &Model{
+func New[T mat.DType](config Config) *Model[T] {
+	return &Model[T]{
 		Config: config,
-		FFN: stack.New(
-			linear.New(config.InputSize, config.HiddenSize),
-			activation.New(ag.OpReLU),
+		FFN: stack.New[T](
+			linear.New[T](config.InputSize, config.HiddenSize),
+			activation.New[T](ag.OpReLU),
 		),
-		W:     nn.NewParam(mat.NewEmptyDense[mat.Float](config.MaxLength, config.HiddenSize)),
-		Value: linear.New(config.InputSize, config.ValueSize),
+		W:     nn.NewParam[T](mat.NewEmptyDense[T](config.MaxLength, config.HiddenSize)),
+		Value: linear.New[T](config.InputSize, config.ValueSize),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	length := len(xs)
-	context := make([]ag.Node, length)
-	prob := make([]mat.Matrix[mat.Float], length)
+	context := make([]ag.Node[T], length)
+	prob := make([]mat.Matrix[T], length)
 	values := g.Stack(m.Value.Forward(xs...)...)
 	rectified := g.Stack(m.FFN.Forward(xs...)...)
 	attentionWeights := m.extractAttentionWeights(length)
@@ -79,7 +80,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		context[i] = g.Mul(g.T(attProb), values)
 		prob[i] = attProb.Value()
 	}
-	m.Attention = &ContextProb{
+	m.Attention = &ContextProb[T]{
 		Context: context,
 		Prob:    prob,
 	}
@@ -87,9 +88,9 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // extractAttentionWeights returns the attention parameters tailored to the sequence length.
-func (m *Model) extractAttentionWeights(length int) ag.Node {
+func (m *Model[T]) extractAttentionWeights(length int) ag.Node[T] {
 	g := m.Graph()
-	attentionWeights := make([]ag.Node, length)
+	attentionWeights := make([]ag.Node[T], length)
 	for i := 0; i < length; i++ {
 		attentionWeights[i] = g.T(g.RowView(m.W, i))
 	}

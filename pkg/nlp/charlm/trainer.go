@@ -20,44 +20,44 @@ import (
 
 // TrainingConfig provides configuration settings for a Character-level Language Trainer.
 // TODO: add dropout
-type TrainingConfig struct {
+type TrainingConfig[T mat.DType] struct {
 	Seed                  uint64
 	BatchSize             int
 	BackStep              int
-	GradientClipping      mat.Float
+	GradientClipping      T
 	SerializationInterval int
 	UpdateMethod          gd.MethodConfig
 	ModelPath             string
 }
 
 // Trainer implements the training process for a Character-level Language Model.
-type Trainer struct {
-	TrainingConfig
-	randGen       *rand.LockedRand[mat.Float]
+type Trainer[T mat.DType] struct {
+	TrainingConfig[T]
+	randGen       *rand.LockedRand[T]
 	corpus        corpora.TextCorpusIterator
-	model         *Model
-	optimizer     *gd.GradientDescent
-	bestLoss      mat.Float
-	lastBatchLoss mat.Float
-	curPerplexity mat.Float
+	model         *Model[T]
+	optimizer     *gd.GradientDescent[T]
+	bestLoss      T
+	lastBatchLoss T
+	curPerplexity T
 }
 
 // NewTrainer returns a new Trainer.
-func NewTrainer(config TrainingConfig, corpus corpora.TextCorpusIterator, model *Model) *Trainer {
-	return &Trainer{
+func NewTrainer[T mat.DType](config TrainingConfig[T], corpus corpora.TextCorpusIterator, model *Model[T]) *Trainer[T] {
+	return &Trainer[T]{
 		TrainingConfig: config,
-		randGen:        rand.NewLockedRand[mat.Float](config.Seed),
+		randGen:        rand.NewLockedRand[T](config.Seed),
 		corpus:         corpus,
 		model:          model,
-		optimizer: gd.NewOptimizer(
-			gdmbuilder.NewMethod(config.UpdateMethod),
-			nn.NewDefaultParamsIterator(model),
-			gd.ClipGradByNorm(config.GradientClipping, 2.0)),
+		optimizer: gd.NewOptimizer[T](
+			gdmbuilder.NewMethod[T](config.UpdateMethod),
+			nn.NewDefaultParamsIterator[T](model),
+			gd.ClipGradByNorm[T](config.GradientClipping, 2.0)),
 	}
 }
 
 // Train executes the training process.
-func (t *Trainer) Train() {
+func (t *Trainer[T]) Train() {
 	t.corpus.ForEachLine(func(i int, line string) {
 		t.trainPassage(i, line)
 		// TODO: save the model only if it is better against a validation criterion (yet to be defined)
@@ -71,12 +71,12 @@ func (t *Trainer) Train() {
 	})
 }
 
-func (t *Trainer) trainPassage(index int, text string) {
+func (t *Trainer[T]) trainPassage(index int, text string) {
 	// This is a particular case where computing the forward after the graph definition can be more efficient.
-	g := ag.NewGraph(
+	g := ag.NewGraph[T](
 		ag.Rand(t.randGen),
-		ag.IncrementalForward(false),
-		ag.ConcurrentComputations(runtime.NumCPU()),
+		ag.IncrementalForward[T](false),
+		ag.ConcurrentComputations[T](runtime.NumCPU()),
 	)
 	defer g.Clear()
 	proc := nn.ReifyForTraining(t.model, g)
@@ -118,14 +118,14 @@ func (t *Trainer) trainPassage(index int, text string) {
 // trainBatch performs both the forward step and the truncated back-propagation on a given batch.
 // Note that the processor remains the same for all batches of the same sequence,
 // so the previous recurrent states are retained for the next prediction.
-func (t *Trainer) trainBatch(proc *Model, batch []string) mat.Float {
+func (t *Trainer[T]) trainBatch(proc *Model[T], batch []string) T {
 	g := proc.Graph()
 	g.ZeroGrad()
 	prevTimeStep := g.TimeStep()
-	predicted := proc.Forward(batch).([]ag.Node)
+	predicted := proc.Forward(batch).([]ag.Node[T])
 	targets := targetsIds(batch, t.model.Vocabulary, t.model.UnknownToken)
 	loss := losses.CrossEntropySeq(g, predicted[:len(targets)], targets, true)
-	g.Forward(ag.Range(prevTimeStep+1, -1))
-	g.Backward(loss, ag.Truncate(t.BackStep))
+	g.Forward(ag.Range[T](prevTimeStep+1, -1))
+	g.Backward(loss, ag.Truncate[T](t.BackStep))
 	return loss.ScalarValue()
 }

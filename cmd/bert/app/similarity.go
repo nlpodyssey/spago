@@ -13,13 +13,13 @@ import (
 	"math"
 )
 
-func newClientSimilarityCommandFor(app *BertApp) *cli.Command {
+func newClientSimilarityCommandFor[T mat.DType](app *BertApp) *cli.Command {
 	return &cli.Command{
 		Name:        "similarity",
 		Usage:       "Perform text-similarity using BERT sentence encoding.",
 		Description: "Run the " + programName + " client to determine the similarity between two texts.",
 		Flags:       newClientSimilarityCommandFlagsFor(app),
-		Action:      newClientSimilarityCommandActionFor(app),
+		Action:      newClientSimilarityCommandActionFor[T](app),
 	}
 }
 
@@ -38,7 +38,7 @@ func newClientSimilarityCommandFlagsFor(app *BertApp) []cli.Flag {
 	})
 }
 
-func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) error {
+func newClientSimilarityCommandActionFor[T mat.DType](app *BertApp) func(c *cli.Context) error {
 	return func(c *cli.Context) error {
 		clientutils.VerifyFlags(app.output)
 
@@ -59,8 +59,8 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) erro
 			return err
 		}
 
-		vec1 := normalize(f32SliceToFloatSlice(resp.Vector))
-		vec2 := normalize(f32SliceToFloatSlice(resp2.Vector))
+		vec1 := normalize(f32SliceToFloatSlice[T](resp.Vector))
+		vec2 := normalize(f32SliceToFloatSlice[T](resp2.Vector))
 		similarity := vec1.DotUnitary(vec2)
 
 		clientutils.Println(app.output, toFixed(similarity, 6))
@@ -69,23 +69,23 @@ func newClientSimilarityCommandActionFor(app *BertApp) func(c *cli.Context) erro
 	}
 }
 
-func normalize(xs []mat.Float) mat.Matrix[mat.Float] {
+func normalize[T mat.DType](xs []T) mat.Matrix[T] {
 	return mat.NewVecDense(xs).Normalize2()
 }
 
-func f32SliceToFloatSlice(xs []float32) []mat.Float {
-	ys := make([]mat.Float, len(xs))
+func f32SliceToFloatSlice[T mat.DType](xs []float32) []T {
+	ys := make([]T, len(xs))
 	for i, f32 := range xs {
-		ys[i] = mat.Float(f32)
+		ys[i] = T(f32)
 	}
 	return ys
 }
 
-func round(num mat.Float) int {
+func round[T mat.DType](num T) int {
 	return int(float64(num) + math.Copysign(0.5, float64(num)))
 }
 
-func toFixed(num mat.Float, precision int) mat.Float {
-	output := mat.Pow(10, mat.Float(precision))
-	return mat.Float(round(num*output)) / output
+func toFixed[T mat.DType](num T, precision int) T {
+	output := mat.Pow(10, T(precision))
+	return T(round(num*output)) / output
 }

@@ -12,31 +12,32 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
-	Gain nn.Param `spago:"type:weights"`
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
+	Gain nn.Param[T] `spago:"type:weights"`
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New(size int) *Model {
-	return &Model{
-		Gain: nn.NewParam(mat.NewEmptyVecDense[mat.Float](size)),
+func New[T mat.DType](size int) *Model[T] {
+	return &Model[T]{
+		Gain: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	eps := g.Constant(1e-10)
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		norm := g.Sqrt(g.ReduceSum(g.Square(x)))
 		ys[i] = g.Prod(g.DivScalar(x, g.AddScalar(norm, eps)), m.Gain)

@@ -8,29 +8,29 @@ import (
 	"github.com/nlpodyssey/spago/pkg/mat"
 )
 
-var _ Function = &UnaryElementwise{}
+var _ Function[float32] = &UnaryElementwise[float32]{}
 
 // UnaryElementwise is a single-input element-wise function.
-type UnaryElementwise struct {
-	x  Operand
-	f  func(i, j int, v mat.Float) mat.Float // function
-	df func(i, j int, v mat.Float) mat.Float // derivative
+type UnaryElementwise[T mat.DType] struct {
+	x  Operand[T]
+	f  func(i, j int, v T) T // function
+	df func(i, j int, v T) T // derivative
 }
 
 // Forward computes the output of this node.
-func (r *UnaryElementwise) Forward() mat.Matrix[mat.Float] {
-	y := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
+func (r *UnaryElementwise[T]) Forward() mat.Matrix[T] {
+	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 	y.Apply(r.f, r.x.Value())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *UnaryElementwise) Backward(gy mat.Matrix[mat.Float]) {
+func (r *UnaryElementwise[T]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[mat.Float]().Get(r.x.Value().Dims())
+		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
 		gx.Apply(r.df, r.x.Value())
 		gx.ProdInPlace(gy)

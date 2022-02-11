@@ -19,16 +19,16 @@ import (
 )
 
 var (
-	_ nn.Model = &Model{}
+	_ nn.Model[float32] = &Model[float32]{}
 )
 
 // Model contains the serializable parameters.
-type Model struct {
-	nn.BaseModel
+type Model[T mat.DType] struct {
+	nn.BaseModel[T]
 	Config
-	Conv     []*convolution1d.Model
-	Proj     []*convolution1d.Model
-	Scorer   *linear.Model
+	Conv     []*convolution1d.Model[T]
+	Proj     []*convolution1d.Model[T]
+	Scorer   *linear.Model[T]
 	PadUntil int
 }
 
@@ -42,17 +42,18 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model{})
+	gob.Register(&Model[float32]{})
+	gob.Register(&Model[float64]{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New(config Config) *Model {
+func New[T mat.DType](config Config) *Model[T] {
 	if config.DownsampleFactor > config.MaxBlockSize {
 		panic("gbst: downsample factor must be lower than maxiumum block size")
 	}
-	return &Model{
+	return &Model[T]{
 		Config: config,
-		Conv: makeConvModels(config.InputSize, convolution1d.Config{
+		Conv: makeConvModels[T](config.InputSize, convolution1d.Config{
 			KernelSizeX:    1,
 			KernelSizeY:    config.MaxBlockSize,
 			YStride:        1,
@@ -62,7 +63,7 @@ func New(config Config) *Model {
 			DepthWise:      false,
 			Activation:     ag.OpIdentity,
 		}),
-		Proj: makeConvModels(config.InputSize, convolution1d.Config{
+		Proj: makeConvModels[T](config.InputSize, convolution1d.Config{
 			KernelSizeX:    config.InputSize,
 			KernelSizeY:    1,
 			YStride:        1,
@@ -72,23 +73,23 @@ func New(config Config) *Model {
 			DepthWise:      false,
 			Activation:     ag.OpIdentity,
 		}),
-		Scorer:   linear.New(config.InputSize, 1),
+		Scorer:   linear.New[T](config.InputSize, 1),
 		PadUntil: lcm(config.BlockSize[0], config.BlockSize[1], config.BlockSize[2:len(config.BlockSize)]...),
 	}
 }
 
-func makeConvModels(n int, config convolution1d.Config) []*convolution1d.Model {
-	ms := make([]*convolution1d.Model, n)
+func makeConvModels[T mat.DType](n int, config convolution1d.Config) []*convolution1d.Model[T] {
+	ms := make([]*convolution1d.Model[T], n)
 	for i := 0; i < n; i++ {
-		ms[i] = convolution1d.New(config)
+		ms[i] = convolution1d.New[T](config)
 	}
 	return ms
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	l := len(xs)
-	ys := make([]ag.Node, l)
+	ys := make([]ag.Node[T], l)
 	xs = m.padToMultiple(xs...)
 	stackedIn := m.Graph().Stack(xs...)
 	transposedStackedIn := m.Graph().T(stackedIn)
@@ -101,11 +102,11 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // padToMultiple pads the sequence until lcm of blocks length
-func (m *Model) padToMultiple(xs ...ag.Node) []ag.Node {
+func (m *Model[T]) padToMultiple(xs ...ag.Node[T]) []ag.Node[T] {
 	n := nextDivisibleLength(len(xs), m.PadUntil)
 	for i := 0; i < n; i++ {
 		if i >= len(xs) {
-			xs = append(xs, m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.InputSize), false))
+			xs = append(xs, m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.InputSize), false))
 		}
 	}
 	return xs
@@ -113,9 +114,9 @@ func (m *Model) padToMultiple(xs ...ag.Node) []ag.Node {
 
 // blockMean applies the average pooling of different size blocks. For example, considering blocks size 2
 // out[0] = out[1] = average(in[0], in[1]);   out[2] = out[3] = average(in[2], in[3]) and so on.
-func (m *Model) blockMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node {
+func (m *Model[T]) blockMean(sequence []ag.Node[T], outputSize, blockSize int) []ag.Node[T] {
 	g := m.Graph()
-	out := make([]ag.Node, outputSize)
+	out := make([]ag.Node[T], outputSize)
 	l := len(sequence)
 	for i := 0; i < l; i++ {
 		if i < outputSize {
@@ -143,9 +144,9 @@ func (m *Model) blockMean(sequence []ag.Node, outputSize, blockSize int) []ag.No
 // This method, in contrast to the blockMean, returns a downsampled sequence.
 // For example, considering blocks size 2
 // out[0] =  average(in[0], in[1]);   out[1] = average(in[2], in[3]) and so on.
-func (m *Model) seqMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node {
+func (m *Model[T]) seqMean(sequence []ag.Node[T], outputSize, blockSize int) []ag.Node[T] {
 	g := m.Graph()
-	out := make([]ag.Node, outputSize)
+	out := make([]ag.Node[T], outputSize)
 	l := len(sequence)
 	j := 0
 	for i := 0; i < l; i++ {
@@ -162,11 +163,11 @@ func (m *Model) seqMean(sequence []ag.Node, outputSize, blockSize int) []ag.Node
 }
 
 // scorer is a parametrized linear function that produce a score for each candidate block.
-func (m *Model) scorer(blocksSequence [][]ag.Node, length int) []ag.Node {
+func (m *Model[T]) scorer(blocksSequence [][]ag.Node[T], length int) []ag.Node[T] {
 	g := m.Graph()
-	scores := make([]ag.Node, length)
+	scores := make([]ag.Node[T], length)
 	for i := 0; i < length; i++ {
-		ff := make([]ag.Node, len(m.BlockSize))
+		ff := make([]ag.Node[T], len(m.BlockSize))
 		for j, seq := range blocksSequence {
 			ff[j] = m.Scorer.Forward(g.T(seq[i]))[0]
 		}
@@ -178,9 +179,9 @@ func (m *Model) scorer(blocksSequence [][]ag.Node, length int) []ag.Node {
 	return scores
 }
 
-func (m *Model) scoreWithConsensusAttention(scores []ag.Node, length int) []ag.Node {
+func (m *Model[T]) scoreWithConsensusAttention(scores []ag.Node[T], length int) []ag.Node[T] {
 	g := m.Graph()
-	scoresAttention := make([]ag.Node, length)
+	scoresAttention := make([]ag.Node[T], length)
 	stackedScores := g.Stack(scores...)
 	dotProd := g.Mul(stackedScores, g.T(stackedScores))
 	for i := 0; i < length; i++ {
@@ -192,12 +193,12 @@ func (m *Model) scoreWithConsensusAttention(scores []ag.Node, length int) []ag.N
 }
 
 // weightSequence calculates the weighted sum between all blocks and their score.
-func (m *Model) weightSequence(blocksSequence [][]ag.Node, scores []ag.Node, length int) []ag.Node {
+func (m *Model[T]) weightSequence(blocksSequence [][]ag.Node[T], scores []ag.Node[T], length int) []ag.Node[T] {
 	g := m.Graph()
-	out := make([]ag.Node, length)
+	out := make([]ag.Node[T], length)
 	for i := 0; i < length; i++ {
 		sepScores := nn.SeparateVec(m.Graph(), scores[i])
-		weightedScore := m.Graph().NewVariable(mat.NewEmptyVecDense[mat.Float](m.InputSize), true)
+		weightedScore := m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.InputSize), true)
 		for j, seq := range blocksSequence {
 			weightedScore = g.Add(weightedScore, g.ProdScalar(seq[i], sepScores[j]))
 		}
@@ -207,8 +208,8 @@ func (m *Model) weightSequence(blocksSequence [][]ag.Node, scores []ag.Node, len
 }
 
 // convolution applies 1d convolution through the sequence, for each character dimension.
-func (m *Model) convolution(xs ag.Node) ag.Node {
-	convolved := make([]ag.Node, xs.Value().Rows())
+func (m *Model[T]) convolution(xs ag.Node[T]) ag.Node[T] {
+	convolved := make([]ag.Node[T], xs.Value().Rows())
 	for i := 0; i < xs.Value().Rows(); i++ {
 		row := m.Graph().RowView(xs, i)
 		convolved[i] = m.Conv[i].Forward(row)[0]
@@ -217,14 +218,14 @@ func (m *Model) convolution(xs ag.Node) ag.Node {
 }
 
 // projection applies a projection after the convolution through the sequence, for each character dimension.
-func (m *Model) projection(inStackedVectors ag.Node, length int) []ag.Node {
-	projectedXs := make([]ag.Node, length)
+func (m *Model[T]) projection(inStackedVectors ag.Node[T], length int) []ag.Node[T] {
+	projectedXs := make([]ag.Node[T], length)
 	for i := 0; i < length; i++ {
 		projectedXs[i] = m.Proj[i].Forward(inStackedVectors)[0]
 	}
 	stackedProjectedXs := m.Graph().Stack(projectedXs...)
 	stackedProjectedXs = m.Graph().T(stackedProjectedXs)
-	convolvedEmbeddings := make([]ag.Node, stackedProjectedXs.Value().Rows())
+	convolvedEmbeddings := make([]ag.Node[T], stackedProjectedXs.Value().Rows())
 	for i := range convolvedEmbeddings {
 		convolvedEmbeddings[i] = m.Graph().RowView(stackedProjectedXs, i)
 	}
@@ -232,9 +233,9 @@ func (m *Model) projection(inStackedVectors ag.Node, length int) []ag.Node {
 }
 
 // blocksMean calculates the average pooling for each block of length 1 .. m.Blocksize, for the sequence of length l
-func (m *Model) blocksMean(convolvedEmbeddings []ag.Node, length int) [][]ag.Node {
-	meanSequences := make([][]ag.Node, len(m.BlockSize))
-	meanSequences[0] = make([]ag.Node, length)
+func (m *Model[T]) blocksMean(convolvedEmbeddings []ag.Node[T], length int) [][]ag.Node[T] {
+	meanSequences := make([][]ag.Node[T], len(m.BlockSize))
+	meanSequences[0] = make([]ag.Node[T], length)
 	maxLen := len(convolvedEmbeddings)
 	for i := 0; i < length; i++ {
 		if i < maxLen {
@@ -250,7 +251,7 @@ func (m *Model) blocksMean(convolvedEmbeddings []ag.Node, length int) [][]ag.Nod
 }
 
 // downsample reduces the sequence by the downsample factor
-func (m *Model) downsample(xs []ag.Node) []ag.Node {
+func (m *Model[T]) downsample(xs []ag.Node[T]) []ag.Node[T] {
 	if m.DownsampleFactor < 2 {
 		return xs
 	}
