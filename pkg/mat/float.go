@@ -14,4 +14,4 @@ package mat
 // Once the transition to generics will be complete, this type will be probably
 // removed, or refactored into something else. You should not use this type
 // unless you really know what you are doing!
-type Float = float32
+type Float = float64

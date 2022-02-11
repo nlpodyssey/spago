@@ -159,14 +159,15 @@ func (r *reifier[T]) reifySlice(sourceField reflect.Value, tag moduleFieldTag) r
 	return result
 }
 
-// TODO: check if this works well with generics!
-var paramInterfaceName = reflect.TypeOf((*Param[float32])(nil)).Elem().Name()
+func paramInterfaceNamePrefix[T mat.DType]() string {
+	return reflect.TypeOf((*Param[T])(nil)).Elem().Name()
+}
 
 func (r *reifier[T]) reifyMap(sourceValue reflect.Value, tag moduleFieldTag) reflect.Value {
 	sourceType := reflect.TypeOf(sourceValue.Interface())
 	mapValueType := sourceType.Elem()
 
-	if mapValueType.Name() != paramInterfaceName && tag.Type != paramsModuleFieldType {
+	if mapValueType.Name() != paramInterfaceNamePrefix[T]() && tag.Type != paramsModuleFieldType {
 		return sourceValue
 	}
 
