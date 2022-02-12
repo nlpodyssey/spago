@@ -12,12 +12,10 @@ import (
 
 var _ fmt.Formatter = &Dense[float32]{}
 var _ fmt.Formatter = &Dense[float64]{}
-var _ fmt.Formatter = &Dense[Float]{}
 
 func TestDense_Format(t *testing.T) {
 	t.Run("float32", testDenseFormat[float32])
 	t.Run("float64", testDenseFormat[float64])
-	t.Run("Float", testDenseFormat[Float])
 }
 
 func testDenseFormat[T DType](t *testing.T) {

@@ -14,7 +14,6 @@ import (
 func TestDTSlice(t *testing.T) {
 	t.Run("float32", testDTSlice[float32])
 	t.Run("float64", testDTSlice[float64])
-	t.Run("Float", testDTSlice[mat.Float])
 }
 
 func testDTSlice[T mat.DType](t *testing.T) {

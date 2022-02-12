@@ -15,8 +15,8 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-  test-float32:
-    name: Test (float32)
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -32,22 +32,6 @@ jobs:
       uses: codecov/codecov-action@v1.0.7
       with:
         file: ./cover.out
-
-  test-float64:
-    name: Test (float64)
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-go@v2
-      with:
-        stable: 'false'
-        go-version: '1.18.0-beta2'
-    - name: Get dependencies
-      run: go get -v -t -d ./...
-    - name: Change float type to float64
-      run: ./change-float-type.sh 64
-    - name: Run tests
-      run: go test ./...
 
   static-analysis:
     name: Static analysis

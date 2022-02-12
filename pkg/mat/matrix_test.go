@@ -14,7 +14,6 @@ import (
 func TestIsVector(t *testing.T) {
 	t.Run("float32", testIsVector[float32])
 	t.Run("float64", testIsVector[float64])
-	t.Run("Float", testIsVector[Float])
 }
 
 func testIsVector[T DType](t *testing.T) {
@@ -45,7 +44,6 @@ func testIsVector[T DType](t *testing.T) {
 func TestIsScalar(t *testing.T) {
 	t.Run("float32", testIsScalar[float32])
 	t.Run("float64", testIsScalar[float64])
-	t.Run("Float", testIsScalar[Float])
 }
 
 func testIsScalar[T DType](t *testing.T) {
@@ -74,7 +72,6 @@ func testIsScalar[T DType](t *testing.T) {
 func TestSameDims(t *testing.T) {
 	t.Run("float32", testSameDims[float32])
 	t.Run("float64", testSameDims[float64])
-	t.Run("Float", testSameDims[Float])
 }
 
 func testSameDims[T DType](t *testing.T) {

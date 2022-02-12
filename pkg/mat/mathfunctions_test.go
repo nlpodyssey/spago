@@ -22,7 +22,6 @@ func TestSmallestNonzero(t *testing.T) {
 func TestPi(t *testing.T) {
 	t.Run("float32", testPi[float32])
 	t.Run("float64", testPi[float64])
-	t.Run("Float", testPi[Float])
 }
 
 func testPi[T DType](t *testing.T) {
@@ -32,7 +31,6 @@ func testPi[T DType](t *testing.T) {
 func TestPow(t *testing.T) {
 	t.Run("float32", testPow[float32])
 	t.Run("float64", testPow[float64])
-	t.Run("Float", testPow[Float])
 }
 
 func testPow[T DType](t *testing.T) {
@@ -42,7 +40,6 @@ func testPow[T DType](t *testing.T) {
 func TestCos(t *testing.T) {
 	t.Run("float32", testCos[float32])
 	t.Run("float64", testCos[float64])
-	t.Run("Float", testCos[Float])
 }
 
 func testCos[T DType](t *testing.T) {
@@ -52,7 +49,6 @@ func testCos[T DType](t *testing.T) {
 func TestSin(t *testing.T) {
 	t.Run("float32", testSin[float32])
 	t.Run("float64", testSin[float64])
-	t.Run("Float", testSin[Float])
 }
 
 func testSin[T DType](t *testing.T) {
@@ -62,7 +58,6 @@ func testSin[T DType](t *testing.T) {
 func TestCosh(t *testing.T) {
 	t.Run("float32", testCosh[float32])
 	t.Run("float64", testCosh[float64])
-	t.Run("Float", testCosh[Float])
 }
 
 func testCosh[T DType](t *testing.T) {
@@ -72,7 +67,6 @@ func testCosh[T DType](t *testing.T) {
 func TestSinh(t *testing.T) {
 	t.Run("float32", testSinh[float32])
 	t.Run("float64", testSinh[float64])
-	t.Run("Float", testSinh[Float])
 }
 
 func testSinh[T DType](t *testing.T) {
@@ -82,7 +76,6 @@ func testSinh[T DType](t *testing.T) {
 func TestExp(t *testing.T) {
 	t.Run("float32", testExp[float32])
 	t.Run("float64", testExp[float64])
-	t.Run("Float", testExp[Float])
 }
 
 func testExp[T DType](t *testing.T) {
@@ -92,7 +85,6 @@ func testExp[T DType](t *testing.T) {
 func TestAbs(t *testing.T) {
 	t.Run("float32", testAbs[float32])
 	t.Run("float64", testAbs[float64])
-	t.Run("Float", testAbs[Float])
 }
 
 func testAbs[T DType](t *testing.T) {
@@ -103,7 +95,6 @@ func testAbs[T DType](t *testing.T) {
 func TestSqrt(t *testing.T) {
 	t.Run("float32", testSqrt[float32])
 	t.Run("float64", testSqrt[float64])
-	t.Run("Float", testSqrt[Float])
 }
 
 func testSqrt[T DType](t *testing.T) {
@@ -113,7 +104,6 @@ func testSqrt[T DType](t *testing.T) {
 func TestLog(t *testing.T) {
 	t.Run("float32", testLog[float32])
 	t.Run("float64", testLog[float64])
-	t.Run("Float", testLog[Float])
 }
 
 func testLog[T DType](t *testing.T) {
@@ -123,7 +113,6 @@ func testLog[T DType](t *testing.T) {
 func TestTan(t *testing.T) {
 	t.Run("float32", testTan[float32])
 	t.Run("float64", testTan[float64])
-	t.Run("Float", testTan[Float])
 }
 
 func testTan[T DType](t *testing.T) {
@@ -133,7 +122,6 @@ func testTan[T DType](t *testing.T) {
 func TestTanh(t *testing.T) {
 	t.Run("float32", testTanh[float32])
 	t.Run("float64", testTanh[float64])
-	t.Run("Float", testTanh[Float])
 }
 
 func testTanh[T DType](t *testing.T) {
@@ -143,7 +131,6 @@ func testTanh[T DType](t *testing.T) {
 func TestMax(t *testing.T) {
 	t.Run("float32", testMax[float32])
 	t.Run("float64", testMax[float64])
-	t.Run("Float", testMax[Float])
 }
 
 func testMax[T DType](t *testing.T) {
@@ -154,7 +141,6 @@ func testMax[T DType](t *testing.T) {
 func TestInf(t *testing.T) {
 	t.Run("float32", testInf[float32])
 	t.Run("float64", testInf[float64])
-	t.Run("Float", testInf[Float])
 }
 
 func testInf[T DType](t *testing.T) {
@@ -165,7 +151,6 @@ func testInf[T DType](t *testing.T) {
 func TestIsInf(t *testing.T) {
 	t.Run("float32", testIsInf[float32])
 	t.Run("float64", testIsInf[float64])
-	t.Run("Float", testIsInf[Float])
 }
 
 func testIsInf[T DType](t *testing.T) {
@@ -180,7 +165,6 @@ func testIsInf[T DType](t *testing.T) {
 func TestNaN(t *testing.T) {
 	t.Run("float32", testNaN[float32])
 	t.Run("float64", testNaN[float64])
-	t.Run("Float", testNaN[Float])
 }
 
 func testNaN[T DType](t *testing.T) {
@@ -190,7 +174,6 @@ func testNaN[T DType](t *testing.T) {
 func TestCeil(t *testing.T) {
 	t.Run("float32", testCeil[float32])
 	t.Run("float64", testCeil[float64])
-	t.Run("Float", testCeil[Float])
 }
 
 func testCeil[T DType](t *testing.T) {
@@ -200,7 +183,6 @@ func testCeil[T DType](t *testing.T) {
 func TestFloor(t *testing.T) {
 	t.Run("float32", testFloor[float32])
 	t.Run("float64", testFloor[float64])
-	t.Run("Float", testFloor[Float])
 }
 
 func testFloor[T DType](t *testing.T) {
@@ -210,7 +192,6 @@ func testFloor[T DType](t *testing.T) {
 func TestRound(t *testing.T) {
 	t.Run("float32", testRound[float32])
 	t.Run("float64", testRound[float64])
-	t.Run("Float", testRound[Float])
 }
 
 func testRound[T DType](t *testing.T) {

@@ -17,7 +17,6 @@ var _ Matrix[float64] = &Dense[float64]{}
 func TestNewDense(t *testing.T) {
 	t.Run("float32", testNewDense[float32])
 	t.Run("float64", testNewDense[float64])
-	t.Run("Float", testNewDense[Float])
 }
 
 func testNewDense[T DType](t *testing.T) {
@@ -73,7 +72,6 @@ func testNewDense[T DType](t *testing.T) {
 func TestNewVecDense(t *testing.T) {
 	t.Run("float32", testNewVecDense[float32])
 	t.Run("float64", testNewVecDense[float64])
-	t.Run("Float", testNewVecDense[Float])
 }
 
 func testNewVecDense[T DType](t *testing.T) {
@@ -99,7 +97,6 @@ func testNewVecDense[T DType](t *testing.T) {
 func TestNewScalar(t *testing.T) {
 	t.Run("float32", testNewScalar[float32])
 	t.Run("float64", testNewScalar[float64])
-	t.Run("Float", testNewScalar[Float])
 }
 
 func testNewScalar[T DType](t *testing.T) {
@@ -111,7 +108,6 @@ func testNewScalar[T DType](t *testing.T) {
 func TestNewEmptyVecDense(t *testing.T) {
 	t.Run("float32", testNewEmptyVecDense[float32])
 	t.Run("float64", testNewEmptyVecDense[float64])
-	t.Run("Float", testNewEmptyVecDense[Float])
 }
 
 func testNewEmptyVecDense[T DType](t *testing.T) {
@@ -135,7 +131,6 @@ func testNewEmptyVecDense[T DType](t *testing.T) {
 func TestNewEmptyDense(t *testing.T) {
 	t.Run("float32", testNewEmptyDense[float32])
 	t.Run("float64", testNewEmptyDense[float64])
-	t.Run("Float", testNewEmptyDense[Float])
 }
 
 func testNewEmptyDense[T DType](t *testing.T) {
@@ -167,7 +162,6 @@ func testNewEmptyDense[T DType](t *testing.T) {
 func TestNewOneHotVecDense(t *testing.T) {
 	t.Run("float32", testNewOneHotVecDense[float32])
 	t.Run("float64", testNewOneHotVecDense[float64])
-	t.Run("Float", testNewOneHotVecDense[Float])
 }
 func testNewOneHotVecDense[T DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
@@ -218,7 +212,6 @@ func testNewOneHotVecDense[T DType](t *testing.T) {
 func TestNewInitDense(t *testing.T) {
 	t.Run("float32", testNewInitDense[float32])
 	t.Run("float64", testNewInitDense[float64])
-	t.Run("Float", testNewInitDense[Float])
 }
 
 func testNewInitDense[T DType](t *testing.T) {
@@ -250,7 +243,6 @@ func testNewInitDense[T DType](t *testing.T) {
 func TestNewInitVecDense(t *testing.T) {
 	t.Run("float32", testNewInitVecDense[float32])
 	t.Run("float64", testNewInitVecDense[float64])
-	t.Run("Float", testNewInitVecDense[Float])
 }
 
 func testNewInitVecDense[T DType](t *testing.T) {
@@ -274,7 +266,6 @@ func testNewInitVecDense[T DType](t *testing.T) {
 func TestNewIdentityDense(t *testing.T) {
 	t.Run("float32", testNewIdentityDense[float32])
 	t.Run("float64", testNewIdentityDense[float64])
-	t.Run("Float", testNewIdentityDense[Float])
 }
 
 func testNewIdentityDense[T DType](t *testing.T) {
@@ -318,7 +309,6 @@ func testNewIdentityDense[T DType](t *testing.T) {
 func TestDense_SetData(t *testing.T) {
 	t.Run("float32", testDenseSetData[float32])
 	t.Run("float64", testDenseSetData[float64])
-	t.Run("Float", testDenseSetData[Float])
 }
 
 func testDenseSetData[T DType](t *testing.T) {
@@ -352,7 +342,6 @@ func testDenseSetData[T DType](t *testing.T) {
 func TestDense_ZerosLike(t *testing.T) {
 	t.Run("float32", testDenseZerosLike[float32])
 	t.Run("float64", testDenseZerosLike[float64])
-	t.Run("Float", testDenseZerosLike[Float])
 }
 
 func testDenseZerosLike[T DType](t *testing.T) {
@@ -373,7 +362,6 @@ func testDenseZerosLike[T DType](t *testing.T) {
 func TestDense_OnesLike(t *testing.T) {
 	t.Run("float32", testDenseOnesLike[float32])
 	t.Run("float64", testDenseOnesLike[float64])
-	t.Run("Float", testDenseOnesLike[Float])
 }
 
 func testDenseOnesLike[T DType](t *testing.T) {
@@ -394,7 +382,6 @@ func testDenseOnesLike[T DType](t *testing.T) {
 func TestDense_Scalar(t *testing.T) {
 	t.Run("float32", testDenseScalar[float32])
 	t.Run("float64", testDenseScalar[float64])
-	t.Run("Float", testDenseScalar[Float])
 }
 
 func testDenseScalar[T DType](t *testing.T) {
@@ -414,7 +401,6 @@ func testDenseScalar[T DType](t *testing.T) {
 func TestDense_Zeros(t *testing.T) {
 	t.Run("float32", testDenseZeros[float32])
 	t.Run("float64", testDenseZeros[float64])
-	t.Run("Float", testDenseZeros[Float])
 }
 
 func testDenseZeros[T DType](t *testing.T) {
@@ -435,7 +421,6 @@ func testDenseZeros[T DType](t *testing.T) {
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
-	t.Run("Float", testDenseAddScalar[Float])
 }
 
 func testDenseAddScalar[T DType](t *testing.T) {

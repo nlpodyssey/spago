@@ -27,7 +27,6 @@ func TestGetDensePool(t *testing.T) {
 func TestDensePool_GetDense(t *testing.T) {
 	t.Run("float32", testDensePoolGetDense[float32])
 	t.Run("float64", testDensePoolGetDense[float64])
-	t.Run("Float", testDensePoolGetDense[Float])
 }
 
 func testDensePoolGetDense[T DType](t *testing.T) {
@@ -87,7 +86,6 @@ func assertDenseFromPoolDims[T DType](t *testing.T, expectedRows, expectedCols, 
 func TestGetAndRelease(t *testing.T) {
 	t.Run("float32", testGetAndRelease[float32])
 	t.Run("float64", testGetAndRelease[float64])
-	t.Run("Float", testGetAndRelease[Float])
 }
 
 func testGetAndRelease[T DType](t *testing.T) {
@@ -143,7 +141,6 @@ func testGetAndRelease[T DType](t *testing.T) {
 func TestDensePool_Get(t *testing.T) {
 	t.Run("float32", testDensePoolGet[float32])
 	t.Run("float64", testDensePoolGet[float64])
-	t.Run("Float", testDensePoolGet[Float])
 }
 
 func testDensePoolGet[T DType](t *testing.T) {
@@ -165,7 +162,6 @@ func testDensePoolGet[T DType](t *testing.T) {
 func TestDensePool_GetEmpty(t *testing.T) {
 	t.Run("float32", testDensePoolGetEmpty[float32])
 	t.Run("float64", testDensePoolGetEmpty[float64])
-	t.Run("Float", testDensePoolGetEmpty[Float])
 }
 
 func testDensePoolGetEmpty[T DType](t *testing.T) {
@@ -185,7 +181,6 @@ func testDensePoolGetEmpty[T DType](t *testing.T) {
 func TestDensePool_Put(t *testing.T) {
 	t.Run("float32", testDensePoolPut[float32])
 	t.Run("float64", testDensePoolPut[float64])
-	t.Run("Float", testDensePoolPut[Float])
 }
 
 func testDensePoolPut[T DType](t *testing.T) {
