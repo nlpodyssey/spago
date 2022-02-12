@@ -11,9 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var (
-	_ nn.Model[float32] = &Model[float32]{}
-)
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the activation operator and serializable parameters.
 type Model[T mat.DType] struct {

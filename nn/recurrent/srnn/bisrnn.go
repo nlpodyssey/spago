@@ -21,9 +21,7 @@ import (
 	"sync"
 )
 
-var (
-	_ nn.Model[float32] = &BiModel[float32]{}
-)
+var _ nn.Model[float32] = &BiModel[float32]{}
 
 // BiModel contains the serializable parameters.
 type BiModel[T mat.DType] struct {

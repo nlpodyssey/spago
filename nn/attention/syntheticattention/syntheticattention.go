@@ -17,9 +17,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var (
-	_ nn.Model[float32] = &Model[float32]{}
-)
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
