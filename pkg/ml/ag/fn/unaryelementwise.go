@@ -19,9 +19,7 @@ type UnaryElementwise[T mat.DType] struct {
 
 // Forward computes the output of this node.
 func (r *UnaryElementwise[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyInPlace(r.f, r.x.Value())
-	return y
+	return r.x.Value().Apply(r.f)
 }
 
 // Backward computes the backward pass.
@@ -30,9 +28,8 @@ func (r *UnaryElementwise[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyInPlace(r.df, r.x.Value())
+		gx := r.x.Value().Apply(r.df)
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
