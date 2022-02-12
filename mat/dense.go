@@ -102,6 +102,30 @@ func NewInitDense[T DType](rows, cols int, v T) *Dense[T] {
 	return out
 }
 
+// NewInitFuncDense returns a new rows×cols dense matrix initialized with the
+// values returned from the callback function.
+func NewInitFuncDense[T DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
+	if rows < 0 || cols < 0 {
+		panic("mat: negative values for rows and cols are not allowed")
+	}
+	out := GetDensePool[T]().Get(rows, cols)
+
+	outData := out.data
+
+	r := 0
+	c := 0
+	for i := range outData {
+		outData[i] = fn(r, c)
+		c++
+		if c == cols {
+			r++
+			c = 0
+		}
+	}
+
+	return out
+}
+
 // NewInitVecDense returns a new column vector (size×1) initialized with a
 // constant value.
 func NewInitVecDense[T DType](size int, v T) *Dense[T] {
