@@ -29,11 +29,7 @@ func (r *ColView[T]) Forward() mat.Matrix[T] {
 	if r.i >= cols {
 		panic("fn: matrix with not compatible size")
 	}
-	y := mat.GetDensePool[T]().Get(1, rows)
-	for i := 0; i < rows; i++ {
-		y.Set(0, i, xv.At(i, r.i))
-	}
-	return y
+	return xv.ExtractColumn(r.i).ReshapeInPlace(1, rows)
 }
 
 // Backward computes the backward pass.
