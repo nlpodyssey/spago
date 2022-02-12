@@ -24,8 +24,7 @@ func NewSoftPlus[T mat.DType](x, beta, threshold Operand[T]) *SoftPlus[T] {
 
 // Forward computes the output of the function.
 func (r *SoftPlus[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(softPlus[T], r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(softPlus[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 	return y
 }
 
@@ -35,9 +34,8 @@ func (r *SoftPlus[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(softPlusDeriv[T], r.x.Value(), r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(softPlusDeriv[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

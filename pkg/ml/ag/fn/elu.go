@@ -24,8 +24,7 @@ func NewELU[T mat.DType](x, alpha Operand[T]) *ELU[T] {
 
 // Forward computes the output of the function.
 func (r *ELU[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(elu[T], r.x.Value(), r.alpha.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(elu[T], r.alpha.Value().Scalar())
 	return y
 }
 
@@ -35,9 +34,8 @@ func (r *ELU[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(eluDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(eluDeriv[T], r.alpha.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

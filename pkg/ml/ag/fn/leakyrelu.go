@@ -24,8 +24,7 @@ func NewLeakyReLU[T mat.DType](x, alpha Operand[T]) *LeakyReLU[T] {
 
 // Forward computes the output of the function.
 func (r *LeakyReLU[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(leakyReLU[T], r.x.Value(), r.alpha.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(leakyReLU[T], r.alpha.Value().Scalar())
 	return y
 }
 
@@ -35,9 +34,8 @@ func (r *LeakyReLU[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(leakyReLUDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(leakyReLUDeriv[T], r.alpha.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

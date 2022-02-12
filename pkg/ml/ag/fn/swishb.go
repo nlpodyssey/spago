@@ -26,8 +26,7 @@ func NewSwishB[T mat.DType](x, beta Operand[T]) *SwishB[T] {
 
 // Forward computes the output of the function.
 func (r *SwishB[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(swishB[T], r.x.Value(), r.beta.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(swishB[T], r.beta.Value().Scalar())
 	return y
 }
 
@@ -37,8 +36,8 @@ func (r *SwishB[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		gx.ApplyWithAlphaInPlace(swishBDeriv[T], r.x.Value(), r.beta.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(swishBDeriv[T], r.beta.Value().Scalar())
+		// TODO: can defer mat.ReleaseDense(gb) ?
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

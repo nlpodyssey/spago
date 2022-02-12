@@ -24,9 +24,7 @@ func NewCELU[T mat.DType](x, alpha Operand[T]) *CELU[T] {
 
 // Forward computes the output of the function.
 func (r *CELU[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(celu[T], r.x.Value(), r.alpha.Value().Scalar())
-	return y
+	return r.x.Value().ApplyWithAlpha(celu[T], r.alpha.Value().Scalar())
 }
 
 // Backward computes the backward pass.
@@ -35,9 +33,8 @@ func (r *CELU[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(celuDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(celuDeriv[T], r.alpha.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

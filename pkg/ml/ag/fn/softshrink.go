@@ -23,8 +23,7 @@ func NewSoftShrink[T mat.DType](x, lambda Operand[T]) *SoftShrink[T] {
 
 // Forward computes the output of the function.
 func (r *SoftShrink[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(softShrink[T], r.x.Value(), r.lambda.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(softShrink[T], r.lambda.Value().Scalar())
 	return y
 }
 
@@ -34,9 +33,8 @@ func (r *SoftShrink[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(softShrinkDeriv[T], r.x.Value(), r.lambda.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(softShrinkDeriv[T], r.lambda.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

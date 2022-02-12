@@ -24,8 +24,7 @@ func NewSELU[T mat.DType](x, alpha, scale Operand[T]) *SELU[T] {
 
 // Forward computes the output of the function.
 func (r *SELU[T]) Forward() mat.Matrix[T] {
-	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlphaInPlace(selu[T], r.x.Value(), r.alpha.Value().Scalar(), r.scale.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(selu[T], r.alpha.Value().Scalar(), r.scale.Value().Scalar())
 	return y
 }
 
@@ -35,9 +34,8 @@ func (r *SELU[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlphaInPlace(seluDeriv[T], r.x.Value(), r.alpha.Value().Scalar(), r.scale.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(seluDeriv[T], r.alpha.Value().Scalar(), r.scale.Value().Scalar())
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
