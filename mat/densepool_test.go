@@ -12,14 +12,14 @@ import (
 	"testing"
 )
 
-func TestGetDensePool(t *testing.T) {
+func TestDensePool(t *testing.T) {
 	t.Run("float32", func(t *testing.T) {
-		dp := GetDensePool[float32]()
+		dp := densePool[float32]()
 		require.Same(t, densePoolFloat32, dp)
 	})
 
 	t.Run("float64", func(t *testing.T) {
-		dp := GetDensePool[float64]()
+		dp := densePool[float64]()
 		require.Same(t, densePoolFloat64, dp)
 	})
 }
@@ -30,7 +30,7 @@ func TestDensePool_GetDense(t *testing.T) {
 }
 
 func testDensePoolGetDense[T DType](t *testing.T) {
-	densePool := GetDensePool[T]()
+	densePool := densePool[T]()
 
 	t.Run("negative rows", func(t *testing.T) {
 		require.Panics(t, func() {
@@ -83,15 +83,15 @@ func assertDenseFromPoolDims[T DType](t *testing.T, expectedRows, expectedCols, 
 	assert.Equal(t, expectedCap, cap(d.data))
 }
 
-func TestGetAndRelease(t *testing.T) {
+func TestDensePool_GetAndRelease(t *testing.T) {
 	t.Run("float32", testGetAndRelease[float32])
 	t.Run("float64", testGetAndRelease[float64])
 }
 
 func testGetAndRelease[T DType](t *testing.T) {
 	runtime.GC()
-	a1 := GetDensePool[T]().Get(5, 1)
-	b1 := GetDensePool[T]().Get(10, 1)
+	a1 := densePool[T]().Get(5, 1)
+	b1 := densePool[T]().Get(10, 1)
 
 	assert.Len(t, a1.data, 5)
 	assert.Equal(t, 7, cap(a1.data))
@@ -102,14 +102,14 @@ func testGetAndRelease[T DType](t *testing.T) {
 	a1.data[0] = 42
 	b1.data[0] = 24
 
-	GetDensePool[T]().Put(a1)
-	GetDensePool[T]().Put(b1)
+	densePool[T]().Put(a1)
+	densePool[T]().Put(b1)
 
-	a2 := GetDensePool[T]().Get(6, 1)
-	b2 := GetDensePool[T]().Get(9, 1)
+	a2 := densePool[T]().Get(6, 1)
+	b2 := densePool[T]().Get(9, 1)
 
-	x := GetDensePool[T]().Get(6, 1)
-	y := GetDensePool[T]().Get(9, 1)
+	x := densePool[T]().Get(6, 1)
+	y := densePool[T]().Get(9, 1)
 
 	assert.Len(t, a2.data, 6)
 	assert.Equal(t, 7, cap(a2.data))
@@ -145,17 +145,17 @@ func TestDensePool_Get(t *testing.T) {
 
 func testDensePoolGet[T DType](t *testing.T) {
 	runtime.GC()
-	d := GetDensePool[T]().Get(2, 3)
+	d := densePool[T]().Get(2, 3)
 
 	assert.Equal(t, 2, d.Rows())
 	assert.Equal(t, 3, d.Columns())
 	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data())
 
 	d.SetData([]T{1, 2, 3, 4, 5, 6})
-	GetDensePool[T]().Put(d)
-	d = GetDensePool[T]().Get(2, 3)
+	densePool[T]().Put(d)
+	d = densePool[T]().Get(2, 3)
 	assert.Equal(t, []T{1, 2, 3, 4, 5, 6}, d.Data(), "possible dirty data is not zeroed")
-	GetDensePool[T]().Put(d)
+	densePool[T]().Put(d)
 	runtime.GC()
 }
 
@@ -165,17 +165,17 @@ func TestDensePool_GetEmpty(t *testing.T) {
 }
 
 func testDensePoolGetEmpty[T DType](t *testing.T) {
-	d := GetDensePool[T]().GetEmpty(2, 3)
+	d := densePool[T]().GetEmpty(2, 3)
 
 	assert.Equal(t, 2, d.Rows())
 	assert.Equal(t, 3, d.Columns())
 	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data())
 
 	d.SetData([]T{1, 2, 3, 4, 5, 6})
-	GetDensePool[T]().Put(d)
-	d = GetDensePool[T]().GetEmpty(2, 3)
+	densePool[T]().Put(d)
+	d = densePool[T]().GetEmpty(2, 3)
 	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data(), "possible dirty data is zeroed")
-	GetDensePool[T]().Put(d)
+	densePool[T]().Put(d)
 }
 
 func TestDensePool_Put(t *testing.T) {
@@ -186,8 +186,8 @@ func TestDensePool_Put(t *testing.T) {
 func testDensePoolPut[T DType](t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
-		defer GetDensePool[T]().Put(d)
+		defer densePool[T]().Put(d)
 		view := d.View(4, 3)
-		assert.Panics(t, func() { GetDensePool[T]().Put(view.(*Dense[T])) })
+		assert.Panics(t, func() { densePool[T]().Put(view.(*Dense[T])) })
 	})
 }

@@ -38,7 +38,7 @@ func NewDense[T DType](rows, cols int, data []T) *Dense[T] {
 	if len(data) != rows*cols {
 		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
-	d := GetDensePool[T]().Get(rows, cols)
+	d := densePool[T]().Get(rows, cols)
 	copy(d.data, data)
 	return d
 }
@@ -46,14 +46,14 @@ func NewDense[T DType](rows, cols int, data []T) *Dense[T] {
 // NewVecDense returns a new column vector (len(data)×1) initialized with
 // a copy of raw data.
 func NewVecDense[T DType](data []T) *Dense[T] {
-	d := GetDensePool[T]().Get(len(data), 1)
+	d := densePool[T]().Get(len(data), 1)
 	copy(d.data, data)
 	return d
 }
 
 // NewScalar returns a new 1×1 matrix containing the given value.
 func NewScalar[T DType](v T) *Dense[T] {
-	d := GetDensePool[T]().Get(1, 1)
+	d := densePool[T]().Get(1, 1)
 	d.data[0] = v
 	return d
 }
@@ -64,7 +64,7 @@ func NewEmptyVecDense[T DType](size int) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	return GetDensePool[T]().GetEmpty(size, 1)
+	return densePool[T]().GetEmpty(size, 1)
 }
 
 // NewEmptyDense returns a new rows×cols matrix, initialized with zeros.
@@ -72,7 +72,7 @@ func NewEmptyDense[T DType](rows, cols int) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	return GetDensePool[T]().GetEmpty(rows, cols)
+	return densePool[T]().GetEmpty(rows, cols)
 }
 
 // NewOneHotVecDense returns a new one-hot column vector (size×1).
@@ -83,7 +83,7 @@ func NewOneHotVecDense[T DType](size int, oneAt int) *Dense[T] {
 	if oneAt < 0 || oneAt >= size {
 		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
 	}
-	vec := GetDensePool[T]().GetEmpty(size, 1)
+	vec := densePool[T]().GetEmpty(size, 1)
 	vec.data[oneAt] = 1
 	return vec
 }
@@ -94,7 +94,7 @@ func NewInitDense[T DType](rows, cols int, v T) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	out := GetDensePool[T]().Get(rows, cols)
+	out := densePool[T]().Get(rows, cols)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = v
@@ -108,7 +108,7 @@ func NewInitFuncDense[T DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	out := GetDensePool[T]().Get(rows, cols)
+	out := densePool[T]().Get(rows, cols)
 
 	outData := out.data
 
@@ -132,7 +132,7 @@ func NewInitVecDense[T DType](size int, v T) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	out := GetDensePool[T]().Get(size, 1)
+	out := densePool[T]().Get(size, 1)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = v
@@ -146,7 +146,7 @@ func NewIdentityDense[T DType](size int) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	out := GetDensePool[T]().GetEmpty(size, size)
+	out := densePool[T]().GetEmpty(size, size)
 	data := out.data
 	ln := len(data)
 	for i := 0; i < ln; i += size + 1 {
@@ -202,7 +202,7 @@ func (d *Dense[T]) ZerosLike() Matrix[T] {
 // OnesLike returns a new matrix with the same dimensions of the
 // receiver, initialized with ones.
 func (d *Dense[T]) OnesLike() Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = 1.0
@@ -290,7 +290,7 @@ func (d *Dense[T]) ExtractColumn(i int) Matrix[T] {
 	if i < 0 || i >= d.cols {
 		panic("mat: index out of range")
 	}
-	out := GetDensePool[T]().Get(d.rows, 1)
+	out := densePool[T]().Get(d.rows, 1)
 	dData := d.data
 	outData := out.data
 	for k := range outData {
@@ -366,7 +366,7 @@ func (d *Dense[T]) T() Matrix[T] {
 	dRows := d.rows
 	dCols := d.cols
 
-	m := GetDensePool[T]().Get(dCols, dRows)
+	m := densePool[T]().Get(dCols, dRows)
 	size := len(m.data)
 	index := 0
 	for _, value := range d.data {
@@ -385,7 +385,7 @@ func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
 		panic("mat: matrices have incompatible dimensions")
 	}
 
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 
 	// Avoid bounds checks in loop
 	dData := d.data
@@ -476,7 +476,7 @@ func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
 	if !SameDims(Matrix[T](d), other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
 	otherData := other.Data()
 	outData := out.data
@@ -497,7 +497,7 @@ func (d *Dense[T]) Minimum(other Matrix[T]) Matrix[T] {
 	if !SameDims(Matrix[T](d), other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
 	otherData := other.Data()
 	outData := out.data
@@ -540,7 +540,7 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 
 // Apply creates a new matrix executing the unary function fn.
 func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -590,7 +590,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
 // ApplyWithAlpha creates a new matrix executing the unary function fn,
 // taking additional parameters alpha.
 func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ...T) Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -734,7 +734,7 @@ func (d *Dense[T]) PadColumns(n int) Matrix[T] {
 
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (d *Dense[T]) Abs() Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	outData := out.data
 	for i, val := range d.data {
 		outData[i] = Abs(val)
@@ -745,7 +745,7 @@ func (d *Dense[T]) Abs() Matrix[T] {
 // Pow returns a new matrix, applying the power function with given exponent
 // to all elements of the matrix.
 func (d *Dense[T]) Pow(power T) Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	outData := out.data
 	for i, val := range d.data {
 		outData[i] = Pow(val, power)
@@ -755,7 +755,7 @@ func (d *Dense[T]) Pow(power T) Matrix[T] {
 
 // Sqrt returns a new matrix applying the square root function to all elements.
 func (d *Dense[T]) Sqrt() Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	inData := d.data
 	lastIndex := len(inData) - 1
 	if lastIndex < 0 {
@@ -998,7 +998,7 @@ func (d *Dense[T]) Mul(other Matrix[T]) Matrix[T] {
 	if d.cols != other.Rows() {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := GetDensePool[T]().GetEmpty(d.rows, other.Columns())
+	out := densePool[T]().GetEmpty(d.rows, other.Columns())
 
 	switch any(T(0)).(type) {
 	case float32:
@@ -1069,7 +1069,7 @@ func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
 	if other.Columns() != 1 {
 		panic("mat: the other matrix must have exactly 1 column")
 	}
-	out := GetDensePool[T]().GetEmpty(d.cols, other.Columns())
+	out := densePool[T]().GetEmpty(d.cols, other.Columns())
 
 	switch any(T(0)).(type) {
 	case float32:
@@ -1208,7 +1208,7 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 
 // Clone returns a new matrix, copying all its values from the receiver.
 func (d *Dense[T]) Clone() Matrix[T] {
-	out := GetDensePool[T]().Get(d.rows, d.cols)
+	out := densePool[T]().Get(d.rows, d.cols)
 	copy(out.data, d.data)
 	return out
 }

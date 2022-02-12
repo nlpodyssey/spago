@@ -20,39 +20,39 @@ import (
 	"sync"
 )
 
-// DensePool provides pools for slice lengths from 0 to 64 bits
+// densePoolType provides pools for slice lengths from 0 to 64 bits
 // (0 to MaxUint64).
-type DensePool[T DType] [65]sync.Pool
+type densePoolType[T DType] [65]sync.Pool
 
 var (
-	densePoolFloat32 = NewDensePool[float32]()
-	densePoolFloat64 = NewDensePool[float64]()
+	densePoolFloat32 = newDensePool[float32]()
+	densePoolFloat64 = newDensePool[float64]()
 )
 
-// NewDensePool creates a new pool for handling matrices of a specific DType.
-func NewDensePool[T DType]() *DensePool[T] {
-	dp := new(DensePool[T])
+// newDensePool creates a new pool for handling matrices of a specific DType.
+func newDensePool[T DType]() *densePoolType[T] {
+	dp := new(densePoolType[T])
 	for i := range dp {
-		dp[i].New = dp.makeDensePoolNewFunction(i)
+		dp[i].New = dp.makeNewFunc(i)
 	}
 	return dp
 }
 
-// GetDensePool returns the global (sort-of singleton) pre-instantiated pool
+// densePool returns the global (sort-of singleton) pre-instantiated pool
 // for a specific DType.
-func GetDensePool[T DType]() *DensePool[T] {
+func densePool[T DType]() *densePoolType[T] {
 	// TODO: review this code once stable go 1.18 is released
 	switch any(T(0)).(type) {
 	case float32:
-		return any(densePoolFloat32).(*DensePool[T])
+		return any(densePoolFloat32).(*densePoolType[T])
 	case float64:
-		return any(densePoolFloat64).(*DensePool[T])
+		return any(densePoolFloat64).(*densePoolType[T])
 	default:
 		panic(fmt.Sprintf("mat: no Dense pool for type %T", T(0)))
 	}
 }
 
-func (dp *DensePool[T]) makeDensePoolNewFunction(bitsLen int) func() any {
+func (dp *densePoolType[T]) makeNewFunc(bitsLen int) func() any {
 	var length uint
 	if bitsLen >= 64 {
 		length = math.MaxUint64
@@ -74,7 +74,7 @@ func (dp *DensePool[T]) makeDensePoolNewFunction(bitsLen int) func() any {
 //
 // Warning: the values may not be all zeros. To ensure that all elements
 // are initialized to zero, see GetEmptyDense.
-func (dp *DensePool[T]) Get(rows, cols int) *Dense[T] {
+func (dp *densePoolType[T]) Get(rows, cols int) *Dense[T] {
 	d := dp.get(rows, cols)
 	d.flags &= ^denseIsNew
 	return d
@@ -84,7 +84,7 @@ func (dp *DensePool[T]) Get(rows, cols int) *Dense[T] {
 // a raw data slice with a cap in the range rows*cols < cap <= 2*rows*cols.
 //
 // All elements are guaranteed to be initialized to zero.
-func (dp *DensePool[T]) GetEmpty(rows, cols int) *Dense[T] {
+func (dp *densePoolType[T]) GetEmpty(rows, cols int) *Dense[T] {
 	d := dp.get(rows, cols)
 	if d.flags&denseIsNew == 0 {
 		for i := range d.data {
@@ -95,7 +95,7 @@ func (dp *DensePool[T]) GetEmpty(rows, cols int) *Dense[T] {
 	return d
 }
 
-func (dp *DensePool[T]) get(rows, cols int) *Dense[T] {
+func (dp *densePoolType[T]) get(rows, cols int) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -112,7 +112,7 @@ func (dp *DensePool[T]) get(rows, cols int) *Dense[T] {
 //
 // It MUST not be called with a matrix where references to the underlying data
 // slice have been kept.
-func (dp *DensePool[T]) Put(d *Dense[T]) {
+func (dp *densePoolType[T]) Put(d *Dense[T]) {
 	if d.flags&denseIsFromPool == 0 {
 		panic("mat: only matrices originated from the workspace can return to it")
 	}
@@ -126,7 +126,7 @@ func (dp *DensePool[T]) Put(d *Dense[T]) {
 func ReleaseMatrix[T DType](m Matrix[T]) {
 	switch mt := m.(type) {
 	case *Dense[T]:
-		GetDensePool[T]().Put(mt)
+		densePool[T]().Put(mt)
 	default:
 		panic(fmt.Sprintf("mat: cannot release matrix of type %T", mt))
 	}
@@ -134,5 +134,5 @@ func ReleaseMatrix[T DType](m Matrix[T]) {
 
 // ReleaseDense puts the given matrix in the appropriate global pool.
 func ReleaseDense[T DType](m *Dense[T]) {
-	GetDensePool[T]().Put(m)
+	densePool[T]().Put(m)
 }

@@ -236,7 +236,7 @@ func ConcatH[T DType](ms ...Matrix[T]) *Dense[T] {
 func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
 	rows := len(vs)
 	cols := vs[0].Size()
-	out := GetDensePool[T]().Get(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
+	out := densePool[T]().Get(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
 	start := 0
 	end := cols
 	for _, v := range vs {
