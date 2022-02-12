@@ -34,26 +34,20 @@ func (s *SparseMax[T]) Forward() mat.Matrix[T] {
 // Backward computes the backward pass.
 func (s *SparseMax[T]) Backward(gy mat.Matrix[T]) {
 	if s.x.RequiresGrad() {
-		output := s.y.Data()
 		var nzSum T = 0.0
 		var nzCount T = 0.0
-		gx := mat.GetDensePool[T]().Get(s.x.Value().Rows(), s.x.Value().Columns())
-		defer mat.ReleaseDense(gx)
-		for i := range output {
-			if output[i] != 0 {
-				nzSum += gy.At(i, 0)
-				nzCount++
-			}
-		}
+		s.y.DoVecNonZero(func(i int, _ T) {
+			nzSum += gy.AtVec(i)
+			nzCount++
+		})
 		nzSum = nzSum / nzCount
 
-		for i := range output {
-			if output[i] != 0 {
-				gx.Set(i, 0, gy.At(i, 0)-nzSum)
-			} else {
-				gx.Set(i, 0, 0)
-			}
-		}
+		gx := s.x.Value().ZerosLike()
+		defer mat.ReleaseMatrix(gx)
+		s.y.DoVecNonZero(func(i int, _ T) {
+			gx.SetVec(i, gy.AtVec(i)-nzSum)
+		})
+
 		s.x.PropagateGrad(gx)
 	}
 }
