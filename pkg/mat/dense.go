@@ -499,8 +499,8 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 	return out
 }
 
-// Apply executes the unary function fn.
-func (d *Dense[T]) Apply(fn func(r, c int, v T) T, a Matrix[T]) {
+// ApplyInPlace executes the unary function fn.
+func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
 	if !SameDims(Matrix[T](d), a) {
 		panic("mat: incompatible matrix dimensions")
 	}

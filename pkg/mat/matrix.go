@@ -85,8 +85,8 @@ type Matrix[T DType] interface {
 	// SplitV extract N vectors from the Matrix.
 	// N[i] has size sizes[i].
 	SplitV(sizes ...int) []Matrix[T]
-	// Apply executes the unary function fn.
-	Apply(fn func(r, c int, v T) T, a Matrix[T])
+	// ApplyInPlace executes the unary function fn.
+	ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T])
 	// ApplyWithAlpha creates a new matrix executing the unary function fn,
 	// taking additional parameters alpha.
 	ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ...T) Matrix[T]
