@@ -42,8 +42,8 @@ func (r *SwishB[T]) Backward(gy mat.Matrix[T]) {
 		r.x.PropagateGrad(gx)
 	}
 	if r.beta.RequiresGrad() {
-		gb := mat.GetDensePool[T]().Get(r.beta.Value().Dims())
-		defer mat.ReleaseDense(gb)
+		gb := r.beta.Value().ZerosLike()
+		defer mat.ReleaseMatrix(gb)
 		for i, x := range r.x.Value().Data() {
 			gb.AddScalarInPlace(swishBBetaDeriv(x, r.beta.Value().Scalar()) * gy.Data()[i])
 		}
