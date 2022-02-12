@@ -640,6 +640,20 @@ func (d *Dense[T]) DoNonZero(fn func(r, c int, v T)) {
 	}
 }
 
+// DoVecNonZero calls a function for each non-zero element of the vector.
+// The parameters of the function are the element's index and value.
+func (d *Dense[T]) DoVecNonZero(fn func(i int, v T)) {
+	if !IsVector(Matrix[T](d)) {
+		panic("mat: expected vector")
+	}
+	for i, v := range d.data {
+		if v == 0 {
+			continue
+		}
+		fn(i, v)
+	}
+}
+
 // Augment places the identity matrix at the end of the original matrix.
 func (d *Dense[T]) Augment() Matrix[T] {
 	if d.cols != d.rows {

@@ -101,6 +101,9 @@ type Matrix[T DType] interface {
 	// DoNonZero calls a function for each non-zero element of the matrix.
 	// The parameters of the function are the element's indices and value.
 	DoNonZero(fn func(r, c int, v T))
+	// DoVecNonZero calls a function for each non-zero element of the vector.
+	// The parameters of the function are the element's index and value.
+	DoVecNonZero(fn func(i int, v T))
 	// Augment places the identity matrix at the end of the original matrix.
 	Augment() Matrix[T]
 	// SwapInPlace swaps two rows of the matrix in place.
