@@ -523,6 +523,32 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T, a Matrix[T]) {
 	}
 }
 
+// ApplyWithAlpha creates a new matrix executing the unary function fn,
+// taking additional parameters alpha.
+func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ...T) Matrix[T] {
+	out := GetDensePool[T]().Get(d.rows, d.cols)
+	if len(d.data) == 0 {
+		return out
+	}
+
+	dData := d.data
+	outData := out.data
+	_ = outData[len(dData)-1]
+
+	r := 0
+	c := 0
+	for i, v := range dData {
+		outData[i] = fn(r, c, v, alpha...)
+		c++
+		if c == d.cols {
+			r++
+			c = 0
+		}
+	}
+
+	return out
+}
+
 // ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
 func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) {
 	if !SameDims(Matrix[T](d), a) {
