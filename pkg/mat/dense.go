@@ -523,8 +523,8 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T, a Matrix[T]) {
 	}
 }
 
-// ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
-func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) {
+// ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
+func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) {
 	if !SameDims(Matrix[T](d), a) {
 		panic("mat: incompatible matrix dimensions")
 	}

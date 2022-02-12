@@ -87,8 +87,8 @@ type Matrix[T DType] interface {
 	SplitV(sizes ...int) []Matrix[T]
 	// Apply executes the unary function fn.
 	Apply(fn func(r, c int, v T) T, a Matrix[T])
-	// ApplyWithAlpha executes the unary function fn, taking additional parameters alpha.
-	ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T)
+	// ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
+	ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T)
 	// DoNonZero calls a function for each non-zero element of the matrix.
 	// The parameters of the function are the element's indices and value.
 	DoNonZero(fn func(r, c int, v T))

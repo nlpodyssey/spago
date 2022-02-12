@@ -27,7 +27,7 @@ func NewSwishB[T mat.DType](x, beta Operand[T]) *SwishB[T] {
 // Forward computes the output of the function.
 func (r *SwishB[T]) Forward() mat.Matrix[T] {
 	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(swishB[T], r.x.Value(), r.beta.Value().Scalar())
+	y.ApplyWithAlphaInPlace(swishB[T], r.x.Value(), r.beta.Value().Scalar())
 	return y
 }
 
@@ -38,7 +38,7 @@ func (r *SwishB[T]) Backward(gy mat.Matrix[T]) {
 	}
 	if r.x.RequiresGrad() {
 		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-		gx.ApplyWithAlpha(swishBDeriv[T], r.x.Value(), r.beta.Value().Scalar())
+		gx.ApplyWithAlphaInPlace(swishBDeriv[T], r.x.Value(), r.beta.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

@@ -25,7 +25,7 @@ func NewCELU[T mat.DType](x, alpha Operand[T]) *CELU[T] {
 // Forward computes the output of the function.
 func (r *CELU[T]) Forward() mat.Matrix[T] {
 	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(celu[T], r.x.Value(), r.alpha.Value().Scalar())
+	y.ApplyWithAlphaInPlace(celu[T], r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
 
@@ -37,7 +37,7 @@ func (r *CELU[T]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(celuDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
+		gx.ApplyWithAlphaInPlace(celuDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

@@ -25,7 +25,7 @@ func NewThreshold[T mat.DType](x, threshold, k Operand[T]) *Threshold[T] {
 // Forward computes the output of the function.
 func (r *Threshold[T]) Forward() mat.Matrix[T] {
 	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(threshold[T], r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
+	y.ApplyWithAlphaInPlace(threshold[T], r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
 	return y
 }
 
@@ -37,7 +37,7 @@ func (r *Threshold[T]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(thresholdDeriv[T], r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
+		gx.ApplyWithAlphaInPlace(thresholdDeriv[T], r.x.Value(), r.threshold.Value().Scalar(), r.k.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}

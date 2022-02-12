@@ -25,7 +25,7 @@ func NewLeakyReLU[T mat.DType](x, alpha Operand[T]) *LeakyReLU[T] {
 // Forward computes the output of the function.
 func (r *LeakyReLU[T]) Forward() mat.Matrix[T] {
 	y := mat.GetDensePool[T]().Get(r.x.Value().Dims())
-	y.ApplyWithAlpha(leakyReLU[T], r.x.Value(), r.alpha.Value().Scalar())
+	y.ApplyWithAlphaInPlace(leakyReLU[T], r.x.Value(), r.alpha.Value().Scalar())
 	return y
 }
 
@@ -37,7 +37,7 @@ func (r *LeakyReLU[T]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.GetDensePool[T]().Get(r.x.Value().Dims())
 		defer mat.ReleaseDense(gx)
-		gx.ApplyWithAlpha(leakyReLUDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
+		gx.ApplyWithAlphaInPlace(leakyReLUDeriv[T], r.x.Value(), r.alpha.Value().Scalar())
 		gx.ProdInPlace(gy)
 		r.x.PropagateGrad(gx)
 	}
