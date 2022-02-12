@@ -499,6 +499,31 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 	return out
 }
 
+// Apply creates a new matrix executing the unary function fn.
+func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
+	out := GetDensePool[T]().Get(d.rows, d.cols)
+	if len(d.data) == 0 {
+		return out
+	}
+
+	dData := d.data
+	outData := out.data
+	_ = outData[len(dData)-1]
+
+	r := 0
+	c := 0
+	for i, v := range dData {
+		outData[i] = fn(r, c, v)
+		c++
+		if c == d.cols {
+			r++
+			c = 0
+		}
+	}
+
+	return out
+}
+
 // ApplyInPlace executes the unary function fn.
 func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
 	if !SameDims(Matrix[T](d), a) {
