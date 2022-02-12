@@ -33,18 +33,16 @@ func (r *Softmax[T]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		n := r.y.Size()
-		jb := mat.GetDensePool[T]().Get(n, n)
-		defer mat.ReleaseDense(jb)
-		for i := 0; i < n; i++ {
-			for j := 0; j < n; j++ {
-				if i == j {
-					jb.Set(i, j, r.y.AtVec(i)*(1.0-r.y.AtVec(j)))
-				} else {
-					jb.Set(i, j, -r.y.AtVec(i)*r.y.AtVec(j))
-				}
+		y := r.y
+		n := y.Size()
+		jb := mat.NewInitFuncDense[T](n, n, func(row, col int) T {
+			if row == col {
+				v := y.AtVec(row)
+				return v * (1 - v)
 			}
-		}
+			return -(y.AtVec(row) * y.AtVec(col))
+		})
+		defer mat.ReleaseDense(jb)
 		gx := jb.Mul(gy)
 		defer mat.ReleaseMatrix(gx)
 		r.x.PropagateGrad(gx)
