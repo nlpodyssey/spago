@@ -146,18 +146,17 @@ func (s *SparseMaxLoss[T]) Forward() mat.Matrix[T] {
 // Backward computes the backward pass.
 func (s *SparseMaxLoss[T]) Backward(gy mat.Matrix[T]) {
 	if s.x.RequiresGrad() {
-		input := s.x.Value().Data()
-		sparseMax := make([]T, len(input))
-		for i := range sparseMax {
-			sparseMax[i] = mat.Max(0, input[i]-s.tau)
-		}
-		gx := mat.GetDensePool[T]().Get(s.x.Value().Rows(), s.x.Value().Columns())
-		defer mat.ReleaseDense(gx)
+		tau := s.tau
 		gySum := gy.Sum()
-		gyData := gy.Data()
-		for i, v := range gyData {
-			gx.Set(i, 0, v-gySum*sparseMax[i])
-		}
+
+		sparseMax := s.x.Value().Apply(func(_, _ int, v T) T {
+			return mat.Max(0, v-tau) * gySum
+		})
+		defer mat.ReleaseMatrix(sparseMax)
+
+		gx := gy.Sub(sparseMax)
+		defer mat.ReleaseMatrix(gx)
+
 		s.x.PropagateGrad(gx)
 	}
 }
