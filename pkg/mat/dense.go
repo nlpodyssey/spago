@@ -303,6 +303,21 @@ func (d *Dense[T]) Reshape(rows, cols int) Matrix[T] {
 	return NewDense(rows, cols, d.data)
 }
 
+// ReshapeInPlace changes the dimensions of the matrix in place and returns the
+// matrix itself.
+// It panics if the dimensions are incompatible.
+func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
+	if rows < 0 || cols < 0 {
+		panic("mat: negative values for rows and cols are not allowed")
+	}
+	if rows*cols != len(d.data) {
+		panic(fmt.Sprintf("mat: wrong matrix dimensions. Size (rows*cols) must be: %d", len(d.data)))
+	}
+	d.rows = rows
+	d.cols = cols
+	return d
+}
+
 // ResizeVector returns a resized copy of the vector.
 //
 // If the new size is smaller than the input vector, the remaining tail

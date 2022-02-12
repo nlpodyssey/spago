@@ -55,6 +55,10 @@ type Matrix[T DType] interface {
 	// Reshape returns a copy of the matrix.
 	// It panics if the dimensions are incompatible.
 	Reshape(r, c int) Matrix[T]
+	// ReshapeInPlace changes the dimensions of the matrix in place and returns the
+	// matrix itself.
+	// It panics if the dimensions are incompatible.
+	ReshapeInPlace(r, c int) Matrix[T]
 	// ResizeVector returns a resized copy of the vector.
 	//
 	// If the new size is smaller than the input vector, the remaining tail
