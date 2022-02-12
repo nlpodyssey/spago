@@ -45,24 +45,15 @@ func (r *Dot[T]) Backward(gy mat.Matrix[T]) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
+	gys := gy.Scalar()
 	if r.x1.RequiresGrad() {
-		dx := mat.GetDensePool[T]().Get(r.x1.Value().Dims())
-		defer mat.ReleaseDense(dx)
-		for i := 0; i < r.x1.Value().Rows(); i++ {
-			for j := 0; j < r.x1.Value().Columns(); j++ {
-				dx.Set(i, j, gy.Scalar()*r.x2.Value().At(i, j))
-			}
-		}
-		r.x1.PropagateGrad(dx)
+		gx := r.x2.Value().ProdScalar(gys)
+		defer mat.ReleaseMatrix(gx)
+		r.x1.PropagateGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
-		dx := mat.GetDensePool[T]().Get(r.x2.Value().Dims())
-		defer mat.ReleaseDense(dx)
-		for i := 0; i < r.x2.Value().Rows(); i++ {
-			for j := 0; j < r.x2.Value().Columns(); j++ {
-				dx.Set(i, j, gy.Scalar()*r.x1.Value().At(i, j))
-			}
-		}
-		r.x2.PropagateGrad(dx)
+		gx := r.x1.Value().ProdScalar(gys)
+		defer mat.ReleaseMatrix(gx)
+		r.x2.PropagateGrad(gx)
 	}
 }
