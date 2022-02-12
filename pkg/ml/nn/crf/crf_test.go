@@ -13,17 +13,22 @@ import (
 )
 
 func TestModel_Decode(t *testing.T) {
-	model := newTestModel()
-	g := ag.NewGraph[mat.Float]()
+	t.Run("float32", testModelDecode[float32])
+	t.Run("float64", testModelDecode[float64])
+}
+
+func testModelDecode[T mat.DType](t *testing.T) {
+	model := newTestModel[T]()
+	g := ag.NewGraph[T]()
 	proc := nn.ReifyForTraining(model, g)
 
-	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := g.NewVariable(mat.NewVecDense([]mat.Float{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := g.NewVariable(mat.NewVecDense([]mat.Float{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := g.NewVariable(mat.NewVecDense([]mat.Float{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
+	w2 := g.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
+	w3 := g.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
+	w4 := g.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
+	w5 := g.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
 
-	y := proc.Decode([]ag.Node[mat.Float]{w1, w2, w3, w4, w5})
+	y := proc.Decode([]ag.Node[T]{w1, w2, w3, w4, w5})
 
 	gold := []int{3, 3, 1, 0, 3}
 
@@ -31,59 +36,74 @@ func TestModel_Decode(t *testing.T) {
 }
 
 func TestModel_GoldScore(t *testing.T) {
-	model := newTestModel()
-	g := ag.NewGraph[mat.Float]()
+	t.Run("float32", testModelGoldScore[float32])
+	t.Run("float64", testModelGoldScore[float64])
+}
+
+func testModelGoldScore[T mat.DType](t *testing.T) {
+	model := newTestModel[T]()
+	g := ag.NewGraph[T]()
 	proc := nn.ReifyForTraining(model, g)
 
-	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := g.NewVariable(mat.NewVecDense([]mat.Float{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := g.NewVariable(mat.NewVecDense([]mat.Float{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := g.NewVariable(mat.NewVecDense([]mat.Float{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
+	w2 := g.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
+	w3 := g.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
+	w4 := g.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
+	w5 := g.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
 
 	gold := []int{0, 0, 1, 0, 3}
-	y := proc.goldScore([]ag.Node[mat.Float]{w1, w2, w3, w4, w5}, gold)
+	y := proc.goldScore([]ag.Node[T]{w1, w2, w3, w4, w5}, gold)
 
-	assert.InDeltaSlice(t, []mat.Float{14.27}, y.Value().Data(), 0.00001)
+	assert.InDeltaSlice(t, []T{14.27}, y.Value().Data(), 0.00001)
 }
 
 func TestModel_TotalScore(t *testing.T) {
-	model := newTestModel()
-	g := ag.NewGraph[mat.Float]()
+	t.Run("float32", testModelTotalScore[float32])
+	t.Run("float64", testModelTotalScore[float64])
+}
+
+func testModelTotalScore[T mat.DType](t *testing.T) {
+	model := newTestModel[T]()
+	g := ag.NewGraph[T]()
 	proc := nn.ReifyForTraining(model, g)
 
-	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := g.NewVariable(mat.NewVecDense([]mat.Float{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := g.NewVariable(mat.NewVecDense([]mat.Float{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := g.NewVariable(mat.NewVecDense([]mat.Float{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
+	w2 := g.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
+	w3 := g.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
+	w4 := g.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
+	w5 := g.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
 
-	y := proc.totalScore([]ag.Node[mat.Float]{w1, w2, w3, w4, w5})
+	y := proc.totalScore([]ag.Node[T]{w1, w2, w3, w4, w5})
 
-	assert.InDeltaSlice(t, []mat.Float{16.64258}, y.Value().Data(), 0.00001)
+	assert.InDeltaSlice(t, []T{16.64258}, y.Value().Data(), 0.00001)
 }
 
 func TestModel_Loss(t *testing.T) {
-	model := newTestModel()
-	g := ag.NewGraph[mat.Float]()
-	proc := nn.ReifyForTraining(model, g)
-
-	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := g.NewVariable(mat.NewVecDense([]mat.Float{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := g.NewVariable(mat.NewVecDense([]mat.Float{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := g.NewVariable(mat.NewVecDense([]mat.Float{0.5, 0.2, 0.4, 1.4}), true)
-
-	gold := []int{0, 0, 1, 0, 3}
-	loss := proc.NegativeLogLoss([]ag.Node[mat.Float]{w1, w2, w3, w4, w5}, gold)
-
-	g.Backward(loss)
-	assert.InDeltaSlice(t, []mat.Float{2.37258}, loss.Value().Data(), 0.00001)
+	t.Run("float32", testModelLoss[float32])
+	t.Run("float64", testModelLoss[float64])
 }
 
-func newTestModel() *Model[mat.Float] {
-	model := New[mat.Float](4)
-	model.TransitionScores.Value().SetData([]mat.Float{
+func testModelLoss[T mat.DType](t *testing.T) {
+	model := newTestModel[T]()
+	g := ag.NewGraph[T]()
+	proc := nn.ReifyForTraining(model, g)
+
+	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
+	w2 := g.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
+	w3 := g.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
+	w4 := g.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
+	w5 := g.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
+
+	gold := []int{0, 0, 1, 0, 3}
+	loss := proc.NegativeLogLoss([]ag.Node[T]{w1, w2, w3, w4, w5}, gold)
+
+	g.Backward(loss)
+	assert.InDeltaSlice(t, []T{2.37258}, loss.Value().Data(), 0.00001)
+}
+
+func newTestModel[T mat.DType]() *Model[T] {
+	model := New[T](4)
+	model.TransitionScores.Value().SetData([]T{
 		0.0, 0.6, 0.8, 1.2, 1.6,
 		0.2, 0.5, 0.02, 0.03, 0.45,
 		0.3, 0.2, 0.6, 0.01, 0.19,

@@ -11,8 +11,13 @@ import (
 )
 
 func TestReshape_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value: mat.NewDense(3, 4, []mat.Float{
+	t.Run("float32", testReshapeForward[float32])
+	t.Run("float64", testReshapeForward[float64])
+}
+
+func testReshapeForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -21,10 +26,10 @@ func TestReshape_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewReshape[mat.Float](x, 4, 3)
+	f := NewReshape[T](x, 4, 3)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
@@ -35,14 +40,14 @@ func TestReshape_Forward(t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	f.Backward(mat.NewDense(4, 3, []mat.Float{
+	f.Backward(mat.NewDense(4, 3, []T{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 		0.8, -0.8, -0.1,
 	}))
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,

@@ -11,24 +11,29 @@ import (
 )
 
 func TestReverseSubScalar_Forward(t *testing.T) {
-	x1 := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
+	t.Run("float32", testReverseSubScalarForward[float32])
+	t.Run("float64", testReverseSubScalarForward[float64])
+}
+
+func testReverseSubScalarForward[T mat.DType](t *testing.T) {
+	x1 := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable[mat.Float]{
-		value:        mat.NewScalar[mat.Float](2.0),
+	x2 := &variable[T]{
+		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewReverseSubScalar[mat.Float](x1, x2)
+	f := NewReverseSubScalar[T](x1, x2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{1.9, 1.8, 1.7, 2.0}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{1.9, 1.8, 1.7, 2.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 
-	assert.InDeltaSlice(t, []mat.Float{1.0, -0.5, -0.8, 0.0}, x1.grad.Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []mat.Float{0.3}, x2.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{1.0, -0.5, -0.8, 0.0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.3}, x2.grad.Data(), 1.0e-6)
 }

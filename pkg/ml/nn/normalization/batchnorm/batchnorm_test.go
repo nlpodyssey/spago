@@ -18,15 +18,20 @@ import (
 )
 
 func TestModel_Forward_Params(t *testing.T) {
+	t.Run("float32", testModelForwardParams[float32])
+	t.Run("float64", testModelForwardParams[float64])
+}
+
+func testModelForwardParams[T mat.DType](t *testing.T) {
 	const numDataInstances = 10000
 	const dataSize = 100
 
 	testCases := []struct {
-		shift          mat.Float
-		multiplier     mat.Float
-		momentum       mat.Float
-		expectedAvg    mat.Float
-		expectedStdDev mat.Float
+		shift          T
+		multiplier     T
+		momentum       T
+		expectedAvg    T
+		expectedStdDev T
 		forwardSteps   int
 	}{
 		{
@@ -83,28 +88,28 @@ func TestModel_Forward_Params(t *testing.T) {
 
 	rnd := rand.New(rand.NewSource(42))
 
-	testData := make([][]mat.Float, numDataInstances)
+	testData := make([][]T, numDataInstances)
 	for i := range testData {
-		testData[i] = make([]mat.Float, dataSize)
+		testData[i] = make([]T, dataSize)
 		for j := range testData[i] {
-			testData[i][j] = mat.Float(rnd.NormFloat64())
+			testData[i][j] = T(rnd.NormFloat64())
 		}
 	}
 
 	for _, tt := range testCases {
 		model := NewWithMomentum(dataSize, tt.momentum)
-		data := make([][]mat.Float, len(testData))
+		data := make([][]T, len(testData))
 		for i := range testData {
-			data[i] = make([]mat.Float, dataSize)
+			data[i] = make([]T, dataSize)
 			for j := range testData[i] {
 				data[i][j] = tt.multiplier*testData[i][j] + tt.shift
 			}
 		}
 
-		x := make([]ag.Node[mat.Float], len(testData))
-		var y []ag.Node[mat.Float]
+		x := make([]ag.Node[T], len(testData))
+		var y []ag.Node[T]
 		for i := 0; i < tt.forwardSteps; i++ {
-			g := ag.NewGraph[mat.Float]()
+			g := ag.NewGraph[T]()
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
@@ -124,24 +129,34 @@ func TestModel_Forward_Params(t *testing.T) {
 }
 
 func TestModel_Inference(t *testing.T) {
+	t.Run("float32", testModelInference[float32])
+	t.Run("float64", testModelInference[float64])
+}
 
-	model := New[mat.Float](3)
-	model.Mean = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
-	model.W = nn.NewParam[mat.Float](mat.NewInitVecDense[mat.Float](3, 1.0))
-	g := ag.NewGraph[mat.Float]()
+func testModelInference[T mat.DType](t *testing.T) {
+
+	model := New[T](3)
+	model.Mean = nn.NewParam[T](mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
+	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
+	g := ag.NewGraph[T]()
 	proc := nn.ReifyForInference(model, g)
-	data := []mat.Float{1.0, 2.0, 3.0}
-	x := g.NewVariable(mat.NewVecDense[mat.Float](data), false)
+	data := []T{1.0, 2.0, 3.0}
+	x := g.NewVariable(mat.NewVecDense[T](data), false)
 	y := proc.Forward(x)
 	require.Equal(t, 1, len(y))
-	assert.InDeltaSlice(t, []mat.Float{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
+	assert.InDeltaSlice(t, []T{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
 
 func Test_Serialize(t *testing.T) {
-	model := NewWithMomentum[mat.Float](3, 0.777)
-	model.Mean = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam[mat.Float](mat.NewVecDense[mat.Float]([]mat.Float{1.0, 0.5, 1.0}))
+	t.Run("float32", testSerialize[float32])
+	t.Run("float64", testSerialize[float64])
+}
+
+func testSerialize[T mat.DType](t *testing.T) {
+	model := NewWithMomentum[T](3, 0.777)
+	model.Mean = nn.NewParam[T](mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	tempFile, err := os.CreateTemp("", "test_serialize")
 	require.Nil(t, err)
 	tempFile.Close()
@@ -151,7 +166,7 @@ func Test_Serialize(t *testing.T) {
 	err = utils.SerializeToFile(tempFile.Name(), &model)
 	require.Nil(t, err)
 
-	model2 := New[mat.Float](3)
+	model2 := New[T](3)
 	err = utils.DeserializeFromFile(tempFile.Name(), &model2)
 	require.NoError(t, err)
 	require.Equal(t, model.Momentum.Value().Scalar(), model2.Momentum.Value().Scalar())
@@ -160,47 +175,51 @@ func Test_Serialize(t *testing.T) {
 }
 
 func TestModel_Forward(t *testing.T) {
+	t.Run("float32", testModelForward[float32])
+	t.Run("float64", testModelForward[float64])
+}
 
-	model := newTestModel()
-	g := ag.NewGraph[mat.Float]()
+func testModelForward[T mat.DType](t *testing.T) {
+	model := newTestModel[T]()
+	g := ag.NewGraph[T]()
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := g.NewVariable(mat.NewVecDense[mat.Float]([]mat.Float{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
+	x2 := g.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
+	x3 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
 	y := rectify(g, nn.ReifyForTraining(model, g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
-	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{1.1828427, 0.2, 0.0, 1.302356}, y[2].Value().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 1.302356}, y[2].Value().Data(), 1.0e-04)
 
 	// == Backward
 
-	y[0].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{-1.0, -0.2, 0.4, 0.6}))
-	y[1].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{-0.3, 0.1, 0.7, 0.9}))
-	y[2].PropagateGrad(mat.NewVecDense[mat.Float]([]mat.Float{0.3, -0.4, 0.7, -0.8}))
+	y[0].PropagateGrad(mat.NewVecDense[T]([]T{-1.0, -0.2, 0.4, 0.6}))
+	y[1].PropagateGrad(mat.NewVecDense[T]([]T{-0.3, 0.1, 0.7, 0.9}))
+	y[2].PropagateGrad(mat.NewVecDense[T]([]T{0.3, -0.4, 0.7, -0.8}))
 	g.BackwardAll()
 
-	assert.InDeltaSlice(t, []mat.Float{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, x3.Grad().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{-1.0, -0.5, 0.0, -0.8}, model.B.Grad().Data(), 1.0e-04)
-	assert.InDeltaSlice(t, []mat.Float{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{0.6894291116595355, 0.0, 0.0, -0.029768277056219317}, x3.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{-1.0, -0.5, 0.0, -0.8}, model.B.Grad().Data(), 1.0e-04)
+	assert.InDeltaSlice(t, []T{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
-func rectify(g *ag.Graph[mat.Float], xs []ag.Node[mat.Float]) []ag.Node[mat.Float] {
-	ys := make([]ag.Node[mat.Float], len(xs))
+func rectify[T mat.DType](g *ag.Graph[T], xs []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = g.ReLU(x)
 	}
 	return ys
 }
 
-func newTestModel() *Model[mat.Float] {
-	model := New[mat.Float](4)
-	model.W.Value().SetData([]mat.Float{0.4, 0.0, -0.3, 0.8})
-	model.B.Value().SetData([]mat.Float{0.9, 0.2, -0.9, 0.2})
+func newTestModel[T mat.DType]() *Model[T] {
+	model := New[T](4)
+	model.W.Value().SetData([]T{0.4, 0.0, -0.3, 0.8})
+	model.B.Value().SetData([]T{0.9, 0.2, -0.9, 0.2})
 	return model
 }

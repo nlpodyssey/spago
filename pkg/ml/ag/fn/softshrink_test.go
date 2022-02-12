@@ -11,23 +11,28 @@ import (
 )
 
 func TestSoftShrink_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 0.3, 0.0, 0.6, -0.6}),
+	t.Run("float32", testSoftShrinkForward[float32])
+	t.Run("float64", testSoftShrinkForward[float64])
+}
+
+func testSoftShrinkForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0, 0.6, -0.6}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	lambda := &variable[mat.Float]{
-		value:        mat.NewScalar[mat.Float](0.2),
+	lambda := &variable[T]{
+		value:        mat.NewScalar[T](0.2),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewSoftShrink[mat.Float](x, lambda)
+	f := NewSoftShrink[T](x, lambda)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.0, 0.0, 0.1, 0, 0.4, -0.4}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.1, 0, 0.4, -0.4}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0, 1.0, 2.0}))
+	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0, 1.0, 2.0}))
 
-	assert.InDeltaSlice(t, []mat.Float{0.0, 0.0, 0.8, 0.0, 1.0, 2.0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.8, 0.0, 1.0, 2.0}, x.grad.Data(), 1.0e-6)
 }

@@ -11,24 +11,29 @@ import (
 )
 
 func TestProd_Forward(t *testing.T) {
-	x1 := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
+	t.Run("float32", testProdForward[float32])
+	t.Run("float64", testProdForward[float64])
+}
+
+func testProdForward[T mat.DType](t *testing.T) {
+	x1 := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.4, 0.3, 0.5, 0.7}),
+	x2 := &variable[T]{
+		value:        mat.NewVecDense([]T{0.4, 0.3, 0.5, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewProd[mat.Float](x1, x2)
+	f := NewProd[T](x1, x2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.04, 0.06, 0.15, 0}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.04, 0.06, 0.15, 0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 
-	assert.InDeltaSlice(t, []mat.Float{-0.4, 0.15, 0.4, 0}, x1.grad.Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []mat.Float{-0.1, 0.1, 0.24, 0}, x2.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-0.4, 0.15, 0.4, 0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-0.1, 0.1, 0.24, 0}, x2.grad.Data(), 1.0e-6)
 }

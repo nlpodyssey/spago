@@ -12,58 +12,68 @@ import (
 )
 
 func TestToNodes(t *testing.T) {
+	t.Run("float32", testToNodes[float32])
+	t.Run("float64", testToNodes[float64])
+}
+
+func testToNodes[T mat.DType](t *testing.T) {
 	t.Run("generic value", func(t *testing.T) {
-		assert.Panics(t, func() { ToNodes[mat.Float](42) })
+		assert.Panics(t, func() { ToNodes[T](42) })
 	})
 
 	t.Run("nil value", func(t *testing.T) {
-		assert.Panics(t, func() { ToNodes[mat.Float](nil) })
+		assert.Panics(t, func() { ToNodes[T](nil) })
 	})
 
 	t.Run("Node value", func(t *testing.T) {
-		g := ag.NewGraph[mat.Float]()
+		g := ag.NewGraph[T]()
 		node := g.NewScalar(42)
-		assert.Equal(t, []ag.Node[mat.Float]{node}, ToNodes[mat.Float](node))
+		assert.Equal(t, []ag.Node[T]{node}, ToNodes[T](node))
 	})
 
 	t.Run("[]Node value", func(t *testing.T) {
-		g := ag.NewGraph[mat.Float]()
+		g := ag.NewGraph[T]()
 		node := g.NewScalar(42)
-		nodes := []ag.Node[mat.Float]{node}
-		assert.Equal(t, nodes, ToNodes[mat.Float](nodes))
+		nodes := []ag.Node[T]{node}
+		assert.Equal(t, nodes, ToNodes[T](nodes))
 	})
 }
 
 func TestToNode(t *testing.T) {
+	t.Run("float32", testToNode[float32])
+	t.Run("float64", testToNode[float64])
+}
+
+func testToNode[T mat.DType](t *testing.T) {
 	t.Run("generic value", func(t *testing.T) {
-		assert.Panics(t, func() { ToNode[mat.Float](42) })
+		assert.Panics(t, func() { ToNode[T](42) })
 	})
 
 	t.Run("nil value", func(t *testing.T) {
-		assert.Panics(t, func() { ToNode[mat.Float](nil) })
+		assert.Panics(t, func() { ToNode[T](nil) })
 	})
 
 	t.Run("Node value", func(t *testing.T) {
-		g := ag.NewGraph[mat.Float]()
+		g := ag.NewGraph[T]()
 		node := g.NewScalar(42)
-		assert.Same(t, node, ToNode[mat.Float](node))
+		assert.Same(t, node, ToNode[T](node))
 	})
 
 	t.Run("[]Node value with one item", func(t *testing.T) {
-		g := ag.NewGraph[mat.Float]()
+		g := ag.NewGraph[T]()
 		node := g.NewScalar(42)
-		nodes := []ag.Node[mat.Float]{node}
-		assert.Equal(t, node, ToNode[mat.Float](nodes))
+		nodes := []ag.Node[T]{node}
+		assert.Equal(t, node, ToNode[T](nodes))
 	})
 
 	t.Run("[]Node value with no items", func(t *testing.T) {
-		var nodes []ag.Node[mat.Float]
-		assert.Panics(t, func() { ToNode[mat.Float](nodes) })
+		var nodes []ag.Node[T]
+		assert.Panics(t, func() { ToNode[T](nodes) })
 	})
 
 	t.Run("[]Node value with two items", func(t *testing.T) {
-		g := ag.NewGraph[mat.Float]()
-		nodes := []ag.Node[mat.Float]{g.NewScalar(1), g.NewScalar(2)}
-		assert.Panics(t, func() { ToNode[mat.Float](nodes) })
+		g := ag.NewGraph[T]()
+		nodes := []ag.Node[T]{g.NewScalar(1), g.NewScalar(2)}
+		assert.Panics(t, func() { ToNode[T](nodes) })
 	})
 }

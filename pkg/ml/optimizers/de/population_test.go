@@ -11,7 +11,12 @@ import (
 )
 
 func TestNewRandomPopulation(t *testing.T) {
-	population := newTestPopulation()
+	t.Run("float32", testNewRandomPopulation[float32])
+	t.Run("float64", testNewRandomPopulation[float64])
+}
+
+func testNewRandomPopulation[T mat.DType](t *testing.T) {
+	population := newTestPopulation[T]()
 
 	if len(population.Members) != 20 {
 		t.Error("The population size doesn't match the expected value")
@@ -29,7 +34,12 @@ func TestNewRandomPopulation(t *testing.T) {
 }
 
 func TestFindBest(t *testing.T) {
-	population := newTestPopulation()
+	t.Run("float32", testFindBest[float32])
+	t.Run("float64", testFindBest[float64])
+}
+
+func testFindBest[T mat.DType](t *testing.T) {
+	population := newTestPopulation[T]()
 
 	argMin, score := population.FindBest(0, 19, 0.3, 0)
 	if argMin != 9 && score != 0.03 {
@@ -53,7 +63,12 @@ func TestFindBest(t *testing.T) {
 }
 
 func TestFindBestNeighbor(t *testing.T) {
-	population := newTestPopulation()
+	t.Run("float32", testFindBestNeighbor[float32])
+	t.Run("float64", testFindBestNeighbor[float64])
+}
+
+func testFindBestNeighbor[T mat.DType](t *testing.T) {
+	population := newTestPopulation[T]()
 
 	argMin, score := population.FindBestNeighbor(0, 5)
 	if argMin != 0 && score != 0.05 {
@@ -86,8 +101,8 @@ func TestFindBestNeighbor(t *testing.T) {
 	}
 }
 
-func newTestPopulation() *Population[mat.Float] {
-	population := NewRandomPopulation(20, 50, 6.0, rand.NewLockedRand[mat.Float](42), MemberHyperParams[mat.Float]{
+func newTestPopulation[T mat.DType]() *Population[T] {
+	population := NewRandomPopulation[T](20, 50, 6.0, rand.NewLockedRand[T](42), MemberHyperParams[T]{
 		MutationFactor: 0.5,
 		CrossoverRate:  0.9,
 		WeightFactor:   0.5,

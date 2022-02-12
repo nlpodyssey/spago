@@ -11,28 +11,33 @@ import (
 )
 
 func TestSoftPlusForward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, -0.2, 20.3, 0.0}),
+	t.Run("float32", testSoftPlusForward[float32])
+	t.Run("float64", testSoftPlusForward[float64])
+}
+
+func testSoftPlusForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, -0.2, 20.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	beta := &variable[mat.Float]{
-		value:        mat.NewScalar[mat.Float](2.0),
+	beta := &variable[T]{
+		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	threshold := &variable[mat.Float]{
-		value:        mat.NewScalar[mat.Float](20.0),
+	threshold := &variable[T]{
+		value:        mat.NewScalar[T](20.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
-	f := NewSoftPlus[mat.Float](x, beta, threshold)
+	f := NewSoftPlus[T](x, beta, threshold)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.399069434, 0.25650762, 20.3, 0.346573590}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.399069434, 0.25650762, 20.3, 0.346573590}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{-1.0, 0.5, 0.8, 0.0}))
+	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 
-	assert.InDeltaSlice(t, []mat.Float{-0.5498339, 0.20065616, 0.8, 0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-0.5498339, 0.20065616, 0.8, 0}, x.grad.Data(), 1.0e-6)
 }

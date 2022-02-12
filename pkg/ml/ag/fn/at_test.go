@@ -11,8 +11,13 @@ import (
 )
 
 func TestAt_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value: mat.NewDense(3, 4, []mat.Float{
+	t.Run("float32", testAtForward[float32])
+	t.Run("float64", testAtForward[float64])
+}
+
+func testAtForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -21,14 +26,14 @@ func TestAt_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewAt[mat.Float](x, 2, 3)
+	f := NewAt[T](x, 2, 3)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{-0.1}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-0.1}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{0.5}))
+	f.Backward(mat.NewVecDense([]T{0.5}))
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.5,

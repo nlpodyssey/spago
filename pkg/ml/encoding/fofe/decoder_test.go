@@ -10,6 +10,11 @@ import (
 )
 
 func TestDecode(t *testing.T) {
+	t.Run("float32", testDecode[float32])
+	t.Run("float64", testDecode[float64])
+}
+
+func testDecode[T mat.DType](t *testing.T) {
 	reverseVocabulary := []string{
 		0: "a",
 		1: "b",
@@ -18,7 +23,7 @@ func TestDecode(t *testing.T) {
 		4: "e",
 	}
 
-	z := mat.NewVecDense([]mat.Float{
+	z := mat.NewVecDense([]T{
 		0: 1.00781250,
 		1: 0,
 		2: 0.51562500,
@@ -26,7 +31,7 @@ func TestDecode(t *testing.T) {
 		4: 0.18750000,
 	})
 
-	decoding := Decode[mat.Float](0.5, z)
+	decoding := Decode[T](0.5, z)
 
 	var xs string
 	for _, id := range decoding {

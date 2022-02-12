@@ -11,18 +11,23 @@ import (
 )
 
 func TestAtVec_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
+	t.Run("float32", testAtVecForward[float32])
+	t.Run("float64", testAtVecForward[float64])
+}
+
+func testAtVecForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewAtVec[mat.Float](x, 1)
+	f := NewAtVec[T](x, 1)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.2}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.2}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{0.5}))
+	f.Backward(mat.NewVecDense([]T{0.5}))
 
-	assert.InDeltaSlice(t, []mat.Float{0.0, 0.5, 0.0, 0.0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.0, 0.5, 0.0, 0.0}, x.grad.Data(), 1.0e-6)
 }

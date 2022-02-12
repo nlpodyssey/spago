@@ -16,7 +16,12 @@ import (
 )
 
 func TestModel_Forward(t *testing.T) {
-	model := New[mat.Float](Config{
+	t.Run("float32", testModelForward[float32])
+	t.Run("float64", testModelForward[float64])
+}
+
+func testModelForward[T mat.DType](t *testing.T) {
+	model := New[T](Config{
 		Dim:        4,
 		Depth:      2,
 		SeqLen:     2,
@@ -27,10 +32,10 @@ func TestModel_Forward(t *testing.T) {
 	defer model.Close()
 
 	require.Len(t, model.Layers, 2)
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Norm.W.Value().SetData([]mat.Float{0.1, 0.2, 0.3, 0.4})
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Norm.B.Value().SetData([]mat.Float{0.5, 0.6, 0.7, 0.8})
+	model.Layers[0].(*Residual[T]).PreNorm.Norm.W.Value().SetData([]T{0.1, 0.2, 0.3, 0.4})
+	model.Layers[0].(*Residual[T]).PreNorm.Norm.B.Value().SetData([]T{0.5, 0.6, 0.7, 0.8})
 
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[0].(*linear.Model[mat.Float]).W.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
 		0.01, 0.02, 0.03, 0.04,
 		0.05, 0.06, 0.07, 0.08,
 		0.09, 0.10, 0.11, 0.12,
@@ -48,41 +53,41 @@ func TestModel_Forward(t *testing.T) {
 		0.57, 0.58, 0.59, 0.60,
 		0.61, 0.62, 0.63, 0.64,
 	})
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[0].(*linear.Model[mat.Float]).B.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{
 		0.65, 0.66, 0.67, 0.68, 0.69, 0.70, 0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.77, 0.78, 0.79, 0.80,
 	})
 
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Norm.W.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Norm.W.Value().SetData([]T{
 		0.2, 0.4, 0.6, 0.8, 0.1, 0.3, 0.5, 0.7,
 	})
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Norm.B.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Norm.B.Value().SetData([]T{
 		0.02, 0.04, 0.06, 0.08, 0.01, 0.03, 0.05, 0.07,
 	})
 
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Proj.W.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Proj.W.Value().SetData([]T{
 		0.41, 0.42,
 		0.43, 0.44,
 	})
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Proj.B.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Proj.B.Value().SetData([]T{
 		0.48, 0.49,
 	})
 
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[3].(*linear.Model[mat.Float]).W.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[3].(*linear.Model[T]).W.Value().SetData([]T{
 		0.11, 0.22, 0.33, 0.44, 0.55, 0.66, 0.77, 0.88,
 		0.22, 0.33, 0.44, 0.55, 0.66, 0.77, 0.88, 0.99,
 		0.33, 0.44, 0.55, 0.66, 0.77, 0.88, 0.99, 0.88,
 		0.44, 0.55, 0.66, 0.77, 0.88, 0.99, 0.88, 0.77,
 	})
-	model.Layers[0].(*Residual[mat.Float]).PreNorm.Block.Layers[3].(*linear.Model[mat.Float]).B.Value().SetData([]mat.Float{
+	model.Layers[0].(*Residual[T]).PreNorm.Block.Layers[3].(*linear.Model[T]).B.Value().SetData([]T{
 		0.55, 0.66, 0.77, 0.88,
 	})
 
 	// ---
 
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Norm.W.Value().SetData([]mat.Float{0.9, 0.8, 0.7, 0.6})
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Norm.B.Value().SetData([]mat.Float{0.5, 0.4, 0.3, 0.2})
+	model.Layers[1].(*Residual[T]).PreNorm.Norm.W.Value().SetData([]T{0.9, 0.8, 0.7, 0.6})
+	model.Layers[1].(*Residual[T]).PreNorm.Norm.B.Value().SetData([]T{0.5, 0.4, 0.3, 0.2})
 
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[0].(*linear.Model[mat.Float]).W.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
 		0.99, 0.98, 0.97, 0.96,
 		0.95, 0.94, 0.93, 0.92,
 		0.91, 0.90, 0.89, 0.88,
@@ -100,44 +105,44 @@ func TestModel_Forward(t *testing.T) {
 		0.43, 0.42, 0.41, 0.40,
 		0.39, 0.38, 0.37, 0.36,
 	})
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[0].(*linear.Model[mat.Float]).B.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{
 		0.35, 0.34, 0.33, 0.32, 0.31, 0.30, 0.29, 0.28, 0.27, 0.26, 0.25, 0.24, 0.23, 0.22, 0.21, 0.20,
 	})
 
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Norm.W.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Norm.W.Value().SetData([]T{
 		0.9, 0.7, 0.5, 0.3, 0.8, 0.6, 0.4, 0.2,
 	})
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Norm.B.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Norm.B.Value().SetData([]T{
 		0.09, 0.07, 0.05, 0.03, 0.08, 0.06, 0.04, 0.02,
 	})
 
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Proj.W.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Proj.W.Value().SetData([]T{
 		0.61, 0.62,
 		0.63, 0.64,
 	})
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[2].(*sgu.Model[mat.Float]).Proj.B.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[2].(*sgu.Model[T]).Proj.B.Value().SetData([]T{
 		0.68, 0.69,
 	})
 
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[3].(*linear.Model[mat.Float]).W.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[3].(*linear.Model[T]).W.Value().SetData([]T{
 		0.99, 0.88, 0.77, 0.66, 0.55, 0.44, 0.33, 0.22,
 		0.88, 0.77, 0.66, 0.55, 0.44, 0.33, 0.22, 0.11,
 		0.77, 0.66, 0.55, 0.44, 0.33, 0.22, 0.11, 0.22,
 		0.66, 0.55, 0.44, 0.33, 0.22, 0.11, 0.22, 0.33,
 	})
-	model.Layers[1].(*Residual[mat.Float]).PreNorm.Block.Layers[3].(*linear.Model[mat.Float]).B.Value().SetData([]mat.Float{
+	model.Layers[1].(*Residual[T]).PreNorm.Block.Layers[3].(*linear.Model[T]).B.Value().SetData([]T{
 		0.55, 0.44, 0.33, 0.22,
 	})
 
-	g := ag.NewGraph[mat.Float]()
+	g := ag.NewGraph[T]()
 	defer g.Clear()
 	proc := nn.ReifyForTraining(model, g)
 
-	w1 := g.NewVariable(mat.NewVecDense([]mat.Float{0.11, 0.12, 0.13, 0.14}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]mat.Float{0.21, 0.22, 0.23, 0.24}), true)
+	w1 := g.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
+	w2 := g.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)
 
 	ys := proc.Forward(w1, w2)
 	require.Len(t, ys, 2)
-	require.InDeltaSlice(t, []mat.Float{12.033182, 11.811123, 11.153941, 10.22517}, ys[0].Value().Data(), 0.00005)
-	require.InDeltaSlice(t, []mat.Float{12.44335, 12.219593, 11.541459, 10.580078}, ys[1].Value().Data(), 0.00005)
+	require.InDeltaSlice(t, []T{12.033182, 11.811123, 11.153941, 10.22517}, ys[0].Value().Data(), 0.00005)
+	require.InDeltaSlice(t, []T{12.44335, 12.219593, 11.541459, 10.580078}, ys[1].Value().Data(), 0.00005)
 }

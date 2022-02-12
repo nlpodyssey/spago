@@ -11,19 +11,24 @@ import (
 )
 
 func TestRotateR_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}),
+	t.Run("float32", testRotateRForward[float32])
+	t.Run("float64", testRotateRForward[float64])
+}
+
+func testRotateRForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewRotateR[mat.Float](x, 1)
+	f := NewRotateR[T](x, 1)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}))
+	f.Backward(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}))
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.1,
 	}, x.grad.Data(), 1.0e-6)
 }

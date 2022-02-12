@@ -11,8 +11,13 @@ import (
 )
 
 func TestRow_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value: mat.NewDense(3, 4, []mat.Float{
+	t.Run("float32", testRowForward[float32])
+	t.Run("float64", testRowForward[float64])
+}
+
+func testRowForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
@@ -21,10 +26,10 @@ func TestRow_Forward(t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewRowView[mat.Float](x, 2)
+	f := NewRowView[T](x, 2)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		-0.5, 0.8, -0.8, -0.1,
 	}, y.Data(), 1.0e-6)
 
@@ -32,11 +37,11 @@ func TestRow_Forward(t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	f.Backward(mat.NewDense(1, 4, []mat.Float{
+	f.Backward(mat.NewDense(1, 4, []T{
 		0.1, 0.2, -0.8, -0.1,
 	}))
 
-	assert.InDeltaSlice(t, []mat.Float{
+	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.1, 0.2, -0.8, -0.1,

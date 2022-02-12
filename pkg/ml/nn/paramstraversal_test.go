@@ -12,160 +12,212 @@ import (
 	"testing"
 )
 
-type ParamsTraversalTester struct {
-	CollectedParams []Param[mat.Float]
+type ParamsTraversalTester[T mat.DType] struct {
+	CollectedParams []Param[T]
 }
 
-func NewParamsTraversalTester() *ParamsTraversalTester {
-	return &ParamsTraversalTester{CollectedParams: make([]Param[mat.Float], 0)}
+func NewParamsTraversalTester[T mat.DType]() *ParamsTraversalTester[T] {
+	return &ParamsTraversalTester[T]{
+		CollectedParams: make([]Param[T], 0),
+	}
 }
 
-func (ptt *ParamsTraversalTester) collect(param Param[mat.Float]) {
+func (ptt *ParamsTraversalTester[T]) collect(param Param[T]) {
 	ptt.CollectedParams = append(ptt.CollectedParams, param)
 }
 
 // ParamsTraversalBaseModel can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Reify method.
-type ParamsTraversalBaseModel struct {
-	BaseModel[mat.Float]
+type ParamsTraversalBaseModel[T mat.DType] struct {
+	BaseModel[T]
 }
 
-var _ Model[mat.Float] = &ParamsTraversalBaseModel{}
+var _ Model[float32] = &ParamsTraversalBaseModel[float32]{}
 
-func (p ParamsTraversalBaseModel) Forward(_ interface{}) interface{} {
+func (ParamsTraversalBaseModel[T]) Forward(_ interface{}) interface{} {
 	panic("this should never be called")
 }
 
 func TestParamsTraversal(t *testing.T) {
+	t.Run("float32", testParamsTraversal[float32])
+	t.Run("float64", testParamsTraversal[float64])
+}
+
+type emptyStruct struct{}
+
+type ptModel1[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	a int
+	b string
+	c []int
+	d []float32
+	e []emptyStruct
+	f map[bool]emptyStruct
+}
+
+type ptModel2[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	A Param[T]
+	B Param[T]
+}
+
+type ptModel3[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	A []Param[T]
+	B []Param[T]
+}
+
+type ptModel4[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	P Param[T]
+	M Model[T]
+}
+
+type ptModel5[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	P Param[T]
+	M []Model[T]
+}
+
+type ptModel6[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	P Param[T]
+	M []interface{}
+}
+
+type testStructP[T mat.DType] struct {
+	P Param[T]
+}
+
+type ptModel7[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	Ignored []testStructP[T]
+	S       []testStructP[T] `spago:"type:params"`
+}
+
+type ptModel8[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	MI map[int]Param[T]
+	MS map[string]Param[T]
+}
+
+type ptModel9[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	MS testStructP[T]  `spago:"type:params"`
+	MP *testStructP[T] `spago:"type:params"`
+}
+
+type ptModel10[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	MS *sync.Map `spago:"type:params"`
+}
+
+type ptModel11[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	MS *syncmap.Map `spago:"type:params"`
+}
+
+func testParamsTraversal[T mat.DType](t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty model", func(t *testing.T) {
 		t.Parallel()
 
-		m := &ParamsTraversalBaseModel{}
-		tt := NewParamsTraversalTester()
+		m := &ParamsTraversalBaseModel[T]{}
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		assertEqual(t, tt.CollectedParams, []Param[mat.Float]{})
+		assertEqual(t, tt.CollectedParams, []Param[T]{})
 	})
 
 	t.Run("irrelevant fields are ignored", func(t *testing.T) {
 		t.Parallel()
 
-		type MyStruct struct{}
-
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			a int
-			b string
-			c []int
-			d []float32
-			e []MyStruct
-			f map[bool]MyStruct
-		}
-		m := &TestModel{
+		m := &ptModel1[T]{
 			c: []int{1, 2},
 			d: []float32{3.4, 5.6},
-			e: []MyStruct{{}, {}},
-			f: map[bool]MyStruct{true: {}, false: {}},
+			e: []emptyStruct{{}, {}},
+			f: map[bool]emptyStruct{true: {}, false: {}},
 		}
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		assertEqual(t, tt.CollectedParams, []Param[mat.Float]{})
+		assertEqual(t, tt.CollectedParams, []Param[T]{})
 	})
 
 	t.Run("it visits Param fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			A Param[mat.Float]
-			B Param[mat.Float]
+		m := &ptModel2[T]{
+			A: NewParam[T](mat.NewScalar[T](1)),
+			B: NewParam[T](mat.NewScalar[T](2)),
 		}
-
-		m := &TestModel{
-			A: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
-			B: NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
-		}
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []Param[mat.Float]{m.A, m.B}
+		expected := []Param[T]{m.A, m.B}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it visits []Param fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			A []Param[mat.Float]
-			B []Param[mat.Float]
-		}
-
-		m := &TestModel{
-			A: []Param[mat.Float]{
-				NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
-				NewParam[mat.Float](mat.NewScalar[mat.Float](2)),
+		m := &ptModel3[T]{
+			A: []Param[T]{
+				NewParam[T](mat.NewScalar[T](1)),
+				NewParam[T](mat.NewScalar[T](2)),
 			},
-			B: []Param[mat.Float]{
-				NewParam[mat.Float](mat.NewScalar[mat.Float](3)),
-				NewParam[mat.Float](mat.NewScalar[mat.Float](4)),
+			B: []Param[T]{
+				NewParam[T](mat.NewScalar[T](3)),
+				NewParam[T](mat.NewScalar[T](4)),
 			},
 		}
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []Param[mat.Float]{m.A[0], m.A[1], m.B[0], m.B[1]}
+		expected := []Param[T]{m.A[0], m.A[1], m.B[0], m.B[1]}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it can optionally visit nested Model fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			P Param[mat.Float]
-			M Model[mat.Float]
+		nestedModel := &ptModel4[T]{
+			P: NewParam[T](mat.NewScalar[T](100)),
+			M: &ParamsTraversalBaseModel[T]{},
 		}
 
-		nestedModel := &TestModel{
-			P: NewParam[mat.Float](mat.NewScalar[mat.Float](100)),
-			M: &ParamsTraversalBaseModel{},
-		}
-
-		m := &TestModel{
-			P: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+		m := &ptModel4[T]{
+			P: NewParam[T](mat.NewScalar[T](1)),
 			M: nestedModel,
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P}
+			expected := []Param[T]{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
 		t.Run("with exploreSubModels true", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P, nestedModel.P}
+			expected := []Param[T]{m.P, nestedModel.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -173,37 +225,31 @@ func TestParamsTraversal(t *testing.T) {
 	t.Run("it can optionally visit nested []Model fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			P Param[mat.Float]
-			M []Model[mat.Float]
-		}
+		mA := &ptModel5[T]{P: NewParam[T](mat.NewScalar[T](100))}
+		mB := &ptModel5[T]{P: NewParam[T](mat.NewScalar[T](200))}
 
-		mA := &TestModel{P: NewParam[mat.Float](mat.NewScalar[mat.Float](100))}
-		mB := &TestModel{P: NewParam[mat.Float](mat.NewScalar[mat.Float](200))}
-
-		m := &TestModel{
-			P: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
-			M: []Model[mat.Float]{mA, mB},
+		m := &ptModel5[T]{
+			P: NewParam[T](mat.NewScalar[T](1)),
+			M: []Model[T]{mA, mB},
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P}
+			expected := []Param[T]{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
 		t.Run("with exploreSubModels true", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P, mA.P, mB.P}
+			expected := []Param[T]{m.P, mA.P, mB.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -211,37 +257,31 @@ func TestParamsTraversal(t *testing.T) {
 	t.Run("it can optionally visit nested Model items in slice fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			P Param[mat.Float]
-			M []interface{}
-		}
+		mA := &ptModel6[T]{P: NewParam[T](mat.NewScalar[T](100))}
+		mB := &ptModel6[T]{P: NewParam[T](mat.NewScalar[T](200))}
 
-		mA := &TestModel{P: NewParam[mat.Float](mat.NewScalar[mat.Float](100))}
-		mB := &TestModel{P: NewParam[mat.Float](mat.NewScalar[mat.Float](200))}
-
-		m := &TestModel{
-			P: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+		m := &ptModel6[T]{
+			P: NewParam[T](mat.NewScalar[T](1)),
 			M: []interface{}{mA, mB},
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, false)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P}
+			expected := []Param[T]{m.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 
 		t.Run("with exploreSubModels true", func(t *testing.T) {
-			tt := NewParamsTraversalTester()
+			tt := NewParamsTraversalTester[T]()
 
 			pt := newParamsTraversal(tt.collect, true)
 			pt.walk(m)
 
-			expected := []Param[mat.Float]{m.P, mA.P, mB.P}
+			expected := []Param[T]{m.P, mA.P, mB.P}
 			assertEqual(t, tt.CollectedParams, expected)
 		})
 	})
@@ -249,133 +289,97 @@ func TestParamsTraversal(t *testing.T) {
 	t.Run("it visits struct items in params-annotated slice fields", func(t *testing.T) {
 		t.Parallel()
 
-		type MyStruct struct {
-			P Param[mat.Float]
-		}
-
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			Ignored []MyStruct
-			S       []MyStruct `spago:"type:params"`
-		}
-
-		m := &TestModel{
-			Ignored: []MyStruct{
-				{P: NewParam[mat.Float](mat.NewScalar[mat.Float](1))},
-				{P: NewParam[mat.Float](mat.NewScalar[mat.Float](2))},
+		m := &ptModel7[T]{
+			Ignored: []testStructP[T]{
+				{P: NewParam[T](mat.NewScalar[T](1))},
+				{P: NewParam[T](mat.NewScalar[T](2))},
 			},
-			S: []MyStruct{
-				{P: NewParam[mat.Float](mat.NewScalar[mat.Float](10))},
-				{P: NewParam[mat.Float](mat.NewScalar[mat.Float](20))},
+			S: []testStructP[T]{
+				{P: NewParam[T](mat.NewScalar[T](10))},
+				{P: NewParam[T](mat.NewScalar[T](20))},
 			},
 		}
 
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []Param[mat.Float]{m.S[0].P, m.S[1].P}
+		expected := []Param[T]{m.S[0].P, m.S[1].P}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it visits Param items in map[int] and map[string] fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			MI map[int]Param[mat.Float]
-			MS map[string]Param[mat.Float]
-		}
-
-		m := &TestModel{
-			MI: map[int]Param[mat.Float]{
-				0: NewParam[mat.Float](mat.NewScalar[mat.Float](1)),
+		m := &ptModel8[T]{
+			MI: map[int]Param[T]{
+				0: NewParam[T](mat.NewScalar[T](1)),
 			},
-			MS: map[string]Param[mat.Float]{
-				"a": NewParam[mat.Float](mat.NewScalar[mat.Float](3)),
+			MS: map[string]Param[T]{
+				"a": NewParam[T](mat.NewScalar[T](3)),
 			},
 		}
 
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []Param[mat.Float]{m.MI[0], m.MS["a"]}
+		expected := []Param[T]{m.MI[0], m.MS["a"]}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it visits Param items in params-annotated struct of ptr fields", func(t *testing.T) {
 		t.Parallel()
 
-		type MyStruct struct {
-			P Param[mat.Float]
+		m := &ptModel9[T]{
+			MS: testStructP[T]{P: NewParam[T](mat.NewScalar[T](1))},
+			MP: &testStructP[T]{P: NewParam[T](mat.NewScalar[T](2))},
 		}
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			MS MyStruct  `spago:"type:params"`
-			MP *MyStruct `spago:"type:params"`
-		}
-
-		m := &TestModel{
-			MS: MyStruct{P: NewParam[mat.Float](mat.NewScalar[mat.Float](1))},
-			MP: &MyStruct{P: NewParam[mat.Float](mat.NewScalar[mat.Float](2))},
-		}
-
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
-		expected := []Param[mat.Float]{m.MS.P, m.MP.P}
+		expected := []Param[T]{m.MS.P, m.MP.P}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it visits Param items in params-annotated sync.Map fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			MS *sync.Map `spago:"type:params"`
-		}
-
-		m := &TestModel{
+		m := &ptModel10[T]{
 			MS: &sync.Map{},
 		}
-		m.MS.Store("a", NewParam[mat.Float](mat.NewScalar[mat.Float](3)))
+		m.MS.Store("a", NewParam[T](mat.NewScalar[T](3)))
 
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
 		p, _ := m.MS.Load("a")
-		expected := []Param[mat.Float]{p.(Param[mat.Float])}
+		expected := []Param[T]{p.(Param[T])}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 
 	t.Run("it visits Param items in params-annotated embeddings.syncmap.Map fields", func(t *testing.T) {
 		t.Parallel()
 
-		type TestModel struct {
-			ParamsTraversalBaseModel
-			MS *syncmap.Map `spago:"type:params"`
-		}
-
-		m := &TestModel{
+		m := &ptModel11[T]{
 			MS: syncmap.New(),
 		}
-		m.MS.Store("a", NewParam[mat.Float](mat.NewScalar[mat.Float](3)))
+		m.MS.Store("a", NewParam[T](mat.NewScalar[T](3)))
 
-		tt := NewParamsTraversalTester()
+		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
 		pt.walk(m)
 
 		p, _ := m.MS.Load("a")
-		expected := []Param[mat.Float]{p.(Param[mat.Float])}
+		expected := []Param[T]{p.(Param[T])}
 		assertEqual(t, tt.CollectedParams, expected)
 	})
 }

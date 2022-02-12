@@ -11,18 +11,23 @@ import (
 )
 
 func TestReduceSum_Forward(t *testing.T) {
-	x := &variable[mat.Float]{
-		value:        mat.NewVecDense([]mat.Float{0.1, 0.2, 0.3, 0.0}),
+	t.Run("float32", testReduceSumForward[float32])
+	t.Run("float64", testReduceSumForward[float64])
+}
+
+func testReduceSumForward[T mat.DType](t *testing.T) {
+	x := &variable[T]{
+		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewReduceSum[mat.Float](x)
+	f := NewReduceSum[T](x)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []mat.Float{0.6}, y.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.6}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]mat.Float{0.5}))
+	f.Backward(mat.NewVecDense([]T{0.5}))
 
-	assert.InDeltaSlice(t, []mat.Float{0.5, 0.5, 0.5, 0.5}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.5, 0.5, 0.5, 0.5}, x.grad.Data(), 1.0e-6)
 }
