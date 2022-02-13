@@ -624,6 +624,62 @@ func testDenseAt[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_SetVec(t *testing.T) {
+	t.Run("float32", testDenseSetVec[float32])
+	t.Run("float64", testDenseSetVec[float64])
+}
+
+func testDenseSetVec[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SetVec(1, 42)
+		})
+	})
+
+	t.Run("negative index", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		require.Panics(t, func() {
+			d.SetVec(-1, 42)
+		})
+	})
+
+	t.Run("index out of upper bound", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		require.Panics(t, func() {
+			d.SetVec(2, 42)
+		})
+	})
+
+	testCases := []struct {
+		size int
+		i    int
+		d    []T
+	}{
+		{1, 0, []T{42}},
+		{2, 0, []T{42, 0}},
+		{2, 1, []T{0, 42}},
+		{4, 0, []T{42, 0, 0, 0}},
+		{4, 1, []T{0, 42, 0, 0}},
+		{4, 2, []T{0, 0, 42, 0}},
+		{4, 3, []T{0, 0, 0, 42}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+			d := NewEmptyDense[T](tc.size, 1)
+			d.SetVec(tc.i, 42)
+			assert.Equal(t, tc.d, d.Data())
+		})
+
+		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+			d := NewEmptyDense[T](1, tc.size)
+			d.SetVec(tc.i, 42)
+			assert.Equal(t, tc.d, d.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
