@@ -57,8 +57,8 @@ type param[T mat.DType] struct {
 	pType        ParamsType    // lazy initialization
 	mu           sync.Mutex    // to avoid data race
 	value        mat.Matrix[T] // store the results of a forward evaluation.
-	grad         mat.Matrix[T] // TODO: support of sparse gradients
-	payload      *Payload[T]   // additional data used for example by gradient-descend optimization methods
+	grad         mat.Matrix[T]
+	payload      *Payload[T] // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
 }

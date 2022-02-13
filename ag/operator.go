@@ -48,7 +48,7 @@ type Operator[T mat.DType] struct {
 	operands     []Node[T]
 	value        mat.Matrix[T] // store the results of a forward evaluation
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
-	grad         mat.Matrix[T] // TODO: support of sparse gradients
+	grad         mat.Matrix[T]
 	hasGrad      bool
 	requiresGrad bool
 }
