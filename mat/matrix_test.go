@@ -36,7 +36,7 @@ func testIsVector[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			require.Equal(t, tc.b, IsVector(Matrix[T](d)))
+			require.Equal(t, tc.b, IsVector[T](d))
 		})
 	}
 }
@@ -64,7 +64,7 @@ func testIsScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			require.Equal(t, tc.b, IsScalar(Matrix[T](d)))
+			require.Equal(t, tc.b, IsScalar[T](d))
 		})
 	}
 }
@@ -78,14 +78,14 @@ func testSameDims[T DType](t *testing.T) {
 	t.Run("different dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](3, 2)
-		assert.False(t, SameDims(Matrix[T](a), Matrix[T](b)))
-		assert.False(t, SameDims(Matrix[T](b), Matrix[T](a)))
+		assert.False(t, SameDims[T](a, b))
+		assert.False(t, SameDims[T](b, a))
 	})
 
 	t.Run("same dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 3)
-		assert.True(t, SameDims(Matrix[T](a), Matrix[T](b)))
-		assert.True(t, SameDims(Matrix[T](b), Matrix[T](a)))
+		assert.True(t, SameDims[T](a, b))
+		assert.True(t, SameDims[T](b, a))
 	})
 }
