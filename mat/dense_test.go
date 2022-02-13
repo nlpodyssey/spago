@@ -940,6 +940,82 @@ func testDenseView[T DType](t *testing.T) {
 	})
 }
 
+func TestDense_Reshape(t *testing.T) {
+	t.Run("float32", testDenseReshape[float32])
+	t.Run("float64", testDenseReshape[float64])
+}
+
+func testDenseReshape[T DType](t *testing.T) {
+	t.Run("negative rows", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Reshape(-1, 6)
+		})
+	})
+
+	t.Run("negative cols", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Reshape(6, -1)
+		})
+	})
+
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Reshape(2, 2)
+		})
+	})
+
+	testCases := []struct {
+		r     int
+		c     int
+		reshR int
+		reshC int
+	}{
+		{0, 0, 0, 0},
+		{1, 1, 1, 1},
+
+		{0, 1, 0, 1},
+		{0, 1, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 0, 0, 1},
+
+		{1, 2, 1, 2},
+		{1, 2, 2, 1},
+
+		{2, 1, 2, 1},
+		{2, 1, 1, 2},
+
+		{2, 2, 2, 2},
+
+		// Weird cases, but technically legit
+		{2, 2, 1, 4},
+		{2, 2, 4, 1},
+		{2, 3, 2, 3},
+		{2, 3, 3, 2},
+		{2, 3, 1, 6},
+		{2, 3, 6, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d reshape %d x %d", tc.r, tc.c, tc.reshR, tc.reshC), func(t *testing.T) {
+			d := NewEmptyDense[T](tc.r, tc.c)
+			r := d.Reshape(tc.reshR, tc.reshC)
+			assertDenseDims(t, tc.reshR, tc.reshC, r.(*Dense[T]))
+			assert.Equal(t, d.Data(), r.Data())
+		})
+	}
+
+	t.Run("data is copied", func(t *testing.T) {
+		d := NewEmptyDense[T](1, 1)
+		r := d.Reshape(1, 1)
+		d.Set(0, 0, 42) // modifying d must not modify r
+		assert.Equal(t, T(0), r.At(0, 0))
+	})
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
