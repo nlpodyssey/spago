@@ -4,6 +4,8 @@
 
 package ag
 
+import "github.com/nlpodyssey/spago/mat"
+
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func (g *Graph[T]) PositiveELU(x Node[T]) Node[T] {
 	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
@@ -56,4 +58,46 @@ func (g *Graph[T]) Affine(xs ...Node[T]) Node[T] {
 		}
 	}
 	return y
+}
+
+// SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
+// The dimensions of the resulting matrix are the same of the input.
+func (g *Graph[T]) SeparateMatrix(x Node[T]) [][]Node[T] {
+	rows, cols := x.Value().Dims()
+	ys := make([][]Node[T], rows)
+	for i := range ys {
+		row := make([]Node[T], cols)
+		for j := range row {
+			row[j] = g.At(x, i, j)
+		}
+		ys[i] = row
+	}
+	return ys
+}
+
+// SeparateVec returns a slice of Node(s) containing the elements extracted from the input.
+// The size of the vector equals the number of input elements.
+// You can think of this method as the inverse of the ag.Concat operator.
+func (g *Graph[T]) SeparateVec(x Node[T]) []Node[T] {
+	size := x.Value().Size()
+	ys := make([]Node[T], size)
+	for i := 0; i < size; i++ {
+		ys[i] = g.AtVec(x, i)
+	}
+	return ys
+}
+
+// SplitVec splits the x Node into multiple chunks.
+func (g *Graph[T]) SplitVec(x Node[T], chunks int) []Node[T] {
+	if x.Value().Size()%chunks != 0 {
+		panic("nn: incompatible chunks size")
+	}
+	l := 0
+	size := int(mat.Ceil(T(x.Value().Size()) / T(chunks)))
+	ys := make([]Node[T], chunks)
+	for i := 0; i < chunks; i++ {
+		ys[i] = g.View(x, l, 0, size, 1)
+		l += size
+	}
+	return ys
 }

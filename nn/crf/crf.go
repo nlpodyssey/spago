@@ -36,7 +36,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // InitProcessor initializes structures and data useful for the decoding.
 func (m *Model[T]) InitProcessor() {
-	m.Scores = nn.SeparateMatrix[T](m.Graph(), m.TransitionScores) // TODO: lazy initialization
+	m.Scores = m.Graph().SeparateMatrix(m.TransitionScores) // TODO: lazy initialization
 }
 
 // Decode performs viterbi decoding.
@@ -69,7 +69,7 @@ func (m *Model[T]) totalScore(predicted []ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
-		totalVector = m.totalScoreStep(totalVector, nn.SeparateVec(g, predicted[i]))
+		totalVector = m.totalScoreStep(totalVector, g.SeparateVec(predicted[i]))
 	}
 	totalVector = m.totalScoreEnd(totalVector)
 	return g.Log(g.ReduceSum(g.Concat(totalVector...)))
