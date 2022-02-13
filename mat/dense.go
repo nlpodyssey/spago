@@ -213,7 +213,7 @@ func (d *Dense[T]) OnesLike() Matrix[T] {
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
 func (d *Dense[T]) Scalar() T {
-	if !IsScalar(Matrix[T](d)) {
+	if !IsScalar[T](d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
 	return d.data[0]
@@ -254,7 +254,7 @@ func (d *Dense[T]) At(r int, c int) T {
 // SetVec sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) SetVec(i int, v T) {
-	if !(IsVector(Matrix[T](d))) {
+	if !(IsVector[T](d)) {
 		panic("mat: expected vector")
 	}
 	if i < 0 || i >= len(d.data) {
@@ -266,7 +266,7 @@ func (d *Dense[T]) SetVec(i int, v T) {
 // AtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) AtVec(i int) T {
-	if !IsVector(Matrix[T](d)) {
+	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
 	if i < 0 || i >= len(d.data) {
@@ -348,7 +348,7 @@ func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
 // elements are removed. If it's bigger, the additional tail elements
 // are set to zero.
 func (d *Dense[T]) ResizeVector(newSize int) Matrix[T] {
-	if !(IsVector(Matrix[T](d))) {
+	if !(IsVector[T](d)) {
 		panic("mat: expected vector")
 	}
 	if newSize < 0 {
@@ -388,7 +388,7 @@ func (d *Dense[T]) T() Matrix[T] {
 
 // Prod performs the element-wise product between the receiver and the other matrix.
 func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 
@@ -412,7 +412,7 @@ func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
 
 // ProdInPlace performs the in-place element-wise product with the other matrix.
 func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	dData := d.data
@@ -425,7 +425,7 @@ func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
 
 // DivInPlace performs the in-place element-wise division of the receiver by the other matrix.
 func (d *Dense[T]) DivInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	for i, val := range other.Data() {
@@ -480,7 +480,7 @@ func (d *Dense[T]) Min() T {
 
 // Maximum returns a new matrix containing the element-wise maxima.
 func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
-	if !SameDims(Matrix[T](d), other) {
+	if !SameDims[T](d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
@@ -501,7 +501,7 @@ func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
 
 // Minimum returns a new matrix containing the element-wise minima.
 func (d *Dense[T]) Minimum(other Matrix[T]) Matrix[T] {
-	if !SameDims(Matrix[T](d), other) {
+	if !SameDims[T](d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
@@ -572,7 +572,7 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
 
 // ApplyInPlace executes the unary function fn.
 func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
-	if !SameDims(Matrix[T](d), a) {
+	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	aData := a.Data()
@@ -622,7 +622,7 @@ func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ..
 
 // ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
 func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) {
-	if !SameDims(Matrix[T](d), a) {
+	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	// TODO: rewrite for better performance
@@ -650,7 +650,7 @@ func (d *Dense[T]) DoNonZero(fn func(r, c int, v T)) {
 // DoVecNonZero calls a function for each non-zero element of the vector.
 // The parameters of the function are the element's index and value.
 func (d *Dense[T]) DoVecNonZero(fn func(i int, v T)) {
-	if !IsVector(Matrix[T](d)) {
+	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
 	for i, v := range d.data {
@@ -903,7 +903,7 @@ func (d *Dense[T]) ProdScalarInPlace(n T) Matrix[T] {
 
 // Add returns the addition between the receiver and another matrix.
 func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -920,7 +920,7 @@ func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
 
 // AddInPlace performs the in-place addition with the other matrix.
 func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	switch any(T(0)).(type) {
@@ -936,7 +936,7 @@ func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
 
 // Sub returns the subtraction of the other matrix from the receiver.
 func (d *Dense[T]) Sub(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -953,7 +953,7 @@ func (d *Dense[T]) Sub(other Matrix[T]) Matrix[T] {
 
 // SubInPlace performs the in-place subtraction with the other matrix.
 func (d *Dense[T]) SubInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	switch any(T(0)).(type) {
@@ -983,7 +983,7 @@ func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n T) Matrix[T] {
 
 // Div returns the result of the element-wise division of the receiver by the other matrix.
 func (d *Dense[T]) Div(other Matrix[T]) Matrix[T] {
-	if !(SameDims(Matrix[T](d), other) || VectorsOfSameSize(Matrix[T](d), other)) {
+	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -1223,7 +1223,7 @@ func (d *Dense[T]) Clone() Matrix[T] {
 // Copy copies the data from the other matrix to the receiver.
 // It panics if the matrices have different dimensions.
 func (d *Dense[T]) Copy(other Matrix[T]) {
-	if !SameDims(Matrix[T](d), other) {
+	if !SameDims[T](d, other) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	copy(d.data, other.Data())
