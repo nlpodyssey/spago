@@ -1198,6 +1198,68 @@ func testDenseT[T DType](t *testing.T) {
 	}
 }
 
+type prodTestCase[T DType] struct {
+	a *Dense[T]
+	b *Dense[T]
+	y []T
+}
+
+func prodTestCases[T DType]() []prodTestCase[T] {
+	return []prodTestCase[T]{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{20}},
+		{
+			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](1, 2, []T{10, 20}),
+			[]T{20, 60},
+		},
+		{
+			NewDense[T](1, 2, []T{2, 3}),   // row vec
+			NewDense[T](2, 1, []T{10, 20}), // col vec
+			[]T{20, 60},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			NewDense[T](2, 3, []T{
+				10, 20, 30,
+				40, 50, 60,
+			}),
+			[]T{
+				20, 60, 120,
+				200, 300, 420,
+			},
+		},
+	}
+}
+
+func TestDense_Prod(t *testing.T) {
+	t.Run("float32", testDenseProd[float32])
+	t.Run("float64", testDenseProd[float64])
+}
+
+func testDenseProd[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.Prod(b)
+		})
+	})
+
+	for _, tc := range prodTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			y := tc.a.Prod(tc.b)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
