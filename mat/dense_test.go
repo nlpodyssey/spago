@@ -1157,6 +1157,47 @@ func testDenseResizeVector[T DType](t *testing.T) {
 	})
 }
 
+func TestDense_T(t *testing.T) {
+	t.Run("float32", testDenseT[float32])
+	t.Run("float64", testDenseT[float64])
+}
+
+func testDenseT[T DType](t *testing.T) {
+	testCases := []struct {
+		r int
+		c int
+		d []T
+	}{
+		// Each value is a 2-digit number having the format "<row><col>"
+		{0, 0, []T{}},
+		{0, 1, []T{}},
+		{1, 0, []T{}},
+		{1, 1, []T{11}},
+		{1, 2, []T{11, 12}},
+		{2, 1, []T{11, 21}},
+		{2, 2, []T{
+			11, 21,
+			12, 22,
+		}},
+		{2, 3, []T{
+			11, 21,
+			12, 22,
+			13, 23,
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+				return T(c + 1 + (r+1)*10)
+			})
+			tr := d.T()
+			assertDenseDims(t, tc.c, tc.r, tr.(*Dense[T]))
+			assert.Equal(t, tc.d, tr.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
