@@ -67,6 +67,13 @@ func testNewDense[T DType](t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("data is copied", func(t *testing.T) {
+		s := []T{1}
+		d := NewDense(1, 1, s)
+		s[0] = 42 // modifying s must not modify d.data
+		assert.Equal(t, T(1), d.data[0])
+	})
 }
 
 func TestNewVecDense(t *testing.T) {
@@ -92,6 +99,13 @@ func testNewVecDense[T DType](t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("data is copied", func(t *testing.T) {
+		s := []T{1}
+		d := NewVecDense(s)
+		s[0] = 42 // modifying s must not modify d.data
+		assert.Equal(t, T(1), d.data[0])
+	})
 }
 
 func TestNewScalar(t *testing.T) {
@@ -394,11 +408,19 @@ func testDenseSetData[T DType](t *testing.T) {
 		assert.Equal(t, []T{}, d.data)
 	})
 
-	t.Run("data is copied correctly", func(t *testing.T) {
+	t.Run("data is set correctly", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		v := []T{1, 2, 3, 7, 8, 9}
 		d.SetData(v)
 		assert.Equal(t, v, d.data)
+	})
+
+	t.Run("data is copied", func(t *testing.T) {
+		d := NewEmptyDense[T](1, 1)
+		s := []T{1}
+		d.SetData(s)
+		s[0] = 42 // modifying s must not modify d.data
+		assert.Equal(t, T(1), d.data[0])
 	})
 }
 
@@ -907,6 +929,15 @@ func testDenseView[T DType](t *testing.T) {
 			assert.Equal(t, d.Data(), v.Data())
 		})
 	}
+
+	t.Run("data is not copied", func(t *testing.T) {
+		d := NewEmptyDense[T](1, 1)
+		v := d.View(1, 1)
+		d.Set(0, 0, 42) // modifying d must modify v too
+		assert.Equal(t, T(42), v.At(0, 0))
+		v.Set(0, 0, 2) // modifying v must modify d too
+		assert.Equal(t, T(2), d.At(0, 0))
+	})
 }
 
 func TestDense_AddScalar(t *testing.T) {
