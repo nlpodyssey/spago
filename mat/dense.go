@@ -348,6 +348,9 @@ func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
 // elements are removed. If it's bigger, the additional tail elements
 // are set to zero.
 func (d *Dense[T]) ResizeVector(newSize int) Matrix[T] {
+	if !(IsVector(Matrix[T](d))) {
+		panic("mat: expected vector")
+	}
 	if newSize < 0 {
 		panic("mat: a negative size is not allowed")
 	}
