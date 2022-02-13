@@ -124,10 +124,10 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 	yPrev, cellPrev := m.prev()
-	s.InG = g.Sigmoid(nn.Affine[T](g, m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.OutG = g.Sigmoid(nn.Affine[T](g, m.BOut, m.WOut, x, m.WOutRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine[T](g, m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = g.Tanh(nn.Affine[T](g, m.BCand, m.WCand, x, m.WCandRec, yPrev))
+	s.InG = g.Sigmoid(g.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.OutG = g.Sigmoid(g.Affine(m.BOut, m.WOut, x, m.WOutRec, yPrev))
+	s.ForG = g.Sigmoid(g.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = g.Tanh(g.Affine(m.BCand, m.WCand, x, m.WCandRec, yPrev))
 
 	if m.UseRefinedGates {
 		s.InG = g.Prod(s.InG, x)

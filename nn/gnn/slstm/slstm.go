@@ -266,11 +266,11 @@ func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], p
 	g := m.Graph()
 	n := len(prevH)
 	avgH := g.Mean(prevH)
-	fG := g.Sigmoid(nn.Affine[T](g, m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
-	oG := g.Sigmoid(nn.Affine[T](g, m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
+	fG := g.Sigmoid(g.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
+	oG := g.Sigmoid(g.Affine(m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
 	hG := make([]ag.Node[T], n)
-	gG := nn.Affine[T](g, m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
+	gG := g.Affine(m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
 		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}

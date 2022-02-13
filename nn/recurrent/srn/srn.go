@@ -77,7 +77,7 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	s.Y = g.Tanh(nn.Affine[T](g, m.B, m.W, x, m.WRec, yPrev))
+	s.Y = g.Tanh(g.Affine(m.B, m.W, x, m.WRec, yPrev))
 	return
 }
 

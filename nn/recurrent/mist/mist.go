@@ -95,9 +95,9 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.yPrev()
-	a := g.Softmax(nn.Affine[T](g, m.Ba, m.Wax, x, m.Wah, yPrev))
-	r := g.Sigmoid(nn.Affine[T](g, m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = g.Tanh(nn.Affine[T](g, m.B, m.Wx, x, m.Wh, m.tryProd(r, m.weightHistory(a))))
+	a := g.Softmax(g.Affine(m.Ba, m.Wax, x, m.Wah, yPrev))
+	r := g.Sigmoid(g.Affine(m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
+	s.Y = g.Tanh(g.Affine(m.B, m.Wx, x, m.Wh, m.tryProd(r, m.weightHistory(a))))
 	return
 }
 

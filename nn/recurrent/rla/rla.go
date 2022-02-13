@@ -94,9 +94,9 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 
-	key := nn.Affine[T](g, m.Bk, m.Wk, x)
-	value := nn.Affine[T](g, m.Bv, m.Wv, x)
-	query := nn.Affine[T](g, m.Bq, m.Wq, x)
+	key := g.Affine(m.Bk, m.Wk, x)
+	value := g.Affine(m.Bv, m.Wv, x)
+	query := g.Affine(m.Bq, m.Wq, x)
 
 	attKey := defaultMappingFunction(g, key)
 	attQuery := defaultMappingFunction(g, query)

@@ -79,7 +79,7 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	h := nn.Affine[T](g, m.B, m.W, x)
+	h := g.Affine(m.B, m.W, x)
 	if yPrev != nil {
 		h = g.Add(h, g.Prod(m.WRec, yPrev))
 	}

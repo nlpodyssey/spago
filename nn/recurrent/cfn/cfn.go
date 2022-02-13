@@ -94,8 +94,8 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	s.InG = g.Sigmoid(nn.Affine[T](g, m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.ForG = g.Sigmoid(nn.Affine[T](g, m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.InG = g.Sigmoid(g.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = g.Sigmoid(g.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
 	s.Cand = g.Tanh(g.Mul(m.WCand, x))
 	s.Y = g.Prod(s.InG, s.Cand)
 	if yPrev != nil {

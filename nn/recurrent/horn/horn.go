@@ -71,7 +71,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	g := m.Graph()
 	s = new(State[T])
-	h := nn.Affine(g, append([]ag.Node[T]{m.B, m.W, x}, m.feedback()...)...)
+	h := g.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback()...)...)
 	s.Y = g.Tanh(h)
 	return
 }

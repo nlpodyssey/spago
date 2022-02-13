@@ -9,31 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
-// The first node is the “bias”, which is added to the output as-is.
-// The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
-// The pairs except the first whose "x" is nil are not considered.
-// y = b + W1x1 + W2x2 + ... + WnXn
-func Affine[T mat.DType](g *ag.Graph[T], xs ...ag.Node[T]) ag.Node[T] {
-	if len(xs)%2 == 0 {
-		panic("nn: the number of arguments of the affine transformation should be odd")
-	}
-
-	// Optimize bounds checks
-	x := xs[2]
-	w := xs[1]
-	y := g.Add(xs[0], g.Mul(w, x)) // b + Wx
-
-	for i := 3; i < len(xs)-1; i += 2 {
-		w := xs[i]
-		x := xs[i+1]
-		if x != nil {
-			y = g.Add(y, g.Mul(w, x))
-		}
-	}
-	return y
-}
-
 // BiLinear performs a bilinear transformation of the type (x_1 W x_2)
 func BiLinear[T mat.DType](g *ag.Graph[T], w, x1, x2 ag.Node[T]) ag.Node[T] {
 	return g.Mul(g.Mul(g.T(x1), w), x2)

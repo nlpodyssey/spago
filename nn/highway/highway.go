@@ -53,8 +53,8 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // y = t * h + (1 - t) * x
 func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	g := m.Graph()
-	t := g.Sigmoid(nn.Affine[T](g, m.BT, m.WT, x))
-	h := g.Invoke(m.Activation, nn.Affine[T](g, m.BIn, m.WIn, x))
+	t := g.Sigmoid(g.Affine(m.BT, m.WT, x))
+	h := g.Invoke(m.Activation, g.Affine(m.BIn, m.WIn, x))
 	y := g.Add(g.Prod(t, h), g.Prod(g.ReverseSub(t, g.NewScalar(1.0)), x))
 	return y
 }
