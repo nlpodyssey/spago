@@ -40,7 +40,7 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// WithIncrementalForward sets whether to compute the forward during the graph definition (default true).
+	// incrementalForward reports whether to compute the forward during the graph definition.
 	incrementalForward bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
