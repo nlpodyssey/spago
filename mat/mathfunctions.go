@@ -30,14 +30,7 @@ func Pi[T DType]() T {
 
 // Pow returns x**y, the base-x exponential of y.
 func Pow[T DType](x, y T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Pow(float64(x), float64(y)))
-	case float64:
-		return T(math.Pow(float64(x), float64(y)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Pow(float64(x), float64(y)))
 }
 
 // Cos returns the cosine of the radian argument x.
@@ -62,50 +55,22 @@ func Sinh[T DType](x T) T {
 
 // Exp returns e**x, the base-e exponential of x.
 func Exp[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Exp(float64(x)))
-	case float64:
-		return T(math.Exp(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Exp(float64(x)))
 }
 
 // Abs returns the absolute value of x.
 func Abs[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Abs(float64(x)))
-	case float64:
-		return T(math.Abs(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Abs(float64(x)))
 }
 
 // Sqrt returns the square root of x.
 func Sqrt[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Sqrt(float64(x)))
-	case float64:
-		return T(math.Sqrt(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Sqrt(float64(x)))
 }
 
 // Log returns the natural logarithm of x.
 func Log[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Log(float64(x)))
-	case float64:
-		return T(math.Log(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Log(float64(x)))
 }
 
 // Tan returns the tangent of the radian argument x.
@@ -115,86 +80,37 @@ func Tan[T DType](x T) T {
 
 // Tanh returns the hyperbolic tangent of x.
 func Tanh[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Tanh(float64(x)))
-	case float64:
-		return T(math.Tanh(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Tanh(float64(x)))
 }
 
 // Max returns the larger of x or y.
 func Max[T DType](x, y T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Max(float64(x), float64(y)))
-	case float64:
-		return T(math.Max(float64(x), float64(y)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Max(float64(x), float64(y)))
 }
 
 // Inf returns positive infinity if sign >= 0, negative infinity if sign < 0.
 func Inf[T DType](sign int) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Inf(sign))
-	case float64:
-		return T(math.Inf(sign))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Inf(sign))
 }
 
 // IsInf reports whether f is an infinity, according to sign.
 func IsInf[T DType](f T, sign int) bool {
-	switch any(T(0)).(type) {
-	case float32:
-		return math.IsInf(float64(f), sign)
-	case float64:
-		return math.IsInf(float64(f), sign)
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return math.IsInf(float64(f), sign)
 }
 
 // NaN returns an IEEE 754 ``not-a-number'' value.
 func NaN[T DType]() T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.NaN())
-	case float64:
-		return T(math.NaN())
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.NaN())
 }
 
 // Ceil returns the least integer value greater than or equal to x.
 func Ceil[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Ceil(float64(x)))
-	case float64:
-		return T(math.Ceil(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Ceil(float64(x)))
 }
 
 // Floor returns the greatest integer value less than or equal to x.
 func Floor[T DType](x T) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(math.Floor(float64(x)))
-	case float64:
-		return T(math.Floor(float64(x)))
-	default:
-		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
-	}
+	return T(math.Floor(float64(x)))
 }
 
 // Round returns the nearest integer, rounding half away from zero.
