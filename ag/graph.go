@@ -15,6 +15,18 @@ import (
 	"sync"
 )
 
+// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
+// depending on whether you're doing training or inference.
+// Failing to set the right mode will yield inconsistent inference results.
+type ProcessingMode uint8
+
+const (
+	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
+	Training ProcessingMode = iota
+	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
+	Inference
+)
+
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
@@ -28,7 +40,7 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// IncrementalForward sets whether to compute the forward during the graph definition (default true).
+	// WithIncrementalForward sets whether to compute the forward during the graph definition (default true).
 	incrementalForward bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
@@ -41,6 +53,8 @@ type Graph[T mat.DType] struct {
 		// the nodes height. The index corresponds to the node ID.
 		height []int
 	}
+	// mode defines whether the graph is being used in training or inference (default inference).
+	mode ProcessingMode
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
 	// processingQueue allows proper handling for computationally heavy operations
@@ -55,44 +69,51 @@ var defaultProcessingQueueSize = runtime.NumCPU()
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption[T mat.DType] func(*Graph[T])
 
-// Rand sets the generator of random numbers.
-func Rand[T mat.DType](rand *rand.LockedRand[T]) GraphOption[T] {
+// WithRand sets the generator of random numbers.
+func WithRand[T mat.DType](rand *rand.LockedRand[T]) GraphOption[T] {
 	return func(g *Graph[T]) {
 		g.randGen = rand
 	}
 }
 
-// RandSeed set a new generator of random numbers with the given seed.
-func RandSeed[T mat.DType](seed uint64) GraphOption[T] {
+// WithRandSeed set a new generator of random numbers with the given seed.
+func WithRandSeed[T mat.DType](seed uint64) GraphOption[T] {
 	return func(g *Graph[T]) {
 		g.randGen = rand.NewLockedRand[T](seed)
 	}
 }
 
-// IncrementalForward sets whether to compute the forward during the graph definition (default true).
+// WithIncrementalForward sets whether to compute the forward during the graph definition (default true).
 // When enabled it lets you access to the Value() resulting from the computation.
 // There are particular cases where you don't need intermediate values and computing the forward after
 // the graph definition can be more efficient though.
-func IncrementalForward[T mat.DType](value bool) GraphOption[T] {
+func WithIncrementalForward[T mat.DType](value bool) GraphOption[T] {
 	return func(g *Graph[T]) {
 		g.incrementalForward = value
 	}
 }
 
-// ConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// WithConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 // The value 1 corresponds to sequential execution.
-func ConcurrentComputations[T mat.DType](value int) GraphOption[T] {
+func WithConcurrentComputations[T mat.DType](value int) GraphOption[T] {
 	if value < 1 {
-		panic("ag: ConcurrentComputations value must be greater than zero")
+		panic("ag: WithConcurrentComputations value must be greater than zero")
 	}
 	return func(g *Graph[T]) {
 		g.processingQueue = processingqueue.New(value)
 	}
 }
 
+// WithMode sets whether the graph is being used in training or inference.
+func WithMode[T mat.DType](mode ProcessingMode) GraphOption[T] {
+	return func(g *Graph[T]) {
+		g.mode = mode
+	}
+}
+
 // NewGraph returns a new initialized graph.
-// It can take an optional random generator of type rand.Rand.
+// It can take an optional random generator of type rand.WithRand.
 func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	g := &Graph[T]{
 		maxID:              -1,
@@ -100,6 +121,7 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
 		incrementalForward: true,
+		mode:               Inference,
 		processingQueue:    processingqueue.New(defaultProcessingQueueSize),
 	}
 	g.clearCache()
@@ -113,9 +135,14 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 }
 
 // IncrementalForwardEnabled returns whether the computation happens during the graph definition.
-// See ag.IncrementalForward() option.
+// See ag.WithIncrementalForward() option.
 func (g *Graph[_]) IncrementalForwardEnabled() bool {
 	return g.incrementalForward
+}
+
+// Mode returns whether the graph is being used in training or inference.
+func (g *Graph[_]) Mode() ProcessingMode {
+	return g.mode
 }
 
 // Clear cleans the graph. This is a destructive operation.
@@ -365,7 +392,7 @@ func Range[T mat.DType](fromTimeStep, toTimeStep int) ForwardOption[T] {
 // Forward computes the results of the entire Graph.
 // Usually you don't need to execute Forward() manually in the define-by-run configuration (default).
 // If you do, all values will be recalculated. You can also choose through the Range option to recalculate only a portion of nodes.
-// Instead, it is required to obtain the value of the nodes in case the Graph has been created with IncrementalForward(false).
+// Instead, it is required to obtain the value of the nodes in case the Graph has been created with WithIncrementalForward(false).
 func (g *Graph[T]) Forward(opts ...ForwardOption[T]) {
 	handler := &forwardHandler[T]{
 		g:            g,
@@ -514,7 +541,7 @@ func (g *Graph[T]) Nodes() []Node[T] {
 	return g.nodes
 }
 
-// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// WithConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 func (g *Graph[_]) ConcurrentComputations() int {
 	return g.processingQueue.Size()

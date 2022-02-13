@@ -38,34 +38,34 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
-	t.Run("with IncrementalForward(false) option", func(t *testing.T) {
-		g := NewGraph[T](IncrementalForward[T](false))
+	t.Run("with WithIncrementalForward(false) option", func(t *testing.T) {
+		g := NewGraph[T](WithIncrementalForward[T](false))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.False(t, g.incrementalForward)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
-	t.Run("with ConcurrentComputations option", func(t *testing.T) {
-		g := NewGraph[T](ConcurrentComputations[T](3))
+	t.Run("with WithConcurrentComputations option", func(t *testing.T) {
+		g := NewGraph[T](WithConcurrentComputations[T](3))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.incrementalForward)
 		assert.Equal(t, 3, g.ConcurrentComputations())
 	})
 
-	t.Run("with Rand option", func(t *testing.T) {
+	t.Run("with WithRand option", func(t *testing.T) {
 		r := rand.NewLockedRand[T](42)
-		g := NewGraph[T](Rand(r))
+		g := NewGraph[T](WithRand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
 		assert.True(t, g.incrementalForward)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
-	t.Run("with RandSeed option", func(t *testing.T) {
+	t.Run("with WithRandSeed option", func(t *testing.T) {
 		r := rand.NewLockedRand[T](42)
-		g := NewGraph[T](RandSeed[T](42))
+		g := NewGraph[T](WithRandSeed[T](42))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
@@ -81,7 +81,7 @@ func TestConcurrentComputations(t *testing.T) {
 
 func testConcurrentComputations[T mat.DType](t *testing.T) {
 	t.Run("it panics if value < 1", func(t *testing.T) {
-		assert.Panics(t, func() { ConcurrentComputations[T](0) })
+		assert.Panics(t, func() { WithConcurrentComputations[T](0) })
 	})
 }
 
@@ -378,7 +378,7 @@ func TestGraph_Forward(t *testing.T) {
 }
 
 func testGraphForward[T mat.DType](t *testing.T) {
-	g := NewGraph[T](IncrementalForward[T](false))
+	g := NewGraph[T](WithIncrementalForward[T](false))
 	op := g.Add(g.NewScalar(40), g.NewScalar(2))
 	assert.Nil(t, op.Value())
 	g.Forward()

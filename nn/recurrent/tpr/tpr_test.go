@@ -20,8 +20,8 @@ func TestModelForward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T]()
-	proc := nn.ReifyForTraining(model, g)
+	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	proc := nn.Reify(model, g)
 
 	// == Forward
 
@@ -61,7 +61,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T]()
 
 	yPrev := g.NewVariable(mat.NewVecDense([]T{0.211, -0.451, 0.499, -1.333, -0.11645, 0.366}), true)
-	proc := nn.ReifyForTraining(model, g)
+	proc := nn.Reify(model, g)
 	proc.SetInitialState(&State[T]{Y: yPrev})
 
 	// == Forward
@@ -105,7 +105,7 @@ func TestModelForwardSeq(t *testing.T) {
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.ReifyForTraining(model, g)
+	proc := nn.Reify(model, g)
 	proc.SetInitialState(&State[T]{
 		Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}), true),
 	})

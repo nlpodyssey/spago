@@ -9,18 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
-// depending on whether you're doing training or inference.
-// Failing to set the right mode will yield inconsistent inference results.
-type ProcessingMode uint8
-
-const (
-	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
-	Training ProcessingMode = iota
-	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
-	Inference
-)
-
 // Model is implemented by all neural network architectures.
 // You can assign parameters (i.e. nn.Param) as regular attributes (if any).
 // A Model can also contain other Model(s), allowing to nest them in a tree structure.
@@ -29,11 +17,6 @@ const (
 type Model[T mat.DType] interface {
 	// Graph returns the computational graph on which the model operates (can be nil).
 	Graph() *ag.Graph[T]
-	// Mode returns whether the model is being used for training or inference.
-	Mode() ProcessingMode
-	// IsProcessor returns whether the model has been reified (i.e., contextualized to operate
-	// on a graph) and can perform the Forward().
-	IsProcessor() bool
 	// InitProcessor is used to initialize structures and data useful for the Forward().
 	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
 	InitProcessor()
@@ -58,20 +41,8 @@ type StandardModel[T mat.DType] interface {
 }
 
 // Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
-func Reify[T mat.DType, M Model[T]](m M, g *ag.Graph[T], mode ProcessingMode) M {
-	return newReifier(g, mode).reify(m).(M)
-}
-
-// ReifyForTraining returns a new reified model (a.k.a. processor) with the
-// given Graph, setting the mode to Training.
-func ReifyForTraining[T mat.DType, M Model[T]](m M, g *ag.Graph[T]) M {
-	return Reify(m, g, Training)
-}
-
-// ReifyForInference returns a new reified model (a.k.a. processor) with the
-// given Graph, setting the mode to Inference.
-func ReifyForInference[T mat.DType, M Model[T]](m M, g *ag.Graph[T]) M {
-	return Reify(m, g, Inference)
+func Reify[T mat.DType, M Model[T]](m M, g *ag.Graph[T]) M {
+	return newReifier(g).reify(m).(M)
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.

@@ -49,7 +49,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Mode() == nn.Training {
+	if m.Graph().Mode() == ag.Training {
 		return m.forwardTraining(xs)
 	}
 	return m.forwardInference(xs)

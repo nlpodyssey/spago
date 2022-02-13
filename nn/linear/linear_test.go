@@ -27,8 +27,8 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
-	actProc := nn.ReifyForTraining(activation.New[T](ag.OpTanh), g)
-	proc := nn.ReifyForTraining(model, g)
+	actProc := nn.Reify(activation.New[T](ag.OpTanh), g)
+	proc := nn.Reify(model, g)
 	y := nn.ToNode[T](actProc.Forward(proc.Forward(x)...)) // TODO: test linear only
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)

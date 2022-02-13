@@ -119,8 +119,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		t.Parallel()
 
 		sourceModel := &reifModel1[T]{ID: 42}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 		assert.IsType(t, &reifModel1[T]{}, result)
 		assert.NotSame(t, sourceModel, result)
 		assert.Equal(t, &reifModel1[T]{ID: 42}, result)
@@ -129,13 +129,13 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 	t.Run("it panic if a model Param is not a *param", func(t *testing.T) {
 		t.Parallel()
 
-		g := ag.NewGraph[T]()
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 		sourceModel := &reifModel2[T]{
 			A: NewParam[T](mat.NewScalar[T](1)).(*param[T]).wrappedParam(g),
 		}
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g, Training)
+			Reify(sourceModel, g)
 		})
 	})
 
@@ -146,8 +146,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			A: NewParam[T](mat.NewScalar[T](1)),
 			B: NewParam[T](mat.NewScalar[T](2)),
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.IsType(t, &wrappedParam[T]{}, result.A)
 		assert.IsType(t, &wrappedParam[T]{}, result.B)
@@ -164,8 +164,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 				NewParam[T](mat.NewScalar[T](2)),
 			},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.IsType(t, &wrappedParam[T]{}, result.A[0])
 		assert.IsType(t, &wrappedParam[T]{}, result.A[1])
@@ -196,8 +196,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 				},
 			},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
@@ -230,8 +230,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			Bar: reifStruct6{X: 22},
 			Baz: &reifStruct6{X: 33},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.Equal(t, 11, result.Foo.X)
 		assert.Equal(t, 0, result.Bar.X)
@@ -253,8 +253,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			Baz: []*reifStruct7[T]{{P: NewParam[T](mat.NewScalar[T](3))}},
 			Qux: []*reifStruct7[T]{{P: NewParam[T](mat.NewScalar[T](4))}},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz[0], result.Baz[0])
@@ -278,10 +278,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		sourceModel := &reifModel8[T]{
 			Foo: []int{1, 2, 3},
 		}
-		g := ag.NewGraph[T]()
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g, Training)
+			Reify(sourceModel, g)
 		})
 	})
 
@@ -294,8 +294,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 				"b": NewParam[T](mat.NewScalar[T](2)),
 			},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.IsType(t, &wrappedParam[T]{}, result.A["a"])
 		assert.IsType(t, &wrappedParam[T]{}, result.A["b"])
@@ -312,8 +312,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			Baz: map[string]*reifStruct10[T]{"c": {P: NewParam[T](mat.NewScalar[T](3))}},
 			Qux: map[string]*reifStruct10[T]{"d": {P: NewParam[T](mat.NewScalar[T](4))}},
 		}
-		g := ag.NewGraph[T]()
-		result := ReifyForTraining(sourceModel, g)
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		result := Reify(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz["c"], result.Baz["c"])
@@ -337,10 +337,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		sourceModel := &reifModel11[T]{
 			Foo: map[string]int{"a": 1, "b": 2},
 		}
-		g := ag.NewGraph[T]()
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g, Training)
+			Reify(sourceModel, g)
 		})
 	})
 }

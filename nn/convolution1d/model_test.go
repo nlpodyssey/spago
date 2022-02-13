@@ -39,7 +39,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.4, -0.5, -0.3, -0.2,
 	}), true)
 
-	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
+	y := nn.Reify(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.62914516, 0.42189900, 0.03997868,
@@ -155,7 +155,7 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 		0.4, -0.5, -0.3, -0.2,
 	}), true)
 
-	y := nn.ReifyForTraining(model, g).Forward(x1, x2, x3)
+	y := nn.Reify(model, g).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,

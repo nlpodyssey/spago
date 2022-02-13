@@ -17,7 +17,7 @@ import (
 // GlobalGraphDType is the data type used for the global Graph.
 type GlobalGraphDType = float32
 
-var globalGraph = NewGraph(Rand(rand.NewLockedRand[GlobalGraphDType](42)))
+var globalGraph = NewGraph(WithRand(rand.NewLockedRand[GlobalGraphDType](42)))
 
 // GetGlobalGraph returns the global graph.
 // Although technically you could reassign the returned graph, please do not do so; imagine that its reference is immutable.

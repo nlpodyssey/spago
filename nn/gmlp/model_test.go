@@ -136,7 +136,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	g := ag.NewGraph[T]()
 	defer g.Clear()
-	proc := nn.ReifyForTraining(model, g)
+	proc := nn.Reify(model, g)
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)

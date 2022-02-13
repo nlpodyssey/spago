@@ -19,11 +19,11 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T]()
+	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.3, 0.5, -0.4}), true)
-	y := nn.ToNode[T](nn.ReifyForTraining(model, g).Forward(x))
+	y := nn.ToNode[T](nn.Reify(model, g).Forward(x))
 
 	assert.InDeltaSlice(t, []T{0.5928}, y.Value().Data(), 1.0e-05)
 

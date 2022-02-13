@@ -40,7 +40,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T]()
 	defer g.Clear()
 
-	proc := nn.ReifyForInference(model, g)
+	proc := nn.Reify(model, g)
 
 	xs := []ag.Node[T]{
 		g.NewVariable(mat.NewVecDense([]T{

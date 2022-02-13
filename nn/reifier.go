@@ -11,14 +11,12 @@ import (
 )
 
 type reifier[T mat.DType] struct {
-	g    *ag.Graph[T]
-	mode ProcessingMode
+	g *ag.Graph[T]
 }
 
-func newReifier[T mat.DType](g *ag.Graph[T], mode ProcessingMode) *reifier[T] {
+func newReifier[T mat.DType](g *ag.Graph[T]) *reifier[T] {
 	return &reifier[T]{
-		g:    g,
-		mode: mode,
+		g: g,
 	}
 }
 
@@ -72,8 +70,6 @@ func (r *reifier[T]) reifyStructField(sourceField, destField reflect.Value, tag 
 	switch sourceFieldT := sourceField.Interface().(type) {
 	case *ag.Graph[T]:
 		destField.Set(reflect.ValueOf(r.g))
-	case ProcessingMode:
-		destField.Set(reflect.ValueOf(r.mode))
 	case BaseModel[T], *BaseModel[T]:
 		destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 	case Param[T]:
@@ -109,7 +105,7 @@ func (r *reifier[T]) reifyModel(sourceField Model[T]) Model[T] {
 	if isNil(sourceField) {
 		return sourceField
 	}
-	p := Reify(sourceField, r.g, r.mode)
+	p := Reify(sourceField, r.g)
 	p.InitProcessor()
 	return p
 }

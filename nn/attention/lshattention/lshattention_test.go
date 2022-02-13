@@ -20,7 +20,7 @@ func TestModel_LshAttention(t *testing.T) {
 func testModelLshAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.ReifyForTraining(model, g)
+	proc := nn.Reify(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]T{0.3, 0.5, -0.8, 0.1, 0.3}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]T{-0.2, 0.4, -0.6, -0.2, 0.9}), true)
