@@ -163,6 +163,7 @@ func TestNewOneHotVecDense(t *testing.T) {
 	t.Run("float32", testNewOneHotVecDense[float32])
 	t.Run("float64", testNewOneHotVecDense[float64])
 }
+
 func testNewOneHotVecDense[T DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
 		require.Panics(t, func() {
@@ -237,6 +238,67 @@ func testNewInitDense[T DType](t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestNewInitFuncDense(t *testing.T) {
+	t.Run("float32", testNewInitFuncDense[float32])
+	t.Run("float64", testNewInitFuncDense[float64])
+}
+
+func testNewInitFuncDense[T DType](t *testing.T) {
+	t.Run("negative rows", func(t *testing.T) {
+		require.Panics(t, func() {
+			NewInitFuncDense[T](-1, 1, func(r int, c int) T {
+				t.Fatal("the callback should not be called")
+				return 0
+			})
+		})
+	})
+
+	t.Run("negative cols", func(t *testing.T) {
+		require.Panics(t, func() {
+			NewInitFuncDense[T](1, -1, func(r int, c int) T {
+				t.Fatal("the callback should not be called")
+				return 0
+			})
+		})
+	})
+
+	testCases := []struct {
+		r int
+		c int
+		d []T
+	}{
+		{0, 0, []T{}},
+		{0, 1, []T{}},
+		{1, 0, []T{}},
+		{1, 1, []T{11}},
+		{2, 1, []T{11, 21}},
+		{3, 1, []T{11, 21, 31}},
+		{1, 3, []T{11, 12, 13}},
+		{2, 2, []T{
+			11, 12,
+			21, 22,
+		}},
+		{3, 3, []T{
+			11, 12, 13,
+			21, 22, 23,
+			31, 32, 33,
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+				if len(tc.d) == 0 {
+					t.Fatal("the callback should not be called")
+				}
+				return T(c + 1 + (r+1)*10)
+			})
+			assertDenseDims(t, tc.r, tc.c, d)
+			assert.Equal(t, tc.d, d.Data())
+		})
 	}
 }
 
