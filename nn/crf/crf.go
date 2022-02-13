@@ -36,7 +36,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // InitProcessor initializes structures and data useful for the decoding.
 func (m *Model[T]) InitProcessor() {
-	m.Scores = nn.Separate[T](m.Graph(), m.TransitionScores) // TODO: lazy initialization
+	m.Scores = nn.SeparateMatrix[T](m.Graph(), m.TransitionScores) // TODO: lazy initialization
 }
 
 // Decode performs viterbi decoding.

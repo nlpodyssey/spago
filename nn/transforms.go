@@ -62,9 +62,9 @@ func Conv2D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], xStride, yStride int) 
 	return g.Reshape(g.Concat(outList...), dimx, dimy)
 }
 
-// Separate returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
+// SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
-func Separate[T mat.DType](g *ag.Graph[T], x ag.Node[T]) [][]ag.Node[T] {
+func SeparateMatrix[T mat.DType](g *ag.Graph[T], x ag.Node[T]) [][]ag.Node[T] {
 	rows, cols := x.Value().Dims()
 	ys := make([][]ag.Node[T], rows)
 	for i := range ys {
