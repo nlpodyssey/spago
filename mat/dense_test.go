@@ -480,6 +480,82 @@ func testDenseZeros[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_Set(t *testing.T) {
+	t.Run("float32", testDenseSet[float32])
+	t.Run("float64", testDenseSet[float64])
+}
+
+func testDenseSet[T DType](t *testing.T) {
+	t.Run("negative row", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Set(-1, 1, 42)
+		})
+	})
+
+	t.Run("negative col", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Set(1, -1, 42)
+		})
+	})
+
+	t.Run("row out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Set(2, 1, 42)
+		})
+	})
+
+	t.Run("col out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Set(1, 3, 42)
+		})
+	})
+
+	testCases := []struct {
+		r    int
+		c    int
+		setR int
+		setC int
+		d    []T
+	}{
+		{1, 1, 0, 0, []T{42}},
+
+		{2, 1, 0, 0, []T{42, 0}},
+		{2, 1, 1, 0, []T{0, 42}},
+
+		{1, 2, 0, 0, []T{42, 0}},
+		{1, 2, 0, 1, []T{0, 42}},
+
+		{2, 2, 0, 0, []T{
+			42, 0,
+			0, 0,
+		}},
+		{2, 2, 0, 1, []T{
+			0, 42,
+			0, 0,
+		}},
+		{2, 2, 1, 0, []T{
+			0, 0,
+			42, 0,
+		}},
+		{2, 2, 1, 1, []T{
+			0, 0,
+			0, 42,
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
+			d := NewEmptyDense[T](tc.r, tc.c)
+			d.Set(tc.setR, tc.setC, 42)
+			assert.Equal(t, tc.d, d.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
