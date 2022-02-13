@@ -1085,6 +1085,78 @@ func testDenseReshapeInPlace[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_ResizeVector(t *testing.T) {
+	t.Run("float32", testDenseResizeVector[float32])
+	t.Run("float64", testDenseResizeVector[float64])
+}
+
+func testDenseResizeVector[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ResizeVector(2)
+		})
+	})
+
+	t.Run("negative size", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		require.Panics(t, func() {
+			d.ResizeVector(-1)
+		})
+	})
+
+	testCases := []struct {
+		size    int
+		newSize int
+		d       []T
+	}{
+		{0, 0, []T{}},
+
+		{1, 0, []T{}},
+		{1, 1, []T{1}},
+		{1, 2, []T{1, 0}},
+		{1, 3, []T{1, 0, 0}},
+
+		{2, 0, []T{}},
+		{2, 1, []T{1}},
+		{2, 2, []T{1, 2}},
+		{2, 3, []T{1, 2, 0}},
+		{2, 4, []T{1, 2, 0, 0}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+				return T(r + 1)
+			})
+			r := d.ResizeVector(tc.newSize)
+			assert.Equal(t, tc.d, r.Data())
+		})
+
+		t.Run(fmt.Sprintf("column vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
+			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+				return T(c + 1)
+			})
+			r := d.ResizeVector(tc.newSize)
+			assert.Equal(t, tc.d, r.Data())
+		})
+	}
+
+	t.Run("data is copied - smaller size", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		r := d.ResizeVector(1)
+		d.Set(0, 0, 42) // modifying d must not modify r
+		assert.Equal(t, T(0), r.At(0, 0))
+	})
+
+	t.Run("data is copied - bigger size", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		r := d.ResizeVector(3)
+		d.Set(0, 0, 42) // modifying d must not modify r
+		assert.Equal(t, T(0), r.At(0, 0))
+	})
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
