@@ -370,6 +370,10 @@ func (d *Dense[T]) T() Matrix[T] {
 	dCols := d.cols
 
 	m := densePool[T]().Get(dCols, dRows)
+	if IsVector[T](d) {
+		copy(m.data, d.data)
+		return m
+	}
 	size := len(m.data)
 	index := 0
 	for _, value := range d.data {
