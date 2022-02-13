@@ -270,6 +270,7 @@ func testNewInitFuncDense[T DType](t *testing.T) {
 		c int
 		d []T
 	}{
+		// Each value is a 2-digit number having the format "<row><col>"
 		{0, 0, []T{}},
 		{0, 1, []T{}},
 		{1, 0, []T{}},
@@ -552,6 +553,73 @@ func testDenseSet[T DType](t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
 			d.Set(tc.setR, tc.setC, 42)
 			assert.Equal(t, tc.d, d.Data())
+		})
+	}
+}
+
+func TestDense_At(t *testing.T) {
+	t.Run("float32", testDenseAt[float32])
+	t.Run("float64", testDenseAt[float64])
+}
+
+func testDenseAt[T DType](t *testing.T) {
+	t.Run("negative row", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.At(-1, 1)
+		})
+	})
+
+	t.Run("negative col", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.At(1, -1)
+		})
+	})
+
+	t.Run("row out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.At(2, 1)
+		})
+	})
+
+	t.Run("col out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.At(1, 3)
+		})
+	})
+
+	testCases := []struct {
+		r   int
+		c   int
+		atR int
+		atC int
+		v   T
+	}{
+		// Each value is a 2-digit number having the format "<row><col>"
+		{1, 1, 0, 0, 11},
+
+		{2, 1, 0, 0, 11},
+		{2, 1, 1, 0, 21},
+
+		{1, 2, 0, 0, 11},
+		{1, 2, 0, 1, 12},
+
+		{2, 2, 0, 0, 11},
+		{2, 2, 0, 1, 12},
+		{2, 2, 1, 0, 21},
+		{2, 2, 1, 1, 22},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d at (%d, %d)", tc.r, tc.c, tc.atR, tc.atC), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+				return T(c + 1 + (r+1)*10)
+			})
+			v := d.At(tc.atR, tc.atC)
+			assert.Equal(t, tc.v, v)
 		})
 	}
 }
