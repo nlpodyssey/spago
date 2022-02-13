@@ -840,6 +840,75 @@ func testDenseExtractColumn[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_View(t *testing.T) {
+	t.Run("float32", testDenseView[float32])
+	t.Run("float64", testDenseView[float64])
+}
+
+func testDenseView[T DType](t *testing.T) {
+	t.Run("negative rows", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.View(-1, 6)
+		})
+	})
+
+	t.Run("negative cols", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.View(6, -1)
+		})
+	})
+
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.View(2, 2)
+		})
+	})
+
+	testCases := []struct {
+		r     int
+		c     int
+		viewR int
+		viewC int
+	}{
+		{0, 0, 0, 0},
+		{1, 1, 1, 1},
+
+		{0, 1, 0, 1},
+		{0, 1, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 0, 0, 1},
+
+		{1, 2, 1, 2},
+		{1, 2, 2, 1},
+
+		{2, 1, 2, 1},
+		{2, 1, 1, 2},
+
+		{2, 2, 2, 2},
+
+		// Weird cases, but technically legit
+		{2, 2, 1, 4},
+		{2, 2, 4, 1},
+		{2, 3, 2, 3},
+		{2, 3, 3, 2},
+		{2, 3, 1, 6},
+		{2, 3, 6, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d view %d x %d", tc.r, tc.c, tc.viewR, tc.viewC), func(t *testing.T) {
+			d := NewEmptyDense[T](tc.r, tc.c)
+			v := d.View(tc.viewR, tc.viewC)
+			assertDenseDims(t, tc.viewR, tc.viewC, v.(*Dense[T]))
+			assert.Equal(t, d.Data(), v.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
