@@ -790,6 +790,56 @@ func testDenseExtractRow[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_ExtractColumn(t *testing.T) {
+	t.Run("float32", testDenseExtractColumn[float32])
+	t.Run("float64", testDenseExtractColumn[float64])
+}
+
+func testDenseExtractColumn[T DType](t *testing.T) {
+	t.Run("negative col", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ExtractColumn(-1)
+		})
+	})
+
+	t.Run("col out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ExtractColumn(3)
+		})
+	})
+
+	testCases := []struct {
+		r int
+		c int
+		i int
+		d []T
+	}{
+		// Each value is a 2-digit number having the format "<row><col>"
+		{0, 1, 0, []T{}},
+		{1, 1, 0, []T{11}},
+		{2, 1, 0, []T{11, 21}},
+
+		{1, 2, 0, []T{11}},
+		{1, 2, 1, []T{12}},
+
+		{2, 2, 0, []T{11, 21}},
+		{2, 2, 1, []T{12, 22}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d extract %d", tc.r, tc.c, tc.i), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+				return T(c + 1 + (r+1)*10)
+			})
+			c := d.ExtractColumn(tc.i)
+			assertDenseDims(t, len(tc.d), 1, c.(*Dense[T]))
+			assert.Equal(t, tc.d, c.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
