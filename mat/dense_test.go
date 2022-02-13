@@ -1016,6 +1016,75 @@ func testDenseReshape[T DType](t *testing.T) {
 	})
 }
 
+func TestDense_ReshapeInPlace(t *testing.T) {
+	t.Run("float32", testDenseReshapeInPlace[float32])
+	t.Run("float64", testDenseReshapeInPlace[float64])
+}
+
+func testDenseReshapeInPlace[T DType](t *testing.T) {
+	t.Run("negative rows", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ReshapeInPlace(-1, 6)
+		})
+	})
+
+	t.Run("negative cols", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ReshapeInPlace(6, -1)
+		})
+	})
+
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.ReshapeInPlace(2, 2)
+		})
+	})
+
+	testCases := []struct {
+		r     int
+		c     int
+		reshR int
+		reshC int
+	}{
+		{0, 0, 0, 0},
+		{1, 1, 1, 1},
+
+		{0, 1, 0, 1},
+		{0, 1, 1, 0},
+
+		{1, 0, 1, 0},
+		{1, 0, 0, 1},
+
+		{1, 2, 1, 2},
+		{1, 2, 2, 1},
+
+		{2, 1, 2, 1},
+		{2, 1, 1, 2},
+
+		{2, 2, 2, 2},
+
+		// Weird cases, but technically legit
+		{2, 2, 1, 4},
+		{2, 2, 4, 1},
+		{2, 3, 2, 3},
+		{2, 3, 3, 2},
+		{2, 3, 1, 6},
+		{2, 3, 6, 1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d reshape %d x %d", tc.r, tc.c, tc.reshR, tc.reshC), func(t *testing.T) {
+			d := NewEmptyDense[T](tc.r, tc.c)
+			d2 := d.ReshapeInPlace(tc.reshR, tc.reshC)
+			assert.Same(t, d, d2)
+			assertDenseDims(t, tc.reshR, tc.reshC, d)
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
