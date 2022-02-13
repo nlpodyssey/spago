@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/internal/f32"
-	"github.com/nlpodyssey/spago/mat/internal/f32/math32"
 	"github.com/nlpodyssey/spago/mat/internal/f64/asm64"
 	"math"
 	"strconv"
@@ -62,26 +61,12 @@ func SoftMax[T mat.DType](v []T) (sm []T) {
 	c := max(v)
 	var sum T = 0
 	sm = make([]T, len(v))
-
-	switch any(T(0)).(type) {
-	case float32:
-		for _, e := range v {
-			sum += T(math32.Exp(float32(e - c)))
-		}
-		for i, v := range v {
-			sm[i] = T(math32.Exp(float32(v-c))) / sum
-		}
-	case float64:
-		for _, e := range v {
-			sum += T(math.Exp(float64(e - c)))
-		}
-		for i, v := range v {
-			sm[i] = T(math.Exp(float64(v-c))) / sum
-		}
-	default:
-		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
+	for _, e := range v {
+		sum += T(math.Exp(float64(e - c)))
 	}
-
+	for i, v := range v {
+		sm[i] = T(math.Exp(float64(v-c))) / sum
+	}
 	return sm
 }
 

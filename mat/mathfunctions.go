@@ -6,7 +6,6 @@ package mat
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat/internal/f32/math32"
 	"math"
 )
 
@@ -33,7 +32,7 @@ func Pi[T DType]() T {
 func Pow[T DType](x, y T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Pow(float32(x), float32(y)))
+		return T(math.Pow(float64(x), float64(y)))
 	case float64:
 		return T(math.Pow(float64(x), float64(y)))
 	default:
@@ -65,7 +64,7 @@ func Sinh[T DType](x T) T {
 func Exp[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Exp(float32(x)))
+		return T(math.Exp(float64(x)))
 	case float64:
 		return T(math.Exp(float64(x)))
 	default:
@@ -77,7 +76,7 @@ func Exp[T DType](x T) T {
 func Abs[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Abs(float32(x)))
+		return T(math.Abs(float64(x)))
 	case float64:
 		return T(math.Abs(float64(x)))
 	default:
@@ -89,7 +88,7 @@ func Abs[T DType](x T) T {
 func Sqrt[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Sqrt(float32(x)))
+		return T(math.Sqrt(float64(x)))
 	case float64:
 		return T(math.Sqrt(float64(x)))
 	default:
@@ -101,7 +100,7 @@ func Sqrt[T DType](x T) T {
 func Log[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Log(float32(x)))
+		return T(math.Log(float64(x)))
 	case float64:
 		return T(math.Log(float64(x)))
 	default:
@@ -118,7 +117,7 @@ func Tan[T DType](x T) T {
 func Tanh[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Tanh(float32(x)))
+		return T(math.Tanh(float64(x)))
 	case float64:
 		return T(math.Tanh(float64(x)))
 	default:
@@ -130,7 +129,7 @@ func Tanh[T DType](x T) T {
 func Max[T DType](x, y T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Max(float32(x), float32(y)))
+		return T(math.Max(float64(x), float64(y)))
 	case float64:
 		return T(math.Max(float64(x), float64(y)))
 	default:
@@ -142,7 +141,7 @@ func Max[T DType](x, y T) T {
 func Inf[T DType](sign int) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Inf(sign))
+		return T(math.Inf(sign))
 	case float64:
 		return T(math.Inf(sign))
 	default:
@@ -154,7 +153,7 @@ func Inf[T DType](sign int) T {
 func IsInf[T DType](f T, sign int) bool {
 	switch any(T(0)).(type) {
 	case float32:
-		return math32.IsInf(float32(f), sign)
+		return math.IsInf(float64(f), sign)
 	case float64:
 		return math.IsInf(float64(f), sign)
 	default:
@@ -166,7 +165,7 @@ func IsInf[T DType](f T, sign int) bool {
 func NaN[T DType]() T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.NaN())
+		return T(math.NaN())
 	case float64:
 		return T(math.NaN())
 	default:
@@ -178,7 +177,7 @@ func NaN[T DType]() T {
 func Ceil[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Ceil(float32(x)))
+		return T(math.Ceil(float64(x)))
 	case float64:
 		return T(math.Ceil(float64(x)))
 	default:
@@ -190,7 +189,7 @@ func Ceil[T DType](x T) T {
 func Floor[T DType](x T) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(math32.Floor(float32(x)))
+		return T(math.Floor(float64(x)))
 	case float64:
 		return T(math.Floor(float64(x)))
 	default:

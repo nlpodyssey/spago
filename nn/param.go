@@ -5,12 +5,10 @@
 package nn
 
 import (
-	"bytes"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/utils/kvdb"
-	"log"
-	"sync"
 )
 
 // Param is the interface for a Model parameter.
@@ -29,7 +27,7 @@ type Param[T mat.DType] interface {
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.
 	ReplaceValue(value mat.Matrix[T])
-	// ApplyDelta updates the value of the underlying storage applying the delta.
+	// ApplyDelta updates the value applying the delta.
 	ApplyDelta(delta mat.Matrix[T])
 	// Payload returns the optimizer support structure (can be nil).
 	Payload() *Payload[T]
@@ -63,7 +61,6 @@ type param[T mat.DType] struct {
 	payload      *Payload[T]   // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
-	storage      *kvdb.KeyValueDB // default nil
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
@@ -73,15 +70,6 @@ type ParamOption[T mat.DType] func(*param[T])
 func RequiresGrad[T mat.DType](value bool) ParamOption[T] {
 	return func(p *param[T]) {
 		p.requiresGrad = value
-	}
-}
-
-// SetStorage is an option to specify a kvdb.KeyValueDB storage.
-// This is useful, for example, for a memory-efficient embeddings
-// Param implementation.
-func SetStorage[T mat.DType](storage *kvdb.KeyValueDB) ParamOption[T] {
-	return func(p *param[T]) {
-		p.storage = storage
 	}
 }
 
@@ -95,7 +83,6 @@ func NewParam[T mat.DType](value mat.Matrix[T], opts ...ParamOption[T]) Param[T]
 		hasGrad:      false,
 		requiresGrad: true, // true by default, can be modified with the options
 		payload:      nil,  // lazy initialization
-		storage:      nil,
 	}
 	for _, opt := range opts {
 		opt(p)
@@ -134,9 +121,6 @@ func (p *param[T]) ReplaceValue(value mat.Matrix[T]) {
 	defer p.mu.Unlock()
 	p.value = value
 	p.payload = nil
-	if p.storage != nil {
-		p.updateStorage()
-	}
 }
 
 // ScalarValue returns the the scalar value of the node.
@@ -192,14 +176,11 @@ func (p *param[_]) ZeroGrad() {
 	p.hasGrad = false
 }
 
-// ApplyDelta updates the value of the underlying storage applying the delta.
+// ApplyDelta updates the value applying the delta.
 func (p *param[T]) ApplyDelta(delta mat.Matrix[T]) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.Value().SubInPlace(delta)
-	if p.storage != nil {
-		p.updateStorage()
-	}
 }
 
 // Payload returns the optimizer support structure (can be nil).
@@ -215,9 +196,6 @@ func (p *param[T]) SetPayload(payload *Payload[T]) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.payload = payload
-	if p.storage != nil {
-		p.updateStorage()
-	}
 }
 
 // ClearPayload clears the support structure.
@@ -225,26 +203,6 @@ func (p *param[_]) ClearPayload() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.payload = nil
-	if p.storage != nil {
-		p.updateStorage()
-	}
-}
-
-func (p *param[T]) updateStorage() {
-	if p.storage == nil {
-		return
-	}
-
-	buf := new(bytes.Buffer)
-	err := MarshalBinaryParam[T](p, buf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = p.storage.Put([]byte(p.name), buf.Bytes())
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 // Graph returns always nil since the "pure" parameter is not associated with any graph.

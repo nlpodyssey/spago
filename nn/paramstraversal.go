@@ -6,7 +6,6 @@ package nn
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/embeddings/syncmap"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/utils"
 	"reflect"
@@ -65,8 +64,6 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag 
 		}
 	case *sync.Map:
 		pt.walkSyncMap(itemT, name, tag)
-	case *syncmap.Map:
-		pt.walkSyncMap(itemT.Map, name, tag)
 	default:
 		if tag.Type == paramsModuleFieldType {
 			pt.walk(item)

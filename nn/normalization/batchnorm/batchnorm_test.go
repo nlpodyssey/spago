@@ -6,7 +6,7 @@ package batchnorm
 
 import (
 	"github.com/stretchr/testify/assert"
-	"math/rand"
+	"golang.org/x/exp/rand"
 	"os"
 	"testing"
 

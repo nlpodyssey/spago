@@ -9,7 +9,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/nlpodyssey/spago/embeddings/syncmap"
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -112,11 +111,6 @@ type ptModel9[T mat.DType] struct {
 type ptModel10[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
 	MS *sync.Map `spago:"type:params"`
-}
-
-type ptModel11[T mat.DType] struct {
-	ParamsTraversalBaseModel[T]
-	MS *syncmap.Map `spago:"type:params"`
 }
 
 func testParamsTraversal[T mat.DType](t *testing.T) {
@@ -353,24 +347,6 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 
 		m := &ptModel10[T]{
 			MS: &sync.Map{},
-		}
-		m.MS.Store("a", NewParam[T](mat.NewScalar[T](3)))
-
-		tt := NewParamsTraversalTester[T]()
-
-		pt := newParamsTraversal(tt.collect, false)
-		pt.walk(m)
-
-		p, _ := m.MS.Load("a")
-		expected := []Param[T]{p.(Param[T])}
-		assertEqual(t, tt.CollectedParams, expected)
-	})
-
-	t.Run("it visits Param items in params-annotated embeddings.syncmap.Map fields", func(t *testing.T) {
-		t.Parallel()
-
-		m := &ptModel11[T]{
-			MS: syncmap.New(),
 		}
 		m.MS.Store("a", NewParam[T](mat.NewScalar[T](3)))
 

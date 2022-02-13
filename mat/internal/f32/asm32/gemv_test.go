@@ -6,9 +6,10 @@ package asm32_test
 
 import (
 	"fmt"
-	. "github.com/nlpodyssey/spago/mat/internal/f32/asm32"
-	"github.com/nlpodyssey/spago/mat/internal/f32/math32"
+	"math"
 	"testing"
+
+	. "github.com/nlpodyssey/spago/mat/internal/f32/asm32"
 )
 
 type SgemvCase struct {
@@ -629,5 +630,5 @@ func equalStrided(ref, x []float32, inc int) bool {
 }
 
 func scalarSame(a, b float32) bool {
-	return a == b || (math32.IsNaN(a) && math32.IsNaN(b))
+	return a == b || (math.IsNaN(float64(a)) && math.IsNaN(float64(b)))
 }

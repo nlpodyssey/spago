@@ -5,7 +5,6 @@
 package ag
 
 import (
-	"fmt"
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
@@ -48,16 +47,11 @@ func testNewGraph[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("with ConcurrentComputations option", func(t *testing.T) {
-		for i := 1; i < 4; i++ {
-			size := i
-			t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
-				g := NewGraph[T](ConcurrentComputations[T](size))
-				runCommonAssertions(t, g)
-				assert.NotNil(t, g.randGen)
-				assert.True(t, g.incrementalForward)
-				assert.Equal(t, size, g.ConcurrentComputations())
-			})
-		}
+		g := NewGraph[T](ConcurrentComputations[T](3))
+		runCommonAssertions(t, g)
+		assert.NotNil(t, g.randGen)
+		assert.True(t, g.incrementalForward)
+		assert.Equal(t, 3, g.ConcurrentComputations())
 	})
 
 	t.Run("with Rand option", func(t *testing.T) {
