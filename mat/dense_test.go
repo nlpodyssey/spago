@@ -1260,6 +1260,29 @@ func testDenseProd[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_ProdInPlace(t *testing.T) {
+	t.Run("float32", testDenseProdInPlace[float32])
+	t.Run("float64", testDenseProdInPlace[float64])
+}
+
+func testDenseProdInPlace[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.ProdInPlace(b)
+		})
+	})
+
+	for _, tc := range prodTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			a2 := tc.a.ProdInPlace(tc.b)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 func TestDense_AddScalar(t *testing.T) {
 	t.Run("float32", testDenseAddScalar[float32])
 	t.Run("float64", testDenseAddScalar[float64])
