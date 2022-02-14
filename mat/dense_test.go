@@ -1646,8 +1646,91 @@ func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Div
-// TODO: TestDense_DivInPlace
+type divTestCase[T DType] struct {
+	a *Dense[T]
+	b *Dense[T]
+	y []T
+}
+
+func divTestCases[T DType]() []divTestCase[T] {
+	return []divTestCase[T]{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{10}), NewDense[T](1, 1, []T{2}), []T{5}},
+		{
+			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](1, 2, []T{2, 5}),
+			[]T{5, 4},
+		},
+		{
+			NewDense[T](1, 2, []T{10, 20}), // row vec
+			NewDense[T](2, 1, []T{2, 5}),   // col vec
+			[]T{5, 4},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				10, 20, 30,
+				40, 50, 60,
+			}),
+			NewDense[T](2, 3, []T{
+				2, 5, 3,
+				5, 5, 4,
+			}),
+			[]T{
+				5, 4, 10,
+				8, 10, 15,
+			},
+		},
+	}
+}
+
+func TestDense_Div(t *testing.T) {
+	t.Run("float32", testDenseDiv[float32])
+	t.Run("float64", testDenseDiv[float64])
+}
+
+func testDenseDiv[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.Div(b)
+		})
+	})
+
+	for _, tc := range divTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			y := tc.a.Div(tc.b)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_DivInPlace(t *testing.T) {
+	t.Run("float32", testDenseDivInPlace[float32])
+	t.Run("float64", testDenseDivInPlace[float64])
+}
+
+func testDenseDivInPlace[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.DivInPlace(b)
+		})
+	})
+
+	for _, tc := range divTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			a2 := tc.a.DivInPlace(tc.b)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Mul
 // TODO: TestDense_MulT
 // TODO: TestDense_DotUnitary
