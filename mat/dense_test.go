@@ -1896,7 +1896,66 @@ func testDenseMulT[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_DotUnitary
+func TestDense_DotUnitary(t *testing.T) {
+	t.Run("float32", testDenseDotUnitary[float32])
+	t.Run("float64", testDenseDotUnitary[float64])
+}
+
+func testDenseDotUnitary[T DType](t *testing.T) {
+	t.Run("receiver matrix is non-vector", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 2)
+		b := NewEmptyVecDense[T](4)
+		require.Panics(t, func() {
+			a.DotUnitary(b)
+		})
+	})
+
+	t.Run("other matrix is non-vector", func(t *testing.T) {
+		a := NewEmptyVecDense[T](4)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.DotUnitary(b)
+		})
+	})
+
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyVecDense[T](2)
+		b := NewEmptyVecDense[T](3)
+		require.Panics(t, func() {
+			a.DotUnitary(b)
+		})
+	})
+
+	testCases := []struct {
+		a *Dense[T]
+		b *Dense[T]
+		v T
+	}{
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), 0},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](1, 0), 0},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), 0},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](0, 1), 0},
+		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), 20},
+		{
+			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](1, 2, []T{10, 20}),
+			80,
+		},
+		{
+			NewDense[T](1, 2, []T{2, 3}),   // row vec
+			NewDense[T](2, 1, []T{10, 20}), // col vec
+			80,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			v := tc.a.DotUnitary(tc.b)
+			assert.Equal(t, tc.v, v)
+		})
+	}
+}
+
 // TODO: TestDense_ClipInPlace
 // TODO: TestDense_Maximum
 // TODO: TestDense_Minimum
