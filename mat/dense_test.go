@@ -1810,7 +1810,92 @@ func testDenseMul[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_MulT
+func TestDense_MulT(t *testing.T) {
+	t.Run("float32", testDenseMulT[float32])
+	t.Run("float64", testDenseMulT[float64])
+}
+
+func testDenseMulT[T DType](t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](3, 1)
+		require.Panics(t, func() {
+			a.MulT(b)
+		})
+	})
+
+	t.Run("other matrix with zero columns", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 0)
+		require.Panics(t, func() {
+			a.MulT(b)
+		})
+	})
+
+	t.Run("other matrix with more than one columns", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.MulT(b)
+		})
+	})
+
+	testCases := []struct {
+		a *Dense[T]
+		b *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{0}},
+		{NewEmptyDense[T](0, 2), NewEmptyDense[T](0, 1), []T{0, 0}},
+		{NewEmptyDense[T](0, 2), NewEmptyDense[T](0, 1), []T{0, 0}},
+		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{20}},
+		{
+			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](1, 1, []T{10}),
+			[]T{20, 30},
+		},
+		{
+			NewDense[T](2, 2, []T{
+				2, 3,
+				4, 5,
+			}),
+			NewDense[T](2, 1, []T{
+				6,
+				7,
+			}),
+			[]T{
+				40,
+				53,
+			},
+		},
+		{
+			NewDense[T](3, 2, []T{
+				2, 3,
+				4, 5,
+				6, 7,
+			}),
+			NewDense[T](3, 1, []T{
+				10,
+				20,
+				30,
+			}),
+			[]T{
+				280,
+				340,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			y := tc.a.MulT(tc.b)
+			assertDenseDims(t, tc.a.cols, 1, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_DotUnitary
 // TODO: TestDense_ClipInPlace
 // TODO: TestDense_Maximum
