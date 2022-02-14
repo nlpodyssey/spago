@@ -207,66 +207,66 @@ func (p *param[_]) ClearPayload() {
 
 // Graph returns always nil since the "pure" parameter is not associated with any graph.
 func (p *param[T]) Graph() *ag.Graph[T] {
-	return nil
+	panic("nn: attempting to access Graph on a not reified param.")
 }
 
 // ID returns always -1 since the "pure" parameter is not associated with any graph.
 func (p *param[_]) ID() int {
-	return -1
+	panic("nn: attempting to access the ID of a not reified param.")
 }
 
 // TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
 func (p *param[_]) TimeStep() int {
-	return 0
+	panic("nn: attempting to access the TimeStep of a not reified param.")
 }
 
-// wrappedParam returns a new wrappedParam from the param itself.
-func (p *param[T]) wrappedParam(g *ag.Graph[T]) *wrappedParam[T] {
+// nodeParam returns a new nodeParam from the param itself.
+func (p *param[T]) wrappedParam(g *ag.Graph[T]) *nodeParam[T] {
 	if p.requiresGrad {
-		return &wrappedParam[T]{param: p, Node: g.NewWrap(p)}
+		return &nodeParam[T]{param: p, Node: g.NewWrap(p)}
 	}
-	return &wrappedParam[T]{param: p, Node: g.NewWrapNoGrad(p)}
+	return &nodeParam[T]{param: p, Node: g.NewWrapNoGrad(p)}
 }
 
-var _ Param[float32] = &wrappedParam[float32]{}
+var _ Param[float32] = &nodeParam[float32]{}
 
-// wrappedParam enriches a Param with a Node.
-type wrappedParam[T mat.DType] struct {
+// nodeParam enriches a Param with a Node.
+type nodeParam[T mat.DType] struct {
 	*param[T]
 	Node ag.Node[T]
 }
 
 // ID dispatches the call to the Node.
-func (p *wrappedParam[_]) ID() int {
+func (p *nodeParam[_]) ID() int {
 	return p.Node.ID()
 }
 
 // Graph dispatches the call to the Node.
-func (p *wrappedParam[T]) Graph() *ag.Graph[T] {
+func (p *nodeParam[T]) Graph() *ag.Graph[T] {
 	return p.Node.Graph()
 }
 
 // Grad dispatches the call to the Node.
-func (p *wrappedParam[T]) Grad() mat.Matrix[T] {
+func (p *nodeParam[T]) Grad() mat.Matrix[T] {
 	return p.Node.Grad()
 }
 
 // PropagateGrad dispatches the call to the Node.
-func (p *wrappedParam[T]) PropagateGrad(gx mat.Matrix[T]) {
+func (p *nodeParam[T]) PropagateGrad(gx mat.Matrix[T]) {
 	p.Node.PropagateGrad(gx)
 }
 
 // HasGrad dispatches the call to the Node.
-func (p *wrappedParam[_]) HasGrad() bool {
+func (p *nodeParam[_]) HasGrad() bool {
 	return p.Node.HasGrad()
 }
 
 // RequiresGrad dispatches the call to the Node.
-func (p *wrappedParam[_]) RequiresGrad() bool {
+func (p *nodeParam[_]) RequiresGrad() bool {
 	return p.Node.RequiresGrad()
 }
 
 // ZeroGrad dispatches the call to the Node.
-func (p *wrappedParam[_]) ZeroGrad() {
+func (p *nodeParam[_]) ZeroGrad() {
 	p.Node.ZeroGrad()
 }

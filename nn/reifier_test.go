@@ -149,10 +149,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 		result := Reify(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam[T]{}, result.A)
-		assert.IsType(t, &wrappedParam[T]{}, result.B)
-		assert.Same(t, sourceModel.A, result.A.(*wrappedParam[T]).param)
-		assert.Same(t, sourceModel.B, result.B.(*wrappedParam[T]).param)
+		assert.IsType(t, &nodeParam[T]{}, result.A)
+		assert.IsType(t, &nodeParam[T]{}, result.B)
+		assert.Same(t, sourceModel.A, result.A.(*nodeParam[T]).param)
+		assert.Same(t, sourceModel.B, result.B.(*nodeParam[T]).param)
 	})
 
 	t.Run("it contextualizes []Param fields", func(t *testing.T) {
@@ -167,10 +167,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 		result := Reify(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam[T]{}, result.A[0])
-		assert.IsType(t, &wrappedParam[T]{}, result.A[1])
-		assert.Same(t, sourceModel.A[0], result.A[0].(*wrappedParam[T]).param)
-		assert.Same(t, sourceModel.A[1], result.A[1].(*wrappedParam[T]).param)
+		assert.IsType(t, &nodeParam[T]{}, result.A[0])
+		assert.IsType(t, &nodeParam[T]{}, result.A[1])
+		assert.Same(t, sourceModel.A[0], result.A[0].(*nodeParam[T]).param)
+		assert.Same(t, sourceModel.A[1], result.A[1].(*nodeParam[T]).param)
 	})
 
 	t.Run("it contextualizes tagged nested struct fields", func(t *testing.T) {
@@ -208,10 +208,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.NotEqual(t, sourceModel.Bar, result.Bar)
 		assert.NotSame(t, sourceModel.Bar.Z, result.Bar.Z)
 
-		assert.IsType(t, &wrappedParam[T]{}, result.Bar.A)
-		assert.IsType(t, &wrappedParam[T]{}, result.Bar.Z.A)
-		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*wrappedParam[T]).param)
-		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*wrappedParam[T]).param)
+		assert.IsType(t, &nodeParam[T]{}, result.Bar.A)
+		assert.IsType(t, &nodeParam[T]{}, result.Bar.Z.A)
+		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*nodeParam[T]).param)
+		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*nodeParam[T]).param)
 
 		// Be sure X's were copied
 		assert.Equal(t, 11, result.Foo.X)
@@ -262,8 +262,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.NotEqual(t, sourceModel.Bar, result.Foo)
 		assert.NotSame(t, sourceModel.Qux[0], result.Baz[0])
 
-		assert.IsType(t, &wrappedParam[T]{}, result.Bar[0].P)
-		assert.IsType(t, &wrappedParam[T]{}, result.Qux[0].P)
+		assert.IsType(t, &nodeParam[T]{}, result.Bar[0].P)
+		assert.IsType(t, &nodeParam[T]{}, result.Qux[0].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
 		assert.IsType(t, &param[T]{}, sourceModel.Foo[0].P)
@@ -297,10 +297,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 		result := Reify(sourceModel, g)
 
-		assert.IsType(t, &wrappedParam[T]{}, result.A["a"])
-		assert.IsType(t, &wrappedParam[T]{}, result.A["b"])
-		assert.Same(t, sourceModel.A["a"], result.A["a"].(*wrappedParam[T]).param)
-		assert.Same(t, sourceModel.A["b"], result.A["b"].(*wrappedParam[T]).param)
+		assert.IsType(t, &nodeParam[T]{}, result.A["a"])
+		assert.IsType(t, &nodeParam[T]{}, result.A["b"])
+		assert.Same(t, sourceModel.A["a"], result.A["a"].(*nodeParam[T]).param)
+		assert.Same(t, sourceModel.A["b"], result.A["b"].(*nodeParam[T]).param)
 	})
 
 	t.Run("it contextualizes tagged maps of structs or pointers", func(t *testing.T) {
@@ -321,8 +321,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.NotEqual(t, sourceModel.Bar, result.Foo)
 		assert.NotSame(t, sourceModel.Qux["d"], result.Baz["c"])
 
-		assert.IsType(t, &wrappedParam[T]{}, result.Bar["b"].P)
-		assert.IsType(t, &wrappedParam[T]{}, result.Qux["d"].P)
+		assert.IsType(t, &nodeParam[T]{}, result.Bar["b"].P)
+		assert.IsType(t, &nodeParam[T]{}, result.Qux["d"].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
 		assert.IsType(t, &param[T]{}, sourceModel.Foo["a"].P)
