@@ -34,6 +34,3 @@ func (m *BaseModel[T]) Graph() *ag.Graph[T] {
 // InitProcessor is used to initialize structures and data useful for the Forward().
 // nn.Reify() automatically invokes InitProcessor() for any sub-models.
 func (m *BaseModel[_]) InitProcessor() {}
-
-// Close can be used to close or finalize model structures.
-func (m *BaseModel[_]) Close() {}

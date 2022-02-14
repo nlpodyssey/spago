@@ -20,9 +20,6 @@ type Model[T mat.DType] interface {
 	// InitProcessor is used to initialize structures and data useful for the Forward().
 	// nn.Reify() automatically invokes InitProcessor() for any sub-models.
 	InitProcessor()
-	// Close can be used to close or finalize model structures.
-	// For example, embeddings.Model needs to close the underlying key-value store.
-	Close()
 }
 
 // StandardForwarder consists of a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
