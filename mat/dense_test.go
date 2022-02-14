@@ -1283,8 +1283,63 @@ func testDenseAddInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_AddScalar
-// TODO: TestDense_AddScalarInPlace
+type addScalarTestCase[T DType] struct {
+	a *Dense[T]
+	n T
+	y []T
+}
+
+func addScalarTestCases[T DType]() []addScalarTestCase[T] {
+	return []addScalarTestCase[T]{
+		{NewEmptyDense[T](0, 0), 10, []T{}},
+		{NewEmptyDense[T](0, 1), 10, []T{}},
+		{NewEmptyDense[T](1, 0), 10, []T{}},
+		{NewDense[T](1, 1, []T{2}), 10, []T{12}},
+		{NewDense[T](1, 2, []T{2, 3}), 10, []T{12, 13}},
+		{
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			10,
+			[]T{
+				12, 13, 14,
+				15, 16, 17,
+			},
+		},
+	}
+}
+
+func TestDense_AddScalar(t *testing.T) {
+	t.Run("float32", testDenseAddScalar[float32])
+	t.Run("float64", testDenseAddScalar[float64])
+}
+
+func testDenseAddScalar[T DType](t *testing.T) {
+	for _, tc := range addScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			y := tc.a.AddScalar(tc.n)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_AddScalarInPlace(t *testing.T) {
+	t.Run("float32", testDenseAddScalarInPlace[float32])
+	t.Run("float64", testDenseAddScalarInPlace[float64])
+}
+
+func testDenseAddScalarInPlace[T DType](t *testing.T) {
+	for _, tc := range addScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			a2 := tc.a.AddScalarInPlace(tc.n)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Sub
 // TODO: TestDense_SubInPlace
 // TODO: TestDense_SubScalar
