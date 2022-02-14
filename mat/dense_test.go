@@ -1198,8 +1198,91 @@ func testDenseT[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Add
-// TODO: TestDense_AddInPlace
+type addTestCase[T DType] struct {
+	a *Dense[T]
+	b *Dense[T]
+	y []T
+}
+
+func addTestCases[T DType]() []addTestCase[T] {
+	return []addTestCase[T]{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{12}},
+		{
+			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](1, 2, []T{10, 20}),
+			[]T{12, 23},
+		},
+		{
+			NewDense[T](1, 2, []T{2, 3}),   // row vec
+			NewDense[T](2, 1, []T{10, 20}), // col vec
+			[]T{12, 23},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			NewDense[T](2, 3, []T{
+				10, 20, 30,
+				40, 50, 60,
+			}),
+			[]T{
+				12, 23, 34,
+				45, 56, 67,
+			},
+		},
+	}
+}
+
+func TestDense_Add(t *testing.T) {
+	t.Run("float32", testDenseAdd[float32])
+	t.Run("float64", testDenseAdd[float64])
+}
+
+func testDenseAdd[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.Add(b)
+		})
+	})
+
+	for _, tc := range addTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			y := tc.a.Add(tc.b)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_AddInPlace(t *testing.T) {
+	t.Run("float32", testDenseAddInPlace[float32])
+	t.Run("float64", testDenseAddInPlace[float64])
+}
+
+func testDenseAddInPlace[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.AddInPlace(b)
+		})
+	})
+
+	for _, tc := range addTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			a2 := tc.a.AddInPlace(tc.b)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 // TODO: TestDense_AddScalar
 // TODO: TestDense_AddScalarInPlace
 // TODO: TestDense_Sub
