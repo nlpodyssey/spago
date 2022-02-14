@@ -1567,8 +1567,67 @@ func testDenseProdInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_ProdScalar
-// TODO: TestDense_ProdScalarInPlace
+type prodScalarTestCase[T DType] struct {
+	a *Dense[T]
+	n T
+	y []T
+}
+
+func prodScalarTestCases[T DType]() []prodScalarTestCase[T] {
+	return []prodScalarTestCase[T]{
+		{NewEmptyDense[T](0, 0), 10, []T{}},
+		{NewEmptyDense[T](0, 1), 10, []T{}},
+		{NewEmptyDense[T](1, 0), 10, []T{}},
+		{NewDense[T](1, 1, []T{2}), 10, []T{20}},
+		{
+			NewDense[T](1, 2, []T{2, 3}),
+			10,
+			[]T{20, 30},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			10,
+			[]T{
+				20, 30, 40,
+				50, 60, 70,
+			},
+		},
+	}
+}
+
+func TestDense_ProdScalar(t *testing.T) {
+	t.Run("float32", testDenseProdScalar[float32])
+	t.Run("float64", testDenseProdScalar[float64])
+}
+
+func testDenseProdScalar[T DType](t *testing.T) {
+	for _, tc := range prodScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			y := tc.a.ProdScalar(tc.n)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_ProdScalarInPlace(t *testing.T) {
+	t.Run("float32", testDenseProdScalarInPlace[float32])
+	t.Run("float64", testDenseProdScalarInPlace[float64])
+}
+
+func testDenseProdScalarInPlace[T DType](t *testing.T) {
+	for _, tc := range prodScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			a2 := tc.a.ProdScalarInPlace(tc.n)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 // TODO: TestDense_ProdMatrixScalarInPlace
 // TODO: TestDense_Div
 // TODO: TestDense_DivInPlace
