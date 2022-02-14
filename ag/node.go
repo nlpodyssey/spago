@@ -20,8 +20,17 @@ type Node[T mat.DType] interface {
 	TimeStep() int
 }
 
-// Operands cast a slice of nodes into a slice of operands.
-func Operands[T mat.DType](xs []Node[T]) []fn.Operand[T] {
+// ToNodes cast a slice of N[T] into a slice of ag.Node.
+func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
+	ns := make([]Node[T], len(xs))
+	for i, v := range xs {
+		ns[i] = v
+	}
+	return ns
+}
+
+// ToOperands cast a slice of nodes into a slice of operands.
+func ToOperands[T mat.DType](xs []Node[T]) []fn.Operand[T] {
 	var out = make([]fn.Operand[T], len(xs))
 	for i, x := range xs {
 		out[i] = x

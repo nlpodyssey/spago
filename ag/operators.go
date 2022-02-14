@@ -549,10 +549,10 @@ func (g *Graph[T]) ReduceMean(x Node[T]) Node[T] {
 
 // Concat returns a new operator node as a result of the fn.Concat function.
 func (g *Graph[T]) Concat(xs ...Node[T]) Node[T] {
-	return g.NewOperator(fn.NewConcat(Operands(xs)), xs...)
+	return g.NewOperator(fn.NewConcat(ToOperands(xs)), xs...)
 }
 
 // Stack returns a new operator node as a result of the fn.Stack function.
 func (g *Graph[T]) Stack(xs ...Node[T]) Node[T] {
-	return g.NewOperator(fn.NewStack(Operands(xs)), xs...)
+	return g.NewOperator(fn.NewStack(ToOperands(xs)), xs...)
 }

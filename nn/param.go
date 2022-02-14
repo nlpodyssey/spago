@@ -38,18 +38,6 @@ type Param[T mat.DType] interface {
 	ClearPayload()
 }
 
-// Params extends a slice of Param with Nodes() method.
-type Params[T mat.DType] []Param[T]
-
-// Nodes converts the slice of Param into a slice of ag.Node.
-func (p Params[T]) Nodes() []ag.Node[T] {
-	ns := make([]ag.Node[T], len(p))
-	for i, v := range p {
-		ns[i] = v
-	}
-	return ns
-}
-
 var _ Param[float32] = &param[float32]{}
 
 type param[T mat.DType] struct {
@@ -218,55 +206,4 @@ func (p *param[_]) ID() int {
 // TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
 func (p *param[_]) TimeStep() int {
 	panic("nn: attempting to access the TimeStep of a not reified param.")
-}
-
-// nodeParam returns a new nodeParam from the param itself.
-func (p *param[T]) wrappedParam(g *ag.Graph[T]) *nodeParam[T] {
-	if p.requiresGrad {
-		return &nodeParam[T]{param: p, Node: g.NewWrap(p)}
-	}
-	return &nodeParam[T]{param: p, Node: g.NewWrapNoGrad(p)}
-}
-
-var _ Param[float32] = &nodeParam[float32]{}
-
-// nodeParam enriches a Param with a Node.
-type nodeParam[T mat.DType] struct {
-	*param[T]
-	Node ag.Node[T]
-}
-
-// ID dispatches the call to the Node.
-func (p *nodeParam[_]) ID() int {
-	return p.Node.ID()
-}
-
-// Graph dispatches the call to the Node.
-func (p *nodeParam[T]) Graph() *ag.Graph[T] {
-	return p.Node.Graph()
-}
-
-// Grad dispatches the call to the Node.
-func (p *nodeParam[T]) Grad() mat.Matrix[T] {
-	return p.Node.Grad()
-}
-
-// PropagateGrad dispatches the call to the Node.
-func (p *nodeParam[T]) PropagateGrad(gx mat.Matrix[T]) {
-	p.Node.PropagateGrad(gx)
-}
-
-// HasGrad dispatches the call to the Node.
-func (p *nodeParam[_]) HasGrad() bool {
-	return p.Node.HasGrad()
-}
-
-// RequiresGrad dispatches the call to the Node.
-func (p *nodeParam[_]) RequiresGrad() bool {
-	return p.Node.RequiresGrad()
-}
-
-// ZeroGrad dispatches the call to the Node.
-func (p *nodeParam[_]) ZeroGrad() {
-	p.Node.ZeroGrad()
 }
