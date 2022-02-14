@@ -574,6 +574,9 @@ func (d *Dense[T]) ProdScalarInPlace(n T) Matrix[T] {
 // ProdMatrixScalarInPlace multiplies the given matrix with the value,
 // storing the result in the receiver.
 func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n T) Matrix[T] {
+	if !(SameDims[T](d, m) || VectorsOfSameSize[T](d, m)) {
+		panic("mat: matrices have incompatible dimensions")
+	}
 	switch nt := any(n).(type) {
 	case float32:
 		asm32.ScalUnitaryTo(any(d.data).([]float32), nt, any(m.Data()).([]float32))
