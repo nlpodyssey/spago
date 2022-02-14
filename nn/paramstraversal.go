@@ -56,7 +56,7 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag 
 		return
 	}
 	switch itemT := item.(type) {
-	case *param[T]:
+	case *BaseParam[T]:
 		pt.walkParam(itemT, name, tag)
 	case Model[T]:
 		if pt.exploreSubModels {
@@ -133,7 +133,7 @@ func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFie
 	}
 }
 
-func (pt paramsTraversal[T]) walkParam(item *param[T], name string, tag moduleFieldTag) {
+func (pt paramsTraversal[T]) walkParam(item *BaseParam[T], name string, tag moduleFieldTag) {
 	if item.Name() == "" {
 		item.SetName(strings.ToLower(name))
 	}

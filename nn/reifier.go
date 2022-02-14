@@ -73,7 +73,7 @@ func (r *reifier[T]) reifyStructField(sourceField, destField reflect.Value, tag 
 	case BaseModel[T], *BaseModel[T]:
 		destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 	case Param[T]:
-		destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*param[T]))))
+		destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*BaseParam[T]))))
 	case []Param[T]:
 		destField.Set(reflect.ValueOf(r.reifyParamSlice(sourceFieldT)))
 	case Model[T]:
@@ -118,17 +118,17 @@ func (r *reifier[T]) reifyModelSlice(sourceField []Model[T]) []Model[T] {
 	return result
 }
 
-func (r *reifier[T]) reifyParam(p *param[T]) Param[T] {
+func (r *reifier[T]) reifyParam(p *BaseParam[T]) Param[T] {
 	if p.requiresGrad {
-		return &paramNode[T]{param: p, Node: r.g.NewWrap(p)}
+		return &paramNode[T]{BaseParam: p, Node: r.g.NewWrap(p)}
 	}
-	return &paramNode[T]{param: p, Node: r.g.NewWrapNoGrad(p)}
+	return &paramNode[T]{BaseParam: p, Node: r.g.NewWrapNoGrad(p)}
 }
 
 func (r *reifier[T]) reifyParamSlice(sourceField []Param[T]) []Param[T] {
 	result := make([]Param[T], len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
-		result[i] = r.reifyParam(sourceField[i].(*param[T]))
+		result[i] = r.reifyParam(sourceField[i].(*BaseParam[T]))
 	}
 	return result
 }
@@ -179,7 +179,7 @@ func (r *reifier[T]) reifyMap(sourceValue reflect.Value, tag moduleFieldTag) ref
 		sourceValue := mapRange.Value()
 
 		var destValue reflect.Value
-		if p, isParam := sourceValue.Interface().(*param[T]); isParam {
+		if p, isParam := sourceValue.Interface().(*BaseParam[T]); isParam {
 			destValue = reflect.ValueOf(r.reifyParam(p))
 		} else if mapValueKind == reflect.Struct || mapValueKind == reflect.Ptr {
 			destValue = reflect.ValueOf(r.reifyStruct(sourceValue.Interface()))

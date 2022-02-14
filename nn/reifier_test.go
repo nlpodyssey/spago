@@ -126,13 +126,13 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.Equal(t, &reifModel1[T]{ID: 42}, result)
 	})
 
-	t.Run("it panic if a model Param is not a *param", func(t *testing.T) {
+	t.Run("it panic if a model Param is not a *BaseParam", func(t *testing.T) {
 		t.Parallel()
 
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		p := NewParam[T](mat.NewScalar[T](1)).(*param[T])
+		p := NewParam[T](mat.NewScalar[T](1)).(*BaseParam[T])
 		sourceModel := &reifModel2[T]{
-			A: &paramNode[T]{param: p, Node: g.NewWrap(p)},
+			A: &paramNode[T]{BaseParam: p, Node: g.NewWrap(p)},
 		}
 
 		assert.Panics(t, func() {
@@ -152,8 +152,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A)
 		assert.IsType(t, &paramNode[T]{}, result.B)
-		assert.Same(t, sourceModel.A, result.A.(*paramNode[T]).param)
-		assert.Same(t, sourceModel.B, result.B.(*paramNode[T]).param)
+		assert.Same(t, sourceModel.A, result.A.(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.B, result.B.(*paramNode[T]).BaseParam)
 	})
 
 	t.Run("it contextualizes []Param fields", func(t *testing.T) {
@@ -170,8 +170,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A[0])
 		assert.IsType(t, &paramNode[T]{}, result.A[1])
-		assert.Same(t, sourceModel.A[0], result.A[0].(*paramNode[T]).param)
-		assert.Same(t, sourceModel.A[1], result.A[1].(*paramNode[T]).param)
+		assert.Same(t, sourceModel.A[0], result.A[0].(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.A[1], result.A[1].(*paramNode[T]).BaseParam)
 	})
 
 	t.Run("it contextualizes tagged nested struct fields", func(t *testing.T) {
@@ -203,16 +203,16 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param[T]{}, result.Foo.A)
-		assert.IsType(t, &param[T]{}, result.Foo.Z.A)
+		assert.IsType(t, &BaseParam[T]{}, result.Foo.A)
+		assert.IsType(t, &BaseParam[T]{}, result.Foo.Z.A)
 
 		assert.NotEqual(t, sourceModel.Bar, result.Bar)
 		assert.NotSame(t, sourceModel.Bar.Z, result.Bar.Z)
 
 		assert.IsType(t, &paramNode[T]{}, result.Bar.A)
 		assert.IsType(t, &paramNode[T]{}, result.Bar.Z.A)
-		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*paramNode[T]).param)
-		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*paramNode[T]).param)
+		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*paramNode[T]).BaseParam)
 
 		// Be sure X's were copied
 		assert.Equal(t, 11, result.Foo.X)
@@ -267,10 +267,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.IsType(t, &paramNode[T]{}, result.Qux[0].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param[T]{}, sourceModel.Foo[0].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Bar[0].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Baz[0].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Qux[0].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Foo[0].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Bar[0].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Baz[0].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Qux[0].P)
 	})
 
 	t.Run("it panics with tagged slices of elements which are not structs nor pointers", func(t *testing.T) {
@@ -300,8 +300,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A["a"])
 		assert.IsType(t, &paramNode[T]{}, result.A["b"])
-		assert.Same(t, sourceModel.A["a"], result.A["a"].(*paramNode[T]).param)
-		assert.Same(t, sourceModel.A["b"], result.A["b"].(*paramNode[T]).param)
+		assert.Same(t, sourceModel.A["a"], result.A["a"].(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.A["b"], result.A["b"].(*paramNode[T]).BaseParam)
 	})
 
 	t.Run("it contextualizes tagged maps of structs or pointers", func(t *testing.T) {
@@ -326,10 +326,10 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.IsType(t, &paramNode[T]{}, result.Qux["d"].P)
 
 		// Paranoid checks to be sure the source model was not illegally modified
-		assert.IsType(t, &param[T]{}, sourceModel.Foo["a"].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Bar["b"].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Baz["c"].P)
-		assert.IsType(t, &param[T]{}, sourceModel.Qux["d"].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Foo["a"].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Bar["b"].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Baz["c"].P)
+		assert.IsType(t, &BaseParam[T]{}, sourceModel.Qux["d"].P)
 	})
 
 	t.Run("it panics with tagged maps of elements which are not structs nor pointers", func(t *testing.T) {

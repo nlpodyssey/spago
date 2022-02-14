@@ -72,7 +72,7 @@ func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		paramToEncode := NewParam[T](mat.NewScalar[T](42))
+		paramToEncode := NewParam[T](mat.NewScalar[T](42)).(*BaseParam[T])
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
@@ -85,7 +85,7 @@ func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		var paramToEncode Param[T] = nil
+		var paramToEncode *BaseParam[T] = nil
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
