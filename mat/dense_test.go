@@ -1198,6 +1198,15 @@ func testDenseT[T DType](t *testing.T) {
 	}
 }
 
+// TODO: TestDense_Add
+// TODO: TestDense_AddInPlace
+// TODO: TestDense_AddScalar
+// TODO: TestDense_AddScalarInPlace
+// TODO: TestDense_Sub
+// TODO: TestDense_SubInPlace
+// TODO: TestDense_SubScalar
+// TODO: TestDense_SubScalarInPlace
+
 type prodTestCase[T DType] struct {
 	a *Dense[T]
 	b *Dense[T]
@@ -1283,17 +1292,43 @@ func testDenseProdInPlace[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_AddScalar(t *testing.T) {
-	t.Run("float32", testDenseAddScalar[float32])
-	t.Run("float64", testDenseAddScalar[float64])
-}
-
-func testDenseAddScalar[T DType](t *testing.T) {
-	// TODO: this is just a quick test; test corner cases...
-	a := NewVecDense([]T{1, 2, 3, 0})
-	b := a.AddScalar(10)
-	assertSliceEqualApprox(t, []T{11, 12, 13, 10}, b.Data())
-}
+// TODO: TestDense_ProdScalar
+// TODO: TestDense_ProdScalarInPlace
+// TODO: TestDense_ProdMatrixScalarInPlace
+// TODO: TestDense_Div
+// TODO: TestDense_DivInPlace
+// TODO: TestDense_Mul
+// TODO: TestDense_MulT
+// TODO: TestDense_DotUnitary
+// TODO: TestDense_ClipInPlace
+// TODO: TestDense_Maximum
+// TODO: TestDense_Minimum
+// TODO: TestDense_Abs
+// TODO: TestDense_Pow
+// TODO: TestDense_Sqrt
+// TODO: TestDense_Sum
+// TODO: TestDense_Max
+// TODO: TestDense_Min
+// TODO: TestDense_Range
+// TODO: TestDense_SplitV
+// TODO: TestDense_Augment
+// TODO: TestDense_SwapInPlace
+// TODO: TestDense_PadRows
+// TODO: TestDense_PadColumns
+// TODO: TestDense_Norm
+// TODO: TestDense_Pivoting
+// TODO: TestDense_Normalize2
+// TODO: TestDense_LU
+// TODO: TestDense_Inverse
+// TODO: TestDense_Apply
+// TODO: TestDense_ApplyInPlace
+// TODO: TestDense_ApplyWithAlpha
+// TODO: TestDense_ApplyWithAlphaInPlace
+// TODO: TestDense_DoNonZero
+// TODO: TestDense_DoVecNonZero
+// TODO: TestDense_Clone
+// TODO: TestDense_Copy
+// TODO: TestDense_String
 
 func assertDenseDims[T DType](t *testing.T, expectedRows, expectedCols int, d *Dense[T]) {
 	t.Helper()
