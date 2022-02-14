@@ -1628,7 +1628,24 @@ func testDenseProdScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_ProdMatrixScalarInPlace
+func TestDense_ProdMatrixScalarInPlace(t *testing.T) {
+	t.Run("float32", testDenseProdMatrixScalarInPlace[float32])
+	t.Run("float64", testDenseProdMatrixScalarInPlace[float64])
+}
+
+func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
+	for _, tc := range prodScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			// start with a "dirty" matrix to ensure it's correctly overwritten
+			// and initial data is irrelevant
+			y := tc.a.OnesLike()
+			y.ProdMatrixScalarInPlace(tc.a, tc.n)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Div
 // TODO: TestDense_DivInPlace
 // TODO: TestDense_Mul
