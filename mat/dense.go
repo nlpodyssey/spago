@@ -731,8 +731,8 @@ func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
 
 // DotUnitary returns the dot product of two vectors.
 func (d *Dense[T]) DotUnitary(other Matrix[T]) T {
-	if d.Size() != other.Size() {
-		panic("mat: matrices have incompatible sizes")
+	if !VectorsOfSameSize[T](d, other) {
+		panic("mat: both matrices must be vectors and have the same size")
 	}
 	switch any(T(0)).(type) {
 	case float32:
