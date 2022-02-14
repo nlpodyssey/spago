@@ -118,11 +118,14 @@ func (r *reifier[T]) reifyModelSlice(sourceField []Model[T]) []Model[T] {
 	return result
 }
 
-func (r *reifier[T]) reifyParam(p *BaseParam[T]) Param[T] {
-	if p.requiresGrad {
-		return &paramNode[T]{BaseParam: p, Node: r.g.NewWrap(p)}
+func (r *reifier[T]) reifyParam(p Param[T]) Param[T] {
+	if _, ok := p.(*paramNode[T]); ok {
+		panic("nn: impossible to reify a param node.")
 	}
-	return &paramNode[T]{BaseParam: p, Node: r.g.NewWrapNoGrad(p)}
+	if p.RequiresGrad() {
+		return &paramNode[T]{Param: p, Node: r.g.NewWrap(p)}
+	}
+	return &paramNode[T]{Param: p, Node: r.g.NewWrapNoGrad(p)}
 }
 
 func (r *reifier[T]) reifyParamSlice(sourceField []Param[T]) []Param[T] {

@@ -20,7 +20,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 		InitEps:    0.001,
 		Activation: ag.OpIdentity,
 	})
-	defer model.Close()
 
 	model.Norm.W.Value().SetData([]T{
 		0.2, 0.4, 0.6, 0.8, 0.1, 0.3, 0.5, 0.7,

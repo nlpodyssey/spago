@@ -13,7 +13,7 @@ var _ Param[float32] = &paramNode[float32]{}
 
 // paramNode enriches a Param with a Node.
 type paramNode[T mat.DType] struct {
-	*BaseParam[T]
+	Param[T]
 	Node ag.Node[T]
 }
 

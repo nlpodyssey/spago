@@ -24,7 +24,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 			InputChannels:  3,
 			OutputChannels: 2,
 		})
-		defer model.Close()
 
 		require.Equal(t, 2, model.W.Value().Rows())
 		require.Equal(t, 3, model.W.Value().Columns())
@@ -62,7 +61,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 			InputChannels:  4,
 			OutputChannels: 3,
 		})
-		defer model.Close()
 
 		model.B.Value().SetData([]T{0.6, 0.5, 0.7})
 		model.W.Value().SetData([]T{

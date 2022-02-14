@@ -132,7 +132,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 		p := NewParam[T](mat.NewScalar[T](1)).(*BaseParam[T])
 		sourceModel := &reifModel2[T]{
-			A: &paramNode[T]{BaseParam: p, Node: g.NewWrap(p)},
+			A: &paramNode[T]{Param: p, Node: g.NewWrap(p)},
 		}
 
 		assert.Panics(t, func() {
@@ -152,8 +152,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A)
 		assert.IsType(t, &paramNode[T]{}, result.B)
-		assert.Same(t, sourceModel.A, result.A.(*paramNode[T]).BaseParam)
-		assert.Same(t, sourceModel.B, result.B.(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.A, result.A.(*paramNode[T]).Param)
+		assert.Same(t, sourceModel.B, result.B.(*paramNode[T]).Param)
 	})
 
 	t.Run("it contextualizes []Param fields", func(t *testing.T) {
@@ -170,8 +170,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A[0])
 		assert.IsType(t, &paramNode[T]{}, result.A[1])
-		assert.Same(t, sourceModel.A[0], result.A[0].(*paramNode[T]).BaseParam)
-		assert.Same(t, sourceModel.A[1], result.A[1].(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.A[0], result.A[0].(*paramNode[T]).Param)
+		assert.Same(t, sourceModel.A[1], result.A[1].(*paramNode[T]).Param)
 	})
 
 	t.Run("it contextualizes tagged nested struct fields", func(t *testing.T) {
@@ -211,8 +211,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.Bar.A)
 		assert.IsType(t, &paramNode[T]{}, result.Bar.Z.A)
-		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*paramNode[T]).BaseParam)
-		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.Bar.A, result.Bar.A.(*paramNode[T]).Param)
+		assert.Same(t, sourceModel.Bar.Z.A, result.Bar.Z.A.(*paramNode[T]).Param)
 
 		// Be sure X's were copied
 		assert.Equal(t, 11, result.Foo.X)
@@ -286,6 +286,21 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		})
 	})
 
+	t.Run("it panics with a model with an already reified param", func(t *testing.T) {
+		t.Parallel()
+
+		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+		p := NewParam[T](mat.NewScalar[T](1))
+
+		sourceModel := &reifModel2[T]{
+			A: &paramNode[T]{Param: p, Node: g.NewWrap(p)},
+		}
+
+		assert.Panics(t, func() {
+			Reify(sourceModel, g)
+		})
+	})
+
 	t.Run("it contextualizes map[...]Param fields", func(t *testing.T) {
 		t.Parallel()
 
@@ -300,8 +315,8 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 
 		assert.IsType(t, &paramNode[T]{}, result.A["a"])
 		assert.IsType(t, &paramNode[T]{}, result.A["b"])
-		assert.Same(t, sourceModel.A["a"], result.A["a"].(*paramNode[T]).BaseParam)
-		assert.Same(t, sourceModel.A["b"], result.A["b"].(*paramNode[T]).BaseParam)
+		assert.Same(t, sourceModel.A["a"], result.A["a"].(*paramNode[T]).Param)
+		assert.Same(t, sourceModel.A["b"], result.A["b"].(*paramNode[T]).Param)
 	})
 
 	t.Run("it contextualizes tagged maps of structs or pointers", func(t *testing.T) {

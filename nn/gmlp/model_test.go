@@ -29,7 +29,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 		Activation: ag.OpIdentity,
 	})
 	assert.NotNil(t, model)
-	defer model.Close()
 
 	require.Len(t, model.Layers, 2)
 	model.Layers[0].(*Residual[T]).PreNorm.Norm.W.Value().SetData([]T{0.1, 0.2, 0.3, 0.4})
