@@ -1243,7 +1243,7 @@ func TestDense_Add(t *testing.T) {
 }
 
 func testDenseAdd[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1266,7 +1266,7 @@ func TestDense_AddInPlace(t *testing.T) {
 }
 
 func testDenseAddInPlace[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1385,7 +1385,7 @@ func TestDense_Sub(t *testing.T) {
 }
 
 func testDenseSub[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1408,7 +1408,7 @@ func TestDense_SubInPlace(t *testing.T) {
 }
 
 func testDenseSubInPlace[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1527,7 +1527,7 @@ func TestDense_Prod(t *testing.T) {
 }
 
 func testDenseProd[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1550,7 +1550,7 @@ func TestDense_ProdInPlace(t *testing.T) {
 }
 
 func testDenseProdInPlace[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1691,7 +1691,7 @@ func TestDense_Div(t *testing.T) {
 }
 
 func testDenseDiv[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
@@ -1714,7 +1714,7 @@ func TestDense_DivInPlace(t *testing.T) {
 }
 
 func testDenseDivInPlace[T DType](t *testing.T) {
-	t.Run("incompatible data size", func(t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
 		require.Panics(t, func() {
