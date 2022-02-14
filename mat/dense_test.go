@@ -1425,8 +1425,62 @@ func testDenseSubInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_SubScalar
-// TODO: TestDense_SubScalarInPlace
+type subScalarTestCase[T DType] struct {
+	a *Dense[T]
+	n T
+	y []T
+}
+
+func subScalarTestCases[T DType]() []subScalarTestCase[T] {
+	return []subScalarTestCase[T]{
+		{NewEmptyDense[T](0, 0), 10, []T{}},
+		{NewEmptyDense[T](0, 1), 10, []T{}},
+		{NewEmptyDense[T](1, 0), 10, []T{}},
+		{NewDense[T](1, 1, []T{10}), 2, []T{8}},
+		{NewDense[T](1, 2, []T{10, 20}), 2, []T{8, 18}},
+		{
+			NewDense[T](2, 3, []T{
+				10, 20, 30,
+				40, 50, 60,
+			}),
+			2,
+			[]T{
+				8, 18, 28,
+				38, 48, 58,
+			},
+		},
+	}
+}
+
+func TestDense_SubScalar(t *testing.T) {
+	t.Run("float32", testDenseSubScalar[float32])
+	t.Run("float64", testDenseSubScalar[float64])
+}
+
+func testDenseSubScalar[T DType](t *testing.T) {
+	for _, tc := range subScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			y := tc.a.SubScalar(tc.n)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_SubScalarInPlace(t *testing.T) {
+	t.Run("float32", testDenseSubScalarInPlace[float32])
+	t.Run("float64", testDenseSubScalarInPlace[float64])
+}
+
+func testDenseSubScalarInPlace[T DType](t *testing.T) {
+	for _, tc := range subScalarTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+			a2 := tc.a.SubScalarInPlace(tc.n)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
 
 type prodTestCase[T DType] struct {
 	a *Dense[T]
