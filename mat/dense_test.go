@@ -1340,8 +1340,91 @@ func testDenseAddScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Sub
-// TODO: TestDense_SubInPlace
+type subTestCase[T DType] struct {
+	a *Dense[T]
+	b *Dense[T]
+	y []T
+}
+
+func subTestCases[T DType]() []subTestCase[T] {
+	return []subTestCase[T]{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{10}), NewDense[T](1, 1, []T{2}), []T{8}},
+		{
+			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](1, 2, []T{2, 3}),
+			[]T{8, 17},
+		},
+		{
+			NewDense[T](1, 2, []T{10, 20}), // row vec
+			NewDense[T](2, 1, []T{2, 3}),   // col vec
+			[]T{8, 17},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				10, 20, 30,
+				40, 50, 60,
+			}),
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			[]T{
+				8, 17, 26,
+				35, 44, 53,
+			},
+		},
+	}
+}
+
+func TestDense_Sub(t *testing.T) {
+	t.Run("float32", testDenseSub[float32])
+	t.Run("float64", testDenseSub[float64])
+}
+
+func testDenseSub[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.Sub(b)
+		})
+	})
+
+	for _, tc := range subTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			y := tc.a.Sub(tc.b)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_SubInPlace(t *testing.T) {
+	t.Run("float32", testDenseSubInPlace[float32])
+	t.Run("float64", testDenseSubInPlace[float64])
+}
+
+func testDenseSubInPlace[T DType](t *testing.T) {
+	t.Run("incompatible data size", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.SubInPlace(b)
+		})
+	})
+
+	for _, tc := range subTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+			a2 := tc.a.SubInPlace(tc.b)
+			assert.Same(t, tc.a, a2)
+			assert.Equal(t, tc.y, tc.a.Data())
+		})
+	}
+}
+
 // TODO: TestDense_SubScalar
 // TODO: TestDense_SubScalarInPlace
 
