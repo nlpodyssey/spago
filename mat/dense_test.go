@@ -2331,7 +2331,83 @@ func testDenseMin[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Range
+func TestDense_Range(t *testing.T) {
+	t.Run("float32", testDenseRange[float32])
+	t.Run("float64", testDenseRange[float64])
+}
+
+func testDenseRange[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Range(1, 2)
+		})
+	})
+
+	t.Run("invalid range", func(t *testing.T) {
+		d := NewEmptyVecDense[T](3)
+		require.Panics(t, func() {
+			d.Range(2, 1)
+		})
+	})
+
+	t.Run("negative start", func(t *testing.T) {
+		d := NewEmptyVecDense[T](3)
+		require.Panics(t, func() {
+			d.Range(-1, 1)
+		})
+	})
+
+	t.Run("negative end", func(t *testing.T) {
+		d := NewEmptyVecDense[T](3)
+		require.Panics(t, func() {
+			d.Range(1, -1)
+		})
+	})
+
+	testCases := []struct {
+		size  int
+		start int
+		end   int
+		y     []T
+	}{
+		{0, 0, 0, []T{}},
+
+		{1, 0, 0, []T{}},
+		{1, 0, 1, []T{1}},
+
+		{2, 0, 0, []T{}},
+		{2, 0, 1, []T{1}},
+		{2, 0, 2, []T{1, 2}},
+		{2, 1, 2, []T{2}},
+		{2, 1, 1, []T{}},
+
+		{3, 0, 2, []T{1, 2}},
+		{3, 1, 3, []T{2, 3}},
+		{3, 0, 3, []T{1, 2, 3}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+				return T(r + 1)
+			})
+			y := d.Range(tc.start, tc.end)
+			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+
+		t.Run(fmt.Sprintf("column vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
+			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+				return T(c + 1)
+			})
+			y := d.Range(tc.start, tc.end)
+			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_SplitV
 // TODO: TestDense_Augment
 // TODO: TestDense_SwapInPlace
