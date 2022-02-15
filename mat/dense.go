@@ -885,6 +885,15 @@ func (d *Dense[T]) Min() T {
 // Range creates a new vector initialized with data extracted from the
 // matrix raw data, from start (inclusive) to end (exclusive).
 func (d *Dense[T]) Range(start, end int) Matrix[T] {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
+	if end < start {
+		panic("mat: cannot extract range with end < start")
+	}
+	if end < 0 || start < 0 {
+		panic("mat: negative values for range indices are not allowed")
+	}
 	return NewVecDense(d.data[start:end])
 }
 
