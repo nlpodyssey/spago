@@ -2057,7 +2057,59 @@ func testDenseMaximum[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Minimum
+func TestDense_Minimum(t *testing.T) {
+	t.Run("float32", testDenseMinimum[float32])
+	t.Run("float64", testDenseMinimum[float64])
+}
+
+func testDenseMinimum[T DType](t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.Minimum(b)
+		})
+	})
+
+	testCases := []struct {
+		a *Dense[T]
+		b *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{3}), []T{2}},
+		{
+			NewDense[T](1, 3, []T{10, 2, 100}),
+			NewDense[T](1, 3, []T{1, 20, 100}),
+			[]T{1, 2, 100},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 3, 5,
+				7, 9, 0,
+			}),
+			NewDense[T](2, 3, []T{
+				0, 4, 4,
+				6, 10, 1,
+			}),
+			[]T{
+				0, 3, 4,
+				6, 9, 0,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.a.rows, tc.a.cols), func(t *testing.T) {
+			y := tc.a.Minimum(tc.b)
+			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Abs
 // TODO: TestDense_Pow
 // TODO: TestDense_Sqrt
