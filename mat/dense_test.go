@@ -2442,8 +2442,3 @@ func assertDenseDims[T DType](t *testing.T, expectedRows, expectedCols int, d *D
 	assert.Equal(t, expectedSize, d.Size())
 	assert.Len(t, d.Data(), expectedSize)
 }
-
-func assertSliceEqualApprox[T DType](t *testing.T, expected, actual []T) {
-	t.Helper()
-	assert.InDeltaSlice(t, expected, actual, 1.0e-04)
-}
