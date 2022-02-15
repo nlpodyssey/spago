@@ -22,19 +22,15 @@ type Model[T mat.DType] interface {
 	InitProcessor()
 }
 
-// StandardForwarder consists of a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
-// It is called StandardForwarder since this is the most frequent forward method among all implemented neural models.
-type StandardForwarder[T mat.DType] interface {
+// StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
+// It is called StandardModel since this is the most frequent forward method among all implemented neural models.
+type StandardModel[T mat.DType] interface {
+	Model[T]
+
 	// Forward executes the forward step for each input and returns the result.
 	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward
 	// networks are stateless so every computation is independent and possibly concurrent.
 	Forward(xs ...ag.Node[T]) []ag.Node[T]
-}
-
-// StandardModel consists of a model that implements StandardForwarder.
-type StandardModel[T mat.DType] interface {
-	Model[T]
-	StandardForwarder[T]
 }
 
 // Reify returns a new "reified" model (a.k.a. processor) to execute the forward step.
