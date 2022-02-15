@@ -1956,7 +1956,54 @@ func testDenseDotUnitary[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_ClipInPlace
+func TestDense_ClipInPlace(t *testing.T) {
+	t.Run("float32", testDenseClipInPlace[float32])
+	t.Run("float64", testDenseClipInPlace[float64])
+}
+
+func testDenseClipInPlace[T DType](t *testing.T) {
+	t.Run("max < min", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			d.ClipInPlace(2, 1)
+		})
+	})
+
+	testCases := []struct {
+		d        *Dense[T]
+		min      T
+		max      T
+		expected []T
+	}{
+		{NewEmptyDense[T](0, 0), 0, 0, []T{}},
+		{NewEmptyDense[T](0, 1), 0, 0, []T{}},
+		{NewEmptyDense[T](1, 0), 0, 0, []T{}},
+		{NewDense[T](1, 1, []T{2}), 1, 3, []T{2}},
+		{NewDense[T](1, 1, []T{2}), 2, 2, []T{2}},
+		{NewDense[T](1, 1, []T{2}), 1, 1, []T{1}},
+		{NewDense[T](1, 1, []T{2}), 3, 3, []T{3}},
+		{
+			NewDense[T](2, 4, []T{
+				0, 1, 2, 3,
+				4, 5, 6, 7,
+			}),
+			2, 5,
+			[]T{
+				2, 2, 2, 3,
+				4, 5, 5, 5,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d min %g max %g", tc.d.rows, tc.d.cols, tc.min, tc.max), func(t *testing.T) {
+			d2 := tc.d.ClipInPlace(tc.min, tc.max)
+			assert.Same(t, tc.d, d2)
+			assert.Equal(t, tc.expected, tc.d.data)
+		})
+	}
+}
+
 // TODO: TestDense_Maximum
 // TODO: TestDense_Minimum
 // TODO: TestDense_Abs
