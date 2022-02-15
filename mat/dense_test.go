@@ -2259,7 +2259,42 @@ func testDenseSum[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Max
+func TestDense_Max(t *testing.T) {
+	t.Run("float32", testDenseMax[float32])
+	t.Run("float64", testDenseMax[float64])
+}
+
+func testDenseMax[T DType](t *testing.T) {
+	t.Run("empty data", func(t *testing.T) {
+		d := NewEmptyDense[T](0, 1)
+		require.Panics(t, func() {
+			d.Max()
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		y T
+	}{
+		{NewDense[T](1, 1, []T{2}), 2},
+		{NewDense[T](1, 2, []T{3, -1}), 3},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				9, 8, 7,
+			}),
+			9,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Max()
+			assert.Equal(t, tc.y, y)
+		})
+	}
+}
+
 // TODO: TestDense_Min
 // TODO: TestDense_Range
 // TODO: TestDense_SplitV
