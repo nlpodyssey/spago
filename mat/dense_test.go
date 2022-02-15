@@ -2188,7 +2188,45 @@ func testDensePow[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Sqrt
+func TestDense_Sqrt(t *testing.T) {
+	t.Run("float32", testDenseSqrt[float32])
+	t.Run("float64", testDenseSqrt[float64])
+}
+
+func testDenseSqrt[T DType](t *testing.T) {
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{4}), []T{2}},
+		{
+			NewDense[T](1, 2, []T{4, 9}),
+			[]T{2, 3},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				0, 1, 4,
+				9, 16, 25,
+			}),
+			[]T{
+				0, 1, 2,
+				3, 4, 5,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Sqrt()
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Sum
 // TODO: TestDense_Max
 // TODO: TestDense_Min
