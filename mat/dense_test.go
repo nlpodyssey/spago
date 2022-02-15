@@ -2110,7 +2110,45 @@ func testDenseMinimum[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Abs
+func TestDense_Abs(t *testing.T) {
+	t.Run("float32", testDenseAbs[float32])
+	t.Run("float64", testDenseAbs[float64])
+}
+
+func testDenseAbs[T DType](t *testing.T) {
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{-42}), []T{42}},
+		{
+			NewDense[T](1, 2, []T{-3, 4}),
+			[]T{3, 4},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, -2, 3,
+				-4, 5, -6,
+			}),
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Abs()
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Pow
 // TODO: TestDense_Sqrt
 // TODO: TestDense_Sum
