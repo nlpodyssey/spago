@@ -911,7 +911,7 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 		}
 		startIndex := offset
 		offset = startIndex + size
-		out[i] = d.Range(startIndex, offset)
+		out[i] = NewVecDense(d.data[startIndex:offset])
 	}
 	return out
 }
