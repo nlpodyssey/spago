@@ -2149,7 +2149,45 @@ func testDenseAbs[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Pow
+func TestDense_Pow(t *testing.T) {
+	t.Run("float32", testDensePow[float32])
+	t.Run("float64", testDensePow[float64])
+}
+
+func testDensePow[T DType](t *testing.T) {
+	testCases := []struct {
+		d   *Dense[T]
+		pow T
+		y   []T
+	}{
+		{NewEmptyDense[T](0, 0), 2, []T{}},
+		{NewEmptyDense[T](0, 1), 2, []T{}},
+		{NewEmptyDense[T](1, 0), 2, []T{}},
+		{NewDense[T](1, 1, []T{2}), 3, []T{8}},
+		{NewDense[T](1, 1, []T{2}), 0, []T{1}},
+		{NewDense[T](1, 2, []T{2, -3}), 2, []T{4, 9}},
+		{
+			NewDense[T](2, 3, []T{
+				0, -1, 2,
+				-3, 4, -5,
+			}),
+			3,
+			[]T{
+				0, -1, 8,
+				-27, 64, -125,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d pow %g", tc.d.rows, tc.d.cols, tc.pow), func(t *testing.T) {
+			y := tc.d.Pow(tc.pow)
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Sqrt
 // TODO: TestDense_Sum
 // TODO: TestDense_Max
