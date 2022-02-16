@@ -1634,6 +1634,14 @@ func TestDense_ProdMatrixScalarInPlace(t *testing.T) {
 }
 
 func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 4)
+		require.Panics(t, func() {
+			a.ProdMatrixScalarInPlace(b, 1)
+		})
+	})
+
 	for _, tc := range prodScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
