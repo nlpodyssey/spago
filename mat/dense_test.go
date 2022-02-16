@@ -2416,7 +2416,79 @@ func testDenseRange[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_SplitV
+func TestDense_SplitV(t *testing.T) {
+	t.Run("float32", testDenseSplitV[float32])
+	t.Run("float64", testDenseSplitV[float64])
+}
+
+func testDenseSplitV[T DType](t *testing.T) {
+	t.Run("negative size", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SplitV(-1)
+		})
+	})
+
+	t.Run("empty sizes", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		y := d.SplitV()
+		assert.Nil(t, y)
+	})
+
+	testCases := []struct {
+		d     *Dense[T]
+		sizes []int
+		y     [][]T
+	}{
+		{NewEmptyDense[T](0, 0), []int{0}, [][]T{{}}},
+		{NewEmptyDense[T](0, 0), []int{0, 0}, [][]T{{}, {}}},
+
+		{NewEmptyDense[T](0, 1), []int{0}, [][]T{{}}},
+		{NewEmptyDense[T](0, 1), []int{0, 0}, [][]T{{}, {}}},
+
+		{NewEmptyDense[T](1, 0), []int{0}, [][]T{{}}},
+		{NewEmptyDense[T](1, 0), []int{0, 0}, [][]T{{}, {}}},
+
+		{NewEmptyDense[T](1, 1), []int{0}, [][]T{{}}},
+		{NewEmptyDense[T](1, 1), []int{0, 0}, [][]T{{}, {}}},
+
+		{NewDense[T](1, 1, []T{1}), []int{1}, [][]T{{1}}},
+		{NewDense[T](1, 1, []T{1}), []int{0, 1}, [][]T{{}, {1}}},
+		{NewDense[T](1, 1, []T{1}), []int{1, 0}, [][]T{{1}, {}}},
+
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			[]int{2},
+			[][]T{{1, 2}},
+		},
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			[]int{2, 2, 2},
+			[][]T{{1, 2}, {3, 4}, {5, 6}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d sizes %v", tc.d.rows, tc.d.rows, tc.sizes), func(t *testing.T) {
+			y := tc.d.SplitV(tc.sizes...)
+			require.Len(t, y, len(tc.y))
+			for i, v := range y {
+				expectedData := tc.y[i]
+				assertDenseDims(t, len(expectedData), 1, v.(*Dense[T]))
+				assert.Equal(t, expectedData, v.Data())
+			}
+		})
+	}
+}
+
 // TODO: TestDense_Augment
 // TODO: TestDense_SwapInPlace
 // TODO: TestDense_PadRows
