@@ -17,12 +17,17 @@ var _ Param[float32] = &BaseParam[float32]{}
 type BaseParam[T mat.DType] struct {
 	name         string
 	pType        ParamsType    // lazy initialization
-	mu           sync.Mutex    // to avoid data race
 	value        mat.Matrix[T] // store the results of a forward evaluation.
 	grad         mat.Matrix[T]
 	payload      *Payload[T] // additional data used for example by gradient-descend optimization methods
 	hasGrad      bool
 	requiresGrad bool
+	// Allows thread-safe locking for operations on value.
+	valueMu sync.RWMutex
+	// Allows thread-safe locking for operations on grad.
+	gradMu sync.RWMutex
+	// Allows thread-safe locking for operations on payload.
+	payloadMu sync.RWMutex
 }
 
 // ParamOption allows to configure a new Param with your specific needs.
@@ -74,26 +79,35 @@ func (p *BaseParam[_]) Type() ParamsType {
 
 // Value returns the value of the delegate itself.
 func (p *BaseParam[T]) Value() mat.Matrix[T] {
+	p.valueMu.RLock()
+	defer p.valueMu.RUnlock()
 	return p.value
 }
 
-// ReplaceValue replaces the value of the parameter and clears the support structure.
+// ReplaceValue replaces the value of the parameter and clears the gradients and
+// the support structure.
 func (p *BaseParam[T]) ReplaceValue(value mat.Matrix[T]) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.ClearPayload()
+	p.ZeroGrad()
+
+	p.valueMu.Lock()
+	defer p.valueMu.Unlock()
 	p.value = value
-	p.payload = nil
 }
 
-// ScalarValue returns the the scalar value of the node.
+// ScalarValue returns the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
 func (p *BaseParam[T]) ScalarValue() T {
+	p.valueMu.RLock()
+	defer p.valueMu.RUnlock()
 	return p.value.Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
 func (p *BaseParam[T]) Grad() mat.Matrix[T] {
+	p.gradMu.RLock()
+	defer p.gradMu.RUnlock()
 	return p.grad
 }
 
@@ -102,8 +116,8 @@ func (p *BaseParam[T]) PropagateGrad(grad mat.Matrix[T]) {
 	if !p.requiresGrad {
 		return
 	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.gradMu.Lock()
+	defer p.gradMu.Unlock()
 	if p.grad == nil {
 		p.grad = p.value.ZerosLike()
 	}
@@ -113,6 +127,8 @@ func (p *BaseParam[T]) PropagateGrad(grad mat.Matrix[T]) {
 
 // HasGrad returns true if there are accumulated gradients.
 func (p *BaseParam[_]) HasGrad() bool {
+	p.gradMu.RLock()
+	defer p.gradMu.RUnlock()
 	return p.hasGrad
 }
 
@@ -131,39 +147,43 @@ func (p *BaseParam[_]) ZeroGrad() {
 	if p.grad == nil {
 		return
 	}
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	defer mat.ReleaseMatrix(p.grad) //  release memory
+	p.gradMu.Lock()
+	defer p.gradMu.Unlock()
+	mat.ReleaseMatrix(p.grad)
 	p.grad = nil
 	p.hasGrad = false
 }
 
 // ApplyDelta updates the value applying the delta.
 func (p *BaseParam[T]) ApplyDelta(delta mat.Matrix[T]) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.Value().SubInPlace(delta)
+	p.valueMu.Lock()
+	defer p.valueMu.Unlock()
+	p.value.SubInPlace(delta)
 }
 
 // Payload returns the optimizer support structure (can be nil).
 func (p *BaseParam[T]) Payload() *Payload[T] {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.payloadMu.RLock()
+	defer p.payloadMu.RUnlock()
 	return p.payload
 }
 
 // SetPayload is a thread safe operation to set the given Payload on the
 // receiver Param.
 func (p *BaseParam[T]) SetPayload(payload *Payload[T]) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.payloadMu.Lock()
+	defer p.payloadMu.Unlock()
 	p.payload = payload
 }
 
 // ClearPayload clears the support structure.
 func (p *BaseParam[_]) ClearPayload() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	if p.payload == nil {
+		return
+	}
+	p.payloadMu.Lock()
+	defer p.payloadMu.Unlock()
+	p.payload.ClearData()
 	p.payload = nil
 }
 
