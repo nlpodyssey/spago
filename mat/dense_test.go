@@ -2641,8 +2641,236 @@ func testDenseSwapInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_PadRows
-// TODO: TestDense_PadColumns
+func TestDense_PadRows(t *testing.T) {
+	t.Run("float32", testDensePadRows[float32])
+	t.Run("float64", testDensePadRows[float64])
+}
+
+func testDensePadRows[T DType](t *testing.T) {
+	t.Run("negative n", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.PadRows(-1)
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		n int
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), 0, []T{}},
+		{NewEmptyDense[T](0, 0), 1, []T{}},
+		{NewEmptyDense[T](0, 0), 2, []T{}},
+
+		{NewEmptyDense[T](1, 0), 0, []T{}},
+		{NewEmptyDense[T](1, 0), 1, []T{}},
+		{NewEmptyDense[T](1, 0), 2, []T{}},
+
+		{NewEmptyDense[T](0, 1), 0, []T{}},
+		{NewEmptyDense[T](0, 1), 1, []T{0}},
+		{NewEmptyDense[T](0, 1), 2, []T{0, 0}},
+
+		{NewDense[T](1, 1, []T{1}), 0, []T{1}},
+		{NewDense[T](1, 1, []T{1}), 1, []T{1, 0}},
+		{NewDense[T](1, 1, []T{1}), 2, []T{1, 0, 0}},
+
+		{
+			NewDense[T](1, 2, []T{
+				1, 2,
+			}),
+			0,
+			[]T{
+				1, 2,
+			},
+		},
+		{
+			NewDense[T](1, 2, []T{
+				1, 2,
+			}),
+			1,
+			[]T{
+				1, 2,
+				0, 0,
+			},
+		},
+		{
+			NewDense[T](1, 2, []T{
+				1, 2,
+			}),
+			2,
+			[]T{
+				1, 2,
+				0, 0,
+				0, 0,
+			},
+		},
+
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			0,
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+			},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			1,
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+				0, 0, 0,
+			},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			2,
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+				0, 0, 0,
+				0, 0, 0,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
+			y := tc.d.PadRows(tc.n)
+			assertDenseDims(t, tc.d.rows+tc.n, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_PadColumns(t *testing.T) {
+	t.Run("float32", testDensePadColumns[float32])
+	t.Run("float64", testDensePadColumns[float64])
+}
+
+func testDensePadColumns[T DType](t *testing.T) {
+	t.Run("negative n", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.PadColumns(-1)
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		n int
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), 0, []T{}},
+		{NewEmptyDense[T](0, 0), 1, []T{}},
+		{NewEmptyDense[T](0, 0), 2, []T{}},
+
+		{NewEmptyDense[T](0, 1), 0, []T{}},
+		{NewEmptyDense[T](0, 1), 1, []T{}},
+		{NewEmptyDense[T](0, 1), 2, []T{}},
+
+		{NewEmptyDense[T](1, 0), 0, []T{}},
+		{NewEmptyDense[T](1, 0), 1, []T{0}},
+		{NewEmptyDense[T](1, 0), 2, []T{0, 0}},
+
+		{NewDense[T](1, 1, []T{1}), 0, []T{1}},
+		{NewDense[T](1, 1, []T{1}), 1, []T{1, 0}},
+		{NewDense[T](1, 1, []T{1}), 2, []T{1, 0, 0}},
+
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			0,
+			[]T{
+				1,
+				2,
+			},
+		},
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			1,
+			[]T{
+				1, 0,
+				2, 0,
+			},
+		},
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			2,
+			[]T{
+				1, 0, 0,
+				2, 0, 0,
+			},
+		},
+
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			0,
+			[]T{
+				1, 2,
+				3, 4,
+				5, 6,
+			},
+		},
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			1,
+			[]T{
+				1, 2, 0,
+				3, 4, 0,
+				5, 6, 0,
+			},
+		},
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			2,
+			[]T{
+				1, 2, 0, 0,
+				3, 4, 0, 0,
+				5, 6, 0, 0,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
+			y := tc.d.PadColumns(tc.n)
+			assertDenseDims(t, tc.d.rows, tc.d.cols+tc.n, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_Norm
 // TODO: TestDense_Pivoting
 // TODO: TestDense_Normalize2
