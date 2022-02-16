@@ -60,23 +60,13 @@ func New[T mat.DType](config Config) *Model[T] {
 
 // Forward performs the forward step. It adds pads if necessary.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	padded := m.addPadding(xs...)
-	return m.Model.Forward(padded...)
-}
-
-func (m *Model[T]) addPadding(xs ...ag.Node[T]) []ag.Node[T] {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
-	if len(xs) == m.Config.SeqLen {
-		return xs
-	}
+	padded := m.Graph().Pad(xs, m.Config.SeqLen, m.paddingNode)
+	return m.Model.Forward(padded...)
+}
 
-	pn := m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
-	padded := make([]ag.Node[T], m.Config.SeqLen)
-	copy(padded[:len(xs)], xs)
-	for i := len(xs); i < len(padded); i++ {
-		padded[i] = pn
-	}
-	return padded
+func (m *Model[T]) paddingNode(_ int) ag.Node[T] {
+	return m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
 }

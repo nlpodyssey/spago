@@ -33,6 +33,22 @@ func Map2[T mat.DType](mapping func(a Node[T], b Node[T]) Node[T], xs1 []Node[T]
 	return ys
 }
 
+// Pad down/up samples the input to the given size.
+func (g *Graph[T]) Pad(xs []Node[T], seqLen int, padding func(i int) Node[T]) []Node[T] {
+	if len(xs) == seqLen {
+		return xs
+	}
+	if len(xs) > seqLen {
+		return xs[:seqLen]
+	}
+	padded := make([]Node[T], seqLen)
+	copy(padded[:len(xs)], xs)
+	for i := len(xs); i < len(padded); i++ {
+		padded[i] = padding(i)
+	}
+	return padded
+}
+
 // SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
 func (g *Graph[T]) SeparateMatrix(x Node[T]) [][]Node[T] {

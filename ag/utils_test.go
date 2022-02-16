@@ -27,4 +27,30 @@ func testUtils[T mat.DType](t *testing.T) {
 		assert.Equal(t, T(7), ys[1].ScalarValue())
 		assert.Equal(t, T(9), ys[2].ScalarValue())
 	})
+
+	t.Run("test `Pad`", func(t *testing.T) {
+		g := NewGraph[T]()
+		newEl := func(_ int) Node[T] {
+			return g.NewScalar(0)
+		}
+		ys := g.Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 5, newEl)
+		assert.Equal(t, 5, len(ys))
+		assert.Equal(t, T(1), ys[0].ScalarValue())
+		assert.Equal(t, T(2), ys[1].ScalarValue())
+		assert.Equal(t, T(3), ys[2].ScalarValue())
+		assert.Equal(t, T(0), ys[3].ScalarValue())
+		assert.Equal(t, T(0), ys[4].ScalarValue())
+	})
+
+	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
+		g := NewGraph[T]()
+		newEl := func(_ int) Node[T] {
+			return g.NewScalar(0)
+		}
+		ys := g.Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 3, newEl)
+		assert.Equal(t, 3, len(ys))
+		assert.Equal(t, T(1), ys[0].ScalarValue())
+		assert.Equal(t, T(2), ys[1].ScalarValue())
+		assert.Equal(t, T(3), ys[2].ScalarValue())
+	})
 }
