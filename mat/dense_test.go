@@ -2489,7 +2489,58 @@ func testDenseSplitV[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Augment
+func TestDense_Augment(t *testing.T) {
+	t.Run("float32", testDenseAugment[float32])
+	t.Run("float64", testDenseAugment[float64])
+}
+
+func testDenseAugment[T DType](t *testing.T) {
+	t.Run("non square matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Augment()
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewDense[T](1, 1, []T{42}), []T{42, 1}},
+		{
+			NewDense[T](2, 2, []T{
+				1, 2,
+				3, 4,
+			}),
+			[]T{
+				1, 2, 1, 0,
+				3, 4, 0, 1,
+			},
+		},
+		{
+			NewDense[T](3, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+				7, 8, 9,
+			}),
+			[]T{
+				1, 2, 3, 1, 0, 0,
+				4, 5, 6, 0, 1, 0,
+				7, 8, 9, 0, 0, 1,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Augment()
+			assertDenseDims(t, tc.d.rows, tc.d.cols*2, y.(*Dense[T]))
+			require.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_SwapInPlace
 // TODO: TestDense_PadRows
 // TODO: TestDense_PadColumns
