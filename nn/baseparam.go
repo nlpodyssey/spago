@@ -13,6 +13,7 @@ import (
 
 var _ Param[float32] = &BaseParam[float32]{}
 
+// BaseParam is the default implementation satisfying the Param interface.
 type BaseParam[T mat.DType] struct {
 	name         string
 	pType        ParamsType    // lazy initialization
