@@ -2477,7 +2477,7 @@ func testDenseSplitV[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d sizes %v", tc.d.rows, tc.d.rows, tc.sizes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d sizes %v", tc.d.rows, tc.d.cols, tc.sizes), func(t *testing.T) {
 			y := tc.d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
 			for i, v := range y {
