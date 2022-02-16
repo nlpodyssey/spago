@@ -2541,7 +2541,106 @@ func testDenseAugment[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_SwapInPlace
+func TestDense_SwapInPlace(t *testing.T) {
+	t.Run("float32", testDenseSwapInPlace[float32])
+	t.Run("float64", testDenseSwapInPlace[float64])
+}
+
+func testDenseSwapInPlace[T DType](t *testing.T) {
+	t.Run("negative r1", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SwapInPlace(-1, 1)
+		})
+	})
+
+	t.Run("r1 out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SwapInPlace(2, 1)
+		})
+	})
+
+	t.Run("negative r2", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SwapInPlace(1, -1)
+		})
+	})
+
+	t.Run("r2 out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SwapInPlace(1, 2)
+		})
+	})
+
+	testCases := []struct {
+		d  *Dense[T]
+		r1 int
+		r2 int
+		y  []T
+	}{
+		{NewEmptyDense[T](1, 0), 0, 0, []T{}},
+		{NewDense[T](1, 1, []T{1}), 0, 0, []T{1}},
+		{NewDense[T](1, 2, []T{1, 2}), 0, 0, []T{1, 2}},
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			0, 0,
+			[]T{
+				1,
+				2,
+			},
+		},
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			0, 1,
+			[]T{
+				2,
+				1,
+			},
+		},
+		{
+			NewDense[T](2, 1, []T{
+				1,
+				2,
+			}),
+			1, 0,
+			[]T{
+				2,
+				1,
+			},
+		},
+		{
+			NewDense[T](3, 2, []T{
+				1, 2,
+				3, 4,
+				5, 6,
+			}),
+			0, 2,
+			[]T{
+				5, 6,
+				3, 4,
+				1, 2,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d swap %d, %d", tc.d.rows, tc.d.cols, tc.r1, tc.r2), func(t *testing.T) {
+			d2 := tc.d.SwapInPlace(tc.r1, tc.r2)
+			assert.Same(t, tc.d, d2)
+			assert.Equal(t, tc.y, tc.d.data)
+		})
+	}
+}
+
 // TODO: TestDense_PadRows
 // TODO: TestDense_PadColumns
 // TODO: TestDense_Norm
