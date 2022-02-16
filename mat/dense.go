@@ -926,7 +926,7 @@ func (d *Dense[T]) Augment() Matrix[T] {
 		panic("mat: matrix must be square")
 	}
 	// TODO: rewrite for better performance
-	out := NewEmptyDense[T](d.rows, d.rows+d.cols)
+	out := NewEmptyDense[T](d.rows, d.cols*2)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
 			out.Set(i, j, d.At(i, j))
