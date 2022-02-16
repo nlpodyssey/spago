@@ -1000,6 +1000,9 @@ func (d *Dense[T]) PadColumns(n int) Matrix[T] {
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 func (d *Dense[T]) Norm(pow T) T {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
 	var s T
 	for _, x := range d.data {
 		s += Pow(x, pow)
