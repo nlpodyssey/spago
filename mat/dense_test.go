@@ -2871,7 +2871,46 @@ func testDensePadColumns[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Norm
+func TestDense_Norm(t *testing.T) {
+	t.Run("float32", testDenseNorm[float32])
+	t.Run("float64", testDenseNorm[float64])
+}
+
+func testDenseNorm[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Norm(2)
+		})
+	})
+
+	testCases := []struct {
+		x   []T
+		pow T
+		y   T
+	}{
+		{[]T{}, 2, 0},
+		{[]T{1}, 2, 1},
+		{[]T{1, 2}, 2, 2.23607},
+		{[]T{1, 2}, 3, 2.08008},
+		{[]T{1, 2, 3}, 2, 3.74166},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
+			d := NewDense[T](len(tc.x), 1, tc.x)
+			y := d.Norm(tc.pow)
+			assert.InDelta(t, tc.y, y, 1.0e-04)
+		})
+
+		t.Run(fmt.Sprintf("column vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
+			d := NewDense[T](1, len(tc.x), tc.x)
+			y := d.Norm(tc.pow)
+			assert.InDelta(t, tc.y, y, 1.0e-04)
+		})
+	}
+}
+
 // TODO: TestDense_Pivoting
 // TODO: TestDense_Normalize2
 // TODO: TestDense_LU
