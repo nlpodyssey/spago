@@ -899,6 +899,10 @@ func (d *Dense[T]) Range(start, end int) Matrix[T] {
 
 // SplitV extract N vectors from the Matrix.
 // N[i] has size sizes[i].
+//
+// Deprecated: the usage of this function is not intuitive and it's easy
+// to mess things up, since there are very few checks. ExtractRow or
+// direct access to the underlying data should be preferred.
 func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 	if len(sizes) == 0 {
 		return nil
