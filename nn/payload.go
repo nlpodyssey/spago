@@ -24,6 +24,17 @@ func NewPayload[T mat.DType]() *Payload[T] {
 	}
 }
 
+// ClearData removes and releases all matrices from Data, setting data to an
+// empty slice.
+func (p *Payload[_]) ClearData() {
+	data := p.Data
+	for i, m := range data {
+		mat.ReleaseMatrix(m)
+		data[i] = nil
+	}
+	p.Data = data[:0]
+}
+
 // MarshalBinary encodes the Payload into binary form.
 func (p Payload[_]) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
