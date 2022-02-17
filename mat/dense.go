@@ -1027,6 +1027,9 @@ func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
 	if d.rows != d.cols {
 		panic("mat: matrix must be square")
 	}
+	if row < 0 || row >= d.rows {
+		panic("mat: row out of bounds")
+	}
 
 	pv := make([]int, d.cols)
 	for i := range pv {

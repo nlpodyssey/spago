@@ -2971,6 +2971,20 @@ func testDensePivoting[T DType](t *testing.T) {
 		})
 	})
 
+	t.Run("negative row", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			d.Pivoting(-1)
+		})
+	})
+
+	t.Run("row out of upper bound", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			d.Pivoting(2)
+		})
+	})
+
 	t.Run("case without swapping", func(t *testing.T) {
 		d := NewDense(4, 4, []T{
 			11, 9, 24, 2,
