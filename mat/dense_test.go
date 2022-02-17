@@ -3387,7 +3387,82 @@ func testDenseDoNonZero[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_DoVecNonZero
+func TestDense_DoVecNonZero(t *testing.T) {
+	t.Run("float32", testDenseDoVecNonZero[float32])
+	t.Run("float64", testDenseDoVecNonZero[float64])
+}
+
+type doVecNonZeroVisit[T DType] struct {
+	i int
+	v T
+}
+
+func testDenseDoVecNonZero[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.DoVecNonZero(func(i int, v T) {})
+		})
+	})
+
+	testCases := []struct {
+		x      []T
+		visits []doVecNonZeroVisit[T]
+	}{
+		{[]T{}, []doVecNonZeroVisit[T]{}},
+		{[]T{0}, []doVecNonZeroVisit[T]{}},
+		{[]T{0, 0}, []doVecNonZeroVisit[T]{}},
+		{
+			[]T{1},
+			[]doVecNonZeroVisit[T]{
+				{0, 1},
+			},
+		},
+		{
+			[]T{0, 1},
+			[]doVecNonZeroVisit[T]{
+				{1, 1},
+			},
+		},
+		{
+			[]T{1, 2, 3},
+			[]doVecNonZeroVisit[T]{
+				{0, 1},
+				{1, 2},
+				{2, 3},
+			},
+		},
+		{
+			[]T{1, 0, 2, 0, 3},
+			[]doVecNonZeroVisit[T]{
+				{0, 1},
+				{2, 2},
+				{4, 3},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](len(tc.x), 1, tc.x)
+			visits := []doVecNonZeroVisit[T]{}
+			d.DoVecNonZero(func(i int, v T) {
+				visits = append(visits, doVecNonZeroVisit[T]{i, v})
+			})
+			assert.Equal(t, tc.visits, visits)
+		})
+
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](1, len(tc.x), tc.x)
+			visits := []doVecNonZeroVisit[T]{}
+			d.DoVecNonZero(func(i int, v T) {
+				visits = append(visits, doVecNonZeroVisit[T]{i, v})
+			})
+			assert.Equal(t, tc.visits, visits)
+		})
+	}
+}
+
 // TODO: TestDense_Clone
 // TODO: TestDense_Copy
 // TODO: TestDense_String
