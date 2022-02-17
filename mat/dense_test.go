@@ -3263,8 +3263,56 @@ func testDenseApplyInPlace[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_ApplyWithAlpha
-// TODO: TestDense_ApplyWithAlphaInPlace
+func TestDense_ApplyWithAlpha(t *testing.T) {
+	t.Run("float32", testDenseApplyWithAlpha[float32])
+	t.Run("float64", testDenseApplyWithAlpha[float64])
+}
+
+func testDenseApplyWithAlpha[T DType](t *testing.T) {
+	inAlpha := []T{1, 2, 3}
+	for _, tc := range applyTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.ApplyWithAlpha(func(r, c int, v T, alpha ...T) T {
+				assert.Equal(t, inAlpha, alpha)
+				return T(c+1+(r+1)*10) + v*100
+			}, inAlpha...)
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_ApplyWithAlphaInPlace(t *testing.T) {
+	t.Run("float32", testDenseApplyWithAlphaInPlace[float32])
+	t.Run("float64", testDenseApplyWithAlphaInPlace[float64])
+}
+
+func testDenseApplyWithAlphaInPlace[T DType](t *testing.T) {
+	inAlpha := []T{1, 2, 3}
+
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.ApplyWithAlphaInPlace(func(r, c int, v T, alpha ...T) T { return 1 }, b, inAlpha...)
+		})
+	})
+
+	for _, tc := range applyTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			// start with a "dirty" matrix to ensure it's correctly overwritten
+			// and initial data is irrelevant
+			y := tc.d.OnesLike()
+			y2 := y.ApplyWithAlphaInPlace(func(r, c int, v T, alpha ...T) T {
+				assert.Equal(t, inAlpha, alpha)
+				return T(c+1+(r+1)*10) + v*100
+			}, tc.d, inAlpha...)
+			assert.Same(t, y, y2)
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_DoNonZero
 // TODO: TestDense_DoVecNonZero
 // TODO: TestDense_Clone
