@@ -1150,15 +1150,16 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
 	return out
 }
 
-// ApplyInPlace executes the unary function fn.
-func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
+// ApplyInPlace executes the unary function fn over the matrix a,
+// and stores the result in the receiver, returning the receiver itself.
+func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T] {
 	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	aData := a.Data()
 	lastIndex := len(aData) - 1
 	if lastIndex < 0 {
-		return
+		return d
 	}
 	r := 0
 	c := 0
@@ -1172,6 +1173,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) {
 			c = 0
 		}
 	}
+	return d
 }
 
 // ApplyWithAlpha creates a new matrix executing the unary function fn,
@@ -1200,8 +1202,10 @@ func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ..
 	return out
 }
 
-// ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
-func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) {
+// ApplyWithAlphaInPlace executes the unary function fn over the matrix a,
+// taking additional parameters alpha, and stores the result in the
+// receiver, returning the receiver itself.
+func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) Matrix[T] {
 	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
@@ -1211,6 +1215,7 @@ func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a
 			d.data[r*d.cols+c] = fn(r, c, a.At(r, c), alpha...)
 		}
 	}
+	return d
 }
 
 // DoNonZero calls a function for each non-zero element of the matrix.

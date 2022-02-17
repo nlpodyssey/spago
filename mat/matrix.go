@@ -159,13 +159,16 @@ type Matrix[T DType] interface {
 	Inverse() Matrix[T]
 	// Apply creates a new matrix executing the unary function fn.
 	Apply(fn func(r, c int, v T) T) Matrix[T]
-	// ApplyInPlace executes the unary function fn.
-	ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T])
+	// ApplyInPlace executes the unary function fn over the matrix a,
+	// and stores the result in the receiver, returning the receiver itself.
+	ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T]
 	// ApplyWithAlpha creates a new matrix executing the unary function fn,
 	// taking additional parameters alpha.
 	ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ...T) Matrix[T]
-	// ApplyWithAlphaInPlace executes the unary function fn, taking additional parameters alpha.
-	ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T)
+	// ApplyWithAlphaInPlace executes the unary function fn over the matrix a,
+	// taking additional parameters alpha, and stores the result in the
+	// receiver, returning the receiver itself.
+	ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) Matrix[T]
 	// DoNonZero calls a function for each non-zero element of the matrix.
 	// The parameters of the function are the element's indices and value.
 	DoNonZero(fn func(r, c int, v T))
