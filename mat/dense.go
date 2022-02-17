@@ -914,6 +914,9 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 		}
 		startIndex := offset
 		offset = startIndex + size
+		if startIndex >= len(d.data) && offset > startIndex {
+			panic("mat: sizes out of bounds")
+		}
 		out[i] = NewVecDense(d.data[startIndex:offset])
 	}
 	return out
