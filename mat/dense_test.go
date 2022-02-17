@@ -3134,7 +3134,62 @@ func testDenseLU[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Inverse
+func TestDense_Inverse(t *testing.T) {
+	t.Run("float32", testDenseInverse[float32])
+	t.Run("float64", testDenseInverse[float64])
+}
+
+func testDenseInverse[T DType](t *testing.T) {
+	t.Run("non square matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Inverse()
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewDense[T](1, 1, []T{1}), []T{1}},
+		{
+			NewDense[T](3, 3, []T{
+				1, 2, 3,
+				0, 1, 4,
+				5, 6, 0,
+			}),
+			[]T{
+				-24, 18, 5,
+				20, -15, -4,
+				-5, 4, 1,
+			},
+		},
+		{
+			NewDense[T](4, 4, []T{
+				1, 1, 1, -1,
+				1, 1, -1, 1,
+				1, -1, 1, 1,
+				-1, 1, 1, 1,
+			}),
+			[]T{
+				0.25, 0.25, 0.25, -0.25,
+				0.25, 0.25, -0.25, 0.25,
+				0.25, -0.25, 0.25, 0.25,
+				-0.25, 0.25, 0.25, 0.25,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Inverse()
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.y, y.Data(), 1.0e-04)
+		})
+	}
+}
+
 // TODO: TestDense_Apply
 // TODO: TestDense_ApplyInPlace
 // TODO: TestDense_ApplyWithAlpha
