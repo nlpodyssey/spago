@@ -33,18 +33,13 @@ func (r *Stack[T]) Backward(gy mat.Matrix[T]) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")
 	}
-	sizes := make([]int, len(r.xs))
+
 	for i, x := range r.xs {
-		sizes[i] = x.Value().Size()
-		if !(sizes[i] == gy.Columns()) {
-			panic("fn: matrices with not compatible size")
+		if !x.RequiresGrad() {
+			continue
 		}
-	}
-	xs := r.xs
-	for i, gx := range gy.SplitV(sizes...) {
-		if xs[i].RequiresGrad() {
-			xs[i].PropagateGrad(gx)
-		}
-		mat.ReleaseMatrix(gx)
+		gyRow := gy.ExtractRow(i)
+		x.PropagateGrad(gyRow)
+		mat.ReleaseMatrix(gyRow)
 	}
 }
