@@ -2422,63 +2422,72 @@ func TestDense_SplitV(t *testing.T) {
 }
 
 func testDenseSplitV[T DType](t *testing.T) {
-	t.Run("negative size", func(t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.SplitV(1)
+		})
+	})
+
+	t.Run("negative size", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
 			d.SplitV(-1)
 		})
 	})
 
 	t.Run("empty sizes", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewEmptyVecDense[T](2)
 		y := d.SplitV()
 		assert.Nil(t, y)
 	})
 
+	t.Run("sizes out of bound", func(t *testing.T) {
+		d := NewEmptyVecDense[T](2)
+		require.Panics(t, func() {
+			fmt.Println(d.SplitV(1, 1, 1))
+		})
+	})
+
 	testCases := []struct {
-		d     *Dense[T]
+		x     []T
 		sizes []int
 		y     [][]T
 	}{
-		{NewEmptyDense[T](0, 0), []int{0}, [][]T{{}}},
-		{NewEmptyDense[T](0, 0), []int{0, 0}, [][]T{{}, {}}},
+		{[]T{}, []int{0}, [][]T{{}}},
+		{[]T{}, []int{0, 0}, [][]T{{}, {}}},
 
-		{NewEmptyDense[T](0, 1), []int{0}, [][]T{{}}},
-		{NewEmptyDense[T](0, 1), []int{0, 0}, [][]T{{}, {}}},
+		{[]T{1}, []int{0}, [][]T{{}}},
+		{[]T{1}, []int{0, 0}, [][]T{{}, {}}},
 
-		{NewEmptyDense[T](1, 0), []int{0}, [][]T{{}}},
-		{NewEmptyDense[T](1, 0), []int{0, 0}, [][]T{{}, {}}},
+		{[]T{1}, []int{1}, [][]T{{1}}},
+		{[]T{1}, []int{0, 1}, [][]T{{}, {1}}},
+		{[]T{1}, []int{1, 0}, [][]T{{1}, {}}},
 
-		{NewEmptyDense[T](1, 1), []int{0}, [][]T{{}}},
-		{NewEmptyDense[T](1, 1), []int{0, 0}, [][]T{{}, {}}},
-
-		{NewDense[T](1, 1, []T{1}), []int{1}, [][]T{{1}}},
-		{NewDense[T](1, 1, []T{1}), []int{0, 1}, [][]T{{}, {1}}},
-		{NewDense[T](1, 1, []T{1}), []int{1, 0}, [][]T{{1}, {}}},
-
-		{
-			NewDense[T](3, 2, []T{
-				1, 2,
-				3, 4,
-				5, 6,
-			}),
-			[]int{2},
-			[][]T{{1, 2}},
-		},
-		{
-			NewDense[T](3, 2, []T{
-				1, 2,
-				3, 4,
-				5, 6,
-			}),
-			[]int{2, 2, 2},
-			[][]T{{1, 2}, {3, 4}, {5, 6}},
-		},
+		{[]T{1, 2, 3}, []int{1}, [][]T{{1}}},
+		{[]T{1, 2, 3}, []int{1, 1}, [][]T{{1}, {2}}},
+		{[]T{1, 2, 3}, []int{1, 2}, [][]T{{1}, {2, 3}}},
+		{[]T{1, 2, 3}, []int{1, 1, 1}, [][]T{{1}, {2}, {3}}},
+		{[]T{1, 2, 3}, []int{2}, [][]T{{1, 2}}},
+		{[]T{1, 2, 3}, []int{2, 1}, [][]T{{1, 2}, {3}}},
+		{[]T{1, 2, 3}, []int{3}, [][]T{{1, 2, 3}}},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d sizes %v", tc.d.rows, tc.d.cols, tc.sizes), func(t *testing.T) {
-			y := tc.d.SplitV(tc.sizes...)
+		t.Run(fmt.Sprintf("row vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
+			d := NewDense[T](len(tc.x), 1, tc.x)
+			y := d.SplitV(tc.sizes...)
+			require.Len(t, y, len(tc.y))
+			for i, v := range y {
+				expectedData := tc.y[i]
+				assertDenseDims(t, len(expectedData), 1, v.(*Dense[T]))
+				assert.Equal(t, expectedData, v.Data())
+			}
+		})
+
+		t.Run(fmt.Sprintf("column vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
+			d := NewDense[T](1, len(tc.x), tc.x)
+			y := d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
 			for i, v := range y {
 				expectedData := tc.y[i]
