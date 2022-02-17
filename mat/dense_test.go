@@ -3495,7 +3495,41 @@ func testDenseClone[T DType](t *testing.T) {
 	})
 }
 
-// TODO: TestDense_Copy
+func TestDense_Copy(t *testing.T) {
+	t.Run("float32", testDenseCopy[float32])
+	t.Run("float64", testDenseCopy[float64])
+}
+
+func testDenseCopy[T DType](t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.Copy(b)
+		})
+	})
+
+	testCases := []*Dense[T]{
+		NewEmptyDense[T](0, 0),
+		NewEmptyDense[T](0, 1),
+		NewEmptyDense[T](1, 0),
+		NewDense[T](1, 1, []T{1}),
+		NewDense[T](1, 2, []T{1, 2}),
+		NewDense[T](2, 1, []T{1, 2}),
+		NewDense[T](2, 2, []T{1, 2, 3, 4}),
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
+			// start with a "dirty" matrix to ensure it's correctly overwritten
+			// and initial data is irrelevant
+			y := tc.OnesLike()
+			y.Copy(tc)
+			assert.Equal(t, tc.data, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_String
 
 func assertDenseDims[T DType](t *testing.T, expectedRows, expectedCols int, d *Dense[T]) {
