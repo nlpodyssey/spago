@@ -99,12 +99,11 @@ func (m *Model[T]) forward(x ag.Node[T]) (st *State[T]) {
 		yPrev = sPrev.Y
 	}
 	st = new(State[T])
-	g := m.Graph()
-	st.AR = g.Sigmoid(g.Affine(m.BR, m.WInR, x, m.WRecR, yPrev))
-	st.AS = g.Sigmoid(g.Affine(m.BS, m.WInS, x, m.WRecS, yPrev))
-	st.R = g.Mul(m.R, st.AR)
-	st.S = g.Mul(m.S, st.AS)
-	b := g.Mul(st.S, g.T(st.R))
-	st.Y = g.Vec(b)
+	st.AR = ag.Sigmoid(ag.Affine[T](m.BR, m.WInR, x, m.WRecR, yPrev))
+	st.AS = ag.Sigmoid(ag.Affine[T](m.BS, m.WInS, x, m.WRecS, yPrev))
+	st.R = ag.Mul[T](m.R, st.AR)
+	st.S = ag.Mul[T](m.S, st.AS)
+	b := ag.Mul(st.S, ag.T(st.R))
+	st.Y = ag.Vec(b)
 	return
 }

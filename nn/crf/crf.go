@@ -36,7 +36,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // InitProcessor initializes structures and data useful for the decoding.
 func (m *Model[T]) InitProcessor() {
-	m.Scores = m.Graph().SeparateMatrix(m.TransitionScores) // TODO: lazy initialization
+	m.Scores = ag.SeparateMatrix[T](m.TransitionScores) // TODO: lazy initialization
 }
 
 // Decode performs viterbi decoding.
@@ -48,68 +48,62 @@ func (m *Model[T]) Decode(emissionScores []ag.Node[T]) []int {
 func (m *Model[T]) NegativeLogLoss(emissionScores []ag.Node[T], target []int) ag.Node[T] {
 	goldScore := m.goldScore(emissionScores, target)
 	totalScore := m.totalScore(emissionScores)
-	return m.Graph().Sub(totalScore, goldScore)
+	return ag.Sub(totalScore, goldScore)
 }
 
 func (m *Model[T]) goldScore(emissionScores []ag.Node[T], target []int) ag.Node[T] {
-	g := m.Graph()
-	goldScore := g.At(emissionScores[0], target[0], 0)
-	goldScore = g.Add(goldScore, m.Scores[0][target[0]+1]) // start transition
+	goldScore := ag.At(emissionScores[0], target[0], 0)
+	goldScore = ag.Add(goldScore, m.Scores[0][target[0]+1]) // start transition
 	prevIndex := target[0] + 1
 	for i := 1; i < len(target); i++ {
-		goldScore = g.Add(goldScore, g.AtVec(emissionScores[i], target[i]))
-		goldScore = g.Add(goldScore, m.Scores[prevIndex][target[i]+1])
+		goldScore = ag.Add(goldScore, ag.AtVec(emissionScores[i], target[i]))
+		goldScore = ag.Add(goldScore, m.Scores[prevIndex][target[i]+1])
 		prevIndex = target[i] + 1
 	}
-	goldScore = g.Add(goldScore, m.Scores[prevIndex][0]) // end transition
+	goldScore = ag.Add(goldScore, m.Scores[prevIndex][0]) // end transition
 	return goldScore
 }
 
 func (m *Model[T]) totalScore(predicted []ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
-		totalVector = m.totalScoreStep(totalVector, g.SeparateVec(predicted[i]))
+		totalVector = m.totalScoreStep(totalVector, ag.SeparateVec(predicted[i]))
 	}
 	totalVector = m.totalScoreEnd(totalVector)
-	return g.Log(g.ReduceSum(g.Concat(totalVector...)))
-
+	return ag.Log(ag.ReduceSum(ag.Concat(totalVector...)))
 }
 
 func (m *Model[T]) totalScoreStart(stepVec ag.Node[T]) []ag.Node[T] {
 	firstTransitionScores := m.Scores[0]
 	scores := make([]ag.Node[T], m.Size)
-	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
-		scores[i] = g.Add(g.AtVec(stepVec, i), firstTransitionScores[i+1])
+		scores[i] = ag.Add(ag.AtVec(stepVec, i), firstTransitionScores[i+1])
 	}
 	return scores
 }
 
 func (m *Model[T]) totalScoreEnd(stepVec []ag.Node[T]) []ag.Node[T] {
 	scores := make([]ag.Node[T], m.Size)
-	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
-		vecTrans := g.Add(stepVec[i], m.Scores[i+1][0])
-		scores[i] = g.Add(scores[i], g.Exp(vecTrans))
+		vecTrans := ag.Add(stepVec[i], m.Scores[i+1][0])
+		scores[i] = ag.Add(scores[i], ag.Exp(vecTrans))
 	}
 	return scores
 }
 
 func (m *Model[T]) totalScoreStep(totalVec []ag.Node[T], stepVec []ag.Node[T]) []ag.Node[T] {
 	scores := make([]ag.Node[T], m.Size)
-	g := m.Graph()
 	for i := 0; i < m.Size; i++ {
 		nodei := totalVec[i]
 		transitionScores := m.Scores[i+1]
 		for j := 0; j < m.Size; j++ {
-			vecSum := g.Add(nodei, stepVec[j])
-			vecTrans := g.Add(vecSum, transitionScores[j+1])
-			scores[j] = g.Add(scores[j], g.Exp(vecTrans))
+			vecSum := ag.Add(nodei, stepVec[j])
+			vecTrans := ag.Add(vecSum, transitionScores[j+1])
+			scores[j] = ag.Add(scores[j], ag.Exp(vecTrans))
 		}
 	}
 	for i := 0; i < m.Size; i++ {
-		scores[i] = g.Log(scores[i])
+		scores[i] = ag.Log(scores[i])
 	}
 	return scores
 }

@@ -34,11 +34,9 @@ func NewResidual[T mat.DType](preNorm *PreNorm[T]) *Residual[T] {
 // Forward performs the forward step.
 func (m *Residual[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	pns := m.PreNorm.Forward(xs...)
-
-	g := m.Graph()
 	ys := make([]ag.Node[T], len(pns))
 	for i, pn := range pns {
-		ys[i] = g.Add(pn, xs[i])
+		ys[i] = ag.Add(pn, xs[i])
 	}
 	return ys
 }

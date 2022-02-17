@@ -63,7 +63,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
-	padded := m.Graph().Pad(xs, m.Config.SeqLen, m.paddingNode)
+	padded := ag.Pad(xs, m.Config.SeqLen, m.paddingNode)
 	return m.Model.Forward(padded...)
 }
 

@@ -41,7 +41,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	}
 
 	transformed := func(x ag.Node[T]) ag.Node[T] {
-		return m.Graph().Invoke(m.Activation, append([]ag.Node[T]{x}, ag.ToNodes[T](m.Params)...)...)
+		return ag.Invoke(m.Activation, append([]ag.Node[T]{x}, ag.ToNodes[T](m.Params)...)...)
 	}
 	return ag.Map(transformed, xs)
 }

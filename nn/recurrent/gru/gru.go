@@ -93,15 +93,14 @@ func (m *Model[T]) LastState() *State[T] {
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	s.R = g.Sigmoid(g.Affine(m.BRes, m.WRes, x, m.WResRec, yPrev))
-	s.P = g.Sigmoid(g.Affine(m.BPart, m.WPart, x, m.WPartRec, yPrev))
-	s.C = g.Tanh(g.Affine(m.BCand, m.WCand, x, m.WCandRec, tryProd(g, yPrev, s.R)))
-	s.Y = g.Prod(s.P, s.C)
+	s.R = ag.Sigmoid(ag.Affine[T](m.BRes, m.WRes, x, m.WResRec, yPrev))
+	s.P = ag.Sigmoid(ag.Affine[T](m.BPart, m.WPart, x, m.WPartRec, yPrev))
+	s.C = ag.Tanh(ag.Affine[T](m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
+	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		s.Y = g.Add(s.Y, g.Prod(g.ReverseSub(s.P, g.NewScalar(1.0)), yPrev))
+		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, x.Graph().Constant(1.0)), yPrev))
 	}
 	return
 }
@@ -115,9 +114,9 @@ func (m *Model[T]) prev() (yPrev ag.Node[T]) {
 }
 
 // tryProd returns the product if 'a' il not nil, otherwise nil
-func tryProd[T mat.DType](g *ag.Graph[T], a, b ag.Node[T]) ag.Node[T] {
+func tryProd[T mat.DType](a, b ag.Node[T]) ag.Node[T] {
 	if a != nil {
-		return g.Prod(a, b)
+		return ag.Prod(a, b)
 	}
 	return nil
 }

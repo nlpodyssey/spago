@@ -84,16 +84,15 @@ func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	switch m.MergeMode {
 	case Concat:
-		return g.Concat(a, b)
+		return ag.Concat(a, b)
 	case Sum:
-		return g.Add(a, b)
+		return ag.Add(a, b)
 	case Prod:
-		return g.Prod(a, b)
+		return ag.Prod(a, b)
 	case Avg:
-		return g.ProdScalar(g.Add(a, b), g.NewScalar(0.5))
+		return ag.ProdScalar(ag.Add(a, b), a.Graph().Constant(0.5))
 	default:
 		panic("birnn: invalid merge mode")
 	}

@@ -224,7 +224,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 
 	t.Run("it resets the cache", func(t *testing.T) {
 		g := NewGraph[T]()
-		g.Add(g.NewScalar(1), g.NewScalar(2))
+		Add(g.NewScalar(1), g.NewScalar(2))
 		g.groupNodesByHeight() // it's just a function which uses the cache
 
 		assert.NotEqual(t, 0, g.cache.maxID)
@@ -240,7 +240,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
 		g := NewGraph[T]()
-		op := g.Add(
+		op := Add(
 			g.NewVariable(mat.NewScalar[T](1), true),
 			g.NewVariable(mat.NewScalar[T](2), true),
 		)
@@ -272,7 +272,7 @@ func TestGraph_ClearForReuse(t *testing.T) {
 func testGraphClearForReuse[T mat.DType](t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
 		g := NewGraph[T]()
-		op := g.Add(
+		op := Add(
 			g.NewVariable(mat.NewScalar[T](1), true),
 			g.NewVariable(mat.NewScalar[T](2), true),
 		)
@@ -302,7 +302,7 @@ func testGraphZeroGrad[T mat.DType](t *testing.T) {
 	g := NewGraph[T]()
 	v1 := g.NewVariable(mat.NewScalar[T](1), true)
 	v2 := g.NewVariable(mat.NewScalar[T](2), true)
-	op := g.Add(v1, v2)
+	op := Add(v1, v2)
 	g.Backward(op)
 
 	assert.NotNil(t, v1.Grad())
@@ -379,7 +379,7 @@ func TestGraph_Forward(t *testing.T) {
 
 func testGraphForward[T mat.DType](t *testing.T) {
 	g := NewGraph[T](WithIncrementalForward[T](false))
-	op := g.Add(g.NewScalar(40), g.NewScalar(2))
+	op := Add(g.NewScalar(40), g.NewScalar(2))
 	assert.Nil(t, op.Value())
 	g.Forward()
 	assert.NotNil(t, op.Value())

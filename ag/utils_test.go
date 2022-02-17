@@ -18,7 +18,7 @@ func TestUtils(t *testing.T) {
 func testUtils[T mat.DType](t *testing.T) {
 	t.Run("test `Map2`", func(t *testing.T) {
 		g := NewGraph[T]()
-		ys := Map2(g.Add,
+		ys := Map2(Add[T],
 			[]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)},
 			[]Node[T]{g.NewScalar(4), g.NewScalar(5), g.NewScalar(6)},
 		)
@@ -33,7 +33,7 @@ func testUtils[T mat.DType](t *testing.T) {
 		newEl := func(_ int) Node[T] {
 			return g.NewScalar(0)
 		}
-		ys := g.Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 5, newEl)
+		ys := Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
 		assert.Equal(t, T(1), ys[0].ScalarValue())
 		assert.Equal(t, T(2), ys[1].ScalarValue())
@@ -47,7 +47,7 @@ func testUtils[T mat.DType](t *testing.T) {
 		newEl := func(_ int) Node[T] {
 			return g.NewScalar(0)
 		}
-		ys := g.Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 3, newEl)
+		ys := Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
 		assert.Equal(t, T(1), ys[0].ScalarValue())
 		assert.Equal(t, T(2), ys[1].ScalarValue())

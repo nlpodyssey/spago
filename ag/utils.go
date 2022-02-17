@@ -34,7 +34,7 @@ func Map2[T mat.DType](mapping func(a Node[T], b Node[T]) Node[T], xs1 []Node[T]
 }
 
 // Pad down/up samples the input to the given size.
-func (g *Graph[T]) Pad(xs []Node[T], seqLen int, padding func(i int) Node[T]) []Node[T] {
+func Pad[T mat.DType](xs []Node[T], seqLen int, padding func(i int) Node[T]) []Node[T] {
 	if len(xs) == seqLen {
 		return xs
 	}
@@ -51,13 +51,13 @@ func (g *Graph[T]) Pad(xs []Node[T], seqLen int, padding func(i int) Node[T]) []
 
 // SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
-func (g *Graph[T]) SeparateMatrix(x Node[T]) [][]Node[T] {
+func SeparateMatrix[T mat.DType](x Node[T]) [][]Node[T] {
 	rows, cols := x.Value().Dims()
 	ys := make([][]Node[T], rows)
 	for i := range ys {
 		row := make([]Node[T], cols)
 		for j := range row {
-			row[j] = g.At(x, i, j)
+			row[j] = At(x, i, j)
 		}
 		ys[i] = row
 	}
@@ -67,17 +67,17 @@ func (g *Graph[T]) SeparateMatrix(x Node[T]) [][]Node[T] {
 // SeparateVec returns a slice of Node(s) containing the elements extracted from the input.
 // The size of the vector equals the number of input elements.
 // You can think of this method as the inverse of the ag.Concat operator.
-func (g *Graph[T]) SeparateVec(x Node[T]) []Node[T] {
+func SeparateVec[T mat.DType](x Node[T]) []Node[T] {
 	size := x.Value().Size()
 	ys := make([]Node[T], size)
 	for i := 0; i < size; i++ {
-		ys[i] = g.AtVec(x, i)
+		ys[i] = AtVec(x, i)
 	}
 	return ys
 }
 
 // SplitVec splits the x Node into multiple chunks.
-func (g *Graph[T]) SplitVec(x Node[T], chunks int) []Node[T] {
+func SplitVec[T mat.DType](x Node[T], chunks int) []Node[T] {
 	if x.Value().Size()%chunks != 0 {
 		panic("nn: incompatible chunks size")
 	}
@@ -85,7 +85,7 @@ func (g *Graph[T]) SplitVec(x Node[T], chunks int) []Node[T] {
 	size := int(mat.Ceil(T(x.Value().Size()) / T(chunks)))
 	ys := make([]Node[T], chunks)
 	for i := 0; i < chunks; i++ {
-		ys[i] = g.View(x, l, 0, size, 1)
+		ys[i] = View(x, l, 0, size, 1)
 		l += size
 	}
 	return ys
@@ -93,21 +93,21 @@ func (g *Graph[T]) SplitVec(x Node[T], chunks int) []Node[T] {
 
 // Sum returns the value that describes the sum of the sample.
 // It panics if the input is empty.
-func (g *Graph[T]) Sum(xs ...Node[T]) Node[T] {
+func Sum[T mat.DType](xs ...Node[T]) Node[T] {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
-		sumVector = g.Add(sumVector, xs[i])
+		sumVector = Add(sumVector, xs[i])
 	}
 	return sumVector
 }
 
 // Mean returns the value that describes the average of the sample.
-func (g *Graph[T]) Mean(xs []Node[T]) Node[T] {
+func Mean[T mat.DType](xs []Node[T]) Node[T] {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
-		sumVector = g.Add(sumVector, xs[i])
+		sumVector = Add(sumVector, xs[i])
 	}
-	return g.DivScalar(sumVector, g.Constant(T(len(xs))))
+	return DivScalar(sumVector, xs[0].Graph().Constant(T(len(xs))))
 }
 
 // Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
@@ -115,7 +115,7 @@ func (g *Graph[T]) Mean(xs []Node[T]) Node[T] {
 // The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
 // The pairs except the first whose "x" is nil are not considered.
 // y = b + W1x1 + W2x2 + ... + WnXn
-func (g *Graph[T]) Affine(xs ...Node[T]) Node[T] {
+func Affine[T mat.DType](xs ...Node[T]) Node[T] {
 	if len(xs)%2 == 0 {
 		panic("nn: the number of arguments of the affine transformation should be odd")
 	}
@@ -123,24 +123,25 @@ func (g *Graph[T]) Affine(xs ...Node[T]) Node[T] {
 	// Optimize bounds checks
 	x := xs[2]
 	w := xs[1]
-	y := g.Add(xs[0], g.Mul(w, x)) // b + Wx
+	y := Add(xs[0], Mul(w, x)) // b + Wx
 
 	for i := 3; i < len(xs)-1; i += 2 {
 		w := xs[i]
 		x := xs[i+1]
 		if x != nil {
-			y = g.Add(y, g.Mul(w, x))
+			y = Add(y, Mul(w, x))
 		}
 	}
 	return y
 }
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
-func (g *Graph[T]) PositiveELU(x Node[T]) Node[T] {
-	return g.AddScalar(g.ELU(x, g.Constant(1.0)), g.Constant(1.0))
+func PositiveELU[T mat.DType](x Node[T]) Node[T] {
+	g := x.Graph()
+	return AddScalar(ELU(x, g.Constant(1.0)), g.Constant(1.0))
 }
 
 // LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
-func (g *Graph[T]) LogSoftmax(x Node[T]) Node[T] {
-	return g.Log(g.Softmax(x))
+func LogSoftmax[T mat.DType](x Node[T]) Node[T] {
+	return Log(Softmax(x))
 }

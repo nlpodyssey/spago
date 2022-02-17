@@ -33,12 +33,11 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
-	eps := g.Constant(1e-10)
+	eps := m.Graph().Constant(1e-10)
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		norm := g.Sqrt(g.ReduceSum(g.Square(x)))
-		ys[i] = g.Prod(g.DivScalar(x, g.AddScalar(norm, eps)), m.Gain)
+		norm := ag.Sqrt(ag.ReduceSum(ag.Square(x)))
+		ys[i] = ag.Prod[T](ag.DivScalar(x, ag.AddScalar(norm, eps)), m.Gain)
 	}
 	return ys
 }

@@ -91,15 +91,14 @@ func (m *Model[T]) LastState() *State[T] {
 // c = f(wc (dot) x)
 // y = inG * c + f(yPrev) * forG
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	s.InG = g.Sigmoid(g.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.ForG = g.Sigmoid(g.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = g.Tanh(g.Mul(m.WCand, x))
-	s.Y = g.Prod(s.InG, s.Cand)
+	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = ag.Tanh(ag.Mul[T](m.WCand, x))
+	s.Y = ag.Prod(s.InG, s.Cand)
 	if yPrev != nil {
-		s.Y = g.Add(s.Y, g.Prod(g.Tanh(yPrev), s.ForG))
+		s.Y = ag.Add(s.Y, ag.Prod(ag.Tanh(yPrev), s.ForG))
 	}
 	return
 }

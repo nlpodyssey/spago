@@ -102,19 +102,18 @@ func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) forward(xs []ag.Node[T], outputChannel int) ag.Node[T] {
-	g := m.Graph()
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node[T]
 	if m.Config.DepthWise {
-		out = nn.Conv2D[T](g, m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
-		out = g.AddScalar(out, m.B[outputChannel])
+		out = nn.Conv2D[T](m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
+		out = ag.AddScalar[T](out, m.B[outputChannel])
 	} else {
 		for i := 0; i < len(xs); i++ {
 			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-				out = g.Add(out, nn.Conv2D[T](g, m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
-				out = g.AddScalar(out, m.B[i+offset])
+				out = ag.Add(out, nn.Conv2D[T](m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+				out = ag.AddScalar[T](out, m.B[i+offset])
 			}
 		}
 	}
-	return g.Invoke(m.Config.Activation, out)
+	return ag.Invoke(m.Config.Activation, out)
 }

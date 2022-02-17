@@ -57,7 +57,7 @@ func (m *Model[T]) Forward(qkv attention.QKV[T]) attention.Output[T] {
 		Keys:    m.Key.Forward(qkv.Keys...),
 		Values:  m.Value.Forward(qkv.Values...),
 	}
-	attOutput, attWeights := attention.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
+	attOutput, attWeights := attention.ScaledDotProductAttention(projAtt, m.ScaleFactor, m.UseCausalMask)
 
 	return attention.Output[T]{
 		AttOutput:  attOutput,
@@ -83,7 +83,7 @@ func (m *Model[T]) ForwardWithPastKeysValues(qkv attention.QKV[T], past attentio
 		projAtt.Values = append(projAtt.Values, m.Value.Forward(qkv.Values...)...)
 	}
 
-	attOutput, attWeights := attention.ScaledDotProductAttention(m.Graph(), projAtt, m.ScaleFactor, m.UseCausalMask)
+	attOutput, attWeights := attention.ScaledDotProductAttention[T](projAtt, m.ScaleFactor, m.UseCausalMask)
 
 	return attention.Output[T]{
 		AttOutput:  attOutput,

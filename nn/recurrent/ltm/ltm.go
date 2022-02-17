@@ -86,22 +86,21 @@ func (m *Model[T]) LastState() *State[T] {
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev, cellPrev := m.prev()
 	h := x
 	if yPrev != nil {
-		h = g.Add(h, yPrev)
+		h = ag.Add(h, yPrev)
 	}
-	s.L1 = g.Sigmoid(g.Mul(m.W1, h))
-	s.L2 = g.Sigmoid(g.Mul(m.W2, h))
-	s.L3 = g.Sigmoid(g.Mul(m.W3, h))
-	s.Cand = g.Prod(s.L1, s.L2)
+	s.L1 = ag.Sigmoid(ag.Mul[T](m.W1, h))
+	s.L2 = ag.Sigmoid(ag.Mul[T](m.W2, h))
+	s.L3 = ag.Sigmoid(ag.Mul[T](m.W3, h))
+	s.Cand = ag.Prod(s.L1, s.L2)
 	if cellPrev != nil {
-		s.Cand = g.Add(s.Cand, cellPrev)
+		s.Cand = ag.Add(s.Cand, cellPrev)
 	}
-	s.Cell = g.Sigmoid(g.Mul(m.WCell, s.Cand))
-	s.Y = g.Prod(s.Cell, s.L3)
+	s.Cell = ag.Sigmoid(ag.Mul[T](m.WCell, s.Cand))
+	s.Y = ag.Prod(s.Cell, s.L3)
 	return
 }
 

@@ -63,7 +63,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	yPrev := g.Tanh(g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
+	yPrev := ag.Tanh(g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
 	proc := nn.Reify(model, g)
 	proc.SetInitialState(&State[T]{Y: yPrev})
 	y := nn.ToNode[T](proc.Forward(x))

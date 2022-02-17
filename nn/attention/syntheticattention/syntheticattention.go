@@ -65,17 +65,16 @@ func New[T mat.DType](config Config) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	length := len(xs)
 	context := make([]ag.Node[T], length)
 	prob := make([]mat.Matrix[T], length)
-	values := g.Stack(m.Value.Forward(xs...)...)
-	rectified := g.Stack(m.FFN.Forward(xs...)...)
+	values := ag.Stack(m.Value.Forward(xs...)...)
+	rectified := ag.Stack(m.FFN.Forward(xs...)...)
 	attentionWeights := m.extractAttentionWeights(length)
-	mul := g.Mul(attentionWeights, g.T(rectified))
+	mul := ag.Mul(attentionWeights, ag.T(rectified))
 	for i := 0; i < length; i++ {
-		attProb := g.Softmax(g.ColView(mul, i))
-		context[i] = g.Mul(g.T(attProb), values)
+		attProb := ag.Softmax(ag.ColView(mul, i))
+		context[i] = ag.Mul(ag.T(attProb), values)
 		prob[i] = attProb.Value()
 	}
 	m.Attention = &ContextProb[T]{
@@ -87,10 +86,9 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 
 // extractAttentionWeights returns the attention parameters tailored to the sequence length.
 func (m *Model[T]) extractAttentionWeights(length int) ag.Node[T] {
-	g := m.Graph()
 	attentionWeights := make([]ag.Node[T], length)
 	for i := 0; i < length; i++ {
-		attentionWeights[i] = g.T(g.RowView(m.W, i))
+		attentionWeights[i] = ag.T(ag.RowView[T](m.W, i))
 	}
-	return g.Stack(attentionWeights...)
+	return ag.Stack(attentionWeights...)
 }

@@ -39,11 +39,11 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	gold := g.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45, 0.11}), false)
 
-	mse := losses.MSE(g, st.Y, gold, false)
-	q1 := losses.OneHotQuantization(g, st.AR, 0.001)
-	q2 := losses.OneHotQuantization(g, st.AS, 0.001)
-	q := g.Add(q1, q2)
-	loss := g.Add(mse, q)
+	mse := losses.MSE(st.Y, gold, false)
+	q1 := losses.OneHotQuantization(st.AR, 0.001)
+	q2 := losses.OneHotQuantization(st.AS, 0.001)
+	q := ag.Add(q1, q2)
+	loss := ag.Add(mse, q)
 	g.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{
@@ -85,11 +85,11 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	gold := g.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45, 0.11}), false)
 
-	mse := losses.MSE(g, st.Y, gold, false)
-	q1 := losses.OneHotQuantization(g, st.AR, 0.001)
-	q2 := losses.OneHotQuantization(g, st.AS, 0.001)
-	q := g.Add(q1, q2)
-	loss := g.Add(mse, q)
+	mse := losses.MSE(st.Y, gold, false)
+	q1 := losses.OneHotQuantization(st.AR, 0.001)
+	q2 := losses.OneHotQuantization(st.AS, 0.001)
+	q := ag.Add(q1, q2)
+	loss := ag.Add(mse, q)
 	g.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{

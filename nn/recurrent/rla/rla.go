@@ -91,29 +91,28 @@ func (m *Model[T]) LastState() *State[T] {
 }
 
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 
-	key := g.Affine(m.Bk, m.Wk, x)
-	value := g.Affine(m.Bv, m.Wv, x)
-	query := g.Affine(m.Bq, m.Wq, x)
+	key := ag.Affine[T](m.Bk, m.Wk, x)
+	value := ag.Affine[T](m.Bv, m.Wv, x)
+	query := ag.Affine[T](m.Bq, m.Wq, x)
 
-	attKey := defaultMappingFunction(g, key)
-	attQuery := defaultMappingFunction(g, query)
+	attKey := defaultMappingFunction(key)
+	attQuery := defaultMappingFunction(query)
 
 	if prevState := m.LastState(); prevState != nil {
-		s.S = g.Add(prevState.S, g.Mul(attKey, g.T(value)))
-		s.Z = g.Add(prevState.Z, attKey)
+		s.S = ag.Add(prevState.S, ag.Mul(attKey, ag.T(value)))
+		s.Z = ag.Add(prevState.Z, attKey)
 	} else {
-		s.S = g.Mul(attKey, g.T(value))
+		s.S = ag.Mul(attKey, ag.T(value))
 		s.Z = attKey
 	}
 
-	s.Y = g.DivScalar(g.T(g.Mul(g.T(attQuery), s.S)), g.AddScalar(g.Dot(attQuery, s.Z), g.Constant(1e-12)))
+	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), x.Graph().Constant(1e-12)))
 	return
 }
 
 // ELU(x) + 1
-func defaultMappingFunction[T mat.DType](g *ag.Graph[T], x ag.Node[T]) ag.Node[T] {
-	return g.PositiveELU(x)
+func defaultMappingFunction[T mat.DType](x ag.Node[T]) ag.Node[T] {
+	return ag.PositiveELU(x)
 }

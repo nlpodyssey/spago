@@ -69,20 +69,18 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
-	h := g.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback()...)...)
-	s.Y = g.Tanh(h)
+	h := ag.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback()...)...)
+	s.Y = ag.Tanh(h)
 	return
 }
 
 func (m *Model[T]) feedback() []ag.Node[T] {
-	g := m.Graph()
 	var ys []ag.Node[T]
 	n := len(m.States)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
-		alpha := g.NewScalar(mat.Pow(0.6, T(i+1)))
-		ys = append(ys, m.WRec[i], g.ProdScalar(m.States[n-1-i].Y, alpha))
+		alpha := m.Graph().NewScalar(mat.Pow(0.6, T(i+1)))
+		ys = append(ys, m.WRec[i], ag.ProdScalar(m.States[n-1-i].Y, alpha))
 	}
 	return ys
 }

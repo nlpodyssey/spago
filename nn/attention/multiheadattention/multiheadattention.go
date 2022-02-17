@@ -104,7 +104,7 @@ func (m *Model[T]) forward(qkv attention.QKV[T], pastProjKeysValues KeysValuesPa
 		for j := 0; j < m.NumOfHeads; j++ {
 			buf[j] = headsAttNodes[j][i]
 		}
-		concatHeads[i] = m.Graph().Concat(buf...)
+		concatHeads[i] = ag.Concat(buf...)
 	}
 
 	return Output[T]{

@@ -77,7 +77,6 @@ func (m *Model[T]) getHash(x mat.Matrix[T]) int {
 
 // TODO: implement concurrent computation?
 func (m *Model[T]) lshScaledDotProductAttention(
-	g *ag.Graph[T],
 	q ag.Node[T],
 	ks,
 	vs *indexedNodes[T],
@@ -85,13 +84,13 @@ func (m *Model[T]) lshScaledDotProductAttention(
 	scaleFactor T,
 ) (context ag.Node[T], prob mat.Matrix[T]) {
 	prob = mat.NewEmptyVecDense[T](length)
-	keys := g.Stack(ks.node...)
-	values := g.T(g.Stack(vs.node...))
-	factor := g.NewScalar(scaleFactor)
+	keys := ag.Stack(ks.node...)
+	values := ag.T(ag.Stack(vs.node...))
+	factor := keys.Graph().NewScalar(scaleFactor)
 
-	attScores := g.ProdScalar(g.Mul(keys, q), factor)
-	attProb := g.Softmax(attScores)
-	context = g.Mul(values, attProb)
+	attScores := ag.ProdScalar(ag.Mul(keys, q), factor)
+	attProb := ag.Softmax(attScores)
+	context = ag.Mul[T](values, attProb)
 
 	probData := prob.Data()
 	attProbData := attProb.Value().Data()
@@ -112,7 +111,6 @@ func insertNode[T mat.DType](m map[int]*indexedNodes[T], node ag.Node[T], i, h i
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	length := len(xs)
 	qs := m.Query.Forward(xs...)
 	ks := make([]ag.Node[T], length)
@@ -122,8 +120,8 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 
 	// TODO: can it be implemented in a concurrent fashion?
 	for i, q := range qs {
-		norm := g.Sqrt(g.ReduceSum(g.Pow(q, 2.0)))
-		ks[i] = g.DivScalar(q, norm) // Euclidean norm
+		norm := ag.Sqrt(ag.ReduceSum(ag.Pow(q, 2.0)))
+		ks[i] = ag.DivScalar(q, norm) // Euclidean norm
 		h := m.getHash(ks[i].Value())
 		insertNode(mapk, ks[i], i, h)
 		insertNode(mapv, vs[i], i, h)
@@ -133,7 +131,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	prob := make([]mat.Matrix[T], length)
 	for i, q := range qs {
 		j := m.getHash(q.Value())
-		c, p := m.lshScaledDotProductAttention(g, q, mapk[j], mapv[j], length, m.Config.ScaleFactor)
+		c, p := m.lshScaledDotProductAttention(q, mapk[j], mapv[j], length, m.Config.ScaleFactor)
 		context[i], prob[i] = c, p
 	}
 

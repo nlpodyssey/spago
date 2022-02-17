@@ -90,23 +90,22 @@ func (m *Model[T]) LastState() *State[T] {
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	wx := g.Mul(m.W, x)
+	wx := ag.Mul[T](m.W, x)
 	if yPrev == nil {
-		s.D1 = g.Prod(m.Beta1, wx)
-		s.C = g.Tanh(g.Add(s.D1, m.B))
-		s.P = g.Sigmoid(g.Add(wx, m.BPart))
-		s.Y = g.Tanh(g.Prod(s.P, s.C))
-	} else {
-		wyRec := g.Mul(m.WRec, yPrev)
-		s.D1 = g.Add(g.Prod(m.Beta1, wx), g.Prod(m.Beta2, wyRec))
-		s.D2 = g.Prod(g.Prod(m.Alpha, wx), wyRec)
-		s.C = g.Tanh(g.Add(g.Add(s.D1, s.D2), m.B))
-		s.P = g.Sigmoid(g.Add(wx, m.BPart))
-		s.Y = g.Tanh(g.Add(g.Prod(s.P, s.C), g.Prod(g.ReverseSub(s.P, g.NewScalar(1.0)), yPrev)))
+		s.D1 = ag.Prod[T](m.Beta1, wx)
+		s.C = ag.Tanh(ag.Add[T](s.D1, m.B))
+		s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
+		s.Y = ag.Tanh(ag.Prod(s.P, s.C))
+		return
 	}
+	wyRec := ag.Mul[T](m.WRec, yPrev)
+	s.D1 = ag.Add(ag.Prod[T](m.Beta1, wx), ag.Prod[T](m.Beta2, wyRec))
+	s.D2 = ag.Prod(ag.Prod[T](m.Alpha, wx), wyRec)
+	s.C = ag.Tanh(ag.Add[T](ag.Add[T](s.D1, s.D2), m.B))
+	s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
+	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, x.Graph().Constant(1.0)), yPrev)))
 	return
 }
 

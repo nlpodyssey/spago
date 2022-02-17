@@ -189,7 +189,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(g, nn.Reify(model, g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(nn.Reify(model, g).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)
@@ -209,10 +209,10 @@ func testModelForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
-func rectify[T mat.DType](g *ag.Graph[T], xs []ag.Node[T]) []ag.Node[T] {
+func rectify[T mat.DType](xs []ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		ys[i] = g.ReLU(x)
+		ys[i] = ag.ReLU(x)
 	}
 	return ys
 }

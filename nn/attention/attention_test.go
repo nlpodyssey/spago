@@ -37,7 +37,7 @@ func testScaledDotProductAttention[T mat.DType](t *testing.T) {
 		},
 	}
 
-	context, _ := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt[T](3), false)
+	context, _ := ScaledDotProductAttention(attIn, 1.0/mat.Sqrt[T](3), false)
 
 	if len(context) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -75,7 +75,7 @@ func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
 	}
 
 	// == Forward
-	context, probs := ScaledDotProductAttention(g, attIn, 1.0/mat.Sqrt[T](2), false)
+	context, probs := ScaledDotProductAttention(attIn, 1.0/mat.Sqrt[T](2), false)
 
 	if len(context) != 3 {
 		t.Error("The context doesn't have the expected length")
@@ -135,10 +135,10 @@ func testLinearAttention[T mat.DType](t *testing.T) {
 		},
 	}
 
-	defaultMappingFunction := func(g *ag.Graph[T], x ag.Node[T]) ag.Node[T] {
-		return g.PositiveELU(x)
+	defaultMappingFunction := func(x ag.Node[T]) ag.Node[T] {
+		return ag.PositiveELU(x)
 	}
-	output := LinearAttention(g, attIn, defaultMappingFunction, 1e-12)
+	output := LinearAttention(attIn, defaultMappingFunction, 1e-12)
 
 	if len(output) != 3 {
 		t.Error("The attention doesn't have the expected length")

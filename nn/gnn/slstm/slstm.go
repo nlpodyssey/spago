@@ -151,7 +151,6 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) computeUx(xs []ag.Node[T]) {
-	g := m.Graph()
 	n := len(xs)
 	m.Support.xUi = make([]ag.Node[T], n)
 	m.Support.xUl = make([]ag.Node[T], n)
@@ -166,20 +165,19 @@ func (m *Model[T]) computeUx(xs []ag.Node[T]) {
 	for i := 0; i < n; i++ {
 		go func(i int) {
 			defer wg.Done()
-			m.Support.xUi[i] = g.Mul(m.InputGate.U, xs[i])
-			m.Support.xUl[i] = g.Mul(m.LeftCellGate.U, xs[i])
-			m.Support.xUr[i] = g.Mul(m.RightCellGate.U, xs[i])
-			m.Support.xUf[i] = g.Mul(m.CellGate.U, xs[i])
-			m.Support.xUs[i] = g.Mul(m.SentCellGate.U, xs[i])
-			m.Support.xUo[i] = g.Mul(m.OutputGate.U, xs[i])
-			m.Support.xUu[i] = g.Mul(m.InputActivation.U, xs[i])
+			m.Support.xUi[i] = ag.Mul[T](m.InputGate.U, xs[i])
+			m.Support.xUl[i] = ag.Mul[T](m.LeftCellGate.U, xs[i])
+			m.Support.xUr[i] = ag.Mul[T](m.RightCellGate.U, xs[i])
+			m.Support.xUf[i] = ag.Mul[T](m.CellGate.U, xs[i])
+			m.Support.xUs[i] = ag.Mul[T](m.SentCellGate.U, xs[i])
+			m.Support.xUo[i] = ag.Mul[T](m.OutputGate.U, xs[i])
+			m.Support.xUu[i] = ag.Mul[T](m.InputActivation.U, xs[i])
 		}(i)
 	}
 	wg.Wait()
 }
 
 func (m *Model[T]) computeVg(prevG ag.Node[T]) {
-	g := m.Graph()
 	var wg sync.WaitGroup
 	wg.Add(7)
 	for i := 0; i < 7; i++ {
@@ -187,19 +185,19 @@ func (m *Model[T]) computeVg(prevG ag.Node[T]) {
 			defer wg.Done()
 			switch i {
 			case 0:
-				m.Support.ViPrevG = g.Mul(m.InputGate.V, prevG)
+				m.Support.ViPrevG = ag.Mul[T](m.InputGate.V, prevG)
 			case 1:
-				m.Support.VlPrevG = g.Mul(m.LeftCellGate.V, prevG)
+				m.Support.VlPrevG = ag.Mul[T](m.LeftCellGate.V, prevG)
 			case 2:
-				m.Support.VrPrevG = g.Mul(m.RightCellGate.V, prevG)
+				m.Support.VrPrevG = ag.Mul[T](m.RightCellGate.V, prevG)
 			case 3:
-				m.Support.VfPrevG = g.Mul(m.CellGate.V, prevG)
+				m.Support.VfPrevG = ag.Mul[T](m.CellGate.V, prevG)
 			case 4:
-				m.Support.VsPrevG = g.Mul(m.SentCellGate.V, prevG)
+				m.Support.VsPrevG = ag.Mul[T](m.SentCellGate.V, prevG)
 			case 5:
-				m.Support.VoPrevG = g.Mul(m.OutputGate.V, prevG)
+				m.Support.VoPrevG = ag.Mul[T](m.OutputGate.V, prevG)
 			case 6:
-				m.Support.VuPrevG = g.Mul(m.InputActivation.U, prevG)
+				m.Support.VuPrevG = ag.Mul[T](m.InputActivation.U, prevG)
 			}
 		}(i)
 	}
@@ -207,7 +205,6 @@ func (m *Model[T]) computeVg(prevG ag.Node[T]) {
 }
 
 func (m *Model[T]) processNode(i int, prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (h ag.Node[T], c ag.Node[T]) {
-	g := m.Graph()
 	n := len(prevH)
 	first := 0
 	last := n - 1
@@ -228,21 +225,21 @@ func (m *Model[T]) processNode(i int, prevH []ag.Node[T], prevC []ag.Node[T], pr
 		return prevH[k], prevC[k]
 	}()
 
-	context := g.Concat(prevHj, prevH[i], prevHk)
-	iG := g.Sigmoid(g.Sum(m.InputGate.B, g.Mul(m.InputGate.W, context), m.Support.ViPrevG, m.Support.xUi[i]))
-	lG := g.Sigmoid(g.Sum(m.LeftCellGate.B, g.Mul(m.LeftCellGate.W, context), m.Support.VlPrevG, m.Support.xUl[i]))
-	rG := g.Sigmoid(g.Sum(m.RightCellGate.B, g.Mul(m.RightCellGate.W, context), m.Support.VrPrevG, m.Support.xUr[i]))
-	fG := g.Sigmoid(g.Sum(m.CellGate.B, g.Mul(m.CellGate.W, context), m.Support.VfPrevG, m.Support.xUf[i]))
-	sG := g.Sigmoid(g.Sum(m.SentCellGate.B, g.Mul(m.SentCellGate.W, context), m.Support.VsPrevG, m.Support.xUs[i]))
-	oG := g.Sigmoid(g.Sum(m.OutputGate.B, g.Mul(m.OutputGate.W, context), m.Support.VoPrevG, m.Support.xUo[i]))
-	uG := g.Tanh(g.Sum(m.InputActivation.B, g.Mul(m.InputActivation.W, context), m.Support.VuPrevG, m.Support.xUu[i]))
-	c1 := g.Prod(lG, prevCj)
-	c2 := g.Prod(fG, prevC[i])
-	c3 := g.Prod(rG, prevCk)
-	c4 := g.Prod(sG, prevG)
-	c5 := g.Prod(iG, uG)
-	c = g.Sum(c1, c2, c3, c4, c5)
-	h = g.Prod(oG, g.Tanh(c))
+	context := ag.Concat(prevHj, prevH[i], prevHk)
+	iG := ag.Sigmoid(ag.Sum[T](m.InputGate.B, ag.Mul[T](m.InputGate.W, context), m.Support.ViPrevG, m.Support.xUi[i]))
+	lG := ag.Sigmoid(ag.Sum[T](m.LeftCellGate.B, ag.Mul[T](m.LeftCellGate.W, context), m.Support.VlPrevG, m.Support.xUl[i]))
+	rG := ag.Sigmoid(ag.Sum[T](m.RightCellGate.B, ag.Mul[T](m.RightCellGate.W, context), m.Support.VrPrevG, m.Support.xUr[i]))
+	fG := ag.Sigmoid(ag.Sum[T](m.CellGate.B, ag.Mul[T](m.CellGate.W, context), m.Support.VfPrevG, m.Support.xUf[i]))
+	sG := ag.Sigmoid(ag.Sum[T](m.SentCellGate.B, ag.Mul[T](m.SentCellGate.W, context), m.Support.VsPrevG, m.Support.xUs[i]))
+	oG := ag.Sigmoid(ag.Sum[T](m.OutputGate.B, ag.Mul[T](m.OutputGate.W, context), m.Support.VoPrevG, m.Support.xUo[i]))
+	uG := ag.Tanh(ag.Sum[T](m.InputActivation.B, ag.Mul[T](m.InputActivation.W, context), m.Support.VuPrevG, m.Support.xUu[i]))
+	c1 := ag.Prod(lG, prevCj)
+	c2 := ag.Prod(fG, prevC[i])
+	c3 := ag.Prod(rG, prevCk)
+	c4 := ag.Prod(sG, prevG)
+	c5 := ag.Prod(iG, uG)
+	c = ag.Sum(c1, c2, c3, c4, c5)
+	h = ag.Prod(oG, ag.Tanh(c))
 	return
 }
 
@@ -263,24 +260,23 @@ func (m *Model[T]) updateHiddenNodes(prevH []ag.Node[T], prevC []ag.Node[T], pre
 }
 
 func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (ag.Node[T], ag.Node[T]) {
-	g := m.Graph()
 	n := len(prevH)
-	avgH := g.Mean(prevH)
-	fG := g.Sigmoid(g.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
-	oG := g.Sigmoid(g.Affine(m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
+	avgH := ag.Mean(prevH)
+	fG := ag.Sigmoid(ag.Affine[T](m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
+	oG := ag.Sigmoid(ag.Affine[T](m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
 	hG := make([]ag.Node[T], n)
-	gG := g.Affine(m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
+	gG := ag.Affine[T](m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
-		hG[i] = g.Sigmoid(g.Add(gG, g.Mul(m.NonLocalInputGate.U, prevH[i])))
+		hG[i] = ag.Sigmoid(ag.Add[T](gG, ag.Mul[T](m.NonLocalInputGate.U, prevH[i])))
 	}
 
 	var sum ag.Node[T]
 	for i := 0; i < n; i++ {
-		sum = g.Add(sum, g.Prod(hG[i], prevC[i]))
+		sum = ag.Add(sum, ag.Prod(hG[i], prevC[i]))
 	}
 
-	cg := g.Add(g.Prod(fG, prevG), sum)
-	gt := g.Prod(oG, g.Tanh(cg))
+	cg := ag.Add(ag.Prod(fG, prevG), sum)
+	gt := ag.Prod(oG, ag.Tanh(cg))
 	return gt, cg
 }

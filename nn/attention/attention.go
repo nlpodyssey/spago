@@ -49,27 +49,26 @@ func ToQKV[T mat.DType](xs []ag.Node[T]) QKV[T] {
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
 func ScaledDotProductAttention[T mat.DType](
-	g *ag.Graph[T],
 	qkv QKV[T],
 	scaleFactor T,
 	useCausalMask bool,
 ) (context []ag.Node[T], prob []mat.Matrix[T]) {
 	context = make([]ag.Node[T], len(qkv.Queries))
 	prob = make([]mat.Matrix[T], len(qkv.Queries))
-	keys := g.Stack(qkv.Keys...)
-	values := g.T(g.Stack(qkv.Values...))
-	factor := g.NewScalar(scaleFactor)
+	keys := ag.Stack(qkv.Keys...)
+	values := ag.T(ag.Stack(qkv.Values...))
+	factor := keys.Graph().Constant(scaleFactor)
 
 	for i, q := range qkv.Queries {
-		attScores := g.ProdScalar(g.Mul(keys, q), factor)
+		attScores := ag.ProdScalar(ag.Mul(keys, q), factor)
 
 		if useCausalMask && len(qkv.Queries) > 1 {
 			causalMask := MakeCausalMask[T](i, len(qkv.Keys)) // TODO: use external cache for causal mask?
-			attScores = g.Add(attScores, g.NewVariable(mat.NewVecDense[T](causalMask), false))
+			attScores = ag.Add(attScores, attScores.Graph().NewVariable(mat.NewVecDense[T](causalMask), false))
 		}
 
-		attProb := g.Softmax(attScores)
-		context[i] = g.Mul(values, attProb)
+		attProb := ag.Softmax(attScores)
+		context[i] = ag.Mul(values, attProb)
 		prob[i] = attProb.Value()
 	}
 	return
@@ -85,20 +84,20 @@ func MakeCausalMask[T mat.DType](curIndex, seqLength int) []T {
 }
 
 // ScaledDotProductAttentionConcurrent does the same thing as ScaledDotProductAttention but processes input concurrently.
-func ScaledDotProductAttentionConcurrent[T mat.DType](g *ag.Graph[T], qkv QKV[T], scaleFactor T) (context []ag.Node[T], prob []mat.Matrix[T]) {
+func ScaledDotProductAttentionConcurrent[T mat.DType](qkv QKV[T], scaleFactor T) (context []ag.Node[T], prob []mat.Matrix[T]) {
 	context = make([]ag.Node[T], len(qkv.Queries))
 	prob = make([]mat.Matrix[T], len(qkv.Queries))
-	keys := g.Stack(qkv.Keys...)
-	values := g.T(g.Stack(qkv.Values...))
-	factor := g.NewScalar(scaleFactor)
+	keys := ag.Stack(qkv.Keys...)
+	values := ag.T(ag.Stack(qkv.Values...))
+	factor := keys.Graph().Constant(scaleFactor)
 	var wg sync.WaitGroup
 	wg.Add(len(qkv.Queries))
 	for i, q := range qkv.Queries {
 		go func(i int, q ag.Node[T]) {
 			defer wg.Done()
-			attScores := g.ProdScalar(g.Mul(keys, q), factor)
-			attProb := g.Softmax(attScores)
-			context[i] = g.Mul(values, attProb)
+			attScores := ag.ProdScalar(ag.Mul(keys, q), factor)
+			attProb := ag.Softmax(attScores)
+			context[i] = ag.Mul(values, attProb)
 			prob[i] = attProb.Value()
 		}(i, q)
 	}
@@ -107,29 +106,30 @@ func ScaledDotProductAttentionConcurrent[T mat.DType](g *ag.Graph[T], qkv QKV[T]
 }
 
 // MappingFunc is a mapping function used by LinearAttention.
-type MappingFunc[T mat.DType] func(g *ag.Graph[T], x ag.Node[T]) ag.Node[T]
+type MappingFunc[T mat.DType] func(x ag.Node[T]) ag.Node[T]
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention[T mat.DType](g *ag.Graph[T], qkv QKV[T], mappingFunction MappingFunc[T], eps T) []ag.Node[T] {
+func LinearAttention[T mat.DType](qkv QKV[T], mappingFunction MappingFunc[T], eps T) []ag.Node[T] {
 	context := make([]ag.Node[T], len(qkv.Queries))
 	attKeys := make([]ag.Node[T], len(qkv.Keys))
 
 	var attKeysSum ag.Node[T] = nil
 	for i := range qkv.Keys {
-		attKeys[i] = mappingFunction(g, qkv.Keys[i])
-		attKeysSum = g.Add(attKeysSum, attKeys[i])
+		attKeys[i] = mappingFunction(qkv.Keys[i])
+		attKeysSum = ag.Add(attKeysSum, attKeys[i])
 	}
 
-	attKeysT := g.T(g.Stack(attKeys...))
-	kv := g.Mul(attKeysT, g.Stack(qkv.Values...))
+	attKeysT := ag.T(ag.Stack(attKeys...))
+	kv := ag.Mul(attKeysT, ag.Stack(qkv.Values...))
 
+	epsn := kv.Graph().Constant(eps)
 	for i := range qkv.Queries {
-		attQuery := mappingFunction(g, qkv.Queries[i])
-		n := g.T(g.Mul(g.T(attQuery), kv))
-		d := g.Dot(attQuery, attKeysSum)
-		context[i] = g.DivScalar(n, g.AddScalar(d, g.Constant(eps)))
+		attQuery := mappingFunction(qkv.Queries[i])
+		n := ag.T(ag.Mul(ag.T(attQuery), kv))
+		d := ag.Dot(attQuery, attKeysSum)
+		context[i] = ag.DivScalar(n, ag.AddScalar(d, epsn))
 	}
 	return context
 }

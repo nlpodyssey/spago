@@ -82,7 +82,7 @@ func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	wg.Wait()
 
 	for i := 0; i < n; i++ {
-		concat := g.Concat(hfwd[i], hbwd[n-1-i])
+		concat := ag.Concat(hfwd[i], hbwd[n-1-i])
 		ys[i] = m.FC3.Forward(concat)[0]
 	}
 	ys = m.LayerNorm.Forward(ys...)
@@ -90,22 +90,20 @@ func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *BiModel[T]) forwardHidden(b []ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	n := len(b)
 	h := make([]ag.Node[T], n)
-	h[0] = g.ReLU(b[0])
+	h[0] = ag.ReLU(b[0])
 	for i := 1; i < n; i++ {
-		h[i] = g.ReLU(g.Add(b[i], g.RotateR(h[i-1], 1)))
+		h[i] = ag.ReLU(ag.Add(b[i], ag.RotateR(h[i-1], 1)))
 	}
 	return h
 }
 
 func (m *BiModel[T]) transformInput(x ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	b := m.FC.Forward(x)[0]
 	if m.Config.MultiHead {
-		sigAlphas := g.Sigmoid(m.FC2.Forward(x)[0])
-		b = g.Prod(b, sigAlphas)
+		sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
+		b = ag.Prod(b, sigAlphas)
 	}
 	return b
 }

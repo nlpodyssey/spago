@@ -40,14 +40,13 @@ func New[T mat.DType](size int) *Model[T] {
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
-	eps := g.Constant(1e-12) // avoid underflow errors
+	eps := xs[0].Graph().Constant(1e-12) // avoid underflow errors
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		mean := g.ReduceMean(x)
-		dev := g.SubScalar(x, mean)
-		stdDev := g.Sqrt(g.Add(g.ReduceMean(g.Square(dev)), eps))
-		ys[i] = g.Add(g.Prod(g.DivScalar(dev, stdDev), m.W), m.B)
+		mean := ag.ReduceMean(x)
+		dev := ag.SubScalar(x, mean)
+		stdDev := ag.Sqrt(ag.Add(ag.ReduceMean(ag.Square(dev)), eps))
+		ys[i] = ag.Add[T](ag.Prod[T](ag.DivScalar(dev, stdDev), m.W), m.B)
 	}
 	return ys
 }

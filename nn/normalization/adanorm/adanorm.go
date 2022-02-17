@@ -57,15 +57,14 @@ func (m *Model[T]) InitProcessor() {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node[T], len(xs))
 
 	for i, x := range xs {
-		y := g.DivScalar(g.SubScalar(x, meanVectors[i]), g.Add(devVectors[i], m.consts.eps))
-		fi := g.ProdScalar(g.ReverseSub(g.ProdScalar(y, m.consts.k), m.consts.one), m.consts.c)
-		zs[i] = g.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add(devVectors[i], m.consts.eps))
+		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, m.consts.k), m.consts.one), m.consts.c)
+		zs[i] = ag.Prod(y, m.Graph().NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }
@@ -74,18 +73,17 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 func (m *Model[T]) Mean(xs []ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		ys[i] = m.Graph().ReduceMean(x)
+		ys[i] = ag.ReduceMean(x)
 	}
 	return ys
 }
 
 // StdDev computes the standard deviation of the input.
 func (m *Model[T]) StdDev(meanVectors []ag.Node[T], xs []ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	devVectors := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		diffVector := g.Square(g.SubScalar(x, meanVectors[i]))
-		devVectors[i] = g.Sqrt(g.ReduceMean(diffVector))
+		diffVector := ag.Square(ag.SubScalar(x, meanVectors[i]))
+		devVectors[i] = ag.Sqrt(ag.ReduceMean(diffVector))
 	}
 	return devVectors
 }

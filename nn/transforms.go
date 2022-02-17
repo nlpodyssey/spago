@@ -10,17 +10,17 @@ import (
 )
 
 // BiLinear performs a bilinear transformation of the type (x_1 W x_2)
-func BiLinear[T mat.DType](g *ag.Graph[T], w, x1, x2 ag.Node[T]) ag.Node[T] {
-	return g.Mul(g.Mul(g.T(x1), w), x2)
+func BiLinear[T mat.DType](w, x1, x2 ag.Node[T]) ag.Node[T] {
+	return ag.Mul(ag.Mul(ag.T(x1), w), x2)
 }
 
 // BiAffine performs a biaffine transformation.
-func BiAffine[T mat.DType](g *ag.Graph[T], w, u, v, b, x1, x2 ag.Node[T]) ag.Node[T] {
-	return g.Add(g.Add(g.Add(BiLinear(g, w, x1, x2), g.Mul(g.T(u), x1)), g.Mul(g.T(v), x2)), b)
+func BiAffine[T mat.DType](w, u, v, b, x1, x2 ag.Node[T]) ag.Node[T] {
+	return ag.Add(ag.Add(ag.Add(BiLinear(w, x1, x2), ag.Mul(ag.T(u), x1)), ag.Mul(ag.T(v), x2)), b)
 }
 
 // Conv1D performs a 1D convolution.
-func Conv1D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], stride int) ag.Node[T] {
+func Conv1D[T mat.DType](w, x ag.Node[T], stride int) ag.Node[T] {
 	var dim int
 	wr, wc := w.Value().Rows(), w.Value().Columns()
 	xr, xc := x.Value().Rows(), x.Value().Columns()
@@ -33,13 +33,13 @@ func Conv1D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], stride int) ag.Node[T]
 	dim = (xc-wc)/stride + 1
 	ys := make([]ag.Node[T], dim)
 	for i := 0; i < dim; i++ {
-		ys[i] = g.Dot(g.View(x, 0, i*stride, wr, wc), w)
+		ys[i] = ag.Dot(ag.View(x, 0, i*stride, wr, wc), w)
 	}
-	return g.Concat(ys...)
+	return ag.Concat(ys...)
 }
 
 // Conv2D performs a 2D convolution.
-func Conv2D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
+func Conv2D[T mat.DType](w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
 	var dimx, dimy int
 	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
 		panic("Incompatible stride value for rows")
@@ -53,11 +53,11 @@ func Conv2D[T mat.DType](g *ag.Graph[T], w, x ag.Node[T], xStride, yStride int) 
 	var outList []ag.Node[T]
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
-			var view = g.View(x, i*xStride, j*yStride, w.Value().Rows(), w.Value().Columns())
-			var dotProduct = g.Dot(view, w)
+			var view = ag.View(x, i*xStride, j*yStride, w.Value().Rows(), w.Value().Columns())
+			var dotProduct = ag.Dot(view, w)
 			outList = append(outList, dotProduct)
 		}
 	}
 
-	return g.Reshape(g.Concat(outList...), dimx, dimy)
+	return ag.Reshape(ag.Concat(outList...), dimx, dimy)
 }

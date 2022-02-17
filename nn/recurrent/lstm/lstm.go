@@ -121,25 +121,24 @@ func (m *Model[T]) LastState() *State[T] {
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev, cellPrev := m.prev()
-	s.InG = g.Sigmoid(g.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.OutG = g.Sigmoid(g.Affine(m.BOut, m.WOut, x, m.WOutRec, yPrev))
-	s.ForG = g.Sigmoid(g.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = g.Tanh(g.Affine(m.BCand, m.WCand, x, m.WCandRec, yPrev))
+	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.OutG = ag.Sigmoid(ag.Affine[T](m.BOut, m.WOut, x, m.WOutRec, yPrev))
+	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = ag.Tanh(ag.Affine[T](m.BCand, m.WCand, x, m.WCandRec, yPrev))
 
 	if m.UseRefinedGates {
-		s.InG = g.Prod(s.InG, x)
-		s.OutG = g.Prod(s.OutG, x)
+		s.InG = ag.Prod(s.InG, x)
+		s.OutG = ag.Prod(s.OutG, x)
 	}
 
 	if cellPrev != nil {
-		s.Cell = g.Add(g.Prod(s.InG, s.Cand), g.Prod(s.ForG, cellPrev))
+		s.Cell = ag.Add(ag.Prod(s.InG, s.Cand), ag.Prod(s.ForG, cellPrev))
 	} else {
-		s.Cell = g.Prod(s.InG, s.Cand)
+		s.Cell = ag.Prod(s.InG, s.Cand)
 	}
-	s.Y = g.Prod(s.OutG, g.Tanh(s.Cell))
+	s.Y = ag.Prod(s.OutG, ag.Tanh(s.Cell))
 	return
 }
 

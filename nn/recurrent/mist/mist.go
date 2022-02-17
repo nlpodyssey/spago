@@ -92,12 +92,11 @@ func (m *Model[T]) LastState() *State[T] {
 }
 
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.yPrev()
-	a := g.Softmax(g.Affine(m.Ba, m.Wax, x, m.Wah, yPrev))
-	r := g.Sigmoid(g.Affine(m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
-	s.Y = g.Tanh(g.Affine(m.B, m.Wx, x, m.Wh, m.tryProd(r, m.weightHistory(a))))
+	a := ag.Softmax(ag.Affine[T](m.Ba, m.Wax, x, m.Wah, yPrev))
+	r := ag.Sigmoid(ag.Affine[T](m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
+	s.Y = ag.Tanh(ag.Affine[T](m.B, m.Wx, x, m.Wh, tryProd[T](r, m.weightHistory(a))))
 	return
 }
 
@@ -111,22 +110,21 @@ func (m *Model[T]) yPrev() ag.Node[T] {
 }
 
 func (m *Model[T]) weightHistory(a ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	var sum ag.Node[T]
 	n := len(m.States)
 	for i := 0; i < m.NumOfDelays; i++ {
 		k := int(mat.Pow(2.0, T(i))) // base-2 exponential delay
 		if k <= n {
-			sum = g.Add(sum, g.ProdScalar(m.States[n-k].Y, g.AtVec(a, i)))
+			sum = ag.Add(sum, ag.ProdScalar(m.States[n-k].Y, ag.AtVec(a, i)))
 		}
 	}
 	return sum
 }
 
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
-func (m *Model[T]) tryProd(a, b ag.Node[T]) ag.Node[T] {
+func tryProd[T mat.DType](a, b ag.Node[T]) ag.Node[T] {
 	if a != nil && b != nil {
-		return m.Graph().Prod(a, b)
+		return ag.Prod(a, b)
 	}
 	return nil
 }

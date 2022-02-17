@@ -31,7 +31,7 @@ func testConv1D[T mat.DType](t *testing.T) {
 		0.4, -0.3,
 	}), true)
 
-	out := Conv1D(g, w, x, 1)
+	out := Conv1D(w, x, 1)
 
 	assert.InDeltaSlice(t, []T{
 		0.47, -0.42, -0.56,
@@ -74,7 +74,7 @@ func testConv2D[T mat.DType](t *testing.T) {
 		0.3, 0.3,
 	}), true)
 
-	out := Conv2D(g, w, x, 1, 1)
+	out := Conv2D(w, x, 1, 1)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,
@@ -121,7 +121,7 @@ func testConv2DStride2[T mat.DType](t *testing.T) {
 		0.3, 0.3,
 	}), true)
 
-	out := Conv2D(g, w, x, 2, 2)
+	out := Conv2D(w, x, 2, 2)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.22,

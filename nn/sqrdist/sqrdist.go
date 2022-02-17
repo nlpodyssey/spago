@@ -42,7 +42,6 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
-	bh := g.Mul(m.B, x)
-	return g.Mul(g.T(bh), bh)
+	bh := ag.Mul[T](m.B, x)
+	return ag.Mul[T](ag.T(bh), bh)
 }

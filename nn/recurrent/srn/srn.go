@@ -74,10 +74,9 @@ func (m *Model[T]) LastState() *State[T] {
 
 // y = tanh(w (dot) x + b + wRec (dot) yPrev)
 func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
-	g := m.Graph()
 	s = new(State[T])
 	yPrev := m.prev()
-	s.Y = g.Tanh(g.Affine(m.B, m.W, x, m.WRec, yPrev))
+	s.Y = ag.Tanh(ag.Affine[T](m.B, m.W, x, m.WRec, yPrev))
 	return
 }
 

@@ -56,18 +56,17 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) forwardTraining(xs []ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	meanVector := m.mean(xs)
 	devVector := m.stdDev(meanVector, xs)
 	m.updateBatchNormParameters(meanVector.Value(), devVector.Value())
-	return m.process(g, xs, devVector, meanVector)
+	return m.process(xs, devVector, meanVector)
 }
 
-func (m *Model[T]) process(g *ag.Graph[T], xs []ag.Node[T], devVector ag.Node[T], meanVector ag.Node[T]) []ag.Node[T] {
-	devVector = g.Div(m.W, g.AddScalar(devVector, g.NewScalar(epsilon)))
+func (m *Model[T]) process(xs []ag.Node[T], devVector ag.Node[T], meanVector ag.Node[T]) []ag.Node[T] {
+	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, m.Graph().NewScalar(epsilon)))
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		ys[i] = g.Add(g.Prod(g.Sub(x, meanVector), devVector), m.B)
+		ys[i] = ag.Add[T](ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
 	}
 	return ys
 }
@@ -86,28 +85,26 @@ func (m *Model[T]) forwardInference(xs []ag.Node[T]) []ag.Node[T] {
 	g := m.Graph()
 	meanVector := g.NewWrapNoGrad(m.Mean)
 	devVector := g.NewWrapNoGrad(m.StdDev)
-	return m.process(g, xs, devVector, meanVector)
+	return m.process(xs, devVector, meanVector)
 }
 
 // Mean computes the mean of the input.
 func (m *Model[T]) mean(xs []ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
-		sumVector = g.Add(sumVector, xs[i])
+		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return g.DivScalar(sumVector, g.NewScalar(T(len(xs))+epsilon))
+	return ag.DivScalar(sumVector, m.Graph().NewScalar(T(len(xs))+epsilon))
 }
 
 // StdDev computes the standard deviation of the input.
 func (m *Model[T]) stdDev(meanVector ag.Node[T], xs []ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
-	devVector := g.NewVariable(meanVector.Value().ZerosLike(), false)
+	devVector := m.Graph().NewVariable(meanVector.Value().ZerosLike(), false)
 	for _, x := range xs {
-		diffVector := g.Square(g.Sub(meanVector, x))
-		devVector = g.Add(devVector, diffVector)
+		diffVector := ag.Square(ag.Sub(meanVector, x))
+		devVector = ag.Add(devVector, diffVector)
 	}
-	devVector = g.Sqrt(g.DivScalar(devVector, g.NewScalar(T(len(xs))+epsilon)))
+	devVector = ag.Sqrt(ag.DivScalar(devVector, m.Graph().NewScalar(T(len(xs))+epsilon)))
 	return devVector
 }
