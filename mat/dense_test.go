@@ -3034,7 +3034,92 @@ func testDensePivoting[T DType](t *testing.T) {
 	})
 }
 
-// TODO: TestDense_LU
+func TestDense_LU(t *testing.T) {
+	t.Run("float32", testDenseLU[float32])
+	t.Run("float64", testDenseLU[float64])
+}
+
+func testDenseLU[T DType](t *testing.T) {
+	t.Run("non square matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.LU()
+		})
+	})
+
+	testCases := []struct {
+		d *Dense[T]
+		l []T
+		u []T
+		p []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}, []T{}, []T{}},
+		{
+			NewDense[T](3, 3, []T{
+				3, 3, 0,
+				7, -5, -1,
+				2, 8, 3,
+			}),
+			[]T{
+				1, 0, 0,
+				0.285714, 1, 0,
+				0.428571, 0.54545, 1,
+			},
+			[]T{
+				7, -5, -1,
+				0, 9.42857, 3.28571,
+				0, 0, -1.363636,
+			},
+			[]T{
+				0.0, 1.0, 0.0,
+				0.0, 0.0, 1.0,
+				1.0, 0.0, 0.0,
+			},
+		},
+		{
+			NewDense[T](4, 4, []T{
+				11, 9, 24, 2,
+				1, 5, 2, 6,
+				3, 17, 18, 1,
+				2, 5, 7, 1,
+			}),
+			[]T{
+				1.0, 0.0, 0.0, 0.0,
+				0.27273, 1.0, 0.0, 0.0,
+				0.09091, 0.28750, 1.0, 0.0,
+				0.18182, 0.23125, 0.00360, 1.0,
+			},
+			[]T{
+				11.0000, 9.0, 24.0, 2.0,
+				0.0, 14.54545, 11.45455, 0.45455,
+				0.0, 0.0, -3.47500, 5.68750,
+				0.0, 0.0, 0.0, 0.51079,
+			},
+			[]T{
+				1.0, 0.0, 0.0, 0.0,
+				0.0, 0.0, 1.0, 0.0,
+				0.0, 1.0, 0.0, 0.0,
+				0.0, 0.0, 0.0, 1.0,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			l, u, p := tc.d.LU()
+
+			assertDenseDims(t, tc.d.rows, tc.d.cols, l.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.l, l.Data(), 1.0e-04)
+
+			assertDenseDims(t, tc.d.rows, tc.d.cols, u.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.u, u.Data(), 1.0e-04)
+
+			assertDenseDims(t, tc.d.rows, tc.d.cols, p.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.p, p.Data(), 1.0e-04)
+		})
+	}
+}
+
 // TODO: TestDense_Inverse
 // TODO: TestDense_Apply
 // TODO: TestDense_ApplyInPlace
