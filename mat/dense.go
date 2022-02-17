@@ -900,6 +900,9 @@ func (d *Dense[T]) Range(start, end int) Matrix[T] {
 // SplitV splits the vector in N chunks of given sizes,
 // so that N[i] has size sizes[i].
 func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
 	if len(sizes) == 0 {
 		return nil
 	}
