@@ -186,8 +186,45 @@ func TestDensePool_Put(t *testing.T) {
 func testDensePoolPut[T DType](t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
-		defer densePool[T]().Put(d)
 		view := d.View(4, 3)
 		assert.Panics(t, func() { densePool[T]().Put(view.(*Dense[T])) })
+		densePool[T]().Put(d)
 	})
+}
+
+func TestReleaseDense(t *testing.T) {
+	t.Run("float32", testReleaseDense[float32])
+	t.Run("float64", testReleaseDense[float64])
+}
+
+func testReleaseDense[T DType](t *testing.T) {
+	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
+		d := NewEmptyDense[T](3, 4)
+		view := d.View(4, 3)
+		assert.Panics(t, func() { ReleaseDense(view.(*Dense[T])) })
+		ReleaseDense(d)
+	})
+}
+
+func TestReleaseMatrix(t *testing.T) {
+	t.Run("float32", testReleaseMatrix[float32])
+	t.Run("float64", testReleaseMatrix[float64])
+}
+
+func testReleaseMatrix[T DType](t *testing.T) {
+	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
+		d := NewEmptyDense[T](3, 4)
+		view := d.View(4, 3)
+		assert.Panics(t, func() { ReleaseMatrix(view) })
+		ReleaseMatrix[T](d)
+	})
+
+	t.Run("it panics if the matrix is not of Dense", func(t *testing.T) {
+		d := new(foreignMatrixImplementation[T])
+		assert.Panics(t, func() { ReleaseMatrix[T](d) })
+	})
+}
+
+type foreignMatrixImplementation[T DType] struct {
+	*Dense[T]
 }
