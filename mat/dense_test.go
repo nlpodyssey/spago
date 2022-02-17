@@ -3530,7 +3530,47 @@ func testDenseCopy[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_String
+func TestDense_String(t *testing.T) {
+	t.Run("float32", testDenseString[float32])
+	t.Run("float64", testDenseString[float64])
+}
+
+func testDenseString[T DType](t *testing.T) {
+	prefix := "Matrix|Dense"
+	switch any(T(0)).(type) {
+	case float32:
+		prefix += "[float32]"
+	case float64:
+		prefix += "[float64]"
+	default:
+		t.Fatalf("unexpected type %T", T(0))
+	}
+
+	testCases := []struct {
+		d *Dense[T]
+		s string
+	}{
+		{NewEmptyDense[T](0, 0), "(0×0)[]"},
+		{NewEmptyDense[T](0, 1), "(0×1)[]"},
+		{NewEmptyDense[T](1, 0), "(1×0)[]"},
+		{NewScalar[T](42), "(1×1)[42]"},
+		{NewVecDense([]T{1, 2, 3}), "(3×1)[1 2 3]"},
+		{
+			NewDense(2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			"(2×3)[1 2 3 4 5 6]",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			s := tc.d.String()
+			assert.Equal(t, prefix+tc.s, s)
+		})
+	}
+}
 
 func assertDenseDims[T DType](t *testing.T, expectedRows, expectedCols int, d *Dense[T]) {
 	t.Helper()
