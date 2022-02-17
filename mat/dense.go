@@ -1263,6 +1263,6 @@ func (d *Dense[T]) Copy(other Matrix[T]) {
 }
 
 // String returns a string representation of the matrix.
-func (d *Dense[_]) String() string {
-	return fmt.Sprintf("%v", d.data)
+func (d *Dense[T]) String() string {
+	return fmt.Sprintf("Matrix|Dense[%T](%d×%d)%v", T(0), d.rows, d.cols, d.data)
 }
