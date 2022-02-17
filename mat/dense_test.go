@@ -2920,7 +2920,82 @@ func testDenseNorm[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Pivoting
+func TestDense_Pivoting(t *testing.T) {
+	t.Run("float32", testDensePivoting[float32])
+	t.Run("float64", testDensePivoting[float64])
+}
+
+func testDensePivoting[T DType](t *testing.T) {
+	t.Run("non square matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.Pivoting(1)
+		})
+	})
+
+	t.Run("case without swapping", func(t *testing.T) {
+		d := NewDense(4, 4, []T{
+			11, 9, 24, 2,
+			1, 5, 2, 6,
+			3, 17, 18, 1,
+			2, 5, 7, 1,
+		})
+
+		p, swap, positions := d.Pivoting(0)
+		assertDenseDims(t, 4, 4, p.(*Dense[T]))
+		assert.Equal(t, []T{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		}, p.Data())
+		assert.False(t, swap)
+		assert.Equal(t, [2]int{0, 0}, positions)
+	})
+
+	t.Run("case with swapping", func(t *testing.T) {
+		d := NewDense(4, 4, []T{
+			11, 9, 24, 2,
+			1, 5, 2, 6,
+			3, 17, 7, 1,
+			2, 5, 18, 1,
+		})
+
+		p, swap, positions := d.Pivoting(0)
+		assertDenseDims(t, 4, 4, p.(*Dense[T]))
+		assert.Equal(t, []T{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		}, p.Data())
+		assert.False(t, swap)
+		assert.Equal(t, [2]int{0, 0}, positions)
+
+		p, swap, positions = d.Pivoting(2)
+		assertDenseDims(t, 4, 4, p.(*Dense[T]))
+		assert.Equal(t, []T{
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 0, 1,
+			0, 0, 1, 0,
+		}, p.Data())
+		assert.True(t, swap)
+		assert.Equal(t, [2]int{3, 2}, positions)
+
+		p, swap, positions = d.Pivoting(1)
+		assertDenseDims(t, 4, 4, p.(*Dense[T]))
+		assert.Equal(t, []T{
+			1, 0, 0, 0,
+			0, 0, 1, 0,
+			0, 1, 0, 0,
+			0, 0, 0, 1,
+		}, p.Data())
+		assert.True(t, swap)
+		assert.Equal(t, [2]int{2, 1}, positions)
+	})
+}
+
 // TODO: TestDense_Normalize2
 // TODO: TestDense_LU
 // TODO: TestDense_Inverse
