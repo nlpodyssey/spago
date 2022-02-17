@@ -3463,7 +3463,38 @@ func testDenseDoVecNonZero[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Clone
+func TestDense_Clone(t *testing.T) {
+	t.Run("float32", testDenseClone[float32])
+	t.Run("float64", testDenseClone[float64])
+}
+
+func testDenseClone[T DType](t *testing.T) {
+	testCases := []*Dense[T]{
+		NewEmptyDense[T](0, 0),
+		NewEmptyDense[T](0, 1),
+		NewEmptyDense[T](1, 0),
+		NewDense[T](1, 1, []T{1}),
+		NewDense[T](1, 2, []T{1, 2}),
+		NewDense[T](2, 1, []T{1, 2}),
+		NewDense[T](2, 2, []T{1, 2, 3, 4}),
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
+			y := tc.Clone()
+			assertDenseDims(t, tc.rows, tc.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.data, y.Data())
+		})
+	}
+
+	t.Run("data is copied", func(t *testing.T) {
+		d := NewDense(1, 1, []T{1})
+		y := d.Clone()
+		d.Set(0, 0, 42)
+		assert.Equal(t, T(1), y.At(0, 0))
+	})
+}
+
 // TODO: TestDense_Copy
 // TODO: TestDense_String
 
