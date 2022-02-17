@@ -1014,15 +1014,16 @@ func (d *Dense[T]) Norm(pow T) T {
 
 // Pivoting returns the partial pivots of a square matrix to reorder rows.
 // Considerate square sub-matrix from element (offset, offset).
-func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, []int) {
+func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
 	if d.rows != d.cols {
 		panic("mat: matrix must be square")
 	}
+
 	pv := make([]int, d.cols)
-	positions := make([]int, 2)
 	for i := range pv {
 		pv[i] = i
 	}
+
 	j := row
 	max := Abs(d.data[row*d.cols+j])
 	for i := row; i < d.cols; i++ {
@@ -1031,12 +1032,12 @@ func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, []int) {
 			row = i
 		}
 	}
-	swap := false
-	if j != row {
+
+	var positions [2]int
+	swap := j != row
+	if swap {
 		pv[row], pv[j] = pv[j], pv[row]
-		swap = true
-		positions[0] = row
-		positions[1] = j
+		positions = [2]int{row, j}
 	}
 
 	p := NewEmptyDense[T](d.cols, d.cols)

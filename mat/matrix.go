@@ -149,7 +149,7 @@ type Matrix[T DType] interface {
 	Norm(pow T) T
 	// Pivoting returns the partial pivots of a square matrix to reorder rows.
 	// Considerate square sub-matrix from element (offset, offset).
-	Pivoting(row int) (Matrix[T], bool, []int)
+	Pivoting(row int) (Matrix[T], bool, [2]int)
 	// Normalize2 normalizes an array with the Euclidean norm.
 	Normalize2() Matrix[T]
 	// LU performs lower–upper (LU) decomposition of a square matrix D such as
