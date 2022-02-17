@@ -897,12 +897,8 @@ func (d *Dense[T]) Range(start, end int) Matrix[T] {
 	return NewVecDense(d.data[start:end])
 }
 
-// SplitV extract N vectors from the Matrix.
-// N[i] has size sizes[i].
-//
-// Deprecated: the usage of this function is not intuitive and it's easy
-// to mess things up, since there are very few checks. ExtractRow or
-// direct access to the underlying data should be preferred.
+// SplitV splits the vector in N chunks of given sizes,
+// so that N[i] has size sizes[i].
 func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 	if len(sizes) == 0 {
 		return nil
