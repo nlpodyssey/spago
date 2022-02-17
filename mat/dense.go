@@ -1012,6 +1012,15 @@ func (d *Dense[T]) Norm(pow T) T {
 	return Pow(s, 1/pow)
 }
 
+// Normalize2 normalizes an array with the Euclidean norm.
+func (d *Dense[T]) Normalize2() Matrix[T] {
+	norm2 := d.Norm(2)
+	if norm2 == 0 {
+		return d.Clone()
+	}
+	return d.ProdScalar(1 / norm2)
+}
+
 // Pivoting returns the partial pivots of a square matrix to reorder rows.
 // Considerate square sub-matrix from element (offset, offset).
 func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
@@ -1045,15 +1054,6 @@ func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
 		p.data[r*d.cols+c] = 1
 	}
 	return p, swap, positions
-}
-
-// Normalize2 normalizes an array with the Euclidean norm.
-func (d *Dense[T]) Normalize2() Matrix[T] {
-	norm2 := d.Norm(2)
-	if norm2 == 0.0 {
-		return d.Clone()
-	}
-	return d.ProdScalar(1 / norm2)
 }
 
 // LU performs lower–upper (LU) decomposition of a square matrix D such as
