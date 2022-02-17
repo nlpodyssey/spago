@@ -5,7 +5,6 @@
 package mat
 
 import (
-	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/mat/internal/f32"
 	"github.com/nlpodyssey/spago/mat/internal/f32/asm32"
@@ -19,11 +18,6 @@ type Dense[T DType] struct {
 	cols  int
 	flags denseFlag
 	data  []T
-}
-
-func init() {
-	gob.Register(&Dense[float32]{})
-	gob.Register(&Dense[float64]{})
 }
 
 // NewDense returns a new matrix of size rows×cols, initialized with a
