@@ -132,8 +132,8 @@ type Matrix[T DType] interface {
 	// Range creates a new vector initialized with data extracted from the
 	// matrix raw data, from start (inclusive) to end (exclusive).
 	Range(start, end int) Matrix[T]
-	// SplitV extract N vectors from the Matrix.
-	// N[i] has size sizes[i].
+	// SplitV splits the vector in N chunks of given sizes,
+	// so that N[i] has size sizes[i].
 	SplitV(sizes ...int) []Matrix[T]
 	// Augment places the identity matrix at the end of the original matrix.
 	Augment() Matrix[T]
