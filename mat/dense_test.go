@@ -3190,8 +3190,79 @@ func testDenseInverse[T DType](t *testing.T) {
 	}
 }
 
-// TODO: TestDense_Apply
-// TODO: TestDense_ApplyInPlace
+type applyTestCase[T DType] struct {
+	d *Dense[T]
+	y []T
+}
+
+func applyTestCases[T DType]() []applyTestCase[T] {
+	return []applyTestCase[T]{
+		// Each transoformed value is a 3-digit number having the
+		// format "<n><row><col>"
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{2}), []T{211}},
+		{NewDense[T](1, 2, []T{2, 3}), []T{211, 312}},
+		{NewDense[T](2, 1, []T{2, 3}), []T{211, 321}},
+		{
+			NewDense[T](2, 2, []T{
+				1, 2,
+				3, 4,
+			}),
+			[]T{
+				111, 212,
+				321, 422,
+			},
+		},
+	}
+}
+
+func TestDense_Apply(t *testing.T) {
+	t.Run("float32", testDenseApply[float32])
+	t.Run("float64", testDenseApply[float64])
+}
+
+func testDenseApply[T DType](t *testing.T) {
+	for _, tc := range applyTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Apply(func(r, c int, v T) T {
+				return T(c+1+(r+1)*10) + v*100
+			})
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_ApplyInPlace(t *testing.T) {
+	t.Run("float32", testDenseApplyInPlace[float32])
+	t.Run("float64", testDenseApplyInPlace[float64])
+}
+
+func testDenseApplyInPlace[T DType](t *testing.T) {
+	t.Run("incompatible dimensions", func(t *testing.T) {
+		a := NewEmptyDense[T](2, 3)
+		b := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			a.ApplyInPlace(func(r, c int, v T) T { return 1 }, b)
+		})
+	})
+
+	for _, tc := range applyTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			// start with a "dirty" matrix to ensure it's correctly overwritten
+			// and initial data is irrelevant
+			y := tc.d.OnesLike()
+			y2 := y.ApplyInPlace(func(r, c int, v T) T {
+				return T(c+1+(r+1)*10) + v*100
+			}, tc.d)
+			assert.Same(t, y, y2)
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 // TODO: TestDense_ApplyWithAlpha
 // TODO: TestDense_ApplyWithAlphaInPlace
 // TODO: TestDense_DoNonZero
