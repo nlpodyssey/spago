@@ -14,22 +14,6 @@ import (
 	"strings"
 )
 
-// ArgMax finds the index of the max argument.
-func ArgMax[T mat.DType](v []T) int {
-	if len(v) == 0 {
-		return -1
-	}
-	vMax := v[0]
-	iMax := 0
-	for i, n := range v {
-		if n > vMax {
-			iMax = i
-			vMax = n
-		}
-	}
-	return iMax
-}
-
 // StrToFloatSlice parses a string representation of a slice of T values.
 func StrToFloatSlice[T mat.DType](str string) ([]T, error) {
 	var bitSize int
