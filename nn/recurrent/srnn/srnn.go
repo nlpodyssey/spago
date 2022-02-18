@@ -56,13 +56,13 @@ func New[T mat.DType](config Config) *Model[T] {
 	layers := []nn.StandardModel[T]{
 		linear.New[T](config.InputSize, config.HyperSize),
 		layernorm.New[T](config.HyperSize),
-		activation.New[T](ag.OpReLU),
+		activation.New[T](activation.ReLU),
 	}
 	for i := 1; i < config.NumLayers; i++ {
 		layers = append(layers,
 			linear.New[T](config.HyperSize, config.HyperSize),
 			layernorm.New[T](config.HyperSize),
-			activation.New[T](ag.OpReLU),
+			activation.New[T](activation.ReLU),
 		)
 	}
 	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
@@ -96,22 +96,20 @@ func (m *Model[T]) getPrevHY() (ag.Node[T], ag.Node[T]) {
 }
 
 func (m *Model[T]) forward(hPrev, b ag.Node[T]) (h ag.Node[T], y ag.Node[T]) {
-	g := m.Graph()
 	if hPrev != nil {
-		h = g.ReLU(g.Add(b, g.RotateR(hPrev, 1)))
+		h = ag.ReLU(ag.Add(b, ag.RotateR(hPrev, 1)))
 	} else {
-		h = g.ReLU(b)
+		h = ag.ReLU(b)
 	}
 	y = nn.ToNode[T](m.FC3.Forward(h))
 	return
 }
 
 func (m *Model[T]) transformInput(x ag.Node[T]) ag.Node[T] {
-	g := m.Graph()
 	b := nn.ToNode[T](m.FC.Forward(x))
 	if m.Config.MultiHead {
-		sigAlphas := g.Sigmoid(nn.ToNode[T](m.FC2.Forward(x)))
-		b = g.Prod(b, sigAlphas)
+		sigAlphas := ag.Sigmoid(nn.ToNode[T](m.FC2.Forward(x)))
+		b = ag.Prod(b, sigAlphas)
 	}
 	return b
 }

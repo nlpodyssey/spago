@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -94,7 +95,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 }
 
 func newTestModel[T mat.DType]() *Model[T] {
-	params := New[T](4, 5, ag.OpTanh)
+	params := New[T](4, 5, activation.Tanh)
 	params.W.Value().SetData([]T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
@@ -160,7 +161,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 }
 
 func newTestModel2[T mat.DType]() *Model[T] {
-	model := New[T](3, 2, ag.OpTanh)
+	model := New[T](3, 2, activation.Tanh)
 	model.W.Value().SetData([]T{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,

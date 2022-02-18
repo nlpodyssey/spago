@@ -27,7 +27,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
-	actProc := nn.Reify(activation.New[T](ag.OpTanh), g)
+	actProc := nn.Reify(activation.New[T](activation.Tanh), g)
 	proc := nn.Reify(model, g)
 	y := nn.ToNode[T](actProc.Forward(proc.Forward(x)...)) // TODO: test linear only
 

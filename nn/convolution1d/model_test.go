@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -179,7 +180,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 		OutputChannels: 2,
 		Mask:           []int{1, 1, 1},
 		DepthWise:      false,
-		Activation:     ag.OpTanh,
+		Activation:     activation.Tanh,
 	})
 	model.K[0].Value().SetData([]T{
 		0.5, -0.4,
@@ -223,7 +224,7 @@ func newTestModel2[T mat.DType]() *Model[T] {
 		OutputChannels: 3,
 		Mask:           []int{1, 1, 1},
 		DepthWise:      true,
-		Activation:     ag.OpIdentity,
+		Activation:     activation.Identity,
 	})
 	model.K[0].Value().SetData([]T{
 		0.5, -0.4,

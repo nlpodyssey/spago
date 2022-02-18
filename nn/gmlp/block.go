@@ -6,7 +6,6 @@ package gmlp
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -28,7 +27,7 @@ type BlockConfig struct {
 	Dim        int
 	DimFF      int
 	SeqLen     int
-	Activation ag.OpName
+	Activation activation.Name
 }
 
 func init() {
@@ -41,7 +40,7 @@ func NewBlock[T mat.DType](config BlockConfig) *Block[T] {
 	return &Block[T]{
 		Model: stack.New[T](
 			linear.New[T](config.Dim, config.DimFF),
-			activation.New[T](ag.OpGELU),
+			activation.New[T](activation.GELU),
 			sgu.New(sgu.Config[T]{
 				Dim:        config.DimFF,
 				DimSeq:     config.SeqLen,

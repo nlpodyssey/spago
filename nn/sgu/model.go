@@ -34,7 +34,7 @@ type Config[T mat.DType] struct {
 	Dim        int
 	DimSeq     int
 	InitEps    T
-	Activation ag.OpName
+	Activation activation.Name
 }
 
 func init() {
@@ -56,7 +56,7 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 		Act: nil,
 	}
 
-	if config.Activation != ag.OpIdentity {
+	if config.Activation != activation.Identity {
 		m.Act = activation.New[T](config.Activation)
 	}
 

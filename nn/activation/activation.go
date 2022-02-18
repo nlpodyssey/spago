@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 // Model contains the activation operator and serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
-	Activation ag.OpName
+	Activation Name
 	Params     []nn.Param[T]
 }
 
@@ -25,9 +25,8 @@ func init() {
 	gob.Register(&Model[float64]{})
 }
 
-// New returns a new model with parameters initialized to zeros.
-// TODO: restrict operators to activation functions only; or create a dedicate builder for each activation.
-func New[T mat.DType](activation ag.OpName, params ...nn.Param[T]) *Model[T] {
+// New returns a new model.
+func New[T mat.DType](activation Name, params ...nn.Param[T]) *Model[T] {
 	return &Model[T]{
 		Activation: activation,
 		Params:     params,
@@ -36,12 +35,11 @@ func New[T mat.DType](activation ag.OpName, params ...nn.Param[T]) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Activation == ag.OpIdentity {
+	if m.Activation == Identity {
 		return xs
 	}
-
 	transformed := func(x ag.Node[T]) ag.Node[T] {
-		return ag.Invoke(m.Activation, append([]ag.Node[T]{x}, ag.ToNodes[T](m.Params)...)...)
+		return Do(m.Activation, append([]ag.Node[T]{x}, ag.ToNodes[T](m.Params)...)...)
 	}
 	return ag.Map(transformed, xs)
 }

@@ -56,7 +56,7 @@ func New[T mat.DType](config Config) *Model[T] {
 		Config: config,
 		FFN: stack.New[T](
 			linear.New[T](config.InputSize, config.HiddenSize),
-			activation.New[T](ag.OpReLU),
+			activation.New[T](activation.ReLU),
 		),
 		W:     nn.NewParam[T](mat.NewEmptyDense[T](config.MaxLength, config.HiddenSize)),
 		Value: linear.New[T](config.InputSize, config.ValueSize),

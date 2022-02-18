@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/sgu"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		Depth:      2,
 		SeqLen:     2,
 		FFMult:     4,
-		Activation: ag.OpIdentity,
+		Activation: activation.Identity,
 	})
 	assert.NotNil(t, model)
 

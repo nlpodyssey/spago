@@ -11,6 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
@@ -28,7 +29,7 @@ type Config struct {
 	Depth      int
 	SeqLen     int
 	FFMult     int
-	Activation ag.OpName
+	Activation activation.Name
 	// TODO: ProbSurvival T
 }
 

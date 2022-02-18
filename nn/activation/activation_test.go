@@ -19,7 +19,7 @@ func TestModelReLU_Forward(t *testing.T) {
 
 func testModelReLUForward[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	m := New[T](ag.OpReLU)
+	m := New[T](ReLU)
 	p := nn.Reify(m, g)
 
 	// == Forward
@@ -43,7 +43,7 @@ func testModelSwishForward[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 	beta := nn.NewParam[T](mat.NewScalar[T](2.0))
-	model := New(ag.OpSwishB, beta)
+	model := New(SwishB, beta)
 	p := nn.Reify(model, g)
 
 	// == Forward

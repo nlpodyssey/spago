@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"log"
 )
 
@@ -17,11 +18,11 @@ var _ nn.Model[float32] = &Model[float32]{}
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
-	W          nn.Param[T] `spago:"type:weights"`
-	WRec       nn.Param[T] `spago:"type:weights"`
-	B          nn.Param[T] `spago:"type:biases"`
-	Activation ag.OpName   // output activation
-	States     []*State[T] `spago:"scope:processor"`
+	W          nn.Param[T]     `spago:"type:weights"`
+	WRec       nn.Param[T]     `spago:"type:weights"`
+	B          nn.Param[T]     `spago:"type:biases"`
+	Activation activation.Name // output activation
+	States     []*State[T]     `spago:"scope:processor"`
 }
 
 // State represent a state of the IndRNN recurrent network.
@@ -35,7 +36,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int, activation ag.OpName) *Model[T] {
+func New[T mat.DType](in, out int, activation activation.Name) *Model[T] {
 	return &Model[T]{
 		W:          nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
 		WRec:       nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
@@ -82,7 +83,7 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	if yPrev != nil {
 		h = ag.Add(h, ag.Prod[T](m.WRec, yPrev))
 	}
-	s.Y = ag.Invoke(m.Activation, h)
+	s.Y = activation.Do(m.Activation, h)
 	return
 }
 

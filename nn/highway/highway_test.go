@@ -8,6 +8,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -58,7 +59,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 }
 
 func newTestModel[T mat.DType]() *Model[T] {
-	model := New[T](4, ag.OpTanh)
+	model := New[T](4, activation.Tanh)
 
 	model.WIn.Value().SetData([]T{
 		0.5, 0.6, -0.8, -0.6,

@@ -5,22 +5,22 @@
 package initializers
 
 import (
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/mat/rand/normal"
 	"github.com/nlpodyssey/spago/mat/rand/uniform"
+	"github.com/nlpodyssey/spago/nn/activation"
 )
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
 // Use it to find the gain value for Xavier initializations.
-func Gain[T mat.DType](f ag.OpName) T {
+func Gain[T mat.DType](f activation.Name) T {
 	switch f {
-	case ag.OpSigmoid:
+	case activation.Sigmoid:
 		return 1.0
-	case ag.OpReLU:
+	case activation.ReLU:
 		return mat.Sqrt[T](2.0)
-	case ag.OpTanh:
+	case activation.Tanh:
 		return 5.0 / 3
 	default:
 		return 1.0

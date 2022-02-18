@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 )
 
 var _ nn.Model[float32] = &Model[float32]{}
@@ -20,7 +21,7 @@ type Model[T mat.DType] struct {
 	BIn        nn.Param[T] `spago:"type:biases"`
 	WT         nn.Param[T] `spago:"type:weights"`
 	BT         nn.Param[T] `spago:"type:biases"`
-	Activation ag.OpName
+	Activation activation.Name
 }
 
 func init() {
@@ -29,7 +30,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in int, activation ag.OpName) *Model[T] {
+func New[T mat.DType](in int, activation activation.Name) *Model[T] {
 	return &Model[T]{
 		WIn:        nn.NewParam[T](mat.NewEmptyDense[T](in, in)),
 		BIn:        nn.NewParam[T](mat.NewEmptyVecDense[T](in)),
@@ -53,7 +54,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // y = t * h + (1 - t) * x
 func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	t := ag.Sigmoid(ag.Affine[T](m.BT, m.WT, x))
-	h := ag.Invoke(m.Activation, ag.Affine[T](m.BIn, m.WIn, x))
+	h := activation.Do(m.Activation, ag.Affine[T](m.BIn, m.WIn, x))
 	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Graph().NewScalar(1.0)), x))
 	return y
 }

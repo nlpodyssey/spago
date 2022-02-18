@@ -42,12 +42,12 @@ func init() {
 func NewBidirectional[T mat.DType](config Config) *BiModel[T] {
 	layers := []nn.StandardModel[T]{
 		linear.New[T](config.InputSize, config.HyperSize),
-		activation.New[T](ag.OpReLU),
+		activation.New[T](activation.ReLU),
 	}
 	for i := 1; i < config.NumLayers; i++ {
 		layers = append(layers,
 			linear.New[T](config.HyperSize, config.HyperSize),
-			activation.New[T](ag.OpReLU),
+			activation.New[T](activation.ReLU),
 		)
 	}
 	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
@@ -62,7 +62,6 @@ func NewBidirectional[T mat.DType](config Config) *BiModel[T] {
 
 // Forward performs the forward step for each input and returns the result.
 func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph()
 	n := len(xs)
 	ys := make([]ag.Node[T], n)
 	b := m.transformInputConcurrent(xs)

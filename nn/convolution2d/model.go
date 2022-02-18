@@ -7,6 +7,7 @@ package convolution2d
 import (
 	"encoding/gob"
 	"fmt"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -26,7 +27,7 @@ type Config struct {
 	OutputChannels int
 	Mask           []int
 	DepthWise      bool // Special case od depthwise convolution, where outputchannels == inputchannels
-	Activation     ag.OpName
+	Activation     activation.Name
 }
 
 // Model contains the serializable parameters for a convolutional neural network model.
@@ -110,10 +111,10 @@ func (m *Model[T]) forward(xs []ag.Node[T], outputChannel int) ag.Node[T] {
 	} else {
 		for i := 0; i < len(xs); i++ {
 			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-				out = ag.Add(out, nn.Conv2D[T](m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+				out = ag.Add[T](out, nn.Conv2D[T](m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
 				out = ag.AddScalar[T](out, m.B[i+offset])
 			}
 		}
 	}
-	return ag.Invoke(m.Config.Activation, out)
+	return activation.Do(m.Config.Activation, out)
 }

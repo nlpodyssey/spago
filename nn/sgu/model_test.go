@@ -4,6 +4,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -18,7 +19,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		Dim:        16,
 		DimSeq:     2,
 		InitEps:    0.001,
-		Activation: ag.OpIdentity,
+		Activation: activation.Identity,
 	})
 
 	model.Norm.W.Value().SetData([]T{
