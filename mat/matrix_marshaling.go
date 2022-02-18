@@ -11,83 +11,78 @@ import (
 )
 
 const (
-	binaryNilMatrix byte = iota
-	binaryDenseMatrix
+	binaryMatrixNil byte = iota
+	binaryMatrixDense
 )
 
 // MarshalBinaryMatrix encodes a Matrix into binary form.
 func MarshalBinaryMatrix[T DType](m Matrix[T], w io.Writer) error {
-	var mType byte
-	var bin []byte
+	var identifier byte
+	var data []byte
 	var err error
 
-	switch v := m.(type) {
+	switch mt := m.(type) {
 	case nil:
-		mType = binaryNilMatrix
+		_, err = w.Write([]byte{binaryMatrixNil})
+		return err
 	case *Dense[T]:
-		mType = binaryDenseMatrix
-		bin, err = v.MarshalBinary()
+		identifier = binaryMatrixDense
+		data, err = mt.MarshalBinary()
+		if err != nil {
+			return err
+		}
 	default:
-		return fmt.Errorf("unknown matrix type %T: %#v", m, m)
+		return fmt.Errorf("mat: unexpected matrix type %T", mt)
 	}
 
+	idAndSize := [9]byte{}
+	idAndSize[0] = identifier
+	binary.LittleEndian.PutUint64(idAndSize[1:], uint64(len(data)))
+
+	_, err = w.Write(idAndSize[:])
 	if err != nil {
 		return err
 	}
 
-	_, err = w.Write([]byte{mType})
-	if err != nil {
-		return err
-	}
-	if mType == binaryNilMatrix {
-		return nil
-	}
-
-	binLen := make([]byte, 4)
-	binary.LittleEndian.PutUint32(binLen, uint32(len(bin)))
-	_, err = w.Write(binLen)
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(bin)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = w.Write(data)
+	return err
 }
 
 // UnmarshalBinaryMatrix decodes a Matrix from binary form.
 func UnmarshalBinaryMatrix[T DType](r io.Reader) (Matrix[T], error) {
-	smType := make([]byte, 1)
-	_, err := r.Read(smType)
+	idAndSize := [9]byte{}
+
+	_, err := r.Read(idAndSize[:1])
 	if err != nil {
 		return nil, err
 	}
-	mType := smType[0]
-	if mType == binaryNilMatrix {
+
+	identifier := idAndSize[0]
+	if identifier == binaryMatrixNil {
 		return nil, nil
 	}
 
-	binLenBytes := make([]byte, 4)
-	_, err = r.Read(binLenBytes)
+	_, err = r.Read(idAndSize[1:])
 	if err != nil {
 		return nil, err
 	}
-	binLen := int(binary.LittleEndian.Uint32(binLenBytes))
-	bin := make([]byte, binLen)
-	_, err = r.Read(bin)
+	dataSize := int(binary.LittleEndian.Uint64(idAndSize[1:]))
+
+	data := make([]byte, dataSize)
+	_, err = r.Read(data)
 	if err != nil {
 		return nil, err
 	}
 
-	switch mType {
-	case binaryDenseMatrix:
-		m := new(Dense[T])
-		err = m.UnmarshalBinary(bin)
-		return m, err
+	switch identifier {
+	case binaryMatrixDense:
+		d := new(Dense[T])
+		err = d.UnmarshalBinary(data)
+		if err != nil {
+			return nil, err
+		}
+		return d, nil
 	default:
-		return nil, fmt.Errorf("unknown binary matrix type %d", mType)
+		return nil, fmt.Errorf("mat: unexpected matrix identifier %d", identifier)
 	}
 }
