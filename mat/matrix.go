@@ -131,9 +131,9 @@ type Matrix[T DType] interface {
 	Min() T
 	// ArgMax returns the index of the vector's element with the maximum value.
 	ArgMax() int
-	// VecSoftmax applies the softmax function to the vector, returning the
+	// Softmax applies the softmax function to the vector, returning the
 	// result as a new row vector.
-	VecSoftmax() Matrix[T]
+	Softmax() Matrix[T]
 	// VecCumSum computes the cumulative sum of the vector's elements, returning
 	// the result as a new row vector.
 	VecCumSum() Matrix[T]

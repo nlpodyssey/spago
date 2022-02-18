@@ -896,9 +896,9 @@ func (d *Dense[T]) ArgMax() int {
 	return maxIndex
 }
 
-// VecSoftmax applies the softmax function to the vector, returning the
+// Softmax applies the softmax function to the vector, returning the
 // result as a new row vector.
-func (d *Dense[T]) VecSoftmax() Matrix[T] {
+func (d *Dense[T]) Softmax() Matrix[T] {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}

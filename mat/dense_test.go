@@ -2386,16 +2386,16 @@ func testDenseArgMax[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_VecSoftmax(t *testing.T) {
-	t.Run("float32", testDenseVecSoftmax[float32])
-	t.Run("float64", testDenseVecSoftmax[float64])
+func TestDense_Softmax(t *testing.T) {
+	t.Run("float32", testDenseSoftmax[float32])
+	t.Run("float64", testDenseSoftmax[float64])
 }
 
-func testDenseVecSoftmax[T DType](t *testing.T) {
+func testDenseSoftmax[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.VecSoftmax()
+			d.Softmax()
 		})
 	})
 
@@ -2414,14 +2414,14 @@ func testDenseVecSoftmax[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
-			y := d.VecSoftmax()
+			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1e-7)
 		})
 
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
-			y := d.VecSoftmax()
+			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1e-7)
 		})
