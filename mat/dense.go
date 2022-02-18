@@ -932,9 +932,9 @@ func (d *Dense[T]) Softmax() Matrix[T] {
 	return out
 }
 
-// VecCumSum computes the cumulative sum of the vector's elements, returning
+// CumSum computes the cumulative sum of the vector's elements, returning
 // the result as a new row vector.
-func (d *Dense[T]) VecCumSum() Matrix[T] {
+func (d *Dense[T]) CumSum() Matrix[T] {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}

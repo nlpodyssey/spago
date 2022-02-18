@@ -134,9 +134,9 @@ type Matrix[T DType] interface {
 	// Softmax applies the softmax function to the vector, returning the
 	// result as a new row vector.
 	Softmax() Matrix[T]
-	// VecCumSum computes the cumulative sum of the vector's elements, returning
+	// CumSum computes the cumulative sum of the vector's elements, returning
 	// the result as a new row vector.
-	VecCumSum() Matrix[T]
+	CumSum() Matrix[T]
 	// Range creates a new vector initialized with data extracted from the
 	// matrix raw data, from start (inclusive) to end (exclusive).
 	Range(start, end int) Matrix[T]

@@ -132,7 +132,7 @@ func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T
 		bounds[i] = 1 + T(i+1)*zsData[i]
 	}
 
-	cumSumInput = zs.VecCumSum()
+	cumSumInput = zs.CumSum()
 	cumSumInputData := cumSumInput.Data()
 
 	k := -1
