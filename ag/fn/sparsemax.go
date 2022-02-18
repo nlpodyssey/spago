@@ -6,7 +6,6 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/matutils"
 	matsort "github.com/nlpodyssey/spago/mat/sort"
 	"sort"
 )
@@ -27,8 +26,20 @@ func NewSparseMax[T mat.DType](x Operand[T]) *SparseMax[T] {
 
 // Forward computes the output of the function.
 func (s *SparseMax[T]) Forward() mat.Matrix[T] {
-	s.y = mat.NewVecDense(sparseMax(translateInput(s.x.Value().Data())))
-	return s.y
+	x := s.x.Value()
+	xMax := x.Max()
+
+	// translate the input by max for numerical stability
+	v := x.SubScalar(xMax)
+
+	zs, cumSumInput, _, tau := sparseMaxCommon(v)
+	mat.ReleaseMatrix(zs)
+	mat.ReleaseMatrix(cumSumInput)
+
+	v.SubScalarInPlace(tau).ClipInPlace(0, xMax)
+
+	s.y = v
+	return v
 }
 
 // Backward computes the backward pass.
@@ -52,56 +63,6 @@ func (s *SparseMax[T]) Backward(gy mat.Matrix[T]) {
 	}
 }
 
-// translateInput translates the input by max for numerical stability
-func translateInput[T mat.DType](v []T) []T {
-	maximum := max(v)
-	translated := make([]T, len(v))
-	for i := range v {
-		translated[i] = v[i] - maximum
-	}
-	return translated
-}
-
-func sparseMaxCommon[T mat.DType](v []T) (zs, bounds, cumSumInput []T, tau T) {
-	zs = make([]T, len(v))
-	copy(zs, v)
-
-	// Sort zs in descending order.
-	sort.Sort(sort.Reverse(matsort.DTSlice[T](zs)))
-
-	bounds = make([]T, len(zs))
-	for i := range bounds {
-		bounds[i] = 1 + T(i+1)*zs[i]
-	}
-
-	cumSumInput = make([]T, len(zs))
-	matutils.CumSum(cumSumInput, zs)
-
-	k := -1
-	tau = 0.0
-	for i := range zs {
-		if bounds[i] > cumSumInput[i] {
-			if k < (i + 1) {
-				k = i + 1
-			}
-			tau += zs[i]
-		}
-	}
-	tau = (tau - 1) / T(k)
-
-	return zs, bounds, cumSumInput, tau
-}
-
-func sparseMax[T mat.DType](v []T) []T {
-	zs, _, _, tau := sparseMaxCommon(v)
-
-	//Reuses zs to avoid allocating new slice
-	for i := range zs {
-		zs[i] = mat.Max(0.0, v[i]-tau)
-	}
-	return zs
-}
-
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss[T mat.DType] struct {
 	x   Operand[T]
@@ -114,33 +75,30 @@ func NewSparseMaxLoss[T mat.DType](x Operand[T]) *SparseMaxLoss[T] {
 	return &SparseMaxLoss[T]{x: x}
 }
 
-// sparseMaxLoss computes the sparseMax loss function and returns
-// the loss and the tau parameter (needed by backward)
-func sparseMaxLoss[T mat.DType](v []T) ([]T, T) {
-	zs, bounds, cumSumInput, tau := sparseMaxCommon(v)
-	var regTerm T = 0.0
-	tauSquared := tau * tau
-
-	for i := range zs {
-		if bounds[i] > cumSumInput[i] {
-			regTerm += zs[i]*zs[i] - tauSquared
-		}
-	}
-	regTerm = regTerm*0.5 + 0.5
-
-	// Reuse zs to avoid allocating a new slice
-	for i := range zs {
-		zs[i] = v[i] - regTerm
-	}
-	return zs, tau
-}
-
 // Forward computes the output of the function.
 func (s *SparseMaxLoss[T]) Forward() mat.Matrix[T] {
-	output, tau := sparseMaxLoss(s.x.Value().Data())
-	s.y = mat.NewVecDense(output)
+	v := s.x.Value().Clone()
+
+	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
+	defer mat.ReleaseMatrix(zs)
+	defer mat.ReleaseMatrix(cumSumInput)
+
+	tauSquared := tau * tau
+	cumSumInputData := cumSumInput.Data()
+
+	var regTerm T = 0.0
+	for i, zsv := range zs.Data() {
+		if bounds[i] > cumSumInputData[i] {
+			regTerm += zsv*zsv - tauSquared
+		}
+	}
+
+	regTerm = regTerm*0.5 + 0.5
+	v.SubScalarInPlace(regTerm)
+
+	s.y = v
 	s.tau = tau
-	return s.y
+	return v
 }
 
 // Backward computes the backward pass.
@@ -159,4 +117,35 @@ func (s *SparseMaxLoss[T]) Backward(gy mat.Matrix[T]) {
 
 		s.x.PropagateGrad(gx)
 	}
+}
+
+func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T], bounds []T, tau T) {
+	zsData := make([]T, v.Size())
+	copy(zsData, v.Data())
+
+	// Sort zs in descending order.
+	sort.Sort(sort.Reverse(matsort.DTSlice[T](zsData)))
+	zs = mat.NewVecDense(zsData)
+
+	bounds = make([]T, len(zsData))
+	for i := range bounds {
+		bounds[i] = 1 + T(i+1)*zsData[i]
+	}
+
+	cumSumInput = zs.VecCumSum()
+	cumSumInputData := cumSumInput.Data()
+
+	k := -1
+	tau = 0.0
+	for i := range zsData {
+		if bounds[i] > cumSumInputData[i] {
+			if k < (i + 1) {
+				k = i + 1
+			}
+			tau += zsData[i]
+		}
+	}
+	tau = (tau - 1) / T(k)
+
+	return zs, cumSumInput, bounds, tau
 }
