@@ -10,35 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/mat/internal/f32"
 	"github.com/nlpodyssey/spago/mat/internal/f64/asm64"
 	"math"
-	"strconv"
-	"strings"
 )
-
-// StrToFloatSlice parses a string representation of a slice of T values.
-func StrToFloatSlice[T mat.DType](str string) ([]T, error) {
-	var bitSize int
-	switch any(T(0)).(type) {
-	case float32:
-		bitSize = 32
-	case float64:
-		bitSize = 64
-	default:
-		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
-	}
-
-	spl := strings.Fields(str)
-	data := make([]T, len(spl))
-
-	for i, v := range spl {
-		num, err := strconv.ParseFloat(v, bitSize)
-		if err != nil {
-			return nil, err
-		}
-		data[i] = T(num)
-	}
-
-	return data, nil
-}
 
 // SoftMax returns the results of the softmax function.
 func SoftMax[T mat.DType](v []T) (sm []T) {
