@@ -7,7 +7,6 @@ package crf
 import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/matutils"
 )
 
 // ViterbiStructure implements Viterbi decoding.
@@ -34,7 +33,7 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int
 	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
-	ys[len(xs)-1] = matutils.ArgMax(alpha[len(xs)].scores.Data())
+	ys[len(xs)-1] = alpha[len(xs)].scores.VecArgMax()
 	for i := len(xs) - 2; i >= 0; i-- {
 		ys[i] = alpha[i+1].backpointers[ys[i+1]]
 	}
