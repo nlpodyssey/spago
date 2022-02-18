@@ -129,6 +129,8 @@ type Matrix[T DType] interface {
 	Max() T
 	// Min returns the minimum value of the matrix.
 	Min() T
+	// VecArgMax returns the index of the vector's element with the maximum value.
+	VecArgMax() int
 	// Range creates a new vector initialized with data extracted from the
 	// matrix raw data, from start (inclusive) to end (exclusive).
 	Range(start, end int) Matrix[T]

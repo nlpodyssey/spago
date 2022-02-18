@@ -876,6 +876,26 @@ func (d *Dense[T]) Min() T {
 	return min
 }
 
+// VecArgMax returns the index of the vector's element with the maximum value.
+func (d *Dense[T]) VecArgMax() int {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
+	data := d.data
+	if len(data) == 0 {
+		panic("mat: cannot find arg-max from an empty vector")
+	}
+	maxIndex := 0
+	maxValue := data[0]
+	for i, v := range data {
+		if v > maxValue {
+			maxIndex = i
+			maxValue = v
+		}
+	}
+	return maxIndex
+}
+
 // Range creates a new vector initialized with data extracted from the
 // matrix raw data, from start (inclusive) to end (exclusive).
 func (d *Dense[T]) Range(start, end int) Matrix[T] {
