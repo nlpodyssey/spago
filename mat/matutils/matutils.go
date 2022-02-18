@@ -9,22 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/internal/f32"
 	"github.com/nlpodyssey/spago/mat/internal/f64/asm64"
-	"math"
 )
-
-// SoftMax returns the results of the softmax function.
-func SoftMax[T mat.DType](v []T) (sm []T) {
-	c := max(v)
-	var sum T = 0
-	sm = make([]T, len(v))
-	for _, e := range v {
-		sum += T(math.Exp(float64(e - c)))
-	}
-	for i, v := range v {
-		sm[i] = T(math.Exp(float64(v-c))) / sum
-	}
-	return sm
-}
 
 // CumSum computes the cumulative sum of src into dst, and returns dst.
 func CumSum[T mat.DType](dst, src []T) []T {
@@ -36,15 +21,4 @@ func CumSum[T mat.DType](dst, src []T) []T {
 	default:
 		panic(fmt.Sprintf("matutils: unexpected type %T", T(0)))
 	}
-}
-
-// max returns the maximum value from the given slice, which MUST NOT be empty.
-func max[T mat.DType](v []T) (m T) {
-	m = v[len(v)-1]
-	for _, e := range v {
-		if m <= e {
-			m = e
-		}
-	}
-	return
 }
