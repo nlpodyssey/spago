@@ -896,6 +896,42 @@ func (d *Dense[T]) VecArgMax() int {
 	return maxIndex
 }
 
+// VecSoftmax applies the softmax function to the vector, returning the
+// result as a new row vector.
+func (d *Dense[T]) VecSoftmax() Matrix[T] {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
+
+	dData := d.data
+	out := densePool[T]().Get(len(dData), 1)
+	if len(dData) == 0 {
+		return out
+	}
+
+	maxValue := dData[0]
+	for _, v := range dData[1:] {
+		if v > maxValue {
+			maxValue = v
+		}
+	}
+
+	outData := out.data
+	_ = outData[len(dData)-1]
+
+	var sum T = 0
+	for i, v := range dData {
+		e := Exp(v - maxValue)
+		outData[i] = e
+		sum += e
+	}
+	for i := range outData {
+		outData[i] /= sum
+	}
+
+	return out
+}
+
 // Range creates a new vector initialized with data extracted from the
 // matrix raw data, from start (inclusive) to end (exclusive).
 func (d *Dense[T]) Range(start, end int) Matrix[T] {

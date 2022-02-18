@@ -131,6 +131,9 @@ type Matrix[T DType] interface {
 	Min() T
 	// VecArgMax returns the index of the vector's element with the maximum value.
 	VecArgMax() int
+	// VecSoftmax applies the softmax function to the vector, returning the
+	// result as a new row vector.
+	VecSoftmax() Matrix[T]
 	// Range creates a new vector initialized with data extracted from the
 	// matrix raw data, from start (inclusive) to end (exclusive).
 	Range(start, end int) Matrix[T]
