@@ -2428,6 +2428,51 @@ func testDenseVecSoftmax[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_VecCumSum(t *testing.T) {
+	t.Run("float32", testDenseVecCumSum[float32])
+	t.Run("float64", testDenseVecCumSum[float64])
+}
+
+func testDenseVecCumSum[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.VecCumSum()
+		})
+	})
+
+	testCases := []struct {
+		x []T
+		y []T
+	}{
+		{[]T{}, []T{}},
+		{[]T{0}, []T{0}},
+		{[]T{1}, []T{1}},
+		{[]T{-1}, []T{-1}},
+		{[]T{1, 1}, []T{1, 2}},
+		{[]T{1, 2}, []T{1, 3}},
+		{[]T{1, -1}, []T{1, 0}},
+		{[]T{1, 2, 3}, []T{1, 3, 6}},
+		{[]T{1, -2, 3, -4}, []T{1, -1, 2, -2}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](len(tc.x), 1, tc.x)
+			y := d.VecCumSum()
+			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](1, len(tc.x), tc.x)
+			y := d.VecCumSum()
+			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 func TestDense_Range(t *testing.T) {
 	t.Run("float32", testDenseRange[float32])
 	t.Run("float64", testDenseRange[float64])

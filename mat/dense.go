@@ -932,6 +932,30 @@ func (d *Dense[T]) VecSoftmax() Matrix[T] {
 	return out
 }
 
+// VecCumSum computes the cumulative sum of the vector's elements, returning
+// the result as a new row vector.
+func (d *Dense[T]) VecCumSum() Matrix[T] {
+	if !IsVector[T](d) {
+		panic("mat: expected vector")
+	}
+
+	out := densePool[T]().Get(len(d.data), 1)
+	if len(d.data) == 0 {
+		return out
+	}
+
+	switch any(T(0)).(type) {
+	case float32:
+		f32.CumSum(any(out.data).([]float32), any(d.data).([]float32))
+	case float64:
+		asm64.CumSum(any(out.data).([]float64), any(d.data).([]float64))
+	default:
+		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
+	}
+
+	return out
+}
+
 // Range creates a new vector initialized with data extracted from the
 // matrix raw data, from start (inclusive) to end (exclusive).
 func (d *Dense[T]) Range(start, end int) Matrix[T] {
