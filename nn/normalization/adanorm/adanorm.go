@@ -16,13 +16,12 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the scaling factor.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
-	Scale  T
-	consts consts[T] `spago:"scope:processor"`
+	nn.BaseModel
+	Scale T
 }
 
 type consts[T mat.DType] struct {
@@ -44,27 +43,21 @@ func New[T mat.DType](scale T) *Model[T] {
 	}
 }
 
-// InitProcessor initializes constants needed by the Forward().
-func (m *Model[T]) InitProcessor() {
-	g := m.Graph()
-	m.consts = consts[T]{
-		eps: g.Constant(1e-10),
-		one: g.Constant(1.0),
-		k:   g.Constant(0.1),
-		c:   g.Constant(m.Scale),
-	}
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+	g := xs[0].Graph()
+	eps := g.Constant(1e-10)
+	one := g.Constant(1.0)
+	k := g.Constant(0.1)
+	c := g.Constant(m.Scale)
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node[T], len(xs))
 
 	for i, x := range xs {
-		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add(devVectors[i], m.consts.eps))
-		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, m.consts.k), m.consts.one), m.consts.c)
-		zs[i] = ag.Prod(y, m.Graph().NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add[T](devVectors[i], eps))
+		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), c)
+		zs[i] = ag.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }

@@ -14,11 +14,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model[float32] = &Block[float32]{}
+var _ nn.Model = &Block[float32]{}
 
 // Block is the core model of the gMLP.
 type Block[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	*stack.Model[T]
 }
 

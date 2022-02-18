@@ -15,11 +15,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model is an empty model used to instantiate a new Processor.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 }
 
 func init() {
@@ -35,7 +35,7 @@ func New[T mat.DType]() *Model[T] {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
-	eps := m.Graph().NewScalar(1e-10)
+	eps := xs[0].Graph().Constant(1e-10)
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)

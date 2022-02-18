@@ -20,9 +20,8 @@ func newReifier[T mat.DType](g *ag.Graph[T]) *reifier[T] {
 	}
 }
 
-func (r *reifier[T]) reify(m Model[T]) Model[T] {
-	p := r.reifyStruct(m).(Model[T])
-	p.InitProcessor()
+func (r *reifier[T]) reify(m Model) Model {
+	p := r.reifyStruct(m).(Model)
 	return p
 }
 
@@ -68,17 +67,15 @@ func (r *reifier[_]) reifyStruct(rawSource interface{}) interface{} {
 
 func (r *reifier[T]) reifyStructField(sourceField, destField reflect.Value, tag moduleFieldTag) {
 	switch sourceFieldT := sourceField.Interface().(type) {
-	case *ag.Graph[T]:
-		destField.Set(reflect.ValueOf(r.g))
-	case BaseModel[T], *BaseModel[T]:
+	case BaseModel, *BaseModel:
 		destField.Set(reflect.ValueOf(r.reifyStruct(sourceFieldT)))
 	case Param[T]:
 		destField.Set(reflect.ValueOf(r.reifyParam(sourceFieldT.(*BaseParam[T]))))
 	case []Param[T]:
 		destField.Set(reflect.ValueOf(r.reifyParamSlice(sourceFieldT)))
-	case Model[T]:
+	case Model:
 		destField.Set(reflect.ValueOf(r.reifyModel(sourceFieldT)))
-	case []Model[T]:
+	case []Model:
 		destField.Set(reflect.ValueOf(r.reifyModelSlice(sourceFieldT)))
 	default:
 		switch sourceField.Kind() {
@@ -101,17 +98,15 @@ func (r *reifier[T]) reifyStructField(sourceField, destField reflect.Value, tag 
 	}
 }
 
-func (r *reifier[T]) reifyModel(sourceField Model[T]) Model[T] {
+func (r *reifier[T]) reifyModel(sourceField Model) Model {
 	if isNil(sourceField) {
 		return sourceField
 	}
-	p := Reify(sourceField, r.g)
-	p.InitProcessor()
-	return p
+	return Reify(sourceField, r.g)
 }
 
-func (r *reifier[T]) reifyModelSlice(sourceField []Model[T]) []Model[T] {
-	result := make([]Model[T], len(sourceField))
+func (r *reifier[T]) reifyModelSlice(sourceField []Model) []Model {
+	result := make([]Model, len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
 		result[i] = r.reifyModel(sourceField[i])
 	}
@@ -145,7 +140,7 @@ func (r *reifier[T]) reifySlice(sourceField reflect.Value, tag moduleFieldTag) r
 		sourceItem := sourceField.Index(i)
 		switch sourceItem.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			_, isModule := sourceItem.Interface().(Model[T])
+			_, isModule := sourceItem.Interface().(Model)
 			if isParamsTag || isModule {
 				result.Index(i).Set(reflect.ValueOf(r.reifyStruct(sourceItem.Interface())))
 			} else {

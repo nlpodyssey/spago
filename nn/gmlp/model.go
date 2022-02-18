@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
@@ -64,10 +64,8 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
-	padded := ag.Pad(xs, m.Config.SeqLen, m.paddingNode)
+	padded := ag.Pad(xs, m.Config.SeqLen, func(_ int) ag.Node[T] {
+		return xs[0].Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
+	})
 	return m.Model.Forward(padded...)
-}
-
-func (m *Model[T]) paddingNode(_ int) ag.Node[T] {
-	return m.Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
 }

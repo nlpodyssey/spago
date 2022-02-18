@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/activation"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	WIn        nn.Param[T] `spago:"type:weights"`
 	BIn        nn.Param[T] `spago:"type:biases"`
 	WT         nn.Param[T] `spago:"type:weights"`

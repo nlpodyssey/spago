@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Config provides configuration settings for a convolution Model.
 type Config struct {
@@ -32,7 +32,7 @@ type Config struct {
 
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	Config Config
 	K      []nn.Param[T] `spago:"type:weights"`
 	B      []nn.Param[T] `spago:"type:biases"`
@@ -74,10 +74,14 @@ func New[T mat.DType](config Config) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Config.OutputChannels > 1 && m.Graph().ConcurrentComputations() > 1 {
+	if m.Config.OutputChannels > 1 && m.concurrentComputationEnabled() {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
+}
+
+func (m *Model[T]) concurrentComputationEnabled() bool {
+	return m.K[0].Graph().ConcurrentComputations() > 1
 }
 
 func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {

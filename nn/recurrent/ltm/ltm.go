@@ -12,11 +12,11 @@ import (
 	"log"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	W1     nn.Param[T] `spago:"type:weights"`
 	W2     nn.Param[T] `spago:"type:weights"`
 	W3     nn.Param[T] `spago:"type:weights"`

@@ -16,14 +16,14 @@ import (
 	"sync"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // TODO(1): code refactoring using a structure to maintain states.
 // TODO(2): use a gradient policy (i.e. reinforcement learning) to increase the context with dynamic skip connections.
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	Config                 Config
 	InputGate              *HyperLinear4[T] `spago:"type:params"`
 	LeftCellGate           *HyperLinear4[T] `spago:"type:params"`

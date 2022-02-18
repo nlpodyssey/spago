@@ -14,11 +14,11 @@ import (
 	"log"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	W      nn.Param[T]   `spago:"type:weights"`
 	WRec   []nn.Param[T] `spago:"type:weights"`
 	B      nn.Param[T]   `spago:"type:biases"`
@@ -79,7 +79,7 @@ func (m *Model[T]) feedback() []ag.Node[T] {
 	var ys []ag.Node[T]
 	n := len(m.States)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
-		alpha := m.Graph().NewScalar(mat.Pow(0.6, T(i+1)))
+		alpha := m.W.Graph().NewScalar(mat.Pow(0.6, T(i+1)))
 		ys = append(ys, m.WRec[i], ag.ProdScalar(m.States[n-1-i].Y, alpha))
 	}
 	return ys

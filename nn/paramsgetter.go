@@ -16,11 +16,11 @@ var _ ParamsGetter[float32] = &DefaultParamsIterator[float32]{}
 
 // DefaultParamsIterator is spaGO default implementation of a ParamsGetter.
 type DefaultParamsIterator[T mat.DType] struct {
-	models []Model[T]
+	models []Model
 }
 
 // NewDefaultParamsIterator returns a new DefaultParamsIterator.
-func NewDefaultParamsIterator[T mat.DType](models ...Model[T]) *DefaultParamsIterator[T] {
+func NewDefaultParamsIterator[T mat.DType](models ...Model) *DefaultParamsIterator[T] {
 	return &DefaultParamsIterator[T]{
 		models: models,
 	}

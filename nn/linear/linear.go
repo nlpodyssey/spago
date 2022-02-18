@@ -13,11 +13,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	W nn.Param[T] `spago:"type:weights"`
 	B nn.Param[T] `spago:"type:biases"`
 }
@@ -51,16 +51,20 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if len(xs) > 1 && m.Graph().ConcurrentComputations() > 1 {
+	if len(xs) > 1 && m.concurrentComputationEnabled() {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
 }
 
+func (m *Model[T]) concurrentComputationEnabled() bool {
+	return m.W.Graph().ConcurrentComputations() > 1
+}
+
 func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		ys[i] = m.forward(x)
+		ys[i] = ag.Affine[T](m.B, m.W, x)
 	}
 	return ys
 }
@@ -72,14 +76,9 @@ func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
 	for i := range xs {
 		go func(i int) {
 			defer wg.Done()
-			ys[i] = m.forward(xs[i])
+			ys[i] = ag.Affine[T](m.B, m.W, xs[i])
 		}(i)
 	}
 	wg.Wait()
 	return ys
-}
-
-// y = w (dot) x + b
-func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
-	return ag.Affine[T](m.B, m.W, x)
 }

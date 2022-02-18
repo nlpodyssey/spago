@@ -15,13 +15,13 @@ import (
 // Model is a superficial depth-wise 1-dimensional convolution model.
 // The following values are fixed: kernel size = 1; stride = 1; padding = 0,
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.BaseModel
 	Config Config
 	W      nn.Param[T] `spago:"type:weights"`
 	B      nn.Param[T] `spago:"type:biases"`
 }
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Config provides configuration parameters for Model.
 type Config struct {
