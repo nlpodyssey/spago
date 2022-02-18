@@ -129,8 +129,8 @@ type Matrix[T DType] interface {
 	Max() T
 	// Min returns the minimum value of the matrix.
 	Min() T
-	// VecArgMax returns the index of the vector's element with the maximum value.
-	VecArgMax() int
+	// ArgMax returns the index of the vector's element with the maximum value.
+	ArgMax() int
 	// VecSoftmax applies the softmax function to the vector, returning the
 	// result as a new row vector.
 	VecSoftmax() Matrix[T]

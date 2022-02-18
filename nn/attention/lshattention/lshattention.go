@@ -71,7 +71,7 @@ type indexedNodes[T mat.DType] struct {
 func (m *Model[T]) getHash(x mat.Matrix[T]) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
-	return concat.VecArgMax()
+	return concat.ArgMax()
 }
 
 // TODO: implement concurrent computation?

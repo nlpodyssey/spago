@@ -2339,23 +2339,23 @@ func testDenseMin[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_VecArgMax(t *testing.T) {
-	t.Run("float32", testDenseVecArgMax[float32])
-	t.Run("float64", testDenseVecArgMax[float64])
+func TestDense_ArgMax(t *testing.T) {
+	t.Run("float32", testDenseArgMax[float32])
+	t.Run("float64", testDenseArgMax[float64])
 }
 
-func testDenseVecArgMax[T DType](t *testing.T) {
+func testDenseArgMax[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.VecArgMax()
+			d.ArgMax()
 		})
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
 		d := NewEmptyVecDense[T](0)
 		require.Panics(t, func() {
-			d.VecArgMax()
+			d.ArgMax()
 		})
 	})
 
@@ -2374,13 +2374,13 @@ func testDenseVecArgMax[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("row vector %v", tc.d), func(t *testing.T) {
 			d := NewDense[T](len(tc.d), 1, tc.d)
-			y := d.VecArgMax()
+			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
 		})
 
 		t.Run(fmt.Sprintf("column vector %v", tc.d), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.d), tc.d)
-			y := d.VecArgMax()
+			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
 		})
 	}

@@ -876,8 +876,8 @@ func (d *Dense[T]) Min() T {
 	return min
 }
 
-// VecArgMax returns the index of the vector's element with the maximum value.
-func (d *Dense[T]) VecArgMax() int {
+// ArgMax returns the index of the vector's element with the maximum value.
+func (d *Dense[T]) ArgMax() int {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}

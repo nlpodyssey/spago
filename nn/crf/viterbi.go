@@ -33,7 +33,7 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int
 	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
-	ys[len(xs)-1] = alpha[len(xs)].scores.VecArgMax()
+	ys[len(xs)-1] = alpha[len(xs)].scores.ArgMax()
 	for i := len(xs) - 2; i >= 0; i-- {
 		ys[i] = alpha[i+1].backpointers[ys[i+1]]
 	}
