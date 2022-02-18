@@ -13,7 +13,6 @@ import (
 	"encoding/gob"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/matutils"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/linear"
 )
@@ -72,7 +71,7 @@ type indexedNodes[T mat.DType] struct {
 func (m *Model[T]) getHash(x mat.Matrix[T]) int {
 	h := x.T().Mul(m.R.Value())
 	concat := mat.ConcatV(h, h.ProdScalar(-1.0))
-	return matutils.ArgMax(concat.Data())
+	return concat.VecArgMax()
 }
 
 // TODO: implement concurrent computation?
