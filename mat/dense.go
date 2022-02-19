@@ -339,6 +339,24 @@ func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
 	return d
 }
 
+// Flatten creates a new row vector (1×size) corresponding to the
+// "flattened" row-major ordered representation of the initial matrix.
+func (d *Dense[T]) Flatten() Matrix[T] {
+	out := densePool[T]().Get(1, len(d.data))
+	copy(out.data, d.data)
+	return out
+}
+
+// FlattenInPlace transforms the matrix in place, changing its dimensions,
+// obtaining a row vector (1×size) containing the "flattened" row-major
+// ordered representation of the initial value.
+// It returns the matrix itself.
+func (d *Dense[T]) FlattenInPlace() Matrix[T] {
+	d.rows = 1
+	d.cols = len(d.data)
+	return d
+}
+
 // ResizeVector returns a resized copy of the vector.
 //
 // If the new size is smaller than the input vector, the remaining tail

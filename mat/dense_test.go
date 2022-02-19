@@ -1085,6 +1085,68 @@ func testDenseReshapeInPlace[T DType](t *testing.T) {
 	}
 }
 
+type flattenTestCase[T DType] struct {
+	x *Dense[T]
+	y []T
+}
+
+func flattenTestCases[T DType]() []flattenTestCase[T] {
+	return []flattenTestCase[T]{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{1}), []T{1}},
+		{NewDense[T](1, 2, []T{1, 2}), []T{1, 2}},
+		{NewDense[T](2, 1, []T{1, 2}), []T{1, 2}},
+		{
+			NewDense[T](2, 2, []T{
+				1, 2,
+				3, 4,
+			}),
+			[]T{1, 2, 3, 4},
+		},
+		{
+			NewDense[T](3, 4, []T{
+				1, 2, 3, 4,
+				5, 6, 7, 8,
+				9, 10, 11, 12,
+			}),
+			[]T{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+		},
+	}
+}
+
+func TestDense_Flatten(t *testing.T) {
+	t.Run("float32", testDenseFlatten[float32])
+	t.Run("float64", testDenseFlatten[float64])
+}
+
+func testDenseFlatten[T DType](t *testing.T) {
+	for _, tc := range flattenTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
+			y := tc.x.Flatten()
+			assertDenseDims(t, 1, len(tc.y), y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
+func TestDense_FlattenInPlace(t *testing.T) {
+	t.Run("float32", testDenseFlattenInPlace[float32])
+	t.Run("float64", testDenseFlattenInPlace[float64])
+}
+
+func testDenseFlattenInPlace[T DType](t *testing.T) {
+	for _, tc := range flattenTestCases[T]() {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
+			x2 := tc.x.FlattenInPlace()
+			assert.Same(t, tc.x, x2)
+			assertDenseDims(t, 1, len(tc.y), tc.x)
+			assert.Equal(t, tc.y, tc.x.data)
+		})
+	}
+}
+
 func TestDense_ResizeVector(t *testing.T) {
 	t.Run("float32", testDenseResizeVector[float32])
 	t.Run("float64", testDenseResizeVector[float64])

@@ -61,6 +61,14 @@ type Matrix[T DType] interface {
 	// matrix itself.
 	// It panics if the dimensions are incompatible.
 	ReshapeInPlace(r, c int) Matrix[T]
+	// Flatten creates a new row vector (1×size) corresponding to the
+	// "flattened" row-major ordered representation of the initial matrix.
+	Flatten() Matrix[T]
+	// FlattenInPlace transforms the matrix in place, changing its dimensions,
+	// obtaining a row vector (1×size) containing the "flattened" row-major
+	// ordered representation of the initial value.
+	// It returns the matrix itself.
+	FlattenInPlace() Matrix[T]
 	// ResizeVector returns a resized copy of the vector.
 	//
 	// If the new size is smaller than the input vector, the remaining tail
