@@ -37,6 +37,7 @@ type Graph[T mat.DType] struct {
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
+	// The nodes are inserted one at a time in order of creation.
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
@@ -44,7 +45,7 @@ type Graph[T mat.DType] struct {
 	incrementalForward bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
-	// Otherwise the cache must be invalidated and the values recalculated.
+	// Otherwise, the cache must be invalidated and the values recalculated.
 	cache struct {
 		// the maxID when this cache was created.
 		maxID int
@@ -240,7 +241,7 @@ func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new ID is sequential so it corresponds to the index in g.nodes
+
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -259,7 +260,7 @@ func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, n
 		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
-	// the new ID is sequential so it corresponds to the index in g.nodes
+
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -301,7 +302,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 	}
 	var value mat.Matrix[T] = nil
 	if g.incrementalForward {
-		// the calculation is out of the lock so it can run concurrently with other operators
+		// the calculation is out of the lock, so it can run concurrently with other operators
 		g.processingQueue.Run(func() {
 			value = f.Forward()
 		})
@@ -331,7 +332,6 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 		requiresGrad: requiresGrad,
 	}
 
-	// the new ID is sequential so it corresponds to the index in g.nodes
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -348,7 +348,7 @@ func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
 		id:        g.newID(),
 		wrapGrad:  true,
 	}
-	// the new ID is sequential so it corresponds to the index in g.nodes
+
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -365,7 +365,7 @@ func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
 		id:        g.newID(),
 		wrapGrad:  false,
 	}
-	// the new ID is sequential so it corresponds to the index in g.nodes
+
 	g.nodes = append(g.nodes, newNode)
 	return newNode
 }
@@ -541,7 +541,7 @@ func (g *Graph[T]) Nodes() []Node[T] {
 	return g.nodes
 }
 
-// WithConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 func (g *Graph[_]) ConcurrentComputations() int {
 	return g.processingQueue.Size()
