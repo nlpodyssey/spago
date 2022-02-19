@@ -89,6 +89,6 @@ func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (st *State[T]) {
 	st.R = ag.Mul[T](m.R, st.AR)
 	st.S = ag.Mul[T](m.S, st.AS)
 	b := ag.Mul(st.S, ag.T(st.R))
-	st.Y = ag.Vec(b)
+	st.Y = ag.T(ag.Flatten(b))
 	return
 }

@@ -137,9 +137,9 @@ func ColView[T mat.DType](x Node[T], column int) Node[T] {
 	return x.Graph().NewOperator(fn.NewColView[T](x, column), x)
 }
 
-// Vec returns a new operator node as a result of the fn.Vec function.
-func Vec[T mat.DType](x Node[T]) Node[T] {
-	return x.Graph().NewOperator(fn.NewVec[T](x), x)
+// Flatten returns a new operator node as a result of the fn.Flatten function.
+func Flatten[T mat.DType](x Node[T]) Node[T] {
+	return x.Graph().NewOperator(fn.NewFlatten[T](x), x)
 }
 
 // T returns a new operator node as a result of the fn.T function.

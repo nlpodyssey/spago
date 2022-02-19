@@ -10,12 +10,12 @@ import (
 	"testing"
 )
 
-func TestVec_Forward(t *testing.T) {
-	t.Run("float32", testVecForward[float32])
-	t.Run("float64", testVecForward[float64])
+func TestFlatten_Forward(t *testing.T) {
+	t.Run("float32", testFlattenForward[float32])
+	t.Run("float64", testFlattenForward[float64])
 }
 
-func testVecForward[T mat.DType](t *testing.T) {
+func testFlattenForward[T mat.DType](t *testing.T) {
 	x := &variable[T]{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
@@ -26,7 +26,7 @@ func testVecForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewVec[T](x)
+	f := NewFlatten[T](x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{
@@ -36,7 +36,7 @@ func testVecForward[T mat.DType](t *testing.T) {
 		0.8, -0.8, -0.1,
 	}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 12 || y.Columns() != 1 {
+	if y.Rows() != 1 || y.Columns() != 12 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
