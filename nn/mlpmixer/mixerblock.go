@@ -75,8 +75,7 @@ func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) ag.Node[T] {
 func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) ag.Node[T] {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
 	stacked := ag.Stack(normalized...)
-	channelMixerOut := m.forwardMixer(m.ChannelMixerFF, stacked)
-	return channelMixerOut
+	return m.forwardMixer(m.ChannelMixerFF, stacked)
 }
 
 // forwardMixer applies MLP for each concatenated token (after LayerNorm) dimension, column-wise.
