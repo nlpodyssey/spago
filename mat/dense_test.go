@@ -688,13 +688,13 @@ func testDenseSetVec[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
 			d.SetVec(tc.i, 42)
 			assert.Equal(t, tc.d, d.Data())
 		})
 
-		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
 			d.SetVec(tc.i, 42)
 			assert.Equal(t, tc.d, d.Data())
@@ -744,7 +744,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
 			})
@@ -752,7 +752,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 			assert.Equal(t, tc.v, v)
 		})
 
-		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
 				return T(c + 1)
 			})
@@ -1125,7 +1125,7 @@ func testDenseResizeVector[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
 			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
 			})
@@ -1133,7 +1133,7 @@ func testDenseResizeVector[T DType](t *testing.T) {
 			assert.Equal(t, tc.d, r.Data())
 		})
 
-		t.Run(fmt.Sprintf("column vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
 			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
 				return T(c + 1)
 			})
@@ -2444,13 +2444,13 @@ func testDenseArgMax[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v", tc.d), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v", tc.d), func(t *testing.T) {
 			d := NewDense[T](len(tc.d), 1, tc.d)
 			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
 		})
 
-		t.Run(fmt.Sprintf("column vector %v", tc.d), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v", tc.d), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.d), tc.d)
 			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
@@ -2484,14 +2484,14 @@ func testDenseSoftmax[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1e-7)
 		})
 
-		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
@@ -2529,14 +2529,14 @@ func testDenseCumSum[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, y.Data())
 		})
 
-		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
@@ -2602,7 +2602,7 @@ func testDenseRange[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
 			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
 			})
@@ -2611,7 +2611,7 @@ func testDenseRange[T DType](t *testing.T) {
 			assert.Equal(t, tc.y, y.Data())
 		})
 
-		t.Run(fmt.Sprintf("column vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
 			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
 				return T(c + 1)
 			})
@@ -2680,7 +2680,7 @@ func testDenseSplitV[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
@@ -2691,7 +2691,7 @@ func testDenseSplitV[T DType](t *testing.T) {
 			}
 		})
 
-		t.Run(fmt.Sprintf("column vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
@@ -3112,13 +3112,13 @@ func testDenseNorm[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.Norm(tc.pow)
 			assert.InDelta(t, tc.y, y, 1.0e-04)
 		})
 
-		t.Run(fmt.Sprintf("column vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.Norm(tc.pow)
 			assert.InDelta(t, tc.y, y, 1.0e-04)
@@ -3148,14 +3148,14 @@ func testDenseNormalize2[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.Normalize2()
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1.0e-06)
 		})
 
-		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.Normalize2()
 			assertDenseDims(t, 1, len(tc.y), y.(*Dense[T]))
@@ -3649,7 +3649,7 @@ func testDenseDoVecNonZero[T DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			visits := []doVecNonZeroVisit[T]{}
 			d.DoVecNonZero(func(i int, v T) {
@@ -3658,7 +3658,7 @@ func testDenseDoVecNonZero[T DType](t *testing.T) {
 			assert.Equal(t, tc.visits, visits)
 		})
 
-		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			visits := []doVecNonZeroVisit[T]{}
 			d.DoVecNonZero(func(i int, v T) {

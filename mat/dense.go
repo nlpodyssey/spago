@@ -958,7 +958,7 @@ func (d *Dense[T]) ArgMax() int {
 }
 
 // Softmax applies the softmax function to the vector, returning the
-// result as a new row vector.
+// result as a new column vector.
 func (d *Dense[T]) Softmax() Matrix[T] {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
@@ -994,7 +994,7 @@ func (d *Dense[T]) Softmax() Matrix[T] {
 }
 
 // CumSum computes the cumulative sum of the vector's elements, returning
-// the result as a new row vector.
+// the result as a new column vector.
 func (d *Dense[T]) CumSum() Matrix[T] {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")

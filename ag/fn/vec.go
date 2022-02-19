@@ -10,7 +10,7 @@ import (
 
 var _ Function[float32] = &Vec[float32]{}
 
-// Vec is a Function to reshape an matrix-operand into a column vector.
+// Vec is a Function to reshape a matrix-operand into a column vector.
 type Vec[T mat.DType] struct {
 	x Operand[T]
 }
