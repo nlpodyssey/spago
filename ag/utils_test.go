@@ -5,13 +5,14 @@
 package ag
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestUtils(t *testing.T) {
-	t.Run("float32", testUtils[float64])
+	t.Run("float32", testUtils[float32])
 	t.Run("float64", testUtils[float64])
 }
 
@@ -53,4 +54,62 @@ func testUtils[T mat.DType](t *testing.T) {
 		assert.Equal(t, T(2), ys[1].ScalarValue())
 		assert.Equal(t, T(3), ys[2].ScalarValue())
 	})
+}
+
+func TestRowViews(t *testing.T) {
+	t.Run("float32", testRowViews[float32])
+	t.Run("float64", testRowViews[float64])
+}
+
+func testRowViews[T mat.DType](t *testing.T) {
+	testCases := []struct {
+		x  *mat.Dense[T]
+		ys [][]T
+	}{
+		{mat.NewEmptyDense[T](0, 0), [][]T{}},
+		{mat.NewEmptyDense[T](0, 1), [][]T{}},
+		{mat.NewEmptyDense[T](1, 0), [][]T{{}}},
+		{mat.NewDense[T](1, 1, []T{1}), [][]T{{1}}},
+		{mat.NewDense[T](1, 2, []T{1, 2}), [][]T{{1, 2}}},
+		{mat.NewDense[T](2, 1, []T{1, 2}), [][]T{{1}, {2}}},
+		{
+			mat.NewDense[T](2, 2, []T{
+				1, 2,
+				3, 4,
+			}),
+			[][]T{
+				{1, 2},
+				{3, 4},
+			},
+		},
+		{
+			mat.NewDense[T](3, 4, []T{
+				1, 2, 3, 4,
+				5, 6, 7, 8,
+				9, 0, 1, 2,
+			}),
+			[][]T{
+				{1, 2, 3, 4},
+				{5, 6, 7, 8},
+				{9, 0, 1, 2},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
+			g := NewGraph[T]()
+			x := g.NewVariable(tc.x, true)
+			ys := RowViews(x)
+			assert.Len(t, ys, len(tc.ys))
+			for i, yn := range ys {
+				y := yn.Value()
+				expected := tc.ys[i]
+
+				assert.Equal(t, 1, y.Rows())
+				assert.Equal(t, len(expected), y.Columns())
+				assert.Equal(t, expected, y.Data())
+			}
+		})
+	}
 }

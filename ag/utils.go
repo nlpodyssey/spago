@@ -145,3 +145,13 @@ func PositiveELU[T mat.DType](x Node[T]) Node[T] {
 func LogSoftmax[T mat.DType](x Node[T]) Node[T] {
 	return Log(Softmax(x))
 }
+
+// RowViews calls RowView for each row of x, returning a new slice
+// of row-view Nodes.
+func RowViews[T mat.DType](x Node[T]) []Node[T] {
+	ys := make([]Node[T], x.Value().Rows())
+	for i := range ys {
+		ys[i] = RowView(x, i)
+	}
+	return ys
+}
