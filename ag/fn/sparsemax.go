@@ -6,8 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	matsort "github.com/nlpodyssey/spago/mat/sort"
-	"sort"
+	"github.com/nlpodyssey/spago/sort"
 )
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
@@ -124,7 +123,7 @@ func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T
 	copy(zsData, v.Data())
 
 	// Sort zs in descending order.
-	sort.Sort(sort.Reverse(matsort.DTSlice[T](zsData)))
+	sort.ReverseSort(zsData)
 	zs = mat.NewVecDense(zsData)
 
 	bounds = make([]T, len(zsData))
