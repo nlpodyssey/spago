@@ -155,3 +155,13 @@ func RowViews[T mat.DType](x Node[T]) []Node[T] {
 	}
 	return ys
 }
+
+// ColViews calls ColView for each column of x, returning a new slice
+// of column-view Nodes.
+func ColViews[T mat.DType](x Node[T]) []Node[T] {
+	ys := make([]Node[T], x.Value().Columns())
+	for i := range ys {
+		ys[i] = ColView(x, i)
+	}
+	return ys
+}

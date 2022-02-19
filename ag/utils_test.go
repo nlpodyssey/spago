@@ -113,3 +113,62 @@ func testRowViews[T mat.DType](t *testing.T) {
 		})
 	}
 }
+
+func TestColViews(t *testing.T) {
+	t.Run("float32", testColViews[float32])
+	t.Run("float64", testColViews[float64])
+}
+
+func testColViews[T mat.DType](t *testing.T) {
+	testCases := []struct {
+		x  *mat.Dense[T]
+		ys [][]T
+	}{
+		{mat.NewEmptyDense[T](0, 0), [][]T{}},
+		{mat.NewEmptyDense[T](0, 1), [][]T{{}}},
+		{mat.NewEmptyDense[T](1, 0), [][]T{}},
+		{mat.NewDense[T](1, 1, []T{1}), [][]T{{1}}},
+		{mat.NewDense[T](1, 2, []T{1, 2}), [][]T{{1}, {2}}},
+		{mat.NewDense[T](2, 1, []T{1, 2}), [][]T{{1, 2}}},
+		{
+			mat.NewDense[T](2, 2, []T{
+				1, 2,
+				3, 4,
+			}),
+			[][]T{
+				{1, 3},
+				{2, 4},
+			},
+		},
+		{
+			mat.NewDense[T](3, 4, []T{
+				1, 2, 3, 4,
+				5, 6, 7, 8,
+				9, 0, 1, 2,
+			}),
+			[][]T{
+				{1, 5, 9},
+				{2, 6, 0},
+				{3, 7, 1},
+				{4, 8, 2},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
+			g := NewGraph[T]()
+			x := g.NewVariable(tc.x, true)
+			ys := ColViews(x)
+			assert.Len(t, ys, len(tc.ys))
+			for i, yn := range ys {
+				y := yn.Value()
+				expected := tc.ys[i]
+
+				assert.Equal(t, len(expected), y.Rows())
+				assert.Equal(t, 1, y.Columns())
+				assert.Equal(t, expected, y.Data())
+			}
+		})
+	}
+}
