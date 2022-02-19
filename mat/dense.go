@@ -269,17 +269,20 @@ func (d *Dense[T]) AtVec(i int) T {
 	return d.data[i]
 }
 
-// ExtractRow returns a copy of the i-th row of the matrix.
+// ExtractRow returns a copy of the i-th row of the matrix,
+// as a row vector (1×cols).
 func (d *Dense[T]) ExtractRow(i int) Matrix[T] {
 	if i < 0 || i >= d.rows {
 		panic("mat: index out of range")
 	}
+	out := densePool[T]().Get(1, d.cols)
 	start := i * d.cols
-	out := NewVecDense[T](d.data[start : start+d.cols])
+	copy(out.data, d.data[start:start+d.cols])
 	return out
 }
 
-// ExtractColumn returns a copy of the i-th column of the matrix.
+// ExtractColumn returns a copy of the i-th column of the matrix,
+// as a column vector (rows×1).
 func (d *Dense[T]) ExtractColumn(i int) Matrix[T] {
 	if i < 0 || i >= d.cols {
 		panic("mat: index out of range")

@@ -46,9 +46,11 @@ type Matrix[T DType] interface {
 	// AtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
 	AtVec(i int) T
-	// ExtractRow returns a copy of the i-th row of the matrix.
+	// ExtractRow returns a copy of the i-th row of the matrix,
+	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix[T]
-	// ExtractColumn returns a copy of the i-th column of the matrix.
+	// ExtractColumn returns a copy of the i-th column of the matrix,
+	// as a column vector (rows×1).
 	ExtractColumn(i int) Matrix[T]
 	// View returns a new Matrix sharing the same underlying data.
 	View(rows, cols int) Matrix[T]

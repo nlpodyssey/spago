@@ -25,11 +25,10 @@ func NewRowView[T mat.DType](x Operand[T], i int) *RowView[T] {
 // Forward computes the output of the function.
 func (r *RowView[T]) Forward() mat.Matrix[T] {
 	xv := r.x.Value()
-	rows, cols := xv.Dims()
-	if r.i >= rows {
+	if r.i >= xv.Rows() {
 		panic("fn: matrix with not compatible size")
 	}
-	return xv.ExtractRow(r.i).ReshapeInPlace(1, cols)
+	return xv.ExtractRow(r.i)
 }
 
 // Backward computes the backward pass.

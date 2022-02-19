@@ -806,7 +806,7 @@ func testDenseExtractRow[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			r := d.ExtractRow(tc.i)
-			assertDenseDims(t, len(tc.d), 1, r.(*Dense[T]))
+			assertDenseDims(t, 1, len(tc.d), r.(*Dense[T]))
 			assert.Equal(t, tc.d, r.Data())
 		})
 	}
