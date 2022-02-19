@@ -33,11 +33,11 @@ func testColForward[T mat.DType](t *testing.T) {
 		0.3, -0.6, -0.8,
 	}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 1 || y.Columns() != 3 {
+	if y.Rows() != 3 || y.Columns() != 1 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	f.Backward(mat.NewDense(1, 3, []T{
+	f.Backward(mat.NewDense(3, 1, []T{
 		0.1, 0.2, -0.8,
 	}))
 

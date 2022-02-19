@@ -25,11 +25,10 @@ func NewColView[T mat.DType](x Operand[T], i int) *ColView[T] {
 // Forward computes the output of the function.
 func (r *ColView[T]) Forward() mat.Matrix[T] {
 	xv := r.x.Value()
-	rows, cols := xv.Dims()
-	if r.i >= cols {
+	if r.i >= xv.Columns() {
 		panic("fn: matrix with not compatible size")
 	}
-	return xv.ExtractColumn(r.i).ReshapeInPlace(1, rows)
+	return xv.ExtractColumn(r.i)
 }
 
 // Backward computes the backward pass.
@@ -41,7 +40,7 @@ func (r *ColView[T]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
 		for i := 0; i < r.x.Value().Rows(); i++ {
-			gx.Set(i, r.i, gy.At(0, i))
+			gx.Set(i, r.i, gy.AtVec(i))
 		}
 		r.x.PropagateGrad(gx)
 	}
