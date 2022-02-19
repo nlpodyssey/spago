@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
+// FeedForward is the model for feed-forward operations of a MixerBlock.
 type FeedForward[T mat.DType] struct {
 	nn.BaseModel
 	*stack.Model[T]
