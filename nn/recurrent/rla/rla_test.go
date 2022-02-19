@@ -24,16 +24,14 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	// == Forward
 	x0 := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	_ = proc.Forward(x0)
-	s0 := proc.LastState()
+	s1 := proc.Next(nil, x0)
 
-	assert.InDeltaSlice(t, []T{0.88, -1.1, -0.45, 0.41}, s0.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.88, -1.1, -0.45, 0.41}, s1.Y.Value().Data(), 1.0e-05)
 
 	x1 := g.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
-	_ = proc.Forward(x1)
-	s1 := proc.LastState()
+	s2 := proc.Next(s1, x1)
 
-	assert.InDeltaSlice(t, []T{0.5996537, -0.545537, -0.63689751, 0.453609420}, s1.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.5996537, -0.545537, -0.63689751, 0.453609420}, s2.Y.Value().Data(), 1.0e-05)
 }
 
 func newTestModel[T mat.DType]() *Model[T] {

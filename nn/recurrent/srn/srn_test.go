@@ -25,7 +25,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
-	y := nn.ToNode[T](nn.Reify(model, g).Forward(x))
+	y := nn.Reify(model, g).Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
@@ -67,15 +67,15 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	yPrev := ag.Tanh(g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{Y: yPrev})
-	y := nn.ToNode[T](proc.Forward(x))
 
-	assert.InDeltaSlice(t, []T{0.59539, -0.8115, 0.17565, 0.88075, 0.08444}, y.Value().Data(), 1.0e-05)
+	s1 := proc.Next(&State[T]{Y: yPrev}, x)
+
+	assert.InDeltaSlice(t, []T{0.59539, -0.8115, 0.17565, 0.88075, 0.08444}, s1.Y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
 	gold := g.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
-	loss := losses.MSE(y, gold, false)
+	loss := losses.MSE(s1.Y, gold, false)
 	g.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{-0.42553, -0.20751, 0.28232, 0.30119}, x.Grad().Data(), 0.005)
@@ -130,27 +130,25 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{
-		Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true),
-	})
 
 	// == Forward
 
+	s0 := &State[T]{
+		Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true),
+	}
 	x := g.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
+	s1 := proc.Next(s0, x)
 
-	assert.InDeltaSlice(t, []T{-0.9732261643, 0.9987757968}, s.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{-0.9732261643, 0.9987757968}, s1.Y.Value().Data(), 1.0e-05)
 
 	x2 := g.NewVariable(mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
-	_ = proc.Forward(x2)
-	s2 := proc.LastState()
+	s2 := proc.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{-0.3773622668, 0.9671682519}, s2.Y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
-	s.Y.PropagateGrad(mat.NewVecDense([]T{-0.0548928728, 0.4391429825}))
+	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.0548928728, 0.4391429825}))
 	s2.Y.PropagateGrad(mat.NewVecDense([]T{-0.0527838886, 0.4222711092}))
 
 	g.BackwardAll()

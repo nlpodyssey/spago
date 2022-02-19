@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"log"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -17,14 +16,13 @@ var _ nn.Model = &Model[float32]{}
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel
-	W      nn.Param[T] `spago:"type:weights"`
-	WRec   nn.Param[T] `spago:"type:weights"`
-	B      nn.Param[T] `spago:"type:biases"`
-	BPart  nn.Param[T] `spago:"type:biases"`
-	Alpha  nn.Param[T] `spago:"type:weights"`
-	Beta1  nn.Param[T] `spago:"type:weights"`
-	Beta2  nn.Param[T] `spago:"type:weights"`
-	States []*State[T] `spago:"scope:processor"`
+	W     nn.Param[T] `spago:"type:weights"`
+	WRec  nn.Param[T] `spago:"type:weights"`
+	B     nn.Param[T] `spago:"type:biases"`
+	BPart nn.Param[T] `spago:"type:biases"`
+	Alpha nn.Param[T] `spago:"type:weights"`
+	Beta1 nn.Param[T] `spago:"type:weights"`
+	Beta2 nn.Param[T] `spago:"type:weights"`
 }
 
 func init() {
@@ -54,44 +52,34 @@ func New[T mat.DType](in, out int) *Model[T] {
 	}
 }
 
-// SetInitialState sets the initial state of the recurrent network.
-// It panics if one or more states are already present.
-func (m *Model[T]) SetInitialState(state *State[T]) {
-	if len(m.States) > 0 {
-		log.Fatal("deltarnn: the initial state must be set before any input")
-	}
-	m.States = append(m.States, state)
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
+	states := make([]*State[T], 0)
+	var s *State[T] = nil
 	for i, x := range xs {
-		s := m.forward(x)
-		m.States = append(m.States, s)
+		s = m.Next(s, x)
+		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-// LastState returns the last state of the recurrent network.
-// It returns nil if there are no states.
-func (m *Model[T]) LastState() *State[T] {
-	n := len(m.States)
-	if n == 0 {
-		return nil
-	}
-	return m.States[n-1]
-}
-
+// Next performs a single forward step, producing a new state.
+//
 // d1 = beta1 * w (dot) x + beta2 * wRec (dot) yPrev
 // d2 = alpha * w (dot) x * wRec (dot) yPrev
 // c = tanh(d1 + d2 + bc)
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
-func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s = new(State[T])
-	yPrev := m.prev()
+
+	var yPrev ag.Node[T] = nil
+	if state != nil {
+		yPrev = state.Y
+	}
+
 	wx := ag.Mul[T](m.W, x)
 	if yPrev == nil {
 		s.D1 = ag.Prod[T](m.Beta1, wx)
@@ -106,13 +94,5 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	s.C = ag.Tanh(ag.Add[T](ag.Add[T](s.D1, s.D2), m.B))
 	s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
 	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, x.Graph().Constant(1.0)), yPrev)))
-	return
-}
-
-func (m *Model[T]) prev() (yPrev ag.Node[T]) {
-	s := m.LastState()
-	if s != nil {
-		yPrev = s.Y
-	}
 	return
 }

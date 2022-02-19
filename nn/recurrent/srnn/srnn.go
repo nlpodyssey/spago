@@ -8,6 +8,7 @@ package srnn
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -15,7 +16,6 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/nn/stack"
-	"sync"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -27,7 +27,6 @@ type Model[T mat.DType] struct {
 	FC     *stack.Model[T]
 	FC2    *linear.Model[T]
 	FC3    *linear.Model[T]
-	States []*State[T] `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a SRNN Model.
@@ -77,54 +76,34 @@ func New[T mat.DType](config Config) *Model[T] {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
-	b := m.transformInputConcurrent(xs)
-	h, _ := m.getPrevHY()
+	b := m.transformInput(xs)
+	var h ag.Node[T] = nil
 	for i := range xs {
-		h, y := m.forward(h, b[i])
-		m.States = append(m.States, &State[T]{Y: y, H: h})
-		ys[i] = y
+		h, ys[i] = m.Next(h, b[i])
 	}
 	return ys
 }
 
-func (m *Model[T]) getPrevHY() (ag.Node[T], ag.Node[T]) {
-	if len(m.States) == 0 {
-		return nil, nil
-	}
-	s := m.States[len(m.States)-1]
-	return s.H, s.Y
-}
-
-func (m *Model[T]) forward(hPrev, b ag.Node[T]) (h ag.Node[T], y ag.Node[T]) {
+// Next performs a single forward step, producing a new state.
+func (m *Model[T]) Next(hPrev, b ag.Node[T]) (h ag.Node[T], y ag.Node[T]) {
 	if hPrev != nil {
 		h = ag.ReLU(ag.Add(b, ag.RotateR(hPrev, 1)))
 	} else {
 		h = ag.ReLU(b)
 	}
-	y = nn.ToNode[T](m.FC3.Forward(h))
+	y = m.FC3.Forward(h)[0]
 	return
 }
 
-func (m *Model[T]) transformInput(x ag.Node[T]) ag.Node[T] {
-	b := nn.ToNode[T](m.FC.Forward(x))
-	if m.Config.MultiHead {
-		sigAlphas := ag.Sigmoid(nn.ToNode[T](m.FC2.Forward(x)))
-		b = ag.Prod(b, sigAlphas)
+func (m *Model[T]) transformInput(xs []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
+	for i, x := range xs {
+		b := m.FC.Forward(x)[0]
+		if m.Config.MultiHead {
+			sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
+			b = ag.Prod(b, sigAlphas)
+		}
+		ys[i] = b
 	}
-	return b
-}
-
-func (m *Model[T]) transformInputConcurrent(xs []ag.Node[T]) []ag.Node[T] {
-	var wg sync.WaitGroup
-	n := len(xs)
-	wg.Add(n)
-	ys := make([]ag.Node[T], n)
-	for i := 0; i < n; i++ {
-		go func(i int) {
-			defer wg.Done()
-			ys[i] = m.transformInput(xs[i])
-		}(i)
-	}
-	wg.Wait()
 	return ys
 }

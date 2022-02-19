@@ -47,13 +47,8 @@ func (r *reifier[_]) reifyStruct(rawSource interface{}) interface{} {
 			panic(err)
 		}
 
-		if tag.Scope == processorModuleFieldScope || !sourceField.CanInterface() {
+		if !sourceField.CanInterface() {
 			continue // skip any initialization
-		}
-
-		if tag.Scope == modelModuleFieldScope {
-			destField.Set(sourceField)
-			continue
 		}
 
 		r.reifyStructField(sourceField, destField, tag)

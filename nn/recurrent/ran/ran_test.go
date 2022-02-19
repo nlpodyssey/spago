@@ -26,8 +26,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	proc.Forward(x)
-	s := proc.LastState()
+	s := proc.Next(nil, x)
 
 	assert.InDeltaSlice(t, []T{0.39652, 0.25162, 0.5, 0.70475, 0.45264}, s.InG.Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.85321, 0.43291, 0.11609, 0.51999, 0.24232}, s.ForG.Value().Data(), 1.0e-05)
@@ -82,26 +81,25 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{
-		C: g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
-		Y: g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
-	})
 
 	// == Forward
 
+	s0 := &State[T]{
+		C: g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
+		Y: g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
+	}
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
+	s1 := proc.Next(s0, x)
 
-	assert.InDeltaSlice(t, []T{0.72312, 0.24974, 0.54983, 0.82054, 0.53494}, s.InG.Value().Data(), 1.0e-05)
-	assert.InDeltaSlice(t, []T{0.91133, 0.18094, 0.04834, 0.67481, 0.38936}, s.ForG.Value().Data(), 1.0e-05)
-	assert.InDeltaSlice(t, []T{1.02, -0.1, 0.1, 2.03, -1.41}, s.Cand.Value().Data(), 1.0e-05)
-	assert.InDeltaSlice(t, []T{0.5045, 0.01121, 0.04046, 0.78504, -0.78786}, s.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.72312, 0.24974, 0.54983, 0.82054, 0.53494}, s1.InG.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.91133, 0.18094, 0.04834, 0.67481, 0.38936}, s1.ForG.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{1.02, -0.1, 0.1, 2.03, -1.41}, s1.Cand.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.5045, 0.01121, 0.04046, 0.78504, -0.78786}, s1.Y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
 	gold := g.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
-	loss := losses.MSE(s.Y, gold, false)
+	loss := losses.MSE(s1.Y, gold, false)
 	g.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.19694, 0.11428, -0.14008, 0.15609}, x.Grad().Data(), 1.0e-05)
@@ -191,108 +189,5 @@ func newTestModel[T mat.DType]() *Model[T] {
 		0.5, 0.8, -0.9, -0.8,
 	})
 	model.BCand.Value().SetData([]T{0.2, 0.0, -0.9, 0.7, -0.3})
-	return model
-}
-
-func TestModel_ForwardSeq(t *testing.T) {
-	t.Run("float32", testModelForwardSeq[float32])
-	t.Run("float64", testModelForwardSeq[float64])
-}
-
-func testModelForwardSeq[T mat.DType](t *testing.T) {
-	model := newTestModel2[T]()
-	g := ag.NewGraph[T]()
-	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{
-		Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true),
-	})
-
-	// == Forward
-
-	x := g.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
-
-	assert.InDeltaSlice(t, []T{-0.109472457893732, 0.998622353363888}, s.Y.Value().Data(), 1.0e-05)
-
-	x2 := g.NewVariable(mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
-	_ = proc.Forward(x2)
-	s2 := proc.LastState()
-
-	assert.InDeltaSlice(t, []T{0.331268038964841, 0.573215090496922}, s2.Y.Value().Data(), 1.0e-05)
-
-	// == Backward
-
-	s.Y.PropagateGrad(mat.NewVecDense([]T{-0.052743370318635, 0.421946962549082}))
-	s2.Y.PropagateGrad(mat.NewVecDense([]T{-0.043178925862421, 0.345431406899369}))
-
-	g.BackwardAll()
-
-	assert.InDeltaSlice(t, []T{-0.00020471646083, 0.000980786890846, -0.000569825073637}, x.Grad().Data(), 1.0e-05)
-	assert.InDeltaSlice(t, []T{0.106092179481869, 0.139102385565363, -0.107968562632196}, x2.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		0.002304509991833, -0.001396672722323, 6.98336361161645e-05,
-		0.170963737408504, -0.103614386308184, 0.005180719315409,
-	}, model.WFor.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		0.000698336361162, 0.051807193154092,
-	}, model.BFor.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		-0.011143008433136, 0.034212414972157, -0.001262031874638,
-		-0.000217468464402, 0.000935094429002, -3.36315794357185e-05,
-	}, model.WIn.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		-0.003648541266992, -7.38529540698525e-05,
-	}, model.BIn.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		-0.081171280420682, 0.020093980778648, -0.001480107079882,
-		0.695437596301958, -0.412559917587697, 0.020773676397031,
-	}, model.WCand.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		-0.024309231617813, 0.210650374323232,
-	}, model.BCand.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		-7.64485978929299e-05, 0.000697374300423,
-		-0.005671460771154, 0.051735821148717,
-	}, model.WForRec.Grad().Data(), 1.0e-05)
-
-	assert.InDeltaSlice(t, []T{
-		0.000890496046397, -0.008123223636552,
-		2.24510905207517e-05, -0.000204801840415,
-	}, model.WInRec.Grad().Data(), 1.0e-05)
-}
-
-func newTestModel2[T mat.DType]() *Model[T] {
-	model := New[T](3, 2)
-	model.WIn.Value().SetData([]T{
-		-0.2, -0.3, 0.5,
-		0.8, 0.2, 0.01,
-	})
-	model.WInRec.Value().SetData([]T{
-		0.5, 0.3,
-		0.2, -0.1,
-	})
-	model.BIn.Value().SetData([]T{-0.2, 0.1})
-	model.WFor.Value().SetData([]T{
-		0.3, 0.2, -0.4,
-		0.4, 0.1, -0.6,
-	})
-	model.WForRec.Value().SetData([]T{
-		-0.5, 0.22,
-		0.8, -0.6,
-	})
-	model.BFor.Value().SetData([]T{0.5, 0.3})
-	model.WCand.Value().SetData([]T{
-		-0.001, -0.3, 0.5,
-		0.4, 0.6, -0.3,
-	})
-	model.BCand.Value().SetData([]T{0.2, -0.1})
 	return model
 }

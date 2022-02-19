@@ -16,40 +16,19 @@ func TestValidModuleFieldTagParsing(t *testing.T) {
 		expected moduleFieldTag
 	}{
 		{"", moduleFieldTag{
-			Type:  defaultModuleFieldType,
-			Scope: defaultModuleFieldScope,
+			Type: defaultModuleFieldType,
 		}},
 		{"type:params", moduleFieldTag{
-			Type:  paramsModuleFieldType,
-			Scope: defaultModuleFieldScope,
+			Type: paramsModuleFieldType,
 		}},
 		{"type:weights", moduleFieldTag{
-			Type:  weightsModuleFieldType,
-			Scope: defaultModuleFieldScope,
+			Type: weightsModuleFieldType,
 		}},
 		{"type:biases", moduleFieldTag{
-			Type:  biasesModuleFieldType,
-			Scope: defaultModuleFieldScope,
+			Type: biasesModuleFieldType,
 		}},
 		{"type:undefined", moduleFieldTag{
-			Type:  undefinedModuleFieldType,
-			Scope: defaultModuleFieldScope,
-		}},
-		{"scope:processor", moduleFieldTag{
-			Type:  defaultModuleFieldType,
-			Scope: processorModuleFieldScope,
-		}},
-		{"scope:model", moduleFieldTag{
-			Type:  defaultModuleFieldType,
-			Scope: modelModuleFieldScope,
-		}},
-		{"type:biases;scope:processor", moduleFieldTag{
-			Type:  biasesModuleFieldType,
-			Scope: processorModuleFieldScope,
-		}},
-		{"scope:processor;type:biases", moduleFieldTag{
-			Type:  biasesModuleFieldType,
-			Scope: processorModuleFieldScope,
+			Type: undefinedModuleFieldType,
 		}},
 	} {
 		t.Run(fmt.Sprintf("%#v", example.tag), func(t *testing.T) {
@@ -66,7 +45,6 @@ func TestInvalidModuleFieldTagParsing(t *testing.T) {
 		"foo",
 		"foo:bar",
 		"type:foo",
-		"scope:foo",
 	} {
 		t.Run(fmt.Sprintf("%#v", example), func(t *testing.T) {
 			_, err := parseModuleFieldTag(example)

@@ -62,17 +62,6 @@ type reifModel5[T mat.DType] struct {
 	Bar reifStruct5[T] `spago:"type:params"`
 }
 
-type reifStruct6 struct {
-	X int
-}
-
-type reifModel6[T mat.DType] struct {
-	reifBaseModel
-	Foo reifStruct6
-	Bar reifStruct6  `spago:"scope:processor"`
-	Baz *reifStruct6 `spago:"scope:processor"`
-}
-
 type reifStruct7[T mat.DType] struct {
 	P Param[T]
 }
@@ -219,30 +208,6 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		assert.Equal(t, 22, result.Foo.Z.X)
 		assert.Equal(t, 33, result.Bar.X)
 		assert.Equal(t, 44, result.Bar.Z.X)
-	})
-
-	t.Run("it totally ignores fields tagged as 'processor'", func(t *testing.T) {
-		t.Parallel()
-
-		sourceModel := &reifModel6[T]{
-			Foo: reifStruct6{X: 11},
-			// It's unusual to set a value on a "processor"-scoped field, but
-			// here it's useful to ensure that it is actually ignored
-			Bar: reifStruct6{X: 22},
-			Baz: &reifStruct6{X: 33},
-		}
-		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
-
-		assert.Equal(t, 11, result.Foo.X)
-		assert.Equal(t, 0, result.Bar.X)
-		assert.Nil(t, result.Baz)
-
-		// Paranoid check to be sure that the source model was not modified
-		assert.Equal(t, 11, sourceModel.Foo.X)
-		assert.Equal(t, 22, sourceModel.Bar.X)
-		assert.NotNil(t, sourceModel.Baz)
-		assert.Equal(t, 33, sourceModel.Baz.X)
 	})
 
 	t.Run("it contextualizes tagged slices of structs or pointers", func(t *testing.T) {

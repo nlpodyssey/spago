@@ -6,10 +6,10 @@ package tpr
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"log"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -17,15 +17,14 @@ var _ nn.Model = &Model[float32]{}
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel
-	WInS   nn.Param[T] `spago:"type:weights"`
-	WInR   nn.Param[T] `spago:"type:weights"`
-	WRecS  nn.Param[T] `spago:"type:weights"`
-	WRecR  nn.Param[T] `spago:"type:weights"`
-	BS     nn.Param[T] `spago:"type:biases"`
-	BR     nn.Param[T] `spago:"type:biases"`
-	S      nn.Param[T] `spago:"type:weights"`
-	R      nn.Param[T] `spago:"type:weights"`
-	States []*State[T] `spago:"scope:processor"`
+	WInS  nn.Param[T] `spago:"type:weights"`
+	WInR  nn.Param[T] `spago:"type:weights"`
+	WRecS nn.Param[T] `spago:"type:weights"`
+	WRecR nn.Param[T] `spago:"type:weights"`
+	BS    nn.Param[T] `spago:"type:biases"`
+	BR    nn.Param[T] `spago:"type:biases"`
+	S     nn.Param[T] `spago:"type:weights"`
+	R     nn.Param[T] `spago:"type:weights"`
 }
 
 // State represent a state of the TPR recurrent network.
@@ -56,49 +55,35 @@ func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model[T] {
 	}
 }
 
-// SetInitialState sets the initial state of the recurrent network.
-// It panics if one or more states are already present.
-func (m *Model[T]) SetInitialState(state *State[T]) {
-	if len(m.States) > 0 {
-		log.Fatal("tpr: the initial state must be set before any input")
-	}
-	m.States = append(m.States, state)
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
+	states := make([]*State[T], 0)
+	var s *State[T] = nil
 	for i, x := range xs {
-		s := m.forward(x)
-		m.States = append(m.States, s)
+		s = m.Next(s, x)
+		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-// LastState returns the last state of the recurrent network.
-// It returns nil if there are no states.
-func (m *Model[T]) LastState() *State[T] {
-	n := len(m.States)
-	if n == 0 {
-		return nil
-	}
-	return m.States[n-1]
-}
-
+// Next performs a single forward step, producing a new state.
+//
 // aR = Sigmoid(wInR (dot) x + bR + wRecR (dot) yPrev)
 // aS = Sigmoid(wInS (dot) x + bS + wRecS (dot) yPrev)
 // r = embR (dot) aR
 // s = embS (dot) aS
 // b = s (dot) rT
 // y = vec(b)
-func (m *Model[T]) forward(x ag.Node[T]) (st *State[T]) {
-	sPrev := m.LastState()
-	var yPrev ag.Node[T]
-	if sPrev != nil {
-		yPrev = sPrev.Y
-	}
+func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (st *State[T]) {
 	st = new(State[T])
+
+	var yPrev ag.Node[T] = nil
+	if state != nil {
+		yPrev = state.Y
+	}
+
 	st.AR = ag.Sigmoid(ag.Affine[T](m.BR, m.WInR, x, m.WRecR, yPrev))
 	st.AS = ag.Sigmoid(ag.Affine[T](m.BS, m.WInS, x, m.WRecS, yPrev))
 	st.R = ag.Mul[T](m.R, st.AR)

@@ -13,7 +13,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"sync"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -38,7 +37,6 @@ type Model[T mat.DType] struct {
 	StartH                 nn.Param[T]      `spago:"type:weights"`
 	EndH                   nn.Param[T]      `spago:"type:weights"`
 	InitValue              nn.Param[T]      `spago:"type:weights"`
-	Support                Support[T]       `spago:"scope:processor"`
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.
@@ -65,11 +63,16 @@ type HyperLinear3[T mat.DType] struct {
 	B nn.Param[T] `spago:"type:biases"`
 }
 
-// Support contains nodes used during the forward step.
-type Support[T mat.DType] struct {
-	// Shared among all steps
-	xUi, xUl, xUr, xUf, xUs, xUo, xUu []ag.Node[T]
-	// Shared among all nodes at the same step
+// State contains nodes used during the forward step.
+type State[T mat.DType] struct {
+	xUi []ag.Node[T]
+	xUl []ag.Node[T]
+	xUr []ag.Node[T]
+	xUf []ag.Node[T]
+	xUs []ag.Node[T]
+	xUo []ag.Node[T]
+	xUu []ag.Node[T]
+
 	ViPrevG ag.Node[T]
 	VlPrevG ag.Node[T]
 	VrPrevG ag.Node[T]
@@ -140,122 +143,55 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 		c[0][i] = m.InitValue
 	}
 
-	m.computeUx(xs) // the result is shared among all steps
+	s := &State[T]{}
+	m.computeUx(s, xs) // the result is shared among all steps
 	for t := 1; t < m.Config.Steps; t++ {
-		m.computeVg(g[t-1]) // the result is shared among all nodes
-		h[t], c[t] = m.updateHiddenNodes(h[t-1], c[t-1], g[t-1])
+		m.computeVg(s, g[t-1]) // the result is shared among all nodes of the same step
+		h[t], c[t] = m.updateHiddenNodes(s, h[t-1], c[t-1], g[t-1])
 		g[t], cg[t] = m.updateSentenceState(h[t-1], c[t-1], g[t-1])
 	}
 
 	return h[len(h)-1]
 }
 
-func (m *Model[T]) computeUx(xs []ag.Node[T]) {
+func (m *Model[T]) computeUx(s *State[T], xs []ag.Node[T]) {
 	n := len(xs)
-	m.Support.xUi = make([]ag.Node[T], n)
-	m.Support.xUl = make([]ag.Node[T], n)
-	m.Support.xUr = make([]ag.Node[T], n)
-	m.Support.xUf = make([]ag.Node[T], n)
-	m.Support.xUs = make([]ag.Node[T], n)
-	m.Support.xUo = make([]ag.Node[T], n)
-	m.Support.xUu = make([]ag.Node[T], n)
+	s.xUi = make([]ag.Node[T], n)
+	s.xUl = make([]ag.Node[T], n)
+	s.xUr = make([]ag.Node[T], n)
+	s.xUf = make([]ag.Node[T], n)
+	s.xUs = make([]ag.Node[T], n)
+	s.xUo = make([]ag.Node[T], n)
+	s.xUu = make([]ag.Node[T], n)
 
-	var wg sync.WaitGroup
-	wg.Add(n)
 	for i := 0; i < n; i++ {
-		go func(i int) {
-			defer wg.Done()
-			m.Support.xUi[i] = ag.Mul[T](m.InputGate.U, xs[i])
-			m.Support.xUl[i] = ag.Mul[T](m.LeftCellGate.U, xs[i])
-			m.Support.xUr[i] = ag.Mul[T](m.RightCellGate.U, xs[i])
-			m.Support.xUf[i] = ag.Mul[T](m.CellGate.U, xs[i])
-			m.Support.xUs[i] = ag.Mul[T](m.SentCellGate.U, xs[i])
-			m.Support.xUo[i] = ag.Mul[T](m.OutputGate.U, xs[i])
-			m.Support.xUu[i] = ag.Mul[T](m.InputActivation.U, xs[i])
-		}(i)
+		s.xUi[i] = ag.Mul[T](m.InputGate.U, xs[i])
+		s.xUl[i] = ag.Mul[T](m.LeftCellGate.U, xs[i])
+		s.xUr[i] = ag.Mul[T](m.RightCellGate.U, xs[i])
+		s.xUf[i] = ag.Mul[T](m.CellGate.U, xs[i])
+		s.xUs[i] = ag.Mul[T](m.SentCellGate.U, xs[i])
+		s.xUo[i] = ag.Mul[T](m.OutputGate.U, xs[i])
+		s.xUu[i] = ag.Mul[T](m.InputActivation.U, xs[i])
 	}
-	wg.Wait()
 }
 
-func (m *Model[T]) computeVg(prevG ag.Node[T]) {
-	var wg sync.WaitGroup
-	wg.Add(7)
-	for i := 0; i < 7; i++ {
-		go func(i int) {
-			defer wg.Done()
-			switch i {
-			case 0:
-				m.Support.ViPrevG = ag.Mul[T](m.InputGate.V, prevG)
-			case 1:
-				m.Support.VlPrevG = ag.Mul[T](m.LeftCellGate.V, prevG)
-			case 2:
-				m.Support.VrPrevG = ag.Mul[T](m.RightCellGate.V, prevG)
-			case 3:
-				m.Support.VfPrevG = ag.Mul[T](m.CellGate.V, prevG)
-			case 4:
-				m.Support.VsPrevG = ag.Mul[T](m.SentCellGate.V, prevG)
-			case 5:
-				m.Support.VoPrevG = ag.Mul[T](m.OutputGate.V, prevG)
-			case 6:
-				m.Support.VuPrevG = ag.Mul[T](m.InputActivation.U, prevG)
-			}
-		}(i)
-	}
-	wg.Wait()
+func (m *Model[T]) computeVg(s *State[T], prevG ag.Node[T]) {
+	s.ViPrevG = ag.Mul[T](m.InputGate.V, prevG)
+	s.VlPrevG = ag.Mul[T](m.LeftCellGate.V, prevG)
+	s.VrPrevG = ag.Mul[T](m.RightCellGate.V, prevG)
+	s.VfPrevG = ag.Mul[T](m.CellGate.V, prevG)
+	s.VsPrevG = ag.Mul[T](m.SentCellGate.V, prevG)
+	s.VoPrevG = ag.Mul[T](m.OutputGate.V, prevG)
+	s.VuPrevG = ag.Mul[T](m.InputActivation.U, prevG)
 }
 
-func (m *Model[T]) processNode(i int, prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (h ag.Node[T], c ag.Node[T]) {
+func (m *Model[T]) updateHiddenNodes(s *State[T], prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) ([]ag.Node[T], []ag.Node[T]) {
 	n := len(prevH)
-	first := 0
-	last := n - 1
-	j := i - 1
-	k := i + 1
-
-	prevHj, prevCj := func() (ag.Node[T], ag.Node[T]) {
-		if j < first {
-			return m.StartH, m.StartH
-		}
-		return prevH[j], prevC[j]
-	}()
-
-	prevHk, prevCk := func() (ag.Node[T], ag.Node[T]) {
-		if k > last {
-			return m.EndH, m.EndH
-		}
-		return prevH[k], prevC[k]
-	}()
-
-	context := ag.Concat(prevHj, prevH[i], prevHk)
-	iG := ag.Sigmoid(ag.Sum[T](m.InputGate.B, ag.Mul[T](m.InputGate.W, context), m.Support.ViPrevG, m.Support.xUi[i]))
-	lG := ag.Sigmoid(ag.Sum[T](m.LeftCellGate.B, ag.Mul[T](m.LeftCellGate.W, context), m.Support.VlPrevG, m.Support.xUl[i]))
-	rG := ag.Sigmoid(ag.Sum[T](m.RightCellGate.B, ag.Mul[T](m.RightCellGate.W, context), m.Support.VrPrevG, m.Support.xUr[i]))
-	fG := ag.Sigmoid(ag.Sum[T](m.CellGate.B, ag.Mul[T](m.CellGate.W, context), m.Support.VfPrevG, m.Support.xUf[i]))
-	sG := ag.Sigmoid(ag.Sum[T](m.SentCellGate.B, ag.Mul[T](m.SentCellGate.W, context), m.Support.VsPrevG, m.Support.xUs[i]))
-	oG := ag.Sigmoid(ag.Sum[T](m.OutputGate.B, ag.Mul[T](m.OutputGate.W, context), m.Support.VoPrevG, m.Support.xUo[i]))
-	uG := ag.Tanh(ag.Sum[T](m.InputActivation.B, ag.Mul[T](m.InputActivation.W, context), m.Support.VuPrevG, m.Support.xUu[i]))
-	c1 := ag.Prod(lG, prevCj)
-	c2 := ag.Prod(fG, prevC[i])
-	c3 := ag.Prod(rG, prevCk)
-	c4 := ag.Prod(sG, prevG)
-	c5 := ag.Prod(iG, uG)
-	c = ag.Sum(c1, c2, c3, c4, c5)
-	h = ag.Prod(oG, ag.Tanh(c))
-	return
-}
-
-func (m *Model[T]) updateHiddenNodes(prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) ([]ag.Node[T], []ag.Node[T]) {
-	var wg sync.WaitGroup
-	n := len(prevH)
-	wg.Add(n)
 	h := make([]ag.Node[T], n)
 	c := make([]ag.Node[T], n)
 	for i := 0; i < n; i++ {
-		go func(i int) {
-			defer wg.Done()
-			h[i], c[i] = m.processNode(i, prevH, prevC, prevG)
-		}(i)
+		h[i], c[i] = m.processNode(s, i, prevH, prevC, prevG)
 	}
-	wg.Wait()
 	return h, c
 }
 
@@ -279,4 +215,44 @@ func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], p
 	cg := ag.Add(ag.Prod(fG, prevG), sum)
 	gt := ag.Prod(oG, ag.Tanh(cg))
 	return gt, cg
+}
+
+func (m *Model[T]) processNode(s *State[T], i int, prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (h ag.Node[T], c ag.Node[T]) {
+	n := len(prevH)
+	first := 0
+	last := n - 1
+	j := i - 1
+	k := i + 1
+
+	var prevHj, prevCj ag.Node[T]
+	if j < first {
+		prevHj, prevCj = m.StartH, m.StartH
+	} else {
+		prevHj, prevCj = prevH[j], prevC[j]
+	}
+
+	var prevHk, prevCk ag.Node[T]
+	if k > last {
+		prevHk, prevCk = m.EndH, m.EndH
+	} else {
+		prevHk, prevCk = prevH[k], prevC[k]
+	}
+
+	context := ag.Concat(prevHj, prevH[i], prevHk)
+	iG := ag.Sigmoid(ag.Sum[T](m.InputGate.B, ag.Mul[T](m.InputGate.W, context), s.ViPrevG, s.xUi[i]))
+	lG := ag.Sigmoid(ag.Sum[T](m.LeftCellGate.B, ag.Mul[T](m.LeftCellGate.W, context), s.VlPrevG, s.xUl[i]))
+	rG := ag.Sigmoid(ag.Sum[T](m.RightCellGate.B, ag.Mul[T](m.RightCellGate.W, context), s.VrPrevG, s.xUr[i]))
+	fG := ag.Sigmoid(ag.Sum[T](m.CellGate.B, ag.Mul[T](m.CellGate.W, context), s.VfPrevG, s.xUf[i]))
+	sG := ag.Sigmoid(ag.Sum[T](m.SentCellGate.B, ag.Mul[T](m.SentCellGate.W, context), s.VsPrevG, s.xUs[i]))
+	oG := ag.Sigmoid(ag.Sum[T](m.OutputGate.B, ag.Mul[T](m.OutputGate.W, context), s.VoPrevG, s.xUo[i]))
+	uG := ag.Tanh(ag.Sum[T](m.InputActivation.B, ag.Mul[T](m.InputActivation.W, context), s.VuPrevG, s.xUu[i]))
+	c1 := ag.Prod(lG, prevCj)
+	c2 := ag.Prod(fG, prevC[i])
+	c3 := ag.Prod(rG, prevCk)
+	c4 := ag.Prod(sG, prevG)
+	c5 := ag.Prod(iG, uG)
+	c = ag.Sum(c1, c2, c3, c4, c5)
+	h = ag.Prod(oG, ag.Tanh(c))
+
+	return
 }

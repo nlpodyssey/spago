@@ -24,7 +24,7 @@ func testModelReLUForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
-	y := nn.ToNode[T](p.Forward(x))
+	y := p.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Value().Data(), 1.0e-05)
 
@@ -48,7 +48,7 @@ func testModelSwishForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
-	y := nn.ToNode[T](p.Forward(x))
+	y := p.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Value().Data(), 1.0e-6)
 

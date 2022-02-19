@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"log"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -25,7 +24,6 @@ type Model[T mat.DType] struct {
 	BFor    nn.Param[T] `spago:"type:biases"`
 	WCand   nn.Param[T] `spago:"type:weights"`
 	BCand   nn.Param[T] `spago:"type:biases"`
-	States  []*State[T] `spago:"scope:processor"`
 }
 
 // State represent a state of the RAN recurrent network.
@@ -59,44 +57,33 @@ func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
 	return
 }
 
-// SetInitialState sets the initial state of the recurrent network.
-// It panics if one or more states are already present.
-func (m *Model[T]) SetInitialState(state *State[T]) {
-	if len(m.States) > 0 {
-		log.Fatal("ran: the initial state must be set before any input")
-	}
-	m.States = append(m.States, state)
-}
-
-// Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
+	states := make([]*State[T], 0)
+	var s *State[T] = nil
 	for i, x := range xs {
-		s := m.forward(x)
-		m.States = append(m.States, s)
+		s = m.Next(s, x)
+		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-// LastState returns the last state of the recurrent network.
-// It returns nil if there are no states.
-func (m *Model[T]) LastState() *State[T] {
-	n := len(m.States)
-	if n == 0 {
-		return nil
-	}
-	return m.States[n-1]
-}
-
+// Next performs a single forward step, producing a new state.
+//
 // inG = sigmoid(wIn (dot) x + bIn + wrIn (dot) yPrev)
 // forG = sigmoid(wForG (dot) x + bForG + wrForG (dot) yPrev)
 // cand = wc (dot) x + bc
 // c = inG * c + forG * cPrev
 // y = f(c)
-func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s = new(State[T])
-	yPrev, cPrev := m.prev()
+
+	var yPrev, cPrev ag.Node[T] = nil, nil
+	if state != nil {
+		yPrev, cPrev = state.Y, state.C
+	}
+
 	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
 	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
 	s.Cand = ag.Affine[T](m.BCand, m.WCand, x)
@@ -108,28 +95,18 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 	return
 }
 
-func (m *Model[T]) prev() (yPrev, cPrev ag.Node[T]) {
-	s := m.LastState()
-	if s != nil {
-		yPrev = s.Y
-		cPrev = s.Y
-	}
-	return
-}
-
 // Importance returns the "importance" score for each element of the processed sequence.
-func (m *Model[T]) Importance() [][]T {
-	importance := make([][]T, len(m.States))
+func (m *Model[T]) Importance(states []*State[T]) [][]T {
+	importance := make([][]T, len(states))
 	for i := range importance {
-		importance[i] = m.scores(i)
+		importance[i] = m.scores(states, i)
 	}
 	return importance
 }
 
 // importance computes the importance score of the previous states respect to the i-state.
 // The output contains the importance score for each k-previous states.
-func (m *Model[T]) scores(i int) []T {
-	states := m.States
+func (m *Model[T]) scores(states []*State[T], i int) []T {
 	scores := make([]T, len(states))
 	incForgetProd := states[i].ForG.Value().Clone()
 	for k := i; k >= 0; k-- {

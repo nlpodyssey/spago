@@ -26,8 +26,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	proc.Forward(x)
-	s := proc.LastState()
+	s := proc.Next(nil, x)
 
 	assert.InDeltaSlice(t, []T{0.531299, 0.439948, 0.484336, 0.443710}, s.Cell.Value().Data(), 1.0e-06)
 
@@ -78,28 +77,25 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	yPrev := g.NewVariable(mat.NewVecDense([]T{0.7, 0.6, 0.2, 0.8}), true)
-	cellPrev := g.NewVariable(mat.NewVecDense([]T{0.574443, 0.425557, 0.401312, 0.524979}), true)
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{
-		Cell: cellPrev,
-		Y:    yPrev,
-	})
 
 	// == Forward
 
+	yPrev := g.NewVariable(mat.NewVecDense([]T{0.7, 0.6, 0.2, 0.8}), true)
+	cellPrev := g.NewVariable(mat.NewVecDense([]T{0.574443, 0.425557, 0.401312, 0.524979}), true)
+	s0 := &State[T]{Cell: cellPrev, Y: yPrev}
+
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
+	s1 := proc.Next(s0, x)
 
-	assert.InDeltaSlice(t, []T{0.633246, 0.276811, 0.474442, 0.256067}, s.Cell.Value().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []T{0.633246, 0.276811, 0.474442, 0.256067}, s1.Cell.Value().Data(), 1.0e-06)
 
-	assert.InDeltaSlice(t, []T{0.379117, 0.106466, 0.381340, 0.191636}, s.Y.Value().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []T{0.379117, 0.106466, 0.381340, 0.191636}, s1.Y.Value().Data(), 1.0e-06)
 
 	// == Backward
 
 	gold := g.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64}), false)
-	loss := losses.MSE(s.Y, gold, false)
+	loss := losses.MSE(s1.Y, gold, false)
 	g.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.199768, 0.0135238, -0.0872397, -0.034826}, x.Grad().Data(), 1.0e-06)
@@ -173,24 +169,22 @@ func testModelForwardSeq[T mat.DType](t *testing.T) { //TODO FIX TEST
 	model := newTestModel2[T]()
 	g := ag.NewGraph[T]()
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(&State[T]{
-		Cell: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0}), true),
-		Y:    g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0}), true),
-	})
 
 	// == Forward
+	s0 := &State[T]{
+		Cell: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0}), true),
+		Y:    g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0}), true),
+	}
 
 	x := g.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
+	s1 := proc.Next(s0, x)
 
-	assert.InDeltaSlice(t, []T{0.6585208524, 0.5193369948, 0.3051361057}, s.Cell.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.6585208524, 0.5193369948, 0.3051361057}, s1.Cell.Value().Data(), 1.0e-05)
 
-	assert.InDeltaSlice(t, []T{0.1052066064, 0.445668489, 0.0920091497}, s.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.1052066064, 0.445668489, 0.0920091497}, s1.Y.Value().Data(), 1.0e-05)
 
 	x2 := g.NewVariable(mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
-	_ = proc.Forward(x2)
-	s2 := proc.LastState()
+	s2 := proc.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{0.7639620348, 0.5509132249, 0.1590346479}, s2.Cell.Value().Data(), 1.0e-05)
 
@@ -198,7 +192,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) { //TODO FIX TEST
 
 	// == Backward
 
-	s.Y.PropagateGrad(mat.NewVecDense([]T{-0.2, -0.3, -0.4}))
+	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.2, -0.3, -0.4}))
 	s2.Y.PropagateGrad(mat.NewVecDense([]T{0.6, -0.3, -0.2}))
 
 	g.BackwardAll()

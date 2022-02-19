@@ -7,11 +7,11 @@ package horn
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/utils"
-	"log"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -19,10 +19,9 @@ var _ nn.Model = &Model[float32]{}
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel
-	W      nn.Param[T]   `spago:"type:weights"`
-	WRec   []nn.Param[T] `spago:"type:weights"`
-	B      nn.Param[T]   `spago:"type:biases"`
-	States []*State[T]   `spago:"scope:processor"`
+	W    nn.Param[T]   `spago:"type:weights"`
+	WRec []nn.Param[T] `spago:"type:weights"`
+	B    nn.Param[T]   `spago:"type:biases"`
 }
 
 // State represent a state of the Horn recurrent network.
@@ -48,39 +47,33 @@ func New[T mat.DType](in, out, order int) *Model[T] {
 	}
 }
 
-// SetInitialState sets the initial state of the recurrent network.
-// It panics if one or more states are already present.
-func (m *Model[T]) SetInitialState(state *State[T]) {
-	if len(m.States) > 0 {
-		log.Fatal("horn: the initial state must be set before any input")
-	}
-	m.States = append(m.States, state)
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
+	states := make([]*State[T], 0)
+	var s *State[T] = nil
 	for i, x := range xs {
-		s := m.forward(x)
-		m.States = append(m.States, s)
+		s = m.Next(states, x)
+		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
+// Next performs a single forward step, producing a new state.
+func (m *Model[T]) Next(states []*State[T], x ag.Node[T]) (s *State[T]) {
 	s = new(State[T])
-	h := ag.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback()...)...)
+	h := ag.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback(states)...)...)
 	s.Y = ag.Tanh(h)
 	return
 }
 
-func (m *Model[T]) feedback() []ag.Node[T] {
+func (m *Model[T]) feedback(states []*State[T]) []ag.Node[T] {
 	var ys []ag.Node[T]
-	n := len(m.States)
+	n := len(states)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
 		alpha := m.W.Graph().NewScalar(mat.Pow(0.6, T(i+1)))
-		ys = append(ys, m.WRec[i], ag.ProdScalar(m.States[n-1-i].Y, alpha))
+		ys = append(ys, m.WRec[i], ag.ProdScalar(states[n-1-i].Y, alpha))
 	}
 	return ys
 }

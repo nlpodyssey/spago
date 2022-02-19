@@ -26,7 +26,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.ToNode[T](proc.Forward(x))
+	y := proc.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.287518, 0.06939, -0.259175, 0.20769, -0.263768}, y.Value().Data(), 1.0e-05)
 
@@ -72,14 +72,13 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(
-		&State[T]{Y: g.NewVariable(mat.NewVecDense([]T{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)},
-	)
 
 	// == Forward
 
+	s0 := &State[T]{Y: g.NewVariable(mat.NewVecDense([]T{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)}
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.ToNode[T](proc.Forward(x))
+	s1 := proc.Next(s0, x)
+	y := s1.Y
 
 	assert.InDeltaSlice(t, []T{0.202158, 0.228591, -0.240679, -0.350224, -0.476828}, y.Value().Data(), 1.0e-05)
 
@@ -147,27 +146,22 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 	proc := nn.Reify(model, g)
-	proc.SetInitialState(
-		&State[T]{Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true)},
-	)
 
 	// == Forward
-
+	s0 := &State[T]{Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true)}
 	x := g.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
-	_ = proc.Forward(x)
-	s := proc.LastState()
+	s1 := proc.Next(s0, x)
 
-	assert.InDeltaSlice(t, []T{0.176979535, 0.7339353781}, s.Y.Value().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.176979535, 0.7339353781}, s1.Y.Value().Data(), 1.0e-05)
 
 	x2 := g.NewVariable(mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
-	_ = proc.Forward(x2)
-	s2 := proc.LastState()
+	s2 := proc.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{0.0060780253, 0.6727636037}, s2.Y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
-	s.Y.PropagateGrad(mat.NewVecDense([]T{-0.007, 0.002}))
+	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.007, 0.002}))
 	s2.Y.PropagateGrad(mat.NewVecDense([]T{-0.003, 0.005}))
 
 	g.BackwardAll()

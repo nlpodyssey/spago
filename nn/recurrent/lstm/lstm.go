@@ -9,7 +9,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"log"
 )
 
 var _ nn.Model = &Model[float32]{}
@@ -30,7 +29,6 @@ type Model[T mat.DType] struct {
 	WCand           nn.Param[T] `spago:"type:weights"`
 	WCandRec        nn.Param[T] `spago:"type:weights"`
 	BCand           nn.Param[T] `spago:"type:biases"`
-	States          []*State[T] `spago:"scope:processor"`
 }
 
 // State represent a state of the LSTM recurrent network.
@@ -83,46 +81,36 @@ func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
 	return
 }
 
-// SetInitialState sets the initial state of the recurrent network.
-// It panics if one or more states are already present.
-func (m *Model[T]) SetInitialState(state *State[T]) {
-	if len(m.States) > 0 {
-		log.Fatal("lstm: the initial state must be set before any input")
-	}
-	m.States = append(m.States, state)
-}
-
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
+	states := make([]*State[T], 0)
+	var s *State[T] = nil
 	for i, x := range xs {
-		s := m.forward(x)
-		m.States = append(m.States, s)
+		s = m.Next(s, x)
+		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys
 }
 
-// LastState returns the last state of the recurrent network.
-// It returns nil if there are no states.
-func (m *Model[T]) LastState() *State[T] {
-	n := len(m.States)
-	if n == 0 {
-		return nil
-	}
-	return m.States[n-1]
-}
-
-// forward computes the results with the following equations:
+// Next performs a single forward step, producing a new state.
+//
+// It computes the results with the following equations:
 // inG = sigmoid(wIn (dot) x + bIn + wInRec (dot) yPrev)
 // outG = sigmoid(wOut (dot) x + bOut + wOutRec (dot) yPrev)
 // forG = sigmoid(wFor (dot) x + bFor + wForRec (dot) yPrev)
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s = new(State[T])
-	yPrev, cellPrev := m.prev()
+
+	var yPrev, cellPrev ag.Node[T] = nil, nil
+	if state != nil {
+		yPrev, cellPrev = state.Y, state.Cell
+	}
+
 	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
 	s.OutG = ag.Sigmoid(ag.Affine[T](m.BOut, m.WOut, x, m.WOutRec, yPrev))
 	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
@@ -139,14 +127,5 @@ func (m *Model[T]) forward(x ag.Node[T]) (s *State[T]) {
 		s.Cell = ag.Prod(s.InG, s.Cand)
 	}
 	s.Y = ag.Prod(s.OutG, ag.Tanh(s.Cell))
-	return
-}
-
-func (m *Model[T]) prev() (yPrev, cellPrev ag.Node[T]) {
-	s := m.LastState()
-	if s != nil {
-		yPrev = s.Y
-		cellPrev = s.Cell
-	}
 	return
 }
