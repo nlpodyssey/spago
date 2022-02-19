@@ -380,6 +380,67 @@ func (d *Dense[T]) T() Matrix[T] {
 	return m
 }
 
+// TransposeInPlace transposes the matrix in place, and returns the
+// matrix itself.
+func (d *Dense[T]) TransposeInPlace() Matrix[T] {
+	d.rows, d.cols = d.cols, d.rows
+
+	// Vector, scalar, or empty data
+	if IsVector[T](d) || len(d.data) <= 1 {
+		return d
+	}
+
+	data := d.data
+
+	// Square matrix
+	if d.rows == d.cols {
+		n := d.rows
+		n1 := n - 1
+		for i := 0; i < n1; i++ {
+			for j := i + 1; j < n; j++ {
+				k := i*n + j
+				l := j*n + i
+				data[k], data[l] = data[l], data[k]
+			}
+		}
+		return d
+	}
+
+	// Rectangular matrix
+	rows := d.rows
+	cols := d.cols
+	size := len(data)
+
+mainLoop:
+	for i := 1; i < size; i++ {
+		for j := i; ; {
+			j = (j%cols)*rows + j/cols
+			if j == i {
+				break
+			}
+			if j < i {
+				continue mainLoop
+			}
+		}
+
+		vi := data[i]
+		for j := i; ; {
+			k := (j%cols)*rows + j/cols
+			if k == i {
+				data[j] = vi
+			} else {
+				data[j] = data[k]
+			}
+			if k <= i {
+				break
+			}
+			j = k
+		}
+	}
+
+	return d
+}
+
 // Add returns the addition between the receiver and another matrix.
 func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
 	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {

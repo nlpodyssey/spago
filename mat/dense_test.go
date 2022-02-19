@@ -1198,6 +1198,78 @@ func testDenseT[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_TransposeInPlace(t *testing.T) {
+	t.Run("float32", testDenseTransposeInPlace[float32])
+	t.Run("float64", testDenseTransposeInPlace[float64])
+}
+
+func testDenseTransposeInPlace[T DType](t *testing.T) {
+	testCases := []struct {
+		r int
+		c int
+		d []T
+	}{
+		// Each value is a 2-digit number having the format "<row><col>"
+		{0, 0, []T{}},
+		{0, 1, []T{}},
+		{1, 0, []T{}},
+
+		// Scalar
+		{1, 1, []T{11}},
+
+		// Vectors
+		{1, 2, []T{11, 12}},
+		{2, 1, []T{11, 21}},
+		{1, 3, []T{11, 12, 13}},
+		{3, 1, []T{11, 21, 31}},
+
+		// Square matrix
+		{2, 2, []T{
+			11, 21,
+			12, 22,
+		}},
+		{3, 3, []T{
+			11, 21, 31,
+			12, 22, 32,
+			13, 23, 33,
+		}},
+
+		// Rectangular matrix
+		{2, 3, []T{
+			11, 21,
+			12, 22,
+			13, 23,
+		}},
+		{3, 2, []T{
+			11, 21, 31,
+			12, 22, 32,
+		}},
+		{3, 4, []T{
+			11, 21, 31,
+			12, 22, 32,
+			13, 23, 33,
+			14, 24, 34,
+		}},
+		{4, 3, []T{
+			11, 21, 31, 41,
+			12, 22, 32, 42,
+			13, 23, 33, 43,
+		}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
+			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+				return T(c + 1 + (r+1)*10)
+			})
+			d2 := d.TransposeInPlace()
+			assert.Same(t, d, d2)
+			assertDenseDims(t, tc.c, tc.r, d)
+			assert.Equal(t, tc.d, d.data)
+		})
+	}
+}
+
 type addTestCase[T DType] struct {
 	a *Dense[T]
 	b *Dense[T]

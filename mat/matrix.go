@@ -67,6 +67,9 @@ type Matrix[T DType] interface {
 	ResizeVector(newSize int) Matrix[T]
 	// T returns the transpose of the matrix.
 	T() Matrix[T]
+	// TransposeInPlace transposes the matrix in place, and returns the
+	// matrix itself.
+	TransposeInPlace() Matrix[T]
 	// Add returns the addition between the receiver and another matrix.
 	Add(other Matrix[T]) Matrix[T]
 	// AddInPlace performs the in-place addition with the other matrix.
