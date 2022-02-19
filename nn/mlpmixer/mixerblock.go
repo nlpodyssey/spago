@@ -68,24 +68,25 @@ func (m *MixerBlock[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 
 func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) ag.Node[T] {
 	normalized := m.TokenLayerNorm.Forward(xs...)
-	stacked := ag.T(ag.Stack(normalized...))
-	return ag.T(m.forwardMixer(m.TokenMixerFF, stacked))
+	stacked := ag.Stack(normalized...)
+
+	ys := make([]ag.Node[T], stacked.Value().Columns())
+	for i := range ys {
+		col := ag.ColView(stacked, i)
+		ys[i] = m.TokenMixerFF.Forward(col)[0]
+	}
+	return ag.T(ag.Stack(ys...))
 }
 
 func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) ag.Node[T] {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
-	stacked := ag.Stack(normalized...)
-	return m.forwardMixer(m.ChannelMixerFF, stacked)
-}
 
-// forwardMixer applies MLP for each concatenated token (after LayerNorm) dimension, column-wise.
-func (m *MixerBlock[T]) forwardMixer(ff *FeedForward[T], xs ag.Node[T]) ag.Node[T] {
-	rows := make([]ag.Node[T], xs.Value().Rows())
-	for i := 0; i < xs.Value().Rows(); i++ {
-		row := ag.T(ag.RowView(xs, i))
-		rows[i] = ff.Forward(row)[0]
+	ys := make([]ag.Node[T], len(normalized))
+	for i, nv := range normalized {
+		nvt := ag.T(nv)
+		ys[i] = m.ChannelMixerFF.Forward(nvt)[0]
 	}
-	return ag.Stack(rows...)
+	return ag.Stack(ys...)
 }
 
 func (m *MixerBlock[T]) residual(x ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
