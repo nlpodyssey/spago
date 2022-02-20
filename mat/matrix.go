@@ -247,19 +247,6 @@ func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
 	return out
 }
 
-// ConcatH returns a new Matrix created concatenating the input matrices horizontally.
-func ConcatH[T DType](ms ...Matrix[T]) *Dense[T] {
-	rows := len(ms)
-	cols := ms[0].Rows()
-	out := NewEmptyDense[T](rows, cols)
-	for i, x := range ms {
-		for j := 0; j < cols; j++ {
-			out.Set(i, j, x.At(j, 0))
-		}
-	}
-	return out
-}
-
 // Stack stacks two or more vectors of the same size on top of each other,
 // creating a new Dense matrix where each row contains the data of each
 // input vector.
