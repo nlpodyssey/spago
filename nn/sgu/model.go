@@ -20,14 +20,14 @@ import (
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Config Config[T]
 	Norm   *layernorm.Model[T]
 	Proj   *conv1x1.Model[T]
 	Act    *activation.Model[T]
 }
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Config provides configuration parameters for Model.
 type Config[T mat.DType] struct {

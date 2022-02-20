@@ -11,11 +11,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	W        nn.Param[T] `spago:"type:weights"`
 	B        nn.Param[T] `spago:"type:biases"`
 	Mean     nn.Param[T] `spago:"type:undefined"`
@@ -49,7 +49,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if xs[0].Graph().Mode() == ag.Training {
+	if m.Graph.Mode() == ag.Training {
 		return m.forwardTraining(xs)
 	}
 	return m.forwardInference(xs)
@@ -63,7 +63,7 @@ func (m *Model[T]) forwardTraining(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) process(xs []ag.Node[T], devVector ag.Node[T], meanVector ag.Node[T]) []ag.Node[T] {
-	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, xs[0].Graph().Constant(epsilon)))
+	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, m.Graph.Constant(epsilon)))
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add[T](ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
@@ -82,9 +82,8 @@ func (m *Model[T]) updateBatchNormParameters(meanVector, devVector mat.Matrix[T]
 }
 
 func (m *Model[T]) forwardInference(xs []ag.Node[T]) []ag.Node[T] {
-	g := xs[0].Graph()
-	meanVector := g.NewWrapNoGrad(m.Mean)
-	devVector := g.NewWrapNoGrad(m.StdDev)
+	meanVector := m.Graph.NewWrapNoGrad(m.Mean)
+	devVector := m.Graph.NewWrapNoGrad(m.StdDev)
 	return m.process(xs, devVector, meanVector)
 }
 
@@ -95,7 +94,7 @@ func (m *Model[T]) mean(xs []ag.Node[T]) ag.Node[T] {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, xs[0].Graph().NewScalar(T(len(xs))+epsilon))
+	return ag.DivScalar(sumVector, m.Graph.NewScalar(T(len(xs))+epsilon))
 }
 
 // StdDev computes the standard deviation of the input.

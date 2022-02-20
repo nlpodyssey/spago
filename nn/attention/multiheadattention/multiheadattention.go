@@ -14,11 +14,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Attention   []*selfattention.Model[T]
 	OutputMerge *linear.Model[T]
 	NumOfHeads  int // number of heads

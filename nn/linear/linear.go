@@ -13,11 +13,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	W nn.Param[T] `spago:"type:weights"`
 	B nn.Param[T] `spago:"type:biases"`
 }
@@ -58,7 +58,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) concurrentComputationEnabled() bool {
-	return m.W.Graph().ConcurrentComputations() > 1
+	return m.Graph.ConcurrentComputations() > 1
 }
 
 func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {

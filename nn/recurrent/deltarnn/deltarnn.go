@@ -11,11 +11,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	W     nn.Param[T] `spago:"type:weights"`
 	WRec  nn.Param[T] `spago:"type:weights"`
 	B     nn.Param[T] `spago:"type:biases"`
@@ -93,6 +93,6 @@ func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s.D2 = ag.Prod(ag.Prod[T](m.Alpha, wx), wyRec)
 	s.C = ag.Tanh(ag.Add[T](ag.Add[T](s.D1, s.D2), m.B))
 	s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
-	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, x.Graph().Constant(1.0)), yPrev)))
+	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, m.Graph.Constant(1.0)), yPrev)))
 	return
 }

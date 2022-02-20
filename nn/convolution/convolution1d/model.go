@@ -16,7 +16,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Config provides configuration settings for a convolution Model.
 type Config struct {
@@ -32,7 +32,7 @@ type Config struct {
 
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Config Config
 	K      []nn.Param[T] `spago:"type:weights"`
 	B      []nn.Param[T] `spago:"type:biases"`

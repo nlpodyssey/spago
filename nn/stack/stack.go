@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the sub-models.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Layers []nn.StandardModel[T]
 }
 
@@ -42,7 +42,7 @@ func Make[T mat.DType](size int, callback func(i int) nn.StandardModel[T]) *Mode
 }
 
 // LastLayer returns the last layer from the stack.
-func (m *Model[T]) LastLayer() nn.Model {
+func (m *Model[T]) LastLayer() nn.Model[T] {
 	return m.Layers[len(m.Layers)-1]
 }
 

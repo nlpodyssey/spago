@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
-var _ nn.Model = &PreNorm[float32]{}
+var _ nn.Model[float32] = &PreNorm[float32]{}
 
 // PreNorm is a helper model to perform pre-normalization.
 type PreNorm[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Block *Block[T]
 	Norm  *layernorm.Model[T]
 }

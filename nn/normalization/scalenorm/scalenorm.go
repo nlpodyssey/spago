@@ -11,11 +11,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Gain nn.Param[T] `spago:"type:weights"`
 }
 
@@ -33,7 +33,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	eps := xs[0].Graph().Constant(1e-10)
+	eps := m.Graph.Constant(1e-10)
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		norm := ag.Sqrt(ag.ReduceSum(ag.Square(x)))

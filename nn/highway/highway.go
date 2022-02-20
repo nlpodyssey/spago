@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/activation"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	WIn        nn.Param[T] `spago:"type:weights"`
 	BIn        nn.Param[T] `spago:"type:biases"`
 	WT         nn.Param[T] `spago:"type:weights"`
@@ -55,6 +55,6 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	t := ag.Sigmoid(ag.Affine[T](m.BT, m.WT, x))
 	h := activation.Do(m.Activation, ag.Affine[T](m.BIn, m.WIn, x))
-	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Graph().NewScalar(1.0)), x))
+	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, m.Graph.NewScalar(1.0)), x))
 	return y
 }

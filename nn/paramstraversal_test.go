@@ -29,13 +29,13 @@ func (ptt *ParamsTraversalTester[T]) collect(param Param[T]) {
 // ParamsTraversalBaseModel can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Reify method.
-type ParamsTraversalBaseModel struct {
-	BaseModel
+type ParamsTraversalBaseModel[T mat.DType] struct {
+	BaseModel[T]
 }
 
-var _ Model = &ParamsTraversalBaseModel{}
+var _ Model[float32] = &ParamsTraversalBaseModel[float32]{}
 
-func (ParamsTraversalBaseModel) Forward(_ interface{}) interface{} {
+func (ParamsTraversalBaseModel[_]) Forward(_ interface{}) interface{} {
 	panic("this should never be called")
 }
 
@@ -47,7 +47,7 @@ func TestParamsTraversal(t *testing.T) {
 type emptyStruct struct{}
 
 type ptModel1[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	a int
 	b string
 	c []int
@@ -57,31 +57,31 @@ type ptModel1[T mat.DType] struct {
 }
 
 type ptModel2[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	A Param[T]
 	B Param[T]
 }
 
 type ptModel3[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	A []Param[T]
 	B []Param[T]
 }
 
 type ptModel4[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	P Param[T]
-	M Model
+	M Model[T]
 }
 
 type ptModel5[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	P Param[T]
-	M []Model
+	M []Model[T]
 }
 
 type ptModel6[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	P Param[T]
 	M []interface{}
 }
@@ -91,25 +91,25 @@ type testStructP[T mat.DType] struct {
 }
 
 type ptModel7[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	Ignored []testStructP[T]
 	S       []testStructP[T] `spago:"type:params"`
 }
 
 type ptModel8[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	MI map[int]Param[T]
 	MS map[string]Param[T]
 }
 
 type ptModel9[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	MS testStructP[T]  `spago:"type:params"`
 	MP *testStructP[T] `spago:"type:params"`
 }
 
 type ptModel10[T mat.DType] struct {
-	ParamsTraversalBaseModel
+	ParamsTraversalBaseModel[T]
 	MS *sync.Map `spago:"type:params"`
 }
 
@@ -119,7 +119,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 	t.Run("empty model", func(t *testing.T) {
 		t.Parallel()
 
-		m := &ParamsTraversalBaseModel{}
+		m := &ParamsTraversalBaseModel[T]{}
 		tt := NewParamsTraversalTester[T]()
 
 		pt := newParamsTraversal(tt.collect, false)
@@ -188,7 +188,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 
 		nestedModel := &ptModel4[T]{
 			P: NewParam[T](mat.NewScalar[T](100)),
-			M: &ParamsTraversalBaseModel{},
+			M: &ParamsTraversalBaseModel[T]{},
 		}
 
 		m := &ptModel4[T]{
@@ -225,7 +225,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 
 		m := &ptModel5[T]{
 			P: NewParam[T](mat.NewScalar[T](1)),
-			M: []Model{mA, mB},
+			M: []Model[T]{mA, mB},
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {

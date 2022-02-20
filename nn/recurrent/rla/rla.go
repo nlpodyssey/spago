@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model[float32] = &Model[float32]{}
 
 // Config provides configuration settings for a RLA Model.
 type Config struct {
@@ -23,7 +23,7 @@ type Config struct {
 
 // Model contains the serializable parameters for an RLA neural network.
 type Model[T mat.DType] struct {
-	nn.BaseModel
+	nn.BaseModel[T]
 	Config
 	Wk nn.Param[T] `spago:"type:weights"`
 	Bk nn.Param[T] `spago:"type:biases"`
@@ -89,7 +89,7 @@ func (m *Model[T]) Next(prevState *State[T], x ag.Node[T]) (s *State[T]) {
 		s.Z = attKey
 	}
 
-	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), x.Graph().Constant(1e-12)))
+	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), m.Graph.Constant(1e-12)))
 	return
 }
 
