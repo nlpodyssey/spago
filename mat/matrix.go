@@ -227,8 +227,8 @@ func VectorsOfSameSize[T DType](a, b Matrix[T]) bool {
 	return a.Size() == b.Size() && IsVector(a) && IsVector(b)
 }
 
-// ConcatV creates a new Dense column vector, concatenating two or more vectors
-// (indifferently row or column vectors).
+// ConcatV concatenates two or more vectors (indifferently row or column
+// vectors) "vertically", creating a new Dense column vector.
 func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
 	size := 0
 	for _, v := range vs {
