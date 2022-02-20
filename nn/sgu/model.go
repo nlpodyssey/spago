@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
-	"github.com/nlpodyssey/spago/nn/conv1x1"
+	"github.com/nlpodyssey/spago/nn/convolution/conv1x1"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 

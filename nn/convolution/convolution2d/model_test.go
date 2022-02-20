@@ -5,12 +5,12 @@
 package convolution2d
 
 import (
-	"github.com/nlpodyssey/spago/nn/activation"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 )
 

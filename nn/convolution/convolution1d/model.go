@@ -1,13 +1,14 @@
-// Copyright 2021 spaGO Authors. All rights reserved.
+// Copyright 2019 spaGO Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package convolution2d
+package convolution1d
 
 import (
 	"encoding/gob"
 	"fmt"
 	"github.com/nlpodyssey/spago/nn/activation"
+	"github.com/nlpodyssey/spago/nn/convolution"
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -21,12 +22,11 @@ var _ nn.Model = &Model[float32]{}
 type Config struct {
 	KernelSizeX    int
 	KernelSizeY    int
-	XStride        int
 	YStride        int
 	InputChannels  int
 	OutputChannels int
 	Mask           []int
-	DepthWise      bool // Special case od depthwise convolution, where outputchannels == inputchannels
+	DepthWise      bool // Special case od depth-wise convolution, where output channels == input channels
 	Activation     activation.Name
 }
 
@@ -110,15 +110,16 @@ func (m *Model[T]) forward(xs []ag.Node[T], outputChannel int) ag.Node[T] {
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node[T]
 	if m.Config.DepthWise {
-		out = nn.Conv2D[T](m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
+		out = convolution.Conv1D[T](m.K[outputChannel], xs[outputChannel], m.Config.YStride)
 		out = ag.AddScalar[T](out, m.B[outputChannel])
 	} else {
 		for i := 0; i < len(xs); i++ {
 			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-				out = ag.Add[T](out, nn.Conv2D[T](m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+				out = ag.Add(out, convolution.Conv1D[T](m.K[i+offset], xs[i], m.Config.YStride))
 				out = ag.AddScalar[T](out, m.B[i+offset])
 			}
 		}
 	}
+
 	return activation.Do(m.Config.Activation, out)
 }
