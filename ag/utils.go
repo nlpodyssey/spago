@@ -135,6 +135,16 @@ func Affine[T mat.DType](xs ...Node[T]) Node[T] {
 	return y
 }
 
+// BiLinear performs a bilinear transformation of the type (x_1 W x_2)
+func BiLinear[DT mat.DType](w, x1, x2 Node[DT]) Node[DT] {
+	return Mul(Mul(T(x1), w), x2)
+}
+
+// BiAffine performs a biaffine transformation.
+func BiAffine[DT mat.DType](w, u, v, b, x1, x2 Node[DT]) Node[DT] {
+	return Add(Add(Add(BiLinear(w, x1, x2), Mul(T(u), x1)), Mul(T(v), x2)), b)
+}
+
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func PositiveELU[T mat.DType](x Node[T]) Node[T] {
 	g := x.Graph()
