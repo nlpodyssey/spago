@@ -6,6 +6,7 @@ package ag
 
 import "github.com/nlpodyssey/spago/mat"
 
+// Differentiable must be implemented by all structures requiring autograd capabilities.
 type Differentiable[T mat.DType] interface {
 	mustEmbedDifferentiableModule()
 }
