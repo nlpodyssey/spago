@@ -89,3 +89,63 @@ func testSameDims[T DType](t *testing.T) {
 		assert.True(t, SameDims[T](b, a))
 	})
 }
+
+func TestConcatV(t *testing.T) {
+	t.Run("float32", testConcatV[float32])
+	t.Run("float64", testConcatV[float64])
+}
+
+func testConcatV[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		var d Matrix[T] = NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			ConcatV(d)
+		})
+	})
+
+	testCases := []struct {
+		xs []Matrix[T]
+		y  []T
+	}{
+		{[]Matrix[T]{}, []T{}},
+		{[]Matrix[T]{NewEmptyDense[T](0, 1)}, []T{}},
+		{[]Matrix[T]{NewEmptyDense[T](1, 0)}, []T{}},
+		{[]Matrix[T]{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{
+			[]Matrix[T]{
+				NewDense[T](1, 1, []T{1}),
+				NewDense[T](1, 1, []T{2}),
+			},
+			[]T{1, 2},
+		},
+		{
+			[]Matrix[T]{
+				NewDense[T](1, 2, []T{1, 2}),
+				NewDense[T](2, 1, []T{3, 4}),
+			},
+			[]T{1, 2, 3, 4},
+		},
+		{
+			[]Matrix[T]{
+				NewDense[T](1, 1, []T{1}),
+				NewDense[T](2, 1, []T{2, 3}),
+				NewDense[T](1, 3, []T{4, 5, 6}),
+			},
+			[]T{1, 2, 3, 4, 5, 6},
+		},
+	}
+
+	for _, tc := range testCases {
+		name := "["
+		for _, x := range tc.xs {
+			name += fmt.Sprintf(" (%d x %d)", x.Rows(), x.Columns())
+		}
+		name += " ]"
+		t.Run(name, func(t *testing.T) {
+			y := ConcatV[T](tc.xs...)
+			assert.Equal(t, len(tc.y), y.Rows())
+			assert.Equal(t, 1, y.Columns())
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
