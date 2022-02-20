@@ -149,3 +149,83 @@ func testConcatV[T DType](t *testing.T) {
 		})
 	}
 }
+
+func TestStack(t *testing.T) {
+	t.Run("float32", testStack[float32])
+	t.Run("float64", testStack[float64])
+}
+
+func testStack[T DType](t *testing.T) {
+	t.Run("non-vector matrix", func(t *testing.T) {
+		var d Matrix[T] = NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			Stack(d)
+		})
+	})
+
+	t.Run("vectors of different sizes", func(t *testing.T) {
+		var a Matrix[T] = NewEmptyDense[T](1, 2)
+		var b Matrix[T] = NewEmptyDense[T](1, 3)
+		require.Panics(t, func() {
+			Stack(a, b)
+		})
+	})
+
+	testCases := []struct {
+		xs []Matrix[T]
+		y  []T
+	}{
+		{[]Matrix[T]{}, []T{}},
+		{[]Matrix[T]{NewEmptyDense[T](0, 1)}, []T{}},
+		{[]Matrix[T]{NewEmptyDense[T](1, 0)}, []T{}},
+		{[]Matrix[T]{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{
+			[]Matrix[T]{
+				NewDense[T](1, 1, []T{1}),
+				NewDense[T](1, 1, []T{2}),
+			},
+			[]T{
+				1,
+				2,
+			},
+		},
+		{
+			[]Matrix[T]{
+				NewDense[T](2, 1, []T{1, 2}),
+				NewDense[T](2, 1, []T{3, 4}),
+			},
+			[]T{
+				1, 2,
+				3, 4,
+			},
+		},
+		{
+			[]Matrix[T]{
+				NewDense[T](2, 1, []T{1, 2}),
+				NewDense[T](1, 2, []T{3, 4}),
+			},
+			[]T{
+				1, 2,
+				3, 4,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		name := "["
+		for _, x := range tc.xs {
+			name += fmt.Sprintf(" (%d x %d)", x.Rows(), x.Columns())
+		}
+		name += " ]"
+		t.Run(name, func(t *testing.T) {
+			y := Stack[T](tc.xs...)
+			assert.Equal(t, len(tc.xs), y.Rows())
+			cols := 0
+			if len(tc.xs) > 0 {
+				cols = tc.xs[0].Size()
+			}
+			assert.Equal(t, cols, y.Columns())
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
