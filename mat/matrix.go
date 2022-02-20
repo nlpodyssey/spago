@@ -260,17 +260,27 @@ func ConcatH[T DType](ms ...Matrix[T]) *Dense[T] {
 	return out
 }
 
-// Stack returns a new Matrix created concatenating the input vectors horizontally.
+// Stack stacks two or more vectors of the same size on top of each other,
+// creating a new Dense matrix where each row contains the data of each
+// input vector.
+// It accepts row or column vectors indifferently, virtually treating all of
+// them as row vectors.
 func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
-	rows := len(vs)
-	cols := vs[0].Size()
-	out := densePool[T]().Get(rows, cols) // it doesn't need to be empty, because we are going to fill it up again
-	start := 0
-	end := cols
-	for _, v := range vs {
-		copy(out.data[start:end], v.Data())
-		start = end
-		end += cols
+	if len(vs) == 0 {
+		return densePool[T]().Get(0, 0)
 	}
+	cols := vs[0].Size()
+	out := densePool[T]().Get(len(vs), cols)
+	data := out.data[:0] // convenient for using append below
+	for _, v := range vs {
+		if !IsVector(v) {
+			panic("mat: expected vector")
+		}
+		if v.Size() != cols {
+			panic("mat: all vectors must have the same size")
+		}
+		data = append(data, v.Data()...)
+	}
+	out.data = data
 	return out
 }
