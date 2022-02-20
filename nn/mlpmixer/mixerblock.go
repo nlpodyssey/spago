@@ -68,25 +68,15 @@ func (m *MixerBlock[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 
 func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) []ag.Node[T] {
 	normalized := m.TokenLayerNorm.Forward(xs...)
-	stacked := ag.Stack(normalized...)
-
-	ys := make([]ag.Node[T], stacked.Value().Columns())
-	for i := range ys {
-		col := ag.ColView(stacked, i)
-		ys[i] = m.TokenMixerFF.Forward(col)[0]
-	}
+	cols := ag.ColViews(ag.Stack(normalized...))
+	ys := m.TokenMixerFF.Forward(cols...)
 	return ag.RowViews(ag.T(ag.Stack(ys...)))
 }
 
 func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) []ag.Node[T] {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
-
-	ys := make([]ag.Node[T], len(normalized))
-	for i, nv := range normalized {
-		nvt := ag.T(nv)
-		ys[i] = m.ChannelMixerFF.Forward(nvt)[0]
-	}
-	return ys
+	transposed := ag.Map(ag.T[T], normalized)
+	return m.ChannelMixerFF.Forward(transposed...)
 }
 
 func (m *MixerBlock[T]) residual(xs []ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
