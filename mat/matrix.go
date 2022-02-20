@@ -227,20 +227,23 @@ func VectorsOfSameSize[T DType](a, b Matrix[T]) bool {
 	return a.Size() == b.Size() && IsVector(a) && IsVector(b)
 }
 
-// ConcatV returns a new Matrix created concatenating the input matrices vertically.
+// ConcatV creates a new Dense column vector, concatenating two or more vectors
+// (indifferently row or column vectors).
 func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
-	cup := 0
-	for _, v := range vs {
-		cup += v.Size()
-	}
-	data := make([]T, 0, cup)
+	size := 0
 	for _, v := range vs {
 		if !IsVector(v) {
-			panic("mat: required vector, found matrix")
+			panic("mat: expected vector")
 		}
+		size += v.Size()
+	}
+	out := densePool[T]().Get(size, 1)
+	data := out.data[:0] // convenient for using append below
+	for _, v := range vs {
 		data = append(data, v.Data()...)
 	}
-	return NewVecDense(data)
+	out.data = data
+	return out
 }
 
 // ConcatH returns a new Matrix created concatenating the input matrices horizontally.
