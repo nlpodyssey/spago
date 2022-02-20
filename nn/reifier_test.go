@@ -11,16 +11,16 @@ import (
 	"testing"
 )
 
-var _ Model = &reifBaseModel{}
+var _ Model[float32] = &reifBaseModel[float32]{}
 
 // reifBaseModel can be used as base Model in tests.
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Forward method.
-type reifBaseModel struct {
-	BaseModel
+type reifBaseModel[T mat.DType] struct {
+	BaseModel[T]
 }
 
-func (p reifBaseModel) Forward(_ interface{}) interface{} {
+func (p reifBaseModel[_]) Forward(_ interface{}) interface{} {
 	panic("this should never be called")
 }
 
@@ -29,24 +29,24 @@ func TestModelContextualizer(t *testing.T) {
 	t.Run("float64", testModelContextualizer[float64])
 }
 
-type reifModel1 struct {
-	reifBaseModel
+type reifModel1[T mat.DType] struct {
+	reifBaseModel[T]
 	ID int
 }
 
 type reifModel2[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	A Param[T]
 }
 
 type reifModel3[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	A Param[T]
 	B Param[T]
 }
 
 type reifModel4[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	A []Param[T]
 }
 
@@ -57,7 +57,7 @@ type reifStruct5[T mat.DType] struct {
 }
 
 type reifModel5[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	Foo reifStruct5[T]
 	Bar reifStruct5[T] `spago:"type:params"`
 }
@@ -67,7 +67,7 @@ type reifStruct7[T mat.DType] struct {
 }
 
 type reifModel7[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	Foo []reifStruct7[T]
 	Bar []reifStruct7[T] `spago:"type:params"`
 	Baz []*reifStruct7[T]
@@ -75,12 +75,12 @@ type reifModel7[T mat.DType] struct {
 }
 
 type reifModel8[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	Foo []int `spago:"type:params"`
 }
 
 type reifModel9[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	A map[string]Param[T]
 }
 
@@ -89,7 +89,7 @@ type reifStruct10[T mat.DType] struct {
 }
 
 type reifModel10[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	Foo map[string]reifStruct10[T]
 	Bar map[string]reifStruct10[T] `spago:"type:params"`
 	Baz map[string]*reifStruct10[T]
@@ -97,7 +97,7 @@ type reifModel10[T mat.DType] struct {
 }
 
 type reifModel11[T mat.DType] struct {
-	reifBaseModel
+	reifBaseModel[T]
 	Foo map[string]int `spago:"type:params"`
 }
 
@@ -107,12 +107,12 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 	t.Run("model with irrelevant fields", func(t *testing.T) {
 		t.Parallel()
 
-		sourceModel := &reifModel1{ID: 42}
+		sourceModel := &reifModel1[T]{ID: 42}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
-		assert.IsType(t, &reifModel1{}, result)
+		result := Bind(sourceModel, g)
+		assert.IsType(t, &reifModel1[T]{}, result)
 		assert.NotSame(t, sourceModel, result)
-		assert.Equal(t, &reifModel1{ID: 42}, result)
+		assert.Equal(t, &reifModel1[T]{ID: 42}, result)
 	})
 
 	t.Run("it panic if a model Param is not a *BaseParam", func(t *testing.T) {
@@ -125,7 +125,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		}
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g)
+			Bind(sourceModel, g)
 		})
 	})
 
@@ -137,7 +137,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			B: NewParam[T](mat.NewScalar[T](2)),
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.IsType(t, &paramNode[T]{}, result.A)
 		assert.IsType(t, &paramNode[T]{}, result.B)
@@ -155,7 +155,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			},
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.IsType(t, &paramNode[T]{}, result.A[0])
 		assert.IsType(t, &paramNode[T]{}, result.A[1])
@@ -187,7 +187,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			},
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Foo.Z, result.Foo.Z)
@@ -220,7 +220,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			Qux: []*reifStruct7[T]{{P: NewParam[T](mat.NewScalar[T](4))}},
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz[0], result.Baz[0])
@@ -247,7 +247,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g)
+			Bind(sourceModel, g)
 		})
 	})
 
@@ -262,7 +262,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		}
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g)
+			Bind(sourceModel, g)
 		})
 	})
 
@@ -276,7 +276,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			},
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.IsType(t, &paramNode[T]{}, result.A["a"])
 		assert.IsType(t, &paramNode[T]{}, result.A["b"])
@@ -294,7 +294,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			Qux: map[string]*reifStruct10[T]{"d": {P: NewParam[T](mat.NewScalar[T](4))}},
 		}
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-		result := Reify(sourceModel, g)
+		result := Bind(sourceModel, g)
 
 		assert.Equal(t, sourceModel.Foo, result.Foo)
 		assert.Same(t, sourceModel.Baz["c"], result.Baz["c"])
@@ -321,7 +321,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 
 		assert.Panics(t, func() {
-			Reify(sourceModel, g)
+			Bind(sourceModel, g)
 		})
 	})
 }

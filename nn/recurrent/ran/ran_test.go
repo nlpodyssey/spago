@@ -21,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.Reify(model, g)
+	proc := nn.Bind(model, g)
 
 	// == Forward
 
@@ -80,7 +80,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.Reify(model, g)
+	proc := nn.Bind(model, g)
 
 	// == Forward
 

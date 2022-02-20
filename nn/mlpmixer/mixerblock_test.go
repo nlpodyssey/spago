@@ -25,7 +25,7 @@ func TestModel_Forward(t *testing.T) {
 func testMixerBlockForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := nn.Reify(model, g)
+	proc := nn.Bind(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5}), true)
@@ -44,7 +44,7 @@ func testMixerBlockForward[T mat.DType](t *testing.T) {
 func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
 	model := newTestModelGelu[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := nn.Reify(model, g)
+	proc := nn.Bind(model, g)
 
 	x1 := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.1}), true)
