@@ -80,9 +80,5 @@ func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *MixerBlock[T]) residual(xs []ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
-	for i, x := range xs {
-		ys[i] = ag.Add(x, residual[i])
-	}
-	return ys
+	return ag.Map2(ag.Add[T], xs, residual)
 }
