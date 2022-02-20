@@ -66,7 +66,7 @@ func (m *MixerBlock[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	return xs
 }
 
-func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) ag.Node[T] {
+func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) []ag.Node[T] {
 	normalized := m.TokenLayerNorm.Forward(xs...)
 	stacked := ag.Stack(normalized...)
 
@@ -75,10 +75,10 @@ func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) ag.Node[T] {
 		col := ag.ColView(stacked, i)
 		ys[i] = m.TokenMixerFF.Forward(col)[0]
 	}
-	return ag.T(ag.Stack(ys...))
+	return ag.RowViews(ag.T(ag.Stack(ys...)))
 }
 
-func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) ag.Node[T] {
+func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) []ag.Node[T] {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
 
 	ys := make([]ag.Node[T], len(normalized))
@@ -86,13 +86,13 @@ func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) ag.Node[T] {
 		nvt := ag.T(nv)
 		ys[i] = m.ChannelMixerFF.Forward(nvt)[0]
 	}
-	return ag.Stack(ys...)
+	return ys
 }
 
-func (m *MixerBlock[T]) residual(x ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], x.Value().Rows())
-	for i := 0; i < x.Value().Rows(); i++ {
-		ys[i] = ag.Add(ag.RowView(x, i), residual[i])
+func (m *MixerBlock[T]) residual(xs []ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
+	ys := make([]ag.Node[T], len(xs))
+	for i, x := range xs {
+		ys[i] = ag.Add(x, residual[i])
 	}
 	return ys
 }
