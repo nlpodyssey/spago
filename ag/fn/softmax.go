@@ -23,7 +23,7 @@ func NewSoftmax[T mat.DType](x Operand[T]) *Softmax[T] {
 
 // Forward computes the output of this function.
 func (r *Softmax[T]) Forward() mat.Matrix[T] {
-	r.y = mat.NewVecDense(softmax(r.x.Value().Data()))
+	r.y = r.x.Value().Softmax()
 	return r.y
 }
 
@@ -47,29 +47,4 @@ func (r *Softmax[T]) Backward(gy mat.Matrix[T]) {
 		defer mat.ReleaseMatrix(gx)
 		r.x.PropagateGrad(gx)
 	}
-}
-
-func max[T mat.DType](v []T) (m T) {
-	m = v[len(v)-1]
-	for _, e := range v {
-		if m <= e {
-			m = e
-		}
-	}
-	return
-}
-
-func softmax[T mat.DType](v []T) []T {
-	maximum := max(v)
-	var sum T = 0.0
-	out := make([]T, len(v))
-	for i, x := range v {
-		e := mat.Exp(x - maximum)
-		out[i] = e
-		sum += e
-	}
-	for i := range v {
-		out[i] /= sum
-	}
-	return out
 }
