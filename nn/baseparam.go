@@ -187,6 +187,13 @@ func (p *BaseParam[_]) ClearPayload() {
 	p.payload = nil
 }
 
+func (p *BaseParam[T]) Bind(g *ag.Graph[T]) ag.Node[T] {
+	if p.RequiresGrad() {
+		return &ParamNode[T]{Param: p, Node: g.NewWrap(p)}
+	}
+	return &ParamNode[T]{Param: p, Node: g.NewWrapNoGrad(p)}
+}
+
 // Graph returns always nil since the "pure" parameter is not associated with any graph.
 func (p *BaseParam[T]) Graph() *ag.Graph[T] {
 	panic("nn: attempting to access Graph on a not reified param.")

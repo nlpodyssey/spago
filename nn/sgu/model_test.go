@@ -2,7 +2,6 @@ package sgu
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +39,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T]()
 	defer g.Clear()
 
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 
 	xs := []ag.Node[T]{
 		g.NewVariable(mat.NewVecDense([]T{

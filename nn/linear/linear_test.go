@@ -6,7 +6,6 @@ package linear
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -27,8 +26,8 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
-	actProc := binder.Bind(g, activation.New[T](activation.Tanh))
-	proc := binder.Bind(g, model)
+	actProc := ag.Bind(g, activation.New[T](activation.Tanh))
+	proc := ag.Bind(g, model)
 	y := actProc.Forward(proc.Forward(x)...)[0] // TODO: test linear only
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)

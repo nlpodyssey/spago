@@ -6,7 +6,6 @@ package lstm
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 
 	// == Forward
 
@@ -111,7 +110,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 
 	// == Forward
 	s0 := &State[T]{
@@ -287,7 +286,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 	g := ag.NewGraph[T]()
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 
 	// == Forward
 	s0 := &State[T]{

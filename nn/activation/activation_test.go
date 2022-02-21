@@ -6,7 +6,6 @@ package activation
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +20,7 @@ func TestModelReLU_Forward(t *testing.T) {
 func testModelReLUForward[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
 	m := New[T](ReLU)
-	p := binder.Bind(g, m)
+	p := ag.Bind(g, m)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
@@ -45,7 +44,7 @@ func testModelSwishForward[T mat.DType](t *testing.T) {
 
 	beta := nn.NewParam[T](mat.NewScalar[T](2.0))
 	model := New(SwishB, beta)
-	p := binder.Bind(g, model)
+	p := ag.Bind(g, model)
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)

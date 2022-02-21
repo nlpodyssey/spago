@@ -2,25 +2,30 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package binder
+package ag
 
 import (
-	"github.com/nlpodyssey/spago/ag"
 	"reflect"
 
 	"github.com/nlpodyssey/spago/mat"
 )
 
+// NodeBinder allows any type which satisfies the Node interface
+// to create a bound version of itself.
+type NodeBinder[T mat.DType] interface {
+	Bind(g *Graph[T]) Node[T]
+}
+
 // Bind returns a new structure of the same type as the one in input
 // in which the fields of type Node (including those from other differentiable
 // submodules) are connected to the given graph.
-func Bind[T mat.DType, D ag.Differentiable[T]](g *ag.Graph[T], i D) D {
+func Bind[T mat.DType, D Differentiable[T]](g *Graph[T], i D) D {
 	b := &binder[T]{g: g}
-	return b.bindStruct(i).(ag.Differentiable[T]).(D)
+	return b.bindStruct(i).(Differentiable[T]).(D)
 }
 
 type binder[T mat.DType] struct {
-	g *ag.Graph[T]
+	g *Graph[T]
 }
 
 func (r *binder[_]) bindStruct(rawSource interface{}) interface{} {
@@ -54,11 +59,12 @@ func (r *binder[_]) bindStruct(rawSource interface{}) interface{} {
 
 func (r *binder[T]) bindStructField(sourceField, destField reflect.Value) {
 	switch sourceFieldT := sourceField.Interface().(type) {
-	case *ag.Graph[T]:
+	case *Graph[T]:
 		destField.Set(reflect.ValueOf(r.g))
-	case ag.Node[T]:
-		destField.Set(reflect.ValueOf(BindNode[T, ag.Node[T]](r.g, sourceFieldT.(ag.Node[T]))))
-	case ag.Differentiable[T]:
+	case Node[T]:
+		// This Node MUST be Bindable, otherwise it panics
+		destField.Set(reflect.ValueOf(sourceFieldT.(NodeBinder[T]).Bind(r.g)))
+	case Differentiable[T]:
 		destField.Set(reflect.ValueOf(r.bindDifferentiable(sourceFieldT)))
 	default:
 		switch sourceField.Kind() {
@@ -77,20 +83,20 @@ func (r *binder[T]) bindStructField(sourceField, destField reflect.Value) {
 	}
 }
 
-func (r *binder[T]) bindDifferentiable(sourceField ag.Differentiable[T]) ag.Differentiable[T] {
+func (r *binder[T]) bindDifferentiable(sourceField Differentiable[T]) Differentiable[T] {
 	if isNil(sourceField) {
 		return sourceField
 	}
-	return Bind(r.g, sourceField).(ag.Differentiable[T])
+	return Bind(r.g, sourceField).(Differentiable[T])
 }
 
-func (r *binder[T]) bindDifferentiableSlice(sourceField []ag.Differentiable[T]) []ag.Differentiable[T] {
-	result := make([]ag.Differentiable[T], len(sourceField))
+func (r *binder[T]) bindDifferentiableSlice(sourceField []Differentiable[T]) []Differentiable[T] {
+	result := make([]Differentiable[T], len(sourceField))
 	for i := 0; i < len(sourceField); i++ {
 		if isNil(sourceField) {
 			return sourceField
 		}
-		result[i] = Bind(r.g, sourceField[i]).(ag.Differentiable[T])
+		result[i] = Bind(r.g, sourceField[i]).(Differentiable[T])
 	}
 	return result
 }
@@ -103,8 +109,8 @@ func (r *binder[T]) bindSlice(sourceField reflect.Value) reflect.Value {
 		sourceItem := sourceField.Index(i)
 		switch sourceItem.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			_, isDifferentiable := sourceItem.Interface().(ag.Differentiable[T])
-			_, isNode := sourceItem.Interface().(ag.Node[T])
+			_, isDifferentiable := sourceItem.Interface().(Differentiable[T])
+			_, isNode := sourceItem.Interface().(Node[T])
 			if isDifferentiable || isNode {
 				r.bindStructField(sourceItem, result.Index(i))
 			}
@@ -116,7 +122,7 @@ func (r *binder[T]) bindSlice(sourceField reflect.Value) reflect.Value {
 }
 
 func paramInterfaceNamePrefix[T mat.DType]() string {
-	return reflect.TypeOf(ag.Node[T](nil)).Elem().Name() // TODO: fix this (?)
+	return reflect.TypeOf(Node[T](nil)).Elem().Name() // TODO: fix this (?)
 }
 
 func (r *binder[T]) bindMap(sourceValue reflect.Value) reflect.Value {
@@ -136,8 +142,9 @@ func (r *binder[T]) bindMap(sourceValue reflect.Value) reflect.Value {
 		sourceValue := mapRange.Value()
 
 		var destValue reflect.Value
-		if p, isNode := sourceValue.Interface().(ag.Node[T]); isNode {
-			destValue = reflect.ValueOf(BindNode[T, ag.Node[T]](r.g, p))
+		if p, isNode := sourceValue.Interface().(Node[T]); isNode {
+			// This Node MUST be Bindable, otherwise it panics
+			destValue = reflect.ValueOf(p.(NodeBinder[T]).Bind(r.g))
 		} else if mapValueKind == reflect.Struct || mapValueKind == reflect.Ptr {
 			destValue = reflect.ValueOf(r.bindStruct(sourceValue.Interface()))
 		} else {

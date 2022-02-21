@@ -5,7 +5,6 @@
 package batchnorm
 
 import (
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/exp/rand"
 	"os"
@@ -114,7 +113,7 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
-			y = binder.Bind(g, model).Forward(x...)
+			y = ag.Bind(g, model).Forward(x...)
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -141,7 +140,7 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 	data := []T{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense[T](data), false)
 	y := proc.Forward(x)
@@ -190,7 +189,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(binder.Bind(g, model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(ag.Bind(g, model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)

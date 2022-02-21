@@ -6,7 +6,6 @@ package gmlp
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -136,7 +135,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	g := ag.NewGraph[T]()
 	defer g.Clear()
-	proc := binder.Bind(g, model)
+	proc := ag.Bind(g, model)
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
 	w2 := g.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)
