@@ -187,6 +187,7 @@ func (p *BaseParam[_]) ClearPayload() {
 	p.payload = nil
 }
 
+// Bind returns a Node interface to create a bound version of the param itself.
 func (p *BaseParam[T]) Bind(g *ag.Graph[T]) ag.Node[T] {
 	if p.RequiresGrad() {
 		return &ParamNode[T]{Param: p, Node: g.NewWrap(p)}

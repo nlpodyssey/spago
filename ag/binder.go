@@ -13,6 +13,7 @@ import (
 // NodeBinder allows any type which satisfies the Node interface
 // to create a bound version of itself.
 type NodeBinder[T mat.DType] interface {
+	// Bind returns a Node interface to create a bound version of the receiver node.
 	Bind(g *Graph[T]) Node[T]
 }
 
