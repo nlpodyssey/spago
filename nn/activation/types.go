@@ -118,7 +118,7 @@ func strToActivationMap() map[string]Name {
 
 // Activation maps a string to an activation function.
 // It returns an error if the string does not match any built-in activation (not even using lowercase).
-func Activation[T mat.DType](str string) (Name, error) {
+func Activation(str string) (Name, error) {
 	if value, ok := strActivationMap[str]; ok {
 		return value, nil
 	}
