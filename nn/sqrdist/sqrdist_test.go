@@ -6,8 +6,8 @@ package sqrdist
 
 import (
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -23,7 +23,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.3, 0.5, -0.4}), true)
-	y := nn.Bind(model, g).Forward(x)[0]
+	y := binder.Bind(g, model).Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.5928}, y.Value().Data(), 1.0e-05)
 

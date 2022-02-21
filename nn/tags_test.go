@@ -18,9 +18,6 @@ func TestValidModuleFieldTagParsing(t *testing.T) {
 		{"", moduleFieldTag{
 			Type: defaultModuleFieldType,
 		}},
-		{"type:params", moduleFieldTag{
-			Type: paramsModuleFieldType,
-		}},
 		{"type:weights", moduleFieldTag{
 			Type: weightsModuleFieldType,
 		}},
@@ -58,7 +55,6 @@ func TestModuleFieldTag_ParamType(t *testing.T) {
 		tag      string
 		expected ParamsType
 	}{
-		{"type:params", Undefined},
 		{"type:weights", Weights},
 		{"type:biases", Biases},
 		{"type:undefined", Undefined},

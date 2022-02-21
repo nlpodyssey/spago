@@ -6,9 +6,9 @@ package cfn
 
 import (
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -25,7 +25,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := nn.Bind(model, g).Forward(x)[0]
+	y := binder.Bind(g, model).Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.268, -0.025, 0.381, 0.613, -0.364}, y.Value().Data(), 0.0005)
 
@@ -75,7 +75,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := nn.Bind(model, g)
+	proc := binder.Bind(g, model)
 
 	s0 := &State[T]{Y: g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true)}
 
@@ -189,7 +189,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := nn.Bind(model, g)
+	proc := binder.Bind(g, model)
 
 	s0 := &State[T]{Y: g.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true)}
 

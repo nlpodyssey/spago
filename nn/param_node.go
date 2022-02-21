@@ -9,45 +9,45 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Param[float32] = &paramNode[float32]{}
+var _ Param[float32] = &ParamNode[float32]{}
 
-// paramNode enriches a Param with a Node.
-type paramNode[T mat.DType] struct {
+// ParamNode enriches a Param with a Node.
+type ParamNode[T mat.DType] struct {
 	Param[T]
 	Node ag.Node[T]
 }
 
 // ID dispatches the call to the Node.
-func (p *paramNode[_]) ID() int {
+func (p *ParamNode[_]) ID() int {
 	return p.Node.ID()
 }
 
 // Graph dispatches the call to the Node.
-func (p *paramNode[T]) Graph() *ag.Graph[T] {
+func (p *ParamNode[T]) Graph() *ag.Graph[T] {
 	return p.Node.Graph()
 }
 
 // Grad dispatches the call to the Node.
-func (p *paramNode[T]) Grad() mat.Matrix[T] {
+func (p *ParamNode[T]) Grad() mat.Matrix[T] {
 	return p.Node.Grad()
 }
 
 // PropagateGrad dispatches the call to the Node.
-func (p *paramNode[T]) PropagateGrad(gx mat.Matrix[T]) {
+func (p *ParamNode[T]) PropagateGrad(gx mat.Matrix[T]) {
 	p.Node.PropagateGrad(gx)
 }
 
 // HasGrad dispatches the call to the Node.
-func (p *paramNode[_]) HasGrad() bool {
+func (p *ParamNode[_]) HasGrad() bool {
 	return p.Node.HasGrad()
 }
 
 // RequiresGrad dispatches the call to the Node.
-func (p *paramNode[_]) RequiresGrad() bool {
+func (p *ParamNode[_]) RequiresGrad() bool {
 	return p.Node.RequiresGrad()
 }
 
 // ZeroGrad dispatches the call to the Node.
-func (p *paramNode[_]) ZeroGrad() {
+func (p *ParamNode[_]) ZeroGrad() {
 	p.Node.ZeroGrad()
 }

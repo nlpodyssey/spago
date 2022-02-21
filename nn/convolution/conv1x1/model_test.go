@@ -6,8 +6,8 @@ package conv1x1
 
 import (
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -39,7 +39,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
 		defer g.Clear()
 
-		proc := nn.Bind(model, g)
+		proc := binder.Bind(g, model)
 
 		xs := []ag.Node[T]{
 			g.NewVariable(mat.NewVecDense([]T{1, 2, 4, 0, -1}), false),
@@ -72,7 +72,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
 		defer g.Clear()
 
-		proc := nn.Bind(model, g)
+		proc := binder.Bind(g, model)
 
 		xs := []ag.Node[T]{
 			g.NewVariable(mat.NewVecDense([]T{0.2, 0.9, 0.1}), false),

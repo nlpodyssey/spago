@@ -24,19 +24,19 @@ var _ nn.Model[float32] = &Model[float32]{}
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
 	Config                 Config
-	InputGate              *HyperLinear4[T] `spago:"type:params"`
-	LeftCellGate           *HyperLinear4[T] `spago:"type:params"`
-	RightCellGate          *HyperLinear4[T] `spago:"type:params"`
-	CellGate               *HyperLinear4[T] `spago:"type:params"`
-	SentCellGate           *HyperLinear4[T] `spago:"type:params"`
-	OutputGate             *HyperLinear4[T] `spago:"type:params"`
-	InputActivation        *HyperLinear4[T] `spago:"type:params"`
-	NonLocalSentCellGate   *HyperLinear3[T] `spago:"type:params"`
-	NonLocalInputGate      *HyperLinear3[T] `spago:"type:params"`
-	NonLocalSentOutputGate *HyperLinear3[T] `spago:"type:params"`
-	StartH                 nn.Param[T]      `spago:"type:weights"`
-	EndH                   nn.Param[T]      `spago:"type:weights"`
-	InitValue              nn.Param[T]      `spago:"type:weights"`
+	InputGate              *HyperLinear4[T]
+	LeftCellGate           *HyperLinear4[T]
+	RightCellGate          *HyperLinear4[T]
+	CellGate               *HyperLinear4[T]
+	SentCellGate           *HyperLinear4[T]
+	OutputGate             *HyperLinear4[T]
+	InputActivation        *HyperLinear4[T]
+	NonLocalSentCellGate   *HyperLinear3[T]
+	NonLocalInputGate      *HyperLinear3[T]
+	NonLocalSentOutputGate *HyperLinear3[T]
+	StartH                 nn.Param[T] `spago:"type:weights"`
+	EndH                   nn.Param[T] `spago:"type:weights"`
+	InitValue              nn.Param[T] `spago:"type:weights"`
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.
@@ -50,6 +50,7 @@ const windowSize = 3 // the window is fixed in this implementation
 
 // HyperLinear4 groups multiple params for an affine transformation.
 type HyperLinear4[T mat.DType] struct {
+	nn.BaseModel[T]
 	W nn.Param[T] `spago:"type:weights"`
 	U nn.Param[T] `spago:"type:weights"`
 	V nn.Param[T] `spago:"type:weights"`
@@ -58,6 +59,7 @@ type HyperLinear4[T mat.DType] struct {
 
 // HyperLinear3 groups multiple params for an affine transformation.
 type HyperLinear3[T mat.DType] struct {
+	nn.BaseModel[T]
 	W nn.Param[T] `spago:"type:weights"`
 	U nn.Param[T] `spago:"type:weights"`
 	B nn.Param[T] `spago:"type:biases"`

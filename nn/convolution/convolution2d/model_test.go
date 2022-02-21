@@ -5,11 +5,11 @@
 package convolution2d
 
 import (
+	"github.com/nlpodyssey/spago/ag/binder"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +47,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := nn.Bind(model, g).Forward(x1, x2, x3)
+	y := binder.Bind(g, model).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.6291451614, 0.4218990053, 0.0399786803,
@@ -183,7 +183,7 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := nn.Bind(model, g).Forward(x1, x2, x3)
+	y := binder.Bind(g, model).Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,

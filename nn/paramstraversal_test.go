@@ -5,6 +5,7 @@
 package nn
 
 import (
+	"github.com/nlpodyssey/spago/ag"
 	"reflect"
 	"sync"
 	"testing"
@@ -87,13 +88,24 @@ type ptModel6[T mat.DType] struct {
 }
 
 type testStructP[T mat.DType] struct {
+	ag.Differentiable[T]
+	P Param[T]
+}
+
+type testStructQ[T mat.DType] struct {
+	ParamsTraversalBaseModel[T]
+	P Param[T]
+}
+
+type testStructToIgnore[T mat.DType] struct {
 	P Param[T]
 }
 
 type ptModel7[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
-	Ignored []testStructP[T]
-	S       []testStructP[T] `spago:"type:params"`
+	ToIgnore1 []testStructToIgnore[T]
+	ToIgnore2 testStructQ[T] // ignored when strict exploration
+	S         []testStructP[T]
 }
 
 type ptModel8[T mat.DType] struct {
@@ -104,13 +116,13 @@ type ptModel8[T mat.DType] struct {
 
 type ptModel9[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
-	MS testStructP[T]  `spago:"type:params"`
-	MP *testStructP[T] `spago:"type:params"`
+	MS testStructP[T]
+	MP *testStructP[T]
 }
 
 type ptModel10[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
-	MS *sync.Map `spago:"type:params"`
+	MS *sync.Map
 }
 
 func testParamsTraversal[T mat.DType](t *testing.T) {
@@ -285,9 +297,12 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 		t.Parallel()
 
 		m := &ptModel7[T]{
-			Ignored: []testStructP[T]{
+			ToIgnore1: []testStructToIgnore[T]{
 				{P: NewParam[T](mat.NewScalar[T](1))},
 				{P: NewParam[T](mat.NewScalar[T](2))},
+			},
+			ToIgnore2: testStructQ[T]{
+				P: NewParam[T](mat.NewScalar[T](1)),
 			},
 			S: []testStructP[T]{
 				{P: NewParam[T](mat.NewScalar[T](10))},

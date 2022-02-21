@@ -13,7 +13,6 @@ type moduleFieldType uint8
 
 const (
 	defaultModuleFieldType moduleFieldType = iota
-	paramsModuleFieldType
 	weightsModuleFieldType
 	biasesModuleFieldType
 	undefinedModuleFieldType
@@ -70,8 +69,6 @@ func parseModuleFieldTag(tag string) (moduleFieldTag, error) {
 
 func stringToModuleFieldType(s string) (moduleFieldType, error) {
 	switch s {
-	case "params":
-		return paramsModuleFieldType, nil
 	case "weights":
 		return weightsModuleFieldType, nil
 	case "biases":

@@ -5,14 +5,8 @@
 package nn
 
 import (
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 )
-
-// Bind returns a new "reified" model (a.k.a. processor) to execute the forward step.
-func Bind[T mat.DType, M ag.Differentiable[T]](m M, g *ag.Graph[T]) M {
-	return (&binder[T]{g: g}).bind(m).(M)
-}
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
 func ForEachParam[T mat.DType](m Model[T], callback func(param Param[T])) {

@@ -6,9 +6,9 @@ package tpr
 
 import (
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/ag/binder"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -21,7 +21,7 @@ func TestModelForward(t *testing.T) {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := nn.Bind(model, g)
+	proc := binder.Bind(g, model)
 
 	// == Forward
 
@@ -58,7 +58,7 @@ func TestModelForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.Bind(model, g)
+	proc := binder.Bind(g, model)
 
 	// == Forward
 
@@ -102,7 +102,7 @@ func TestModelForwardSeq(t *testing.T) {
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	g := ag.NewGraph[T]()
-	proc := nn.Bind(model, g)
+	proc := binder.Bind(g, model)
 
 	// == Forward
 

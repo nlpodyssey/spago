@@ -6,6 +6,7 @@ package nn
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/utils"
 	"reflect"
@@ -62,20 +63,19 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag 
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}
+	case ag.Differentiable[T]:
+		_, isModel := itemT.(Model[T])
+		if !isModel {
+			pt.walk(item)
+		}
 	case *sync.Map:
 		pt.walkSyncMap(itemT, name, tag)
 	default:
-		if tag.Type == paramsModuleFieldType {
-			pt.walk(item)
-		}
+		return
 	}
 }
 
 func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
-	if tag.Type != paramsModuleFieldType {
-		return
-	}
-
 	i.Range(func(key, value interface{}) bool {
 		switch k := key.(type) {
 		case string:
