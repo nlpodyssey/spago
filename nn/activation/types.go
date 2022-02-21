@@ -117,12 +117,22 @@ func strToActivationMap() map[string]Name {
 }
 
 // Activation maps a string to an activation function.
-// It panics if the string does not match any built-in activation (not even using lowercase).
+// It returns an error if the string does not match any built-in activation (not even using lowercase).
 func Activation[T mat.DType](str string) (Name, error) {
 	if value, ok := strActivationMap[str]; ok {
 		return value, nil
 	}
 	return -1, fmt.Errorf("activation: unknown activation function %s", str)
+}
+
+// MustActivation maps a string to an activation function.
+// It panics if the string does not match any built-in activation (not even using lowercase).
+func MustActivation(str string) Name {
+	value, err := Activation(str)
+	if err != nil {
+		panic(err)
+	}
+	return value
 }
 
 // Do make a new node as a result of the application of the input operator.
