@@ -110,6 +110,24 @@ func Mean[T mat.DType](xs []Node[T]) Node[T] {
 	return DivScalar(sumVector, xs[0].Graph().Constant(T(len(xs))))
 }
 
+// ReduceMax returns the value that describes the maximum of the sample.
+func ReduceMax[T mat.DType](xs []Node[T]) Node[T] {
+	maxVector := xs[0]
+	for i := 1; i < len(xs); i++ {
+		maxVector = Max(maxVector, xs[i])
+	}
+	return maxVector
+}
+
+// ReduceMin returns the value that describes the minimum of the sample.
+func ReduceMin[T mat.DType](xs []Node[T]) Node[T] {
+	maxVector := xs[0]
+	for i := 1; i < len(xs); i++ {
+		maxVector = Min(maxVector, xs[i])
+	}
+	return maxVector
+}
+
 // Affine performs an affine transformation over an arbitrary (odd) number of nodes held in the input.
 // The first node is the “bias”, which is added to the output as-is.
 // The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
