@@ -32,6 +32,12 @@ func ClearSupport[T mat.DType](m Model[T]) {
 	})
 }
 
+// Introspect set the name property of each model's param (including sub-models).
+func Introspect[T mat.DType, D Model[T]](m D) D {
+	ForEachParam(Model[T](m), func(param Param[T]) {})
+	return m
+}
+
 // DumpParamsVector dumps all params of a Model into a single Dense vector.
 func DumpParamsVector[T mat.DType](model Model[T]) mat.Matrix[T] {
 	data := make([]T, 0)
