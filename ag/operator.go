@@ -6,10 +6,12 @@ package ag
 
 import (
 	"fmt"
+	"reflect"
+	"regexp"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
-	"reflect"
-	"sync"
 )
 
 var (
@@ -61,7 +63,8 @@ func (r *Operator[_]) ID() int {
 // Name returns the Name of the operator.
 // The name is taken from the name of r.function via/ reflection.
 func (r *Operator[_]) Name() string {
-	return reflect.ValueOf(r.function).Elem().Type().Name()
+	value := reflect.ValueOf(r.function).Elem().Type().Name()
+	return regexp.MustCompile(`\[[^]]*\]`).ReplaceAllString(value, "") // remove generics
 }
 
 // Graph returns the graph this node belongs to.
