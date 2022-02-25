@@ -22,6 +22,11 @@ func (p *ParamNode[_]) ID() int {
 	return p.Node.ID()
 }
 
+// TimeStep dispatches the call to the Node.
+func (p *ParamNode[_]) TimeStep() int {
+	return p.Node.TimeStep()
+}
+
 // Graph dispatches the call to the Node.
 func (p *ParamNode[T]) Graph() *ag.Graph[T] {
 	return p.Node.Graph()
