@@ -32,13 +32,15 @@ func (m *testLinearWithActivationModel[T]) forward(x ag.Node[T]) ag.Node[T] {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	r := ag.NewReifier[T](testLinearWithActivationModel[T]{
-		M1: model,
-		M2: activation.New[T](activation.Tanh),
-	}).WithTrainingMode()
-
-	p, g := r.New()
+	p, g := ag.Reify(
+		testLinearWithActivationModel[T]{
+			M1: model,
+			M2: activation.New[T](activation.Tanh),
+		},
+		ag.ForTraining[T](),
+	)
 	defer g.Clear()
+
 	// == Forward
 
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)

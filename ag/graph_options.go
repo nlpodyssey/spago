@@ -59,3 +59,17 @@ func WithMode[T mat.DType](mode ProcessingMode) GraphOption[T] {
 		g.mode = mode
 	}
 }
+
+// ForTraining equals to ag.WithMode(ag.Training).
+func ForTraining[T mat.DType]() GraphOption[T] {
+	return func(r *Graph[T]) {
+		r.mode = Training
+	}
+}
+
+// ForInference equals to ag.WithMode(ag.Inference).
+func ForInference[T mat.DType]() GraphOption[T] {
+	return func(r *Graph[T]) {
+		r.mode = Inference
+	}
+}

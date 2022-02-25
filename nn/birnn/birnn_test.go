@@ -20,8 +20,7 @@ func TestModelConcat_Forward(t *testing.T) {
 
 func testModelConcatForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Concat)
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	p, g := r.New()
+	p, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward
@@ -101,8 +100,7 @@ func TestModelSum_Forward(t *testing.T) {
 
 func testModelSumForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Sum)
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	p, g := r.New()
+	p, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward
@@ -125,8 +123,7 @@ func TestModelAvg_Forward(t *testing.T) {
 
 func testModelAvgForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Avg)
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	p, g := r.New()
+	p, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward
@@ -149,8 +146,7 @@ func TestModelProd_Forward(t *testing.T) {
 
 func testModelProdForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Prod)
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	p, g := r.New()
+	p, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward

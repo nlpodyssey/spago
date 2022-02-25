@@ -19,8 +19,7 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward
@@ -62,8 +61,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward
@@ -130,8 +128,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward

@@ -35,8 +35,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 			4, 5, 6,
 		})
 
-		r := ag.NewReifier[T](model).WithTrainingMode()
-		p, g := r.New()
+		p, g := ag.Reify(model, ag.ForTraining[T]())
 		defer g.Clear()
 
 		xs := []ag.Node[T]{
@@ -67,8 +66,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 			0.9, 0.8, 0.7, 0.6,
 		})
 
-		r := ag.NewReifier[T](model).WithTrainingMode()
-		p, g := r.New()
+		p, g := ag.Reify(model, ag.ForTraining[T]())
 		defer g.Clear()
 
 		xs := []ag.Node[T]{

@@ -109,13 +109,12 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		x := make([]ag.Node[T], len(testData))
 		var y []ag.Node[T]
 		for i := 0; i < tt.forwardSteps; i++ {
-			r := ag.NewReifier[T](model).WithTrainingMode()
-			proc, g := r.New()
+			proc, g := ag.Reify(model, ag.ForTraining[T]())
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
 			y = proc.Forward(x...)
-			//defer g.Clear()
+			g.Clear()
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -142,8 +141,7 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 
-	r := ag.NewReifier[T](model).WithInferenceMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForInference[T]())
 	defer g.Clear()
 
 	data := []T{1.0, 2.0, 3.0}
@@ -186,8 +184,7 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward

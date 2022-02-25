@@ -133,8 +133,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.55, 0.44, 0.33, 0.22,
 	})
 
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)

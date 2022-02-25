@@ -17,8 +17,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func testModelForward[T mat.DType](t *testing.T) {
-	r := ag.NewReifier[T](New[T](0.8)).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(New[T](0.8), ag.ForTraining[T]())
 	defer g.Clear()
 
 	// == Forward

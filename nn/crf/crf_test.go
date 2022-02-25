@@ -18,8 +18,7 @@ func TestModel_Decode(t *testing.T) {
 
 func testModelDecode[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
@@ -42,8 +41,7 @@ func TestModel_GoldScore(t *testing.T) {
 
 func testModelGoldScore[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
@@ -65,8 +63,7 @@ func TestModel_TotalScore(t *testing.T) {
 
 func testModelTotalScore[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
@@ -87,8 +84,7 @@ func TestModel_Loss(t *testing.T) {
 
 func testModelLoss[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	r := ag.NewReifier[T](model).WithTrainingMode()
-	proc, g := r.New()
+	proc, g := ag.Reify(model, ag.ForTraining[T]())
 	defer g.Clear()
 
 	w1 := g.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
