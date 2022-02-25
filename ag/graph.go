@@ -10,8 +10,6 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/utils/processingqueue"
-	"log"
-	"runtime"
 	"sync"
 )
 
@@ -41,8 +39,8 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// incrementalForward reports whether to compute the forward during the graph definition.
-	incrementalForward bool
+	// eagerExecution reports whether to compute the forward during the graph definition.
+	eagerExecution bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise, the cache must be invalidated and the values recalculated.
@@ -64,66 +62,17 @@ type Graph[T mat.DType] struct {
 	processingQueue processingqueue.ProcessingQueue
 }
 
-// defaultProcessingQueueSize is the default size of Graph.processingQueue on a new Graph.
-var defaultProcessingQueueSize = runtime.NumCPU()
-
-// GraphOption allows to configure a new Graph with your specific needs.
-type GraphOption[T mat.DType] func(*Graph[T])
-
-// WithRand sets the generator of random numbers.
-func WithRand[T mat.DType](rand *rand.LockedRand[T]) GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.randGen = rand
-	}
-}
-
-// WithRandSeed set a new generator of random numbers with the given seed.
-func WithRandSeed[T mat.DType](seed uint64) GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.randGen = rand.NewLockedRand[T](seed)
-	}
-}
-
-// WithIncrementalForward sets whether to compute the forward during the graph definition (default true).
-// When enabled it lets you access to the Value() resulting from the computation.
-// There are particular cases where you don't need intermediate values and computing the forward after
-// the graph definition can be more efficient though.
-func WithIncrementalForward[T mat.DType](value bool) GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.incrementalForward = value
-	}
-}
-
-// WithConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
-// for heavy tasks such as forward and backward steps.
-// The value 1 corresponds to sequential execution.
-func WithConcurrentComputations[T mat.DType](value int) GraphOption[T] {
-	if value < 1 {
-		panic("ag: WithConcurrentComputations value must be greater than zero")
-	}
-	return func(g *Graph[T]) {
-		g.processingQueue = processingqueue.New(value)
-	}
-}
-
-// WithMode sets whether the graph is being used in training or inference.
-func WithMode[T mat.DType](mode ProcessingMode) GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.mode = mode
-	}
-}
-
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.WithRand.
 func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	g := &Graph[T]{
-		maxID:              -1,
-		curTimeStep:        0,
-		nodes:              nil,
-		constants:          map[T]Node[T]{},
-		incrementalForward: true,
-		mode:               Inference,
-		processingQueue:    processingqueue.New(defaultProcessingQueueSize),
+		maxID:           -1,
+		curTimeStep:     0,
+		nodes:           nil,
+		constants:       map[T]Node[T]{},
+		eagerExecution:  true,
+		mode:            Inference,
+		processingQueue: processingqueue.New(defaultProcessingQueueSize),
 	}
 	g.clearCache()
 	for _, opt := range opts {
@@ -135,10 +84,10 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	return g
 }
 
-// IncrementalForwardEnabled returns whether the computation happens during the graph definition.
-// See ag.WithIncrementalForward() option.
-func (g *Graph[_]) IncrementalForwardEnabled() bool {
-	return g.incrementalForward
+// eagerExecutionEnabled returns whether the computation happens during the graph definition.
+// See ag.WithEagerExecution() option.
+func (g *Graph[_]) eagerExecutionEnabled() bool {
+	return g.eagerExecution
 }
 
 // Mode returns whether the graph is being used in training or inference.
@@ -301,7 +250,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 		}
 	}
 	var value mat.Matrix[T] = nil
-	if g.incrementalForward {
+	if g.eagerExecution {
 		// the calculation is out of the lock, so it can run concurrently with other operators
 		g.processingQueue.Run(func() {
 			value = f.Forward()
@@ -368,128 +317,6 @@ func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
 
 	g.nodes = append(g.nodes, newNode)
 	return newNode
-}
-
-// ForwardOption allows to adapt the Forward() to your specific needs.
-type ForwardOption[T mat.DType] func(*forwardHandler[T])
-
-// Range allows you to limit the forward computation within a time-step range.
-// By default, the forward computes from the first node at time-step 0 to the last node at the current time-step.
-func Range[T mat.DType](fromTimeStep, toTimeStep int) ForwardOption[T] {
-	if fromTimeStep < 0 {
-		log.Fatalf("ag: expected fromTimeStep equal to or greater than zero. Found %d.", fromTimeStep)
-	}
-	if toTimeStep > -1 && toTimeStep < fromTimeStep {
-		log.Fatalf("ag: expected toTimeStep equal to or greater than `%d` (fromTimeStep). Found `%d`.",
-			fromTimeStep, toTimeStep)
-	}
-	return func(f *forwardHandler[T]) {
-		f.fromTimeStep = fromTimeStep
-		f.toTimeStep = toTimeStep
-	}
-}
-
-// Forward computes the results of the entire Graph.
-// Usually you don't need to execute Forward() manually in the define-by-run configuration (default).
-// If you do, all values will be recalculated. You can also choose through the Range option to recalculate only a portion of nodes.
-// Instead, it is required to obtain the value of the nodes in case the Graph has been created with WithIncrementalForward(false).
-func (g *Graph[T]) Forward(opts ...ForwardOption[T]) {
-	handler := &forwardHandler[T]{
-		g:            g,
-		fromTimeStep: 0,
-		toTimeStep:   -1, // unlimited
-	}
-	for _, opt := range opts {
-		opt(handler)
-	}
-
-	// Free the values that are about to be recalculated so that memory is not wasted
-	for _, node := range g.nodes {
-		if op, ok := node.(*Operator[T]); ok {
-			if op.timeStep >= handler.fromTimeStep && (handler.toTimeStep == -1 || op.timeStep <= handler.toTimeStep) {
-				g.releaseValue(op)
-			}
-		}
-	}
-
-	if g.processingQueue.Size() > 1 {
-		handler.runConcurrent()
-	} else {
-		handler.runSerial()
-	}
-}
-
-// BackwardOption allows to adapt the Backward() to your specific needs.
-type BackwardOption[T mat.DType] func(*backwardHandler[T])
-
-// Truncate is an option that sets the number of back steps for the
-// Truncated Back-Propagation.
-func Truncate[T mat.DType](backSteps int) BackwardOption[T] {
-	return func(f *backwardHandler[T]) {
-		f.stopAtTimeStep = f.node.TimeStep() - backSteps
-	}
-}
-
-// OutputGrad is an option that sets the output gradients which are the starting
-// point for the back-propagation (Backward).
-func OutputGrad[T mat.DType](grad mat.Matrix[T]) BackwardOption[T] {
-	return func(f *backwardHandler[T]) {
-		f.outputGrad = grad
-	}
-}
-
-// Backward performs the back-propagation.
-// It visits each node in reverse topological order, to propagate the gradients from the given node all the way
-// back to the leaf. Note that the gradients are summed to the existing ones. Unless that's what you want, make sure
-// all nodes have zero gradients.
-//
-// The back-propagation starts from the node's output gradients, following these mutually exclusive rules:
-//   a) the node has gradients (probably assigned externally via node.PropagateGrads()), use those;
-//   b) the output gradients are passed through the backward options, use those;
-//   c) the output gradients are automatically assigned by finding the derivative of the node with respect
-//      to the node itself (dy/dy = 1).
-//
-// If the optional back steps are set, a Truncated Back-Propagation Through Time is carried out, that is:
-// the visit ends as soon as it is encountered a node with time-step less or equal to the number of back steps.
-// The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
-func (g *Graph[T]) Backward(node Node[T], opts ...BackwardOption[T]) {
-	if node.Graph() != g {
-		panic("ag: backward cannot be executed among nodes of different graphs")
-	}
-
-	handler := &backwardHandler[T]{
-		g:              g,
-		node:           node,
-		outputGrad:     nil,
-		stopAtTimeStep: -1, // no stop
-	}
-	for _, opt := range opts {
-		opt(handler)
-	}
-	if !node.HasGrad() {
-		handler.propagateOutputGrad()
-	}
-	if g.processingQueue.Size() > 1 {
-		handler.runConcurrent()
-	} else {
-		handler.runSerial()
-	}
-}
-
-// BackwardAll performs full back-propagation from the last node of the graph.
-// It requires the root nodes to have assigned gradients already.
-func (g *Graph[T]) BackwardAll() {
-	handler := &backwardHandler[T]{
-		g:              g,
-		node:           g.nodes[g.maxID],
-		outputGrad:     nil,
-		stopAtTimeStep: -1, // no stop
-	}
-	if g.processingQueue.Size() > 1 {
-		handler.runConcurrent()
-	} else {
-		handler.runSerial()
-	}
 }
 
 // GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.

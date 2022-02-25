@@ -34,15 +34,15 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.True(t, g.incrementalForward)
+		assert.True(t, g.eagerExecution)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
-	t.Run("with WithIncrementalForward(false) option", func(t *testing.T) {
-		g := NewGraph[T](WithIncrementalForward[T](false))
+	t.Run("with WithEagerExecution(false) option", func(t *testing.T) {
+		g := NewGraph[T](WithEagerExecution[T](false))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.False(t, g.incrementalForward)
+		assert.False(t, g.eagerExecution)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
@@ -50,7 +50,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T](WithConcurrentComputations[T](3))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.True(t, g.incrementalForward)
+		assert.True(t, g.eagerExecution)
 		assert.Equal(t, 3, g.ConcurrentComputations())
 	})
 
@@ -59,7 +59,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T](WithRand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
-		assert.True(t, g.incrementalForward)
+		assert.True(t, g.eagerExecution)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 
@@ -69,7 +69,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
-		assert.True(t, g.incrementalForward)
+		assert.True(t, g.eagerExecution)
 		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
 	})
 }
@@ -378,7 +378,7 @@ func TestGraph_Forward(t *testing.T) {
 }
 
 func testGraphForward[T mat.DType](t *testing.T) {
-	g := NewGraph[T](WithIncrementalForward[T](false))
+	g := NewGraph[T](WithEagerExecution[T](false))
 	op := Add(g.NewScalar(40), g.NewScalar(2))
 	assert.Nil(t, op.Value())
 	g.Forward()
