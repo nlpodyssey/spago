@@ -13,4 +13,4 @@ require (
 	github.com/nlpodyssey/spago v0.0.0-00010101000000-000000000000
 )
 
-require golang.org/x/exp v0.0.0-20220218155646-ea2fe41b636b // indirect
+require golang.org/x/exp v0.0.0-20220218215828-6cf2b201936e // indirect
