@@ -18,11 +18,10 @@ func TestModelReLU_Forward(t *testing.T) {
 }
 
 func testModelReLUForward[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	m := New[T](ReLU)
-	p := ag.Bind(g, m)
+	r := ag.NewReifier[T](New[T](ReLU)).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
-	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
 	y := p.Forward(x)[0]
 
@@ -40,11 +39,10 @@ func TestModelSwish_Forward(t *testing.T) {
 }
 
 func testModelSwishForward[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-
 	beta := nn.NewParam[T](mat.NewScalar[T](2.0))
-	model := New(SwishB, beta)
-	p := ag.Bind(g, model)
+	r := ag.NewReifier[T](New(SwishB, beta)).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)

@@ -19,12 +19,14 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
-	y := ag.Bind(g, model).Forward(x)[0]
+	y := proc.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
@@ -60,12 +62,13 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	yPrev := ag.Tanh(g.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
-	proc := ag.Bind(g, model)
 
 	s1 := proc.Next(&State[T]{Y: yPrev}, x)
 
@@ -127,8 +130,9 @@ func TestModel_ForwardSeq(t *testing.T) {
 
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := ag.Bind(g, model)
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 

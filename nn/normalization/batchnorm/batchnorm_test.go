@@ -109,11 +109,13 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		x := make([]ag.Node[T], len(testData))
 		var y []ag.Node[T]
 		for i := 0; i < tt.forwardSteps; i++ {
-			g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+			r := ag.NewReifier[T](model).WithTrainingMode()
+			proc, g := r.New()
 			for j := range data {
 				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
 			}
-			y = ag.Bind(g, model).Forward(x...)
+			y = proc.Forward(x...)
+			//defer g.Clear()
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -139,8 +141,11 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.Mean = nn.NewParam[T](mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
 	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
-	proc := ag.Bind(g, model)
+
+	r := ag.NewReifier[T](model).WithInferenceMode()
+	proc, g := r.New()
+	defer g.Clear()
+
 	data := []T{1.0, 2.0, 3.0}
 	x := g.NewVariable(mat.NewVecDense[T](data), false)
 	y := proc.Forward(x)
@@ -181,7 +186,9 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -189,7 +196,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(ag.Bind(g, model).Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(proc.Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)

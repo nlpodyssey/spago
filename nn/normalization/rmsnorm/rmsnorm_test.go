@@ -18,13 +18,16 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
+
 	// == Forward
 	x1 := g.NewVariable(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := proc.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{0.6182178902, 0.1254256878, 0.2, 1.4965944974}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{0.8242640687, 0.186862915, 0.2848528137, 1.4576450198}, y[1].Value().Data(), 1.0e-06)

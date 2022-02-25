@@ -35,17 +35,16 @@ func testModelForward[T mat.DType](t *testing.T) {
 			4, 5, 6,
 		})
 
-		g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
+		r := ag.NewReifier[T](model).WithTrainingMode()
+		p, g := r.New()
 		defer g.Clear()
-
-		proc := ag.Bind(g, model)
 
 		xs := []ag.Node[T]{
 			g.NewVariable(mat.NewVecDense([]T{1, 2, 4, 0, -1}), false),
 			g.NewVariable(mat.NewVecDense([]T{1, 3, 3, 0, -1}), false),
 			g.NewVariable(mat.NewVecDense([]T{1, 4, 2, 0, -1}), false),
 		}
-		ys := proc.Forward(xs...)
+		ys := p.Forward(xs...)
 		require.Len(t, ys, 2)
 		require.True(t, mat.IsVector(ys[0].Value()))
 		require.Equal(t, 5, ys[0].Value().Size())
@@ -68,10 +67,9 @@ func testModelForward[T mat.DType](t *testing.T) {
 			0.9, 0.8, 0.7, 0.6,
 		})
 
-		g := ag.NewGraph[T](ag.WithMode[T](ag.Inference))
+		r := ag.NewReifier[T](model).WithTrainingMode()
+		p, g := r.New()
 		defer g.Clear()
-
-		proc := ag.Bind(g, model)
 
 		xs := []ag.Node[T]{
 			g.NewVariable(mat.NewVecDense([]T{0.2, 0.9, 0.1}), false),
@@ -79,7 +77,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 			g.NewVariable(mat.NewVecDense([]T{0.6, 0.5, 0.1}), false),
 			g.NewVariable(mat.NewVecDense([]T{0.8, 0.3, 0.1}), false),
 		}
-		ys := proc.Forward(xs...)
+		ys := p.Forward(xs...)
 		assert.InDeltaSlice(t, []T{1.2, 1.1, 0.7}, ys[0].Value().Data(), 0.001)
 		assert.InDeltaSlice(t, []T{1.9, 1.96, 0.76}, ys[1].Value().Data(), 0.001)
 		assert.InDeltaSlice(t, []T{2.1, 2.6, 1}, ys[2].Value().Data(), 0.001)

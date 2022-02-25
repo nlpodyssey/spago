@@ -19,8 +19,9 @@ func TestModel_SelfAttention(t *testing.T) {
 
 func testModelSelfAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
-	proc := ag.Bind(g, model)
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
+	defer g.Clear()
 
 	x1 := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)

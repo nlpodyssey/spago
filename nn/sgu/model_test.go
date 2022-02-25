@@ -36,10 +36,9 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.48, 0.49,
 	})
 
-	g := ag.NewGraph[T]()
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	proc, g := r.New()
 	defer g.Clear()
-
-	proc := ag.Bind(g, model)
 
 	xs := []ag.Node[T]{
 		g.NewVariable(mat.NewVecDense([]T{

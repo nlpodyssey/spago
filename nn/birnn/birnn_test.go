@@ -20,7 +20,9 @@ func TestModelConcat_Forward(t *testing.T) {
 
 func testModelConcatForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Concat)
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -28,7 +30,7 @@ func testModelConcatForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.187746, -0.50052, 0.109558, -0.005277, -0.084306, -0.628766,
@@ -99,7 +101,9 @@ func TestModelSum_Forward(t *testing.T) {
 
 func testModelSumForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Sum)
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -107,7 +111,7 @@ func testModelSumForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{0.182469, -0.584826, -0.519207}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{-1.033731, -0.036692, -0.513732}, y[1].Value().Data(), 1.0e-06)
@@ -121,7 +125,9 @@ func TestModelAvg_Forward(t *testing.T) {
 
 func testModelAvgForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Avg)
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -129,7 +135,7 @@ func testModelAvgForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{0.0912345, -0.292413, -0.2596035}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{-0.5168655, -0.018346, -0.256866}, y[1].Value().Data(), 1.0e-06)
@@ -143,7 +149,9 @@ func TestModelProd_Forward(t *testing.T) {
 
 func testModelProdForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Prod)
-	g := ag.NewGraph[T](ag.WithMode[T](ag.Training))
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -151,7 +159,7 @@ func testModelProdForward[T mat.DType](t *testing.T) {
 	x2 := g.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
 	x3 := g.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{-0.00099, 0.042197, -0.068886}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{0.231888, -0.047735, 0.028804}, y[1].Value().Data(), 1.0e-06)

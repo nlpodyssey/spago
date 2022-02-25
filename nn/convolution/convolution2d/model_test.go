@@ -21,7 +21,9 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	g := ag.NewGraph[T]()
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -46,7 +48,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.6291451614, 0.4218990053, 0.0399786803,
@@ -157,7 +159,9 @@ func TestDepthwise_Forward(t *testing.T) {
 
 func testDepthwiseForward[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
-	g := ag.NewGraph[T]()
+	r := ag.NewReifier[T](model).WithTrainingMode()
+	p, g := r.New()
+	defer g.Clear()
 
 	// == Forward
 
@@ -182,7 +186,7 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := ag.Bind(g, model).Forward(x1, x2, x3)
+	y := p.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,
