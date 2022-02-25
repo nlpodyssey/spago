@@ -17,3 +17,7 @@ type DifferentiableModule[T mat.DType] struct {
 }
 
 func (m DifferentiableModule[T]) mustEmbedDifferentiableModule() {}
+
+func (m DifferentiableModule[T]) Mode() ProcessingMode {
+	return m.Graph.Mode()
+}
