@@ -130,7 +130,7 @@ func UnmarshalBinaryParam[T mat.DType](r io.Reader) (*BaseParam[T], error) {
 }
 
 // UnmarshalBinaryParamWithReceiver decodes a Param from binary form into the receiver.
-func UnmarshalBinaryParamWithReceiver[T mat.DType](r io.Reader, dest BaseParam[T]) error {
+func UnmarshalBinaryParamWithReceiver[T mat.DType](r io.Reader, dest *BaseParam[T]) error {
 	isPresent := make([]byte, 1)
 	_, err := r.Read(isPresent)
 	if err != nil {
