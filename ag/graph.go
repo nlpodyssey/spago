@@ -84,9 +84,9 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	return g
 }
 
-// eagerExecutionEnabled returns whether the computation happens during the graph definition.
+// EagerExecutionEnabled returns whether the computation happens during the graph definition.
 // See ag.WithEagerExecution() option.
-func (g *Graph[_]) eagerExecutionEnabled() bool {
+func (g *Graph[_]) EagerExecutionEnabled() bool {
 	return g.eagerExecution
 }
 
