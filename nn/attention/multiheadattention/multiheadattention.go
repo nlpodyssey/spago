@@ -6,10 +6,10 @@ package multiheadattention
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/nn/attention"
 	"github.com/nlpodyssey/spago/nn/attention/selfattention"
 	"github.com/nlpodyssey/spago/nn/linear"
 )
@@ -56,60 +56,41 @@ func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model[T] {
 	}
 }
 
-// KeysValuesPairs contains the attention.KeysValuesPair for each attention head.
-type KeysValuesPairs[T mat.DType] []attention.KeysValuesPair[T]
+// Cache contains the self-attention cache for each head.
+type Cache[T mat.DType] []*selfattention.Cache[T]
 
-// Output aggregates the multiple output of the multi-head attentions,
-// incl. attention scores and last projected keys and values for each head.
-type Output[T mat.DType] struct {
-	// Result of the multi-head attention.
-	AttOutput []ag.Node[T]
-	// AttWeights attention scores.
-	AttWeights [][]mat.Matrix[T]
-	// ProjKeysValues contains the attention.KeysValuesPair for each attention head.
-	ProjKeysValues KeysValuesPairs[T]
+func (r Cache[T]) At(i int) *selfattention.Cache[T] {
+	if len(r) == 0 {
+		return nil
+	}
+	return r[i]
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(qkv attention.QKV[T]) Output[T] {
-	return m.forward(qkv, nil)
+func (m *Model[T]) Forward(cache Cache[T], xs []ag.Node[T]) ([]ag.Node[T], [][]ag.Node[T], Cache[T]) {
+	return m.ForwardQKV(cache, xs, xs, xs)
 }
 
-// ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
-func (m *Model[T]) ForwardWithPastKeysValues(qkv attention.QKV[T], pastProjKeysValues KeysValuesPairs[T]) Output[T] {
-	return m.forward(qkv, pastProjKeysValues)
-}
+// ForwardQKV performs the forward step for each input node and returns the result.
+func (m *Model[T]) ForwardQKV(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], [][]ag.Node[T], Cache[T]) {
+	headsAttention := make([][]ag.Node[T], m.NumOfHeads)
+	headsWeights := make([][]ag.Node[T], m.NumOfHeads)
+	headsCache := make(Cache[T], m.NumOfHeads)
 
-// Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) forward(qkv attention.QKV[T], pastProjKeysValues KeysValuesPairs[T]) Output[T] {
-	headsAttNodes := make([][]ag.Node[T], m.NumOfHeads)
-	headsAttWeights := make([][]mat.Matrix[T], m.NumOfHeads)
-	attProjKeysValues := make(KeysValuesPairs[T], m.NumOfHeads)
-
-	for h, proc := range m.Attention {
-		var out attention.Output[T]
-		if pastProjKeysValues != nil {
-			out = proc.ForwardWithPastKeysValues(qkv, pastProjKeysValues[h])
-		} else {
-			out = proc.Forward(qkv)
-		}
-		headsAttNodes[h] = out.AttOutput
-		headsAttWeights[h] = out.AttWeights
-		attProjKeysValues[h] = out.ProjKeysValues
+	for h := range m.Attention {
+		headsAttention[h], headsWeights[h], headsCache[h] = m.Attention[h].ForwardQKV(cache.At(h), q, k, v)
 	}
 
-	concatHeads := make([]ag.Node[T], len(qkv.Queries))
+	concatHeads := make([]ag.Node[T], len(q))
 	for i := 0; i < len(concatHeads); i++ {
 		buf := make([]ag.Node[T], m.NumOfHeads)
 		for j := 0; j < m.NumOfHeads; j++ {
-			buf[j] = headsAttNodes[j][i]
+			buf[j] = headsAttention[j][i]
 		}
 		concatHeads[i] = ag.Concat(buf...)
 	}
 
-	return Output[T]{
-		AttOutput:      m.OutputMerge.Forward(concatHeads...),
-		AttWeights:     headsAttWeights,
-		ProjKeysValues: attProjKeysValues,
-	}
+	projected := m.OutputMerge.Forward(concatHeads...)
+
+	return projected, headsWeights, headsCache
 }

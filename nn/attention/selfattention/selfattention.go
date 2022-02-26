@@ -15,6 +15,9 @@ import (
 
 var _ nn.Model[float32] = &Model[float32]{}
 
+// Cache contains the projected keys and values at index 0, 1 respectively.
+type Cache[T mat.DType] [2][]ag.Node[T]
+
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
@@ -50,47 +53,22 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-// It generates the queries, keys and values from the same input xs.
-func (m *Model[T]) Forward(qkv attention.QKV[T]) attention.Output[T] {
-	projAtt := attention.QKV[T]{
-		Queries: m.Query.Forward(qkv.Queries...),
-		Keys:    m.Key.Forward(qkv.Keys...),
-		Values:  m.Value.Forward(qkv.Values...),
-	}
-	attOutput, attWeights := attention.ScaledDotProductAttention(projAtt, m.ScaleFactor, m.UseCausalMask)
-
-	return attention.Output[T]{
-		AttOutput:  attOutput,
-		AttWeights: attWeights,
-		ProjKeysValues: attention.KeysValuesPair[T]{
-			Keys:   projAtt.Keys,
-			Values: projAtt.Values,
-		},
-	}
+func (m *Model[T]) Forward(cache *Cache[T], xs []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], *Cache[T]) {
+	return m.ForwardQKV(cache, xs, xs, xs)
 }
 
-// ForwardWithPastKeysValues performs the forward step for each input node and returns the result.
-// It generates the queries, keys and values from the same input xs.
-func (m *Model[T]) ForwardWithPastKeysValues(qkv attention.QKV[T], past attention.KeysValuesPair[T]) attention.Output[T] {
-	projAtt := attention.QKV[T]{
-		Queries: m.Query.Forward(qkv.Queries...),
-		Keys:    append([]ag.Node[T]{}, past.Keys...),   // this append is important
-		Values:  append([]ag.Node[T]{}, past.Values...), // this append is important
+// ForwardQKV performs the forward step for each input node and returns the result.
+func (m *Model[T]) ForwardQKV(cache *Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], *Cache[T]) {
+	pq := m.Query.Forward(q...)
+	pk := m.Key.Forward(k...)
+	pv := m.Value.Forward(v...)
+
+	if cache != nil {
+		pk = append(cache[0], pk...)
+		pv = append(cache[1], pv...)
 	}
 
-	if qkv.Keys != nil { // the qkv.Values shall not be null as well
-		projAtt.Keys = append(projAtt.Keys, m.Key.Forward(qkv.Keys...)...)
-		projAtt.Values = append(projAtt.Values, m.Value.Forward(qkv.Values...)...)
-	}
+	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
-	attOutput, attWeights := attention.ScaledDotProductAttention[T](projAtt, m.ScaleFactor, m.UseCausalMask)
-
-	return attention.Output[T]{
-		AttOutput:  attOutput,
-		AttWeights: attWeights,
-		ProjKeysValues: attention.KeysValuesPair[T]{
-			Keys:   projAtt.Keys,
-			Values: projAtt.Values,
-		},
-	}
+	return result, weights, &Cache[T]{pk, pv}
 }
