@@ -62,6 +62,15 @@ func (s *Store) KeysCount() (int, error) {
 	return len(s.m), nil
 }
 
+// Contains reports whether the given key is found in the store.
+func (s *Store) Contains(key []byte) (bool, error) {
+	s.mu.RLock()
+	_, exists := s.m[string(key)]
+	s.mu.RUnlock()
+
+	return exists, nil
+}
+
 // Put sets a key/value pair in the store.
 // If a value for the same key already exists in the store, it is
 // overwritten with the new value.

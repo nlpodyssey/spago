@@ -95,6 +95,38 @@ func TestStore_KeysCount(t *testing.T) {
 	assert.Equal(t, 2, n)
 }
 
+func TestStore_Contains(t *testing.T) {
+	s := makeStore(t)
+
+	c, err := s.Contains([]byte{1, 2})
+	require.NoError(t, err)
+	assert.False(t, c)
+
+	c, err = s.Contains([]byte{3})
+	require.NoError(t, err)
+	assert.False(t, c)
+
+	require.NoError(t, s.Put([]byte{1, 2}, []byte{11}))
+
+	c, err = s.Contains([]byte{1, 2})
+	require.NoError(t, err)
+	assert.True(t, c)
+
+	c, err = s.Contains([]byte{3})
+	require.NoError(t, err)
+	assert.False(t, c)
+
+	require.NoError(t, s.Put([]byte{3}, []byte{22}))
+
+	c, err = s.Contains([]byte{1, 2})
+	require.NoError(t, err)
+	assert.True(t, c)
+
+	c, err = s.Contains([]byte{3})
+	require.NoError(t, err)
+	assert.True(t, c)
+}
+
 func TestStore_PutAndGet(t *testing.T) {
 	t.Run("simple int values", func(t *testing.T) {
 		s := makeStore(t)

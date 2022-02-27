@@ -114,6 +114,22 @@ func (s *Store) KeysCount() (int, error) {
 	return count, nil
 }
 
+// Contains reports whether the given key is found in the store.
+func (s *Store) Contains(key []byte) (bool, error) {
+	err := s.db.View(func(txn *badger.Txn) error {
+		_, err := txn.Get(key)
+		return err
+	})
+
+	if err == badger.ErrKeyNotFound {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Put sets a key/value pair in the store.
 // If a value for the same key already exists in the store, it is
 // overwritten with the new value.

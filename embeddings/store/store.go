@@ -22,6 +22,8 @@ type Store interface {
 	Keys() ([][]byte, error)
 	// KeysCount reports how many key/value pairs are in the store.
 	KeysCount() (int, error)
+	// Contains reports whether the given key is found in the store.
+	Contains(key []byte) (bool, error)
 	// Put sets a key/value pair in the store.
 	// If a value for the same key already exists in the store, it is
 	// overwritten with the new value.
