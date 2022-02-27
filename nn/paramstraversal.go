@@ -14,19 +14,30 @@ import (
 	"sync"
 )
 
+// ParamsTraversalFunc is the function called for each visited Param from
+// traversal routines (see for example ForEachParam and ForEachParamStrict).
+//
+// The arguments are:
+//   - param: the value of the visited parameter
+//   - name: a suggested meaningful name for the parameter, if available,
+//     usually corresponding to the name of a struct's field
+//   - pType: type of the parameter, if available, usually derived from
+//     a `spago:"type:..."` tag from a struct's field
+type ParamsTraversalFunc[T mat.DType] func(param Param[T], name string, pType ParamsType)
+
 // paramsTraversal allows the traversal of Model parameters.
 // The given callback is invoked for each parameter of the Model.
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
 type paramsTraversal[T mat.DType] struct {
-	callback         func(param Param[T])
+	callback         ParamsTraversalFunc[T]
 	exploreSubModels bool
 }
 
 // newParamsTraversal returns a new paramsTraversal.
-func newParamsTraversal[T mat.DType](callback func(param Param[T]), exploreSubModels bool) paramsTraversal[T] {
+func newParamsTraversal[T mat.DType](fn ParamsTraversalFunc[T], exploreSubModels bool) paramsTraversal[T] {
 	return paramsTraversal[T]{
-		callback:         callback,
+		callback:         fn,
 		exploreSubModels: exploreSubModels,
 	}
 }
@@ -58,7 +69,7 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag 
 	}
 	switch itemT := item.(type) {
 	case Param[T]:
-		pt.walkParam(itemT, name, tag)
+		pt.callback(itemT, name, tag.paramType())
 	case Model[T]:
 		if pt.exploreSubModels {
 			pt.walk(item)
@@ -131,12 +142,4 @@ func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFie
 			return // skip
 		}
 	}
-}
-
-func (pt paramsTraversal[T]) walkParam(item Param[T], name string, tag moduleFieldTag) {
-	if item.Name() == "" {
-		item.SetName(strings.ToLower(name))
-	}
-	item.SetType(tag.paramType())
-	pt.callback(item)
 }

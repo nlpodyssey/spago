@@ -31,7 +31,7 @@ func NewDefaultParamsIterator[T mat.DType](models ...Model[T]) *DefaultParamsIte
 func (i *DefaultParamsIterator[T]) Params() []Param[T] {
 	params := make([]Param[T], 0)
 	for _, model := range i.models {
-		ForEachParam(model, func(param Param[T]) {
+		ForEachParam(model, func(param Param[T], _ string, _ ParamsType) {
 			params = append(params, param)
 		})
 	}

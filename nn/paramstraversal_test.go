@@ -22,8 +22,7 @@ func NewParamsTraversalTester[T mat.DType]() *ParamsTraversalTester[T] {
 		CollectedParams: make([]Param[T], 0),
 	}
 }
-
-func (ptt *ParamsTraversalTester[T]) collect(param Param[T]) {
+func (ptt *ParamsTraversalTester[T]) collect(param Param[T], _ string, _ ParamsType) {
 	ptt.CollectedParams = append(ptt.CollectedParams, param)
 }
 
