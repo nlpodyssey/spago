@@ -15,12 +15,8 @@ type Param[T mat.DType] interface {
 
 	// Name returns the params name (can be empty string).
 	Name() string
-	// SetName set the params name (can be empty string).
-	SetName(name string)
 	// Type returns the params type (weights, biases, undefined).
 	Type() ParamsType
-	// SetType set the params type (weights, biases, undefined).
-	SetType(pType ParamsType)
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.
@@ -34,4 +30,18 @@ type Param[T mat.DType] interface {
 	SetPayload(payload *Payload[T])
 	// ClearPayload clears the support structure.
 	ClearPayload()
+}
+
+// ParamNameSetter is implemented by any parameter value that allows the
+// assignment of its name.
+type ParamNameSetter interface {
+	// SetName sets the parameter's name (it can be an empty string).
+	SetName(string)
+}
+
+// ParamTypeSetter is implemented by any parameter value that allows the
+// assignment of its type.
+type ParamTypeSetter interface {
+	// SetType sets the parameter's type (Weights, Biases, or Undefined).
+	SetType(ParamsType)
 }

@@ -36,10 +36,12 @@ func ClearSupport[T mat.DType](m Model[T]) {
 // Introspect set the name property of each model's param (including sub-models).
 func Introspect[T mat.DType, M Model[T]](m M) M {
 	ForEachParam(Model[T](m), func(param Param[T], name string, pType ParamsType) {
-		if param.Name() == "" {
-			param.SetName(strings.ToLower(name))
+		if p, ok := param.(ParamNameSetter); ok && param.Name() == "" {
+			p.SetName(strings.ToLower(name))
 		}
-		param.SetType(pType)
+		if p, ok := param.(ParamTypeSetter); ok {
+			p.SetType(pType)
+		}
 	})
 	return m
 }
