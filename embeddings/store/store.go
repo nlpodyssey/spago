@@ -4,6 +4,11 @@
 
 package store
 
+import (
+	"encoding/gob"
+	"fmt"
+)
+
 // A Repository is a logical grouping of different stores.
 type Repository interface {
 	// Store returns a data store by name.
@@ -32,4 +37,35 @@ type Store interface {
 	// to the given parameter, and returns a flag which reports whether
 	// the key has been found or not.
 	Get(key []byte, value interface{}) (bool, error)
+}
+
+// PreventStoreMarshaling can wrap any Store implementation, embedding it to
+// re-expose the full interface, overriding binary marshaling methods in order
+// to produce (and expect) empty data.
+//
+// In the context of spaGO models, this wrapper is a convenient way to
+// prevent Store public fields from being marshaled when models are
+// serialized (for example, using gob).
+type PreventStoreMarshaling struct {
+	Store
+}
+
+// MarshalBinary satisfies encoding.BinaryMarshaler interface.
+// It always produces empty data (nil) and no error.
+func (nes PreventStoreMarshaling) MarshalBinary() ([]byte, error) {
+	return nil, nil
+}
+
+// UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
+// It only accepts empty data (nil or zero-length slice), producing no
+// side effects at all. If data is not blank, it returns an error.
+func (nes PreventStoreMarshaling) UnmarshalBinary(data []byte) error {
+	if len(data) != 0 {
+		return fmt.Errorf("PreventStoreMarshaling.UnmarshalBinary: empty data expected, actual data len %d", len(data))
+	}
+	return nil
+}
+
+func init() {
+	gob.Register(PreventStoreMarshaling{})
 }
