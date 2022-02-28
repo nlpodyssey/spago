@@ -6,7 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/sort"
+	"github.com/nlpodyssey/spago/utils/sort"
 )
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch

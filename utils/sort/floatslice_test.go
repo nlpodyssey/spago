@@ -6,7 +6,7 @@ package sort_test
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/sort"
+	"github.com/nlpodyssey/spago/utils/sort"
 	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
