@@ -68,14 +68,15 @@ func testModelSelfAttention[T mat.DType](t *testing.T) {
 	}, model.Query.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
-	model := New(Config[T]{
+func newTestModel[T mat.DType]() *SelfAttention[T] {
+	model := &SelfAttention[T]{New(Config[T]{
 		InputSize:   4,
 		QuerySize:   3,
 		KeySize:     3,
 		ValueSize:   3,
 		ScaleFactor: 1.0 / mat.Sqrt[T](3.0),
-	})
+	})}
+
 	model.Value.W.Value().SetData([]T{
 		0.5, 0.6, -0.8, 0.7,
 		-0.4, 0.1, 0.7, -0.7,
