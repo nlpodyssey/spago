@@ -319,6 +319,18 @@ func TestEmbedding_Name(t *testing.T) {
 		foo, _ := m.Embedding([]byte{0xca, 0xfe})
 		assert.Equal(t, "CAFE", foo.Name())
 	})
+
+	t.Run("with int keys", func(t *testing.T) {
+		repo := memstore.NewRepository()
+		conf := embeddings.Config{
+			Size:      3,
+			StoreName: "test-store",
+		}
+		m := embeddings.New[float32, int](conf, repo)
+
+		foo, _ := m.Embedding(42)
+		assert.Equal(t, "42", foo.Name())
+	})
 }
 
 func TestEmbedding_Type(t *testing.T) {

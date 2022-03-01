@@ -21,7 +21,7 @@ type Embedding[T mat.DType, K Key] struct {
 // Value satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
 func (e *Embedding[T, _]) Value() mat.Matrix[T] {
 	sd := new(storeData[T])
-	exists, err := e.model.Store.Get([]byte(e.key), sd)
+	exists, err := e.model.Store.Get(encodeKey(e.key), sd)
 	if err != nil {
 		panic(err)
 	}
@@ -89,12 +89,19 @@ func (e *Embedding[_, _]) TimeStep() int {
 
 // Name satisfies the interface nn.Param.
 func (e *Embedding[_, _]) Name() string {
-	// For string key, the param name is the string itself.
-	if s, ok := any(e.key).(string); ok {
-		return s
+	switch k := any(e.key).(type) {
+	case string:
+		// For a string key, the param name is the string itself.
+		return k
+	case []byte:
+		// For a []byte key, the param name is the hex representation.
+		return fmt.Sprintf("%X", k)
+	case int:
+		// For an int key, we format the integer value.
+		return fmt.Sprintf("%d", k)
+	default:
+		panic(fmt.Errorf("embeddings: unexpected key type %T", k))
 	}
-	// For a []byte key, the param name is the hex representation.
-	return fmt.Sprintf("%X", e.key)
 }
 
 // Type satisfies the interface nn.Param.
@@ -112,15 +119,13 @@ func (e *Embedding[_, _]) SetRequiresGrad(bool) {
 
 // ReplaceValue satisfies the interface nn.Param.
 func (e *Embedding[T, _]) ReplaceValue(value mat.Matrix[T]) {
-	key := []byte(e.key)
-
 	e.model.zeroGrad(e.key)
 
 	// Start with a new storeData, so that any
 	// pre-existing payload is also cleared.
 	sd := new(storeData[T])
 	sd.SetValue(value)
-	err := e.model.Store.Put(key, sd)
+	err := e.model.Store.Put(encodeKey(e.key), sd)
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +134,7 @@ func (e *Embedding[T, _]) ReplaceValue(value mat.Matrix[T]) {
 // ApplyDelta satisfies the interface nn.Param.
 func (e *Embedding[T, _]) ApplyDelta(delta mat.Matrix[T]) {
 	sd := new(storeData[T])
-	key := []byte(e.key)
+	key := encodeKey(e.key)
 
 	exists, err := e.model.Store.Get(key, sd)
 	if err != nil {
@@ -152,7 +157,7 @@ func (e *Embedding[T, _]) ApplyDelta(delta mat.Matrix[T]) {
 // Payload satisfies the interface nn.Param.
 func (e *Embedding[T, _]) Payload() *nn.Payload[T] {
 	sd := new(storeData[T])
-	exists, err := e.model.Store.Get([]byte(e.key), sd)
+	exists, err := e.model.Store.Get(encodeKey(e.key), sd)
 	if err != nil {
 		panic(err)
 	}
@@ -165,7 +170,7 @@ func (e *Embedding[T, _]) Payload() *nn.Payload[T] {
 // SetPayload satisfies the interface nn.Param.
 func (e *Embedding[T, _]) SetPayload(payload *nn.Payload[T]) {
 	sd := new(storeData[T])
-	key := []byte(e.key)
+	key := encodeKey(e.key)
 
 	// Ignore whether a key/value already exists: if not, we simply start
 	// with a valid storeData zero-value.
@@ -183,7 +188,7 @@ func (e *Embedding[T, _]) SetPayload(payload *nn.Payload[T]) {
 // ClearPayload satisfies the interface nn.Param.
 func (e *Embedding[T, _]) ClearPayload() {
 	sd := new(storeData[T])
-	key := []byte(e.key)
+	key := encodeKey(e.key)
 
 	// Ignore whether a key/value already exists: if not, we simply start
 	// with a valid storeData zero-value.

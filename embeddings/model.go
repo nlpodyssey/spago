@@ -15,11 +15,6 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-// Key is a type constraint for the embeddings' storage keys.
-type Key interface {
-	string | []byte
-}
-
 // Config provides configuration settings for an embeddings Model.
 type Config struct {
 	// Size of the embedding vectors.
@@ -129,11 +124,11 @@ func (m *Model[_, _]) Count() int {
 //
 // It panics in case of errors reading from the underlying store.
 func (m *Model[T, K]) Embedding(key K) (nn.Param[T], bool) {
-	if e, ok := m.EmbeddingsWithGrad[string(key)]; ok {
+	if e, ok := m.EmbeddingsWithGrad[stringifyKey(key)]; ok {
 		return e, true
 	}
 
-	exists, err := m.Store.Contains([]byte(key))
+	exists, err := m.Store.Contains(encodeKey(key))
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +152,9 @@ func (m *Model[T, K]) Encode(keys []K) []ag.Node[T] {
 	cache := make(map[string]ag.Node[T], len(keys))
 
 	for i, key := range keys {
-		if v, ok := cache[string(key)]; ok {
+		strKey := stringifyKey(key)
+
+		if v, ok := cache[strKey]; ok {
 			nodes[i] = v
 			continue
 		}
@@ -170,7 +167,7 @@ func (m *Model[T, K]) Encode(keys []K) []ag.Node[T] {
 		}
 
 		nodes[i] = n
-		cache[string(key)] = n
+		cache[strKey] = n
 	}
 	return nodes
 }
@@ -191,7 +188,7 @@ func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix[T], exists bool) {
 	}
 
 	m.mu.RLock()
-	grad, exists = m.grads[string(key)]
+	grad, exists = m.grads[stringifyKey(key)]
 	m.mu.RUnlock()
 	return
 }
@@ -200,7 +197,7 @@ func (m *Model[T, K]) propagateGrad(e *Embedding[T, K], gx mat.Matrix[T]) {
 	if !m.Trainable {
 		return
 	}
-	key := string(e.key)
+	key := stringifyKey(e.key)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -223,7 +220,7 @@ func (m *Model[T, K]) zeroGrad(k K) {
 	if !m.Trainable {
 		return
 	}
-	key := string(k)
+	key := stringifyKey(k)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
