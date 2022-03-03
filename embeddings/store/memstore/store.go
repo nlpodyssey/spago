@@ -12,14 +12,14 @@ import (
 // A Store of in-memory key-value pairs.
 type Store struct {
 	name string
-	m    map[string]interface{}
+	m    map[string]any
 	mu   sync.RWMutex
 }
 
 func newStore(name string) *Store {
 	return &Store{
 		name: name,
-		m:    make(map[string]interface{}, 0),
+		m:    make(map[string]any, 0),
 	}
 }
 
@@ -74,7 +74,7 @@ func (s *Store) Contains(key []byte) (bool, error) {
 // Put sets a key/value pair in the store.
 // If a value for the same key already exists in the store, it is
 // overwritten with the new value.
-func (s *Store) Put(key []byte, value interface{}) error {
+func (s *Store) Put(key []byte, value any) error {
 	s.mu.Lock()
 	s.m[string(key)] = value
 	s.mu.Unlock()
@@ -84,7 +84,7 @@ func (s *Store) Put(key []byte, value interface{}) error {
 // Get attempts to fetch the value associated with the key, assigning it
 // to the given parameter, and returns a flag which reports whether
 // the key has been found or not.
-func (s *Store) Get(key []byte, value interface{}) (bool, error) {
+func (s *Store) Get(key []byte, value any) (bool, error) {
 	s.mu.RLock()
 	i, exists := s.m[string(key)]
 	s.mu.RUnlock()

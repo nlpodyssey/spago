@@ -22,10 +22,10 @@ var (
 
 var (
 	operatorPoolFloat32 = &sync.Pool{
-		New: func() interface{} { return new(Operator[float32]) },
+		New: func() any { return new(Operator[float32]) },
 	}
 	operatorPoolFloat64 = &sync.Pool{
-		New: func() interface{} { return new(Operator[float64]) },
+		New: func() any { return new(Operator[float64]) },
 	}
 )
 

@@ -133,7 +133,7 @@ func (s *Store) Contains(key []byte) (bool, error) {
 // Put sets a key/value pair in the store.
 // If a value for the same key already exists in the store, it is
 // overwritten with the new value.
-func (s *Store) Put(key []byte, value interface{}) (err error) {
+func (s *Store) Put(key []byte, value any) (err error) {
 	var bytesValue []byte
 	switch vt := value.(type) {
 	case []byte:
@@ -162,7 +162,7 @@ func (s *Store) Put(key []byte, value interface{}) (err error) {
 // Get attempts to fetch the value associated with the key, assigning it
 // to the given parameter, and returns a flag which reports whether
 // the key has been found or not.
-func (s *Store) Get(key []byte, value interface{}) (bool, error) {
+func (s *Store) Get(key []byte, value any) (bool, error) {
 	var bytesValue []byte
 
 	err := s.db.View(func(txn *badger.Txn) error {

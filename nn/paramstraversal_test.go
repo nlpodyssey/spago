@@ -35,7 +35,7 @@ type ParamsTraversalBaseModel[T mat.DType] struct {
 
 var _ Model[float32] = &ParamsTraversalBaseModel[float32]{}
 
-func (ParamsTraversalBaseModel[_]) Forward(_ interface{}) interface{} {
+func (ParamsTraversalBaseModel[_]) Forward(_ any) any {
 	panic("this should never be called")
 }
 
@@ -83,7 +83,7 @@ type ptModel5[T mat.DType] struct {
 type ptModel6[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
 	P Param[T]
-	M []interface{}
+	M []any
 }
 
 type testStructP[T mat.DType] struct {
@@ -268,7 +268,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 
 		m := &ptModel6[T]{
 			P: NewParam[T](mat.NewScalar[T](1)),
-			M: []interface{}{mA, mB},
+			M: []any{mA, mB},
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {
@@ -375,7 +375,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 	})
 }
 
-func assertEqual(t *testing.T, actual, expected interface{}) {
+func assertEqual(t *testing.T, actual, expected any) {
 	t.Helper()
 	if !reflect.DeepEqual(actual, expected) {
 		t.Errorf("expected\n  %#v\nactual\n  %#v", expected, actual)

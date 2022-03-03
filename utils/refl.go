@@ -7,7 +7,7 @@ package utils
 import "reflect"
 
 // ReverseInPlace reverses the elements of s (usually a slice).
-func ReverseInPlace(s interface{}) {
+func ReverseInPlace(s any) {
 	n := reflect.ValueOf(s).Len()
 	swap := reflect.Swapper(s)
 	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
@@ -16,7 +16,7 @@ func ReverseInPlace(s interface{}) {
 }
 
 // ForEachField calls the callback for each field of the struct i.
-func ForEachField(i interface{}, callback func(field interface{}, name string, tag reflect.StructTag)) {
+func ForEachField(i any, callback func(field any, name string, tag reflect.StructTag)) {
 	v := reflect.ValueOf(i)
 	t := reflect.TypeOf(i)
 
@@ -39,7 +39,7 @@ func ForEachField(i interface{}, callback func(field interface{}, name string, t
 }
 
 // TypeName returns the type name of instance.
-func TypeName(instance interface{}) string {
+func TypeName(instance any) string {
 	t := reflect.TypeOf(instance)
 	if t.Kind() == reflect.Ptr {
 		return t.Elem().Name()
@@ -48,7 +48,7 @@ func TypeName(instance interface{}) string {
 }
 
 // Name returns the name of i.
-func Name(i interface{}) string {
+func Name(i any) string {
 	if IsStruct(i) {
 		return reflect.TypeOf(i).String()
 	}
@@ -57,6 +57,6 @@ func Name(i interface{}) string {
 }
 
 // IsStruct returns wether i is a struct.
-func IsStruct(i interface{}) bool {
+func IsStruct(i any) bool {
 	return reflect.ValueOf(i).Kind() == reflect.Struct
 }

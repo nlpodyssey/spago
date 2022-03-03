@@ -44,8 +44,8 @@ func newParamsTraversal[T mat.DType](fn ParamsTraversalFunc[T], exploreSubModels
 
 // walk iterates through all the parameters of m.
 // TODO: don't loop the field every time, use a lazy initialized "params list" instead
-func (pt paramsTraversal[_]) walk(m interface{}) {
-	utils.ForEachField(m, func(field interface{}, name string, rTag reflect.StructTag) {
+func (pt paramsTraversal[_]) walk(m any) {
+	utils.ForEachField(m, func(field any, name string, rTag reflect.StructTag) {
 		tag, err := parseModuleFieldTag(rTag.Get("spago"))
 		if err != nil {
 			panic(err)
@@ -62,7 +62,7 @@ func (pt paramsTraversal[_]) walk(m interface{}) {
 	})
 }
 
-func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag moduleFieldTag) {
+func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFieldTag) {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
 		return
@@ -87,7 +87,7 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item interface{}, name string, tag 
 }
 
 func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
-	i.Range(func(key, value interface{}) bool {
+	i.Range(func(key, value any) bool {
 		switch k := key.(type) {
 		case string:
 			key = k

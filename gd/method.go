@@ -28,7 +28,7 @@ const (
 
 // MethodConfig is an empty interface implemented by the configuration structures of
 // AdaGrad, Adam, RMSProp and SGD.
-type MethodConfig interface{}
+type MethodConfig any
 
 // Method is implemented by any optimization method.
 type Method[T mat.DType] interface {

@@ -21,7 +21,7 @@ type graphBinder[T mat.DType] struct {
 	g *Graph[T]
 }
 
-func (r *graphBinder[_]) newBoundStruct(rawSource interface{}) interface{} {
+func (r *graphBinder[_]) newBoundStruct(rawSource any) any {
 	source := reflect.ValueOf(rawSource)
 	sourceType := reflect.TypeOf(rawSource)
 
@@ -150,6 +150,6 @@ func (r *graphBinder[T]) bindMap(sourceValue reflect.Value) reflect.Value {
 	return result
 }
 
-func isNil(a interface{}) bool {
+func isNil(a any) bool {
 	return a == nil || (reflect.ValueOf(a).Kind() == reflect.Ptr && reflect.ValueOf(a).IsNil())
 }

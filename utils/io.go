@@ -14,7 +14,7 @@ import (
 )
 
 // SerializeToFile serializes obj to file, using gob encoding.
-func SerializeToFile(filename string, obj interface{}) (err error) {
+func SerializeToFile(filename string, obj any) (err error) {
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func SerializeToFile(filename string, obj interface{}) (err error) {
 }
 
 // DeserializeFromFile deserializes obj from file, using gob decoding.
-func DeserializeFromFile(filename string, obj interface{}) (err error) {
+func DeserializeFromFile(filename string, obj any) (err error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err

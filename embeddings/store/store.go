@@ -32,11 +32,11 @@ type Store interface {
 	// Put sets a key/value pair in the store.
 	// If a value for the same key already exists in the store, it is
 	// overwritten with the new value.
-	Put(key []byte, value interface{}) error
+	Put(key []byte, value any) error
 	// Get attempts to fetch the value associated with the key, assigning it
 	// to the given parameter, and returns a flag which reports whether
 	// the key has been found or not.
-	Get(key []byte, value interface{}) (bool, error)
+	Get(key []byte, value any) (bool, error)
 }
 
 // PreventStoreMarshaling can wrap any Store implementation, embedding it to

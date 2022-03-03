@@ -85,13 +85,13 @@ func init() {
 	gob.Register(TestingStore{})
 }
 
-func (t TestingStore) Name() string                          { return t.name }
-func (t TestingStore) DropAll() error                        { panic("this should never be called") }
-func (t TestingStore) Keys() ([][]byte, error)               { panic("this should never be called") }
-func (t TestingStore) KeysCount() (int, error)               { panic("this should never be called") }
-func (t TestingStore) Contains([]byte) (bool, error)         { panic("this should never be called") }
-func (t TestingStore) Put([]byte, interface{}) error         { panic("this should never be called") }
-func (t TestingStore) Get([]byte, interface{}) (bool, error) { panic("this should never be called") }
+func (t TestingStore) Name() string                  { return t.name }
+func (t TestingStore) DropAll() error                { panic("this should never be called") }
+func (t TestingStore) Keys() ([][]byte, error)       { panic("this should never be called") }
+func (t TestingStore) KeysCount() (int, error)       { panic("this should never be called") }
+func (t TestingStore) Contains([]byte) (bool, error) { panic("this should never be called") }
+func (t TestingStore) Put([]byte, any) error         { panic("this should never be called") }
+func (t TestingStore) Get([]byte, any) (bool, error) { panic("this should never be called") }
 
 func (t TestingStore) MarshalBinary() ([]byte, error) {
 	return []byte(t.name), nil
