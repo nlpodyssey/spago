@@ -24,7 +24,6 @@ type BaseParam[T mat.DType] struct {
 	value        mat.Matrix[T] // store the results of a forward evaluation.
 	grad         mat.Matrix[T]
 	payload      *Payload[T] // additional data used for example by gradient-descend optimization methods
-	hasGrad      bool
 	requiresGrad bool
 	// Allows thread-safe locking for operations on value.
 	valueMu sync.RWMutex
@@ -50,8 +49,7 @@ func NewParam[T mat.DType](value mat.Matrix[T], opts ...ParamOption[T]) Param[T]
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
 		value:        value,
-		grad:         nil, // lazy initialization
-		hasGrad:      false,
+		grad:         nil,  // lazy initialization
 		requiresGrad: true, // true by default, can be modified with the options
 		payload:      nil,  // lazy initialization
 	}
@@ -126,14 +124,13 @@ func (p *BaseParam[T]) PropagateGrad(grad mat.Matrix[T]) {
 		p.grad = p.value.ZerosLike()
 	}
 	p.grad.AddInPlace(grad)
-	p.hasGrad = true
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (p *BaseParam[_]) HasGrad() bool {
 	p.gradMu.RLock()
 	defer p.gradMu.RUnlock()
-	return p.hasGrad
+	return p.grad != nil
 }
 
 // RequiresGrad returns true if the param requires gradients.
@@ -155,7 +152,6 @@ func (p *BaseParam[_]) ZeroGrad() {
 	defer p.gradMu.Unlock()
 	mat.ReleaseMatrix(p.grad)
 	p.grad = nil
-	p.hasGrad = false
 }
 
 // ApplyDelta updates the value applying the delta.

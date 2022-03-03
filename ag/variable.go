@@ -25,7 +25,6 @@ type Variable[T mat.DType] struct {
 	value        mat.Matrix[T] // store the results of a forward evaluation.
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
 	grad         mat.Matrix[T]
-	hasGrad      bool
 	requiresGrad bool
 }
 
@@ -74,12 +73,11 @@ func (r *Variable[T]) PropagateGrad(grad mat.Matrix[T]) {
 		r.grad = r.value.ZerosLike()
 	}
 	r.grad.AddInPlace(grad)
-	r.hasGrad = true
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (r *Variable[_]) HasGrad() bool {
-	return r.hasGrad
+	return r.grad != nil
 }
 
 // RequiresGrad returns true if the node requires gradients.
@@ -94,7 +92,6 @@ func (r *Variable[_]) ZeroGrad() {
 	}
 	defer mat.ReleaseMatrix(r.grad) // release memory
 	r.grad = nil
-	r.hasGrad = false
 }
 
 // TimeStep returns the time-step of the node.

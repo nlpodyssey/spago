@@ -187,7 +187,6 @@ func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
 		id:           g.newID(),
 		value:        value,
 		grad:         nil,
-		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
 
@@ -206,7 +205,6 @@ func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, n
 		name:         name,
 		value:        value,
 		grad:         nil,
-		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
 
@@ -277,7 +275,6 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 		operands:     operands,
 		value:        value,
 		grad:         nil,
-		hasGrad:      false,
 		requiresGrad: requiresGrad,
 	}
 
