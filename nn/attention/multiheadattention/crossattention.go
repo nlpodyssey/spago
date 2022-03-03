@@ -32,7 +32,8 @@ func (m *CrossAttention[T]) Forward(cache Cache[T], seq1 []ag.Node[T], seq2 []ag
 	nextCache := make(Cache[T], n)
 
 	for i, h := range m.Heads {
-		attentions[i], weights[i], nextCache[i] = selfattention.CrossAttention[T]{h}.Forward(cache.At(i), seq1, seq2)
+		ca := selfattention.CrossAttention[T]{Model: h}
+		attentions[i], weights[i], nextCache[i] = ca.Forward(cache.At(i), seq1, seq2)
 	}
 
 	projected := m.project(attentions, len(seq1))

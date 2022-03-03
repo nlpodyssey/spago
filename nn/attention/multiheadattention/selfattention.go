@@ -32,7 +32,8 @@ func (m *SelfAttention[T]) Forward(cache Cache[T], xs []ag.Node[T]) ([]ag.Node[T
 	nextCache := make(Cache[T], n)
 
 	for i, h := range m.Heads {
-		attentions[i], weights[i], nextCache[i] = selfattention.SelfAttention[T]{h}.Forward(cache.At(i), xs)
+		sa := selfattention.SelfAttention[T]{Model: h}
+		attentions[i], weights[i], nextCache[i] = sa.Forward(cache.At(i), xs)
 	}
 
 	projected := m.project(attentions, len(xs))
