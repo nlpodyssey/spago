@@ -330,6 +330,15 @@ func (g *Graph[T]) GetCopiedValue(node Node[T]) mat.Matrix[T] {
 	return node.Value().Clone()
 }
 
+// GetCopiedValues calls GetCopiedValue for each node of the slice.
+func (g *Graph[T]) GetCopiedValues(nodes []Node[T]) []mat.Matrix[T] {
+	values := make([]mat.Matrix[T], len(nodes))
+	for i, n := range nodes {
+		values[i] = g.GetCopiedValue(n)
+	}
+	return values
+}
+
 // GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
 // The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
