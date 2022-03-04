@@ -52,14 +52,14 @@ type PreventStoreMarshaling struct {
 
 // MarshalBinary satisfies encoding.BinaryMarshaler interface.
 // It always produces empty data (nil) and no error.
-func (nes PreventStoreMarshaling) MarshalBinary() ([]byte, error) {
+func (PreventStoreMarshaling) MarshalBinary() ([]byte, error) {
 	return nil, nil
 }
 
 // UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
 // It only accepts empty data (nil or zero-length slice), producing no
 // side effects at all. If data is not blank, it returns an error.
-func (nes PreventStoreMarshaling) UnmarshalBinary(data []byte) error {
+func (PreventStoreMarshaling) UnmarshalBinary(data []byte) error {
 	if len(data) != 0 {
 		return fmt.Errorf("PreventStoreMarshaling.UnmarshalBinary: empty data expected, actual data len %d", len(data))
 	}
