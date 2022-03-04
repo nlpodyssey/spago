@@ -182,6 +182,36 @@ func (m *Model[_, _]) ClearEmbeddingsWithGrad() {
 	m.EmbeddingsWithGrad = nil
 }
 
+// UseRepository allows the Model to use a Store from the given Repository.
+//
+// It only works if a store is not yet present. This can only happen in
+// special situations, for example upon an Embedding model being deserialized,
+// or when manually instantiating and handling a Model (i.e. bypassing New).
+func (m *Model[_, _]) UseRepository(repo store.Repository) error {
+	st, err := repo.Store(m.StoreName)
+	if err != nil {
+		return err
+	}
+	if m.storeExists() {
+		return fmt.Errorf("a Store is already set on this embeddings.Model")
+	}
+	m.Store = &store.PreventStoreMarshaling{Store: st}
+	return nil
+}
+
+func (m *Model[_, _]) storeExists() bool {
+	switch s := m.Store.(type) {
+	case nil:
+		return false
+	case store.PreventStoreMarshaling:
+		return s.Store != nil
+	case *store.PreventStoreMarshaling:
+		return s.Store != nil
+	default:
+		return true
+	}
+}
+
 func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix[T], exists bool) {
 	if !m.Trainable {
 		return nil, false

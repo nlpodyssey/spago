@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"github.com/nlpodyssey/spago/embeddings/store"
+	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -255,6 +256,140 @@ func TestModel_ClearEmbeddingsWithGrad(t *testing.T) {
 	m.ClearEmbeddingsWithGrad()
 
 	assert.Nil(t, e.Grad())
+}
+
+func TestModel_UseRepository(t *testing.T) {
+	type T = float32
+
+	t.Run("when Store is nil", func(t *testing.T) {
+		repo := memstore.NewRepository()
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: nil,
+		}
+
+		err := m.UseRepository(repo)
+		require.NoError(t, err)
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+		expected := &store.PreventStoreMarshaling{Store: st}
+		require.Equal(t, expected, m.Store)
+	})
+
+	t.Run("when Store is PreventStoreMarshaling{nil}", func(t *testing.T) {
+		repo := memstore.NewRepository()
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: store.PreventStoreMarshaling{Store: nil},
+		}
+
+		err := m.UseRepository(repo)
+		require.NoError(t, err)
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+		expected := &store.PreventStoreMarshaling{Store: st}
+		require.Equal(t, expected, m.Store)
+	})
+
+	t.Run("when Store is *PreventStoreMarshaling{nil}", func(t *testing.T) {
+		repo := memstore.NewRepository()
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: &store.PreventStoreMarshaling{Store: nil},
+		}
+
+		err := m.UseRepository(repo)
+		require.NoError(t, err)
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+		expected := &store.PreventStoreMarshaling{Store: st}
+		require.Equal(t, expected, m.Store)
+	})
+
+	t.Run("when Store is not nil", func(t *testing.T) {
+		repo := memstore.NewRepository()
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: st,
+		}
+
+		err = m.UseRepository(repo)
+		require.Error(t, err)
+		require.Same(t, st, m.Store, "Store was not modified")
+	})
+
+	t.Run("when Store is PreventStoreMarshaling{non-nil}", func(t *testing.T) {
+		repo := memstore.NewRepository()
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+
+		mst := store.PreventStoreMarshaling{Store: st}
+
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: mst,
+		}
+
+		err = m.UseRepository(repo)
+		require.Error(t, err)
+		require.Equal(t, mst, m.Store, "Store was not modified")
+	})
+
+	t.Run("when Store is *PreventStoreMarshaling{nil}", func(t *testing.T) {
+		repo := memstore.NewRepository()
+
+		st, err := repo.Store("foo")
+		require.NoError(t, err)
+
+		mst := &store.PreventStoreMarshaling{Store: st}
+
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: mst,
+		}
+
+		err = m.UseRepository(repo)
+		require.Error(t, err)
+		require.Same(t, mst, m.Store, "Store was not modified")
+	})
+
+	t.Run("error getting Store from Repository", func(t *testing.T) {
+		// Create an empty on-disk read-only repository, so request for any
+		// store will fail.
+		repo, err := diskstore.NewRepository(t.TempDir(), diskstore.ReadOnlyMode)
+		require.NoError(t, err)
+
+		m := &embeddings.Model[T, string]{
+			Config: embeddings.Config{
+				StoreName: "foo",
+			},
+			Store: nil,
+		}
+
+		err = m.UseRepository(repo)
+		require.Error(t, err)
+		assert.Nil(t, m.Store)
+	})
 }
 
 func TestModel(t *testing.T) {
