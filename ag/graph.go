@@ -316,47 +316,6 @@ func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
 	return newNode
 }
 
-// GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
-// It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
-// graph's operations can be freed.
-func (g *Graph[T]) GetCopiedValue(node Node[T]) mat.Matrix[T] {
-	if node.Value() == nil {
-		return nil
-	}
-	return node.Value().Clone()
-}
-
-// GetCopiedValues calls GetCopiedValue for each node of the slice.
-func (g *Graph[T]) GetCopiedValues(nodes []Node[T]) []mat.Matrix[T] {
-	values := make([]mat.Matrix[T], len(nodes))
-	for i, n := range nodes {
-		values[i] = g.GetCopiedValue(n)
-	}
-	return values
-}
-
-// GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
-// It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
-// graph's operations can be freed.
-func (g *Graph[T]) GetCopiedGrad(node Node[T]) mat.Matrix[T] {
-	if node.Grad() == nil {
-		return nil
-	}
-	return node.Grad().Clone()
-}
-
-// ReplaceValue replaces the current value of a variable Node with the given value.
-// It panics if node is not a variable.
-func (g *Graph[T]) ReplaceValue(node Node[T], value mat.Matrix[T]) {
-	if node, ok := node.(*Variable[T]); !ok {
-		panic("ag: invalid node. Only variables are allowed to change their value.")
-	} else {
-		node.value = value
-	}
-}
-
 // IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph[_]) IncTimeStep() {
 	g.curTimeStep++

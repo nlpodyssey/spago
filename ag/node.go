@@ -37,3 +37,44 @@ func ToOperands[T mat.DType](xs []Node[T]) []fn.Operand[T] {
 	}
 	return out
 }
+
+// GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
+// It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
+// graph's operations can be freed.
+func GetCopiedValue[T mat.DType](node Node[T]) mat.Matrix[T] {
+	if node.Value() == nil {
+		return nil
+	}
+	return node.Value().Clone()
+}
+
+// GetCopiedValues calls GetCopiedValue for each node of the slice.
+func GetCopiedValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
+	values := make([]mat.Matrix[T], len(nodes))
+	for i, n := range nodes {
+		values[i] = GetCopiedValue(n)
+	}
+	return values
+}
+
+// GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
+// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
+// It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
+// graph's operations can be freed.
+func GetCopiedGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
+	if node.Grad() == nil {
+		return nil
+	}
+	return node.Grad().Clone()
+}
+
+// ReplaceValue replaces the current value of a variable Node with the given value.
+// It panics if node is not a variable.
+func ReplaceValue[T mat.DType](node Node[T], value mat.Matrix[T]) {
+	if node, ok := node.(*Variable[T]); !ok {
+		panic("ag: invalid node. Only variables are allowed to change their value.")
+	} else {
+		node.value = value
+	}
+}
