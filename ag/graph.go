@@ -102,7 +102,7 @@ func (g *Graph[_]) Mode() ProcessingMode {
 // It is important to stress that calling g.Clean(), the "value" and "grad" of the operators nodes are freed (set to nil).
 // Whoever is using the Value() or Grad() properties of a node, does so at his own risk. It is therefore recommended to
 // make always a copy of the return value of Value() or Grad().
-// Alternatively, you can use the convenient graph's methods g.GetCopiedValue(node) and g.GetCopiedGrad(node).
+// Alternatively, you can use the convenient graph's methods g.CopyValue(node) and g.CopyGrad(node).
 func (g *Graph[T]) Clear() {
 	g.mu.Lock()
 	defer g.mu.Unlock()

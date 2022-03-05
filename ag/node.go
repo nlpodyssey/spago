@@ -38,31 +38,31 @@ func ToOperands[T mat.DType](xs []Node[T]) []fn.Operand[T] {
 	return out
 }
 
-// GetCopiedValue returns a copy of the value of a Node. If the value is nil, GetCopiedValue returns nil as well.
+// CopyValue returns a copy of the value of a Node. If the value is nil, CopyValue returns nil as well.
 // The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
-func GetCopiedValue[T mat.DType](node Node[T]) mat.Matrix[T] {
+func CopyValue[T mat.DType](node Node[T]) mat.Matrix[T] {
 	if node.Value() == nil {
 		return nil
 	}
 	return node.Value().Clone()
 }
 
-// GetCopiedValues calls GetCopiedValue for each node of the slice.
-func GetCopiedValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
+// CopyValues calls CopyValue for each node of the slice.
+func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
 	values := make([]mat.Matrix[T], len(nodes))
 	for i, n := range nodes {
-		values[i] = GetCopiedValue(n)
+		values[i] = CopyValue(n)
 	}
 	return values
 }
 
-// GetCopiedGrad returns a copy of the gradients of a Node. If the gradients are nil, GetCopiedGrad returns nil as well.
+// CopyGrad returns a copy of the gradients of a Node. If the gradients are nil, CopyGrad returns nil as well.
 // The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
-func GetCopiedGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
+func CopyGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
 	if node.Grad() == nil {
 		return nil
 	}
