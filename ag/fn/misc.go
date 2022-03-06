@@ -324,7 +324,7 @@ func safeLog[T mat.DType](_, _ int, v T) T {
 		return mat.Log(v)
 	}
 	if v == 0.0 {
-		return mat.Log[T](1.0e-08)
+		return mat.Inf[T](-1)
 	}
 	panic("ag: invalid log for negative values")
 }

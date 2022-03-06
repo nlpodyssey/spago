@@ -45,7 +45,7 @@ func testSafeLogForward[T mat.DType](t *testing.T) {
 	f := NewLog[T](x)
 	y := f.Forward()
 
-	assert.InDeltaSlice(t, []T{-2.3025855, -1.6094379, -1.203972, -18.420680}, y.Data(), 1.0e-5)
+	assert.InDeltaSlice(t, []T{-2.3025855, -1.6094379, -1.203972, mat.Inf[T](-1)}, y.Data(), 1.0e-5)
 
 	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 

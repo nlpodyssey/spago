@@ -5,6 +5,7 @@
 package losses
 
 import (
+	"fmt"
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
@@ -36,15 +37,16 @@ func TestNLLLoss(t *testing.T) {
 
 func testNLLLoss[T mat.DType](t *testing.T) {
 	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
+	x := g.NewVariable(mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591}), true)
 	y := g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0}), false)
 	loss := NLL(ag.Softmax(x), y)
 
-	assertEqualApprox(t, 1.609438, loss.Value().Scalar())
+	fmt.Println(loss.Value().Scalar())
+	assertEqualApprox(t, 1.663405, loss.Value().Scalar())
 
 	g.Backward(loss)
 
-	assert.InDeltaSlice(t, []T{0.0, 0.1, -0.8, 0.7}, x.Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.042572, 0.104711, -0.810507, 0.663224}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestCrossEntropyLoss(t *testing.T) {
