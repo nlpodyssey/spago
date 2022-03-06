@@ -54,11 +54,11 @@ func makeAttentionHeads[T mat.DType](dm, n int, useCausalMask bool) []*selfatten
 }
 
 // Cache contains the self-attention cache for each head.
-type Cache[T mat.DType] []*selfattention.Cache[T]
+type Cache[T mat.DType] []selfattention.Cache[T]
 
-func (r Cache[T]) At(i int) *selfattention.Cache[T] {
+func (r Cache[T]) At(i int) selfattention.Cache[T] {
 	if len(r) == 0 {
-		return nil
+		return selfattention.Cache[T]{}
 	}
 	return r[i]
 }

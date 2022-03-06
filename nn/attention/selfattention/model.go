@@ -53,17 +53,16 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(cache *Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], *Cache[T]) {
+func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], Cache[T]) {
 	pq := m.Query.Forward(q...)
-	pk := m.Key.Forward(k...)
-	pv := m.Value.Forward(v...)
 
-	if cache != nil {
-		pk = append(cache[0], pk...)
-		pv = append(cache[1], pv...)
-	}
+	pk := append([]ag.Node[T]{}, cache[0]...)
+	pv := append([]ag.Node[T]{}, cache[1]...)
+
+	pk = append(pk, m.Key.Forward(k...)...)
+	pv = append(pv, m.Value.Forward(v...)...)
 
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
-	return result, weights, &Cache[T]{pk, pv}
+	return result, weights, Cache[T]{pk, pv}
 }
