@@ -54,13 +54,13 @@ func init() {
 func New[T mat.DType](config Config) *Model[T] {
 	layers := []nn.StandardModel[T]{
 		linear.New[T](config.InputSize, config.HyperSize),
-		layernorm.New[T](config.HyperSize),
+		layernorm.New[T](config.HyperSize, 1e-5),
 		activation.New[T](activation.ReLU),
 	}
 	for i := 1; i < config.NumLayers; i++ {
 		layers = append(layers,
 			linear.New[T](config.HyperSize, config.HyperSize),
-			layernorm.New[T](config.HyperSize),
+			layernorm.New[T](config.HyperSize, 1e-5),
 			activation.New[T](activation.ReLU),
 		)
 	}

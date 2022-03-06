@@ -21,7 +21,7 @@ var _ nn.Model[float32] = &MixerBlock[float32]{}
 // MixerBlock contains the serializable parameters.
 type MixerBlock[T mat.DType] struct {
 	nn.BaseModel[T]
-	Config
+	Config[T]
 	TokenLayerNorm   *layernorm.Model[T]
 	TokenMixerFF     *FeedForward[T]
 	ChannelLayerNorm *layernorm.Model[T]
@@ -29,13 +29,14 @@ type MixerBlock[T mat.DType] struct {
 }
 
 // Config provides configuration settings for a MixerBlock.
-type Config struct {
+type Config[T mat.DType] struct {
 	InputSize               int
 	HiddenSizeTokenMixer    int
 	HiddenSizeChannelMixer  int
 	Channels                int
 	ActFunctionTokenMixer   activation.Name
 	ActFunctionChannelMixer activation.Name
+	Eps                     T
 }
 
 func init() {
@@ -44,13 +45,13 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config) *MixerBlock[T] {
+func New[T mat.DType](config Config[T]) *MixerBlock[T] {
 	return &MixerBlock[T]{
 		Config:           config,
 		TokenMixerFF:     newFeedForward[T](config.Channels, config.HiddenSizeTokenMixer, config.ActFunctionTokenMixer, 0),
-		TokenLayerNorm:   layernorm.New[T](config.InputSize),
+		TokenLayerNorm:   layernorm.New[T](config.InputSize, config.Eps),
 		ChannelMixerFF:   newFeedForward[T](config.InputSize, config.HiddenSizeChannelMixer, config.ActFunctionChannelMixer, 0),
-		ChannelLayerNorm: layernorm.New[T](config.InputSize),
+		ChannelLayerNorm: layernorm.New[T](config.InputSize, config.Eps),
 	}
 }
 

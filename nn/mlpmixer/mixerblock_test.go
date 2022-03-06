@@ -56,13 +56,14 @@ func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
 }
 
 func newTestModel[T mat.DType]() *MixerBlock[T] {
-	model := New[T](Config{
+	model := New[T](Config[T]{
 		InputSize:               3,
 		HiddenSizeTokenMixer:    4,
 		HiddenSizeChannelMixer:  4,
 		Channels:                5,
 		ActFunctionTokenMixer:   activation.Tanh,
 		ActFunctionChannelMixer: activation.Tanh,
+		Eps:                     1e-12,
 	})
 	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
 		0.5, 0.6, -0.8, -0.3, -0.7,
@@ -103,13 +104,14 @@ func newTestModel[T mat.DType]() *MixerBlock[T] {
 }
 
 func newTestModelGelu[T mat.DType]() *MixerBlock[T] {
-	model := New[T](Config{
+	model := New[T](Config[T]{
 		InputSize:               4,
 		HiddenSizeTokenMixer:    4,
 		HiddenSizeChannelMixer:  4,
 		Channels:                3,
 		ActFunctionTokenMixer:   activation.GELU,
 		ActFunctionChannelMixer: activation.GELU,
+		Eps:                     1e-12,
 	})
 	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
 		-0.5501, -0.2185, 0.4135,

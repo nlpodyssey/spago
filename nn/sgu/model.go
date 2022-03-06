@@ -48,7 +48,7 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 
 	m := &Model[T]{
 		Config: config,
-		Norm:   layernorm.New[T](dimOut),
+		Norm:   layernorm.New[T](dimOut, 1e-12),
 		Proj: conv1x1.New[T](conv1x1.Config{
 			InputChannels:  config.DimSeq,
 			OutputChannels: config.DimSeq,

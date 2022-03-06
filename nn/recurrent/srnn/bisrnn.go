@@ -56,7 +56,7 @@ func NewBidirectional[T mat.DType](config Config) *BiModel[T] {
 		FC:        stack.New(layers...),
 		FC2:       linear.New[T](config.InputSize, config.HiddenSize),
 		FC3:       linear.New[T](config.HiddenSize*2, config.OutputSize),
-		LayerNorm: layernorm.New[T](config.OutputSize),
+		LayerNorm: layernorm.New[T](config.OutputSize, 1e-5),
 	}
 }
 

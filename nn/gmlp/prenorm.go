@@ -30,7 +30,7 @@ func init() {
 func NewPreNorm[T mat.DType](dim int, block *Block[T]) *PreNorm[T] {
 	return &PreNorm[T]{
 		Block: block,
-		Norm:  layernorm.New[T](dim),
+		Norm:  layernorm.New[T](dim, 1e-12),
 	}
 }
 

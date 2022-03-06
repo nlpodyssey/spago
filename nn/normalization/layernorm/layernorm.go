@@ -20,8 +20,9 @@ var _ nn.Model[float32] = &Model[float32]{}
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
-	W nn.Param[T] `spago:"type:weights"`
-	B nn.Param[T] `spago:"type:biases"`
+	W   nn.Param[T] `spago:"type:weights"`
+	B   nn.Param[T] `spago:"type:biases"`
+	Eps T
 }
 
 func init() {
@@ -30,17 +31,18 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](size int) *Model[T] {
+func New[T mat.DType](size int, eps T) *Model[T] {
 	return &Model[T]{
-		W: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
-		B: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+		W:   nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+		B:   nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+		Eps: eps,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	eps := m.Graph.Constant(1e-12) // avoid underflow errors
+	eps := m.Graph.Constant(m.Eps)
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
