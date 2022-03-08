@@ -78,3 +78,7 @@ func (r *Wrapper[_]) ZeroGrad() {
 func (r *Wrapper[_]) TimeStep() int {
 	return r.timeStep
 }
+
+func (r *Wrapper[_]) setID(id int) {
+	r.id = id
+}

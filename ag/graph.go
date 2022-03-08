@@ -109,6 +109,36 @@ func (g *Graph[_]) EagerExecutionEnabled() bool {
 	return g.eagerExecution
 }
 
+// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
+func (g *Graph[_]) ConcurrentComputations() int {
+	return g.processingQueue.Size()
+}
+
+// ZeroGrad sets the gradients of all nodes to zero.
+func (g *Graph[_]) ZeroGrad() {
+	for _, node := range g.nodes {
+		node.ZeroGrad()
+	}
+}
+
+// IncTimeStep increments the value of the graph's TimeStep by one.
+func (g *Graph[_]) IncTimeStep() {
+	g.curTimeStep++
+}
+
+// TimeStep is an integer value associated with the graph, which can be useful
+// to perform truncated back propagation. This value is 0 for a new Graph, and
+// can be incremented calling IncTimeStep.
+func (g *Graph[_]) TimeStep() int {
+	return g.curTimeStep
+}
+
+// Nodes returns the nodes of the graph.
+func (g *Graph[T]) Nodes() []Node[T] {
+	return g.nodes
+}
+
 // Clear cleans the graph. This is a destructive operation.
 // It is not mandatory to call this method, but it is strongly recommended to do so when you finish using the graph.
 // The cleaning of the graph improves the memory management and therefore the efficiency of execution.
@@ -138,13 +168,6 @@ func (g *Graph[T]) Clear() {
 	g.nodes = nil
 }
 
-// clearCache cleans the cache.
-func (g *Graph[_]) clearCache() {
-	g.cache.maxID = -1
-	g.cache.nodesByHeight = nil
-	g.cache.height = nil
-}
-
 // ClearForReuse does the same thing as Clear(), with the difference that the graph structure (i.e.
 // how nodes are connected to each other) is maintained.
 // This allows you to efficiently use the graph as if it were "pre-computed" (see the Forward()
@@ -158,72 +181,29 @@ func (g *Graph[_]) ClearForReuse() {
 	g.releaseMemory()
 }
 
-// releaseMemory clears the values and the gradients of operator nodes.
-// Since the values and the gradients within the nodes are handled through a pool of dense matrices,
-// releasing them allows the memory to be reused without being reallocated, improving performance.
-func (g *Graph[T]) releaseMemory() {
-	for _, node := range g.nodes {
-		if node, ok := node.(*Operator[T]); ok {
-			g.releaseValue(node)
-			g.releaseGrad(node)
-		}
-	}
-}
-
-// releaseValue set the node value to nil release the memory.
-func (g *Graph[T]) releaseValue(node *Operator[T]) {
-	if node.value == nil {
-		return
-	}
-	mat.ReleaseMatrix(node.value)
-	node.value = nil
-}
-
-// releaseGrad set the node gradient to nil and release the memory.
-func (g *Graph[T]) releaseGrad(node *Operator[T]) {
-	node.ZeroGrad()
-}
-
-// ZeroGrad sets the gradients of all nodes to zero.
-func (g *Graph[_]) ZeroGrad() {
-	for _, node := range g.nodes {
-		node.ZeroGrad()
-	}
-}
-
 // NewVariable creates and returns a new node.
 func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	newNode := &Variable[T]{
+	n := &Variable[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           g.newID(),
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
 	}
-
-	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return g.insert(n)
 }
 
 // NewVariableWithName creates and returns a new node.
 func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	newNode := &Variable[T]{
+	n := &Variable[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           g.newID(),
 		name:         name,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
 	}
-
-	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return g.insert(n)
 }
 
 // NewScalar creates a variable node that doesn't require gradients.
@@ -276,87 +256,84 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 		}
 	}
 
-	newNode := getOperatorPool[T]().Get().(*Operator[T])
-
-	g.mu.Lock()
-	defer g.mu.Unlock()
-
-	*newNode = Operator[T]{
+	n := getOperatorPool[T]().Get().(*Operator[T])
+	*n = Operator[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           g.newID(),
 		function:     f,
 		operands:     operands,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
 	}
-
-	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return g.insert(n)
 }
 
 // NewWrap creates a new wrapper Node for the given value, attaching it to
 // the graph.
 func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	newNode := &Wrapper[T]{
+	n := &Wrapper[T]{
 		GradValue: value,
 		timeStep:  g.curTimeStep,
 		graph:     g,
-		id:        g.newID(),
 		wrapGrad:  true,
 	}
-
-	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return g.insert(n)
 }
 
 // NewWrapNoGrad is similar to NewWrap, but it disables automatic
 // differentiation on the new node.
 func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	newNode := &Wrapper[T]{
+	n := &Wrapper[T]{
 		GradValue: value,
 		graph:     g,
 		timeStep:  g.curTimeStep,
-		id:        g.newID(),
 		wrapGrad:  false,
 	}
-
-	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return g.insert(n)
 }
 
-// IncTimeStep increments the value of the graph's TimeStep by one.
-func (g *Graph[_]) IncTimeStep() {
-	g.curTimeStep++
-}
-
-// TimeStep is an integer value associated with the graph, which can be useful
-// to perform truncated back propagation. This value is 0 for a new Graph, and
-// can be incremented calling IncTimeStep.
-func (g *Graph[_]) TimeStep() int {
-	return g.curTimeStep
-}
-
-// Nodes returns the nodes of the graph.
-func (g *Graph[T]) Nodes() []Node[T] {
-	return g.nodes
-}
-
-// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
-// for heavy tasks such as forward and backward steps.
-func (g *Graph[_]) ConcurrentComputations() int {
-	return g.processingQueue.Size()
-}
-
-// newID generates and returns a new incremental sequential ID.
-func (g *Graph[_]) newID() int {
+// insert append the node into the graph's nodes and assign it an id.
+func (g *Graph[T]) insert(n _node[T]) Node[T] {
+	g.mu.Lock()
 	g.maxID++
-	return g.maxID
+	n.setID(g.maxID)
+	g.nodes = append(g.nodes, n)
+	g.mu.Unlock()
+	return n
+}
+
+// clearCache cleans the cache.
+func (g *Graph[_]) clearCache() {
+	g.cache.maxID = -1
+	g.cache.nodesByHeight = nil
+	g.cache.height = nil
+}
+
+// releaseMemory clears the values and the gradients of operator nodes.
+// Since the values and the gradients within the nodes are handled through a pool of dense matrices,
+// releasing them allows the memory to be reused without being reallocated, improving performance.
+func (g *Graph[T]) releaseMemory() {
+	for _, node := range g.nodes {
+		if node, ok := node.(*Operator[T]); ok {
+			g.releaseValue(node)
+			g.releaseGrad(node)
+		}
+	}
+}
+
+// releaseValue set the node value to nil release the memory.
+func (g *Graph[T]) releaseValue(node *Operator[T]) {
+	if node.value == nil {
+		return
+	}
+	mat.ReleaseMatrix(node.value)
+	node.value = nil
+}
+
+// releaseGrad set the node gradient to nil and release the memory.
+func (g *Graph[T]) releaseGrad(node *Operator[T]) {
+	node.ZeroGrad()
 }
 
 func (g *Graph[T]) groupNodesByHeight() [][]Node[T] {

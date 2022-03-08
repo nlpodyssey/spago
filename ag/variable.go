@@ -98,3 +98,7 @@ func (r *Variable[_]) ZeroGrad() {
 func (r *Variable[_]) TimeStep() int {
 	return r.timeStep
 }
+
+func (r *Variable[_]) setID(id int) {
+	r.id = id
+}

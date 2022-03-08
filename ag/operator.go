@@ -136,3 +136,7 @@ func (r *Operator[_]) backward() {
 	}
 	r.function.Backward(r.grad)
 }
+
+func (r *Operator[_]) setID(id int) {
+	r.id = id
+}
