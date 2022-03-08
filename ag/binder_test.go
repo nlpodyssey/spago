@@ -105,11 +105,23 @@ type reifModel9[T mat.DType] struct {
 	A map[string]paramInterface[T]
 }
 
+type _testSession[T mat.DType] struct {
+	g *Graph[T]
+}
+
+func (s *_testSession[T]) Graph() *Graph[T] {
+	return s.g
+}
+
+func (s *_testSession[_]) Mode() ProcessingMode {
+	return Inference
+}
+
 // Bind returns a new structure of the same type as the one in input
 // in which the fields of type Node (including those from other differentiable
 // submodules) are connected to the given graph.
 func _newBoundStruct[T mat.DType, D Differentiable[T]](g *Graph[T], i D) D {
-	b := &graphBinder[T]{g: g}
+	b := &graphBinder[T]{session: any(&_testSession[T]{g: g}).(SessionProvider[T])}
 	return b.newBoundStruct(i).(Differentiable[T]).(D)
 }
 
@@ -120,13 +132,16 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 		t.Parallel()
 
 		sourceModel := &reifModel1[T]{ID: 42}
-		g := NewGraph[T](WithMode[T](Training))
+		g := NewGraph[T]()
+
 		result := _newBoundStruct(g, sourceModel)
 		assert.IsType(t, &reifModel1[T]{}, result)
 		assert.NotSame(t, sourceModel, result)
 		assert.Equal(t, &reifModel1[T]{
-			DifferentiableModule: DifferentiableModule[T]{Graph: g},
-			ID:                   42,
+			DifferentiableModule: DifferentiableModule[T]{
+				Session: &_testSession[T]{g: g},
+			},
+			ID: 42,
 		}, result)
 	})
 
@@ -137,7 +152,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 			A: &paramStruct[T]{mat.NewScalar[T](1)},
 			B: &paramStruct[T]{mat.NewScalar[T](2)},
 		}
-		g := NewGraph[T](WithMode[T](Training))
+		g := NewGraph[T]()
 		result := _newBoundStruct(g, sourceModel)
 
 		_ = result
@@ -156,7 +171,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 				&paramStruct[T]{mat.NewScalar[T](2)},
 			},
 		}
-		g := NewGraph[T](WithMode[T](Training))
+		g := NewGraph[T]()
 		result := _newBoundStruct(g, sourceModel)
 
 		_ = result
@@ -169,7 +184,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 	t.Run("it panics with a model with an already reified param", func(t *testing.T) {
 		t.Parallel()
 
-		g := NewGraph[T](WithMode[T](Training))
+		g := NewGraph[T]()
 		p := &paramStruct[T]{mat.NewScalar[T](1)}
 
 		sourceModel := &reifModel2[T]{
@@ -190,7 +205,7 @@ func testModelContextualizer[T mat.DType](t *testing.T) {
 				"b": &paramStruct[T]{mat.NewScalar[T](2)},
 			},
 		}
-		g := NewGraph[T](WithMode[T](Training))
+		g := NewGraph[T]()
 		result := _newBoundStruct(g, sourceModel)
 
 		_ = result

@@ -89,7 +89,7 @@ func (m *Model[T]) Next(prevState *State[T], x ag.Node[T]) (s *State[T]) {
 		s.Z = attKey
 	}
 
-	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), m.Graph.Constant(1e-12)))
+	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), m.Session.Graph().Constant(1e-12)))
 	return
 }
 

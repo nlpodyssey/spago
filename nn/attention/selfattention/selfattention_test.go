@@ -19,14 +19,14 @@ func TestModel_SelfAttention(t *testing.T) {
 
 func testModelSelfAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	proc, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
-	x1 := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	x2 := g.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
-	x3 := g.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
+	x1 := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	x2 := s.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
+	x3 := s.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
 
-	output, _, _ := proc.Forward(Cache[T]{}, []ag.Node[T]{x1, x2, x3})
+	output, _, _ := s.Module().Forward(Cache[T]{}, []ag.Node[T]{x1, x2, x3})
 
 	assert.InDeltaSlice(t, []T{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)
@@ -36,7 +36,7 @@ func testModelSelfAttention[T mat.DType](t *testing.T) {
 	output[1].PropagateGrad(mat.NewVecDense([]T{-0.08, -0.2, -0.1}))
 	output[2].PropagateGrad(mat.NewVecDense([]T{0.1, 0.3, 0.8}))
 
-	g.BackwardAll()
+	s.Graph().Backward(nil)
 
 	assert.InDeltaSlice(t, []T{0.01654154, 0.48942297, -0.1587743, -0.2387454}, x1.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.04408108, 0.18716132, -0.15425818, -0.040870}, x2.Grad().Data(), 1.0e-05)

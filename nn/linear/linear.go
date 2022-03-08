@@ -58,7 +58,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) concurrentComputationEnabled() bool {
-	return m.Graph.ConcurrentComputations() > 1
+	return m.Session.Graph().ConcurrentComputations() > 1
 }
 
 func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {

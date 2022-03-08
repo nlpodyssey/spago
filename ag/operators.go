@@ -18,7 +18,7 @@ func Identity[T mat.DType](x Node[T]) Node[T] {
 // It does not apply the dropout during inference regardless the probability.
 func Dropout[T mat.DType](x Node[T], p T) Node[T] {
 	g := resolveGraph[T](x)
-	if g.mode == Inference {
+	if p == 0.0 {
 		return x
 	}
 	return g.NewOperator(fn.NewDropout[T](x, p, g.randGen), x)

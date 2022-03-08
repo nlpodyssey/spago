@@ -18,10 +18,10 @@ type NodeBinder[T mat.DType] interface {
 }
 
 type graphBinder[T mat.DType] struct {
-	g *Graph[T]
+	session SessionProvider[T]
 }
 
-func (r *graphBinder[_]) newBoundStruct(rawSource any) any {
+func (r *graphBinder[T]) newBoundStruct(rawSource any) any {
 	source := reflect.ValueOf(rawSource)
 	sourceType := reflect.TypeOf(rawSource)
 
@@ -52,11 +52,9 @@ func (r *graphBinder[_]) newBoundStruct(rawSource any) any {
 
 func (r *graphBinder[T]) bindStructField(sourceField, destField reflect.Value) {
 	switch sourceFieldT := sourceField.Interface().(type) {
-	case *Graph[T]:
-		destField.Set(reflect.ValueOf(r.g))
 	case Node[T]:
 		// This Node MUST be Bindable, otherwise it panics
-		destField.Set(reflect.ValueOf(sourceFieldT.(NodeBinder[T]).Bind(r.g)))
+		destField.Set(reflect.ValueOf(sourceFieldT.(NodeBinder[T]).Bind(r.session.Graph())))
 	case Differentiable[T]:
 		destField.Set(reflect.ValueOf(r.bindDifferentiable(sourceFieldT)))
 	default:
@@ -67,6 +65,12 @@ func (r *graphBinder[T]) bindStructField(sourceField, destField reflect.Value) {
 			destField.Set(r.bindMap(sourceField)) // , tag
 		case reflect.Struct, reflect.Ptr:
 			if sourceField.Kind() == reflect.Ptr && sourceField.IsNil() {
+				return
+			}
+			destField.Set(sourceField)
+		case reflect.Interface:
+			if sourceField.Type().Name() == reflect.TypeOf((*SessionProvider[T])(nil)).Elem().Name() {
+				destField.Set(reflect.ValueOf(r.session))
 				return
 			}
 			destField.Set(sourceField)
@@ -138,7 +142,7 @@ func (r *graphBinder[T]) bindMap(sourceValue reflect.Value) reflect.Value {
 		var destValue reflect.Value
 		if p, isNode := sourceValue.Interface().(Node[T]); isNode {
 			// This Node MUST be Bindable, otherwise it panics
-			destValue = reflect.ValueOf(p.(NodeBinder[T]).Bind(r.g))
+			destValue = reflect.ValueOf(p.(NodeBinder[T]).Bind(r.session.Graph()))
 		} else if mapValueKind == reflect.Struct || mapValueKind == reflect.Ptr {
 			destValue = reflect.ValueOf(r.newBoundStruct(sourceValue.Interface()))
 		} else {

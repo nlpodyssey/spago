@@ -55,6 +55,6 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
 	t := ag.Sigmoid(ag.Affine[T](m.BT, m.WT, x))
 	h := activation.Do(m.Activation, ag.Affine[T](m.BIn, m.WIn, x))
-	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, m.Graph.NewScalar(1.0)), x))
+	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, m.Session.Graph().NewScalar(1.0)), x))
 	return y
 }

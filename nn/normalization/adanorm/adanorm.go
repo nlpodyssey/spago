@@ -45,7 +45,7 @@ func New[T mat.DType](scale T) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Graph
+	g := m.Session.Graph()
 	eps := g.Constant(1e-10)
 	one := g.Constant(1.0)
 	k := g.Constant(0.1)

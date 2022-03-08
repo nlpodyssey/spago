@@ -52,24 +52,3 @@ func WithConcurrentComputations[T mat.DType](value int) GraphOption[T] {
 		g.processingQueue = processingqueue.New(value)
 	}
 }
-
-// WithMode sets whether the graph is being used in training or inference.
-func WithMode[T mat.DType](mode ProcessingMode) GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.mode = mode
-	}
-}
-
-// ForTraining equals to ag.WithMode(ag.Training).
-func ForTraining[T mat.DType]() GraphOption[T] {
-	return func(r *Graph[T]) {
-		r.mode = Training
-	}
-}
-
-// ForInference equals to ag.WithMode(ag.Inference).
-func ForInference[T mat.DType]() GraphOption[T] {
-	return func(r *Graph[T]) {
-		r.mode = Inference
-	}
-}

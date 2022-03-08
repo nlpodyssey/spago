@@ -65,7 +65,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 		panic("gMLP: input sequence is too long")
 	}
 	padded := ag.Pad(xs, m.Config.SeqLen, func(_ int) ag.Node[T] {
-		return m.Graph.NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
+		return m.Session.Graph().NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
 	})
 	return m.Model.Forward(padded...)
 }

@@ -35,7 +35,7 @@ func New[T mat.DType]() *Model[T] {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
-	eps := m.Graph.Constant(1e-10)
+	eps := m.Session.Graph().Constant(1e-10)
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)

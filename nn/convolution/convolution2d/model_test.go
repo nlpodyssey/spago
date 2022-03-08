@@ -21,33 +21,33 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	p, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x1 := s.NewVariable(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
 	}), true)
 
-	x2 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x2 := s.NewVariable(mat.NewDense(4, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
 		0.5, 0.2, 0.2, 0.9,
 		0.9, 0.3, 0.2, 0.7,
 	}), true)
 
-	x3 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x3 := s.NewVariable(mat.NewDense(4, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
 		0.5, 0.6, -0.9, 0.0,
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := p.Forward(x1, x2, x3)
+	y := s.Module().Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.6291451614, 0.4218990053, 0.0399786803,
@@ -73,7 +73,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.3, 0.6, 0.0,
 	}))
 
-	g.BackwardAll()
+	s.Graph().Backward(nil)
 
 	assert.InDeltaSlice(t, []T{
 		0.4361460918, 0.3557904551,
@@ -158,33 +158,33 @@ func TestDepthwise_Forward(t *testing.T) {
 
 func testDepthwiseForward[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
-	p, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x1 := s.NewVariable(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
 	}), true)
 
-	x2 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x2 := s.NewVariable(mat.NewDense(4, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
 		0.5, 0.2, 0.2, 0.9,
 		0.9, 0.3, 0.2, 0.7,
 	}), true)
 
-	x3 := g.NewVariable(mat.NewDense(4, 4, []T{
+	x3 := s.NewVariable(mat.NewDense(4, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
 		0.5, 0.6, -0.9, 0.0,
 		0.3, 0.9, 0.2, 0.1,
 	}), true)
 
-	y := p.Forward(x1, x2, x3)
+	y := s.Module().Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,

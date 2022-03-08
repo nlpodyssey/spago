@@ -13,18 +13,6 @@ import (
 	"sync"
 )
 
-// ProcessingMode regulates the different usage of some operations (e.g. Dropout, BatchNorm, etc.),
-// depending on whether you're doing training or inference.
-// Failing to set the right mode will yield inconsistent inference results.
-type ProcessingMode uint8
-
-const (
-	// Training is to be used during the training phase of a model. For example, dropouts are enabled.
-	Training ProcessingMode = iota
-	// Inference keeps weights fixed while using the model and disables some operations (e.g. skip dropout).
-	Inference
-)
-
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
@@ -52,8 +40,6 @@ type Graph[T mat.DType] struct {
 		// the nodes height. The index corresponds to the node ID.
 		height []int
 	}
-	// mode defines whether the graph is being used in training or inference (default inference).
-	mode ProcessingMode
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
 	// processingQueue allows proper handling for computationally heavy operations
@@ -71,7 +57,6 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		nodes:           nil,
 		constants:       map[T]Node[T]{},
 		eagerExecution:  true,
-		mode:            Inference,
 		processingQueue: processingqueue.New(defaultProcessingQueueSize),
 	}
 	g.clearCache()
@@ -84,15 +69,44 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	return g
 }
 
+// SetRand replace the graph's random number generator with the given one.
+func (g *Graph[T]) SetRand(rand *rand.LockedRand[T]) {
+	g.randGen = rand
+}
+
+// SetRandSeed replace the graph's random number generator with a new one with the given seed.
+func (g *Graph[T]) SetRandSeed(seed uint64) {
+	g.randGen = rand.NewLockedRand[T](seed)
+}
+
+// SetEagerExecution sets whether to compute the forward during the graph definition (default true).
+// When enabled it lets you access to the Value() resulting from the computation.
+// There are particular cases where you don't need intermediate values so computing the forward after
+// the graph definition can be more efficient.
+// It returns the previous value.
+func (g *Graph[T]) SetEagerExecution(value bool) bool {
+	prev := g.eagerExecution
+	g.eagerExecution = value
+	return prev
+}
+
+// SetConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// for heavy tasks such as forward and backward steps.
+// The value 1 corresponds to sequential execution.
+// It returns the previous value.
+func (g *Graph[T]) SetConcurrentComputations(value int) int {
+	if value < 1 {
+		panic("ag: WithConcurrentComputations value must be greater than zero")
+	}
+	prev := len(g.processingQueue)
+	g.processingQueue = processingqueue.New(value)
+	return prev
+}
+
 // EagerExecutionEnabled returns whether the computation happens during the graph definition.
 // See ag.WithEagerExecution() option.
 func (g *Graph[_]) EagerExecutionEnabled() bool {
 	return g.eagerExecution
-}
-
-// Mode returns whether the graph is being used in training or inference.
-func (g *Graph[_]) Mode() ProcessingMode {
-	return g.mode
 }
 
 // Clear cleans the graph. This is a destructive operation.
@@ -133,8 +147,8 @@ func (g *Graph[_]) clearCache() {
 
 // ClearForReuse does the same thing as Clear(), with the difference that the graph structure (i.e.
 // how nodes are connected to each other) is maintained.
-// This allows you to efficiently use the graph as if it were "pre-computed" (see the ForwardAll()
-// method for this usage).
+// This allows you to efficiently use the graph as if it were "pre-computed" (see the Forward()
+// method for this scenario).
 func (g *Graph[_]) ClearForReuse() {
 	g.mu.Lock()
 	defer g.mu.Unlock()

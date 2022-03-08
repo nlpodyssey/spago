@@ -183,13 +183,13 @@ func TestModel_Encode(t *testing.T) {
 			UseZeroEmbedding: true,
 		}
 		model := embeddings.New[T, string](conf, repo)
-		p, g := ag.Reify(model, ag.ForTraining[T]())
-		defer g.Clear()
+		s := ag.NewSession[T](model, ag.Training)
+		defer s.Close()
 
-		e, _ := p.Embedding("foo")
+		e, _ := s.Module().Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 
-		result := p.Encode([]string{"foo", "bar", "foo"})
+		result := s.Module().Encode([]string{"foo", "bar", "foo"})
 		require.Len(t, result, 3)
 
 		assert.NotNil(t, result[0])
@@ -215,13 +215,13 @@ func TestModel_Encode(t *testing.T) {
 			UseZeroEmbedding: false,
 		}
 		model := embeddings.New[T, string](conf, repo)
-		p, g := ag.Reify(model, ag.ForTraining[T]())
-		defer g.Clear()
+		s := ag.NewSession[T](model, ag.Training)
+		defer s.Close()
 
-		e, _ := p.Embedding("foo")
+		e, _ := s.Module().Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 
-		result := p.Encode([]string{"foo", "bar", "foo"})
+		result := s.Module().Encode([]string{"foo", "bar", "foo"})
 		require.Len(t, result, 3)
 
 		assert.NotNil(t, result[0])

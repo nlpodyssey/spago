@@ -18,17 +18,17 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	proc, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
 	// == Forward
-	x0 := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	s1 := proc.Next(nil, x0)
+	x0 := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	s1 := s.Module().Next(nil, x0)
 
 	assert.InDeltaSlice(t, []T{0.88, -1.1, -0.45, 0.41}, s1.Y.Value().Data(), 1.0e-05)
 
-	x1 := g.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
-	s2 := proc.Next(s1, x1)
+	x1 := s.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
+	s2 := s.Module().Next(s1, x1)
 
 	assert.InDeltaSlice(t, []T{0.5996537, -0.545537, -0.63689751, 0.453609420}, s2.Y.Value().Data(), 1.0e-05)
 }

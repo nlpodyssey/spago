@@ -18,15 +18,15 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	proc, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
 	// == Forward
-	x1 := g.NewVariable(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}), true)
-	x2 := g.NewVariable(mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0}), true)
-	x3 := g.NewVariable(mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0}), true)
+	x1 := s.NewVariable(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}), true)
+	x2 := s.NewVariable(mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0}), true)
+	x3 := s.NewVariable(mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0}), true)
 
-	y := proc.Forward(x1, x2, x3)
+	y := s.Module().Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{0.1091089451, -0.0872871560, 0.0, 0.6982972487}, y[0].Value().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{0.2121320343, -0.0565685424, 0.0424264068, 0.6788225099}, y[1].Value().Data(), 1.0e-06)
@@ -36,7 +36,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	y[0].PropagateGrad(mat.NewVecDense([]T{-1.0, -0.2, 0.4, 0.6}))
 	y[1].PropagateGrad(mat.NewVecDense([]T{-0.3, 0.1, 0.7, 0.9}))
 	y[2].PropagateGrad(mat.NewVecDense([]T{0.3, -0.4, 0.7, -0.8}))
-	g.BackwardAll()
+	s.Graph().Backward(nil)
 
 	assert.InDeltaSlice(t, []T{-0.1246959373, -0.0224452687, 0.0261861468, 0.0423966187}, x1.Grad().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{-0.0554937402, -0.0256821183, 0.0182716392, 0.033262303}, x2.Grad().Data(), 1.0e-06)

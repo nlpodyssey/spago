@@ -32,27 +32,27 @@ func (m *testLinearWithActivationModel[T]) forward(x ag.Node[T]) ag.Node[T] {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	p, g := ag.Reify(
-		testLinearWithActivationModel[T]{
+	s := ag.NewSession[T](
+		&testLinearWithActivationModel[T]{
 			M1: model,
 			M2: activation.New[T](activation.Tanh),
 		},
-		ag.ForTraining[T](),
+		ag.Training,
 	)
-	defer g.Clear()
+	defer s.Close()
 
 	// == Forward
 
-	x := g.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := p.forward(x) // TODO: test linear only
+	x := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	y := s.Module().forward(x) // TODO: test linear only
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
-	gold := g.NewVariable(mat.NewVecDense([]T{0.0, 0.5, -0.4, -0.9, 0.9}), false)
+	gold := s.NewVariable(mat.NewVecDense([]T{0.0, 0.5, -0.4, -0.9, 0.9}), false)
 	loss := losses.MSE(y, gold, false)
-	g.Backward(loss)
+	s.Graph().Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.0126, -2.07296, 1.07476, -0.14158}, x.Grad().Data(), 0.005)
 

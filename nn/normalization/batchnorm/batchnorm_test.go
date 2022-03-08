@@ -109,12 +109,12 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		x := make([]ag.Node[T], len(testData))
 		var y []ag.Node[T]
 		for i := 0; i < tt.forwardSteps; i++ {
-			proc, g := ag.Reify(model, ag.ForTraining[T]())
+			s := ag.NewSession[T](model, ag.Training)
 			for j := range data {
-				x[j] = g.NewVariable(mat.NewVecDense(data[j]), false)
+				x[j] = s.NewVariable(mat.NewVecDense(data[j]), false)
 			}
-			y = proc.Forward(x...)
-			g.Clear()
+			y = s.Module().Forward(x...)
+			s.Close()
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -141,12 +141,12 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 
-	proc, g := ag.Reify(model, ag.ForInference[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Inference)
+	defer s.Close()
 
 	data := []T{1.0, 2.0, 3.0}
-	x := g.NewVariable(mat.NewVecDense[T](data), false)
-	y := proc.Forward(x)
+	x := s.NewVariable(mat.NewVecDense[T](data), false)
+	y := s.Module().Forward(x)
 	require.Equal(t, 1, len(y))
 	assert.InDeltaSlice(t, []T{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
@@ -184,16 +184,16 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	proc, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
 	// == Forward
 
-	x1 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := g.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := g.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := s.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
+	x2 := s.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
+	x3 := s.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(proc.Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(s.Module().Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)
@@ -204,7 +204,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	y[0].PropagateGrad(mat.NewVecDense[T]([]T{-1.0, -0.2, 0.4, 0.6}))
 	y[1].PropagateGrad(mat.NewVecDense[T]([]T{-0.3, 0.1, 0.7, 0.9}))
 	y[2].PropagateGrad(mat.NewVecDense[T]([]T{0.3, -0.4, 0.7, -0.8}))
-	g.BackwardAll()
+	s.Graph().Backward(nil)
 
 	assert.InDeltaSlice(t, []T{-0.6894291116772131, 0.0, 0.0, 0.1265151774227913}, x1.Grad().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{-1.767774815419898e-11, 0.0, 0.0, -0.09674690039596812}, x2.Grad().Data(), 1.0e-04)

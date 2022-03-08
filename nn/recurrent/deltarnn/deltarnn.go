@@ -93,6 +93,6 @@ func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s.D2 = ag.Prod(ag.Prod[T](m.Alpha, wx), wyRec)
 	s.C = ag.Tanh(ag.Add[T](ag.Add[T](s.D1, s.D2), m.B))
 	s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
-	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, m.Graph.Constant(1.0)), yPrev)))
+	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, m.Session.Graph().Constant(1.0)), yPrev)))
 	return
 }

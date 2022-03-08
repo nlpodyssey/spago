@@ -13,11 +13,7 @@ type Differentiable[T mat.DType] interface {
 
 // DifferentiableModule must be embedded into all differentiable modules.
 type DifferentiableModule[T mat.DType] struct {
-	Graph *Graph[T]
+	Session SessionProvider[T]
 }
 
 func (m DifferentiableModule[T]) mustEmbedDifferentiableModule() {}
-
-func (m DifferentiableModule[T]) Mode() ProcessingMode {
-	return m.Graph.Mode()
-}

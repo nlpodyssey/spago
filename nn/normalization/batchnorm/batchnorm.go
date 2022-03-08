@@ -49,7 +49,7 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Mode() == ag.Training {
+	if m.Session.Mode() == ag.Training {
 		return m.forwardTraining(xs)
 	}
 	return m.forwardInference(xs)
@@ -63,7 +63,7 @@ func (m *Model[T]) forwardTraining(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) process(xs []ag.Node[T], devVector ag.Node[T], meanVector ag.Node[T]) []ag.Node[T] {
-	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, m.Graph.Constant(epsilon)))
+	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, m.Session.Graph().Constant(epsilon)))
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add[T](ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
@@ -82,8 +82,8 @@ func (m *Model[T]) updateBatchNormParameters(meanVector, devVector mat.Matrix[T]
 }
 
 func (m *Model[T]) forwardInference(xs []ag.Node[T]) []ag.Node[T] {
-	meanVector := m.Graph.NewWrapNoGrad(m.Mean)
-	devVector := m.Graph.NewWrapNoGrad(m.StdDev)
+	meanVector := m.Session.Graph().NewWrapNoGrad(m.Mean)
+	devVector := m.Session.Graph().NewWrapNoGrad(m.StdDev)
 	return m.process(xs, devVector, meanVector)
 }
 
@@ -94,7 +94,7 @@ func (m *Model[T]) mean(xs []ag.Node[T]) ag.Node[T] {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, m.Graph.NewScalar(T(len(xs))+epsilon))
+	return ag.DivScalar(sumVector, m.Session.Graph().NewScalar(T(len(xs))+epsilon))
 }
 
 // StdDev computes the standard deviation of the input.

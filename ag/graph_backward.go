@@ -29,6 +29,12 @@ func OutputGrad[T mat.DType](grad mat.Matrix[T]) BackwardOption[T] {
 }
 
 // Backward performs the back-propagation.
+// If the node is nil, it performs full back-propagation from the last node
+// of the graph, requiring the root nodes to have assigned gradients already.
+// Options are not considered in this case.
+//
+// Otherwise, if the node is not nil, the following logic is applied:
+//
 // It visits each node in reverse topological order, to propagate the gradients from the given node all the way
 // back to the leaf. Note that the gradients are summed to the existing ones. Unless that's what you want, make sure
 // all nodes have zero gradients.
@@ -43,10 +49,14 @@ func OutputGrad[T mat.DType](grad mat.Matrix[T]) BackwardOption[T] {
 // the visit ends as soon as it is encountered a node with time-step less or equal to the number of back steps.
 // The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
 func (g *Graph[T]) Backward(node Node[T], opts ...BackwardOption[T]) {
+	if node == nil {
+		g.backwardAll()
+		return
+	}
+
 	if node.Graph() != g {
 		panic("ag: backward cannot be executed among nodes of different graphs")
 	}
-
 	handler := &backwardHandler[T]{
 		g:              g,
 		node:           node,
@@ -66,9 +76,9 @@ func (g *Graph[T]) Backward(node Node[T], opts ...BackwardOption[T]) {
 	}
 }
 
-// BackwardAll performs full back-propagation from the last node of the graph.
+// backwardAll performs full back-propagation from the last node of the graph.
 // It requires the root nodes to have assigned gradients already.
-func (g *Graph[T]) BackwardAll() {
+func (g *Graph[T]) backwardAll() {
 	handler := &backwardHandler[T]{
 		g:              g,
 		node:           g.nodes[g.maxID],

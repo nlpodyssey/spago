@@ -133,13 +133,13 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.55, 0.44, 0.33, 0.22,
 	})
 
-	proc, g := ag.Reify(model, ag.ForTraining[T]())
-	defer g.Clear()
+	s := ag.NewSession[T](model, ag.Training)
+	defer s.Close()
 
-	w1 := g.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
-	w2 := g.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)
+	w1 := s.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
+	w2 := s.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)
 
-	ys := proc.Forward(w1, w2)
+	ys := s.Module().Forward(w1, w2)
 	require.Len(t, ys, 2)
 	require.InDeltaSlice(t, []T{12.033182, 11.811123, 11.153941, 10.22517}, ys[0].Value().Data(), 0.00005)
 	require.InDeltaSlice(t, []T{12.44335, 12.219593, 11.541459, 10.580078}, ys[1].Value().Data(), 0.00005)
