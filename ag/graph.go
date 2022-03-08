@@ -293,8 +293,14 @@ func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
 	return g.insert(n)
 }
 
+// nodeInternal extends the public Node with private methods.
+type nodeInternal[T mat.DType] interface {
+	Node[T]
+	setID(int)
+}
+
 // insert append the node into the graph's nodes and assign it an id.
-func (g *Graph[T]) insert(n _node[T]) Node[T] {
+func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 	g.mu.Lock()
 	g.maxID++
 	n.setID(g.maxID)

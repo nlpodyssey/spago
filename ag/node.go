@@ -20,11 +20,6 @@ type Node[T mat.DType] interface {
 	TimeStep() int
 }
 
-type _node[T mat.DType] interface {
-	Node[T]
-	setID(int)
-}
-
 // ToNodes cast a slice of N[T] into a slice of ag.Node.
 func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 	ns := make([]Node[T], len(xs))
