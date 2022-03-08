@@ -8,8 +8,11 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/initializers"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/attention/selfattention"
 	"github.com/nlpodyssey/spago/nn/linear"
 )
@@ -33,6 +36,15 @@ func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model[T] {
 	return &Model[T]{
 		Heads:       makeAttentionHeads[T](size, numOfHeads, useCausalMask),
 		OutputMerge: linear.New[T](size, size),
+	}
+}
+
+// Init initializes the self-attention heads and the merge layer with uniform Xavier random distribution.
+func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
+	gain := initializers.Gain[T](activation.Identity)
+	initializers.XavierUniform(m.OutputMerge.W.Value(), gain, rng)
+	for _, h := range m.Heads {
+		h.Init(rng)
 	}
 }
 

@@ -6,9 +6,13 @@ package selfattention
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/initializers"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/attention"
 	"github.com/nlpodyssey/spago/nn/linear"
 )
@@ -50,6 +54,14 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 		Key:    linear.New[T](config.InputSize, config.KeySize),
 		Value:  linear.New[T](config.InputSize, config.ValueSize),
 	}
+}
+
+// Init initializes the query, key and value linear layers with uniform Xavier random distribution.
+func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
+	gain := initializers.Gain[T](activation.Identity)
+	initializers.XavierUniform(m.Query.W.Value(), gain, rng)
+	initializers.XavierUniform(m.Key.W.Value(), gain, rng)
+	initializers.XavierUniform(m.Value.W.Value(), gain, rng)
 }
 
 // Forward performs the forward step for each input node and returns the result.
