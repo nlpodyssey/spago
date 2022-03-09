@@ -391,8 +391,9 @@ func (d *Dense[T]) T() Matrix[T] {
 	}
 	size := len(m.data)
 	index := 0
+	mData := m.data
 	for _, value := range d.data {
-		m.data[index] = value
+		mData[index] = value
 		index += dRows
 		if index >= size {
 			index -= size - 1
