@@ -258,16 +258,16 @@ func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
 	}
 	cols := vs[0].Size()
 	out := densePool[T]().Get(len(vs), cols)
-	data := out.data[:0] // convenient for using append below
-	for _, v := range vs {
+	data := out.data
+	for i, v := range vs {
 		if !IsVector(v) {
 			panic("mat: expected vector")
 		}
 		if v.Size() != cols {
 			panic("mat: all vectors must have the same size")
 		}
-		data = append(data, v.Data()...)
+		offset := i * cols
+		copy(data[offset:offset+cols], v.Data())
 	}
-	out.data = data
 	return out
 }
