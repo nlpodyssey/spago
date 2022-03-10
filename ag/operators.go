@@ -91,6 +91,10 @@ func Mul[T mat.DType](x1, x2 Node[T]) Node[T] {
 	return x1.Graph().NewOperator(fn.NewMul[T](x1, x2), x1, x2)
 }
 
+func MulT[T mat.DType](x1, x2 Node[T]) Node[T] {
+	return x1.Graph().NewOperator(fn.NewMulT[T](x1, x2), x1, x2)
+}
+
 // Dot returns a new operator node as a result of the fn.Dot function.
 func Dot[T mat.DType](x1, x2 Node[T]) Node[T] {
 	return x1.Graph().NewOperator(fn.NewDot[T](x1, x2), x1, x2)
