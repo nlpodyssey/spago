@@ -83,7 +83,28 @@ func (h *forwardHandler[T]) runConcurrent() {
 	fromTS, toTS := h.fromTimeStep, h.toTimeStep
 	groups := h.g.groupNodesByHeight()
 
+	pqSize := h.g.processingQueue.Size()
+	workCh := make(chan *Operator[T], pqSize)
+
+	allWorkDone := false
+
 	var wg sync.WaitGroup
+
+	for i := 0; i < pqSize; i++ {
+		go func() {
+			for !allWorkDone {
+				select {
+				case op := <-workCh:
+					if op == nil {
+						continue
+					}
+					op.value = op.function.Forward()
+					wg.Done()
+				}
+			}
+		}()
+	}
+
 	for _, group := range groups {
 		for _, node := range group {
 			op, isOperator := node.(*Operator[T])
@@ -91,11 +112,11 @@ func (h *forwardHandler[T]) runConcurrent() {
 				continue
 			}
 			wg.Add(1)
-			h.g.processingQueue.Go(func() {
-				defer wg.Done()
-				op.value = op.function.Forward()
-			})
+
+			workCh <- op
 		}
 		wg.Wait()
 	}
+	allWorkDone = true
+	close(workCh)
 }
