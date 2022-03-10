@@ -17,7 +17,7 @@ func ScaledDotProductAttention[T mat.DType](q, k, v []ag.Node[T], scaleFactor T,
 	attention := make([]ag.Node[T], len(q))
 	weights := make([]ag.Node[T], len(q))
 	keys := ag.Stack(k...)
-	values := ag.T(ag.Stack(v...))
+	values := ag.Stack(v...)
 	factor := keys.Graph().Constant(scaleFactor)
 
 	for i, qi := range q {
@@ -29,7 +29,7 @@ func ScaledDotProductAttention[T mat.DType](q, k, v []ag.Node[T], scaleFactor T,
 		}
 
 		weights[i] = ag.Softmax(scores)
-		attention[i] = ag.Mul(values, weights[i])
+		attention[i] = ag.MulT(values, weights[i])
 	}
 
 	return attention, weights
