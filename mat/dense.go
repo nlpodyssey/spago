@@ -761,7 +761,7 @@ func (d *Dense[T]) Mul(other Matrix[T]) Matrix[T] {
 }
 
 // MulT performs the matrix multiplication row by column.
-// ATB = C, where AT is the transpose of B
+// ATB = C, where AT is the transpose of A
 // if A is an r x c Matrix, and B is j x k, r = j the resulting
 // Matrix C will be c x k.
 func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
