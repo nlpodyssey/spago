@@ -68,8 +68,11 @@ func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
 func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], Cache[T]) {
 	pq := m.Query.Forward(q...)
 
-	pk := append([]ag.Node[T]{}, cache[0]...)
-	pv := append([]ag.Node[T]{}, cache[1]...)
+	pk := make([]ag.Node[T], 0, len(cache[0])+len(k))
+	pv := make([]ag.Node[T], 0, len(cache[1])+len(v))
+
+	pk = append(pk, cache[0]...)
+	pv = append(pv, cache[1]...)
 
 	pk = append(pk, m.Key.Forward(k...)...)
 	pv = append(pv, m.Value.Forward(v...)...)
