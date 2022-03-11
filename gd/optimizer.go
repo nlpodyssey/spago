@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/gd/clipper"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/utils/processingqueue"
 )
 
 // Optimizer implements Gradients Descent (GD) optimization.
@@ -20,14 +19,9 @@ type Optimizer[T mat.DType] struct {
 	gradClipper      clipper.GradClipper[T]
 	paramsGetter     nn.ParamsGetter[T]
 	paramsToOptimize []nn.Param[T]
-	// processingQueue allows proper handling for computationally heavy operations
-	// such as the params update step.
-	// The default size is defaultProcessingQueueSize.
-	processingQueue processingqueue.ProcessingQueue
+	// maxProc limits the number of concurrent params update operations (default runtime.NumCPU())
+	maxProc int
 }
-
-// defaultProcessingQueueSize is the default size of Optimizer.processingQueue on a new optimizer.
-var defaultProcessingQueueSize = runtime.NumCPU()
 
 // Option allows to configure a new Optimizer with your specific needs.
 type Option[T mat.DType] func(*Optimizer[T])
@@ -50,15 +44,15 @@ func ClipGradByNorm[T mat.DType](max, normType T) Option[T] {
 	}
 }
 
-// ConcurrentComputations sets the maximum number of concurrent computations handled by the Optimizer
+// WithMaxProc sets the maximum number of concurrent computations handled by the Optimizer
 // for heavy tasks such as the params update steps.
 // The value 1 corresponds to sequential execution.
-func ConcurrentComputations[T mat.DType](value int) Option[T] {
+func WithMaxProc[T mat.DType](value int) Option[T] {
 	if value < 1 {
-		panic("gd: ConcurrentComputations value must be greater than zero")
+		panic("gd: value must be greater than zero")
 	}
 	return func(f *Optimizer[T]) {
-		f.processingQueue = processingqueue.New(value)
+		f.maxProc = value
 	}
 }
 
@@ -68,7 +62,7 @@ func NewOptimizer[T mat.DType](method Method[T], paramsIterator nn.ParamsGetter[
 		method:           method,
 		paramsGetter:     paramsIterator,
 		paramsToOptimize: make([]nn.Param[T], 0),
-		processingQueue:  processingqueue.New(defaultProcessingQueueSize),
+		maxProc:          runtime.NumCPU(),
 	}
 	for _, opt := range opts {
 		opt(optimizer)
@@ -76,7 +70,7 @@ func NewOptimizer[T mat.DType](method Method[T], paramsIterator nn.ParamsGetter[
 	return optimizer
 }
 
-// Optimize optimize the params, applying the optional gradient clipping.
+// Optimize optimizes the params, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
 func (o *Optimizer[_]) Optimize() {
 	o.paramsToOptimize = o.paramsGetter.Params()
@@ -101,22 +95,41 @@ func (o *Optimizer[_]) updateParamsSerial() {
 
 // updateParams applies the optimization method to all the observed parameters concurrently.
 func (o *Optimizer[T]) updateParams() {
+	workCh := make(chan func(), o.maxProc)
+	allWorkDone := false
 	var wg sync.WaitGroup
+
+	for i := 0; i < o.maxProc; i++ {
+		go func() {
+			for !allWorkDone {
+				select {
+				case fn := <-workCh:
+					if fn == nil {
+						continue
+					}
+					fn()
+					wg.Done()
+				}
+			}
+		}()
+	}
+
 	for _, param := range o.paramsToOptimize {
 		if !param.HasGrad() {
 			continue
 		}
 		wg.Add(1)
-		go func(param nn.Param[T]) {
-			defer wg.Done()
-			o.processingQueue.Run(func() {
-				delta := o.method.Delta(param)
-				param.ApplyDelta(delta)
-			})
-			param.ZeroGrad()
-		}(param)
+		workCh <- func() { o.paramStep(param) }
 	}
 	wg.Wait()
+	allWorkDone = true
+	close(workCh)
+}
+
+func (o *Optimizer[T]) paramStep(param nn.Param[T]) {
+	delta := o.method.Delta(param)
+	param.ApplyDelta(delta)
+	param.ZeroGrad()
 }
 
 // clipGrad applies the gradient clipping to all the observed parameters.
