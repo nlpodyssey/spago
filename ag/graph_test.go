@@ -9,6 +9,7 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
+	"runtime"
 	"testing"
 )
 
@@ -18,6 +19,8 @@ func TestNewGraph(t *testing.T) {
 }
 
 func testNewGraph[T mat.DType](t *testing.T) {
+	defaultMaxProc := runtime.NumCPU()
+
 	runCommonAssertions := func(t *testing.T, g *Graph[T]) {
 		t.Helper()
 		assert.NotNil(t, g)
@@ -35,7 +38,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
+		assert.Equal(t, defaultMaxProc, g.MaxProc())
 	})
 
 	t.Run("with WithEagerExecution(false) option", func(t *testing.T) {
@@ -43,15 +46,15 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.False(t, g.eagerExecution)
-		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
+		assert.Equal(t, defaultMaxProc, g.MaxProc())
 	})
 
 	t.Run("with WithConcurrentComputations option", func(t *testing.T) {
-		g := NewGraph[T](WithConcurrentComputations[T](3))
+		g := NewGraph[T](WithMaxProc[T](3))
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.True(t, g.eagerExecution)
-		assert.Equal(t, 3, g.ConcurrentComputations())
+		assert.Equal(t, 3, g.MaxProc())
 	})
 
 	t.Run("with WithRand option", func(t *testing.T) {
@@ -60,7 +63,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
 		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
+		assert.Equal(t, defaultMaxProc, g.MaxProc())
 	})
 
 	t.Run("with WithRandSeed option", func(t *testing.T) {
@@ -70,7 +73,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
 		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultProcessingQueueSize, g.ConcurrentComputations())
+		assert.Equal(t, defaultMaxProc, g.MaxProc())
 	})
 }
 
@@ -81,7 +84,7 @@ func TestConcurrentComputations(t *testing.T) {
 
 func testConcurrentComputations[T mat.DType](t *testing.T) {
 	t.Run("it panics if value < 1", func(t *testing.T) {
-		assert.Panics(t, func() { WithConcurrentComputations[T](0) })
+		assert.Panics(t, func() { WithMaxProc[T](0) })
 	})
 }
 

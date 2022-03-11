@@ -7,7 +7,6 @@ package ag
 import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
-	"github.com/nlpodyssey/spago/utils/processingqueue"
 	"runtime"
 )
 
@@ -41,14 +40,14 @@ func WithEagerExecution[T mat.DType](value bool) GraphOption[T] {
 	}
 }
 
-// WithConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// WithMaxProc sets the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 // The value 1 corresponds to sequential execution.
-func WithConcurrentComputations[T mat.DType](value int) GraphOption[T] {
+func WithMaxProc[T mat.DType](value int) GraphOption[T] {
 	if value < 1 {
-		panic("ag: WithConcurrentComputations value must be greater than zero")
+		panic("ag: value must be greater than zero")
 	}
 	return func(g *Graph[T]) {
-		g.processingQueue = processingqueue.New(value)
+		g.maxProc = value
 	}
 }

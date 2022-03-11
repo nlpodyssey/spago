@@ -6,11 +6,12 @@ package ag
 
 import (
 	"fmt"
+	"runtime"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
-	"github.com/nlpodyssey/spago/utils/processingqueue"
-	"sync"
 )
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
@@ -42,22 +43,20 @@ type Graph[T mat.DType] struct {
 	}
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
-	// processingQueue allows proper handling for computationally heavy operations
-	// such as forward and backward steps.
-	// The default size is defaultProcessingQueueSize.
-	processingQueue processingqueue.ProcessingQueue
+	//  maxProc limits the number of goroutines in execution (default runtime.NumCPU())
+	maxProc int
 }
 
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.WithRand.
 func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	g := &Graph[T]{
-		maxID:           -1,
-		curTimeStep:     0,
-		nodes:           nil,
-		constants:       map[T]Node[T]{},
-		eagerExecution:  true,
-		processingQueue: processingqueue.New(defaultProcessingQueueSize),
+		maxID:          -1,
+		curTimeStep:    0,
+		nodes:          nil,
+		constants:      map[T]Node[T]{},
+		eagerExecution: true,
+		maxProc:        runtime.NumCPU(),
 	}
 	g.clearCache()
 	for _, opt := range opts {
@@ -90,16 +89,15 @@ func (g *Graph[T]) SetEagerExecution(value bool) bool {
 	return prev
 }
 
-// SetConcurrentComputations sets the maximum number of concurrent computations handled by the Graph
+// SetMaxProc sets the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
 // The value 1 corresponds to sequential execution.
 // It returns the previous value.
-func (g *Graph[T]) SetConcurrentComputations(value int) int {
+func (g *Graph[T]) SetMaxProc(value int) (prev int) {
 	if value < 1 {
-		panic("ag: WithConcurrentComputations value must be greater than zero")
+		panic("ag: value must be greater than zero")
 	}
-	prev := len(g.processingQueue)
-	g.processingQueue = processingqueue.New(value)
+	prev, g.maxProc = g.maxProc, value
 	return prev
 }
 
@@ -109,10 +107,10 @@ func (g *Graph[_]) EagerExecutionEnabled() bool {
 	return g.eagerExecution
 }
 
-// ConcurrentComputations returns the maximum number of concurrent computations handled by the Graph
+// MaxProc returns the maximum number of concurrent computations handled by the Graph
 // for heavy tasks such as forward and backward steps.
-func (g *Graph[_]) ConcurrentComputations() int {
-	return g.processingQueue.Size()
+func (g *Graph[_]) MaxProc() int {
+	return g.maxProc
 }
 
 // ZeroGrad sets the gradients of all nodes to zero.
@@ -244,9 +242,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 	var value mat.Matrix[T] = nil
 	if g.eagerExecution {
 		// the calculation is out of the lock, so it can run concurrently with other operators
-		g.processingQueue.Run(func() {
-			value = f.Forward()
-		})
+		value = f.Forward()
 	}
 	requiresGrad := false
 	for _, operand := range operands {

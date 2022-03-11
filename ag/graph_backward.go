@@ -69,7 +69,7 @@ func (g *Graph[T]) Backward(node Node[T], opts ...BackwardOption[T]) {
 	if !node.HasGrad() {
 		handler.propagateOutputGrad()
 	}
-	if g.processingQueue.Size() > 1 {
+	if g.maxProc > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -85,7 +85,7 @@ func (g *Graph[T]) backwardAll() {
 		outputGrad:     nil,
 		stopAtTimeStep: -1, // no stop
 	}
-	if g.processingQueue.Size() > 1 {
+	if g.maxProc > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -130,7 +130,28 @@ func (h *backwardHandler[T]) runConcurrent() {
 	groups := h.g.groupNodesByHeight()
 	lastGroupIndex := h.g.cache.height[h.node.ID()]
 	lastNodeIndex := h.node.ID()
+
+	pqSize := h.g.maxProc
+	workCh := make(chan *Operator[T], pqSize)
+	allWorkDone := false
+
 	var wg sync.WaitGroup
+
+	for i := 0; i < pqSize; i++ {
+		go func() {
+			for !allWorkDone {
+				select {
+				case op := <-workCh:
+					if op == nil {
+						continue
+					}
+					op.backward()
+					wg.Done()
+				}
+			}
+		}()
+	}
+
 	for i := lastGroupIndex; i >= 0; i-- {
 		for _, node := range groups[i] {
 			if truncated && node.TimeStep() <= stopAtTimeStep {
@@ -144,11 +165,10 @@ func (h *backwardHandler[T]) runConcurrent() {
 				continue
 			}
 			wg.Add(1)
-			h.g.processingQueue.Go(func() {
-				defer wg.Done()
-				op.backward()
-			})
+			workCh <- op
 		}
 		wg.Wait()
 	}
+	allWorkDone = true
+	close(workCh)
 }

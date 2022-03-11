@@ -52,7 +52,7 @@ func (g *Graph[T]) Forward(opts ...ForwardOption[T]) {
 		}
 	}
 
-	if g.processingQueue.Size() > 1 {
+	if g.maxProc > 1 {
 		handler.runConcurrent()
 	} else {
 		handler.runSerial()
@@ -74,7 +74,7 @@ func (h *forwardHandler[T]) runSerial() {
 			if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
 				continue
 			}
-			op.value = op.function.Forward()
+			op.forward()
 		}
 	}
 }
@@ -83,7 +83,7 @@ func (h *forwardHandler[T]) runConcurrent() {
 	fromTS, toTS := h.fromTimeStep, h.toTimeStep
 	groups := h.g.groupNodesByHeight()
 
-	pqSize := h.g.processingQueue.Size()
+	pqSize := h.g.maxProc
 	workCh := make(chan *Operator[T], pqSize)
 
 	allWorkDone := false
@@ -98,7 +98,7 @@ func (h *forwardHandler[T]) runConcurrent() {
 					if op == nil {
 						continue
 					}
-					op.value = op.function.Forward()
+					op.forward()
 					wg.Done()
 				}
 			}
@@ -112,7 +112,6 @@ func (h *forwardHandler[T]) runConcurrent() {
 				continue
 			}
 			wg.Add(1)
-
 			workCh <- op
 		}
 		wg.Wait()

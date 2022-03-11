@@ -74,14 +74,10 @@ func New[T mat.DType](config Config) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Config.OutputChannels > 1 && m.concurrentComputationEnabled() {
+	if m.Config.OutputChannels > 1 && !m.Session.Graph().EagerExecutionEnabled() && m.Session.Graph().MaxProc() > 1 {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
-}
-
-func (m *Model[T]) concurrentComputationEnabled() bool {
-	return m.K[0].Graph().ConcurrentComputations() > 1
 }
 
 func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
