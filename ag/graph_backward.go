@@ -131,13 +131,12 @@ func (h *backwardHandler[T]) runConcurrent() {
 	lastGroupIndex := h.g.cache.height[h.node.ID()]
 	lastNodeIndex := h.node.ID()
 
-	pqSize := h.g.maxProc
-	workCh := make(chan *Operator[T], pqSize)
+	workCh := make(chan *Operator[T], h.g.maxProc)
 	allWorkDone := false
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < pqSize; i++ {
+	for i := 0; i < h.g.maxProc; i++ {
 		go func() {
 			for !allWorkDone {
 				select {
