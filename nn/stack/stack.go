@@ -46,6 +46,17 @@ func (m *Model[T]) LastLayer() nn.Model[T] {
 	return m.Layers[len(m.Layers)-1]
 }
 
+// FindOne returns the first layer of type M and its index.
+// It not found, it returns -1, nil.
+func FindOne[T mat.DType, M nn.Model[T]](m *Model[T]) (int, *M) {
+	for i, l := range m.Layers {
+		if l, ok := any(l).(*M); ok {
+			return i, l
+		}
+	}
+	return -1, nil
+}
+
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := m.Layers[0].Forward(xs...)
