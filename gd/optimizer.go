@@ -95,7 +95,7 @@ func (o *Optimizer[_]) updateParamsSerial() {
 
 // updateParams applies the optimization method to all the observed parameters concurrently.
 func (o *Optimizer[T]) updateParams() {
-	workCh := make(chan func(), o.maxProc)
+	workCh := make(chan nn.Param[T], o.maxProc)
 	allWorkDone := false
 	var wg sync.WaitGroup
 
@@ -103,11 +103,11 @@ func (o *Optimizer[T]) updateParams() {
 		go func() {
 			for !allWorkDone {
 				select {
-				case fn := <-workCh:
-					if fn == nil {
+				case p := <-workCh:
+					if p == nil {
 						continue
 					}
-					fn()
+					o.paramStep(p)
 					wg.Done()
 				}
 			}
@@ -119,7 +119,7 @@ func (o *Optimizer[T]) updateParams() {
 			continue
 		}
 		wg.Add(1)
-		workCh <- func() { o.paramStep(param) }
+		workCh <- param
 	}
 	wg.Wait()
 	allWorkDone = true
