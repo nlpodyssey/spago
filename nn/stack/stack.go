@@ -46,6 +46,20 @@ func (m *Model[T]) LastLayer() nn.Model[T] {
 	return m.Layers[len(m.Layers)-1]
 }
 
+// Find returns all layer of type M and their index.
+// It not found, it returns nil, nil.
+func Find[T mat.DType, M nn.Model[T]](m *Model[T]) ([]int, []*M) {
+	result := make([]*M, 0)
+	idx := make([]int, 0)
+	for i, l := range m.Layers {
+		if l, ok := any(l).(*M); ok {
+			result = append(result, l)
+			idx = append(idx, i)
+		}
+	}
+	return idx, result
+}
+
 // FindOne returns the first layer of type M and its index.
 // It not found, it returns -1, nil.
 func FindOne[T mat.DType, M nn.Model[T]](m *Model[T]) (int, *M) {
