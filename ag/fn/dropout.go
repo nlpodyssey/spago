@@ -10,11 +10,9 @@ import (
 	"github.com/nlpodyssey/spago/mat/rand/bernulli"
 )
 
-var _ Function[float32] = &Dropout[float32]{}
-
 // Dropout is an operator to perform elements dropout with a probability.
-type Dropout[T mat.DType] struct {
-	x       Operand[T]
+type Dropout[T mat.DType, O Operand[T]] struct {
+	x       O
 	prob    T
 	q       T // 1 - p
 	randGen *rand.LockedRand[T]
@@ -22,8 +20,8 @@ type Dropout[T mat.DType] struct {
 }
 
 // NewDropout returns a new Dropout Function.
-func NewDropout[T mat.DType](x Operand[T], p T, randGen *rand.LockedRand[T]) *Dropout[T] {
-	return &Dropout[T]{
+func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand[T]) *Dropout[T, O] {
+	return &Dropout[T, O]{
 		x:       x,
 		prob:    p,
 		q:       1.0 - p,
@@ -32,8 +30,13 @@ func NewDropout[T mat.DType](x Operand[T], p T, randGen *rand.LockedRand[T]) *Dr
 	}
 }
 
+// Operands returns the list of operands.
+func (r *Dropout[T, O]) Operands() []O {
+	return []O{r.x}
+}
+
 // Forward computes the output of the function.
-func (r *Dropout[T]) Forward() mat.Matrix[T] {
+func (r *Dropout[T, O]) Forward() mat.Matrix[T] {
 	if r.q > 0.0 {
 		r.mask = bernulli.Distribution(r.x.Value().Rows(), r.x.Value().Columns(), r.prob, r.randGen)
 		r.mask.ProdScalarInPlace(1.0 / r.q)
@@ -44,7 +47,7 @@ func (r *Dropout[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Dropout[T]) Backward(gy mat.Matrix[T]) {
+func (r *Dropout[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

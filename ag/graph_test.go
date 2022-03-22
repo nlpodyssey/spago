@@ -329,7 +329,7 @@ func testGraphNewOperator[T mat.DType](t *testing.T) {
 		g1 := NewGraph[T]()
 		g2 := NewGraph[T]()
 		x := g2.NewScalar(42)
-		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt[T](x), x) })
+		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt[T](x)) })
 	})
 }
 

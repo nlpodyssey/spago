@@ -6,22 +6,25 @@ package fn
 
 import "github.com/nlpodyssey/spago/mat"
 
-var _ Function[float32] = &Add[float32]{}
-
 // Add is an operator to perform element-wise sum over two values.
 // y = x1 + x2
-type Add[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T]
+type Add[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O
 }
 
 // NewAdd returns a new Add Function.
-func NewAdd[T mat.DType](x1, x2 Operand[T]) *Add[T] {
-	return &Add[T]{x1: x1, x2: x2}
+func NewAdd[T mat.DType, O Operand[T]](x1, x2 O) *Add[T, O] {
+	return &Add[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *Add[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *Add[T]) Forward() mat.Matrix[T] {
+func (r *Add[T, O]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if x1v == nil {
@@ -35,7 +38,7 @@ func (r *Add[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Add[T]) Backward(gy mat.Matrix[T]) {
+func (r *Add[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
 		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {

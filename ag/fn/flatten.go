@@ -8,25 +8,28 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Flatten[float32]{}
-
 // Flatten is a Function to reshape a matrix-operand into a "flattened" row vector.
-type Flatten[T mat.DType] struct {
-	x Operand[T]
+type Flatten[T mat.DType, O Operand[T]] struct {
+	x O
 }
 
 // NewFlatten returns a new Flatten Function.
-func NewFlatten[T mat.DType](x Operand[T]) *Flatten[T] {
-	return &Flatten[T]{x: x}
+func NewFlatten[T mat.DType, O Operand[T]](x O) *Flatten[T, O] {
+	return &Flatten[T, O]{x: x}
+}
+
+// Operands returns the list of operands.
+func (r *Flatten[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the node.
-func (r *Flatten[T]) Forward() mat.Matrix[T] {
+func (r *Flatten[T, O]) Forward() mat.Matrix[T] {
 	return r.x.Value().Flatten()
 }
 
 // Backward computes the backward pass.
-func (r *Flatten[T]) Backward(gy mat.Matrix[T]) {
+func (r *Flatten[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

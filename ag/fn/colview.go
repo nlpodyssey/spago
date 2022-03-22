@@ -6,24 +6,27 @@ package fn
 
 import "github.com/nlpodyssey/spago/mat"
 
-var _ Function[float32] = &ColView[float32]{}
-
 // ColView is an operator to extract the i-th column from a matrix.
-type ColView[T mat.DType] struct {
-	x Operand[T]
+type ColView[T mat.DType, O Operand[T]] struct {
+	x O
 	i int
 }
 
 // NewColView extracts the i-th column from the input matrix.
-func NewColView[T mat.DType](x Operand[T], i int) *ColView[T] {
+func NewColView[T mat.DType, O Operand[T]](x O, i int) *ColView[T, O] {
 	if i < 0 {
 		panic("fn: invalid column index")
 	}
-	return &ColView[T]{x: x, i: i}
+	return &ColView[T, O]{x: x, i: i}
+}
+
+// Operands returns the list of operands.
+func (r *ColView[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.
-func (r *ColView[T]) Forward() mat.Matrix[T] {
+func (r *ColView[T, O]) Forward() mat.Matrix[T] {
 	xv := r.x.Value()
 	if r.i >= xv.Columns() {
 		panic("fn: matrix with not compatible size")
@@ -32,7 +35,7 @@ func (r *ColView[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *ColView[T]) Backward(gy mat.Matrix[T]) {
+func (r *ColView[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(r.x.Value().Rows() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

@@ -8,28 +8,31 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &SoftPlus[float32]{}
-
 // SoftPlus function: f(x) = 1 / β ∗ log(1 + exp(β ∗ x))
-type SoftPlus[T mat.DType] struct {
-	x         Operand[T]
-	beta      Operand[T]
-	threshold Operand[T]
+type SoftPlus[T mat.DType, O Operand[T]] struct {
+	x         O
+	beta      O
+	threshold O
 }
 
 // NewSoftPlus returns a new SoftPlus Function.
-func NewSoftPlus[T mat.DType](x, beta, threshold Operand[T]) *SoftPlus[T] {
-	return &SoftPlus[T]{x: x, beta: beta, threshold: threshold}
+func NewSoftPlus[T mat.DType, O Operand[T]](x O, beta, threshold O) *SoftPlus[T, O] {
+	return &SoftPlus[T, O]{x: x, beta: beta, threshold: threshold}
+}
+
+// Operands returns the list of operands.
+func (r *SoftPlus[T, O]) Operands() []O {
+	return []O{r.x, r.beta, r.threshold}
 }
 
 // Forward computes the output of the function.
-func (r *SoftPlus[T]) Forward() mat.Matrix[T] {
+func (r *SoftPlus[T, O]) Forward() mat.Matrix[T] {
 	y := r.x.Value().ApplyWithAlpha(softPlus[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SoftPlus[T]) Backward(gy mat.Matrix[T]) {
+func (r *SoftPlus[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

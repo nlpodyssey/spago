@@ -8,30 +8,33 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &SwishB[float32]{}
-
 // SwishB function: f(x) = x * sigmoid.
 //
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
-type SwishB[T mat.DType] struct {
-	x    Operand[T]
-	beta Operand[T] // scalar
+type SwishB[T mat.DType, O Operand[T]] struct {
+	x    O
+	beta O // scalar
 }
 
 // NewSwishB returns a new SwishB Function.
-func NewSwishB[T mat.DType](x, beta Operand[T]) *SwishB[T] {
-	return &SwishB[T]{x: x, beta: beta}
+func NewSwishB[T mat.DType, O Operand[T]](x O, beta O) *SwishB[T, O] {
+	return &SwishB[T, O]{x: x, beta: beta}
+}
+
+// Operands returns the list of operands.
+func (r *SwishB[T, O]) Operands() []O {
+	return []O{r.x, r.beta}
 }
 
 // Forward computes the output of the function.
-func (r *SwishB[T]) Forward() mat.Matrix[T] {
+func (r *SwishB[T, O]) Forward() mat.Matrix[T] {
 	y := r.x.Value().ApplyWithAlpha(swishB[T], r.beta.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SwishB[T]) Backward(gy mat.Matrix[T]) {
+func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

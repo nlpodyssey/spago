@@ -8,26 +8,29 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &ProdScalar[float32]{}
-
 // ProdScalar is an operator to perform element-wise product with a scalar value.
-type ProdScalar[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T] // scalar
+type ProdScalar[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O // scalar
 }
 
 // NewProdScalar returns a new ProdScalar Function.
-func NewProdScalar[T mat.DType](x1, x2 Operand[T]) *ProdScalar[T] {
-	return &ProdScalar[T]{x1: x1, x2: x2}
+func NewProdScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ProdScalar[T, O] {
+	return &ProdScalar[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *ProdScalar[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.
-func (r *ProdScalar[T]) Forward() mat.Matrix[T] {
+func (r *ProdScalar[T, O]) Forward() mat.Matrix[T] {
 	return r.x1.Value().ProdScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *ProdScalar[T]) Backward(gy mat.Matrix[T]) {
+func (r *ProdScalar[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

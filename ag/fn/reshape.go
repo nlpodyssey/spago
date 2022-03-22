@@ -8,23 +8,26 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Reshape[float32]{}
-
 // Reshape is a Function which reshapes an operand into a new matrix of given
 // rows × columns size.
-type Reshape[T mat.DType] struct {
-	x    Operand[T]
+type Reshape[T mat.DType, O Operand[T]] struct {
+	x    O
 	rows int
 	cols int
 }
 
 // NewReshape returns a new Reshape Function.
-func NewReshape[T mat.DType](x Operand[T], r, c int) *Reshape[T] {
-	return &Reshape[T]{x: x, rows: r, cols: c}
+func NewReshape[T mat.DType, O Operand[T]](x O, r, c int) *Reshape[T, O] {
+	return &Reshape[T, O]{x: x, rows: r, cols: c}
+}
+
+// Operands returns the list of operands.
+func (r *Reshape[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the node.
-func (r *Reshape[T]) Forward() mat.Matrix[T] {
+func (r *Reshape[T, O]) Forward() mat.Matrix[T] {
 	if r.x.Value().Size() != r.rows*r.cols {
 		panic("fn: incompatible sizes")
 	}
@@ -32,7 +35,7 @@ func (r *Reshape[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Reshape[T]) Backward(gy mat.Matrix[T]) {
+func (r *Reshape[T, O]) Backward(gy mat.Matrix[T]) {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
 		panic("fn: matrices with not compatible size")
 	}

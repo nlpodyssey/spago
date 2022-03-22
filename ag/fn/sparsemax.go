@@ -10,22 +10,24 @@ import (
 )
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
-type SparseMax[T mat.DType] struct {
-	x Operand[T]
+type SparseMax[T mat.DType, O Operand[T]] struct {
+	x O
 	y mat.Matrix[T] // initialized during the forward pass, required by the backward pass
 }
 
-var _ Function[float32] = &SparseMax[float32]{}
-var _ Function[float32] = &SparseMaxLoss[float32]{}
-
 // NewSparseMax returns a new SparseMax Function.
-func NewSparseMax[T mat.DType](x Operand[T]) *SparseMax[T] {
-	return &SparseMax[T]{x: x}
+func NewSparseMax[T mat.DType, O Operand[T]](x O) *SparseMax[T, O] {
+	return &SparseMax[T, O]{x: x}
+}
+
+// Operands returns the list of operands.
+func (r *SparseMax[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.
-func (s *SparseMax[T]) Forward() mat.Matrix[T] {
-	x := s.x.Value()
+func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
+	x := r.x.Value()
 	xMax := x.Max()
 
 	// translate the input by max for numerical stability
@@ -37,84 +39,28 @@ func (s *SparseMax[T]) Forward() mat.Matrix[T] {
 
 	v.SubScalarInPlace(tau).ClipInPlace(0, xMax)
 
-	s.y = v
+	r.y = v
 	return v
 }
 
 // Backward computes the backward pass.
-func (s *SparseMax[T]) Backward(gy mat.Matrix[T]) {
-	if s.x.RequiresGrad() {
+func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
+	if r.x.RequiresGrad() {
 		var nzSum T = 0.0
 		var nzCount T = 0.0
-		s.y.DoVecNonZero(func(i int, _ T) {
+		r.y.DoVecNonZero(func(i int, _ T) {
 			nzSum += gy.AtVec(i)
 			nzCount++
 		})
 		nzSum = nzSum / nzCount
 
-		gx := s.x.Value().ZerosLike()
+		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
-		s.y.DoVecNonZero(func(i int, _ T) {
+		r.y.DoVecNonZero(func(i int, _ T) {
 			gx.SetVec(i, gy.AtVec(i)-nzSum)
 		})
 
-		s.x.PropagateGrad(gx)
-	}
-}
-
-// SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
-type SparseMaxLoss[T mat.DType] struct {
-	x   Operand[T]
-	tau T             // computed during the forward pass
-	y   mat.Matrix[T] // computed during forward pass
-}
-
-// NewSparseMaxLoss returns a new SparseMaxLoss Function.
-func NewSparseMaxLoss[T mat.DType](x Operand[T]) *SparseMaxLoss[T] {
-	return &SparseMaxLoss[T]{x: x}
-}
-
-// Forward computes the output of the function.
-func (s *SparseMaxLoss[T]) Forward() mat.Matrix[T] {
-	v := s.x.Value().Clone()
-
-	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
-	defer mat.ReleaseMatrix(zs)
-	defer mat.ReleaseMatrix(cumSumInput)
-
-	tauSquared := tau * tau
-	cumSumInputData := cumSumInput.Data()
-
-	var regTerm T = 0.0
-	for i, zsv := range zs.Data() {
-		if bounds[i] > cumSumInputData[i] {
-			regTerm += zsv*zsv - tauSquared
-		}
-	}
-
-	regTerm = regTerm*0.5 + 0.5
-	v.SubScalarInPlace(regTerm)
-
-	s.y = v
-	s.tau = tau
-	return v
-}
-
-// Backward computes the backward pass.
-func (s *SparseMaxLoss[T]) Backward(gy mat.Matrix[T]) {
-	if s.x.RequiresGrad() {
-		tau := s.tau
-		gySum := gy.Sum()
-
-		sparseMax := s.x.Value().Apply(func(_, _ int, v T) T {
-			return mat.Max(0, v-tau) * gySum
-		})
-		defer mat.ReleaseMatrix(sparseMax)
-
-		gx := gy.Sub(sparseMax)
-		defer mat.ReleaseMatrix(gx)
-
-		s.x.PropagateGrad(gx)
+		r.x.PropagateGrad(gx)
 	}
 }
 

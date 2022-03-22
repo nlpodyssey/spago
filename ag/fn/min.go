@@ -6,22 +6,25 @@ package fn
 
 import "github.com/nlpodyssey/spago/mat"
 
-var _ Function[float32] = &Min[float32]{}
-
 // Min is an operator to perform element-wise min.
 // y = min(x1, x2)
-type Min[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T]
+type Min[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O
 }
 
 // NewMin returns a new Min Function.
-func NewMin[T mat.DType](x1, x2 Operand[T]) *Min[T] {
-	return &Min[T]{x1: x1, x2: x2}
+func NewMin[T mat.DType, O Operand[T]](x1 O, x2 O) *Min[T, O] {
+	return &Min[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *Min[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *Min[T]) Forward() mat.Matrix[T] {
+func (r *Min[T, O]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -31,7 +34,7 @@ func (r *Min[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Min[T]) Backward(gy mat.Matrix[T]) {
+func (r *Min[T, O]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

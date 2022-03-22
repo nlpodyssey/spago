@@ -8,21 +8,24 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Sub[float32]{}
-
 // Sub is an element-wise subtraction function over two values.
-type Sub[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T]
+type Sub[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O
 }
 
 // NewSub returns a new Sub Function.
-func NewSub[T mat.DType](x1, x2 Operand[T]) *Sub[T] {
-	return &Sub[T]{x1: x1, x2: x2}
+func NewSub[T mat.DType, O Operand[T]](x1 O, x2 O) *Sub[T, O] {
+	return &Sub[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *Sub[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.
-func (r *Sub[T]) Forward() mat.Matrix[T] {
+func (r *Sub[T, O]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -32,7 +35,7 @@ func (r *Sub[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Sub[T]) Backward(gy mat.Matrix[T]) {
+func (r *Sub[T, O]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

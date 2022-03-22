@@ -8,25 +8,28 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Transpose[float32]{}
-
 // Transpose is a Function to calculate the transpose of the matrix-operand.
-type Transpose[T mat.DType] struct {
-	x Operand[T]
+type Transpose[T mat.DType, O Operand[T]] struct {
+	x O
 }
 
 // NewTranspose returns a new Transpose Function.
-func NewTranspose[T mat.DType](x Operand[T]) *Transpose[T] {
-	return &Transpose[T]{x: x}
+func NewTranspose[T mat.DType, O Operand[T]](x O) *Transpose[T, O] {
+	return &Transpose[T, O]{x: x}
+}
+
+// Operands returns the list of operands.
+func (r *Transpose[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the node.
-func (r *Transpose[T]) Forward() mat.Matrix[T] {
+func (r *Transpose[T, O]) Forward() mat.Matrix[T] {
 	return r.x.Value().T()
 }
 
 // Backward computes the backward pass.
-func (r *Transpose[T]) Backward(gy mat.Matrix[T]) {
+func (r *Transpose[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
 		panic("fn: matrices with not compatible size")
 	}

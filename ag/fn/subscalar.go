@@ -8,26 +8,29 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &SubScalar[float32]{}
-
 // SubScalar is an element-wise subtraction function with a scalar value.
-type SubScalar[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T] // scalar
+type SubScalar[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O // scalar
 }
 
 // NewSubScalar returns a new SubScalar Function.
-func NewSubScalar[T mat.DType](x1, x2 Operand[T]) *SubScalar[T] {
-	return &SubScalar[T]{x1: x1, x2: x2}
+func NewSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *SubScalar[T, O] {
+	return &SubScalar[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *SubScalar[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.
-func (r *SubScalar[T]) Forward() mat.Matrix[T] {
+func (r *SubScalar[T, O]) Forward() mat.Matrix[T] {
 	return r.x1.Value().SubScalar(r.x2.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *SubScalar[T]) Backward(gy mat.Matrix[T]) {
+func (r *SubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

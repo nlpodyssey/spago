@@ -232,24 +232,21 @@ func (g *Graph[T]) Constant(value T) Node[T] {
 
 // NewOperator creates a new operator along with its forward pass.
 // Please note that operations must be performed among nodes belonging to the same graph; it panics otherwise.
-func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
-	for _, o := range operands {
+func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
+	requiresGrad := false
+	for _, o := range f.Operands() {
 		if o.Graph() != g {
 			panic("ag: operations cannot be executed among nodes of different graphs. " +
 				"You may consider wrapping the nodes you need with NewWrap().")
 		}
+		if !requiresGrad && o.RequiresGrad() {
+			requiresGrad = true
+		}
 	}
+
 	var value mat.Matrix[T] = nil
 	if g.eagerExecution {
-		// the calculation is out of the lock, so it can run concurrently with other operators
 		value = f.Forward()
-	}
-	requiresGrad := false
-	for _, operand := range operands {
-		if operand.RequiresGrad() {
-			requiresGrad = true
-			break
-		}
 	}
 
 	n := getOperatorPool[T]().Get().(*Operator[T])
@@ -257,7 +254,6 @@ func (g *Graph[T]) NewOperator(f fn.Function[T], operands ...Node[T]) Node[T] {
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		function:     f,
-		operands:     operands,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
@@ -350,7 +346,7 @@ func (g *Graph[T]) groupNodesByHeight() [][]Node[T] {
 	for _, node := range g.nodes[startIndex:] {
 		h := 0
 		if node, ok := node.(*Operator[T]); ok {
-			for _, operand := range node.operands {
+			for _, operand := range node.Operands() {
 				if operand, ok := operand.(*Operator[T]); ok {
 					if height[operand.id] >= h {
 						h = height[operand.id] + 1

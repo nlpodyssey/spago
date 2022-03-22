@@ -9,11 +9,9 @@ import (
 	"github.com/nlpodyssey/spago/utils"
 )
 
-var _ Function[float32] = &MaxPooling[float32]{}
-
 // MaxPooling is an operator to perform max pooling.
-type MaxPooling[T mat.DType] struct {
-	x    Operand[T]
+type MaxPooling[T mat.DType, O Operand[T]] struct {
+	x    O
 	rows int
 	cols int
 	// initialized during the forward pass
@@ -23,8 +21,8 @@ type MaxPooling[T mat.DType] struct {
 }
 
 // NewMaxPooling returns a new MaxPooling Function.
-func NewMaxPooling[T mat.DType](x Operand[T], r, c int) *MaxPooling[T] {
-	return &MaxPooling[T]{
+func NewMaxPooling[T mat.DType, O Operand[T]](x O, r, c int) *MaxPooling[T, O] {
+	return &MaxPooling[T, O]{
 		x:       x,
 		rows:    r,
 		cols:    c,
@@ -34,8 +32,13 @@ func NewMaxPooling[T mat.DType](x Operand[T], r, c int) *MaxPooling[T] {
 	}
 }
 
+// Operands returns the list of operands.
+func (r *MaxPooling[T, O]) Operands() []O {
+	return []O{r.x}
+}
+
 // Forward computes the output of the function.
-func (r *MaxPooling[T]) Forward() mat.Matrix[T] {
+func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 	if !(r.x.Value().Rows()%r.rows == 0 && r.x.Value().Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
@@ -65,7 +68,7 @@ func (r *MaxPooling[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling[T]) Backward(gy mat.Matrix[T]) {
+func (r *MaxPooling[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)

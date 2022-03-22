@@ -5,7 +5,6 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -27,15 +26,6 @@ func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 		ns[i] = v
 	}
 	return ns
-}
-
-// ToOperands cast a slice of nodes into a slice of operands.
-func ToOperands[T mat.DType](xs []Node[T]) []fn.Operand[T] {
-	var out = make([]fn.Operand[T], len(xs))
-	for i, x := range xs {
-		out[i] = x
-	}
-	return out
 }
 
 // CopyValue returns a copy of the value of a Node. If the value is nil, CopyValue returns nil as well.

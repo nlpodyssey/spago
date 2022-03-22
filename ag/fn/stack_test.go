@@ -32,7 +32,7 @@ func testStackForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewStack([]Operand[T]{x1, x2, x3})
+	f := NewStack[T]([]*variable[T]{x1, x2, x3})
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.5, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9, 0.7, 0.6}, y.Data(), 1.0e-6)

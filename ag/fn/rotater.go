@@ -6,28 +6,31 @@ package fn
 
 import "github.com/nlpodyssey/spago/mat"
 
-var _ Function[float32] = &RotateR[float32]{}
-
 // RotateR is a function to perform a right circular shift of a vector.
-type RotateR[T mat.DType] struct {
-	x Operand[T]
+type RotateR[T mat.DType, O Operand[T]] struct {
+	x O
 	i int
 }
 
 // NewRotateR returns a new RotateR Function. `i` is the number of places by
 // which the elements are shifted.
-func NewRotateR[T mat.DType](x Operand[T], i int) *RotateR[T] {
-	return &RotateR[T]{x: x, i: i}
+func NewRotateR[T mat.DType, O Operand[T]](x O, i int) *RotateR[T, O] {
+	return &RotateR[T, O]{x: x, i: i}
+}
+
+// Operands returns the list of operands.
+func (r *RotateR[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.
-func (r *RotateR[T]) Forward() mat.Matrix[T] {
+func (r *RotateR[T, O]) Forward() mat.Matrix[T] {
 	xv := r.x.Value().Data()
 	return mat.NewVecDense(rotateR(xv, r.i))
 }
 
 // Backward computes the backward pass.
-func (r *RotateR[T]) Backward(gy mat.Matrix[T]) {
+func (r *RotateR[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewVecDense(rotateL(gy.Data(), r.i))
 		defer mat.ReleaseDense(gx)

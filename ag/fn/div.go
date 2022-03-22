@@ -8,21 +8,24 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Div[float32]{}
-
 // Div is an operator to perform element-wise division over two values.
-type Div[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T]
+type Div[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O
 }
 
 // NewDiv returns a new Div Function.
-func NewDiv[T mat.DType](x1, x2 Operand[T]) *Div[T] {
-	return &Div[T]{x1: x1, x2: x2}
+func NewDiv[T mat.DType, O Operand[T]](x1 O, x2 O) *Div[T, O] {
+	return &Div[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *Div[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *Div[T]) Forward() mat.Matrix[T] {
+func (r *Div[T, O]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -32,7 +35,7 @@ func (r *Div[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Div[T]) Backward(gy mat.Matrix[T]) {
+func (r *Div[T, O]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

@@ -9,21 +9,24 @@ import (
 	"sync"
 )
 
-var _ Function[float32] = &Mul[float32]{}
-
 // Mul is an operator to perform matrix-vector multiplication.
-type Mul[T mat.DType] struct {
-	x1 Operand[T] // matrix
-	x2 Operand[T] // vector
+type Mul[T mat.DType, O Operand[T]] struct {
+	x1 O // matrix
+	x2 O // vector
 }
 
 // NewMul returns a new Mul Function.
-func NewMul[T mat.DType](x1, x2 Operand[T]) *Mul[T] {
-	return &Mul[T]{x1: x1, x2: x2}
+func NewMul[T mat.DType, O Operand[T]](x1 O, x2 O) *Mul[T, O] {
+	return &Mul[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *Mul[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *Mul[T]) Forward() mat.Matrix[T] {
+func (r *Mul[T, O]) Forward() mat.Matrix[T] {
 	if r.x1.Value().Columns() != r.x2.Value().Rows() {
 		panic("fn: matrices with not compatible size")
 	}
@@ -32,7 +35,7 @@ func (r *Mul[T]) Forward() mat.Matrix[T] {
 
 // Backward computes the backward pass.
 // TODO: backward of sparse gradients
-func (r *Mul[T]) Backward(gy mat.Matrix[T]) {
+func (r *Mul[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}

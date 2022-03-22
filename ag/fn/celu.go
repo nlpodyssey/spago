@@ -8,27 +8,30 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &CELU[float32]{}
-
 // CELU is an operator to perform the CELU activation.
 // CELU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
-type CELU[T mat.DType] struct {
-	x     Operand[T]
-	alpha Operand[T] // scalar
+type CELU[T mat.DType, O Operand[T]] struct {
+	x     O
+	alpha O // scalar
 }
 
 // NewCELU returns a new CELU Function.
-func NewCELU[T mat.DType](x, alpha Operand[T]) *CELU[T] {
-	return &CELU[T]{x: x, alpha: alpha}
+func NewCELU[T mat.DType, O Operand[T]](x O, alpha O) *CELU[T, O] {
+	return &CELU[T, O]{x: x, alpha: alpha}
+}
+
+// Operands returns the list of operands.
+func (r *CELU[T, O]) Operands() []O {
+	return []O{r.x, r.alpha}
 }
 
 // Forward computes the output of the function.
-func (r *CELU[T]) Forward() mat.Matrix[T] {
+func (r *CELU[T, O]) Forward() mat.Matrix[T] {
 	return r.x.Value().ApplyWithAlpha(celu[T], r.alpha.Value().Scalar())
 }
 
 // Backward computes the backward pass.
-func (r *CELU[T]) Backward(gy mat.Matrix[T]) {
+func (r *CELU[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

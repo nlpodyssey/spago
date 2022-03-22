@@ -46,8 +46,7 @@ type Operator[T mat.DType] struct {
 	graph        *Graph[T]
 	timeStep     int
 	id           int
-	function     fn.Function[T]
-	operands     []Node[T]
+	function     fn.Function[T, Node[T]]
 	value        mat.Matrix[T] // store the results of a forward evaluation
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
 	grad         mat.Matrix[T]
@@ -127,7 +126,7 @@ func (r *Operator[_]) TimeStep() int {
 
 // Operands returns the operands of the operator.
 func (r *Operator[T]) Operands() []Node[T] {
-	return r.operands
+	return r.function.Operands()
 }
 
 func (r *Operator[_]) backward() {

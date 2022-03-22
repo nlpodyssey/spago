@@ -6,26 +6,29 @@ package fn
 
 import "github.com/nlpodyssey/spago/mat"
 
-var _ Function[float32] = &ReverseSubScalar[float32]{}
-
 // ReverseSubScalar is the element-wise subtraction function over two values.
-type ReverseSubScalar[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T] // scalar
+type ReverseSubScalar[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O // scalar
 }
 
 // NewReverseSubScalar returns a new ReverseSubScalar Function.
-func NewReverseSubScalar[T mat.DType](x1, x2 Operand[T]) *ReverseSubScalar[T] {
-	return &ReverseSubScalar[T]{x1: x1, x2: x2}
+func NewReverseSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ReverseSubScalar[T, O] {
+	return &ReverseSubScalar[T, O]{x1: x1, x2: x2}
+}
+
+// Operands returns the list of operands.
+func (r *ReverseSubScalar[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *ReverseSubScalar[T]) Forward() mat.Matrix[T] {
+func (r *ReverseSubScalar[T, O]) Forward() mat.Matrix[T] {
 	return mat.NewInitDense(r.x1.Value().Rows(), r.x1.Value().Columns(), r.x2.Value().Scalar()).Sub(r.x1.Value())
 }
 
 // Backward computes the backward pass.
-func (r *ReverseSubScalar[T]) Backward(gy mat.Matrix[T]) {
+func (r *ReverseSubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

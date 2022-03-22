@@ -17,9 +17,11 @@ type Operand[T mat.DType] interface {
 }
 
 // Function represents a function with automatic differentiation features.
-type Function[T mat.DType] interface {
+type Function[T mat.DType, O Operand[T]] interface {
 	// Forward computes the output of the function.
 	Forward() mat.Matrix[T]
 	// Backward computes the backward pass.
 	Backward(gy mat.Matrix[T])
+	// Operands returns the list of operands.
+	Operands() []O
 }

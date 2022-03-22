@@ -8,28 +8,31 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Threshold[float32]{}
-
 // Threshold function: f(x) = x if x > threshold; k otherwise.
-type Threshold[T mat.DType] struct {
-	x         Operand[T]
-	threshold Operand[T] // scalar
-	k         Operand[T] // scalar
+type Threshold[T mat.DType, O Operand[T]] struct {
+	x         O
+	threshold O // scalar
+	k         O // scalar
 }
 
 // NewThreshold returns a new Threshold Function.
-func NewThreshold[T mat.DType](x, threshold, k Operand[T]) *Threshold[T] {
-	return &Threshold[T]{x: x, threshold: threshold, k: k}
+func NewThreshold[T mat.DType, O Operand[T]](x O, threshold, k O) *Threshold[T, O] {
+	return &Threshold[T, O]{x: x, threshold: threshold, k: k}
+}
+
+// Operands returns the list of operands.
+func (r *Threshold[T, O]) Operands() []O {
+	return []O{r.x, r.threshold, r.k}
 }
 
 // Forward computes the output of the function.
-func (r *Threshold[T]) Forward() mat.Matrix[T] {
+func (r *Threshold[T, O]) Forward() mat.Matrix[T] {
 	y := r.x.Value().ApplyWithAlpha(threshold[T], r.threshold.Value().Scalar(), r.k.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *Threshold[T]) Backward(gy mat.Matrix[T]) {
+func (r *Threshold[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

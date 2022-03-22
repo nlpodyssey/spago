@@ -8,28 +8,31 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &LeakyReLU[float32]{}
-
 // LeakyReLU is an operator to perform the LeakyReLU activation function.
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
-type LeakyReLU[T mat.DType] struct {
-	x     Operand[T]
-	alpha Operand[T] // scalar
+type LeakyReLU[T mat.DType, O Operand[T]] struct {
+	x     O
+	alpha O // scalar
 }
 
 // NewLeakyReLU returns a new LeakyReLU Function.
-func NewLeakyReLU[T mat.DType](x, alpha Operand[T]) *LeakyReLU[T] {
-	return &LeakyReLU[T]{x: x, alpha: alpha}
+func NewLeakyReLU[T mat.DType, O Operand[T]](x, alpha O) *LeakyReLU[T, O] {
+	return &LeakyReLU[T, O]{x: x, alpha: alpha}
+}
+
+// Operands returns the list of operands.
+func (r *LeakyReLU[T, O]) Operands() []O {
+	return []O{r.x, r.alpha}
 }
 
 // Forward computes the output of the function.
-func (r *LeakyReLU[T]) Forward() mat.Matrix[T] {
+func (r *LeakyReLU[T, O]) Forward() mat.Matrix[T] {
 	y := r.x.Value().ApplyWithAlpha(leakyReLU[T], r.alpha.Value().Scalar())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *LeakyReLU[T]) Backward(gy mat.Matrix[T]) {
+func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

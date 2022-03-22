@@ -8,25 +8,28 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &ReduceMean[float32]{}
-
 // ReduceMean is an operator to perform reduce-mean function.
-type ReduceMean[T mat.DType] struct {
-	x Operand[T]
+type ReduceMean[T mat.DType, O Operand[T]] struct {
+	x O
 }
 
 // NewReduceMean returns a new ReduceMean Function.
-func NewReduceMean[T mat.DType](x Operand[T]) *ReduceMean[T] {
-	return &ReduceMean[T]{x: x}
+func NewReduceMean[T mat.DType, O Operand[T]](x O) *ReduceMean[T, O] {
+	return &ReduceMean[T, O]{x: x}
+}
+
+// Operands returns the list of operands.
+func (r *ReduceMean[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean[T]) Forward() mat.Matrix[T] {
+func (r *ReduceMean[T, O]) Forward() mat.Matrix[T] {
 	return mat.NewScalar(r.x.Value().Sum() / T(r.x.Value().Size()))
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean[T]) Backward(gy mat.Matrix[T]) {
+func (r *ReduceMean[T, O]) Backward(gy mat.Matrix[T]) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

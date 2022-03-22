@@ -8,24 +8,27 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Concat[float32]{}
-
 // Concat is an operator to perform vector concatenation.
-type Concat[T mat.DType] struct {
-	xs    []Operand[T]
+type Concat[T mat.DType, O Operand[T]] struct {
+	xs    []O
 	ySize int
 }
 
 // NewConcat returns a new Concat Function.
-func NewConcat[T mat.DType](xs []Operand[T]) *Concat[T] {
-	return &Concat[T]{
+func NewConcat[T mat.DType, O Operand[T]](xs []O) *Concat[T, O] {
+	return &Concat[T, O]{
 		xs:    xs,
 		ySize: 0, // assigned during the Forward()
 	}
 }
 
+// Operands returns the list of operands.
+func (r *Concat[T, O]) Operands() []O {
+	return r.xs
+}
+
 // Forward computes the output of the function.
-func (r *Concat[T]) Forward() mat.Matrix[T] {
+func (r *Concat[T, O]) Forward() mat.Matrix[T] {
 	r.ySize = 0 // reset output size
 	ms := make([]mat.Matrix[T], len(r.xs))
 	for i, x := range r.xs {
@@ -37,7 +40,7 @@ func (r *Concat[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Concat[T]) Backward(gy mat.Matrix[T]) {
+func (r *Concat[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")
 	}

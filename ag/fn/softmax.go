@@ -8,27 +8,30 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Softmax[float32]{}
-
 // Softmax is a single-input softmax function.
-type Softmax[T mat.DType] struct {
-	x Operand[T]
+type Softmax[T mat.DType, O Operand[T]] struct {
+	x O
 	y mat.Matrix[T] // initialized during the forward pass (required by the backward pass)
 }
 
 // NewSoftmax returns a new Softmax Function.
-func NewSoftmax[T mat.DType](x Operand[T]) *Softmax[T] {
-	return &Softmax[T]{x: x}
+func NewSoftmax[T mat.DType, O Operand[T]](x O) *Softmax[T, O] {
+	return &Softmax[T, O]{x: x}
+}
+
+// Operands returns the list of operands.
+func (r *Softmax[T, O]) Operands() []O {
+	return []O{r.x}
 }
 
 // Forward computes the output of this function.
-func (r *Softmax[T]) Forward() mat.Matrix[T] {
+func (r *Softmax[T, O]) Forward() mat.Matrix[T] {
 	r.y = r.x.Value().Softmax()
 	return r.y
 }
 
 // Backward computes the backward pass.
-func (r *Softmax[T]) Backward(gy mat.Matrix[T]) {
+func (r *Softmax[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

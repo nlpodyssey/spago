@@ -8,31 +8,34 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Function[float32] = &Prod[float32]{}
-
 // Prod is an operator to perform element-wise product over two values.
-type Prod[T mat.DType] struct {
-	x1 Operand[T]
-	x2 Operand[T]
+type Prod[T mat.DType, O Operand[T]] struct {
+	x1 O
+	x2 O
 }
 
 // NewProd returns a new Prod Function.
-func NewProd[T mat.DType](x1, x2 Operand[T]) *Prod[T] {
-	return &Prod[T]{x1: x1, x2: x2}
+func NewProd[T mat.DType, O Operand[T]](x1 O, x2 O) *Prod[T, O] {
+	return &Prod[T, O]{x1: x1, x2: x2}
 }
 
 // Square is an operator to perform element-wise square.
-type Square[T mat.DType] struct {
-	*Prod[T]
+type Square[T mat.DType, O Operand[T]] struct {
+	*Prod[T, O]
 }
 
 // NewSquare returns a new Prod Function with both operands set to the given value x.
-func NewSquare[T mat.DType](x Operand[T]) *Square[T] {
-	return &Square[T]{Prod: &Prod[T]{x1: x, x2: x}}
+func NewSquare[T mat.DType, O Operand[T]](x O) *Square[T, O] {
+	return &Square[T, O]{Prod: &Prod[T, O]{x1: x, x2: x}}
+}
+
+// Operands returns the list of operands.
+func (r *Prod[T, O]) Operands() []O {
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.
-func (r *Prod[T]) Forward() mat.Matrix[T] {
+func (r *Prod[T, O]) Forward() mat.Matrix[T] {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -42,7 +45,7 @@ func (r *Prod[T]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Prod[T]) Backward(gy mat.Matrix[T]) {
+func (r *Prod[T, O]) Backward(gy mat.Matrix[T]) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&
