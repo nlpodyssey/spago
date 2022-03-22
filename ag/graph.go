@@ -155,14 +155,6 @@ func (g *Graph[T]) Clear() {
 	g.curTimeStep = 0
 	g.clearCache()
 	g.releaseMemory()
-
-	for _, node := range g.nodes {
-		if node, ok := node.(*Operator[T]); ok {
-			*node = Operator[T]{}
-			getOperatorPool[T]().Put(node)
-		}
-	}
-
 	g.nodes = nil
 }
 
@@ -313,9 +305,11 @@ func (g *Graph[_]) clearCache() {
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph[T]) releaseMemory() {
 	for _, node := range g.nodes {
-		if node, ok := node.(*Operator[T]); ok {
-			g.releaseValue(node)
-			g.releaseGrad(node)
+		if op, ok := node.(*Operator[T]); ok {
+			g.releaseValue(op)
+			g.releaseGrad(op)
+			*op = Operator[T]{}
+			getOperatorPool[T]().Put(op)
 		}
 	}
 }
