@@ -321,6 +321,16 @@ func ReduceMean[T mat.DType](x Node[T]) Node[T] {
 	return x.Graph().NewOperator(fn.NewReduceMean[T](x))
 }
 
+// ReduceMax returns a new operator node as a result of the fn.ReduceMax function.
+func ReduceMax[T mat.DType](x Node[T]) Node[T] {
+	return x.Graph().NewOperator(fn.NewReduceMax[T](x))
+}
+
+// ScalarMax returns a new operator node as a result of the fn.ScalarMax function.
+func ScalarMax[T mat.DType](xs []Node[T]) Node[T] {
+	return xs[0].Graph().NewOperator(fn.NewScalarMax[T](xs))
+}
+
 // Concat returns a new operator node as a result of the fn.Concat function.
 func Concat[T mat.DType](xs ...Node[T]) Node[T] {
 	return xs[0].Graph().NewOperator(fn.NewConcat[T](xs))
