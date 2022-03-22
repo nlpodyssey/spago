@@ -8,8 +8,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          stable: 'false'
-          go-version: '1.18.0-rc1'
+          stable: 'true'
+          go-version: '1.18'
       - name: Run tests and generate coverage report
         run: go test -coverprofile cover.out -covermode atomic ./... ./graphviz/... ./embeddings/store/diskstore/...
       - name: Upload coverage to Codecov
@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          stable: 'false'
-          go-version: '1.18.0-rc1'
+          stable: 'true'
+          go-version: '1.18'
       - uses: actions/checkout@v2
       - name: go vet
         run: go vet ./... ./graphviz/... ./embeddings/store/diskstore/...
@@ -35,8 +35,8 @@ jobs:
     steps:
       - uses: actions/setup-go@v2
         with:
-          stable: 'false'
-          go-version: '1.18.0-rc1'
+          stable: 'true'
+          go-version: '1.18'
       - name: Install gocyclo
         run: go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
       - uses: actions/checkout@v2
