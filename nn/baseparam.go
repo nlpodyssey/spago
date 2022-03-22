@@ -121,7 +121,8 @@ func (p *BaseParam[T]) PropagateGrad(grad mat.Matrix[T]) {
 	p.gradMu.Lock()
 	defer p.gradMu.Unlock()
 	if p.grad == nil {
-		p.grad = p.value.ZerosLike()
+		p.grad = grad.Clone()
+		return
 	}
 	p.grad.AddInPlace(grad)
 }

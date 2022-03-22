@@ -70,7 +70,8 @@ func (r *Variable[T]) PropagateGrad(grad mat.Matrix[T]) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.grad == nil {
-		r.grad = r.value.ZerosLike()
+		r.grad = grad.Clone()
+		return
 	}
 	r.grad.AddInPlace(grad)
 }
