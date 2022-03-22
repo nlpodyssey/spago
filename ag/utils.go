@@ -174,6 +174,25 @@ func LogSoftmax[T mat.DType](x Node[T]) Node[T] {
 	return Log(Softmax(x))
 }
 
+// LogSumExp "trick" computes the log of the sum of exponentials of input elements.
+// When the input is one, this must be a vector. Alternatively, the calculation
+// is conducted on a list of scalars.
+func LogSumExp[T mat.DType](xs ...Node[T]) Node[T] {
+	if len(xs) == 1 {
+		x := xs[0]
+		max := ReduceMax(x)
+		sum := ReduceSum(Exp(SubScalar(x, max)))
+		return Add(max, Log(sum))
+	}
+
+	max := ScalarMax(xs)
+	var sum Node[T]
+	for _, v := range xs {
+		sum = Add(sum, Exp(Sub(v, max)))
+	}
+	return Add(max, Log(sum))
+}
+
 // RowViews calls RowView for each row of x, returning a new slice
 // of row-view Nodes.
 func RowViews[T mat.DType](x Node[T]) []Node[T] {

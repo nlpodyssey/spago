@@ -37,7 +37,7 @@ func NLL[T mat.DType](x ag.Node[T], y ag.Node[T]) ag.Node[T] {
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 func CrossEntropy[T mat.DType](x ag.Node[T], c int) ag.Node[T] {
-	return ag.Add(ag.Neg(ag.AtVec(x, c)), ag.Log(ag.ReduceSum(ag.Exp(x))))
+	return ag.Add(ag.Neg(ag.AtVec(x, c)), ag.LogSumExp(x))
 }
 
 // WeightedCrossEntropy implements a weighted cross-entropy loss function.
