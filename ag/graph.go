@@ -17,6 +17,12 @@ import (
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
+	// eagerExecution reports whether to compute the forward during the graph definition.
+	eagerExecution bool
+	// randGen is the generator of random numbers
+	randGen *rand.LockedRand[T]
+	//  maxProc limits the number of goroutines in execution (default runtime.NumCPU())
+	maxProc int
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
@@ -28,8 +34,6 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// eagerExecution reports whether to compute the forward during the graph definition.
-	eagerExecution bool
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise, the cache must be invalidated and the values recalculated.
@@ -41,10 +45,6 @@ type Graph[T mat.DType] struct {
 		// the nodes height. The index corresponds to the node ID.
 		height []int
 	}
-	// randGen is the generator of random numbers
-	randGen *rand.LockedRand[T]
-	//  maxProc limits the number of goroutines in execution (default runtime.NumCPU())
-	maxProc int
 }
 
 // NewGraph returns a new initialized graph.
