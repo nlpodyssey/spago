@@ -306,15 +306,17 @@ func (g *Graph[_]) clearCache() {
 // By setting retain graph to false, the operators are freed and thus the graph is disintegrated.
 func (g *Graph[T]) releaseMemory(retainGraph bool) {
 	for _, node := range g.nodes {
-		if op, ok := node.(*Operator[T]); ok {
-			g.releaseValue(op)
-			g.releaseGrad(op)
-			if retainGraph {
-				continue
-			}
+		op, ok := node.(*Operator[T])
+		if !ok {
+			continue
+		}
+		g.releaseValue(op)
+		g.releaseGrad(op)
+		if !retainGraph {
 			// free operator
 			*op = Operator[T]{}
 			getOperatorPool[T]().Put(op)
+			// TODO: release constants?
 		}
 	}
 }
