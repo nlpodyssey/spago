@@ -154,7 +154,7 @@ func (g *Graph[T]) Clear() {
 	g.maxID = -1
 	g.curTimeStep = 0
 	g.clearCache()
-	g.releaseMemory()
+	g.releaseMemory(false)
 	g.nodes = nil
 }
 
@@ -168,7 +168,7 @@ func (g *Graph[_]) ClearForReuse() {
 	if g.nodes == nil {
 		return
 	}
-	g.releaseMemory()
+	g.releaseMemory(true)
 }
 
 // NewVariable creates and returns a new node.
@@ -303,11 +303,16 @@ func (g *Graph[_]) clearCache() {
 // releaseMemory clears the values and the gradients of operator nodes.
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
-func (g *Graph[T]) releaseMemory() {
+// By setting retain graph to false, the operators are freed and thus the graph is disintegrated.
+func (g *Graph[T]) releaseMemory(retainGraph bool) {
 	for _, node := range g.nodes {
 		if op, ok := node.(*Operator[T]); ok {
 			g.releaseValue(op)
 			g.releaseGrad(op)
+			if retainGraph {
+				continue
+			}
+			// free operator
 			*op = Operator[T]{}
 			getOperatorPool[T]().Put(op)
 		}
