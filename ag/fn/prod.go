@@ -19,16 +19,6 @@ func NewProd[T mat.DType, O Operand[T]](x1 O, x2 O) *Prod[T, O] {
 	return &Prod[T, O]{x1: x1, x2: x2}
 }
 
-// Square is an operator to perform element-wise square.
-type Square[T mat.DType, O Operand[T]] struct {
-	*Prod[T, O]
-}
-
-// NewSquare returns a new Prod Function with both operands set to the given value x.
-func NewSquare[T mat.DType, O Operand[T]](x O) *Square[T, O] {
-	return &Square[T, O]{Prod: &Prod[T, O]{x1: x, x2: x}}
-}
-
 // Operands returns the list of operands.
 func (r *Prod[T, O]) Operands() []O {
 	return []O{r.x1, r.x2}
