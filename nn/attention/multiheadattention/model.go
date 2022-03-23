@@ -94,12 +94,13 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], 
 func (m *Model[T]) project(heads [][]ag.Node[T], seqLen int) []ag.Node[T] {
 	n := len(heads)
 	concat := make([]ag.Node[T], seqLen)
-	buf := make([]ag.Node[T], n)
+	buf := make([]ag.Node[T], n*seqLen)
 	for i := 0; i < seqLen; i++ {
+		buf2 := buf[i*n : i*n+n]
 		for j := 0; j < n; j++ {
-			buf[j] = heads[j][i]
+			buf2[j] = heads[j][i]
 		}
-		concat[i] = ag.Concat(buf...)
+		concat[i] = ag.Concat(buf2...)
 	}
 	return m.OutputMerge.Forward(concat...)
 }
