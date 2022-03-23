@@ -28,6 +28,8 @@ func testSoftShrinkForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewSoftShrink[T](x, lambda)
+	assert.Equal(t, []*variable[T]{x, lambda}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.1, 0, 0.4, -0.4}, y.Data(), 1.0e-6)

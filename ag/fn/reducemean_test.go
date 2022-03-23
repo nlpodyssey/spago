@@ -22,11 +22,11 @@ func testReduceMeanForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewReduceMean[T](x)
-	y := f.Forward()
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
+	y := f.Forward()
 	assert.InDeltaSlice(t, []T{0.15}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewVecDense([]T{0.5}))
-
 	assert.InDeltaSlice(t, []T{0.125, 0.125, 0.125, 0.125}, x.grad.Data(), 1.0e-6)
 }

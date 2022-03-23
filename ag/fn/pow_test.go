@@ -23,6 +23,8 @@ func testPowForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewPow[T](x, 3.0)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.001, 0.008, 0.027, 0.0}, y.Data(), 1.0e-6)

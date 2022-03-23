@@ -28,6 +28,8 @@ func testCELUForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewCELU[T](x, alpha)
+	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, -0.19032516, 0.3, 0}, y.Data(), 1.0e-6)

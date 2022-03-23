@@ -38,6 +38,8 @@ func testDotForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewDot[T](x1, x2)
+	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{1.44}, y.Data(), 1.0e-6)

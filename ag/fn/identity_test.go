@@ -27,6 +27,8 @@ func testIdentityForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewIdentity[T](x)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

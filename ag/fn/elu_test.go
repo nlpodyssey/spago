@@ -27,6 +27,8 @@ func testELUForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 	f := NewELU[T](x, alpha)
+	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, -0.36253849, 0.3, 0}, y.Data(), 1.0e-6)

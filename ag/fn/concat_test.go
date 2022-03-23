@@ -33,6 +33,8 @@ func testConcatForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewConcat[T]([]*variable[T]{x1, x2, x3})
+	assert.Equal(t, []*variable[T]{x1, x2, x3}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, y.Data(), 1.0e-6)

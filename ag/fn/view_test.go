@@ -27,6 +27,8 @@ func testViewForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewView[T](x, 1, 1, 2, 2)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

@@ -28,6 +28,8 @@ func testProdForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewProd[T](x1, x2)
+	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.04, 0.06, 0.15, 0}, y.Data(), 1.0e-6)

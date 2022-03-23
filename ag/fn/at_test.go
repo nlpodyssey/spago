@@ -27,6 +27,8 @@ func testAtForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewAt[T](x, 2, 3)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{-0.1}, y.Data(), 1.0e-6)

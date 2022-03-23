@@ -22,6 +22,7 @@ func testReduceMaxForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewReduceMax[T](x)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()
 	assert.InDeltaSlice(t, []T{0.3}, y.Data(), 1.0e-6)

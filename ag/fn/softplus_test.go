@@ -33,6 +33,8 @@ func testSoftPlusForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewSoftPlus[T](x, beta, threshold)
+	assert.Equal(t, []*variable[T]{x, beta, threshold}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.399069434, 0.25650762, 20.3, 0.346573590}, y.Data(), 1.0e-6)

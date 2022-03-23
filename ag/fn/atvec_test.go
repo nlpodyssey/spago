@@ -23,6 +23,8 @@ func testAtVecForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewAtVec[T](x, 1)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.2}, y.Data(), 1.0e-6)

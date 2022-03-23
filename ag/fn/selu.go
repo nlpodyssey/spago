@@ -22,7 +22,7 @@ func NewSELU[T mat.DType, O Operand[T]](x O, alpha, scale O) *SELU[T, O] {
 
 // Operands returns the list of operands.
 func (r *SELU[T, O]) Operands() []O {
-	return []O{r.x}
+	return []O{r.x, r.alpha, r.scale}
 }
 
 // Forward computes the output of the function.

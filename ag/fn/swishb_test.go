@@ -27,6 +27,8 @@ func testSwishBForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewSwishB[T](x, beta)
+	assert.Equal(t, []*variable[T]{x, beta}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Data(), 1.0e-6)

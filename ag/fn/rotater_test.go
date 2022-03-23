@@ -22,6 +22,8 @@ func testRotateRForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewRotateR[T](x, 1)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7}, y.Data(), 1.0e-6)

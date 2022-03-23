@@ -33,6 +33,8 @@ func testSELUForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewSELU[T](x, alpha, scale)
+	assert.Equal(t, []*variable[T]{x, alpha, scale}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.16, -0.58006159, 0.48, 0}, y.Data(), 1.0e-6)

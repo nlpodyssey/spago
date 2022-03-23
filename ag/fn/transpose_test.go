@@ -27,6 +27,8 @@ func testTransposeForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewTranspose[T](x)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

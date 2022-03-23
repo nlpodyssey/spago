@@ -22,6 +22,8 @@ func testSoftmaxForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewSoftmax[T](x)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1166451, 0.0596882, 0.1757629, 0.4195304, 0.1453487, 0.083024}, y.Data(), 1.0e-6)

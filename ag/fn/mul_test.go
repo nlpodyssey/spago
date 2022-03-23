@@ -38,6 +38,8 @@ func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
 	}
 
 	f := NewMul[T](x1, x2)
+	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

@@ -28,6 +28,8 @@ func testSubScalarForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewSubScalar[T](x1, x2)
+	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{-1.9, -1.8, -1.7, -2.0}, y.Data(), 1.0e-6)

@@ -22,6 +22,8 @@ func testAbsForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewAbs[T](x)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)

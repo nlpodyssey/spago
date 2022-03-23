@@ -21,7 +21,7 @@ func testThresholdForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	threshold := &variable[T]{
+	ts := &variable[T]{
 		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
@@ -32,7 +32,9 @@ func testThresholdForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewThreshold[T](x, threshold, k)
+	f := NewThreshold[T](x, ts, k)
+	assert.Equal(t, []*variable[T]{x, ts, k}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{1.6, 1.6, 3.3, 1.6}, y.Data(), 1.0e-6)

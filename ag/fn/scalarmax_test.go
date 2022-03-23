@@ -24,6 +24,8 @@ func testScalarMaxForward[T mat.DType](t *testing.T) {
 	}
 
 	max := NewScalarMax[T](xs)
+	assert.Equal(t, xs, max.Operands())
+
 	y := max.Forward()
 	assert.InDeltaSlice(t, []T{5.0}, y.Data(), 1.0e-6)
 

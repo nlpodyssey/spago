@@ -27,6 +27,8 @@ func testScalarDivForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 	f := NewDivScalar[T](x1, x2)
+	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.05, 0.1, 0.15, 0}, y.Data(), 1.0e-6)

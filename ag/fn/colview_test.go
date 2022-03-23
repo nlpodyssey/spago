@@ -27,6 +27,8 @@ func testColForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewColView[T](x, 2)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

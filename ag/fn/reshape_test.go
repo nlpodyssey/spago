@@ -27,6 +27,8 @@ func testReshapeForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewReshape[T](x, 4, 3)
+	assert.Equal(t, []*variable[T]{x}, f.Operands())
+
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{
