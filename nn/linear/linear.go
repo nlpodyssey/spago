@@ -6,7 +6,6 @@ package linear
 
 import (
 	"encoding/gob"
-	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
@@ -66,15 +65,22 @@ func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
+	maxProc := m.Session.Graph().MaxProc()
+	ch := make(chan struct{}, maxProc)
+
 	ys := make([]ag.Node[T], len(xs))
-	var wg sync.WaitGroup
-	wg.Add(len(xs))
 	for i := range xs {
+		ch <- struct{}{}
 		go func(i int) {
-			defer wg.Done()
 			ys[i] = ag.Affine[T](m.B, m.W, xs[i])
+			<-ch
 		}(i)
 	}
-	wg.Wait()
+
+	for i := 0; i < maxProc; i++ {
+		ch <- struct{}{}
+	}
+	close(ch)
+
 	return ys
 }
