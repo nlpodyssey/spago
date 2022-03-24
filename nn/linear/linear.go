@@ -51,7 +51,7 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if len(xs) > 1 && !m.Session.Graph().EagerExecutionEnabled() && m.Session.Graph().MaxProc() > 1 {
+	if len(xs) > 1 && m.Session.Graph().EagerExecutionEnabled() && m.Session.Graph().MaxProc() > 1 {
 		return m.fwdConcurrent(xs)
 	}
 	return m.fwdSerial(xs)
