@@ -50,47 +50,44 @@ func (g *Graph[T]) forwardSerial(start, end int) {
 }
 
 func (g *Graph[T]) forwardConcurrent(start, end int) {
-	pending := make([]chan struct{}, len(g.nodes[start:end]))
-	for i := range pending {
-		if _, ok := g.nodes[i+start].(*Operator[T]); !ok {
-			continue
+	nodes := g.nodes[start:end]
+
+	nodesWG := make([]sync.WaitGroup, len(nodes))
+	for i, node := range nodes {
+		if _, ok := node.(*Operator[T]); ok {
+			nodesWG[i].Add(1)
 		}
-		pending[i] = make(chan struct{})
 	}
 
 	var wg sync.WaitGroup
-
 	workCh := make(chan struct{}, g.maxProc)
 
 	forward := func(node *Operator[T]) {
-		defer wg.Done()
-
 		// All operands must be resolved before proceeding
 		for _, operand := range node.Operands() {
-			idx := operand.ID() - start
-			if operand.ID() < start || pending[idx] == nil {
+			if operand.ID() < start {
 				continue
 			}
-			<-pending[idx] // wait until the node value is available
+			idx := operand.ID() - start
+			nodesWG[idx].Wait() // wait until the node value is available
 		}
 
 		workCh <- struct{}{}
 		node.forward()
-		close(pending[node.id-start]) // broadcast node resolution
 		<-workCh
+
+		nodesWG[node.id-start].Done()
+		wg.Done()
 	}
 
-	for _, node := range g.nodes[start:end] {
+	for _, node := range nodes {
 		if operator, ok := node.(*Operator[T]); ok {
 			wg.Add(1)
 			go forward(operator)
 		}
 	}
-	wg.Wait()
 
-	for i := 0; i < g.maxProc; i++ {
-		workCh <- struct{}{}
-	}
+	wg.Wait()
 	close(workCh)
 
 	g.cache.lastComputedID = end
