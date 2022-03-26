@@ -42,21 +42,11 @@ func (g *Graph[T]) Forward(opts ...ForwardOption[T]) {
 	for _, opt := range opts {
 		opt(handler)
 	}
-
-	// Free the values that are about to be recalculated so that memory is not wasted
-	for _, node := range g.nodes {
-		if op, ok := node.(*Operator[T]); ok {
-			if op.timeStep >= handler.fromTimeStep && (handler.toTimeStep == -1 || op.timeStep <= handler.toTimeStep) {
-				g.releaseValue(op)
-			}
-		}
-	}
-
 	if g.maxProc > 1 {
 		handler.runConcurrent()
-	} else {
-		handler.runSerial()
+		return
 	}
+	handler.runSerial()
 }
 
 type forwardHandler[T mat.DType] struct {
@@ -69,53 +59,60 @@ func (h *forwardHandler[T]) runSerial() {
 	offset, end := h.nodeBoundaries()
 	for _, node := range h.g.nodes[offset:end] {
 		if op, ok := node.(*Operator[T]); ok {
-			if op.timeStep < h.fromTimeStep {
-				continue
-			}
-			if h.toTimeStep != -1 && op.timeStep > h.toTimeStep {
-				continue
-			}
+			h.g.releaseValue(op)
 			op.forward()
 		}
 	}
 }
 
 func (h *forwardHandler[T]) runConcurrent() {
-	fromTS, toTS := h.fromTimeStep, h.toTimeStep
-	groups := h.g.groupNodesByHeight()
+	offset, end := h.nodeBoundaries()
 
-	workCh := make(chan *Operator[T], h.g.maxProc)
-	allWorkDone := false
+	pending := make([]chan struct{}, len(h.g.nodes[offset:end]))
+	for i := range pending {
+		if _, ok := h.g.nodes[i+offset].(*Operator[T]); !ok {
+			continue // skip elements have nil value
+		}
+		pending[i] = make(chan struct{})
+	}
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < h.g.maxProc; i++ {
-		go func() {
-			for !allWorkDone {
-				select {
-				case op := <-workCh:
-					if op == nil {
-						continue
-					}
-					op.forward()
-					wg.Done()
-				}
-			}
-		}()
-	}
+	workCh := make(chan struct{}, h.g.maxProc)
 
-	for _, group := range groups {
-		for _, node := range group {
-			op, isOperator := node.(*Operator[T])
-			if !isOperator || (op.timeStep < fromTS || (toTS != -1 && op.timeStep > toTS)) {
+	forward := func(node *Operator[T]) {
+		defer wg.Done()
+
+		// All operands must be resolved before proceeding
+		for _, operand := range node.Operands() {
+			if operand.ID() < offset {
 				continue
 			}
-			wg.Add(1)
-			workCh <- op
+			idx := operand.ID() - offset
+			if pending[idx] == nil {
+				continue
+			}
+			<-pending[idx] // wait until the node value is available
 		}
-		wg.Wait()
+
+		workCh <- struct{}{}
+		h.g.releaseValue(node)
+		node.forward()
+		close(pending[node.id-offset]) // broadcast node resolution
+		<-workCh
 	}
-	allWorkDone = true
+
+	for _, node := range h.g.nodes[offset:end] {
+		if operator, ok := node.(*Operator[T]); ok {
+			wg.Add(1)
+			go forward(operator)
+		}
+	}
+	wg.Wait()
+
+	for i := 0; i < h.g.maxProc; i++ {
+		workCh <- struct{}{}
+	}
 	close(workCh)
 }
 
