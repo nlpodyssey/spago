@@ -51,7 +51,7 @@ type Operator[T mat.DType] struct {
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
 	grad         mat.Matrix[T]
 	requiresGrad bool
-	valueCond    *sync.Cond
+	valueMx      *sync.RWMutex
 }
 
 // ID returns the ID of the node in the graph.
@@ -79,12 +79,8 @@ func (r *Operator[T]) Value() mat.Matrix[T] {
 		return r.value
 	}
 
-	r.valueCond.L.Lock()
-	defer r.valueCond.L.Unlock()
-
-	for r.value == nil {
-		r.valueCond.Wait()
-	}
+	r.valueMx.RLock()
+	defer r.valueMx.RUnlock()
 	return r.value
 }
 
@@ -169,13 +165,10 @@ func (r *Operator[T]) goForward() {
 	}
 
 	r.graph.workLimitChan <- struct{}{}
-	v := r.function.Forward()
+	r.value = r.function.Forward()
 	<-r.graph.workLimitChan
 
-	r.valueCond.L.Lock()
-	r.value = v
-	r.valueCond.Broadcast()
-	r.valueCond.L.Unlock()
+	r.valueMx.Unlock()
 }
 
 func (r *Operator[_]) setID(id int) {

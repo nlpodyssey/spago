@@ -261,11 +261,12 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
-		valueCond:    nil,
+		valueMx:      nil,
 	}
 
 	if !g.eagerExecution {
-		n.valueCond = sync.NewCond(new(sync.Mutex))
+		n.valueMx = new(sync.RWMutex)
+		n.valueMx.Lock()
 		go n.goForward()
 	}
 
