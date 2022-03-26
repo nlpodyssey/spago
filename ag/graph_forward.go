@@ -5,17 +5,21 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"log"
 	"sync"
 )
 
-// ForwardOption allows to adapt the Forward() to your specific needs.
-type ForwardOption[T mat.DType] func(*forwardHandler[T])
+// Forward computes the results of the entire Graph (not thread-safe).
+// Usually you don't need to execute Forward() manually in define-by-run configuration (default).
+// The method is equivalent to calling ForwardT with a range [0, -1].
+func (g *Graph[T]) Forward() {
+	g.ForwardT(0, -1)
+}
 
-// Range allows you to limit the forward computation within a time-step range.
-// By default, the forward computes from the first node at time-step 0 to the last node at the current time-step.
-func Range[T mat.DType](fromTimeStep, toTimeStep int) ForwardOption[T] {
+// ForwardT is a truncated version of Forward that computes only a portion of nodes within a time-step range.
+// [0, -1] equals computing the entire graph.
+// Not thread-safe.
+func (g *Graph[T]) ForwardT(fromTimeStep, toTimeStep int) {
 	if fromTimeStep < 0 {
 		log.Fatalf("ag: expected fromTimeStep equal to or greater than zero. Found %d.", fromTimeStep)
 	}
@@ -23,86 +27,60 @@ func Range[T mat.DType](fromTimeStep, toTimeStep int) ForwardOption[T] {
 		log.Fatalf("ag: expected toTimeStep equal to or greater than `%d` (fromTimeStep). Found `%d`.",
 			fromTimeStep, toTimeStep)
 	}
-	return func(f *forwardHandler[T]) {
-		f.fromTimeStep = fromTimeStep
-		f.toTimeStep = toTimeStep
-	}
+	start, end := g.nodeBoundaries(fromTimeStep, toTimeStep)
+	g.forward(start, end)
 }
 
-// Forward computes the results of the entire Graph.
-// Usually you don't need to execute Forward() manually in the define-by-run configuration (default).
-// If you do, all values will be recalculated. You can also choose through the Range option to recalculate only a portion of nodes.
-// Instead, it is required to obtain the value of the nodes in case the Graph has been created with WithEagerExecution(false).
-func (g *Graph[T]) Forward(opts ...ForwardOption[T]) {
-	handler := &forwardHandler[T]{
-		g:            g,
-		fromTimeStep: 0,
-		toTimeStep:   -1, // unlimited
-	}
-	for _, opt := range opts {
-		opt(handler)
-	}
+func (g *Graph[T]) forward(start, end int) {
 	if g.maxProc > 1 {
-		handler.runConcurrent()
+		g.forwardConcurrent(start, end)
 		return
 	}
-	handler.runSerial()
+	g.forwardSerial(start, end)
 }
 
-type forwardHandler[T mat.DType] struct {
-	g            *Graph[T]
-	fromTimeStep int // default 0
-	toTimeStep   int // default -1 (no limit)
-}
-
-func (h *forwardHandler[T]) runSerial() {
-	offset, end := h.nodeBoundaries()
-	for _, node := range h.g.nodes[offset:end] {
+func (g *Graph[T]) forwardSerial(start, end int) {
+	for _, node := range g.nodes[start:end] {
 		if op, ok := node.(*Operator[T]); ok {
-			h.g.releaseValue(op)
+			g.releaseValue(op)
 			op.forward()
 		}
 	}
+	g.cache.lastComputedID = end
 }
 
-func (h *forwardHandler[T]) runConcurrent() {
-	offset, end := h.nodeBoundaries()
-
-	pending := make([]chan struct{}, len(h.g.nodes[offset:end]))
+func (g *Graph[T]) forwardConcurrent(start, end int) {
+	pending := make([]chan struct{}, len(g.nodes[start:end]))
 	for i := range pending {
-		if _, ok := h.g.nodes[i+offset].(*Operator[T]); !ok {
-			continue // skip elements have nil value
+		if _, ok := g.nodes[i+start].(*Operator[T]); !ok {
+			continue
 		}
 		pending[i] = make(chan struct{})
 	}
 
 	var wg sync.WaitGroup
 
-	workCh := make(chan struct{}, h.g.maxProc)
+	workCh := make(chan struct{}, g.maxProc)
 
 	forward := func(node *Operator[T]) {
 		defer wg.Done()
 
 		// All operands must be resolved before proceeding
 		for _, operand := range node.Operands() {
-			if operand.ID() < offset {
-				continue
-			}
-			idx := operand.ID() - offset
-			if pending[idx] == nil {
+			idx := operand.ID() - start
+			if operand.ID() < start || pending[idx] == nil {
 				continue
 			}
 			<-pending[idx] // wait until the node value is available
 		}
 
 		workCh <- struct{}{}
-		h.g.releaseValue(node)
 		node.forward()
-		close(pending[node.id-offset]) // broadcast node resolution
+		close(pending[node.id-start]) // broadcast node resolution
 		<-workCh
 	}
 
-	for _, node := range h.g.nodes[offset:end] {
+	for _, node := range g.nodes[start:end] {
 		if operator, ok := node.(*Operator[T]); ok {
 			wg.Add(1)
 			go forward(operator)
@@ -110,18 +88,10 @@ func (h *forwardHandler[T]) runConcurrent() {
 	}
 	wg.Wait()
 
-	for i := 0; i < h.g.maxProc; i++ {
+	for i := 0; i < g.maxProc; i++ {
 		workCh <- struct{}{}
 	}
 	close(workCh)
-}
 
-func (h *forwardHandler[T]) nodeBoundaries() (start, end int) {
-	start = h.g.timeStepBoundaries[h.fromTimeStep] // inclusive
-	end = len(h.g.nodes)                           // exclusive
-
-	if h.toTimeStep != -1 && h.toTimeStep != h.g.TimeStep() {
-		end = h.g.timeStepBoundaries[h.toTimeStep+1]
-	}
-	return
+	g.cache.lastComputedID = end
 }

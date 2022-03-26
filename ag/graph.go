@@ -40,6 +40,8 @@ type Graph[T mat.DType] struct {
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise, the cache must be invalidated and the values recalculated.
 	cache struct {
+		// the id of the last node that was forwarded
+		lastComputedID int
 		// the maxID when this cache was created.
 		maxID int
 		// nodes grouped by height
@@ -294,6 +296,9 @@ func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 	g.maxID++
 	n.setID(g.maxID)
 	g.nodes = append(g.nodes, n)
+	if g.eagerExecution {
+		g.cache.lastComputedID = g.maxID
+	}
 	g.mu.Unlock()
 	return n
 }
@@ -301,6 +306,7 @@ func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 // clearCache cleans the cache.
 func (g *Graph[_]) clearCache() {
 	g.cache.maxID = -1
+	g.cache.lastComputedID = -1
 	g.cache.nodesByHeight = nil
 	g.cache.height = nil
 }
@@ -338,6 +344,16 @@ func (g *Graph[T]) releaseValue(node *Operator[T]) {
 // releaseGrad set the node gradient to nil and release the memory.
 func (g *Graph[T]) releaseGrad(node *Operator[T]) {
 	node.ZeroGrad()
+}
+
+func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex, endNodeIndex int) {
+	startNodeIndex = g.timeStepBoundaries[fromTimeStep] // inclusive
+	endNodeIndex = len(g.nodes)                         // exclusive
+
+	if toTimeStep != -1 && toTimeStep != g.TimeStep() {
+		endNodeIndex = g.timeStepBoundaries[toTimeStep+1]
+	}
+	return
 }
 
 func (g *Graph[T]) groupNodesByHeight() [][]Node[T] {

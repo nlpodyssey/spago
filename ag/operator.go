@@ -70,9 +70,24 @@ func (r *Operator[T]) Graph() *Graph[T] {
 	return r.graph
 }
 
-// Value returns the cached result of the function.
+// Value returns the result of the function.
+// If execution isn't eager and the value is null, it automatically forwards
+// to all the nodes at the same time-step as this operator.
 func (r *Operator[T]) Value() mat.Matrix[T] {
+	if r.value != nil || r.graph.eagerExecution {
+		return r.value
+	}
+	start, end := r.graph.nodeBoundaries(r.graph.curTimeStep, r.timeStep)
+	if start < r.graph.cache.lastComputedID {
+		start = r.graph.cache.lastComputedID
+	}
+	r.graph.forward(start, end)
 	return r.value
+}
+
+// HasValue returns whether the value is not nil
+func (r *Operator[T]) HasValue() bool {
+	return r.value != nil
 }
 
 // ScalarValue returns the the scalar value of the node.

@@ -249,12 +249,13 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		)
 		g.Backward(op)
 
+		assert.True(t, op.(*Operator[T]).HasValue())
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
 		g.Clear()
 
-		assert.Nil(t, op.Value())
+		assert.False(t, op.(*Operator[T]).HasValue())
 		assert.Nil(t, op.Grad())
 	})
 
@@ -383,7 +384,8 @@ func TestGraph_Forward(t *testing.T) {
 func testGraphForward[T mat.DType](t *testing.T) {
 	g := NewGraph[T](WithEagerExecution[T](false))
 	op := Add(g.NewScalar(40), g.NewScalar(2))
-	assert.Nil(t, op.Value())
+	assert.NotNil(t, op.Value())
+	assert.Equal(t, T(42.0), op.Value().Scalar())
 	g.Forward()
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42.0), op.Value().Scalar())
