@@ -21,8 +21,6 @@ type Graph[T mat.DType] struct {
 	eagerExecution bool
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
-	//  maxProc limits the number of goroutines in execution (default runtime.NumCPU())
-	maxProc int
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
@@ -36,6 +34,11 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
+	// maxProc limits the number of concurrent work (on separate goroutines)
+	// in execution. (default runtime.NumCPU()
+	maxProc int
+	// Channel to limit concurrent work, up to maxProc.
+	workLimitChan chan struct{}
 	// cache of the support structures created during the last groupNodesByHeight() computation.
 	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
 	// Otherwise, the cache must be invalidated and the values recalculated.
@@ -62,6 +65,7 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		constants:          map[T]Node[T]{},
 		eagerExecution:     true,
 		maxProc:            runtime.NumCPU(),
+		workLimitChan:      make(chan struct{}, runtime.NumCPU()),
 	}
 	g.clearCache()
 	for _, opt := range opts {
@@ -103,6 +107,7 @@ func (g *Graph[T]) SetMaxProc(value int) (prev int) {
 		panic("ag: value must be greater than zero")
 	}
 	prev, g.maxProc = g.maxProc, value
+	g.workLimitChan = make(chan struct{}, value)
 	return prev
 }
 
@@ -256,7 +261,15 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
+		wgValue:      nil,
 	}
+
+	if !g.eagerExecution {
+		n.wgValue = new(sync.WaitGroup)
+		n.wgValue.Add(1)
+		go n.goForward()
+	}
+
 	return g.insert(n)
 }
 

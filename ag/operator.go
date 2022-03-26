@@ -51,6 +51,7 @@ type Operator[T mat.DType] struct {
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
 	grad         mat.Matrix[T]
 	requiresGrad bool
+	wgValue      *sync.WaitGroup
 }
 
 // ID returns the ID of the node in the graph.
@@ -74,14 +75,9 @@ func (r *Operator[T]) Graph() *Graph[T] {
 // If execution isn't eager and the value is null, it automatically forwards
 // to all the nodes at the same time-step as this operator.
 func (r *Operator[T]) Value() mat.Matrix[T] {
-	if r.value != nil || r.graph.eagerExecution {
-		return r.value
+	if r.value == nil && r.wgValue != nil {
+		r.wgValue.Wait()
 	}
-	start, end := r.graph.nodeBoundaries(r.graph.curTimeStep, r.timeStep)
-	if start < r.graph.cache.lastComputedID {
-		start = r.graph.cache.lastComputedID
-	}
-	r.graph.forward(start, end)
 	return r.value
 }
 
@@ -156,6 +152,20 @@ func (r *Operator[_]) forward() {
 		return
 	}
 	r.value = r.function.Forward()
+}
+
+func (r *Operator[T]) goForward() {
+	for _, operand := range r.function.Operands() {
+		if o, ok := operand.(*Operator[T]); ok && o.value == nil {
+			o.wgValue.Wait()
+		}
+	}
+
+	r.graph.workLimitChan <- struct{}{}
+	r.value = r.function.Forward()
+	<-r.graph.workLimitChan
+
+	r.wgValue.Done()
 }
 
 func (r *Operator[_]) setID(id int) {
