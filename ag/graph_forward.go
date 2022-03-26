@@ -66,7 +66,8 @@ type forwardHandler[T mat.DType] struct {
 }
 
 func (h *forwardHandler[T]) runSerial() {
-	for _, node := range h.g.nodes {
+	offset, end := h.nodeBoundaries()
+	for _, node := range h.g.nodes[offset:end] {
 		if op, ok := node.(*Operator[T]); ok {
 			if op.timeStep < h.fromTimeStep {
 				continue
@@ -116,4 +117,14 @@ func (h *forwardHandler[T]) runConcurrent() {
 	}
 	allWorkDone = true
 	close(workCh)
+}
+
+func (h *forwardHandler[T]) nodeBoundaries() (start, end int) {
+	start = h.g.timeStepBoundaries[h.fromTimeStep] // inclusive
+	end = len(h.g.nodes)                           // exclusive
+
+	if h.toTimeStep != -1 && h.toTimeStep != h.g.TimeStep() {
+		end = h.g.timeStepBoundaries[h.toTimeStep+1]
+	}
+	return
 }

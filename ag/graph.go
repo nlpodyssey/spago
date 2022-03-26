@@ -29,6 +29,8 @@ type Graph[T mat.DType] struct {
 	maxID int
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int
+	// timeStepBoundaries holds the first node associated to each time-step
+	timeStepBoundaries []int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	// The nodes are inserted one at a time in order of creation.
 	nodes []Node[T]
@@ -51,12 +53,13 @@ type Graph[T mat.DType] struct {
 // It can take an optional random generator of type rand.WithRand.
 func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	g := &Graph[T]{
-		maxID:          -1,
-		curTimeStep:    0,
-		nodes:          nil,
-		constants:      map[T]Node[T]{},
-		eagerExecution: true,
-		maxProc:        runtime.NumCPU(),
+		maxID:              -1,
+		curTimeStep:        0,
+		timeStepBoundaries: []int{0},
+		nodes:              nil,
+		constants:          map[T]Node[T]{},
+		eagerExecution:     true,
+		maxProc:            runtime.NumCPU(),
 	}
 	g.clearCache()
 	for _, opt := range opts {
@@ -123,6 +126,7 @@ func (g *Graph[_]) ZeroGrad() {
 // IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph[_]) IncTimeStep() {
 	g.curTimeStep++
+	g.timeStepBoundaries = append(g.timeStepBoundaries, g.maxID+1)
 }
 
 // TimeStep is an integer value associated with the graph, which can be useful
@@ -153,6 +157,7 @@ func (g *Graph[T]) Clear() {
 	}
 	g.maxID = -1
 	g.curTimeStep = 0
+	g.timeStepBoundaries = []int{0}
 	g.clearCache()
 	g.releaseMemory(false)
 	g.nodes = nil
