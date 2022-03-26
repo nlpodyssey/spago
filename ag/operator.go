@@ -137,6 +137,9 @@ func (r *Operator[_]) backward() {
 }
 
 func (r *Operator[_]) forward() {
+	if r.value != nil {
+		return
+	}
 	r.value = r.function.Forward()
 }
 
