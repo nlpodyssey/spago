@@ -31,12 +31,11 @@ var (
 )
 
 func getOperatorPool[T mat.DType]() *sync.Pool {
-	// TODO: review this code once stable go 1.18 is released
 	switch any(T(0)).(type) {
 	case float32:
-		return any(operatorPoolFloat32).(*sync.Pool)
+		return operatorPoolFloat32
 	case float64:
-		return any(operatorPoolFloat64).(*sync.Pool)
+		return operatorPoolFloat64
 	default:
 		panic(fmt.Sprintf("ag: no operator pool for type %T", T(0)))
 	}
