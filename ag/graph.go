@@ -267,7 +267,9 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	if !g.eagerExecution {
 		n.valueMx = new(sync.RWMutex)
 		n.valueMx.Lock()
+		g.workLimitChan <- struct{}{}
 		go n.goForward()
+		<-g.workLimitChan
 	}
 
 	return g.insert(n)

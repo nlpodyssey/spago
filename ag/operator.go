@@ -78,7 +78,6 @@ func (r *Operator[T]) Value() mat.Matrix[T] {
 	if r.graph.eagerExecution {
 		return r.value
 	}
-
 	r.valueMx.RLock()
 	defer r.valueMx.RUnlock()
 	return r.value
@@ -159,15 +158,11 @@ func (r *Operator[_]) forward() {
 
 func (r *Operator[T]) goForward() {
 	for _, operand := range r.function.Operands() {
-		if o, ok := operand.(*Operator[T]); ok && o.value == nil {
-			o.Value() // this triggers cond waiting
+		if o, ok := operand.(*Operator[T]); ok {
+			o.Value() // this wait until the value is available
 		}
 	}
-
-	r.graph.workLimitChan <- struct{}{}
 	r.value = r.function.Forward()
-	<-r.graph.workLimitChan
-
 	r.valueMx.Unlock()
 }
 
