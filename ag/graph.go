@@ -255,16 +255,18 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 
 	n := getOperatorPool[T]().Get().(*Operator[T])
 	*n = Operator[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
-		function:     f,
-		value:        value,
-		grad:         nil,
-		requiresGrad: requiresGrad,
-		valueMx:      nil,
+		graph:           g,
+		timeStep:        g.curTimeStep,
+		function:        f,
+		value:           value,
+		grad:            nil,
+		requiresGrad:    requiresGrad,
+		valueMx:         nil,
+		valueAtomicFlag: 1,
 	}
 
 	if !g.eagerExecution {
+		n.valueAtomicFlag = 0
 		n.valueMx = new(sync.RWMutex)
 		n.valueMx.Lock()
 		g.workLimitChan <- struct{}{}

@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"sync"
+	"sync/atomic"
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
@@ -43,15 +44,16 @@ func getOperatorPool[T mat.DType]() *sync.Pool {
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
-	graph        *Graph[T]
-	timeStep     int
-	id           int
-	function     fn.Function[T, Node[T]]
-	value        mat.Matrix[T] // store the results of a forward evaluation
-	mu           sync.Mutex    // to avoid data race during gradients accumulation
-	grad         mat.Matrix[T]
-	requiresGrad bool
-	valueMx      *sync.RWMutex
+	graph           *Graph[T]
+	timeStep        int
+	id              int
+	function        fn.Function[T, Node[T]]
+	value           mat.Matrix[T] // store the results of a forward evaluation
+	mu              sync.Mutex    // to avoid data race during gradients accumulation
+	grad            mat.Matrix[T]
+	requiresGrad    bool
+	valueMx         *sync.RWMutex
+	valueAtomicFlag uint32
 }
 
 // ID returns the ID of the node in the graph.
@@ -75,12 +77,19 @@ func (r *Operator[T]) Graph() *Graph[T] {
 // If execution isn't eager and the value is null, it automatically forwards
 // to all the nodes at the same time-step as this operator.
 func (r *Operator[T]) Value() mat.Matrix[T] {
-	if r.graph.eagerExecution {
-		return r.value
+	if r.valueMx != nil {
+		r.waitForValue()
 	}
-	r.valueMx.RLock()
-	defer r.valueMx.RUnlock()
 	return r.value
+}
+
+func (r *Operator[T]) waitForValue() {
+	if atomic.LoadUint32(&r.valueAtomicFlag) == 1 {
+		return
+	}
+
+	r.valueMx.RLock()
+	r.valueMx.RUnlock()
 }
 
 // HasValue returns whether the value is not nil
@@ -159,10 +168,11 @@ func (r *Operator[_]) forward() {
 func (r *Operator[T]) goForward() {
 	for _, operand := range r.function.Operands() {
 		if o, ok := operand.(*Operator[T]); ok {
-			o.Value() // this wait until the value is available
+			o.waitForValue()
 		}
 	}
 	r.value = r.function.Forward()
+	atomic.StoreUint32(&r.valueAtomicFlag, 1)
 	r.valueMx.Unlock()
 }
 
