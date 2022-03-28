@@ -13,16 +13,22 @@ type Threshold[T mat.DType, O Operand[T]] struct {
 	x         O
 	threshold O // scalar
 	k         O // scalar
+	operands  []O
 }
 
 // NewThreshold returns a new Threshold Function.
 func NewThreshold[T mat.DType, O Operand[T]](x O, threshold, k O) *Threshold[T, O] {
-	return &Threshold[T, O]{x: x, threshold: threshold, k: k}
+	return &Threshold[T, O]{
+		x:         x,
+		threshold: threshold,
+		k:         k,
+		operands:  []O{x, threshold, k},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Threshold[T, O]) Operands() []O {
-	return []O{r.x, r.threshold, r.k}
+	return r.operands
 }
 
 // Forward computes the output of the function.

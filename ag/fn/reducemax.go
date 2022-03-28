@@ -11,18 +11,22 @@ import (
 // ReduceMax is an operator to perform reduce-max function.
 // It gets the maximum element of the Operand x
 type ReduceMax[T mat.DType, O Operand[T]] struct {
-	x      O
-	argmax int
+	x        O
+	argmax   int
+	operands []O
 }
 
 // NewReduceMax returns a new ReduceMax Function.
 func NewReduceMax[T mat.DType, O Operand[T]](x O) *ReduceMax[T, O] {
-	return &ReduceMax[T, O]{x: x}
+	return &ReduceMax[T, O]{
+		x:        x,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *ReduceMax[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of this function.

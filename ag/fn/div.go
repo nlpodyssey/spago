@@ -10,18 +10,23 @@ import (
 
 // Div is an operator to perform element-wise division over two values.
 type Div[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewDiv returns a new Div Function.
 func NewDiv[T mat.DType, O Operand[T]](x1 O, x2 O) *Div[T, O] {
-	return &Div[T, O]{x1: x1, x2: x2}
+	return &Div[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Div[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

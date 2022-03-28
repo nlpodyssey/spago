@@ -10,17 +10,21 @@ import (
 
 // ReduceSum is an operator to perform reduce-sum function.
 type ReduceSum[T mat.DType, O Operand[T]] struct {
-	x O
+	x        O
+	operands []O
 }
 
 // NewReduceSum returns a new ReduceSum Function.
 func NewReduceSum[T mat.DType, O Operand[T]](x O) *ReduceSum[T, O] {
-	return &ReduceSum[T, O]{x: x}
+	return &ReduceSum[T, O]{
+		x:        x,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *ReduceSum[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of this function.

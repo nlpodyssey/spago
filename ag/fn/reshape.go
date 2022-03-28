@@ -11,19 +11,25 @@ import (
 // Reshape is a Function which reshapes an operand into a new matrix of given
 // rows × columns size.
 type Reshape[T mat.DType, O Operand[T]] struct {
-	x    O
-	rows int
-	cols int
+	x        O
+	rows     int
+	cols     int
+	operands []O
 }
 
 // NewReshape returns a new Reshape Function.
 func NewReshape[T mat.DType, O Operand[T]](x O, r, c int) *Reshape[T, O] {
-	return &Reshape[T, O]{x: x, rows: r, cols: c}
+	return &Reshape[T, O]{
+		x:        x,
+		rows:     r,
+		cols:     c,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Reshape[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of the node.

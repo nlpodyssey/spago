@@ -10,14 +10,15 @@ import (
 
 // UnaryElementwise is a single-input element-wise function.
 type UnaryElementwise[T mat.DType, O Operand[T]] struct {
-	x  O
-	f  func(i, j int, v T) T // function
-	df func(i, j int, v T) T // derivative
+	x        O
+	operands []O
+	f        func(i, j int, v T) T // function
+	df       func(i, j int, v T) T // derivative
 }
 
 // Operands returns the list of operands.
 func (r *UnaryElementwise[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of this node.

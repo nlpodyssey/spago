@@ -9,18 +9,23 @@ import "github.com/nlpodyssey/spago/mat"
 // Max is an operator to perform element-wise max.
 // y = max(x1, x2)
 type Max[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewMax returns a new Max Function.
 func NewMax[T mat.DType, O Operand[T]](x1 O, x2 O) *Max[T, O] {
-	return &Max[T, O]{x1: x1, x2: x2}
+	return &Max[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Max[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

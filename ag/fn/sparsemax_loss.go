@@ -8,19 +8,23 @@ import "github.com/nlpodyssey/spago/mat"
 
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss[T mat.DType, O Operand[T]] struct {
-	x   O
-	tau T             // computed during the forward pass
-	y   mat.Matrix[T] // computed during forward pass
+	x        O
+	tau      T             // computed during the forward pass
+	y        mat.Matrix[T] // computed during forward pass
+	operands []O
 }
 
 // NewSparseMaxLoss returns a new SparseMaxLoss Function.
 func NewSparseMaxLoss[T mat.DType, O Operand[T]](x O) *SparseMaxLoss[T, O] {
-	return &SparseMaxLoss[T, O]{x: x}
+	return &SparseMaxLoss[T, O]{
+		x:        x,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *SparseMaxLoss[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of the function.

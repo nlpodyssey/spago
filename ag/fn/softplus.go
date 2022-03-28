@@ -13,16 +13,22 @@ type SoftPlus[T mat.DType, O Operand[T]] struct {
 	x         O
 	beta      O
 	threshold O
+	operands  []O
 }
 
 // NewSoftPlus returns a new SoftPlus Function.
 func NewSoftPlus[T mat.DType, O Operand[T]](x O, beta, threshold O) *SoftPlus[T, O] {
-	return &SoftPlus[T, O]{x: x, beta: beta, threshold: threshold}
+	return &SoftPlus[T, O]{
+		x:         x,
+		beta:      beta,
+		threshold: threshold,
+		operands:  []O{x, beta, threshold},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *SoftPlus[T, O]) Operands() []O {
-	return []O{r.x, r.beta, r.threshold}
+	return r.operands
 }
 
 // Forward computes the output of the function.

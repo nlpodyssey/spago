@@ -9,18 +9,23 @@ import "github.com/nlpodyssey/spago/mat"
 // Dot is an operator to perform the dot product over two matrices.
 // y = x1 dot x2
 type Dot[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewDot returns a new Dot Function.
 func NewDot[T mat.DType, O Operand[T]](x1 O, x2 O) *Dot[T, O] {
-	return &Dot[T, O]{x1: x1, x2: x2}
+	return &Dot[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Dot[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

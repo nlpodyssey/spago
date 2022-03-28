@@ -10,18 +10,23 @@ import (
 
 // AddScalar is an operator to perform element-wise addition over two values.
 type AddScalar[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O // scalar
+	x1       O
+	x2       O // scalar
+	operands []O
 }
 
 // NewAddScalar returns a new AddScalar Function.
 func NewAddScalar[T mat.DType, O Operand[T]](x1, x2 O) *AddScalar[T, O] {
-	return &AddScalar[T, O]{x1: x1, x2: x2}
+	return &AddScalar[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *AddScalar[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

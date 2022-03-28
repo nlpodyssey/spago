@@ -10,18 +10,23 @@ import (
 
 // SubScalar is an element-wise subtraction function with a scalar value.
 type SubScalar[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O // scalar
+	x1       O
+	x2       O // scalar
+	operands []O
 }
 
 // NewSubScalar returns a new SubScalar Function.
 func NewSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *SubScalar[T, O] {
-	return &SubScalar[T, O]{x1: x1, x2: x2}
+	return &SubScalar[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *SubScalar[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the node.

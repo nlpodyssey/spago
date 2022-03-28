@@ -10,21 +10,29 @@ import (
 
 // View is a function to extract a portion of a matrix.
 type View[T mat.DType, O Operand[T]] struct {
-	x  O
-	sx int
-	sy int
-	lx int // x length
-	ly int // y length
+	x        O
+	sx       int
+	sy       int
+	lx       int // x length
+	ly       int // y length
+	operands []O
 }
 
 // NewView returns a new View Function.
 func NewView[T mat.DType, O Operand[T]](x O, sx, sy, lx, ly int) *View[T, O] {
-	return &View[T, O]{x: x, sx: sx, sy: sy, lx: lx, ly: ly}
+	return &View[T, O]{
+		x:        x,
+		sx:       sx,
+		sy:       sy,
+		lx:       lx,
+		ly:       ly,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *View[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of the function.

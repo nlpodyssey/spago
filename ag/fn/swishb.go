@@ -13,18 +13,23 @@ import (
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
 type SwishB[T mat.DType, O Operand[T]] struct {
-	x    O
-	beta O // scalar
+	x        O
+	beta     O // scalar
+	operands []O
 }
 
 // NewSwishB returns a new SwishB Function.
 func NewSwishB[T mat.DType, O Operand[T]](x O, beta O) *SwishB[T, O] {
-	return &SwishB[T, O]{x: x, beta: beta}
+	return &SwishB[T, O]{
+		x:        x,
+		beta:     beta,
+		operands: []O{x, beta},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *SwishB[T, O]) Operands() []O {
-	return []O{r.x, r.beta}
+	return r.operands
 }
 
 // Forward computes the output of the function.

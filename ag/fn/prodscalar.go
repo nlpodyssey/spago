@@ -10,18 +10,23 @@ import (
 
 // ProdScalar is an operator to perform element-wise product with a scalar value.
 type ProdScalar[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O // scalar
+	x1       O
+	x2       O // scalar
+	operands []O
 }
 
 // NewProdScalar returns a new ProdScalar Function.
 func NewProdScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ProdScalar[T, O] {
-	return &ProdScalar[T, O]{x1: x1, x2: x2}
+	return &ProdScalar[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *ProdScalar[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the node.

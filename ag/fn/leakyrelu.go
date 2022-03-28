@@ -11,18 +11,23 @@ import (
 // LeakyReLU is an operator to perform the LeakyReLU activation function.
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
 type LeakyReLU[T mat.DType, O Operand[T]] struct {
-	x     O
-	alpha O // scalar
+	x        O
+	alpha    O // scalar
+	operands []O
 }
 
 // NewLeakyReLU returns a new LeakyReLU Function.
 func NewLeakyReLU[T mat.DType, O Operand[T]](x, alpha O) *LeakyReLU[T, O] {
-	return &LeakyReLU[T, O]{x: x, alpha: alpha}
+	return &LeakyReLU[T, O]{
+		x:        x,
+		alpha:    alpha,
+		operands: []O{x, alpha},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *LeakyReLU[T, O]) Operands() []O {
-	return []O{r.x, r.alpha}
+	return r.operands
 }
 
 // Forward computes the output of the function.

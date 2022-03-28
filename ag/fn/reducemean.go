@@ -10,17 +10,21 @@ import (
 
 // ReduceMean is an operator to perform reduce-mean function.
 type ReduceMean[T mat.DType, O Operand[T]] struct {
-	x O
+	x        O
+	operands []O
 }
 
 // NewReduceMean returns a new ReduceMean Function.
 func NewReduceMean[T mat.DType, O Operand[T]](x O) *ReduceMean[T, O] {
-	return &ReduceMean[T, O]{x: x}
+	return &ReduceMean[T, O]{
+		x:        x,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *ReduceMean[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of this node.

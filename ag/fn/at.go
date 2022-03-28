@@ -10,19 +10,25 @@ import (
 
 // At is an operator to obtain the i,j-th value of a matrix.
 type At[T mat.DType, O Operand[T]] struct {
-	x O
-	i int
-	j int
+	x        O
+	i        int
+	j        int
+	operands []O
 }
 
 // NewAt returns a new At Function.
 func NewAt[T mat.DType, O Operand[T]](x O, i int, j int) *At[T, O] {
-	return &At[T, O]{x: x, i: i, j: j}
+	return &At[T, O]{
+		x:        x,
+		i:        i,
+		j:        j,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *At[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of the function.

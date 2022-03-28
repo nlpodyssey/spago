@@ -9,18 +9,23 @@ import "github.com/nlpodyssey/spago/mat"
 // Add is an operator to perform element-wise sum over two values.
 // y = x1 + x2
 type Add[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewAdd returns a new Add Function.
 func NewAdd[T mat.DType, O Operand[T]](x1, x2 O) *Add[T, O] {
-	return &Add[T, O]{x1: x1, x2: x2}
+	return &Add[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Add[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

@@ -11,8 +11,9 @@ import (
 // ScalarMax is an operator to perform reduce-max function on a list of scalars.
 // It gets the maximum element of the Operand x
 type ScalarMax[T mat.DType, O Operand[T]] struct {
-	xs     []O
-	argmax int
+	xs       []O
+	argmax   int
+	operands []O
 }
 
 // NewScalarMax returns a new ScalarMax Function.

@@ -10,18 +10,23 @@ import (
 
 // Pow is an operator to perform element-wise pow function.
 type Pow[T mat.DType, O Operand[T]] struct {
-	x     O
-	power T
+	x        O
+	power    T
+	operands []O
 }
 
 // NewPow returns a new Pow Function.
 func NewPow[T mat.DType, O Operand[T]](x O, power T) *Pow[T, O] {
-	return &Pow[T, O]{x: x, power: power}
+	return &Pow[T, O]{
+		x:        x,
+		power:    power,
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Pow[T, O]) Operands() []O {
-	return []O{r.x}
+	return r.operands
 }
 
 // Forward computes the output of the function.

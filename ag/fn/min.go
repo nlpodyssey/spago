@@ -9,18 +9,23 @@ import "github.com/nlpodyssey/spago/mat"
 // Min is an operator to perform element-wise min.
 // y = min(x1, x2)
 type Min[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewMin returns a new Min Function.
 func NewMin[T mat.DType, O Operand[T]](x1 O, x2 O) *Min[T, O] {
-	return &Min[T, O]{x1: x1, x2: x2}
+	return &Min[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Min[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

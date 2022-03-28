@@ -10,18 +10,23 @@ import (
 
 // Sub is an element-wise subtraction function over two values.
 type Sub[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewSub returns a new Sub Function.
 func NewSub[T mat.DType, O Operand[T]](x1 O, x2 O) *Sub[T, O] {
-	return &Sub[T, O]{x1: x1, x2: x2}
+	return &Sub[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Sub[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the node.

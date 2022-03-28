@@ -8,18 +8,23 @@ import "github.com/nlpodyssey/spago/mat"
 
 // ReverseSubScalar is the element-wise subtraction function over two values.
 type ReverseSubScalar[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O // scalar
+	x1       O
+	x2       O // scalar
+	operands []O
 }
 
 // NewReverseSubScalar returns a new ReverseSubScalar Function.
 func NewReverseSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ReverseSubScalar[T, O] {
-	return &ReverseSubScalar[T, O]{x1: x1, x2: x2}
+	return &ReverseSubScalar[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *ReverseSubScalar[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the function.

@@ -17,9 +17,10 @@ type Tan[T mat.DType, O Operand[T]] struct {
 func NewTan[T mat.DType, O Operand[T]](x O) *Tan[T, O] {
 	return &Tan[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  tan[T],
-			df: tanDeriv[T],
+			x:        x,
+			f:        tan[T],
+			df:       tanDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -33,9 +34,10 @@ type Tanh[T mat.DType, O Operand[T]] struct {
 func NewTanh[T mat.DType, O Operand[T]](x O) *Tanh[T, O] {
 	return &Tanh[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  tanh[T],
-			df: tanhDeriv[T],
+			x:        x,
+			f:        tanh[T],
+			df:       tanhDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -49,9 +51,10 @@ type Sigmoid[T mat.DType, O Operand[T]] struct {
 func NewSigmoid[T mat.DType, O Operand[T]](x O) *Sigmoid[T, O] {
 	return &Sigmoid[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  sigmoid[T],
-			df: sigmoidDeriv[T],
+			x:        x,
+			f:        sigmoid[T],
+			df:       sigmoidDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -65,9 +68,10 @@ type HardSigmoid[T mat.DType, O Operand[T]] struct {
 func NewHardSigmoid[T mat.DType, O Operand[T]](x O) *HardSigmoid[T, O] {
 	return &HardSigmoid[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  hardSigmoid[T],
-			df: hardSigmoidDeriv[T],
+			x:        x,
+			f:        hardSigmoid[T],
+			df:       hardSigmoidDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -81,9 +85,10 @@ type HardTanh[T mat.DType, O Operand[T]] struct {
 func NewHardTanh[T mat.DType, O Operand[T]](x O) *HardTanh[T, O] {
 	return &HardTanh[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  hardTanh[T],
-			df: hardTanhDeriv[T],
+			x:        x,
+			f:        hardTanh[T],
+			df:       hardTanhDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -97,9 +102,10 @@ type ReLU[T mat.DType, O Operand[T]] struct {
 func NewReLU[T mat.DType, O Operand[T]](x O) *ReLU[T, O] {
 	return &ReLU[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  relu[T],
-			df: reluDeriv[T],
+			x:        x,
+			f:        relu[T],
+			df:       reluDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -113,9 +119,10 @@ type Softsign[T mat.DType, O Operand[T]] struct {
 func NewSoftsign[T mat.DType, O Operand[T]](x O) *Softsign[T, O] {
 	return &Softsign[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  softsign[T],
-			df: softsignDeriv[T],
+			x:        x,
+			f:        softsign[T],
+			df:       softsignDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -129,9 +136,10 @@ type Cos[T mat.DType, O Operand[T]] struct {
 func NewCos[T mat.DType, O Operand[T]](x O) *Cos[T, O] {
 	return &Cos[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return mat.Cos(v) },
-			df: func(i, j int, v T) T { return -mat.Sin(v) },
+			x:        x,
+			f:        func(i, j int, v T) T { return mat.Cos(v) },
+			df:       func(i, j int, v T) T { return -mat.Sin(v) },
+			operands: []O{x},
 		},
 	}
 }
@@ -145,9 +153,10 @@ type Sin[T mat.DType, O Operand[T]] struct {
 func NewSin[T mat.DType, O Operand[T]](x O) *Sin[T, O] {
 	return &Sin[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return mat.Sin(v) },
-			df: func(i, j int, v T) T { return mat.Cos(v) },
+			x:        x,
+			f:        func(i, j int, v T) T { return mat.Sin(v) },
+			df:       func(i, j int, v T) T { return mat.Cos(v) },
+			operands: []O{x},
 		},
 	}
 }
@@ -161,9 +170,10 @@ type Exp[T mat.DType, O Operand[T]] struct {
 func NewExp[T mat.DType, O Operand[T]](x O) *Exp[T, O] {
 	return &Exp[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return mat.Exp(v) },
-			df: func(i, j int, v T) T { return mat.Exp(v) },
+			x:        x,
+			f:        func(i, j int, v T) T { return mat.Exp(v) },
+			df:       func(i, j int, v T) T { return mat.Exp(v) },
+			operands: []O{x},
 		},
 	}
 }
@@ -177,9 +187,10 @@ type Log[T mat.DType, O Operand[T]] struct {
 func NewLog[T mat.DType, O Operand[T]](x O) *Log[T, O] {
 	return &Log[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  safeLog[T],
-			df: safeLogDeriv[T],
+			x:        x,
+			f:        safeLog[T],
+			df:       safeLogDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -193,9 +204,10 @@ type Neg[T mat.DType, O Operand[T]] struct {
 func NewNeg[T mat.DType, O Operand[T]](x O) *Neg[T, O] {
 	return &Neg[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return -v },
-			df: func(i, j int, v T) T { return -1.0 },
+			x:        x,
+			f:        func(i, j int, v T) T { return -v },
+			df:       func(i, j int, v T) T { return -1.0 },
+			operands: []O{x},
 		},
 	}
 }
@@ -209,9 +221,10 @@ type Reciprocal[T mat.DType, O Operand[T]] struct {
 func NewReciprocal[T mat.DType, O Operand[T]](x O) *Reciprocal[T, O] {
 	return &Reciprocal[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return 1.0 / v },
-			df: func(i, j int, v T) T { return -1.0 / (v * v) },
+			x:        x,
+			f:        func(i, j int, v T) T { return 1.0 / v },
+			df:       func(i, j int, v T) T { return -1.0 / (v * v) },
+			operands: []O{x},
 		},
 	}
 }
@@ -225,9 +238,10 @@ type Abs[T mat.DType, O Operand[T]] struct {
 func NewAbs[T mat.DType, O Operand[T]](x O) *Abs[T, O] {
 	return &Abs[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return mat.Abs(v) },
-			df: absDeriv[T],
+			x:        x,
+			f:        func(i, j int, v T) T { return mat.Abs(v) },
+			df:       absDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -247,9 +261,10 @@ type Mish[T mat.DType, O Operand[T]] struct {
 func NewMish[T mat.DType, O Operand[T]](x O) *Mish[T, O] {
 	return &Mish[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  mish[T],
-			df: mishDeriv[T],
+			x:        x,
+			f:        mish[T],
+			df:       mishDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -263,9 +278,10 @@ type GELU[T mat.DType, O Operand[T]] struct {
 func NewGELU[T mat.DType, O Operand[T]](x O) *GELU[T, O] {
 	return &GELU[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  gelu[T],
-			df: geluDeriv[T],
+			x:        x,
+			f:        gelu[T],
+			df:       geluDeriv[T],
+			operands: []O{x},
 		},
 	}
 }
@@ -279,9 +295,10 @@ type Sqrt[T mat.DType, O Operand[T]] struct {
 func NewSqrt[T mat.DType, O Operand[T]](x O) *Sqrt[T, O] {
 	return &Sqrt[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  func(i, j int, v T) T { return mat.Sqrt(v) },
-			df: func(i, j int, v T) T { return 0.5 * mat.Pow(v, -0.5) },
+			x:        x,
+			f:        func(i, j int, v T) T { return mat.Sqrt(v) },
+			df:       func(i, j int, v T) T { return 0.5 * mat.Pow(v, -0.5) },
+			operands: []O{x},
 		},
 	}
 }
@@ -295,9 +312,10 @@ type Swish[T mat.DType, O Operand[T]] struct {
 func NewSwish[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
 	return &Swish[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
-			x:  x,
-			f:  swish[T],
-			df: swishDeriv[T],
+			x:        x,
+			f:        swish[T],
+			df:       swishDeriv[T],
+			operands: []O{x},
 		},
 	}
 }

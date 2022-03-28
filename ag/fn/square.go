@@ -11,14 +11,18 @@ import (
 // Square is an operator to perform element-wise square.
 type Square[T mat.DType, O Operand[T]] struct {
 	*Prod[T, O]
+	operands []O
 }
 
 // NewSquare returns a new Prod Function with both operands set to the given value x.
 func NewSquare[T mat.DType, O Operand[T]](x O) *Square[T, O] {
-	return &Square[T, O]{Prod: &Prod[T, O]{x1: x, x2: x}}
+	return &Square[T, O]{
+		Prod:     &Prod[T, O]{x1: x, x2: x},
+		operands: []O{x},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Square[T, O]) Operands() []O {
-	return []O{r.x1}
+	return r.operands
 }

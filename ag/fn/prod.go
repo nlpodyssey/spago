@@ -10,18 +10,23 @@ import (
 
 // Prod is an operator to perform element-wise product over two values.
 type Prod[T mat.DType, O Operand[T]] struct {
-	x1 O
-	x2 O
+	x1       O
+	x2       O
+	operands []O
 }
 
 // NewProd returns a new Prod Function.
 func NewProd[T mat.DType, O Operand[T]](x1 O, x2 O) *Prod[T, O] {
-	return &Prod[T, O]{x1: x1, x2: x2}
+	return &Prod[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *Prod[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Forward computes the output of the node.

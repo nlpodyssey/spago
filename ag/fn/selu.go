@@ -10,19 +10,25 @@ import (
 
 // SELU function: f(x) = scale ∗ (max(0,x) + min(0, α ∗ (exp(x) − 1)))
 type SELU[T mat.DType, O Operand[T]] struct {
-	x     O
-	alpha O // scalar
-	scale O // scalar
+	x        O
+	alpha    O // scalar
+	scale    O // scalar
+	operands []O
 }
 
 // NewSELU returns a new SELU Function.
 func NewSELU[T mat.DType, O Operand[T]](x O, alpha, scale O) *SELU[T, O] {
-	return &SELU[T, O]{x: x, alpha: alpha, scale: scale}
+	return &SELU[T, O]{
+		x:        x,
+		alpha:    alpha,
+		scale:    scale,
+		operands: []O{x, alpha, scale},
+	}
 }
 
 // Operands returns the list of operands.
 func (r *SELU[T, O]) Operands() []O {
-	return []O{r.x, r.alpha, r.scale}
+	return r.operands
 }
 
 // Forward computes the output of the function.

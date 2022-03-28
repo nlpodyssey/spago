@@ -12,13 +12,18 @@ import (
 
 // MulT is an operator to perform matrix-vector multiplication.
 type MulT[T mat.DType, O Operand[T]] struct {
-	x1 O // matrix
-	x2 O // vector
+	x1       O // matrix
+	x2       O // vector
+	operands []O
 }
 
 // NewMulT returns a new MulT Function.
 func NewMulT[T mat.DType, O Operand[T]](x1 O, x2 O) *MulT[T, O] {
-	return &MulT[T, O]{x1: x1, x2: x2}
+	return &MulT[T, O]{
+		x1:       x1,
+		x2:       x2,
+		operands: []O{x1, x2},
+	}
 }
 
 // Forward computes the output of the function.
@@ -31,7 +36,7 @@ func (r *MulT[T, O]) Forward() mat.Matrix[T] {
 
 // Operands returns the list of operands.
 func (r *MulT[T, O]) Operands() []O {
-	return []O{r.x1, r.x2}
+	return r.operands
 }
 
 // Backward computes the backward pass.
