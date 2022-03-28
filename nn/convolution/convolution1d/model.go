@@ -7,13 +7,11 @@ package convolution1d
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/nlpodyssey/spago/nn/activation"
-	"github.com/nlpodyssey/spago/nn/convolution"
-	"sync"
-
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
+	"github.com/nlpodyssey/spago/nn/activation"
+	"github.com/nlpodyssey/spago/nn/convolution"
 )
 
 var _ nn.Model[float32] = &Model[float32]{}
@@ -74,31 +72,10 @@ func New[T mat.DType](config Config) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if m.Config.OutputChannels > 1 && !m.Session.Graph().EagerExecutionEnabled() && m.Session.Graph().MaxProc() > 1 {
-		return m.fwdConcurrent(xs)
-	}
-	return m.fwdSerial(xs)
-}
-
-func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = m.forward(xs, i)
 	}
-	return ys
-}
-
-func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], m.Config.OutputChannels)
-	var wg sync.WaitGroup
-	wg.Add(m.Config.OutputChannels)
-	for i := 0; i < m.Config.OutputChannels; i++ {
-		go func(i int) {
-			defer wg.Done()
-			ys[i] = m.forward(xs, i)
-		}(i)
-	}
-	wg.Wait()
 	return ys
 }
 

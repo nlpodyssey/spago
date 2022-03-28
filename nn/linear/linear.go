@@ -50,37 +50,9 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	if len(xs) > 1 && m.Session.Graph().EagerExecutionEnabled() && m.Session.Graph().MaxProc() > 1 {
-		return m.fwdConcurrent(xs)
-	}
-	return m.fwdSerial(xs)
-}
-
-func (m *Model[T]) fwdSerial(xs []ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Affine[T](m.B, m.W, x)
 	}
-	return ys
-}
-
-func (m *Model[T]) fwdConcurrent(xs []ag.Node[T]) []ag.Node[T] {
-	maxProc := m.Session.Graph().MaxProc()
-	ch := make(chan struct{}, maxProc)
-
-	ys := make([]ag.Node[T], len(xs))
-	for i := range xs {
-		ch <- struct{}{}
-		go func(i int) {
-			ys[i] = ag.Affine[T](m.B, m.W, xs[i])
-			<-ch
-		}(i)
-	}
-
-	for i := 0; i < maxProc; i++ {
-		ch <- struct{}{}
-	}
-	close(ch)
-
 	return ys
 }
