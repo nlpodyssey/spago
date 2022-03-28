@@ -58,7 +58,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 		-0.3, 0.5, -0.6,
 	}))
 
-	s.Graph().Backward(nil)
+	s.Graph().Backward()
 
 	assert.InDeltaSlice(t, []T{
 		0.30437, 0.66660786,

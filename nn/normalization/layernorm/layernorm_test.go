@@ -29,7 +29,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Backward
 	y.PropagateGrad(mat.NewVecDense([]T{-1.0, -0.2, 0.4, 0.6}))
-	s.Graph().Backward(nil)
+	s.Graph().Backward()
 
 	assert.InDeltaSlice(t, []T{-0.496261, 0.280677, -0.408772, 0.624355}, x.Grad().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{-0.644658, -0.257863, -0.45126, -0.483493}, model.W.Grad().Data(), 1.0e-06)

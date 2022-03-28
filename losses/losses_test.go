@@ -25,7 +25,7 @@ func testMSELoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.1, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{-0.3, -0.1, 0.1, 0.3}, x.Grad().Data(), 1.0e-6)
 }
@@ -44,7 +44,7 @@ func testNLLLoss[T mat.DType](t *testing.T) {
 	fmt.Println(loss.Value().Scalar())
 	assertEqualApprox(t, 1.663405, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.042572, 0.104711, -0.810507, 0.663224}, x.Grad().Data(), 1.0e-6)
 }
@@ -61,7 +61,7 @@ func testCrossEntropyLoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 1.609438, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.0, 0.1, -0.8, 0.7}, x.Grad().Data(), 1.0e-6)
 }
@@ -80,7 +80,7 @@ func testWeightedCrossEntropyLoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.804719, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.0, 0.05, -0.4, 0.35}, x.Grad().Data(), 1.0e-6)
 }
@@ -97,7 +97,7 @@ func testFocalLoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.73282546, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.22751944, 0.25144786, -0.78608638, 0.3071191}, x.Grad().Data(), 1.0e-6)
 }
@@ -116,7 +116,7 @@ func testWeightedFocalLoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.36641273, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.11375972, 0.12572393, -0.39304319, 0.15355955}, x.Grad().Data(), 1.0e-6)
 }
@@ -133,7 +133,7 @@ func testZeroOneQuantization[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 2.209, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.144, 0.192, 0.0, 0.096, -7.488, 0.168}, x.Grad().Data(), 1.0e-6)
 }
@@ -150,7 +150,7 @@ func testNorm2Quantization[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.8836, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.376, 0.752, 3.76, 1.504, -3.008, 1.128}, x.Grad().Data(), 1.0e-6)
 }
@@ -167,7 +167,7 @@ func testOneHotQuantization[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.30926, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.052, 0.0944, 0.376, 0.16, -1.0496, 0.1296}, x.Grad().Data(), 1.0e-6)
 }
@@ -187,7 +187,7 @@ func testMSESeqLoss[T mat.DType](t *testing.T) {
 
 	assertEqualApprox(t, 0.1, loss.Value().Scalar())
 
-	g.Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{-0.15, -0.05, 0.05, 0.15}, x1.Grad().Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{-0.15, -0.05, 0.05, 0.15}, x2.Grad().Data(), 1.0e-6)

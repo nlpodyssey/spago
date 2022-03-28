@@ -49,7 +49,7 @@ func testModelConcatForward[T mat.DType](t *testing.T) {
 	y[1].PropagateGrad(mat.NewVecDense([]T{0.6, 0.6, 0.7, 0.7, -0.6, 0.3}))
 	y[2].PropagateGrad(mat.NewVecDense([]T{-0.1, -0.1, 0.1, -0.8, 0.4, -0.5}))
 
-	s.Graph().Backward(nil)
+	s.Graph().Backward()
 
 	// Important! average params by sequence length
 	nn.ForEachParam[T](model, func(param nn.Param[T], _ string, _ nn.ParamsType) {

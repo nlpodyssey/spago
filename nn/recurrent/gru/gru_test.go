@@ -33,7 +33,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	gold := s.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(y, gold, false)
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.53, -0.49, 0.18, 0.20}, x.Grad().Data(), 0.005)
 
@@ -100,7 +100,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	gold := s.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(s1.Y, gold, false)
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.56, -0.83, 0.5, 0.55}, x.Grad().Data(), 0.005)
 
@@ -247,7 +247,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.052008468343874, 0.416067746750988}))
 	s2.Y.PropagateGrad(mat.NewVecDense([]T{-0.041704888674704, 0.333639109397627}))
 
-	s.Graph().Backward(nil)
+	s.Graph().Backward()
 
 	assert.InDeltaSlice(t, []T{0.022626682234541, 0.019282896989004, -0.05477940973827}, x.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.047347465801696, 0.102160284950441, -0.023609485283631}, x2.Grad().Data(), 1.0e-05)

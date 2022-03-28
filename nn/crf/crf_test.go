@@ -96,7 +96,7 @@ func testModelLoss[T mat.DType](t *testing.T) {
 	gold := []int{0, 0, 1, 0, 3}
 	loss := s.Module().NegativeLogLoss([]ag.Node[T]{w1, w2, w3, w4, w5}, gold)
 
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 	assert.InDeltaSlice(t, []T{2.37258}, loss.Value().Data(), 0.00001)
 }
 

@@ -52,7 +52,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	gold := s.NewVariable(mat.NewVecDense([]T{0.0, 0.5, -0.4, -0.9, 0.9}), false)
 	loss := losses.MSE(y, gold, false)
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{0.0126, -2.07296, 1.07476, -0.14158}, x.Grad().Data(), 0.005)
 

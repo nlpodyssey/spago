@@ -42,7 +42,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	q2 := losses.OneHotQuantization(st.AS, 0.001)
 	q := ag.Add(q1, q2)
 	loss := ag.Add(mse, q)
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{
 		-0.083195466589325, -0.079995855904333, -0.000672136225078, 0.023205789428363,
@@ -86,7 +86,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	q2 := losses.OneHotQuantization(st.AS, 0.001)
 	q := ag.Add(q1, q2)
 	loss := ag.Add(mse, q)
-	s.Graph().Backward(loss)
+	ag.Backward(loss)
 
 	assert.InDeltaSlice(t, []T{
 		-0.060099369011985, -0.048029952866947, -0.028715724278403, 0.004889227782339,
@@ -139,7 +139,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.2, -0.3, -0.4, 0.6, 0.3, 0.3}))
 	s2.Y.PropagateGrad(mat.NewVecDense([]T{0.6, -0.3, -0.8, 0.2, 0.4, -0.8}))
 
-	s.Graph().Backward(nil)
+	s.Graph().Backward()
 
 	assert.InDeltaSlice(t, []T{
 		-0.020471392359016696, -0.021638276740337678, -0.004140271053657623, -0.019166708609272186,
