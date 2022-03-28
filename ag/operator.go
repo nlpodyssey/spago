@@ -100,7 +100,7 @@ func (r *Operator[T]) HasValue() bool {
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
 func (r *Operator[T]) ScalarValue() T {
-	return r.value.Scalar()
+	return r.Value().Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
