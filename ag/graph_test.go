@@ -5,12 +5,12 @@
 package ag
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
-	"runtime"
-	"testing"
 )
 
 func TestNewGraph(t *testing.T) {
@@ -19,8 +19,6 @@ func TestNewGraph(t *testing.T) {
 }
 
 func testNewGraph[T mat.DType](t *testing.T) {
-	defaultMaxProc := runtime.NumCPU()
-
 	runCommonAssertions := func(t *testing.T, g *Graph[T]) {
 		t.Helper()
 		assert.NotNil(t, g)
@@ -28,33 +26,20 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
 		assert.Empty(t, g.constants)
-		assert.Equal(t, -1, g.cache.maxID)
-		assert.Nil(t, g.cache.nodesByHeight)
-		assert.Nil(t, g.cache.height)
 	}
 
 	t.Run("without option", func(t *testing.T) {
 		g := NewGraph[T]()
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultMaxProc, g.MaxProc())
+		assert.Equal(t, g.executionMode, Concurrent)
 	})
 
-	t.Run("with WithEagerExecution(false) option", func(t *testing.T) {
-		g := NewGraph[T](WithEagerExecution[T](false))
+	t.Run("with WithEagerMode option", func(t *testing.T) {
+		g := NewGraph[T](WithEagerMode[T]())
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.False(t, g.eagerExecution)
-		assert.Equal(t, defaultMaxProc, g.MaxProc())
-	})
-
-	t.Run("with WithConcurrentComputations option", func(t *testing.T) {
-		g := NewGraph[T](WithMaxProc[T](3))
-		runCommonAssertions(t, g)
-		assert.NotNil(t, g.randGen)
-		assert.True(t, g.eagerExecution)
-		assert.Equal(t, 3, g.MaxProc())
+		assert.Equal(t, g.executionMode, Eager)
 	})
 
 	t.Run("with WithRand option", func(t *testing.T) {
@@ -62,8 +47,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T](WithRand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
-		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultMaxProc, g.MaxProc())
+		assert.Equal(t, g.executionMode, Concurrent)
 	})
 
 	t.Run("with WithRandSeed option", func(t *testing.T) {
@@ -72,19 +56,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
-		assert.True(t, g.eagerExecution)
-		assert.Equal(t, defaultMaxProc, g.MaxProc())
-	})
-}
-
-func TestConcurrentComputations(t *testing.T) {
-	t.Run("float32", testConcurrentComputations[float32])
-	t.Run("float64", testConcurrentComputations[float64])
-}
-
-func testConcurrentComputations[T mat.DType](t *testing.T) {
-	t.Run("it panics if value < 1", func(t *testing.T) {
-		assert.Panics(t, func() { WithMaxProc[T](0) })
+		assert.Equal(t, g.executionMode, Concurrent)
 	})
 }
 
@@ -225,29 +197,14 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.Nil(t, g.nodes)
 	})
 
-	t.Run("it resets the cache", func(t *testing.T) {
-		g := NewGraph[T]()
-		Add(g.NewScalar(1), g.NewScalar(2))
-		g.groupNodesByHeight() // it's just a function which uses the cache
-
-		assert.NotEqual(t, 0, g.cache.maxID)
-		assert.NotNil(t, g.cache.nodesByHeight)
-		assert.NotNil(t, g.cache.height)
-
-		g.Clear()
-
-		assert.Equal(t, -1, g.cache.maxID)
-		assert.Nil(t, g.cache.nodesByHeight)
-		assert.Nil(t, g.cache.height)
-	})
-
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph[T]()
+		g := NewGraph[T](WithConcurrentMode[T]()) // TODO: Check with ConcurrentMode
 		op := Add(
 			g.NewVariable(mat.NewScalar[T](1), true),
 			g.NewVariable(mat.NewScalar[T](2), true),
 		)
-		g.Backward(op)
+		op.Value() // wait for the value
+		Backward(op)
 
 		assert.True(t, op.(*Operator[T]).HasValue())
 		assert.NotNil(t, op.Value())
@@ -280,7 +237,7 @@ func testGraphClearForReuse[T mat.DType](t *testing.T) {
 			g.NewVariable(mat.NewScalar[T](1), true),
 			g.NewVariable(mat.NewScalar[T](2), true),
 		)
-		g.Backward(op)
+		Backward(op)
 
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
@@ -307,7 +264,7 @@ func testGraphZeroGrad[T mat.DType](t *testing.T) {
 	v1 := g.NewVariable(mat.NewScalar[T](1), true)
 	v2 := g.NewVariable(mat.NewScalar[T](2), true)
 	op := Add(v1, v2)
-	g.Backward(op)
+	Backward(op)
 
 	assert.NotNil(t, v1.Grad())
 	assert.NotNil(t, v2.Grad())
@@ -377,15 +334,38 @@ func testGraphNewWrapNoGrad[T mat.DType](t *testing.T) {
 }
 
 func TestGraph_Forward(t *testing.T) {
-	t.Run("float32", testGraphForward[float32])
-	t.Run("float64", testGraphForward[float64])
+	t.Run("float32", testGraphForwardWithConcurrentMode[float32])
+	t.Run("float64", testGraphForwardWithConcurrentMode[float64])
+	t.Run("float32", testGraphForwardWithEagerMode[float32])
+	t.Run("float64", testGraphForwardWithEagerMode[float64])
+	t.Run("float32", testGraphForwardWithDefineMode[float32])
+	t.Run("float64", testGraphForwardWithDefineMode[float64])
 }
 
-func testGraphForward[T mat.DType](t *testing.T) {
-	g := NewGraph[T](WithEagerExecution[T](false))
+func testGraphForwardWithConcurrentMode[T mat.DType](t *testing.T) {
+	g := NewGraph[T](WithConcurrentMode[T]())
 	op := Add(g.NewScalar(40), g.NewScalar(2))
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42.0), op.Value().Scalar())
+	g.Forward()
+	assert.NotNil(t, op.Value())
+	assert.Equal(t, T(42.0), op.Value().Scalar())
+}
+
+func testGraphForwardWithEagerMode[T mat.DType](t *testing.T) {
+	g := NewGraph[T](WithConcurrentMode[T]())
+	op := Add(g.NewScalar(40), g.NewScalar(2))
+	assert.NotNil(t, op.Value())
+	assert.Equal(t, T(42.0), op.Value().Scalar())
+	g.Forward()
+	assert.NotNil(t, op.Value())
+	assert.Equal(t, T(42.0), op.Value().Scalar())
+}
+
+func testGraphForwardWithDefineMode[T mat.DType](t *testing.T) {
+	g := NewGraph[T](WithDefineMode[T]())
+	op := Add(g.NewScalar(40), g.NewScalar(2))
+	assert.Nil(t, op.Value())
 	g.Forward()
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42.0), op.Value().Scalar())

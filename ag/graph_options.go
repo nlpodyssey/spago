@@ -7,11 +7,7 @@ package ag
 import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
-	"runtime"
 )
-
-// defaultProcessingQueueSize is the default size of Graph.processingQueue on a new Graph.
-var defaultProcessingQueueSize = runtime.NumCPU()
 
 // GraphOption allows to configure a new Graph with your specific needs.
 type GraphOption[T mat.DType] func(*Graph[T])
@@ -30,24 +26,30 @@ func WithRandSeed[T mat.DType](seed uint64) GraphOption[T] {
 	}
 }
 
-// WithEagerExecution sets whether to compute the forward during the graph definition (default true).
-// When enabled it lets you access to the Value() resulting from the computation.
-// There are particular cases where you don't need intermediate values so computing the forward after
-// the graph definition can be more efficient.
-func WithEagerExecution[T mat.DType](value bool) GraphOption[T] {
+// WithConcurrentMode sets whether to compute the forward during the graph definition
+// exploiting the concurrent computation given by goroutines.
+// When active, the access to node.Value() is subject to the conclusion
+// of the computation of the given node, resulting in a blocking operation.
+//
+// This is the default mode.
+func WithConcurrentMode[T mat.DType]() GraphOption[T] {
 	return func(g *Graph[T]) {
-		g.eagerExecution = value
+		g.executionMode = Concurrent
 	}
 }
 
-// WithMaxProc sets the maximum number of concurrent computations handled by the Graph
-// for heavy tasks such as forward and backward steps.
-// The value 1 corresponds to sequential execution.
-func WithMaxProc[T mat.DType](value int) GraphOption[T] {
-	if value < 1 {
-		panic("ag: value must be greater than zero")
-	}
+// WithEagerMode sets whether to compute the forward during the graph definition.
+// When enabled it lets you immediately access to the node.Value() resulting from the computation.
+func WithEagerMode[T mat.DType]() GraphOption[T] {
 	return func(g *Graph[T]) {
-		g.maxProc = value
+		g.executionMode = Eager
+	}
+}
+
+// WithDefineMode sets whether to skip computation during the graph definition.
+// When enabled it lets you access to the Value() after performing a Forward.
+func WithDefineMode[T mat.DType]() GraphOption[T] {
+	return func(g *Graph[T]) {
+		g.executionMode = Define
 	}
 }

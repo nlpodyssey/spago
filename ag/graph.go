@@ -6,7 +6,6 @@ package ag
 
 import (
 	"fmt"
-	"runtime"
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag/fn"
@@ -14,11 +13,25 @@ import (
 	"github.com/nlpodyssey/spago/mat/rand"
 )
 
+// ExecutionMode regulates the way of executing operations in the graph:
+// define-by-run (eager or concurrent) or define-and-run.
+type ExecutionMode uint8
+
+const (
+	// Concurrent performs the forward during the graph definition exploiting the concurrent computation given by goroutines (default).
+	Concurrent ExecutionMode = iota
+	// Eager performs the forward during the graph definition calculating the values of Node as they occur.
+	Eager
+	// Define skip computation during the graph definition, delegating the calculations to an explicit Forward.
+	// This mode potentially leaves room for future optimizations of the graph prior to execution.
+	Define
+)
+
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
 	// eagerExecution reports whether to compute the forward during the graph definition.
-	eagerExecution bool
+	executionMode ExecutionMode
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
@@ -34,24 +47,8 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// maxProc limits the number of concurrent work (on separate goroutines)
-	// in execution. (default runtime.NumCPU()
-	maxProc int
-	// Channel to limit concurrent work, up to maxProc.
-	workLimitChan chan struct{}
-	// cache of the support structures created during the last groupNodesByHeight() computation.
-	// Before using it you have to check if the maxID of the graph matches the maxID of the cache.
-	// Otherwise, the cache must be invalidated and the values recalculated.
-	cache struct {
-		// the id of the last node that was forwarded
-		lastComputedID int
-		// the maxID when this cache was created.
-		maxID int
-		// nodes grouped by height
-		nodesByHeight [][]Node[T]
-		// the nodes height. The index corresponds to the node ID.
-		height []int
-	}
+	// forwardWG waits for the forward goroutines to finish.
+	forwardWG *sync.WaitGroup
 }
 
 // NewGraph returns a new initialized graph.
@@ -63,11 +60,9 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		timeStepBoundaries: []int{0},
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
-		eagerExecution:     true,
-		maxProc:            runtime.NumCPU(),
-		workLimitChan:      make(chan struct{}, runtime.NumCPU()),
+		executionMode:      Concurrent,
+		forwardWG:          &sync.WaitGroup{},
 	}
-	g.clearCache()
 	for _, opt := range opts {
 		opt(g)
 	}
@@ -87,40 +82,17 @@ func (g *Graph[T]) SetRandSeed(seed uint64) {
 	g.randGen = rand.NewLockedRand[T](seed)
 }
 
-// SetEagerExecution sets whether to compute the forward during the graph definition (default true).
-// When enabled it lets you access to the Value() resulting from the computation.
-// There are particular cases where you don't need intermediate values so computing the forward after
-// the graph definition can be more efficient.
-// It returns the previous value.
-func (g *Graph[T]) SetEagerExecution(value bool) bool {
-	prev := g.eagerExecution
-	g.eagerExecution = value
+// SetExecutionMode allows to change the execution mode among those available (Concurrent, Eager, Define).
+// It returns the previous mode
+func (g *Graph[T]) SetExecutionMode(value ExecutionMode) ExecutionMode {
+	prev := g.executionMode
+	g.executionMode = value
 	return prev
 }
 
-// SetMaxProc sets the maximum number of concurrent computations handled by the Graph
-// for heavy tasks such as forward and backward steps.
-// The value 1 corresponds to sequential execution.
-// It returns the previous value.
-func (g *Graph[T]) SetMaxProc(value int) (prev int) {
-	if value < 1 {
-		panic("ag: value must be greater than zero")
-	}
-	prev, g.maxProc = g.maxProc, value
-	g.workLimitChan = make(chan struct{}, value)
-	return prev
-}
-
-// EagerExecutionEnabled returns whether the computation happens during the graph definition.
-// See ag.WithEagerExecution() option.
-func (g *Graph[_]) EagerExecutionEnabled() bool {
-	return g.eagerExecution
-}
-
-// MaxProc returns the maximum number of concurrent computations handled by the Graph
-// for heavy tasks such as forward and backward steps.
-func (g *Graph[_]) MaxProc() int {
-	return g.maxProc
+// ExecutionMode returns whether the current graph's execution mode.
+func (g *Graph[_]) ExecutionMode() ExecutionMode {
+	return g.executionMode
 }
 
 // ZeroGrad sets the gradients of all nodes to zero.
@@ -165,7 +137,6 @@ func (g *Graph[T]) Clear() {
 	g.maxID = -1
 	g.curTimeStep = 0
 	g.timeStepBoundaries = []int{0}
-	g.clearCache()
 	g.releaseMemory(false)
 	g.nodes = nil
 }
@@ -248,30 +219,25 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		}
 	}
 
-	var value mat.Matrix[T] = nil
-	if g.eagerExecution {
-		value = f.Forward()
-	}
-
 	n := getOperatorPool[T]().Get().(*Operator[T])
 	*n = Operator[T]{
 		graph:           g,
 		timeStep:        g.curTimeStep,
 		function:        f,
-		value:           value,
+		value:           nil,
 		grad:            nil,
 		requiresGrad:    requiresGrad,
 		valueMx:         nil,
-		valueAtomicFlag: 1,
+		valueAtomicFlag: 0,
 	}
 
-	if !g.eagerExecution {
-		n.valueAtomicFlag = 0
+	switch g.executionMode {
+	case Eager:
+		n.forward()
+	case Concurrent:
 		n.valueMx = new(sync.RWMutex)
 		n.valueMx.Lock()
-		g.workLimitChan <- struct{}{}
-		go n.goForward()
-		<-g.workLimitChan
+		go n.forwardBlocking()
 	}
 
 	return g.insert(n)
@@ -313,19 +279,8 @@ func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 	g.maxID++
 	n.setID(g.maxID)
 	g.nodes = append(g.nodes, n)
-	if g.eagerExecution {
-		g.cache.lastComputedID = g.maxID
-	}
 	g.mu.Unlock()
 	return n
-}
-
-// clearCache cleans the cache.
-func (g *Graph[_]) clearCache() {
-	g.cache.maxID = -1
-	g.cache.lastComputedID = -1
-	g.cache.nodesByHeight = nil
-	g.cache.height = nil
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
@@ -333,6 +288,7 @@ func (g *Graph[_]) clearCache() {
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 // By setting retain graph to false, the operators are freed and thus the graph is disintegrated.
 func (g *Graph[T]) releaseMemory(retainGraph bool) {
+	g.forwardWG.Wait()
 	for _, node := range g.nodes {
 		op, ok := node.(*Operator[T])
 		if !ok {
@@ -371,40 +327,6 @@ func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex,
 		endNodeIndex = g.timeStepBoundaries[toTimeStep+1]
 	}
 	return
-}
-
-func (g *Graph[T]) groupNodesByHeight() [][]Node[T] {
-	if g.cache.maxID == g.maxID {
-		return g.cache.nodesByHeight
-	}
-	groups := g.cache.nodesByHeight
-	height := make([]int, len(g.nodes))
-	copy(height[:len(g.cache.height)], g.cache.height)
-
-	startIndex := g.cache.maxID + 1
-	for _, node := range g.nodes[startIndex:] {
-		h := 0
-		if node, ok := node.(*Operator[T]); ok {
-			for _, operand := range node.Operands() {
-				if operand, ok := operand.(*Operator[T]); ok {
-					if height[operand.id] >= h {
-						h = height[operand.id] + 1
-					}
-				}
-			}
-		}
-		height[node.ID()] = h
-		if h == len(groups) {
-			groups = append(groups, make([]Node[T], 0, 1))
-		}
-		groups[h] = append(groups[h], node)
-	}
-
-	// update cache and return
-	g.cache.maxID = g.maxID
-	g.cache.nodesByHeight = groups
-	g.cache.height = height
-	return groups
 }
 
 // MarshalBinary satisfies encoding.BinaryMarshaler interface and prevents

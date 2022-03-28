@@ -157,14 +157,17 @@ func (r *Operator[_]) backward() {
 	r.function.Backward(r.grad)
 }
 
+// forward sets the operator value with the result of the function.
 func (r *Operator[_]) forward() {
-	if r.value != nil {
-		return
-	}
 	r.value = r.function.Forward()
+	r.valueAtomicFlag = 1
 }
 
-func (r *Operator[T]) goForward() {
+// forwardBlocking ensures that all operand values are available before executing the forward operation.
+// Since it is blocking, it has to be invoked as a goroutine.
+func (r *Operator[T]) forwardBlocking() {
+	r.graph.forwardWG.Add(1)
+	defer r.graph.forwardWG.Done()
 	for _, operand := range r.function.Operands() {
 		if o, ok := operand.(*Operator[T]); ok {
 			o.waitForValue()
