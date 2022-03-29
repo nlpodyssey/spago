@@ -14,11 +14,11 @@ type Square[T mat.DType, O Operand[T]] struct {
 	operands []O
 }
 
-// NewSquare returns a new Prod Function with both operands set to the given value x.
+// NewSquare returns a new Square Function.
 func NewSquare[T mat.DType, O Operand[T]](x O) *Square[T, O] {
 	return &Square[T, O]{
 		Prod:     &Prod[T, O]{x1: x, x2: x},
-		operands: []O{x},
+		operands: []O{x, x},
 	}
 }
 
