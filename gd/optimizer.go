@@ -6,7 +6,6 @@ package gd
 
 import (
 	"runtime"
-	"sync"
 
 	"github.com/nlpodyssey/spago/gd/clipper"
 	"github.com/nlpodyssey/spago/mat"
@@ -95,41 +94,23 @@ func (o *Optimizer[_]) updateParamsSerial() {
 
 // updateParams applies the optimization method to all the observed parameters concurrently.
 func (o *Optimizer[T]) updateParams() {
-	workCh := make(chan nn.Param[T], o.maxProc)
-	allWorkDone := false
-	var wg sync.WaitGroup
-
-	for i := 0; i < o.maxProc; i++ {
-		go func() {
-			for !allWorkDone {
-				select {
-				case p := <-workCh:
-					if p == nil {
-						continue
-					}
-					o.paramStep(p)
-					wg.Done()
-				}
-			}
-		}()
-	}
-
+	ch := make(chan struct{}, o.maxProc)
 	for _, param := range o.paramsToOptimize {
 		if !param.HasGrad() {
 			continue
 		}
-		wg.Add(1)
-		workCh <- param
+		ch <- struct{}{}
+		go func(p nn.Param[T]) {
+			delta := o.method.Delta(p)
+			p.ApplyDelta(delta)
+			p.ZeroGrad()
+			<-ch
+		}(param)
 	}
-	wg.Wait()
-	allWorkDone = true
-	close(workCh)
-}
-
-func (o *Optimizer[T]) paramStep(param nn.Param[T]) {
-	delta := o.method.Delta(param)
-	param.ApplyDelta(delta)
-	param.ZeroGrad()
+	for i := 0; i < len(ch); i++ {
+		ch <- struct{}{}
+	}
+	close(ch)
 }
 
 // clipGrad applies the gradient clipping to all the observed parameters.
