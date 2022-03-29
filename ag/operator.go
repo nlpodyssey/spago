@@ -64,7 +64,7 @@ func (r *Operator[_]) ID() int {
 // The name is taken from the name of r.function via/ reflection.
 func (r *Operator[_]) Name() string {
 	value := reflect.ValueOf(r.function).Elem().Type().Name()
-	return regexp.MustCompile(`\[[^]]*\]`).ReplaceAllString(value, "") // remove generics
+	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
 }
 
 // Graph returns the graph this node belongs to.
