@@ -26,13 +26,17 @@ func NewDefaultParamsIterator[T mat.DType](models ...Model[T]) *DefaultParamsIte
 	}
 }
 
-// Params returns a slice with all Param elements from all models held by
+// Params returns a slice with all unique Param elements from all models held by
 // the DefaultParamsIterator.
 func (i *DefaultParamsIterator[T]) Params() []Param[T] {
+	visited := map[Param[T]]struct{}{}
 	params := make([]Param[T], 0)
 	for _, model := range i.models {
 		ForEachParam(model, func(param Param[T], _ string, _ ParamsType) {
-			params = append(params, param)
+			if _, ok := visited[param]; !ok {
+				params = append(params, param)
+				visited[param] = struct{}{}
+			}
 		})
 	}
 	return params
