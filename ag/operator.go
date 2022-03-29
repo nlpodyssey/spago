@@ -72,10 +72,10 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	return g.insert(n)
 }
 
-func (r *Operator[T]) setParentsCounts() {
-	for _, o := range r.Operands() {
-		if o.RequiresGrad() {
-			if oo, ok := o.(*Operator[T]); ok {
+func (o *Operator[T]) setParentsCounts() {
+	for _, operand := range o.Operands() {
+		if operand.RequiresGrad() {
+			if oo, ok := operand.(*Operator[T]); ok {
 				atomic.AddUint64(&oo.parentsCount, 1)
 				atomic.AddUint64(&oo.pendingGrads, 1)
 			}
@@ -84,167 +84,167 @@ func (r *Operator[T]) setParentsCounts() {
 }
 
 // ID returns the ID of the node in the graph.
-func (r *Operator[_]) ID() int {
-	return r.id
+func (o *Operator[_]) ID() int {
+	return o.id
 }
 
 // Name returns the Name of the operator.
 // The name is taken from the name of r.function via reflection.
-func (r *Operator[_]) Name() string {
-	value := reflect.ValueOf(r.function).Elem().Type().Name()
+func (o *Operator[_]) Name() string {
+	value := reflect.ValueOf(o.function).Elem().Type().Name()
 	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
 }
 
 // Graph returns the graph this node belongs to.
-func (r *Operator[T]) Graph() *Graph[T] {
-	return r.graph
+func (o *Operator[T]) Graph() *Graph[T] {
+	return o.graph
 }
 
 // Value returns the result of the function.
 // If the value is null, it automatically forwards to all the nodes at the
 // same time-step as this operator.
-func (r *Operator[T]) Value() mat.Matrix[T] {
-	if r.valueMx != nil {
-		r.waitForValue()
+func (o *Operator[T]) Value() mat.Matrix[T] {
+	if o.valueMx != nil {
+		o.waitForValue()
 	}
-	return r.value
+	return o.value
 }
 
-func (r *Operator[T]) waitForValue() {
-	if atomic.LoadUint32(&r.valueAtomicFlag) == 1 {
+func (o *Operator[T]) waitForValue() {
+	if atomic.LoadUint32(&o.valueAtomicFlag) == 1 {
 		return
 	}
 
-	r.valueMx.RLock()
-	r.valueMx.RUnlock()
+	o.valueMx.RLock()
+	o.valueMx.RUnlock()
 }
 
 // HasValue returns whether the value is not nil
-func (r *Operator[T]) HasValue() bool {
-	return r.value != nil
+func (o *Operator[T]) HasValue() bool {
+	return o.value != nil
 }
 
 // ScalarValue returns the the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (r *Operator[T]) ScalarValue() T {
-	return r.Value().Scalar()
+func (o *Operator[T]) ScalarValue() T {
+	return o.Value().Scalar()
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Operator[T]) Grad() mat.Matrix[T] {
-	if !r.requiresGrad {
+func (o *Operator[T]) Grad() mat.Matrix[T] {
+	if !o.requiresGrad {
 		return nil
 	}
-	if r.graph.backwardInProgress && atomic.LoadUint64(&r.pendingGrads) > 0 {
-		r.gradsMx.RLock()
-		defer r.gradsMx.RUnlock()
+	if o.graph.backwardInProgress && atomic.LoadUint64(&o.pendingGrads) > 0 {
+		o.gradsMx.RLock()
+		defer o.gradsMx.RUnlock()
 	}
-	return r.grad
+	return o.grad
 }
 
 // PropagateGrad accumulates the gradients to the node itself.
-func (r *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
-	if !r.requiresGrad {
+func (o *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
+	if !o.requiresGrad {
 		return
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	o.mu.Lock()
+	defer o.mu.Unlock()
 
 	if grad != nil {
-		if r.grad == nil {
-			r.grad = r.value.ZerosLike()
+		if o.grad == nil {
+			o.grad = o.value.ZerosLike()
 		}
-		r.grad.AddInPlace(grad)
+		o.grad.AddInPlace(grad)
 	}
 
-	if !r.graph.backwardInProgress {
+	if !o.graph.backwardInProgress {
 		return
 	}
 
-	pg := atomic.LoadUint64(&r.pendingGrads)
+	pg := atomic.LoadUint64(&o.pendingGrads)
 	if pg > 0 {
-		pg = atomic.AddUint64(&r.pendingGrads, ^uint64(0)) // decrement
+		pg = atomic.AddUint64(&o.pendingGrads, ^uint64(0)) // decrement
 	}
 	if pg == 0 {
-		r.gradsMx.Unlock()
+		o.gradsMx.Unlock()
 	}
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (r *Operator[_]) HasGrad() bool {
-	return r.requiresGrad && r.Grad() != nil
+func (o *Operator[_]) HasGrad() bool {
+	return o.requiresGrad && o.Grad() != nil
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (r *Operator[_]) RequiresGrad() bool {
-	return r.requiresGrad
+func (o *Operator[_]) RequiresGrad() bool {
+	return o.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (r *Operator[_]) ZeroGrad() {
-	if !r.requiresGrad {
+func (o *Operator[_]) ZeroGrad() {
+	if !o.requiresGrad {
 		return
 	}
-	r.gradsMx.TryLock()
-	if r.grad == nil {
+	o.gradsMx.TryLock()
+	if o.grad == nil {
 		return
 	}
-	mat.ReleaseMatrix(r.grad) // release memory
-	r.grad = nil
-	r.pendingGrads = r.parentsCount
+	mat.ReleaseMatrix(o.grad) // release memory
+	o.grad = nil
+	o.pendingGrads = o.parentsCount
 }
 
 // TimeStep returns the time-step of the node.
-func (r *Operator[_]) TimeStep() int {
-	return r.timeStep
+func (o *Operator[_]) TimeStep() int {
+	return o.timeStep
 }
 
 // Operands returns the operands of the operator.
-func (r *Operator[T]) Operands() []Node[T] {
-	return r.function.Operands()
+func (o *Operator[T]) Operands() []Node[T] {
+	return o.function.Operands()
 }
 
-func (r *Operator[T]) backward() {
-	defer r.graph.bWG.Done()
-	if !r.requiresGrad {
+func (o *Operator[T]) backward() {
+	defer o.graph.bWG.Done()
+	if !o.requiresGrad {
 		return
 	}
-	grad := r.Grad()
+	grad := o.Grad()
 	if grad == nil {
-		for _, o := range r.Operands() {
-			if oo, ok := o.(*Operator[T]); ok {
+		for _, operand := range o.Operands() {
+			if oo, ok := operand.(*Operator[T]); ok {
 				oo.PropagateGrad(nil)
 			}
 		}
 		return
 	}
-	r.function.Backward(grad)
+	o.function.Backward(grad)
 }
 
-func (r *Operator[T]) forward() {
-	defer r.graph.fWG.Done()
-	r.value = r.function.Forward()
-	atomic.StoreUint32(&r.valueAtomicFlag, 1)
-	r.valueMx.Unlock()
+func (o *Operator[T]) forward() {
+	defer o.graph.fWG.Done()
+	o.value = o.function.Forward()
+	atomic.StoreUint32(&o.valueAtomicFlag, 1)
+	o.valueMx.Unlock()
 }
 
-func (r *Operator[_]) setID(id int) {
-	r.id = id
+func (o *Operator[_]) setID(id int) {
+	o.id = id
 }
 
 // releaseValue sets the operator's value to nil releases the memory.
-func (r *Operator[_]) releaseValue() {
-	if r.value == nil {
+func (o *Operator[_]) releaseValue() {
+	if o.value == nil {
 		return
 	}
-	mat.ReleaseMatrix(r.value)
-	r.value = nil
-	r.valueAtomicFlag = 1
+	mat.ReleaseMatrix(o.value)
+	o.value = nil
+	o.valueAtomicFlag = 1
 }
 
 // releaseGrad sets the operator's gradient to nil and releases the memory.
-func (r *Operator[_]) releaseGrad() {
-	r.ZeroGrad()
-	r.gradAtomicFlag = 1
+func (o *Operator[_]) releaseGrad() {
+	o.ZeroGrad()
+	o.gradAtomicFlag = 1
 }
