@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 )
@@ -30,7 +29,7 @@ const (
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
-	// eagerExecution reports whether to compute the forward during the graph definition.
+	// execution mode for operations performed within this graph.
 	executionMode ExecutionMode
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
@@ -47,8 +46,12 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// forwardWG waits for the forward goroutines to finish.
-	forwardWG *sync.WaitGroup
+	// fWG waits for the forward goroutines to finish.
+	fWG *sync.WaitGroup
+	// bWG waits for the backward goroutines to finish.
+	bWG *sync.WaitGroup
+	// backwardInProgress regulates the claim and the propagation of gradients during the backpropagation.
+	backwardInProgress bool
 }
 
 // NewGraph returns a new initialized graph.
@@ -61,7 +64,9 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
 		executionMode:      Concurrent,
-		forwardWG:          &sync.WaitGroup{},
+		fWG:                &sync.WaitGroup{},
+		bWG:                &sync.WaitGroup{},
+		backwardInProgress: false,
 	}
 	for _, opt := range opts {
 		opt(g)
@@ -83,14 +88,14 @@ func (g *Graph[T]) SetRandSeed(seed uint64) {
 }
 
 // SetExecutionMode allows to change the execution mode among those available (Concurrent, Eager, Define).
-// It returns the previous mode
+// It returns the previous mode.
 func (g *Graph[T]) SetExecutionMode(value ExecutionMode) ExecutionMode {
 	prev := g.executionMode
 	g.executionMode = value
 	return prev
 }
 
-// ExecutionMode returns whether the current graph's execution mode.
+// ExecutionMode returns the current graph's execution mode.
 func (g *Graph[_]) ExecutionMode() ExecutionMode {
 	return g.executionMode
 }
@@ -205,44 +210,6 @@ func (g *Graph[T]) Constant(value T) Node[T] {
 	return node
 }
 
-// NewOperator creates a new operator along with its forward pass.
-// Please note that operations must be performed among nodes belonging to the same graph; it panics otherwise.
-func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
-	requiresGrad := false
-	for _, o := range f.Operands() {
-		if o.Graph() != g {
-			panic("ag: operations cannot be executed among nodes of different graphs. " +
-				"You may consider wrapping the nodes you need with NewWrap().")
-		}
-		if !requiresGrad && o.RequiresGrad() {
-			requiresGrad = true
-		}
-	}
-
-	n := getOperatorPool[T]().Get().(*Operator[T])
-	*n = Operator[T]{
-		graph:           g,
-		timeStep:        g.curTimeStep,
-		function:        f,
-		value:           nil,
-		grad:            nil,
-		requiresGrad:    requiresGrad,
-		valueMx:         nil,
-		valueAtomicFlag: 0,
-	}
-
-	switch g.executionMode {
-	case Eager:
-		n.forward()
-	case Concurrent:
-		n.valueMx = new(sync.RWMutex)
-		n.valueMx.Lock()
-		go n.forwardBlocking()
-	}
-
-	return g.insert(n)
-}
-
 // NewWrap creates a new wrapper Node for the given value, attaching it to
 // the graph.
 func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
@@ -288,7 +255,8 @@ func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 // By setting retain graph to false, the operators are freed and thus the graph is disintegrated.
 func (g *Graph[T]) releaseMemory(retainGraph bool) {
-	g.forwardWG.Wait()
+	g.fWG.Wait()
+	g.bWG.Wait()
 	for _, node := range g.nodes {
 		op, ok := node.(*Operator[T])
 		if !ok {
@@ -296,7 +264,16 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 		}
 		g.releaseValue(op)
 		g.releaseGrad(op)
-		if !retainGraph {
+		if retainGraph {
+			if op.valueMx != nil {
+				op.valueMx = new(sync.RWMutex)
+			}
+			op.valueMx.TryLock()
+			if op.gradsMx != nil {
+				op.gradsMx = new(sync.RWMutex)
+			}
+			op.gradsMx.TryLock()
+		} else {
 			// free operator
 			*op = Operator[T]{}
 			getOperatorPool[T]().Put(op)
@@ -312,11 +289,13 @@ func (g *Graph[T]) releaseValue(node *Operator[T]) {
 	}
 	mat.ReleaseMatrix(node.value)
 	node.value = nil
+	node.valueAtomicFlag = 1
 }
 
 // releaseGrad set the node gradient to nil and release the memory.
 func (g *Graph[T]) releaseGrad(node *Operator[T]) {
 	node.ZeroGrad()
+	node.gradAtomicFlag = 1
 }
 
 func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex, endNodeIndex int) {
@@ -327,6 +306,15 @@ func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex,
 		endNodeIndex = g.timeStepBoundaries[toTimeStep+1]
 	}
 	return
+}
+
+func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
+	for _, node := range nodes {
+		if node.RequiresGrad() {
+			return true
+		}
+	}
+	return false
 }
 
 // MarshalBinary satisfies encoding.BinaryMarshaler interface and prevents

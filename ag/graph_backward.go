@@ -23,13 +23,14 @@ func Backward[T mat.DType](node Node[T], grad ...mat.Matrix[T]) {
 		panic("ag: attempt to start a backward with output gradients on a node that already has gradients.")
 	}
 	if !node.HasGrad() {
+		var gx mat.Matrix[T]
 		if len(grad) == 0 || grad[0] == nil {
-			gx := node.Value().OnesLike()
+			gx = node.Value().OnesLike()
 			defer mat.ReleaseMatrix(gx)
-			node.PropagateGrad(gx)
 		} else {
-			node.PropagateGrad(grad[0])
+			gx = grad[0]
 		}
+		node.PropagateGrad(gx)
 	}
 
 	node.Graph().backward(node.ID(), 0)
@@ -37,15 +38,17 @@ func Backward[T mat.DType](node Node[T], grad ...mat.Matrix[T]) {
 
 // BackwardT is the same as Backward but ends back-propagation on the first node with a time-step
 // that is less or equal to the number of back steps.
-func BackwardT[T mat.DType](node Node[T], grad mat.Matrix[T], backSteps int) {
+func BackwardT[T mat.DType](node Node[T], backSteps int, grad ...mat.Matrix[T]) {
 	if grad != nil && node.HasGrad() {
 		panic("ag: attempt to start a backward with output gradients on a node that already has gradients.")
 	}
 	if !node.HasGrad() {
-		gx := grad
-		if grad == nil {
+		var gx mat.Matrix[T]
+		if len(grad) == 0 || grad[0] == nil {
 			gx = node.Value().OnesLike()
 			defer mat.ReleaseMatrix(gx)
+		} else {
+			gx = grad[0]
 		}
 		node.PropagateGrad(gx)
 	}
@@ -74,11 +77,18 @@ func (g *Graph[T]) BackwardT(backSteps int) {
 }
 
 func (g *Graph[T]) backward(start, end int) {
+	g.fWG.Wait()
+	g.backwardInProgress = true
+	defer func() {
+		g.backwardInProgress = false
+	}()
 	nodes := g.nodes
-	_ = nodes[start] // avoid bounds check
+	_, _ = nodes[start], nodes[end] // avoid bounds check
 	for i := start; i >= end; i-- {
-		if node, ok := nodes[i].(*Operator[T]); ok {
-			node.backward()
+		if op, ok := nodes[i].(*Operator[T]); ok {
+			g.bWG.Add(1)
+			go op.backward()
 		}
 	}
+	g.bWG.Wait()
 }

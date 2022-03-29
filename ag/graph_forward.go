@@ -46,5 +46,5 @@ func (g *Graph[T]) forward(start, end int) {
 			go op.forward()
 		}
 	}
-	g.forwardWG.Wait()
+	g.fWG.Wait()
 }

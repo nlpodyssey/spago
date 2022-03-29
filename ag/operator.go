@@ -5,7 +5,6 @@
 package ag
 
 import (
-	"fmt"
 	"reflect"
 	"regexp"
 	"sync"
@@ -21,26 +20,6 @@ var (
 	_ Node[float32]       = &Operator[float32]{}
 )
 
-var (
-	operatorPoolFloat32 = &sync.Pool{
-		New: func() any { return new(Operator[float32]) },
-	}
-	operatorPoolFloat64 = &sync.Pool{
-		New: func() any { return new(Operator[float64]) },
-	}
-)
-
-func getOperatorPool[T mat.DType]() *sync.Pool {
-	switch any(T(0)).(type) {
-	case float32:
-		return operatorPoolFloat32
-	case float64:
-		return operatorPoolFloat64
-	default:
-		panic(fmt.Sprintf("ag: no operator pool for type %T", T(0)))
-	}
-}
-
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
 	graph           *Graph[T]
@@ -48,11 +27,71 @@ type Operator[T mat.DType] struct {
 	id              int
 	function        fn.Function[T, Node[T]]
 	value           mat.Matrix[T] // store the results of a forward evaluation
-	mu              sync.Mutex    // to avoid data race during gradients accumulation
+	mu              sync.Mutex    // to avoid data race during gradients accumulation TODO: rename (vs. gradsMx)
 	grad            mat.Matrix[T]
 	requiresGrad    bool
 	valueMx         *sync.RWMutex
 	valueAtomicFlag uint32
+	gradAtomicFlag  uint32
+	parentsCount    uint64
+	pendingGrads    uint64
+	gradsMx         *sync.RWMutex
+}
+
+// NewOperator creates a new operator along with its forward pass.
+// Please note that operations on nodes belonging to different graphs
+// result in unpredictable outcomes.
+// If you are working with two or more graphs simultaneously, you may
+// consider wrapping the nodes you need with NewWrap().
+func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
+	operands := f.Operands()
+	requiresGrad := anyNodeRequiresGrad(operands)
+
+	n := getOperatorPool[T]().Get().(*Operator[T])
+	*n = Operator[T]{
+		graph:           g,
+		timeStep:        g.curTimeStep,
+		id:              -1, // set below, upon insertion
+		function:        f,
+		value:           nil,
+		grad:            nil,
+		requiresGrad:    requiresGrad,
+		valueMx:         nil,
+		valueAtomicFlag: 0,
+		parentsCount:    0,
+		pendingGrads:    0,
+		gradsMx:         nil,
+	}
+
+	if requiresGrad {
+		n.setParentsCounts(operands)
+	}
+
+	switch g.executionMode {
+	case Eager:
+		n.value = n.function.Forward()
+		n.valueAtomicFlag = 1
+	case Concurrent:
+		n.valueMx = new(sync.RWMutex)
+		n.valueMx.Lock()
+		g.fWG.Add(1)
+		go n.forward()
+	}
+
+	return g.insert(n)
+}
+
+func (r *Operator[T]) setParentsCounts(operands []Node[T]) {
+	r.gradsMx = new(sync.RWMutex)
+	r.gradsMx.Lock()
+	for _, o := range operands {
+		if o.RequiresGrad() {
+			if oo, ok := o.(*Operator[T]); ok {
+				atomic.AddUint64(&oo.parentsCount, 1)
+				atomic.AddUint64(&oo.pendingGrads, 1)
+			}
+		}
+	}
 }
 
 // ID returns the ID of the node in the graph.
@@ -105,6 +144,13 @@ func (r *Operator[T]) ScalarValue() T {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (r *Operator[T]) Grad() mat.Matrix[T] {
+	if !r.requiresGrad {
+		return nil
+	}
+	if r.graph.backwardInProgress && atomic.LoadUint64(&r.pendingGrads) > 0 {
+		r.gradsMx.RLock()
+		defer r.gradsMx.RUnlock()
+	}
 	return r.grad
 }
 
@@ -115,15 +161,30 @@ func (r *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	if r.grad == nil {
-		r.grad = r.value.ZerosLike()
+
+	if grad != nil {
+		if r.grad == nil {
+			r.grad = r.value.ZerosLike()
+		}
+		r.grad.AddInPlace(grad)
 	}
-	r.grad.AddInPlace(grad)
+
+	if !r.graph.backwardInProgress {
+		return
+	}
+
+	pg := atomic.LoadUint64(&r.pendingGrads)
+	if pg > 0 {
+		pg = atomic.AddUint64(&r.pendingGrads, ^uint64(0)) // decrement
+	}
+	if pg == 0 {
+		r.gradsMx.Unlock()
+	}
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (r *Operator[_]) HasGrad() bool {
-	return r.grad != nil
+	return r.requiresGrad && r.Grad() != nil
 }
 
 // RequiresGrad returns true if the node requires gradients.
@@ -133,11 +194,16 @@ func (r *Operator[_]) RequiresGrad() bool {
 
 // ZeroGrad clears the gradients.
 func (r *Operator[_]) ZeroGrad() {
+	if !r.requiresGrad {
+		return
+	}
+	r.gradsMx.TryLock()
 	if r.grad == nil {
 		return
 	}
-	defer mat.ReleaseMatrix(r.grad) // release memory
+	mat.ReleaseMatrix(r.grad) // release memory
 	r.grad = nil
+	r.pendingGrads = r.parentsCount
 }
 
 // TimeStep returns the time-step of the node.
@@ -150,21 +216,25 @@ func (r *Operator[T]) Operands() []Node[T] {
 	return r.function.Operands()
 }
 
-func (r *Operator[_]) backward() {
-	if r.grad == nil {
+func (r *Operator[T]) backward() {
+	defer r.graph.bWG.Done()
+	if !r.requiresGrad {
 		return
 	}
-	r.function.Backward(r.grad)
+	grad := r.Grad()
+	if grad == nil {
+		for _, o := range r.Operands() {
+			if oo, ok := o.(*Operator[T]); ok {
+				oo.PropagateGrad(nil)
+			}
+		}
+		return
+	}
+	r.function.Backward(grad)
 }
 
-// forward sets the operator value with the result of the function.
-func (r *Operator[_]) forward() {
-	r.value = r.function.Forward()
-	r.valueAtomicFlag = 1
-}
-
-func (r *Operator[T]) forwardBlocking() {
-	defer r.graph.forwardWG.Done()
+func (r *Operator[T]) forward() {
+	defer r.graph.fWG.Done()
 	r.value = r.function.Forward()
 	atomic.StoreUint32(&r.valueAtomicFlag, 1)
 	r.valueMx.Unlock()

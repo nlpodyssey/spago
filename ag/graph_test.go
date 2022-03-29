@@ -7,7 +7,6 @@ package ag
 import (
 	"testing"
 
-	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
@@ -275,20 +274,6 @@ func testGraphZeroGrad[T mat.DType](t *testing.T) {
 	assert.Nil(t, v1.Grad())
 	assert.Nil(t, v2.Grad())
 	assert.Nil(t, op.Grad())
-}
-
-func TestGraph_NewOperator(t *testing.T) {
-	t.Run("float32", testGraphNewOperator[float32])
-	t.Run("float64", testGraphNewOperator[float64])
-}
-
-func testGraphNewOperator[T mat.DType](t *testing.T) {
-	t.Run("it panics if operands belong to a different Graph", func(t *testing.T) {
-		g1 := NewGraph[T]()
-		g2 := NewGraph[T]()
-		x := g2.NewScalar(42)
-		assert.Panics(t, func() { g1.NewOperator(fn.NewSqrt[T](x)) })
-	})
 }
 
 func TestGraph_NewWrap(t *testing.T) {
