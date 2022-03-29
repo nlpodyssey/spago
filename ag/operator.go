@@ -44,8 +44,6 @@ type Operator[T mat.DType] struct {
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
 func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
-	operands := f.Operands()
-
 	n := getOperatorPool[T]().Get().(*Operator[T])
 	*n = Operator[T]{
 		graph:           g,
@@ -54,7 +52,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		function:        f,
 		value:           nil,
 		grad:            nil,
-		requiresGrad:    anyNodeRequiresGrad(operands),
+		requiresGrad:    anyNodeRequiresGrad(f.Operands()),
 		valueMx:         new(sync.RWMutex),
 		valueAtomicFlag: 0,
 		parentsCount:    0,
@@ -65,7 +63,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	if n.requiresGrad {
 		n.gradsMx = new(sync.RWMutex)
 		n.gradsMx.Lock()
-		n.setParentsCounts(operands)
+		n.setParentsCounts()
 	}
 
 	g.fWG.Add(1)
@@ -74,8 +72,8 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	return g.insert(n)
 }
 
-func (r *Operator[T]) setParentsCounts(operands []Node[T]) {
-	for _, o := range operands {
+func (r *Operator[T]) setParentsCounts() {
+	for _, o := range r.Operands() {
 		if o.RequiresGrad() {
 			if oo, ok := o.(*Operator[T]); ok {
 				atomic.AddUint64(&oo.parentsCount, 1)
