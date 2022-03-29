@@ -61,7 +61,7 @@ func (r *Operator[_]) ID() int {
 }
 
 // Name returns the Name of the operator.
-// The name is taken from the name of r.function via/ reflection.
+// The name is taken from the name of r.function via reflection.
 func (r *Operator[_]) Name() string {
 	value := reflect.ValueOf(r.function).Elem().Type().Name()
 	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
