@@ -201,6 +201,25 @@ func testGraphClear[T mat.DType](t *testing.T) {
 
 		g.Clear()
 
+		assert.Panics(t, func() { op.(*Operator[T]).HasValue() })
+		assert.Nil(t, op.Grad())
+	})
+
+	t.Run("operators memory (values and grads) is cleared for reuse", func(t *testing.T) {
+		g := NewGraph[T]()
+		op := Add(
+			g.NewVariable(mat.NewScalar[T](1), true),
+			g.NewVariable(mat.NewScalar[T](2), true),
+		)
+		op.Value() // wait for the value
+		Backward(op)
+
+		assert.True(t, op.(*Operator[T]).HasValue())
+		assert.NotNil(t, op.Value())
+		assert.NotNil(t, op.Grad())
+
+		g.ClearForReuse()
+
 		assert.False(t, op.(*Operator[T]).HasValue())
 		assert.Nil(t, op.Grad())
 	})
