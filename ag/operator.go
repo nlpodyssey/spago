@@ -234,3 +234,19 @@ func (r *Operator[T]) forward() {
 func (r *Operator[_]) setID(id int) {
 	r.id = id
 }
+
+// releaseValue sets the operator's value to nil releases the memory.
+func (r *Operator[_]) releaseValue() {
+	if r.value == nil {
+		return
+	}
+	mat.ReleaseMatrix(r.value)
+	r.value = nil
+	r.valueAtomicFlag = 1
+}
+
+// releaseGrad sets the operator's gradient to nil and releases the memory.
+func (r *Operator[_]) releaseGrad() {
+	r.ZeroGrad()
+	r.gradAtomicFlag = 1
+}

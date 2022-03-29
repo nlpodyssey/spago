@@ -232,8 +232,8 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 		if !ok {
 			continue
 		}
-		g.releaseValue(op)
-		g.releaseGrad(op)
+		op.releaseValue()
+		op.releaseGrad()
 		if retainGraph {
 			if op.valueMx != nil {
 				op.valueMx = new(sync.RWMutex)
@@ -250,22 +250,6 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 			// TODO: release constants?
 		}
 	}
-}
-
-// releaseValue set the node value to nil release the memory.
-func (g *Graph[T]) releaseValue(node *Operator[T]) {
-	if node.value == nil {
-		return
-	}
-	mat.ReleaseMatrix(node.value)
-	node.value = nil
-	node.valueAtomicFlag = 1
-}
-
-// releaseGrad set the node gradient to nil and release the memory.
-func (g *Graph[T]) releaseGrad(node *Operator[T]) {
-	node.ZeroGrad()
-	node.gradAtomicFlag = 1
 }
 
 func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex, endNodeIndex int) {
