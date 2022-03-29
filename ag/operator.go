@@ -163,16 +163,8 @@ func (r *Operator[_]) forward() {
 	r.valueAtomicFlag = 1
 }
 
-// forwardBlocking ensures that all operand values are available before executing the forward operation.
-// Since it is blocking, it has to be invoked as a goroutine.
 func (r *Operator[T]) forwardBlocking() {
-	r.graph.forwardWG.Add(1)
 	defer r.graph.forwardWG.Done()
-	for _, operand := range r.function.Operands() {
-		if o, ok := operand.(*Operator[T]); ok {
-			o.waitForValue()
-		}
-	}
 	r.value = r.function.Forward()
 	atomic.StoreUint32(&r.valueAtomicFlag, 1)
 	r.valueMx.Unlock()

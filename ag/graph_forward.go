@@ -41,8 +41,9 @@ func (g *Graph[T]) forward(start, end int) {
 			if op.valueMx == nil {
 				op.valueMx = new(sync.RWMutex)
 			}
-			op.valueMx.Lock()
-			go op.forwardBlocking()
+			op.valueMx.TryLock()
+			g.fWG.Add(1)
+			go op.forward()
 		}
 	}
 	g.forwardWG.Wait()
