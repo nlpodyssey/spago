@@ -25,31 +25,3 @@ func WithRandSeed[T mat.DType](seed uint64) GraphOption[T] {
 		g.randGen = rand.NewLockedRand[T](seed)
 	}
 }
-
-// WithConcurrentMode sets whether to compute the forward during the graph definition
-// exploiting the concurrent computation given by goroutines.
-// When active, the access to node.Value() is subject to the conclusion
-// of the computation of the given node, resulting in a blocking operation.
-//
-// This is the default mode.
-func WithConcurrentMode[T mat.DType]() GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.executionMode = Concurrent
-	}
-}
-
-// WithEagerMode sets whether to compute the forward during the graph definition.
-// When enabled it lets you immediately access to the node.Value() resulting from the computation.
-func WithEagerMode[T mat.DType]() GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.executionMode = Eager
-	}
-}
-
-// WithDefineMode sets whether to skip computation during the graph definition.
-// When enabled it lets you access to the Value() after performing a Forward.
-func WithDefineMode[T mat.DType]() GraphOption[T] {
-	return func(g *Graph[T]) {
-		g.executionMode = Define
-	}
-}

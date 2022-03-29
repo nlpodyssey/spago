@@ -45,7 +45,6 @@ type Operator[T mat.DType] struct {
 // consider wrapping the nodes you need with NewWrap().
 func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	operands := f.Operands()
-	requiresGrad := anyNodeRequiresGrad(operands)
 
 	n := getOperatorPool[T]().Get().(*Operator[T])
 	*n = Operator[T]{
@@ -55,35 +54,27 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		function:        f,
 		value:           nil,
 		grad:            nil,
-		requiresGrad:    requiresGrad,
-		valueMx:         nil,
+		requiresGrad:    anyNodeRequiresGrad(operands),
+		valueMx:         new(sync.RWMutex),
 		valueAtomicFlag: 0,
 		parentsCount:    0,
 		pendingGrads:    0,
 		gradsMx:         nil,
 	}
-
-	if requiresGrad {
+	n.valueMx.Lock()
+	if n.requiresGrad {
+		n.gradsMx = new(sync.RWMutex)
+		n.gradsMx.Lock()
 		n.setParentsCounts(operands)
 	}
 
-	switch g.executionMode {
-	case Eager:
-		n.value = n.function.Forward()
-		n.valueAtomicFlag = 1
-	case Concurrent:
-		n.valueMx = new(sync.RWMutex)
-		n.valueMx.Lock()
-		g.fWG.Add(1)
-		go n.forward()
-	}
+	g.fWG.Add(1)
+	go n.forward()
 
 	return g.insert(n)
 }
 
 func (r *Operator[T]) setParentsCounts(operands []Node[T]) {
-	r.gradsMx = new(sync.RWMutex)
-	r.gradsMx.Lock()
 	for _, o := range operands {
 		if o.RequiresGrad() {
 			if oo, ok := o.(*Operator[T]); ok {
@@ -112,8 +103,8 @@ func (r *Operator[T]) Graph() *Graph[T] {
 }
 
 // Value returns the result of the function.
-// If execution isn't eager and the value is null, it automatically forwards
-// to all the nodes at the same time-step as this operator.
+// If the value is null, it automatically forwards to all the nodes at the
+// same time-step as this operator.
 func (r *Operator[T]) Value() mat.Matrix[T] {
 	if r.valueMx != nil {
 		r.waitForValue()

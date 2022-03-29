@@ -12,25 +12,9 @@ import (
 	"github.com/nlpodyssey/spago/mat/rand"
 )
 
-// ExecutionMode regulates the way of executing operations in the graph:
-// define-by-run (eager or concurrent) or define-and-run.
-type ExecutionMode uint8
-
-const (
-	// Concurrent performs the forward during the graph definition exploiting the concurrent computation given by goroutines (default).
-	Concurrent ExecutionMode = iota
-	// Eager performs the forward during the graph definition calculating the values of Node as they occur.
-	Eager
-	// Define skip computation during the graph definition, delegating the calculations to an explicit Forward.
-	// This mode potentially leaves room for future optimizations of the graph prior to execution.
-	Define
-)
-
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
-	// execution mode for operations performed within this graph.
-	executionMode ExecutionMode
 	// randGen is the generator of random numbers
 	randGen *rand.LockedRand[T]
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
@@ -63,7 +47,6 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		timeStepBoundaries: []int{0},
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
-		executionMode:      Concurrent,
 		fWG:                &sync.WaitGroup{},
 		bWG:                &sync.WaitGroup{},
 		backwardInProgress: false,
@@ -85,19 +68,6 @@ func (g *Graph[T]) SetRand(rand *rand.LockedRand[T]) {
 // SetRandSeed replace the graph's random number generator with a new one with the given seed.
 func (g *Graph[T]) SetRandSeed(seed uint64) {
 	g.randGen = rand.NewLockedRand[T](seed)
-}
-
-// SetExecutionMode allows to change the execution mode among those available (Concurrent, Eager, Define).
-// It returns the previous mode.
-func (g *Graph[T]) SetExecutionMode(value ExecutionMode) ExecutionMode {
-	prev := g.executionMode
-	g.executionMode = value
-	return prev
-}
-
-// ExecutionMode returns the current graph's execution mode.
-func (g *Graph[_]) ExecutionMode() ExecutionMode {
-	return g.executionMode
 }
 
 // ZeroGrad sets the gradients of all nodes to zero.

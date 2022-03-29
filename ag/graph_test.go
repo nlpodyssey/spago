@@ -31,14 +31,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
-		assert.Equal(t, g.executionMode, Concurrent)
-	})
-
-	t.Run("with WithEagerMode option", func(t *testing.T) {
-		g := NewGraph[T](WithEagerMode[T]())
-		runCommonAssertions(t, g)
-		assert.NotNil(t, g.randGen)
-		assert.Equal(t, g.executionMode, Eager)
 	})
 
 	t.Run("with WithRand option", func(t *testing.T) {
@@ -46,7 +38,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		g := NewGraph[T](WithRand(r))
 		runCommonAssertions(t, g)
 		assert.Same(t, r, g.randGen)
-		assert.Equal(t, g.executionMode, Concurrent)
 	})
 
 	t.Run("with WithRandSeed option", func(t *testing.T) {
@@ -55,7 +46,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		runCommonAssertions(t, g)
 		assert.NotNil(t, g.randGen)
 		assert.Equal(t, r.Int(), g.randGen.Int())
-		assert.Equal(t, g.executionMode, Concurrent)
 	})
 }
 
@@ -197,7 +187,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph[T](WithConcurrentMode[T]()) // TODO: Check with ConcurrentMode
+		g := NewGraph[T]()
 		op := Add(
 			g.NewVariable(mat.NewScalar[T](1), true),
 			g.NewVariable(mat.NewScalar[T](2), true),
@@ -319,38 +309,15 @@ func testGraphNewWrapNoGrad[T mat.DType](t *testing.T) {
 }
 
 func TestGraph_Forward(t *testing.T) {
-	t.Run("float32", testGraphForwardWithConcurrentMode[float32])
-	t.Run("float64", testGraphForwardWithConcurrentMode[float64])
-	t.Run("float32", testGraphForwardWithEagerMode[float32])
-	t.Run("float64", testGraphForwardWithEagerMode[float64])
-	t.Run("float32", testGraphForwardWithDefineMode[float32])
-	t.Run("float64", testGraphForwardWithDefineMode[float64])
+	t.Run("float32", testGraphForward[float32])
+	t.Run("float64", testGraphForward[float64])
 }
 
-func testGraphForwardWithConcurrentMode[T mat.DType](t *testing.T) {
-	g := NewGraph[T](WithConcurrentMode[T]())
+func testGraphForward[T mat.DType](t *testing.T) {
+	g := NewGraph[T]()
 	op := Add(g.NewScalar(40), g.NewScalar(2))
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42.0), op.Value().Scalar())
-	g.Forward()
-	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42.0), op.Value().Scalar())
-}
-
-func testGraphForwardWithEagerMode[T mat.DType](t *testing.T) {
-	g := NewGraph[T](WithConcurrentMode[T]())
-	op := Add(g.NewScalar(40), g.NewScalar(2))
-	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42.0), op.Value().Scalar())
-	g.Forward()
-	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42.0), op.Value().Scalar())
-}
-
-func testGraphForwardWithDefineMode[T mat.DType](t *testing.T) {
-	g := NewGraph[T](WithDefineMode[T]())
-	op := Add(g.NewScalar(40), g.NewScalar(2))
-	assert.Nil(t, op.Value())
 	g.Forward()
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42.0), op.Value().Scalar())
