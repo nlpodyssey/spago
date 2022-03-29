@@ -4,10 +4,7 @@
 
 package ag
 
-import (
-	"log"
-	"sync"
-)
+import "log"
 
 // Forward computes the results of the entire Graph (not thread-safe).
 // Usually you don't need to execute Forward() manually in define-by-run configuration (default).
@@ -38,9 +35,6 @@ func (g *Graph[T]) forward(start, end int) {
 				continue
 			}
 			op.valueAtomicFlag = 0
-			if op.valueMx == nil {
-				op.valueMx = new(sync.RWMutex)
-			}
 			op.valueMx.TryLock()
 			g.fWG.Add(1)
 			go op.forward()

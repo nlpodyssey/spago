@@ -104,19 +104,12 @@ func (o *Operator[T]) Graph() *Graph[T] {
 // If the value is null, it automatically forwards to all the nodes at the
 // same time-step as this operator.
 func (o *Operator[T]) Value() mat.Matrix[T] {
-	if o.valueMx != nil {
-		o.waitForValue()
+	if atomic.LoadUint32(&o.valueAtomicFlag) == 0 {
+		o.valueMx.RLock()
+		defer o.valueMx.RUnlock()
 	}
+
 	return o.value
-}
-
-func (o *Operator[T]) waitForValue() {
-	if atomic.LoadUint32(&o.valueAtomicFlag) == 1 {
-		return
-	}
-
-	o.valueMx.RLock()
-	o.valueMx.RUnlock()
 }
 
 // HasValue returns whether the value is not nil
