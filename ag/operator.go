@@ -121,7 +121,7 @@ func (o *Operator[T]) waitForValue() {
 
 // HasValue returns whether the value is not nil
 func (o *Operator[T]) HasValue() bool {
-	return o.value != nil
+	return o.Value() != nil
 }
 
 // ScalarValue returns the the scalar value of the node.
@@ -153,7 +153,7 @@ func (o *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
 
 	if grad != nil {
 		if o.grad == nil {
-			o.grad = o.value.ZerosLike()
+			o.grad = o.Value().ZerosLike()
 		}
 		o.grad.AddInPlace(grad)
 	}
@@ -223,10 +223,10 @@ func (o *Operator[T]) backward() {
 }
 
 func (o *Operator[T]) forward() {
-	defer o.graph.fWG.Done()
 	o.value = o.function.Forward()
 	atomic.StoreUint32(&o.valueAtomicFlag, 1)
 	o.valueMx.Unlock()
+	o.graph.fWG.Done()
 }
 
 func (o *Operator[_]) setID(id int) {
