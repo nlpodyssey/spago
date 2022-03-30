@@ -32,7 +32,6 @@ type Operator[T mat.DType] struct {
 	requiresGrad    bool
 	valueMx         *sync.RWMutex
 	valueAtomicFlag uint32
-	gradAtomicFlag  uint32
 	parentsCount    uint64
 	pendingGrads    uint64
 	gradsMx         *sync.RWMutex
@@ -239,5 +238,4 @@ func (o *Operator[_]) releaseValue() {
 // releaseGrad sets the operator's gradient to nil and releases the memory.
 func (o *Operator[_]) releaseGrad() {
 	o.ZeroGrad()
-	o.gradAtomicFlag = 1
 }

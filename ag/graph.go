@@ -236,7 +236,7 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 		op.releaseGrad()
 		if retainGraph {
 			op.valueMx.TryLock()
-			if op.gradsMx != nil {
+			if op.gradsMx == nil {
 				op.gradsMx = new(sync.RWMutex)
 			}
 			op.gradsMx.TryLock()

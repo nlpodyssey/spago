@@ -334,10 +334,15 @@ func TestGraph_Forward(t *testing.T) {
 
 func testGraphForward[T mat.DType](t *testing.T) {
 	g := NewGraph[T]()
-	op := Add(g.NewScalar(40), g.NewScalar(2))
+	x1 := g.NewScalar(40)
+	x2 := g.NewScalar(2)
+	op := Add(x1, x2)
 	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42.0), op.Value().Scalar())
+	assert.Equal(t, T(42), op.Value().Scalar())
+	g.ClearForReuse()
+	ReplaceValue[T](x1, mat.NewScalar[T](60))
+	ReplaceValue[T](x2, mat.NewScalar[T](9))
 	g.Forward()
 	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42.0), op.Value().Scalar())
+	assert.Equal(t, T(69), op.Value().Scalar())
 }
