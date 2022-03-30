@@ -5,7 +5,6 @@
 package ag
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -60,53 +59,24 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 	return g
 }
 
-// SetRand replace the graph's random number generator with the given one.
-func (g *Graph[T]) SetRand(rand *rand.LockedRand[T]) {
-	g.randGen = rand
-}
-
-// SetRandSeed replace the graph's random number generator with a new one with the given seed.
-func (g *Graph[T]) SetRandSeed(seed uint64) {
-	g.randGen = rand.NewLockedRand[T](seed)
-}
-
-// ZeroGrad sets the gradients of all nodes to zero.
-func (g *Graph[_]) ZeroGrad() {
-	for _, node := range g.nodes {
-		node.ZeroGrad()
-	}
-}
-
-// IncTimeStep increments the value of the graph's TimeStep by one.
-func (g *Graph[_]) IncTimeStep() {
-	g.curTimeStep++
-	g.timeStepBoundaries = append(g.timeStepBoundaries, g.maxID+1)
-}
-
-// TimeStep is an integer value associated with the graph, which can be useful
-// to perform truncated back propagation. This value is 0 for a new Graph, and
-// can be incremented calling IncTimeStep.
-func (g *Graph[_]) TimeStep() int {
-	return g.curTimeStep
-}
-
-// Nodes returns the nodes of the graph.
-func (g *Graph[T]) Nodes() []Node[T] {
-	return g.nodes
-}
-
-// Clear cleans the graph. This is a destructive operation.
-// It is not mandatory to call this method, but it is strongly recommended to do so when you finish using the graph.
-// The cleaning of the graph improves the memory management and therefore the efficiency of execution.
-// Clear releases the matrices underlying the nodes so to reduce the need of future new time-consuming allocations.
-// It is important to stress that calling g.Clean(), the "value" and "grad" of the operators nodes are freed (set to nil).
-// Whoever is using the Value() or Grad() properties of a node, does so at his own risk. It is therefore recommended to
-// make always a copy of the return value of Value() or Grad().
-// Alternatively, you can use the convenient graph's methods g.CopyValue(node) and g.CopyGrad(node).
-func (g *Graph[T]) Clear() {
+// Clear cleans the graph and should be called after the graph has been used.
+// It releases the matrices underlying the operator nodes so to reduce the need of future new time-consuming allocations.
+// It is therefore recommended to make always a copy of the results of node.Value().
+// You can use the convenient ag.CopyValue(node) and ag.CopyGrad(node)
+//
+// When retain graph is enabled, the graph structure is preserved, and calling node.Value() triggers graph forwarding
+// up to the specified node. So you can use the same pre-calculated graph with new values using ag.ReplaceValue().
+// Otherwise, the graph structure is disintegrated, and the node operators become weak references.
+func (g *Graph[T]) Clear(retainGraph bool) {
+	g.fWG.Wait()
+	g.bWG.Wait()
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	if g.nodes == nil {
+		return
+	}
+	if retainGraph {
+		g.releaseMemory(true)
 		return
 	}
 	g.maxID = -1
@@ -116,108 +86,29 @@ func (g *Graph[T]) Clear() {
 	g.nodes = nil
 }
 
-// ClearForReuse does the same thing as Clear(), with the difference that the graph structure (i.e.
-// how nodes are connected to each other) is maintained.
-// This allows you to efficiently use the graph as if it were "pre-computed" (see the Forward()
-// method for this scenario).
-func (g *Graph[_]) ClearForReuse() {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if g.nodes == nil {
-		return
+// Nodes returns the nodes of the graph.
+func (g *Graph[T]) Nodes() []Node[T] {
+	return g.nodes
+}
+
+// ZeroGrad sets the gradients of all nodes to zero.
+func (g *Graph[_]) ZeroGrad() {
+	for _, node := range g.nodes {
+		node.ZeroGrad()
 	}
-	g.releaseMemory(true)
 }
 
-// NewVariable creates and returns a new node.
-func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
-	n := &Variable[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
-		value:        value,
-		grad:         nil,
-		requiresGrad: requiresGrad,
-	}
-	return g.insert(n)
+// TimeStep is an integer value associated with the graph, which can be useful
+// to perform truncated back propagation. This value is 0 for a new Graph, and
+// can be incremented calling IncTimeStep.
+func (g *Graph[_]) TimeStep() int {
+	return g.curTimeStep
 }
 
-// NewVariableWithName creates and returns a new node.
-func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
-	n := &Variable[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
-		name:         name,
-		value:        value,
-		grad:         nil,
-		requiresGrad: requiresGrad,
-	}
-	return g.insert(n)
-}
-
-// NewScalar creates a variable node that doesn't require gradients.
-// TODO: Why shouldn't gradient be required by default?
-func (g *Graph[T]) NewScalar(value T) Node[T] {
-	return g.NewVariable(mat.NewScalar(value), false)
-}
-
-// NewScalarWithName creates a variable node that doesn't require gradients.
-// TODO: Why shouldn't gradient be required by default?
-func (g *Graph[T]) NewScalarWithName(value T, name string) Node[T] {
-	return g.NewVariableWithName(mat.NewScalar(value), false, name)
-}
-
-// Constant returns a scalar Node that that doesn't require gradients.
-// For the same value, a previously created Node is returned without creating a new one.
-// Useful for example in the case of epsilon and number like 0.0 or 1.0.
-func (g *Graph[T]) Constant(value T) Node[T] {
-	g.mu2.Lock()
-	defer g.mu2.Unlock()
-	if node, ok := g.constants[value]; ok {
-		return node
-	}
-	node := g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
-	g.constants[value] = node
-	return node
-}
-
-// NewWrap creates a new wrapper Node for the given value, attaching it to
-// the graph.
-func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
-	n := &Wrapper[T]{
-		GradValue: value,
-		timeStep:  g.curTimeStep,
-		graph:     g,
-		wrapGrad:  true,
-	}
-	return g.insert(n)
-}
-
-// NewWrapNoGrad is similar to NewWrap, but it disables automatic
-// differentiation on the new node.
-func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
-	n := &Wrapper[T]{
-		GradValue: value,
-		graph:     g,
-		timeStep:  g.curTimeStep,
-		wrapGrad:  false,
-	}
-	return g.insert(n)
-}
-
-// nodeInternal extends the public Node with private methods.
-type nodeInternal[T mat.DType] interface {
-	Node[T]
-	setID(int)
-}
-
-// insert append the node into the graph's nodes and assign it an id.
-func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
-	g.mu.Lock()
-	g.maxID++
-	n.setID(g.maxID)
-	g.nodes = append(g.nodes, n)
-	g.mu.Unlock()
-	return n
+// IncTimeStep increments the value of the graph's TimeStep by one.
+func (g *Graph[_]) IncTimeStep() {
+	g.curTimeStep++
+	g.timeStepBoundaries = append(g.timeStepBoundaries, g.maxID+1)
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
@@ -249,6 +140,16 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 	}
 }
 
+// insert append the node into the graph's nodes and assign it an id.
+func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
+	g.mu.Lock()
+	g.maxID++
+	n.setID(g.maxID)
+	g.nodes = append(g.nodes, n)
+	g.mu.Unlock()
+	return n
+}
+
 func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex, endNodeIndex int) {
 	startNodeIndex = g.timeStepBoundaries[fromTimeStep] // inclusive
 	endNodeIndex = len(g.nodes)                         // exclusive
@@ -257,27 +158,4 @@ func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex,
 		endNodeIndex = g.timeStepBoundaries[toTimeStep+1]
 	}
 	return
-}
-
-func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
-	for _, node := range nodes {
-		if node.RequiresGrad() {
-			return true
-		}
-	}
-	return false
-}
-
-// MarshalBinary satisfies encoding.BinaryMarshaler interface and prevents
-// a Graph to be encoded to binary representation.
-// This is relevant in the context of a Graph being part of a nn.Model: when
-// serializing a model to binary, we want to skip the Graph, since it is part
-// of the runtime context only.
-func (g *Graph[_]) MarshalBinary() ([]byte, error) {
-	return []byte{}, nil
-}
-
-// UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
-func (g *Graph[_]) UnmarshalBinary(_ []byte) error {
-	return nil
 }

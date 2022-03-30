@@ -71,6 +71,15 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	return g.insert(n)
 }
 
+func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
+	for _, node := range nodes {
+		if node.RequiresGrad() {
+			return true
+		}
+	}
+	return false
+}
+
 func (o *Operator[T]) setParentsCounts() {
 	for _, operand := range o.Operands() {
 		if operand.RequiresGrad() {

@@ -165,7 +165,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		g.NewScalar(42)
 		assert.Equal(t, 0, g.maxID)
-		g.Clear()
+		g.Clear(false)
 		assert.Equal(t, -1, g.maxID)
 	})
 
@@ -174,7 +174,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g.NewScalar(42)
 		g.IncTimeStep()
 		assert.Equal(t, 1, g.curTimeStep)
-		g.Clear()
+		g.Clear(false)
 		assert.Equal(t, 0, g.curTimeStep)
 	})
 
@@ -182,7 +182,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		g.NewScalar(42)
 		assert.NotNil(t, g.nodes)
-		g.Clear()
+		g.Clear(false)
 		assert.Nil(t, g.nodes)
 	})
 
@@ -199,7 +199,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		g.Clear()
+		g.Clear(false)
 
 		assert.Panics(t, func() { op.(*Operator[T]).HasValue() })
 		assert.Nil(t, op.Grad())
@@ -218,7 +218,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		g.ClearForReuse()
+		g.Clear(true)
 
 		assert.False(t, op.(*Operator[T]).HasValue())
 		assert.Nil(t, op.Grad())
@@ -226,7 +226,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
-		g.Clear()
+		g.Clear(false)
 		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
@@ -250,7 +250,7 @@ func testGraphClearForReuse[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		g.ClearForReuse()
+		g.Clear(true)
 
 		assert.Nil(t, op.Value())
 		assert.Nil(t, op.Grad())
@@ -258,7 +258,7 @@ func testGraphClearForReuse[T mat.DType](t *testing.T) {
 
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
-		assert.NotPanics(t, func() { g.ClearForReuse() })
+		assert.NotPanics(t, func() { g.Clear(true) })
 	})
 }
 
@@ -339,7 +339,7 @@ func testGraphForward[T mat.DType](t *testing.T) {
 	op := Add(x1, x2)
 	assert.NotNil(t, op.Value())
 	assert.Equal(t, T(42), op.Value().Scalar())
-	g.ClearForReuse()
+	g.Clear(true)
 	ReplaceValue[T](x1, mat.NewScalar[T](60))
 	ReplaceValue[T](x2, mat.NewScalar[T](9))
 	g.Forward()
