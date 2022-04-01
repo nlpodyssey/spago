@@ -11,9 +11,8 @@ import (
 )
 
 // Value returns the result of the function.
-//
-// If the value is null and a goroutine is not processing it (as it happens after a g.Clear(true)),
-// it automatically initiates a forward operation from the last processed node to this.
+// This method waits for the value as a result of a computation,
+// so you must call g.Forward() explicitly after a g.Clear(true).
 func (o *Operator[T]) Value() mat.Matrix[T] {
 	if v := o.value.Load(); v != nil {
 		return v.(mat.Matrix[T])
