@@ -195,13 +195,12 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		op.Value() // wait for the value
 		Backward(op)
 
-		assert.True(t, op.(*Operator[T]).HasValue())
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
 		g.Clear(false)
 
-		assert.Panics(t, func() { op.(*Operator[T]).HasValue() })
+		assert.Panics(t, func() { op.(*Operator[T]).Value() })
 		assert.Nil(t, op.Grad())
 	})
 
@@ -214,13 +213,11 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		op.Value() // wait for the value
 		Backward(op)
 
-		assert.True(t, op.(*Operator[T]).HasValue())
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
 		g.Clear(true)
 
-		assert.False(t, op.(*Operator[T]).HasValue())
 		assert.Nil(t, op.Grad())
 	})
 
@@ -248,11 +245,14 @@ func testGraphClearForReuse[T mat.DType](t *testing.T) {
 		Backward(op)
 
 		assert.NotNil(t, op.Value())
+		assert.Equal(t, T(3), op.Value().Scalar())
 		assert.NotNil(t, op.Grad())
 
 		g.Clear(true)
+		g.Forward()
 
-		assert.Nil(t, op.Value())
+		assert.NotNil(t, op.Value())
+		assert.Equal(t, T(3), op.Value().Scalar())
 		assert.Nil(t, op.Grad())
 	})
 

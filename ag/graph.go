@@ -124,13 +124,12 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 			continue
 		}
 		op.releaseValue()
-		op.releaseGrad()
+		op.ZeroGrad()
 		if retainGraph {
-			op.valueMx.TryLock()
-			if op.gradsMx == nil {
-				op.gradsMx = new(sync.RWMutex)
+			if op.gradMx == nil {
+				op.gradMx = new(sync.RWMutex)
 			}
-			op.gradsMx.TryLock()
+			op.gradMx.TryLock()
 		} else {
 			// free operator
 			*op = Operator[T]{}

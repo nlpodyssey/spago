@@ -29,13 +29,9 @@ func (g *Graph[T]) ForwardT(fromTimeStep, toTimeStep int) {
 }
 
 func (g *Graph[T]) forward(start, end int) {
+	g.fWG.Wait()
 	for _, node := range g.nodes[start:end] {
 		if op, ok := node.(*Operator[T]); ok {
-			if op.value != nil {
-				continue
-			}
-			op.valueAtomicFlag = 0
-			op.valueMx.TryLock()
 			g.fWG.Add(1)
 			go op.forward()
 		}
