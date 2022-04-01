@@ -34,10 +34,11 @@ func (r *Reshape[T, O]) Operands() []O {
 
 // Forward computes the output of the node.
 func (r *Reshape[T, O]) Forward() mat.Matrix[T] {
-	if r.x.Value().Size() != r.rows*r.cols {
+	xv := r.x.Value()
+	if xv.Size() != r.rows*r.cols {
 		panic("fn: incompatible sizes")
 	}
-	return r.x.Value().Reshape(r.rows, r.cols)
+	return xv.Reshape(r.rows, r.cols)
 }
 
 // Backward computes the backward pass.

@@ -28,10 +28,11 @@ func NewMulT[T mat.DType, O Operand[T]](x1 O, x2 O) *MulT[T, O] {
 
 // Forward computes the output of the function.
 func (r *MulT[T, O]) Forward() mat.Matrix[T] {
-	if r.x1.Value().Rows() != r.x2.Value().Rows() {
+	x1v, x2v := r.x1.Value(), r.x2.Value()
+	if x1v.Rows() != x2v.Rows() {
 		panic("fn: matrices with not compatible size")
 	}
-	return r.x1.Value().MulT(r.x2.Value())
+	return x1v.MulT(x2v)
 }
 
 // Operands returns the list of operands.

@@ -39,13 +39,14 @@ func (r *Dropout[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *Dropout[T, O]) Forward() mat.Matrix[T] {
+	xv := r.x.Value()
 	if r.q > 0.0 {
-		r.mask = bernulli.Distribution(r.x.Value().Rows(), r.x.Value().Columns(), r.prob, r.randGen)
+		r.mask = bernulli.Distribution(xv.Rows(), xv.Columns(), r.prob, r.randGen)
 		r.mask.ProdScalarInPlace(1.0 / r.q)
 	} else {
-		r.mask = r.x.Value().ZerosLike()
+		r.mask = xv.ZerosLike()
 	}
-	return r.x.Value().Prod(r.mask)
+	return xv.Prod(r.mask)
 }
 
 // Backward computes the backward pass.

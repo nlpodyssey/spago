@@ -38,9 +38,10 @@ func (r *View[T, O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *View[T, O]) Forward() mat.Matrix[T] {
 	y := mat.NewEmptyDense[T](r.lx, r.ly)
+	xv := r.x.Value()
 	for i := 0; i < r.lx; i++ {
 		for j := 0; j < r.ly; j++ {
-			y.Set(i, j, r.x.Value().At(i+r.sx, j+r.sy))
+			y.Set(i, j, xv.At(i+r.sx, j+r.sy))
 		}
 	}
 	return y

@@ -41,11 +41,12 @@ func (r *MaxPooling[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
-	if !(r.x.Value().Rows()%r.rows == 0 && r.x.Value().Columns()%r.cols == 0) {
+	xv := r.x.Value()
+	if !(xv.Rows()%r.rows == 0 && xv.Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = mat.NewEmptyDense[T](r.x.Value().Rows()/r.rows, r.x.Value().Columns()/r.cols)
+	r.y = mat.NewEmptyDense[T](xv.Rows()/r.rows, xv.Columns()/r.cols)
 	r.argmaxI = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
 	r.argmaxJ = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
 
@@ -54,7 +55,7 @@ func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 			maximum := mat.SmallestNonzero[T]()
 			for i := row * r.rows; i < (row*r.rows)+r.rows; i++ {
 				for j := col * r.cols; j < (col*r.cols)+r.rows; j++ {
-					val := r.x.Value().At(i, j)
+					val := xv.At(i, j)
 					if val > maximum {
 						maximum = val
 						r.argmaxI[row][col] = i
