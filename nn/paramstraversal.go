@@ -6,12 +6,13 @@ package nn
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/utils"
 	"reflect"
 	"strings"
 	"sync"
+
+	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/utils"
 )
 
 // ParamsTraversalFunc is the function called for each visited Param from
@@ -24,6 +25,13 @@ import (
 //   - pType: type of the parameter, if available, usually derived from
 //     a `spago:"type:..."` tag from a struct's field
 type ParamsTraversalFunc[T mat.DType] func(param Param[T], name string, pType ParamsType)
+
+// ParamsTraverser allows you to define a custom procedure to traverse the parameters of a model.
+// If a model implements this procedure, it will take precedence over the regular parameters visit.
+type ParamsTraverser[T mat.DType] interface {
+	// TraverseParams calls ParamsTraversalFunc for each visited Param.
+	TraverseParams(callback ParamsTraversalFunc[T])
+}
 
 // paramsTraversal allows the traversal of Model parameters.
 // The given callback is invoked for each parameter of the Model.
@@ -70,6 +78,8 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFi
 	switch itemT := item.(type) {
 	case Param[T]:
 		pt.callback(itemT, name, tag.paramType())
+	case ParamsTraverser[T]:
+		itemT.TraverseParams(pt.callback)
 	case Model[T]:
 		if pt.exploreSubModels {
 			pt.walk(item)
