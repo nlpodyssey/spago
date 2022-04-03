@@ -54,6 +54,10 @@ type Matrix[T DType] interface {
 	ExtractColumn(i int) Matrix[T]
 	// View returns a new Matrix sharing the same underlying data.
 	View(rows, cols int) Matrix[T]
+	// Slice returns a new matrix obtained by slicing the receiver across the
+	// given positions. The parameters "fromRow" and "fromCol" are inclusive,
+	// while "toRow" and "toCol" are exclusive.
+	Slice(fromRow, fromCol, toRow, toCol int) Matrix[T]
 	// Reshape returns a copy of the matrix.
 	// It panics if the dimensions are incompatible.
 	Reshape(r, c int) Matrix[T]

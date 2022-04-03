@@ -321,6 +321,35 @@ func (d *Dense[T]) View(rows, cols int) Matrix[T] {
 	}
 }
 
+// Slice returns a new matrix obtained by slicing the receiver across the
+// given positions. The parameters "fromRow" and "fromCol" are inclusive,
+// while "toRow" and "toCol" are exclusive.
+func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix[T] {
+	dRows := d.rows
+	dCols := d.cols
+	if fromRow < 0 || fromRow >= dRows || fromCol < 0 || fromCol >= dCols ||
+		toRow > dRows || toCol > dCols || toRow < fromRow || toCol < fromCol {
+		panic("mat: parameters are invalid or incompatible with the matrix dimensions")
+	}
+
+	y := densePool[T]().Get(toRow-fromRow, toCol-fromCol)
+
+	if fromCol == 0 && toCol == dCols {
+		copy(y.data, d.data[fromRow*dCols:toRow*dCols])
+		return y
+	}
+
+	dData := d.data
+	yData := y.data[:0] // exploiting append in loop
+	for r := fromRow; r < toRow; r++ {
+		offset := r * dCols
+		yData = append(yData, dData[offset+fromCol:offset+toCol]...)
+	}
+	y.data = yData
+
+	return y
+}
+
 // Reshape returns a copy of the matrix.
 // It panics if the dimensions are incompatible.
 func (d *Dense[T]) Reshape(rows, cols int) Matrix[T] {

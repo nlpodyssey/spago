@@ -940,6 +940,140 @@ func testDenseView[T DType](t *testing.T) {
 	})
 }
 
+func TestDense_Slice(t *testing.T) {
+	t.Run("float32", testDenseSlice[float32])
+	t.Run("float64", testDenseSlice[float64])
+}
+
+func testDenseSlice[T DType](t *testing.T) {
+	invalidTestCases := []struct {
+		name                           string
+		d                              *Dense[T]
+		fromRow, fromCol, toRow, toCol int
+	}{
+		{"fromRow < 0", NewEmptyDense[T](2, 3), -1, 0, 2, 3},
+		{"fromRow >= matrix rows", NewEmptyDense[T](2, 3), 2, 0, 2, 3},
+		{"fromCol < 0", NewEmptyDense[T](2, 3), 0, -1, 2, 3},
+		{"fromCol >= matrix cols", NewEmptyDense[T](2, 3), 0, 3, 2, 3},
+		{"toRow < fromRow", NewEmptyDense[T](2, 3), 1, 0, 0, 3},
+		{"toRow > matrix rows", NewEmptyDense[T](2, 3), 0, 0, 3, 3},
+		{"toCol < fromCol", NewEmptyDense[T](2, 3), 0, 1, 2, 0},
+		{"toCol > matrix cols", NewEmptyDense[T](2, 3), 0, 0, 2, 4},
+		{"zero rows and cols", NewEmptyDense[T](0, 0), 0, 0, 0, 0},
+		{"zero rows", NewEmptyDense[T](0, 2), 0, 0, 0, 2},
+		{"zero cols", NewEmptyDense[T](2, 0), 0, 0, 2, 0},
+	}
+
+	for _, tc := range invalidTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Panics(t, func() {
+				tc.d.Slice(tc.fromRow, tc.fromCol, tc.toRow, tc.toCol)
+			})
+		})
+	}
+
+	d1x1 := NewDense[T](1, 1, []T{1})
+	d4x4 := NewDense[T](4, 4, []T{
+		11, 12, 13, 14,
+		21, 22, 23, 24,
+		31, 32, 33, 34,
+		41, 42, 43, 44,
+	})
+	d1x3 := NewDense[T](1, 3, []T{1, 2, 3})
+	d3x1 := NewDense[T](3, 1, []T{1, 2, 3})
+
+	testCases := []struct {
+		d                              *Dense[T]
+		fromRow, fromCol, toRow, toCol int
+		y                              []T
+	}{
+		{d1x1, 0, 0, 0, 0, []T{}},
+		{d1x1, 0, 0, 1, 0, []T{}},
+		{d1x1, 0, 0, 0, 1, []T{}},
+		{d1x1, 0, 0, 1, 1, []T{1}},
+
+		{d1x3, 0, 0, 0, 0, []T{}},
+		{d1x3, 0, 0, 1, 1, []T{1}},
+		{d1x3, 0, 1, 1, 2, []T{2}},
+		{d1x3, 0, 2, 1, 3, []T{3}},
+		{d1x3, 0, 0, 1, 2, []T{1, 2}},
+		{d1x3, 0, 1, 1, 3, []T{2, 3}},
+		{d1x3, 0, 0, 1, 3, []T{1, 2, 3}},
+
+		{d3x1, 0, 0, 0, 0, []T{}},
+		{d3x1, 0, 0, 1, 1, []T{1}},
+		{d3x1, 1, 0, 2, 1, []T{2}},
+		{d3x1, 2, 0, 3, 1, []T{3}},
+		{d3x1, 0, 0, 2, 1, []T{1, 2}},
+		{d3x1, 1, 0, 3, 1, []T{2, 3}},
+		{d3x1, 0, 0, 3, 1, []T{1, 2, 3}},
+
+		{d4x4, 0, 0, 0, 0, []T{}},
+		{d4x4, 0, 0, 1, 1, []T{11}},
+
+		{d4x4, 0, 0, 1, 2, []T{11, 12}},
+		{d4x4, 0, 0, 1, 3, []T{11, 12, 13}},
+		{d4x4, 0, 0, 1, 4, []T{11, 12, 13, 14}},
+		{d4x4, 0, 1, 1, 4, []T{12, 13, 14}},
+		{d4x4, 0, 2, 1, 4, []T{13, 14}},
+		{d4x4, 0, 3, 1, 4, []T{14}},
+
+		{d4x4, 0, 0, 2, 1, []T{11, 21}},
+		{d4x4, 0, 0, 3, 1, []T{11, 21, 31}},
+		{d4x4, 0, 0, 4, 1, []T{11, 21, 31, 41}},
+		{d4x4, 1, 0, 4, 1, []T{21, 31, 41}},
+		{d4x4, 2, 0, 4, 1, []T{31, 41}},
+		{d4x4, 3, 0, 4, 1, []T{41}},
+
+		{d4x4, 0, 1, 1, 3, []T{12, 13}},
+		{d4x4, 1, 1, 2, 3, []T{22, 23}},
+		{d4x4, 2, 1, 3, 3, []T{32, 33}},
+		{d4x4, 3, 1, 4, 3, []T{42, 43}},
+
+		{d4x4, 1, 0, 3, 1, []T{21, 31}},
+		{d4x4, 1, 1, 3, 2, []T{22, 32}},
+		{d4x4, 1, 2, 3, 3, []T{23, 33}},
+		{d4x4, 1, 3, 3, 4, []T{24, 34}},
+
+		{d4x4, 1, 1, 2, 2, []T{22}},
+		{d4x4, 3, 3, 4, 4, []T{44}},
+
+		{d4x4, 0, 0, 2, 2, []T{
+			11, 12,
+			21, 22,
+		}},
+		{d4x4, 0, 0, 2, 3, []T{
+			11, 12, 13,
+			21, 22, 23,
+		}},
+		{d4x4, 0, 0, 3, 2, []T{
+			11, 12,
+			21, 22,
+			31, 32,
+		}},
+		{d4x4, 1, 1, 3, 3, []T{
+			22, 23,
+			32, 33,
+		}},
+		{d4x4, 2, 2, 4, 4, []T{
+			33, 34,
+			43, 44,
+		}},
+	}
+
+	for _, tc := range testCases {
+		name := fmt.Sprintf(
+			"%d x %d slice from (%d, %d) to (%d, %d)", tc.d.rows, tc.d.cols,
+			tc.fromRow, tc.fromCol, tc.toRow, tc.toCol,
+		)
+		t.Run(name, func(t *testing.T) {
+			y := tc.d.Slice(tc.fromRow, tc.fromCol, tc.toRow, tc.toCol)
+			assertDenseDims(t, tc.toRow-tc.fromRow, tc.toCol-tc.fromCol, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 func TestDense_Reshape(t *testing.T) {
 	t.Run("float32", testDenseReshape[float32])
 	t.Run("float64", testDenseReshape[float64])
