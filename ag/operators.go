@@ -340,3 +340,8 @@ func Concat[T mat.DType](xs ...Node[T]) Node[T] {
 func Stack[T mat.DType](xs ...Node[T]) Node[T] {
 	return xs[0].Graph().NewOperator(fn.NewStack[T](xs))
 }
+
+// AppendRows returns a new operator node as a result of the fn.AppendRows function.
+func AppendRows[T mat.DType](x Node[T], vs ...Node[T]) Node[T] {
+	return x.Graph().NewOperator(fn.NewAppendRows[T](x, vs...))
+}
