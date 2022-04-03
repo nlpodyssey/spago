@@ -13,23 +13,24 @@ import (
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention[T mat.DType](q, k, v []ag.Node[T], scaleFactor T, useCausalMask bool) ([]ag.Node[T], []ag.Node[T]) {
+func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], scaleFactor T, useCausalMask bool) ([]ag.Node[T], []ag.Node[T]) {
 	attention := make([]ag.Node[T], len(q))
 	weights := make([]ag.Node[T], len(q))
-	keys := ag.Stack(k...)
-	values := ag.Stack(v...)
-	factor := keys.Graph().Constant(scaleFactor)
+	factor := k.Graph().Constant(scaleFactor)
+
+	causalMaskEnabled := useCausalMask && len(q) > 1
+	kRows := k.Value().Rows()
 
 	for i, qi := range q {
-		scores := ag.ProdScalar(ag.Mul(keys, qi), factor)
+		scores := ag.ProdScalar(ag.Mul(k, qi), factor)
 
-		if useCausalMask && len(q) > 1 {
-			causalMask := mat.NewVecDense[T](makeCausalMask[T](i, len(k))) // TODO: use external cache for causal mask?
+		if causalMaskEnabled {
+			causalMask := mat.NewVecDense[T](makeCausalMask[T](i, kRows)) // TODO: use external cache for causal mask?
 			scores = ag.Add(scores, scores.Graph().NewVariable(causalMask, false))
 		}
 
 		weights[i] = ag.Softmax(scores)
-		attention[i] = ag.MulT(values, weights[i])
+		attention[i] = ag.MulT(v, weights[i])
 	}
 
 	return attention, weights

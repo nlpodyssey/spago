@@ -24,16 +24,16 @@ func testScaledDotProductAttention[T mat.DType](t *testing.T) {
 		g.NewVariable(mat.NewVecDense([]T{2.2, -0.5, 0.3}), true),
 		g.NewVariable(mat.NewVecDense([]T{3.2, 0.5, 0.4}), true),
 	}
-	keys := []ag.Node[T]{
-		g.NewVariable(mat.NewVecDense([]T{0.0, 1.2, 1.3}), true),
-		g.NewVariable(mat.NewVecDense([]T{4.5, 4.3, 0.2}), true),
-		g.NewVariable(mat.NewVecDense([]T{2.7, 3.6, 2.1}), true),
-	}
-	values := []ag.Node[T]{
-		g.NewVariable(mat.NewVecDense([]T{1.2, 2.3, 3.4}), true),
-		g.NewVariable(mat.NewVecDense([]T{2.2, 8.5, 0.0}), true),
-		g.NewVariable(mat.NewVecDense([]T{2.3, 6.5, 3.5}), true),
-	}
+	keys := g.NewVariable(mat.NewDense(3, 3, []T{
+		0.0, 1.2, 1.3,
+		4.5, 4.3, 0.2,
+		2.7, 3.6, 2.1,
+	}), true)
+	values := g.NewVariable(mat.NewDense(3, 3, []T{
+		1.2, 2.3, 3.4,
+		2.2, 8.5, 0.0,
+		2.3, 6.5, 3.5,
+	}), true)
 
 	results, _ := ScaledDotProductAttention(queries, keys, values, 1.0/mat.Sqrt[T](3), false)
 
@@ -60,16 +60,16 @@ func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
 		g.NewVariable(mat.NewVecDense([]T{-0.15, 0.23}), true),
 	}
 
-	keys := []ag.Node[T]{
-		g.NewVariable(mat.NewVecDense([]T{1.66, 0.12}), true),
-		g.NewVariable(mat.NewVecDense([]T{0.88, -0.02}), true),
-		g.NewVariable(mat.NewVecDense([]T{-0.3, -0.46}), true),
-	}
-	values := []ag.Node[T]{
-		g.NewVariable(mat.NewVecDense([]T{0.83, 0.7, -0.25, -0.58}), true),
-		g.NewVariable(mat.NewVecDense([]T{0.0, 0.2, 0.57, -2.08}), true),
-		g.NewVariable(mat.NewVecDense([]T{-0.07, 0.0, 0.29, 0.5}), true),
-	}
+	keys := g.NewVariable(mat.NewDense(3, 2, []T{
+		1.66, 0.12,
+		0.88, -0.02,
+		-0.3, -0.46,
+	}), true)
+	values := g.NewVariable(mat.NewDense(3, 4, []T{
+		0.83, 0.7, -0.25, -0.58,
+		0.0, 0.2, 0.57, -2.08,
+		-0.07, 0.0, 0.29, 0.5,
+	}), true)
 
 	// == Forward
 	results, weights := ScaledDotProductAttention(queries, keys, values, 1.0/mat.Sqrt[T](2), false)
@@ -97,13 +97,17 @@ func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.214319, -0.065291}, queries[1].Grad().Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{0.084357, 0.057063}, queries[2].Grad().Data(), 1.0e-6)
 
-	assert.InDeltaSlice(t, []T{0.06886, -0.025612}, keys[0].Grad().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []T{-0.039958, 0.089393}, keys[1].Grad().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []T{-0.028902, -0.063781}, keys[2].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{
+		0.06886, -0.025612,
+		-0.039958, 0.089393,
+		-0.028902, -0.063781,
+	}, keys.Grad().Data(), 1.0e-6)
 
-	assert.InDeltaSlice(t, []T{-0.15834, -0.431875, -0.371149, -0.450847}, values[0].Grad().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []T{-0.22708, -0.436103, -0.339456, -0.438166}, values[1].Grad().Data(), 1.0e-6)
-	assert.InDeltaSlice(t, []T{-0.31458, -0.432022, -0.289395, -0.410987}, values[2].Grad().Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{
+		-0.15834, -0.431875, -0.371149, -0.450847,
+		-0.22708, -0.436103, -0.339456, -0.438166,
+		-0.31458, -0.432022, -0.289395, -0.410987,
+	}, values.Grad().Data(), 1.0e-6)
 }
 
 func TestLinearAttention(t *testing.T) {

@@ -20,7 +20,7 @@ import (
 var _ nn.Model[float32] = &Model[float32]{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
-type Cache[T mat.DType] [2][]ag.Node[T]
+type Cache[T mat.DType] [2]ag.Node[T]
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
@@ -68,14 +68,17 @@ func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
 func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], Cache[T]) {
 	pq := m.Query.Forward(q...)
 
-	pk := make([]ag.Node[T], 0, len(cache[0])+len(k))
-	pv := make([]ag.Node[T], 0, len(cache[1])+len(v))
+	fwKeys := m.Key.Forward(k...)
+	fwValues := m.Value.Forward(v...)
 
-	pk = append(pk, cache[0]...)
-	pv = append(pv, cache[1]...)
-
-	pk = append(pk, m.Key.Forward(k...)...)
-	pv = append(pv, m.Value.Forward(v...)...)
+	var pk, pv ag.Node[T]
+	if cache[0] == nil {
+		pk = ag.Stack[T](fwKeys...)
+		pv = ag.Stack[T](fwValues...)
+	} else {
+		pk = ag.AppendRows[T](cache[0], fwKeys...)
+		pv = ag.AppendRows[T](cache[1], fwValues...)
+	}
 
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
