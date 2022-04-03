@@ -1166,6 +1166,32 @@ func (d *Dense[T]) PadColumns(n int) Matrix[T] {
 	return y
 }
 
+// AppendRows returns a copy of the matrix with len(vs) additional tail rows,
+// being each new row filled with the values of each given vector.
+//
+// It accepts row or column vectors indifferently, virtually treating all of
+// them as row vectors.
+func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
+	cols := d.cols
+	out := densePool[T]().Get(d.rows+len(vs), cols)
+	dData := d.data
+	outData := out.data
+	copy(outData[:len(dData)], dData)
+
+	offset := len(dData)
+	for _, v := range vs {
+		if !IsVector[T](v) || v.Size() != cols {
+			panic("mat: expected vectors with same size of matrix columns")
+		}
+		vData := v.Data()
+		end := offset + cols
+		copy(outData[offset:end], vData)
+		offset = end
+	}
+
+	return out
+}
+
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 func (d *Dense[T]) Norm(pow T) T {
 	if !IsVector[T](d) {

@@ -3148,6 +3148,116 @@ func testDensePadColumns[T DType](t *testing.T) {
 	}
 }
 
+func TestDense_AppendRows(t *testing.T) {
+	t.Run("float32", testDenseAppendRows[float32])
+	t.Run("float64", testDenseAppendRows[float64])
+}
+
+func testDenseAppendRows[T DType](t *testing.T) {
+	t.Run("non vector value", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		m := NewEmptyDense[T](2, 2)
+		require.Panics(t, func() {
+			d.AppendRows(m)
+		})
+	})
+
+	t.Run("vector of incompatible size", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		v := NewEmptyVecDense[T](2)
+		require.Panics(t, func() {
+			d.AppendRows(v)
+		})
+	})
+
+	testCases := []struct {
+		d  *Dense[T]
+		vs [][]T
+		y  []T
+	}{
+		{NewEmptyDense[T](0, 0), [][]T{}, []T{}},
+		{NewEmptyDense[T](0, 1), [][]T{}, []T{}},
+		{NewEmptyDense[T](0, 1), [][]T{{1}}, []T{1}},
+		{
+			NewDense[T](1, 1, []T{1}),
+			[][]T{{2}},
+			[]T{1, 2},
+		},
+		{
+			NewEmptyDense[T](0, 3),
+			[][]T{
+				{1, 2, 3},
+				{4, 5, 6},
+			},
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+			},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			[][]T{},
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+			},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			[][]T{
+				{7, 8, 9},
+			},
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+				7, 8, 9,
+			},
+		},
+		{
+			NewDense[T](1, 3, []T{
+				1, 2, 3,
+			}),
+			[][]T{
+				{4, 5, 6},
+				{7, 8, 9},
+			},
+			[]T{
+				1, 2, 3,
+				4, 5, 6,
+				7, 8, 9,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("append %d column vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
+			vs := make([]Matrix[T], len(tc.vs))
+			for i, v := range tc.vs {
+				vs[i] = NewDense[T](len(v), 1, v)
+			}
+			y := tc.d.AppendRows(vs...)
+			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+
+		t.Run(fmt.Sprintf("append %d row vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
+			vs := make([]Matrix[T], len(tc.vs))
+			for i, v := range tc.vs {
+				vs[i] = NewDense[T](1, len(v), v)
+			}
+			y := tc.d.AppendRows(vs...)
+			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
+			assert.Equal(t, tc.y, y.Data())
+		})
+	}
+}
+
 func TestDense_Norm(t *testing.T) {
 	t.Run("float32", testDenseNorm[float32])
 	t.Run("float64", testDenseNorm[float64])
