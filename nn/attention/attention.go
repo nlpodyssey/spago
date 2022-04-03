@@ -5,6 +5,8 @@
 package attention
 
 import (
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -21,18 +23,25 @@ func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], sca
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
 
+	var wg sync.WaitGroup
+	wg.Add(len(q))
+
 	for i, qi := range q {
-		scores := ag.ProdScalar(ag.Mul(k, qi), factor)
+		go func(i int, qi ag.Node[T]) {
+			scores := ag.ProdScalar(ag.Mul(k, qi), factor)
 
-		if causalMaskEnabled {
-			causalMask := mat.NewVecDense[T](makeCausalMask[T](i, kRows)) // TODO: use external cache for causal mask?
-			scores = ag.Add(scores, scores.Graph().NewVariable(causalMask, false))
-		}
+			if causalMaskEnabled {
+				causalMask := mat.NewVecDense[T](makeCausalMask[T](i, kRows)) // TODO: use external cache for causal mask?
+				scores = ag.Add(scores, scores.Graph().NewVariable(causalMask, false))
+			}
 
-		weights[i] = ag.Softmax(scores)
-		attention[i] = ag.MulT(v, weights[i])
+			weights[i] = ag.Softmax(scores)
+			attention[i] = ag.MulT(v, weights[i])
+			wg.Done()
+		}(i, qi)
 	}
 
+	wg.Wait()
 	return attention, weights
 }
 
