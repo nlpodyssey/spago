@@ -31,12 +31,7 @@ func (r *Prod[T, O]) Operands() []O {
 
 // Forward computes the output of the node.
 func (r *Prod[T, O]) Forward() mat.Matrix[T] {
-	x1v := r.x1.Value()
-	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
-		panic("fn: matrices with not compatible size")
-	}
-	return x1v.Prod(x2v)
+	return r.x1.Value().Prod(r.x2.Value())
 }
 
 // Backward computes the backward pass.

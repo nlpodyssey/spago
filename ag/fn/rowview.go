@@ -32,11 +32,7 @@ func (r *RowView[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *RowView[T, O]) Forward() mat.Matrix[T] {
-	xv := r.x.Value()
-	if r.i >= xv.Rows() {
-		panic("fn: matrix with not compatible size")
-	}
-	return xv.ExtractRow(r.i)
+	return r.x.Value().ExtractRow(r.i)
 }
 
 // Backward computes the backward pass.

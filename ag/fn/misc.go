@@ -582,7 +582,7 @@ func thresholdDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 }
 
 func swish[T mat.DType](_, _ int, v T) T {
-	return v * (1.0 / (1 + mat.Exp(-v)))
+	return v / (1 + mat.Exp(-v))
 }
 
 func swishDeriv[T mat.DType](i, j int, v T) T {

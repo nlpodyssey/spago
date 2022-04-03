@@ -31,12 +31,7 @@ func (r *Div[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *Div[T, O]) Forward() mat.Matrix[T] {
-	x1v := r.x1.Value()
-	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
-		panic("fn: matrices with not compatible size")
-	}
-	return x1v.Div(x2v)
+	return r.x1.Value().Div(r.x2.Value())
 }
 
 // Backward computes the backward pass.

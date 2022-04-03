@@ -36,9 +36,6 @@ func (r *Add[T, O]) Forward() mat.Matrix[T] {
 		x1v = x2v.ZerosLike()
 		defer mat.ReleaseMatrix(x1v)
 	}
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
-		panic("fn: matrices with not compatible size")
-	}
 	return x1v.Add(x2v)
 }
 
