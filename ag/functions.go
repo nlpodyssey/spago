@@ -85,7 +85,7 @@ func SplitVec[T mat.DType](x Node[T], chunks int) []Node[T] {
 	size := int(mat.Ceil(T(x.Value().Size()) / T(chunks)))
 	ys := make([]Node[T], chunks)
 	for i := 0; i < chunks; i++ {
-		ys[i] = View(x, l, 0, size, 1)
+		ys[i] = Slice(x, l, 0, l+size, 1)
 		l += size
 	}
 	return ys

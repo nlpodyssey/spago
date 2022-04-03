@@ -120,9 +120,9 @@ func MaxPooling[T mat.DType](x Node[T], rows, columns int) Node[T] {
 	return x.Graph().NewOperator(fn.NewMaxPooling[T](x, rows, columns))
 }
 
-// View returns a new operator node as a result of the fn.View function.
-func View[T mat.DType](x Node[T], row, column, xStride, yStride int) Node[T] {
-	return x.Graph().NewOperator(fn.NewView[T](x, row, column, xStride, yStride))
+// Slice returns a new operator node as a result of the fn.Slice function.
+func Slice[T mat.DType](x Node[T], fromRow, fromCol, toRow, toCol int) Node[T] {
+	return x.Graph().NewOperator(fn.NewSlice[T](x, fromRow, fromCol, toRow, toCol))
 }
 
 // RowView returns a new operator node as a result of the fn.RowView function.

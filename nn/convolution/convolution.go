@@ -23,7 +23,8 @@ func Conv1D[T mat.DType](w, x ag.Node[T], stride int) ag.Node[T] {
 	dim = (xc-wc)/stride + 1
 	ys := make([]ag.Node[T], dim)
 	for i := 0; i < dim; i++ {
-		ys[i] = ag.Dot(ag.View(x, 0, i*stride, wr, wc), w)
+		fromCol := i * stride
+		ys[i] = ag.Dot(ag.Slice(x, 0, fromCol, wr, fromCol+wc), w)
 	}
 	return ag.Concat(ys...)
 }
@@ -40,10 +41,14 @@ func Conv2D[T mat.DType](w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
 	dimx = (x.Value().Rows()-w.Value().Rows())/xStride + 1
 	dimy = (x.Value().Columns()-w.Value().Columns())/yStride + 1
 
+	wRows, wCols := w.Value().Dims()
+
 	var outList []ag.Node[T]
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
-			var view = ag.View(x, i*xStride, j*yStride, w.Value().Rows(), w.Value().Columns())
+			fromRow := i * xStride
+			fromCol := j * yStride
+			var view = ag.Slice(x, fromRow, fromCol, fromRow+wRows, fromCol+wCols)
 			var dotProduct = ag.Dot(view, w)
 			outList = append(outList, dotProduct)
 		}

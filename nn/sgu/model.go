@@ -73,13 +73,14 @@ func (m *Model[T]) Initialize(seed uint64) {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	halfSize := xs[0].Value().Size() / 2
+	size := xs[0].Value().Size()
+	halfSize := size / 2
 
 	res := make([]ag.Node[T], len(xs))
 	gate := make([]ag.Node[T], len(xs))
 	for i, x := range xs {
-		res[i] = ag.View(x, 0, 0, halfSize, 1)
-		gate[i] = ag.View(x, halfSize, 0, halfSize, 1)
+		res[i] = ag.Slice(x, 0, 0, halfSize, 1)
+		gate[i] = ag.Slice(x, halfSize, 0, size, 1)
 	}
 
 	gate = m.Norm.Forward(gate...)
