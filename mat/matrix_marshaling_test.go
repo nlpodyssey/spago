@@ -16,7 +16,7 @@ func TestMatrixMarshaling(t *testing.T) {
 	t.Run("Dense float32", testMatrixMarshalingDense[float32])
 	t.Run("Dense float64", testMatrixMarshalingDense[float64])
 
-	t.Run("nil float32", testMatrixMarshalingNil[float64])
+	t.Run("nil float32", testMatrixMarshalingNil[float32])
 	t.Run("nil float64", testMatrixMarshalingNil[float64])
 
 	t.Run("wrong types Dense float32-float64", testMatrixMarshalingDenseWrongType[float32, float64])

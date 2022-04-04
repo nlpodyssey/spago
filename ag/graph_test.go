@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewGraph(t *testing.T) {
-	t.Run("float32", testNewGraph[float64])
+	t.Run("float32", testNewGraph[float32])
 	t.Run("float64", testNewGraph[float64])
 }
 
