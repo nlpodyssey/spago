@@ -7,12 +7,13 @@ package embeddings_test
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/embeddings/store"
-	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings"
+	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/embeddings/store/memstore"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -374,10 +375,18 @@ func TestModel_UseRepository(t *testing.T) {
 	})
 
 	t.Run("error getting Store from Repository", func(t *testing.T) {
-		// Create an empty on-disk read-only repository, so request for any
-		// store will fail.
-		repo, err := diskstore.NewRepository(t.TempDir(), diskstore.ReadOnlyMode)
-		require.NoError(t, err)
+		storeError := errors.New("repo store test error")
+		repo := repoStub{
+			fnStore: func(name string) (store.Store, error) {
+				require.Equal(t, "foo", name)
+				return nil, storeError
+			},
+			fnDropAll: func() error {
+				msg := "DropAll should not be invoked"
+				t.Fatal(msg)
+				return fmt.Errorf(msg)
+			},
+		}
 
 		m := &embeddings.Model[T, string]{
 			Config: embeddings.Config{
@@ -386,8 +395,8 @@ func TestModel_UseRepository(t *testing.T) {
 			Store: nil,
 		}
 
-		err = m.UseRepository(repo)
-		require.Error(t, err)
+		err := m.UseRepository(repo)
+		require.ErrorIs(t, err, storeError)
 		assert.Nil(t, m.Store)
 	})
 }
@@ -437,4 +446,17 @@ func TestModel(t *testing.T) {
 
 		require.Nil(t, decoded.EmbeddingsWithGrad)
 	})
+}
+
+type repoStub struct {
+	fnStore   func(name string) (store.Store, error)
+	fnDropAll func() error
+}
+
+func (r repoStub) Store(name string) (store.Store, error) {
+	return r.fnStore(name)
+}
+
+func (r repoStub) DropAll() error {
+	return r.fnDropAll()
 }
