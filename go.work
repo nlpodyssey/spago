@@ -4,4 +4,5 @@ use (
 	./.
 	./embeddings/store/diskstore
 	./graphviz
+	./nn/approxlinear
 )
