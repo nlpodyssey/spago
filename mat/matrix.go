@@ -301,3 +301,24 @@ func dataEqual[T DType](a, b []T) bool {
 	}
 	return true
 }
+
+// InDelta reports whether matrices a and b have the same shape and
+// all elements at the same positions are within delta.
+func InDelta[T DType](a, b Matrix[T], delta T) bool {
+	return a.Rows() == b.Rows() &&
+		a.Columns() == b.Columns() &&
+		dataInDelta(a.Data(), b.Data(), delta)
+}
+
+func dataInDelta[T DType](a, b []T, delta T) bool {
+	if len(a) == 0 {
+		return true
+	}
+	_ = b[len(a)-1]
+	for i, ai := range a {
+		if Abs(ai-b[i]) > delta {
+			return false
+		}
+	}
+	return true
+}

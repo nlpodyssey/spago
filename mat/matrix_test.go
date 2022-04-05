@@ -311,3 +311,62 @@ func testEqual[T DType](t *testing.T) {
 		})
 	}
 }
+
+func TestInDelta(t *testing.T) {
+	t.Run("float32", testInDelta[float32])
+	t.Run("float64", testInDelta[float64])
+}
+
+func testInDelta[T DType](t *testing.T) {
+	testCases := []struct {
+		a, b     Matrix[T]
+		delta    T
+		expected bool
+	}{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), 0, true},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), 0, true},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), 0, true},
+		{NewEmptyDense[T](1, 1), NewEmptyDense[T](1, 2), 0, false},
+		{NewEmptyDense[T](1, 1), NewEmptyDense[T](2, 1), 0, false},
+		{NewEmptyDense[T](1, 2), NewEmptyDense[T](2, 1), 0, false},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42}), 0, true},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42.1}), 0, false},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42.09}), .1, true},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{43}), 1, true},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{44}), 2, true},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{44.1}), 2, false},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 7,
+			}),
+			1,
+			true,
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			NewDense[T](2, 3, []T{
+				2, 3, 4,
+				5, 6, 8,
+			}),
+			1,
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		name := fmt.Sprintf("InDelta(%dx%d, %dx%d, delta %.1f) == %v",
+			tc.a.Rows(), tc.a.Columns(), tc.b.Rows(), tc.b.Columns(), tc.delta, tc.expected)
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, InDelta(tc.a, tc.b, tc.delta), "a vs b")
+			assert.Equal(t, tc.expected, InDelta(tc.b, tc.a, tc.delta), "b vs a")
+		})
+	}
+}
