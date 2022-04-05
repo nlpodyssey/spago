@@ -259,3 +259,55 @@ func testStack[T DType](t *testing.T) {
 		})
 	}
 }
+
+func TestEqual(t *testing.T) {
+	t.Run("float32", testEqual[float32])
+	t.Run("float64", testEqual[float64])
+}
+
+func testEqual[T DType](t *testing.T) {
+	testCases := []struct {
+		a, b     Matrix[T]
+		expected bool
+	}{
+		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), true},
+		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), true},
+		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), true},
+		{NewEmptyDense[T](1, 1), NewEmptyDense[T](1, 2), false},
+		{NewEmptyDense[T](1, 1), NewEmptyDense[T](2, 1), false},
+		{NewEmptyDense[T](1, 2), NewEmptyDense[T](2, 1), false},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42}), true},
+		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{41}), false},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			true,
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 7,
+			}),
+			false,
+		},
+	}
+
+	for _, tc := range testCases {
+		name := fmt.Sprintf("Equal(%dx%d, %dx%d) == %v",
+			tc.a.Rows(), tc.a.Columns(), tc.b.Rows(), tc.b.Columns(), tc.expected)
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, Equal(tc.a, tc.b), "a vs b")
+			assert.Equal(t, tc.expected, Equal(tc.b, tc.a), "b vs a")
+		})
+	}
+}

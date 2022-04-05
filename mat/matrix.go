@@ -281,3 +281,23 @@ func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
 	}
 	return out
 }
+
+// Equal reports whether matrices a and b have the same shape and elements.
+func Equal[T DType](a, b Matrix[T]) bool {
+	return a.Rows() == b.Rows() &&
+		a.Columns() == b.Columns() &&
+		dataEqual(a.Data(), b.Data())
+}
+
+func dataEqual[T DType](a, b []T) bool {
+	if len(a) == 0 {
+		return true
+	}
+	_ = b[len(a)-1]
+	for i, ai := range a {
+		if ai != b[i] {
+			return false
+		}
+	}
+	return true
+}
