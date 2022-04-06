@@ -21,7 +21,7 @@ func Dropout[T mat.DType](x Node[T], p T) Node[T] {
 		return x
 	}
 	g := x.Graph()
-	return g.NewOperator(fn.NewDropout[T](x, p, g.randGen))
+	return g.NewOperator(fn.NewDropout[T](x, p, globalGenerator[T]()))
 }
 
 // AtVec returns a new operator node as a result of the fn.AtVec function.

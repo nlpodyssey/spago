@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,25 +26,9 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		assert.Empty(t, g.constants)
 	}
 
-	t.Run("without option", func(t *testing.T) {
+	t.Run("new graph", func(t *testing.T) {
 		g := NewGraph[T]()
 		runCommonAssertions(t, g)
-		assert.NotNil(t, g.randGen)
-	})
-
-	t.Run("with WithRand option", func(t *testing.T) {
-		r := rand.NewLockedRand[T](42)
-		g := NewGraph[T](WithRand(r))
-		runCommonAssertions(t, g)
-		assert.Same(t, r, g.randGen)
-	})
-
-	t.Run("with WithRandSeed option", func(t *testing.T) {
-		r := rand.NewLockedRand[T](42)
-		g := NewGraph[T](WithRandSeed[T](42))
-		runCommonAssertions(t, g)
-		assert.NotNil(t, g.randGen)
-		assert.Equal(t, r.Int(), g.randGen.Int())
 	})
 }
 

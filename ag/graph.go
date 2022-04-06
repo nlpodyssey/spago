@@ -8,14 +8,11 @@ import (
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/rand"
 )
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
-	// randGen is the generator of random numbers
-	randGen *rand.LockedRand[T]
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
 	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
@@ -39,8 +36,8 @@ type Graph[T mat.DType] struct {
 
 // NewGraph returns a new initialized graph.
 // It can take an optional random generator of type rand.WithRand.
-func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
-	g := &Graph[T]{
+func NewGraph[T mat.DType]() *Graph[T] {
+	return &Graph[T]{
 		maxID:              -1,
 		curTimeStep:        0,
 		timeStepBoundaries: []int{0},
@@ -50,13 +47,6 @@ func NewGraph[T mat.DType](opts ...GraphOption[T]) *Graph[T] {
 		bWG:                &sync.WaitGroup{},
 		backwardInProgress: false,
 	}
-	for _, opt := range opts {
-		opt(g)
-	}
-	if g.randGen == nil {
-		g.randGen = rand.NewLockedRand[T](1) // set default random generator
-	}
-	return g
 }
 
 // Clear cleans the graph and should be called after the graph has been used.
