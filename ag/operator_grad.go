@@ -16,7 +16,7 @@ func (o *Operator[T]) Grad() mat.Matrix[T] {
 		return nil
 	}
 
-	if o.graph.backwardInProgress && atomic.LoadUint64(&o.pendingGrads) > 0 {
+	if o.graph.backwardInProgress && atomic.LoadInt64(&o.pendingGrads) > 0 {
 		o.gradMx.RLock()
 		defer o.gradMx.RUnlock()
 	}
@@ -66,11 +66,7 @@ func (o *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
 		return
 	}
 
-	pg := atomic.LoadUint64(&o.pendingGrads)
-	if pg > 0 {
-		pg = atomic.AddUint64(&o.pendingGrads, ^uint64(0)) // decrement
-	}
-	if pg == 0 {
+	if atomic.AddInt64(&o.pendingGrads, -1) == 0 { // decrement
 		o.gradMx.Unlock()
 	}
 }

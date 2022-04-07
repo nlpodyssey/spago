@@ -32,8 +32,8 @@ type Operator[T mat.DType] struct {
 	grad         mat.Matrix[T]
 	gradMx       *sync.RWMutex
 	gradAccMx    sync.Mutex // to avoid data race during gradients accumulation
-	parentsCount uint64
-	pendingGrads uint64
+	parentsCount int64
+	pendingGrads int64
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -142,8 +142,8 @@ func (o *Operator[T]) setParentsCounts() {
 	for _, operand := range o.Operands() {
 		if operand.RequiresGrad() {
 			if oo, ok := operand.(*Operator[T]); ok {
-				atomic.AddUint64(&oo.parentsCount, 1)
-				atomic.AddUint64(&oo.pendingGrads, 1)
+				atomic.AddInt64(&oo.parentsCount, 1)
+				atomic.AddInt64(&oo.pendingGrads, 1)
 			}
 		}
 	}
