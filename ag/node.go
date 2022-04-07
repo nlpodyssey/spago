@@ -64,13 +64,3 @@ func CopyGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
 	}
 	return node.Grad().Clone()
 }
-
-// ReplaceValue replaces the current value of a variable Node with the given value.
-// It panics if node is not a variable.
-func ReplaceValue[T mat.DType](node Node[T], value mat.Matrix[T]) {
-	if node, ok := node.(*Variable[T]); !ok {
-		panic("ag: invalid node. Only variables are allowed to change their value.")
-	} else {
-		node.value = value
-	}
-}

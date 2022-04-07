@@ -50,14 +50,10 @@ func NewGraph[T mat.DType]() *Graph[T] {
 }
 
 // Clear cleans the graph and should be called after the graph has been used.
-// It releases the matrices underlying the operator nodes so to reduce the need of future new time-consuming allocations.
+// It releases the matrices underlying the operator nodes so the node operators become weak references.
 // It is therefore recommended to make always a copy of the results of node.Value().
 // You can use the convenient ag.CopyValue(node) and ag.CopyGrad(node)
-//
-// When retain graph is enabled, the graph structure is preserved, and calling node.Value() triggers graph forwarding
-// up to the specified node. So you can use the same pre-calculated graph with new values using ag.ReplaceValue().
-// Otherwise, the graph structure is disintegrated, and the node operators become weak references.
-func (g *Graph[T]) Clear(retainGraph bool) {
+func (g *Graph[T]) Clear() {
 	g.fWG.Wait()
 	g.bWG.Wait()
 	g.mu.Lock()
@@ -65,14 +61,10 @@ func (g *Graph[T]) Clear(retainGraph bool) {
 	if g.nodes == nil {
 		return
 	}
-	if retainGraph {
-		g.releaseMemory(true)
-		return
-	}
 	g.maxID = -1
 	g.curTimeStep = 0
 	g.timeStepBoundaries = []int{0}
-	g.releaseMemory(false)
+	g.releaseMemory()
 	g.nodes = nil
 }
 
@@ -104,8 +96,7 @@ func (g *Graph[_]) IncTimeStep() {
 // releaseMemory clears the values and the gradients of operator nodes.
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
-// By setting retain graph to false, the operators are freed and thus the graph is disintegrated.
-func (g *Graph[T]) releaseMemory(retainGraph bool) {
+func (g *Graph[T]) releaseMemory() {
 	g.fWG.Wait()
 	g.bWG.Wait()
 	for _, node := range g.nodes {
@@ -115,17 +106,9 @@ func (g *Graph[T]) releaseMemory(retainGraph bool) {
 		}
 		op.releaseValue()
 		op.ZeroGrad()
-		if retainGraph {
-			if op.gradMx == nil {
-				op.gradMx = new(sync.RWMutex)
-			}
-			op.gradMx.TryLock()
-		} else {
-			// free operator
-			*op = Operator[T]{}
-			getOperatorPool[T]().Put(op)
-			// TODO: release constants?
-		}
+		*op = Operator[T]{} // free operator
+		getOperatorPool[T]().Put(op)
+		// TODO: release constants?
 	}
 }
 

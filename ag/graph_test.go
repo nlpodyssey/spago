@@ -148,7 +148,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		g.NewScalar(42)
 		assert.Equal(t, 0, g.maxID)
-		g.Clear(false)
+		g.Clear()
 		assert.Equal(t, -1, g.maxID)
 	})
 
@@ -157,7 +157,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g.NewScalar(42)
 		g.IncTimeStep()
 		assert.Equal(t, 1, g.curTimeStep)
-		g.Clear(false)
+		g.Clear()
 		assert.Equal(t, 0, g.curTimeStep)
 	})
 
@@ -165,7 +165,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		g := NewGraph[T]()
 		g.NewScalar(42)
 		assert.NotNil(t, g.nodes)
-		g.Clear(false)
+		g.Clear()
 		assert.Nil(t, g.nodes)
 	})
 
@@ -181,7 +181,7 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		g.Clear(false)
+		g.Clear()
 
 		assert.Panics(t, func() { op.(*Operator[T]).Value() })
 		assert.Nil(t, op.Grad())
@@ -199,49 +199,17 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		g.Clear(true)
+		g.Clear()
 
 		assert.Nil(t, op.Grad())
 	})
 
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
-		g.Clear(false)
+		g.Clear()
 		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
-	})
-}
-
-func TestGraph_ClearForReuse(t *testing.T) {
-	t.Run("float32", testGraphClearForReuse[float32])
-	t.Run("float64", testGraphClearForReuse[float64])
-}
-
-func testGraphClearForReuse[T mat.DType](t *testing.T) {
-	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph[T]()
-		op := Add(
-			g.NewVariable(mat.NewScalar[T](1), true),
-			g.NewVariable(mat.NewScalar[T](2), true),
-		)
-		Backward(op)
-
-		assert.NotNil(t, op.Value())
-		assert.Equal(t, T(3), op.Value().Scalar())
-		assert.NotNil(t, op.Grad())
-
-		g.Clear(true)
-		g.Forward()
-
-		assert.NotNil(t, op.Value())
-		assert.Equal(t, T(3), op.Value().Scalar())
-		assert.Nil(t, op.Grad())
-	})
-
-	t.Run("it works on a graph without nodes", func(t *testing.T) {
-		g := NewGraph[T]()
-		assert.NotPanics(t, func() { g.Clear(true) })
 	})
 }
 
@@ -308,24 +276,4 @@ func testGraphNewWrapNoGrad[T mat.DType](t *testing.T) {
 	assert.Same(t, g, w.graph)
 	assert.Equal(t, 0, w.id)
 	assert.False(t, w.wrapGrad)
-}
-
-func TestGraph_Forward(t *testing.T) {
-	t.Run("float32", testGraphForward[float32])
-	t.Run("float64", testGraphForward[float64])
-}
-
-func testGraphForward[T mat.DType](t *testing.T) {
-	g := NewGraph[T]()
-	x1 := g.NewScalar(40)
-	x2 := g.NewScalar(2)
-	op := Add(x1, x2)
-	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(42), op.Value().Scalar())
-	g.Clear(true)
-	ReplaceValue[T](x1, mat.NewScalar[T](60))
-	ReplaceValue[T](x2, mat.NewScalar[T](9))
-	g.Forward()
-	assert.NotNil(t, op.Value())
-	assert.Equal(t, T(69), op.Value().Scalar())
 }

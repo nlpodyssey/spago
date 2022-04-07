@@ -90,13 +90,8 @@ func (s *Session[_, _]) Close() {
 		s.graph = nil
 		return
 	}
-	s.graph.Clear(false)
+	s.graph.Clear()
 	s.graph = nil
-}
-
-// ClearForReuse allows you to efficiently reuse the graph as if it were "pre-computed".
-func (s *Session[_, _]) ClearForReuse() {
-	s.graph.Clear(true)
 }
 
 // NewVariable creates and returns a new variable owned by the session's graph.
