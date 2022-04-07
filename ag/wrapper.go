@@ -66,12 +66,12 @@ func (r *Wrapper[T]) Grad() mat.Matrix[T] {
 	return r.GradValue.Grad()
 }
 
-// PropagateGrad propagates the gradients to the node.
-func (r *Wrapper[T]) PropagateGrad(gx mat.Matrix[T]) {
+// AccGrad accumulates the gradients to the node.
+func (r *Wrapper[T]) AccGrad(gx mat.Matrix[T]) {
 	if !r.wrapGrad {
 		return
 	}
-	r.GradValue.PropagateGrad(gx)
+	r.GradValue.AccGrad(gx)
 }
 
 // HasGrad returns true if there are accumulated gradients.

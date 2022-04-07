@@ -57,6 +57,6 @@ func (r *Dropout[T, O]) Backward(gy mat.Matrix[T]) {
 	defer mat.ReleaseMatrix(r.mask)
 	if r.x.RequiresGrad() {
 		gx := gy.Prod(r.mask)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

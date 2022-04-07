@@ -35,6 +35,6 @@ func (r *UnaryElementwise[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().Apply(r.df)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

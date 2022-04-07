@@ -52,6 +52,6 @@ func (r *Softmax[T, O]) Backward(gy mat.Matrix[T]) {
 		defer mat.ReleaseDense(jb)
 		gx := jb.Mul(gy)
 		defer mat.ReleaseMatrix(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

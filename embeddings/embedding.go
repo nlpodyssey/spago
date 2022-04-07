@@ -62,9 +62,9 @@ func (e *Embedding[_, _]) RequiresGrad() bool {
 	return e.model.Trainable
 }
 
-// PropagateGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
-func (e *Embedding[T, _]) PropagateGrad(gx mat.Matrix[T]) {
-	e.model.propagateGrad(e, gx)
+// AccGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+func (e *Embedding[T, _]) AccGrad(gx mat.Matrix[T]) {
+	e.model.accGrad(e, gx)
 }
 
 // ZeroGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.

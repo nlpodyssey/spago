@@ -41,7 +41,7 @@ func (r *ReverseSubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		gx := gy.ProdScalar(-1.0)
 		defer mat.ReleaseMatrix(gx)
-		r.x1.PropagateGrad(gx)
+		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		var gx T = 0.0
@@ -52,6 +52,6 @@ func (r *ReverseSubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		}
 		scalar := mat.NewScalar(gx)
 		defer mat.ReleaseDense(scalar)
-		r.x2.PropagateGrad(scalar)
+		r.x2.AccGrad(scalar)
 	}
 }

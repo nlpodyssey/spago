@@ -40,7 +40,7 @@ func (r *SubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy) // equals to gy.ProdScalar(1.0)
+		r.x1.AccGrad(gy) // equals to gy.ProdScalar(1.0)
 	}
 	if r.x2.RequiresGrad() {
 		var gx T = 0.0
@@ -51,6 +51,6 @@ func (r *SubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		}
 		scalar := mat.NewScalar(gx)
 		defer mat.ReleaseDense(scalar)
-		r.x2.PropagateGrad(scalar)
+		r.x2.AccGrad(scalar)
 	}
 }

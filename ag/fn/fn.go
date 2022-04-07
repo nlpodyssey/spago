@@ -10,8 +10,8 @@ import "github.com/nlpodyssey/spago/mat"
 type Operand[T mat.DType] interface {
 	// Value returns the value of the operand.
 	Value() mat.Matrix[T]
-	// PropagateGrad propagates the gradients gx to the operands.
-	PropagateGrad(gx mat.Matrix[T])
+	// AccGrad accumulate the gradients gx to the operands.
+	AccGrad(gx mat.Matrix[T])
 	// RequiresGrad returns true if the operand requires gradients.
 	RequiresGrad() bool
 }

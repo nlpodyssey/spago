@@ -4,12 +4,14 @@
 
 package ag
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Backward starts the back-propagation from the node.
 //
 // It follows these mutually exclusive rules:
-//   a) the node has gradients already (probably assigned externally via node.PropagateGrads()), use those;
+//   a) the node has gradients already (probably assigned externally via node.AccGrads()), use those;
 //   b) the output gradients are passed, use those;
 //   c) the output gradients are automatically assigned by finding the derivative of the node with respect
 //      to the node itself (dy/dy = 1).
@@ -18,77 +20,102 @@ import "github.com/nlpodyssey/spago/mat"
 // Unless that's what you want, make sure all nodes have zero gradients.
 //
 // It panics if gradients are passed but the node already has them assigned.
-func Backward[T mat.DType](node Node[T], grad ...mat.Matrix[T]) {
-	if grad != nil && node.HasGrad() {
+func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
+	if len(grad) > 0 && grad[0] != nil && x.HasGrad() {
 		panic("ag: attempt to start a backward with output gradients on a node that already has gradients.")
 	}
-	if !node.HasGrad() {
+
+	op, ok := x.(*Operator[T])
+	if !ok {
+		return
+	}
+
+	setPendingGrads(op)
+
+	if op.grad != nil {
+		op.pendingGrads--
+	} else {
 		var gx mat.Matrix[T]
 		if len(grad) == 0 || grad[0] == nil {
-			gx = node.Value().OnesLike()
+			gx = x.Value().OnesLike()
 			defer mat.ReleaseMatrix(gx)
 		} else {
 			gx = grad[0]
 		}
-		node.PropagateGrad(gx)
+		x.AccGrad(gx)
 	}
 
-	node.Graph().backward(node.ID(), 0)
+	backward(op)
+	x.Graph().bWG.Wait()
 }
 
-// BackwardT is the same as Backward but ends back-propagation on the first node with a time-step
-// that is less or equal to the number of back steps.
-func BackwardT[T mat.DType](node Node[T], backSteps int, grad ...mat.Matrix[T]) {
-	if grad != nil && node.HasGrad() {
-		panic("ag: attempt to start a backward with output gradients on a node that already has gradients.")
-	}
-	if !node.HasGrad() {
-		var gx mat.Matrix[T]
-		if len(grad) == 0 || grad[0] == nil {
-			gx = node.Value().OnesLike()
-			defer mat.ReleaseMatrix(gx)
-		} else {
-			gx = grad[0]
-		}
-		node.PropagateGrad(gx)
-	}
-
-	node.Graph().backward(node.ID(), node.Graph().timeStepBoundaries[node.TimeStep()-backSteps])
-}
-
-// Backward performs full back-propagation from the last node of the graph.
-// It requires the root nodes to have assigned gradients already.
-//
-// It visits each node in reverse topological order, to propagate the gradients
-// from the given node all the way back to the leaf.
-//
-// Note that the gradients are summed to the existing ones.
-// Unless that's what you want, make sure  all nodes have zero gradients.
-func (g *Graph[T]) Backward() {
-	g.backward(g.maxID, 0)
-}
-
-// BackwardT performs Truncated Back-Propagation Through Time.
-// It is the same as Backward but ends back-propagation on the first node with a time-step
-// that is less or equal to the number of back steps.
-// The TBTT can perform without the need to recalculate the values of previous nodes (Williams and Peng, 1990).
-func (g *Graph[T]) BackwardT(backSteps int) {
-	g.backward(g.maxID, g.timeStepBoundaries[g.nodes[g.maxID].TimeStep()-backSteps])
-}
-
-func (g *Graph[T]) backward(start, end int) {
-	g.fWG.Wait()
-	g.backwardInProgress = true
-	defer func() {
-		g.backwardInProgress = false
-	}()
-	nodes := g.nodes
-	_, _ = nodes[start], nodes[end] // avoid bounds check
-	for i := start; i >= end; i-- {
-		if op, ok := nodes[i].(*Operator[T]); ok {
-			g.bWG.Add(1)
-			go op.backward()
+// BackwardMany performs the backpropagation from a list of nodes.
+// This is particularly useful when there are previously assigned
+// gradients on root nodes or when there are multiple distinct losses.
+func BackwardMany[T mat.DType](xs ...Node[T]) {
+	for _, x := range xs {
+		if op, ok := x.(*Operator[T]); ok {
+			setPendingGrads(op)
 		}
 	}
-	g.bWG.Wait()
+	for _, x := range xs {
+		if op, ok := x.(*Operator[T]); ok {
+			if op.grad != nil {
+				op.pendingGrads--
+			} else {
+				gx := x.Value().OnesLike()
+				x.AccGrad(gx)
+				mat.ReleaseMatrix(gx)
+			}
+		}
+	}
+	for _, x := range xs {
+		if op, ok := x.(*Operator[T]); ok {
+			backward(op)
+		}
+	}
+	xs[0].Graph().bWG.Wait()
+}
+
+func setPendingGrads[T mat.DType](op *Operator[T]) {
+	if !op.requiresGrad {
+		return
+	}
+
+	if op.pendingGrads < 0 {
+		op.pendingGrads = 0
+	}
+	op.pendingGrads++
+	op.gradMx.TryLock()
+
+	if op.visited == 1 {
+		return
+	}
+	op.visited = 1
+	op.inBackward = true
+
+	for _, operand := range op.function.Operands() {
+		if oo, ok := operand.(*Operator[T]); ok {
+			setPendingGrads(oo)
+		}
+	}
+}
+
+func backward[T mat.DType](op *Operator[T]) {
+	if !op.requiresGrad {
+		return
+	}
+	if op.visited == 0 {
+		return
+	}
+	op.visited = 0
+
+	op.Graph().bWG.Add(1)
+	go op.backward()
+
+	for _, operand := range op.function.Operands() {
+		if oo, ok := operand.(*Operator[T]); ok {
+			backward(oo)
+		}
+	}
 }

@@ -46,13 +46,13 @@ func (r *Add[T, O]) Backward(gy mat.Matrix[T]) {
 		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {
 			panic("fn: matrices with not compatible size")
 		}
-		r.x1.PropagateGrad(gy)
+		r.x1.AccGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
 		x2v := r.x2.Value()
 		if !(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
 			panic("fn: matrices with not compatible size")
 		}
-		r.x2.PropagateGrad(gy)
+		r.x2.AccGrad(gy)
 	}
 }

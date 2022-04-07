@@ -53,6 +53,6 @@ func (s *Slice[T, O]) Backward(gy mat.Matrix[T]) {
 				gx.Set(i+s.fromRow, j+s.fromCol, gy.At(i, j))
 			}
 		}
-		s.x.PropagateGrad(gx)
+		s.x.AccGrad(gx)
 	}
 }

@@ -32,12 +32,12 @@ func TestParamsMap(t *testing.T) {
 		// foo has grad
 		foo, _ := m.Embedding("foo")
 		foo.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
-		foo.PropagateGrad(mat.NewVecDense([]T{10, 20, 30}))
+		foo.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 
 		// bar has grad too
 		bar, _ := m.Embedding("bar")
 		bar.ReplaceValue(mat.NewVecDense([]T{4, 5, 6}))
-		bar.PropagateGrad(mat.NewVecDense([]T{40, 50, 60}))
+		bar.AccGrad(mat.NewVecDense([]T{40, 50, 60}))
 
 		// baz has no grad
 		baz, _ := m.Embedding("baz")

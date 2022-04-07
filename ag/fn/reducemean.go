@@ -41,6 +41,6 @@ func (r *ReduceMean[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/T(r.x.Value().Size()))
 		defer mat.ReleaseDense(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

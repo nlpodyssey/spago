@@ -64,7 +64,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 			gx.SetVec(i, gy.AtVec(i)-nzSum)
 		})
 
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }
 

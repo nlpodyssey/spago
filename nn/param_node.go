@@ -39,7 +39,7 @@ func (p *ParamNode[T]) Grad() mat.Matrix[T] {
 
 // PropagateGrad dispatches the call to the Node.
 func (p *ParamNode[T]) PropagateGrad(gx mat.Matrix[T]) {
-	p.Node.PropagateGrad(gx)
+	p.Node.AccGrad(gx)
 }
 
 // HasGrad dispatches the call to the Node.

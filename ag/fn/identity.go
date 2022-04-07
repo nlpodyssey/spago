@@ -36,5 +36,5 @@ func (r *Identity[T, O]) Backward(gy mat.Matrix[T]) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
-	r.x.PropagateGrad(gy)
+	r.x.AccGrad(gy)
 }

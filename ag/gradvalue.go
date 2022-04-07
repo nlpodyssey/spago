@@ -20,8 +20,8 @@ type GradValue[T mat.DType] interface {
 	HasGrad() bool
 	// RequiresGrad returns true if the node requires gradients.
 	RequiresGrad() bool
-	// PropagateGrad propagates the gradients to the node.
-	PropagateGrad(gx mat.Matrix[T])
+	// AccGrad accumulate the gradients to the node.
+	AccGrad(gx mat.Matrix[T])
 	// ZeroGrad set the gradients to zeros.
 	ZeroGrad()
 }

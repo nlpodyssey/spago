@@ -39,7 +39,7 @@ func (r *RotateR[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewVecDense(rotateL(gy.Data(), r.i))
 		defer mat.ReleaseDense(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }
 

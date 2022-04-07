@@ -223,7 +223,7 @@ func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix[T], exists bool) {
 	return
 }
 
-func (m *Model[T, K]) propagateGrad(e *Embedding[T, K], gx mat.Matrix[T]) {
+func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix[T]) {
 	if !m.Trainable {
 		return
 	}

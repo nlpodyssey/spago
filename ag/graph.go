@@ -30,8 +30,6 @@ type Graph[T mat.DType] struct {
 	fWG *sync.WaitGroup
 	// bWG waits for the backward goroutines to finish.
 	bWG *sync.WaitGroup
-	// backwardInProgress regulates the claim and the propagation of gradients during the backpropagation.
-	backwardInProgress bool
 }
 
 // NewGraph returns a new initialized graph.
@@ -45,7 +43,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 		constants:          map[T]Node[T]{},
 		fWG:                &sync.WaitGroup{},
 		bWG:                &sync.WaitGroup{},
-		backwardInProgress: false,
 	}
 }
 

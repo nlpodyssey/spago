@@ -115,8 +115,8 @@ func (r *Variable[T]) Grad() mat.Matrix[T] {
 	return r.grad
 }
 
-// PropagateGrad accumulates the gradients to the node itself.
-func (r *Variable[T]) PropagateGrad(grad mat.Matrix[T]) {
+// AccGrad accumulates the gradients to the node itself.
+func (r *Variable[T]) AccGrad(grad mat.Matrix[T]) {
 	if !r.requiresGrad {
 		return
 	}

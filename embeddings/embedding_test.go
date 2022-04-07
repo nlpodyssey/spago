@@ -89,7 +89,7 @@ func TestEmbedding_ReplaceValue(t *testing.T) {
 
 	e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 	e.SetPayload(payload)
-	e.PropagateGrad(mat.NewVecDense([]T{10, 20, 30}))
+	e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 
 	require.Equal(t, []T{1, 2, 3}, e.Value().Data())
 	require.True(t, e.HasGrad())
@@ -162,7 +162,7 @@ func TestEmbedding_Grad(t *testing.T) {
 	assert.Nil(t, e1.Grad())
 	assert.Nil(t, e2.Grad())
 
-	e1.PropagateGrad(mat.NewVecDense([]T{1, 2, 3}))
+	e1.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
 
 	assert.True(t, e1.HasGrad())
 	assert.True(t, e2.HasGrad())
@@ -173,7 +173,7 @@ func TestEmbedding_Grad(t *testing.T) {
 	assert.Equal(t, []T{1, 2, 3}, e2.Grad().Data())
 	assert.Same(t, e1.Grad(), e2.Grad())
 
-	e1.PropagateGrad(mat.NewVecDense([]T{10, 20, 30}))
+	e1.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 
 	assert.True(t, e1.HasGrad())
 	assert.True(t, e2.HasGrad())

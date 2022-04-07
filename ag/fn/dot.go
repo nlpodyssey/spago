@@ -57,11 +57,11 @@ func (r *Dot[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().ProdScalar(gys)
 		defer mat.ReleaseMatrix(gx)
-		r.x1.PropagateGrad(gx)
+		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := r.x1.Value().ProdScalar(gys)
 		defer mat.ReleaseMatrix(gx)
-		r.x2.PropagateGrad(gx)
+		r.x2.AccGrad(gx)
 	}
 }

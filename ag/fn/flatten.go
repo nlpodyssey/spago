@@ -40,6 +40,6 @@ func (r *Flatten[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := gy.Reshape(r.x.Value().Dims())
 		defer mat.ReleaseMatrix(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

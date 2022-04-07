@@ -32,8 +32,9 @@ type Operator[T mat.DType] struct {
 	grad         mat.Matrix[T]
 	gradMx       *sync.RWMutex
 	gradAccMx    sync.Mutex // to avoid data race during gradients accumulation
-	parentsCount int64
 	pendingGrads int64
+	visited      int64
+	inBackward   bool
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -57,14 +58,13 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		grad:         nil,
 		gradMx:       nil,
 		gradAccMx:    sync.Mutex{},
-		parentsCount: 0,
 		pendingGrads: 0,
+		visited:      0,
 	}
 
 	if n.requiresGrad {
 		n.gradMx = new(sync.RWMutex)
 		n.gradMx.Lock()
-		n.setParentsCounts()
 	}
 
 	g.fWG.Add(1)
@@ -123,28 +123,17 @@ func (o *Operator[T]) forward() {
 
 func (o *Operator[T]) backward() {
 	defer o.graph.bWG.Done()
+	defer func() {
+		o.inBackward = false
+	}()
+
 	if !o.requiresGrad {
 		return
 	}
+
 	grad := o.Grad()
 	if grad == nil {
-		for _, operand := range o.Operands() {
-			if oo, ok := operand.(*Operator[T]); ok {
-				oo.PropagateGrad(nil)
-			}
-		}
 		return
 	}
 	o.function.Backward(grad)
-}
-
-func (o *Operator[T]) setParentsCounts() {
-	for _, operand := range o.Operands() {
-		if operand.RequiresGrad() {
-			if oo, ok := operand.(*Operator[T]); ok {
-				atomic.AddInt64(&oo.parentsCount, 1)
-				atomic.AddInt64(&oo.pendingGrads, 1)
-			}
-		}
-	}
 }

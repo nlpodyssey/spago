@@ -51,7 +51,7 @@ func (r *Concat[T, O]) Backward(gy mat.Matrix[T]) {
 	xs := r.xs
 	for i, gx := range gy.SplitV(sizes...) {
 		if xs[i].RequiresGrad() {
-			xs[i].PropagateGrad(gx)
+			xs[i].AccGrad(gx)
 		}
 		mat.ReleaseMatrix(gx)
 	}

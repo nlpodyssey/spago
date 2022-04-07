@@ -45,7 +45,7 @@ func (r *Div[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		gx := gy.Div(r.x2.Value())
 		defer mat.ReleaseMatrix(gx)
-		r.x1.PropagateGrad(gx)
+		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		x2sq := r.x2.Value().Prod(r.x2.Value())
@@ -54,6 +54,6 @@ func (r *Div[T, O]) Backward(gy mat.Matrix[T]) {
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(-1)
 		gx.DivInPlace(x2sq)
-		r.x2.PropagateGrad(gx)
+		r.x2.AccGrad(gx)
 	}
 }

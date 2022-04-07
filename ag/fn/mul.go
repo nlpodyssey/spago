@@ -50,24 +50,24 @@ func (r *Mul[T, O]) Backward(gy mat.Matrix[T]) {
 			defer mat.ReleaseMatrix(x2t)
 			gx := gy.Mul(x2t)
 			defer mat.ReleaseMatrix(gx)
-			r.x1.PropagateGrad(gx)
+			r.x1.AccGrad(gx)
 		}()
 	}
 	if r.x2.RequiresGrad() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			//r.x2.PropagateGrad(gy.T().Mul(r.x1).T()) // alternative method
+			//r.x2.AccGrad(gy.T().Mul(r.x1).T()) // alternative method
 			if gy.Columns() == 1 {
 				gx := r.x1.Value().MulT(gy)
 				defer mat.ReleaseMatrix(gx)
-				r.x2.PropagateGrad(gx)
+				r.x2.AccGrad(gx)
 			} else {
 				x1t := r.x1.Value().T()
 				defer mat.ReleaseMatrix(x1t)
 				gx := x1t.Mul(gy)
 				defer mat.ReleaseMatrix(gx)
-				r.x2.PropagateGrad(gx)
+				r.x2.AccGrad(gx)
 			}
 		}()
 	}

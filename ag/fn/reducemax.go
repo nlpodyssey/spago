@@ -49,6 +49,6 @@ func (r *ReduceMax[T, O]) Backward(gy mat.Matrix[T]) {
 				gx.Data()[i] = gy.Scalar()
 			}
 		}
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

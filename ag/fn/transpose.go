@@ -40,6 +40,6 @@ func (r *Transpose[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := gy.T()
 		defer mat.ReleaseMatrix(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

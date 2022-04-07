@@ -16,7 +16,7 @@ func (o *Operator[T]) Grad() mat.Matrix[T] {
 		return nil
 	}
 
-	if o.graph.backwardInProgress && atomic.LoadInt64(&o.pendingGrads) > 0 {
+	if o.inBackward && atomic.LoadInt64(&o.pendingGrads) > 0 {
 		o.gradMx.RLock()
 		defer o.gradMx.RUnlock()
 	}
@@ -44,29 +44,25 @@ func (o *Operator[_]) ZeroGrad() {
 	}
 	mat.ReleaseMatrix(o.grad) // release memory
 	o.grad = nil
-	o.pendingGrads = o.parentsCount
+	o.pendingGrads = 0
+	o.visited = 0
+	o.inBackward = false
 }
 
-// PropagateGrad accumulates the gradients to the node itself.
-func (o *Operator[T]) PropagateGrad(grad mat.Matrix[T]) {
+// AccGrad accumulates the gradients to the node itself.
+func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	if !o.requiresGrad {
 		return
 	}
 	o.gradAccMx.Lock()
 	defer o.gradAccMx.Unlock()
 
-	if grad != nil {
-		if o.grad == nil {
-			o.grad = o.Value().ZerosLike()
-		}
-		o.grad.AddInPlace(grad)
+	if o.grad == nil {
+		o.grad = o.Value().ZerosLike()
 	}
+	o.grad.AddInPlace(grad)
 
-	if !o.graph.backwardInProgress {
-		return
-	}
-
-	if atomic.AddInt64(&o.pendingGrads, -1) == 0 { // decrement
+	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 { // decrement
 		o.gradMx.Unlock()
 	}
 }

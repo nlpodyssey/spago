@@ -40,6 +40,6 @@ func (r *ReduceSum[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar())
 		defer mat.ReleaseDense(gx)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

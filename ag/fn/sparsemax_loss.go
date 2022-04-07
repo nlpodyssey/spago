@@ -67,6 +67,6 @@ func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := gy.Sub(sparseMax)
 		defer mat.ReleaseMatrix(gx)
 
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

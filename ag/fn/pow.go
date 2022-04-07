@@ -43,6 +43,6 @@ func (r *Pow[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().Pow(r.power - 1)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(r.power).ProdInPlace(gy)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

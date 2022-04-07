@@ -51,7 +51,7 @@ func (a *AppendRows[T, O]) Backward(gy mat.Matrix[T]) {
 	xRows := xVal.Rows()
 	if a.x.RequiresGrad() {
 		xGrads := gy.Slice(0, 0, xRows, xVal.Columns())
-		a.x.PropagateGrad(xGrads)
+		a.x.AccGrad(xGrads)
 		mat.ReleaseMatrix(xGrads)
 	}
 
@@ -60,7 +60,7 @@ func (a *AppendRows[T, O]) Backward(gy mat.Matrix[T]) {
 			continue
 		}
 		vGrads := gy.ExtractRow(xRows + i)
-		v.PropagateGrad(vGrads)
+		v.AccGrad(vGrads)
 		mat.ReleaseMatrix(vGrads)
 	}
 }

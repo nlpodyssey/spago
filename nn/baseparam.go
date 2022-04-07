@@ -113,8 +113,8 @@ func (p *BaseParam[T]) Grad() mat.Matrix[T] {
 	return p.grad
 }
 
-// PropagateGrad accumulate the gradients
-func (p *BaseParam[T]) PropagateGrad(grad mat.Matrix[T]) {
+// AccGrad accumulate the gradients
+func (p *BaseParam[T]) AccGrad(grad mat.Matrix[T]) {
 	if !p.requiresGrad {
 		return
 	}

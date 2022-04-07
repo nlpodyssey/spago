@@ -82,6 +82,6 @@ func (r *MaxPooling[T, O]) Backward(gy mat.Matrix[T]) {
 				gx.Set(rowi[col], rowj[col], gy.At(row, col))
 			}
 		}
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

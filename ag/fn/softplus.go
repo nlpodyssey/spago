@@ -46,6 +46,6 @@ func (r *SoftPlus[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().ApplyWithAlpha(softPlusDeriv[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

@@ -41,11 +41,11 @@ func (r *AddScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.PropagateGrad(gy)
+		r.x1.AccGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
 		gx := mat.NewScalar(gy.Sum())
 		defer mat.ReleaseDense(gx)
-		r.x2.PropagateGrad(gx)
+		r.x2.AccGrad(gx)
 	}
 }

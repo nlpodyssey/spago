@@ -191,10 +191,10 @@ func testModelForwardSeq[T mat.DType](t *testing.T) { //TODO FIX TEST
 
 	// == Backward
 
-	s1.Y.PropagateGrad(mat.NewVecDense([]T{-0.2, -0.3, -0.4}))
-	s2.Y.PropagateGrad(mat.NewVecDense([]T{0.6, -0.3, -0.2}))
+	s1.Y.AccGrad(mat.NewVecDense([]T{-0.2, -0.3, -0.4}))
+	s2.Y.AccGrad(mat.NewVecDense([]T{0.6, -0.3, -0.2}))
 
-	s.Graph().Backward()
+	ag.BackwardMany(s2.Y)
 
 	assert.InDeltaSlice(t, []T{0.0058833, 0.0008477, -0.0048020}, x.Grad().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{-0.02891086, 0.00700993, 0.0099656}, x2.Grad().Data(), 1.0e-05)

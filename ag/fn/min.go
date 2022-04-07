@@ -56,7 +56,7 @@ func (r *Min[T, O]) Backward(gy mat.Matrix[T]) {
 				gxData[i] = gyData[i]
 			}
 		}
-		r.x1.PropagateGrad(gx)
+		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := x2v.ZerosLike()
@@ -68,6 +68,6 @@ func (r *Min[T, O]) Backward(gy mat.Matrix[T]) {
 				gxData[i] = gyData[i]
 			}
 		}
-		r.x2.PropagateGrad(gx)
+		r.x2.AccGrad(gx)
 	}
 }

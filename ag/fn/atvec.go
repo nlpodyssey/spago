@@ -40,6 +40,6 @@ func (r *AtVec[T, O]) Backward(gy mat.Matrix[T]) {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)
 		dx.SetVec(r.i, gy.Scalar())
-		r.x.PropagateGrad(dx)
+		r.x.AccGrad(dx)
 	}
 }

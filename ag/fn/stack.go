@@ -42,7 +42,7 @@ func (r *Stack[T, O]) Backward(gy mat.Matrix[T]) {
 			continue
 		}
 		gyRow := gy.ExtractRow(i)
-		x.PropagateGrad(gyRow)
+		x.AccGrad(gyRow)
 		mat.ReleaseMatrix(gyRow)
 	}
 }

@@ -61,19 +61,19 @@ func testModelForward[T mat.DType](t *testing.T) {
 		0.9934620209, -0.0996679946, 0.7931990971,
 	}, y[1].Value().Data(), 1.0e-05)
 
-	y[0].PropagateGrad(mat.NewDense(3, 3, []T{
+	y[0].AccGrad(mat.NewDense(3, 3, []T{
 		-0.3, 0.5, 0.6,
 		0.9, 0.1, 0.0,
 		0.3, 0.4, -1.0,
 	}))
 
-	y[1].PropagateGrad(mat.NewDense(3, 3, []T{
+	y[1].AccGrad(mat.NewDense(3, 3, []T{
 		-0.3, 0.5, -0.6,
 		-0.2, 0.0, 0.1,
 		0.3, 0.6, 0.0,
 	}))
 
-	s.Graph().Backward()
+	ag.BackwardMany(y...)
 
 	assert.InDeltaSlice(t, []T{
 		0.4361460918, 0.3557904551,

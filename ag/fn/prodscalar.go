@@ -42,7 +42,7 @@ func (r *ProdScalar[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x1.RequiresGrad() {
 		gx := gy.ProdScalar(r.x2.Value().Scalar())
 		defer mat.ReleaseMatrix(gx)
-		r.x1.PropagateGrad(gx)
+		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		var gx T = 0.0
@@ -53,6 +53,6 @@ func (r *ProdScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		}
 		scalar := mat.NewScalar(gx)
 		defer mat.ReleaseDense(scalar)
-		r.x2.PropagateGrad(scalar)
+		r.x2.AccGrad(scalar)
 	}
 }

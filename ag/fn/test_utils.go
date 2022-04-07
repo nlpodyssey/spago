@@ -13,6 +13,6 @@ type variable[T mat.DType] struct {
 	requiresGrad bool
 }
 
-func (v *variable[T]) Value() mat.Matrix[T]           { return v.value }
-func (v *variable[T]) PropagateGrad(gx mat.Matrix[T]) { v.grad = gx.Clone() }
-func (v *variable[_]) RequiresGrad() bool             { return v.requiresGrad }
+func (v *variable[T]) Value() mat.Matrix[T]     { return v.value }
+func (v *variable[T]) AccGrad(gx mat.Matrix[T]) { v.grad = gx.Clone() }
+func (v *variable[_]) RequiresGrad() bool       { return v.requiresGrad }

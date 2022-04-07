@@ -46,6 +46,6 @@ func (r *ColView[T, O]) Backward(gy mat.Matrix[T]) {
 		for i := 0; i < r.x.Value().Rows(); i++ {
 			gx.Set(i, r.i, gy.AtVec(i))
 		}
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

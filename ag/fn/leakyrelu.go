@@ -45,6 +45,6 @@ func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().ApplyWithAlpha(leakyReLUDeriv[T], r.alpha.Value().Scalar())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
-		r.x.PropagateGrad(gx)
+		r.x.AccGrad(gx)
 	}
 }

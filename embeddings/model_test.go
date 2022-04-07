@@ -161,7 +161,7 @@ func TestModel_Embedding(t *testing.T) {
 		e2, _ := m.Embedding("e")
 		assert.NotSame(t, e, e2, "no grad: not memoized")
 
-		e.PropagateGrad(mat.NewVecDense([]T{1, 2, 3}))
+		e.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
 
 		e2, _ = m.Embedding("e")
 		assert.Same(t, e, e2, "has grad: memoized")
@@ -249,7 +249,7 @@ func TestModel_ClearEmbeddingsWithGrad(t *testing.T) {
 	m := embeddings.New[T, string](conf, repo)
 
 	e, _ := m.Embedding("e")
-	e.PropagateGrad(mat.NewVecDense([]T{1, 2, 3}))
+	e.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
 
 	assert.NotNil(t, e.Grad())
 	assert.Equal(t, []T{1, 2, 3}, e.Grad().Data())
@@ -416,7 +416,7 @@ func TestModel(t *testing.T) {
 
 		e, _ := m.Embedding("e")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
-		e.PropagateGrad(mat.NewVecDense([]T{10, 20, 30}))
+		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 		e.SetPayload(&nn.Payload[T]{
 			Label: 123,
 			Data: []mat.Matrix[T]{

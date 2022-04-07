@@ -88,10 +88,10 @@ func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.314262, 0.333682, 0.352055}, weights[2].Value().Data(), 1.0e-6)
 
 	// == Backward
-	results[0].PropagateGrad(mat.NewVecDense([]T{0.7, -0.3, -0.7, -0.5}))
-	results[1].PropagateGrad(mat.NewVecDense([]T{-0.8, -0.5, -0.5, 0.1}))
-	results[2].PropagateGrad(mat.NewVecDense([]T{-0.6, -0.5, 0.2, -0.9}))
-	g.Backward()
+	results[0].AccGrad(mat.NewVecDense([]T{0.7, -0.3, -0.7, -0.5}))
+	results[1].AccGrad(mat.NewVecDense([]T{-0.8, -0.5, -0.5, 0.1}))
+	results[2].AccGrad(mat.NewVecDense([]T{-0.6, -0.5, 0.2, -0.9}))
+	ag.BackwardMany(results...)
 
 	assert.InDeltaSlice(t, []T{0.291064, 0.090078}, queries[0].Grad().Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{-0.214319, -0.065291}, queries[1].Grad().Data(), 1.0e-6)

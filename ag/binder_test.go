@@ -23,16 +23,16 @@ type paramStruct[T mat.DType] struct {
 	m mat.Matrix[T]
 }
 
-func (ps *paramStruct[T]) Value() mat.Matrix[T]          { panic("should not be called") }
-func (ps *paramStruct[T]) ScalarValue() T                { panic("should not be called") }
-func (ps *paramStruct[T]) Grad() mat.Matrix[T]           { panic("should not be called") }
-func (ps *paramStruct[_]) HasGrad() bool                 { panic("should not be called") }
-func (ps *paramStruct[_]) RequiresGrad() bool            { panic("should not be called") }
-func (ps *paramStruct[T]) PropagateGrad(_ mat.Matrix[T]) { panic("should not be called") }
-func (ps *paramStruct[_]) ZeroGrad()                     { panic("should not be called") }
-func (ps *paramStruct[T]) Graph() *Graph[T]              { panic("should not be called") }
-func (ps *paramStruct[_]) ID() int                       { panic("should not be called") }
-func (ps *paramStruct[_]) TimeStep() int                 { panic("should not be called") }
+func (ps *paramStruct[T]) Value() mat.Matrix[T]    { panic("should not be called") }
+func (ps *paramStruct[T]) ScalarValue() T          { panic("should not be called") }
+func (ps *paramStruct[T]) Grad() mat.Matrix[T]     { panic("should not be called") }
+func (ps *paramStruct[_]) HasGrad() bool           { panic("should not be called") }
+func (ps *paramStruct[_]) RequiresGrad() bool      { panic("should not be called") }
+func (ps *paramStruct[T]) AccGrad(_ mat.Matrix[T]) { panic("should not be called") }
+func (ps *paramStruct[_]) ZeroGrad()               { panic("should not be called") }
+func (ps *paramStruct[T]) Graph() *Graph[T]        { panic("should not be called") }
+func (ps *paramStruct[_]) ID() int                 { panic("should not be called") }
+func (ps *paramStruct[_]) TimeStep() int           { panic("should not be called") }
 
 var _ paramInterface[float32] = &paramStruct[float32]{}
 

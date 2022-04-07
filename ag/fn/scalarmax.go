@@ -48,6 +48,6 @@ func (r *ScalarMax[T, O]) Backward(gy mat.Matrix[T]) {
 	}
 	target := r.xs[r.argmax]
 	if target.RequiresGrad() {
-		target.PropagateGrad(gy)
+		target.AccGrad(gy)
 	}
 }
