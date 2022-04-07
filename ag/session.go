@@ -33,30 +33,17 @@ type SessionProvider[T mat.DType] interface {
 // in which the fields of type Node (including those from other differentiable
 // submodules) are connected to the session's graph.
 type Session[T mat.DType, D Differentiable[T]] struct {
-	module     D
-	graph      *Graph[T]
-	graphOwner bool
-	mode       ProcessingMode
+	module D
+	graph  *Graph[T]
+	mode   ProcessingMode
 }
 
 // NewSession construct a new session for the differentiable module working on a new Graph.
 func NewSession[T mat.DType, D Differentiable[T]](i D, mode ProcessingMode) *Session[T, D] {
 	g := NewGraph[T]()
 	s := &Session[T, D]{
-		graph:      g,
-		graphOwner: true,
-		mode:       mode,
-	}
-	s.module = (&graphBinder[T]{session: s}).newBoundStruct(i).(Differentiable[T]).(D)
-	return s
-}
-
-// NewSessionWithGraph construct a new session for the differentiable module working on the given Graph.
-func NewSessionWithGraph[T mat.DType, D Differentiable[T]](i D, mode ProcessingMode, g *Graph[T]) *Session[T, D] {
-	s := &Session[T, D]{
-		graph:      g,
-		graphOwner: false,
-		mode:       mode,
+		graph: g,
+		mode:  mode,
 	}
 	s.module = (&graphBinder[T]{session: s}).newBoundStruct(i).(Differentiable[T]).(D)
 	return s
@@ -82,14 +69,7 @@ func (s *Session[_, _]) Mode() ProcessingMode {
 // Close release resources associated with the Session.
 // Trying to use the result of Module() after closing leads to panic,
 // as there is no graph on which to perform operations.
-//
-// If the graph was not created within the session itself
-// but was handed in from outside, it will not be released.
 func (s *Session[_, _]) Close() {
-	if !s.graphOwner {
-		s.graph = nil
-		return
-	}
 	s.graph.Clear()
 	s.graph = nil
 }
