@@ -26,8 +26,6 @@ type Graph[T mat.DType] struct {
 	nodes []Node[T]
 	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
 	constants map[T]Node[T]
-	// fWG waits for the forward goroutines to finish.
-	fWG *sync.WaitGroup
 }
 
 // NewGraph returns a new initialized graph.
@@ -39,7 +37,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 		timeStepBoundaries: []int{0},
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
-		fWG:                &sync.WaitGroup{},
 	}
 }
 
@@ -48,7 +45,7 @@ func NewGraph[T mat.DType]() *Graph[T] {
 // It is therefore recommended to make always a copy of the results of node.Value().
 // You can use the convenient ag.CopyValue(node) and ag.CopyGrad(node)
 func (g *Graph[T]) Clear() {
-	g.fWG.Wait()
+	WaitForOngoingComputations() // this awaits computation of other graphs as well
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	if g.nodes == nil {
@@ -90,7 +87,6 @@ func (g *Graph[_]) IncTimeStep() {
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph[T]) releaseMemory() {
-	g.fWG.Wait()
 	for _, node := range g.nodes {
 		op, ok := node.(*Operator[T])
 		if !ok {

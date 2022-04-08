@@ -5,12 +5,13 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/ag/fn"
-	"github.com/nlpodyssey/spago/mat"
 	"reflect"
 	"regexp"
 	"sync"
 	"sync/atomic"
+
+	"github.com/nlpodyssey/spago/ag/fn"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 var (
@@ -67,7 +68,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		n.gradMx.Lock()
 	}
 
-	g.fWG.Add(1)
+	ongoingComputations.Add(1)
 	go n.forward()
 
 	return g.insert(n)
@@ -114,7 +115,7 @@ func (o *Operator[T]) Operands() []Node[T] {
 }
 
 func (o *Operator[T]) forward() {
-	defer o.graph.fWG.Done()
+	defer ongoingComputations.Done()
 	o.value.Store(o.function.Forward())
 	o.valueMx.Lock()
 	o.valueCond.Broadcast()

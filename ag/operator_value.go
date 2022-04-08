@@ -35,6 +35,7 @@ func (o *Operator[T]) ScalarValue() T {
 
 // releaseValue sets the operator's value to nil releases the memory.
 func (o *Operator[T]) releaseValue() {
+	o.Value() // wait for the forward goroutine to finish
 	value := o.value.Load()
 	if value == nil {
 		return
