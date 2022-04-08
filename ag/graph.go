@@ -28,8 +28,6 @@ type Graph[T mat.DType] struct {
 	constants map[T]Node[T]
 	// fWG waits for the forward goroutines to finish.
 	fWG *sync.WaitGroup
-	// bWG waits for the backward goroutines to finish.
-	bWG *sync.WaitGroup
 }
 
 // NewGraph returns a new initialized graph.
@@ -42,7 +40,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 		nodes:              nil,
 		constants:          map[T]Node[T]{},
 		fWG:                &sync.WaitGroup{},
-		bWG:                &sync.WaitGroup{},
 	}
 }
 
@@ -52,7 +49,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 // You can use the convenient ag.CopyValue(node) and ag.CopyGrad(node)
 func (g *Graph[T]) Clear() {
 	g.fWG.Wait()
-	g.bWG.Wait()
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	if g.nodes == nil {
@@ -95,7 +91,6 @@ func (g *Graph[_]) IncTimeStep() {
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph[T]) releaseMemory() {
 	g.fWG.Wait()
-	g.bWG.Wait()
 	for _, node := range g.nodes {
 		op, ok := node.(*Operator[T])
 		if !ok {

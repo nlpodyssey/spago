@@ -6,6 +6,7 @@ package ag
 
 import (
 	"github.com/nlpodyssey/spago/mat"
+	"sync"
 )
 
 // Backward starts the back-propagation from the node.
@@ -62,11 +63,11 @@ func backward[T mat.DType](firstGrad mat.Matrix[T], ops ...*Operator[T]) {
 
 	accInitialOperatorGradients(firstGrad, ops...)
 
+	wg := new(sync.WaitGroup)
 	for _, op := range ops {
-		backwardOperator(op)
+		backwardOperator(wg, op)
 	}
-
-	ops[0].Graph().bWG.Wait()
+	wg.Wait()
 }
 
 func setupOperatorForBackward[T mat.DType](op *Operator[T]) {
@@ -109,7 +110,7 @@ func accInitialOperatorGradients[T mat.DType](firstGrad mat.Matrix[T], ops ...*O
 	}
 }
 
-func backwardOperator[T mat.DType](op *Operator[T]) {
+func backwardOperator[T mat.DType](wg *sync.WaitGroup, op *Operator[T]) {
 	if !op.requiresGrad {
 		return
 	}
@@ -118,12 +119,15 @@ func backwardOperator[T mat.DType](op *Operator[T]) {
 	}
 	op.visited = 0
 
-	op.Graph().bWG.Add(1)
-	go op.backward()
+	wg.Add(1)
+	go func() {
+		op.backward()
+		wg.Done()
+	}()
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			backwardOperator(oo)
+			backwardOperator(wg, oo)
 		}
 	}
 }

@@ -122,7 +122,6 @@ func (o *Operator[T]) forward() {
 }
 
 func (o *Operator[T]) backward() {
-	defer o.graph.bWG.Done()
 	defer func() {
 		o.inBackward = false
 	}()
