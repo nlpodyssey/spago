@@ -21,8 +21,17 @@ import (
 //
 // It panics if gradients are passed but the node already has them assigned.
 func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
-	if len(grad) > 0 && grad[0] != nil && x.HasGrad() {
-		panic("ag: attempt to start a backward with output gradients on a node that already has gradients.")
+	if len(grad) > 1 {
+		panic("ag: only none or one gradients matrix must be passed to Backward")
+	}
+
+	var firstGrad mat.Matrix[T] = nil
+	if len(grad) > 0 && grad[0] != nil {
+		firstGrad = grad[0]
+	}
+
+	if firstGrad != nil && x.HasGrad() {
+		panic("ag: attempt to start a backward with output gradients on a node that already has gradients")
 	}
 
 	op, ok := x.(*Operator[T])
@@ -30,78 +39,77 @@ func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
 		return
 	}
 
-	setPendingGrads(op)
-
-	if op.grad != nil {
-		op.pendingGrads--
-	} else {
-		var gx mat.Matrix[T]
-		if len(grad) == 0 || grad[0] == nil {
-			gx = x.Value().OnesLike()
-			defer mat.ReleaseMatrix(gx)
-		} else {
-			gx = grad[0]
-		}
-		x.AccGrad(gx)
-	}
-
-	backward(op)
-	x.Graph().bWG.Wait()
+	backward(firstGrad, op)
 }
 
 // BackwardMany performs the backpropagation from a list of nodes.
 // This is particularly useful when there are previously assigned
 // gradients on root nodes or when there are multiple distinct losses.
 func BackwardMany[T mat.DType](xs ...Node[T]) {
+	ops := make([]*Operator[T], 0, len(xs))
 	for _, x := range xs {
 		if op, ok := x.(*Operator[T]); ok {
-			setPendingGrads(op)
+			ops = append(ops, op)
 		}
 	}
-	for _, x := range xs {
-		if op, ok := x.(*Operator[T]); ok {
-			if op.grad != nil {
-				op.pendingGrads--
-			} else {
-				gx := x.Value().OnesLike()
-				x.AccGrad(gx)
-				mat.ReleaseMatrix(gx)
-			}
-		}
-	}
-	for _, x := range xs {
-		if op, ok := x.(*Operator[T]); ok {
-			backward(op)
-		}
-	}
-	xs[0].Graph().bWG.Wait()
+	backward(nil, ops...)
 }
 
-func setPendingGrads[T mat.DType](op *Operator[T]) {
+func backward[T mat.DType](firstGrad mat.Matrix[T], ops ...*Operator[T]) {
+	for _, op := range ops {
+		setupOperatorForBackward(op)
+	}
+
+	accInitialOperatorGradients(firstGrad, ops...)
+
+	for _, op := range ops {
+		backwardOperator(op)
+	}
+
+	ops[0].Graph().bWG.Wait()
+}
+
+func setupOperatorForBackward[T mat.DType](op *Operator[T]) {
 	if !op.requiresGrad {
 		return
 	}
 
-	if op.pendingGrads < 0 {
-		op.pendingGrads = 0
-	}
 	op.pendingGrads++
-	op.gradMx.TryLock()
 
 	if op.visited == 1 {
 		return
 	}
 	op.visited = 1
 	op.inBackward = true
+	op.gradMx.TryLock()
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			setPendingGrads(oo)
+			setupOperatorForBackward(oo)
 		}
 	}
 }
 
-func backward[T mat.DType](op *Operator[T]) {
+func accInitialOperatorGradients[T mat.DType](firstGrad mat.Matrix[T], ops ...*Operator[T]) {
+	for i, op := range ops {
+		if op.grad != nil {
+			op.pendingGrads--
+			if op.pendingGrads == 0 {
+				op.gradMx.Unlock()
+			}
+			continue
+		}
+		if i == 0 && firstGrad != nil {
+			op.AccGrad(firstGrad)
+			continue
+		}
+		gx := op.Value().OnesLike()
+		op.AccGrad(gx)
+		mat.ReleaseMatrix(gx)
+	}
+}
+
+func backwardOperator[T mat.DType](op *Operator[T]) {
 	if !op.requiresGrad {
 		return
 	}
@@ -115,7 +123,7 @@ func backward[T mat.DType](op *Operator[T]) {
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			backward(oo)
+			backwardOperator(oo)
 		}
 	}
 }
