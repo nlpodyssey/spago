@@ -11,8 +11,6 @@ import (
 )
 
 // Value returns the result of the function.
-// This method waits for the value as a result of a computation,
-// so you must call g.Forward() explicitly after a g.Clear(true).
 func (o *Operator[T]) Value() mat.Matrix[T] {
 	if v := o.value.Load(); v != nil {
 		return v.(mat.Matrix[T])
