@@ -26,12 +26,12 @@ func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
 		panic("ag: only none or one gradients matrix must be passed to Backward")
 	}
 
-	var firstGrad mat.Matrix[T] = nil
+	var outputGrad mat.Matrix[T] = nil
 	if len(grad) > 0 && grad[0] != nil {
-		firstGrad = grad[0]
+		outputGrad = grad[0]
 	}
 
-	if firstGrad != nil && x.HasGrad() {
+	if outputGrad != nil && x.HasGrad() {
 		panic("ag: attempt to start a backward with output gradients on a node that already has gradients")
 	}
 
@@ -40,7 +40,7 @@ func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
 		return
 	}
 
-	backward(firstGrad, op)
+	backward(outputGrad, op)
 }
 
 // BackwardMany performs the backpropagation from a list of nodes.
