@@ -94,7 +94,7 @@ func (g *Graph[T]) releaseMemory() {
 }
 
 // insert append the node into the graph's nodes.
-func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
+func (g *Graph[T]) insert(n Node[T]) Node[T] {
 	g.mu.Lock()
 	g.nodes = append(g.nodes, n)
 	g.mu.Unlock()

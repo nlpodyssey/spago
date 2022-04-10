@@ -17,11 +17,6 @@ type Node[T mat.DType] interface {
 	TimeStep() int
 }
 
-// nodeInternal extends the public Node with private methods.
-type nodeInternal[T mat.DType] interface {
-	Node[T]
-}
-
 // ToNodes cast a slice of N[T] into a slice of ag.Node.
 func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 	ns := make([]Node[T], len(xs))
