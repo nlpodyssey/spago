@@ -26,25 +26,23 @@ type Wrapper[T mat.DType] struct {
 // NewWrap creates a new wrapper Node for the given value, attaching it to
 // the graph.
 func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
-	n := &Wrapper[T]{
+	return &Wrapper[T]{
 		GradValue: value,
 		timeStep:  g.curTimeStep,
 		graph:     g,
 		wrapGrad:  true,
 	}
-	return g.insert(n)
 }
 
 // NewWrapNoGrad is similar to NewWrap, but it disables automatic
 // differentiation on the new node.
 func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
-	n := &Wrapper[T]{
+	return &Wrapper[T]{
 		GradValue: value,
 		graph:     g,
 		timeStep:  g.curTimeStep,
 		wrapGrad:  false,
 	}
-	return g.insert(n)
 }
 
 // Graph returns the graph this node belongs to.

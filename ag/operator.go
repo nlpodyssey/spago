@@ -68,7 +68,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	ongoingComputations.Add(1)
 	go n.forward()
 
-	return g.insert(n)
+	return n
 }
 
 func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {

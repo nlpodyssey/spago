@@ -31,19 +31,18 @@ type Variable[T mat.DType] struct {
 
 // NewVariable creates and returns a new node.
 func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
-	n := &Variable[T]{
+	return &Variable[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
 	}
-	return g.insert(n)
 }
 
 // NewVariableWithName creates and returns a new node.
 func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
-	n := &Variable[T]{
+	return &Variable[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		name:         name,
@@ -51,7 +50,6 @@ func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, n
 		grad:         nil,
 		requiresGrad: requiresGrad,
 	}
-	return g.insert(n)
 }
 
 // NewScalar creates a variable node that doesn't require gradients.
@@ -70,8 +68,8 @@ func (g *Graph[T]) NewScalarWithName(value T, name string) Node[T] {
 // For the same value, a previously created Node is returned without creating a new one.
 // Useful for example in the case of epsilon and number like 0.0 or 1.0.
 func (g *Graph[T]) Constant(value T) Node[T] {
-	g.mu2.Lock()
-	defer g.mu2.Unlock()
+	g.constMu.Lock()
+	defer g.constMu.Unlock()
 	if node, ok := g.constants[value]; ok {
 		return node
 	}

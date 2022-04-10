@@ -21,7 +21,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		t.Helper()
 		assert.NotNil(t, g)
 		assert.Equal(t, 0, g.curTimeStep)
-		assert.Nil(t, g.nodes)
 		assert.Empty(t, g.constants)
 	}
 
@@ -53,15 +52,6 @@ func testGraphNewVariable[T mat.DType](t *testing.T) {
 		assert.NotNil(t, v)
 		assert.Same(t, s, v.Value())
 		assert.False(t, v.RequiresGrad())
-	})
-
-	t.Run("it appends the nodes to graph.nodes", func(t *testing.T) {
-		g := NewGraph[T]()
-		a := mat.NewScalar[T](1)
-		b := mat.NewScalar[T](2)
-		va := g.NewVariable(a, true)
-		vb := g.NewVariable(b, false)
-		assert.Equal(t, []Node[T]{va, vb}, g.nodes)
 	})
 }
 
@@ -150,19 +140,10 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.Equal(t, 0, g.curTimeStep)
 	})
 
-	t.Run("it resets nodes", func(t *testing.T) {
-		g := NewGraph[T]()
-		g.NewScalar(42)
-		assert.NotNil(t, g.nodes)
-		g.Clear()
-		assert.Nil(t, g.nodes)
-	})
-
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
 		g.Clear()
 		assert.Equal(t, 0, g.curTimeStep)
-		assert.Nil(t, g.nodes)
 	})
 }
 
