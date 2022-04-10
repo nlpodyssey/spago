@@ -72,7 +72,7 @@ func (m *Model[T]) feedback(states []*State[T]) []ag.Node[T] {
 	var ys []ag.Node[T]
 	n := len(states)
 	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
-		alpha := m.W.Graph().NewScalar(mat.Pow(0.6, T(i+1)))
+		alpha := ag.NewScalar[T](mat.Pow(0.6, T(i+1)))
 		ys = append(ys, m.WRec[i], ag.ProdScalar(states[n-1-i].Y, alpha))
 	}
 	return ys

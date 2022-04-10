@@ -109,11 +109,10 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		x := make([]ag.Node[T], len(testData))
 		var y []ag.Node[T]
 		for i := 0; i < tt.forwardSteps; i++ {
-			s := ag.NewSession[T](model, ag.Training)
 			for j := range data {
-				x[j] = s.NewVariable(mat.NewVecDense(data[j]), false)
+				x[j] = ag.NewVariable[T](mat.NewVecDense(data[j]), false)
 			}
-			y = s.Module().Forward(x...)
+			y = model.ForwardT(x...)
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -140,11 +139,9 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 
-	s := ag.NewSession[T](model, ag.Inference)
-
 	data := []T{1.0, 2.0, 3.0}
-	x := s.NewVariable(mat.NewVecDense[T](data), false)
-	y := s.Module().Forward(x)
+	x := ag.NewVariable[T](mat.NewVecDense[T](data), false)
+	y := model.Forward(x)
 	require.Equal(t, 1, len(y))
 	assert.InDeltaSlice(t, []T{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
@@ -182,15 +179,14 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
 	// == Forward
 
-	x1 := s.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := s.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := s.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := ag.NewVariable[T](mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
+	x2 := ag.NewVariable[T](mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
+	x3 := ag.NewVariable[T](mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(s.Module().Forward(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(model.ForwardT(x1, x2, x3)) // TODO: rewrite tests without activation function
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)

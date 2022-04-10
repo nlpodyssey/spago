@@ -26,7 +26,6 @@ type Operator[T mat.DType] struct {
 	inBackward   bool
 	visited      bool
 	timeStep     int
-	graph        *Graph[T]
 	function     fn.Function[T, Node[T]]
 	value        atomic.Value // store the results of a forward evaluation
 	valueMx      *sync.RWMutex
@@ -42,12 +41,11 @@ type Operator[T mat.DType] struct {
 // result in unpredictable outcomes.
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
-func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
+func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	valueMx := new(sync.RWMutex)
 
 	n := &Operator[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
+		timeStep:     -1,
 		function:     f,
 		value:        atomic.Value{},
 		valueMx:      valueMx,
@@ -84,11 +82,6 @@ func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
 func (o *Operator[_]) Name() string {
 	value := reflect.ValueOf(o.function).Elem().Type().Name()
 	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
-}
-
-// Graph returns the graph this node belongs to.
-func (o *Operator[T]) Graph() *Graph[T] {
-	return o.graph
 }
 
 // TimeStep returns the time-step of the node.
@@ -164,7 +157,6 @@ func releaseGraph[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T
 		}
 	}
 
-	op.graph = nil
 	op.function = nil
 	op.valueMx = nil
 	op.valueCond = nil

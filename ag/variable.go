@@ -20,7 +20,6 @@ var (
 
 // Variable is a type of node.
 type Variable[T mat.DType] struct {
-	graph        *Graph[T]
 	timeStep     int
 	name         string
 	value        mat.Matrix[T] // store the results of a forward evaluation.
@@ -30,10 +29,9 @@ type Variable[T mat.DType] struct {
 }
 
 // NewVariable creates and returns a new node.
-func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
+func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 	return &Variable[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
+		timeStep:     -1,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
@@ -41,10 +39,9 @@ func (g *Graph[T]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
 }
 
 // NewVariableWithName creates and returns a new node.
-func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
+func NewVariableWithName[T mat.DType](value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
 	return &Variable[T]{
-		graph:        g,
-		timeStep:     g.curTimeStep,
+		timeStep:     -1,
 		name:         name,
 		value:        value,
 		grad:         nil,
@@ -54,21 +51,21 @@ func (g *Graph[T]) NewVariableWithName(value mat.Matrix[T], requiresGrad bool, n
 
 // NewScalar creates a variable node that doesn't require gradients.
 // TODO: Why shouldn't gradient be required by default?
-func (g *Graph[T]) NewScalar(value T) Node[T] {
-	return g.NewVariable(mat.NewScalar(value), false)
+func NewScalar[T mat.DType](value T) Node[T] {
+	return NewVariable[T](mat.NewScalar(value), false)
 }
 
 // NewScalarWithName creates a variable node that doesn't require gradients.
 // TODO: Why shouldn't gradient be required by default?
-func (g *Graph[T]) NewScalarWithName(value T, name string) Node[T] {
-	return g.NewVariableWithName(mat.NewScalar(value), false, name)
+func NewScalarWithName[T mat.DType](value T, name string) Node[T] {
+	return NewVariableWithName[T](mat.NewScalar(value), false, name)
 }
 
 // Constant returns a scalar Node that that doesn't require gradients.
 // For the same value, a previously created Node is returned without creating a new one.
 // Useful for example in the case of epsilon and number like 0.0 or 1.0.
-func (g *Graph[T]) Constant(value T) Node[T] {
-	return g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
+func Constant[T mat.DType](value T) Node[T] {
+	return NewVariableWithName[T](mat.NewScalar(value), false, fmt.Sprint(value))
 }
 
 // Name returns the Name of the variable (it can be empty).
@@ -76,11 +73,6 @@ func (g *Graph[T]) Constant(value T) Node[T] {
 // The name is set by g.NewVariableWithName().
 func (r *Variable[_]) Name() string {
 	return r.name
-}
-
-// Graph returns the graph this node belongs to.
-func (r *Variable[T]) Graph() *Graph[T] {
-	return r.graph
 }
 
 // Value returns the value of the variable itself.

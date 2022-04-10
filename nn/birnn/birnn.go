@@ -92,7 +92,7 @@ func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), a.Graph().Constant(0.5))
+		return ag.ProdScalar(ag.Add(a, b), ag.Constant[T](0.5))
 	default:
 		panic("birnn: invalid merge mode")
 	}

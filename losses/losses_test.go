@@ -6,10 +6,11 @@ package losses
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestMSELoss(t *testing.T) {
@@ -18,9 +19,8 @@ func TestMSELoss(t *testing.T) {
 }
 
 func testMSELoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
-	y := g.NewVariable(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
+	y := ag.NewVariable[T](mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
 	loss := MSE(x, y, false)
 
 	assertEqualApprox(t, 0.1, loss.Value().Scalar())
@@ -36,9 +36,8 @@ func TestNLLLoss(t *testing.T) {
 }
 
 func testNLLLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591}), true)
-	y := g.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0}), false)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591}), true)
+	y := ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0}), false)
 	loss := NLL(ag.Softmax(x), y)
 
 	fmt.Println(loss.Value().Scalar())
@@ -55,8 +54,7 @@ func TestCrossEntropyLoss(t *testing.T) {
 }
 
 func testCrossEntropyLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
 	loss := CrossEntropy(x, 2)
 
 	assertEqualApprox(t, 1.609438, loss.Value().Scalar())
@@ -72,8 +70,7 @@ func TestWeightedCrossEntropyLoss(t *testing.T) {
 }
 
 func testWeightedCrossEntropyLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedCrossEntropy(w)
 	loss := lossFn(x, 2)
@@ -91,8 +88,7 @@ func TestFocalLoss(t *testing.T) {
 }
 
 func testFocalLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}), true)
 	loss := FocalLoss(x, 2, 2.0)
 
 	assertEqualApprox(t, 0.73282546, loss.Value().Scalar())
@@ -108,8 +104,7 @@ func TestWeightedFocalLoss(t *testing.T) {
 }
 
 func testWeightedFocalLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}), true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedFocalLoss(w)
 	loss := lossFn(x, 2, 2.0)
@@ -127,8 +122,7 @@ func TestZeroOneQuantization(t *testing.T) {
 }
 
 func testZeroOneQuantization[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := ZeroOneQuantization(x)
 
 	assertEqualApprox(t, 2.209, loss.Value().Scalar())
@@ -144,8 +138,7 @@ func TestNorm2Quantization(t *testing.T) {
 }
 
 func testNorm2Quantization[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := Norm2Quantization(x)
 
 	assertEqualApprox(t, 0.8836, loss.Value().Scalar())
@@ -161,8 +154,7 @@ func TestOneHotQuantization(t *testing.T) {
 }
 
 func testOneHotQuantization[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x := g.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
+	x := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}), true)
 	loss := OneHotQuantization(x, 0.1)
 
 	assertEqualApprox(t, 0.30926, loss.Value().Scalar())
@@ -178,11 +170,10 @@ func TestMSESeqLoss(t *testing.T) {
 }
 
 func testMSESeqLoss[T mat.DType](t *testing.T) {
-	g := ag.NewGraph[T]()
-	x1 := g.NewVariable(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
-	y1 := g.NewVariable(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
-	x2 := g.NewVariable(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
-	y2 := g.NewVariable(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
+	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
+	y1 := ag.NewVariable[T](mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
+	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}), true)
+	y2 := ag.NewVariable[T](mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}), false)
 	loss := MSESeq([]ag.Node[T]{x1, x2}, []ag.Node[T]{y1, y2}, true)
 
 	assertEqualApprox(t, 0.1, loss.Value().Scalar())

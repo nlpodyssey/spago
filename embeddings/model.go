@@ -161,7 +161,7 @@ func (m *Model[T, K]) Encode(keys []K) []ag.Node[T] {
 
 		var n ag.Node[T]
 		if e, ok := m.Embedding(key); ok {
-			n = m.Session.Graph().NewWrap(e)
+			n = ag.NewWrap[T](e)
 		} else {
 			n = m.ZeroEmbedding
 		}

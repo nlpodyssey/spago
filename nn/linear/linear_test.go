@@ -32,24 +32,21 @@ func (m *testLinearWithActivationModel[T]) forward(x ag.Node[T]) ag.Node[T] {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	s := ag.NewSession[T](
-		&testLinearWithActivationModel[T]{
-			M1: model,
-			M2: activation.New[T](activation.Tanh),
-		},
-		ag.Training,
-	)
+	m := &testLinearWithActivationModel[T]{
+		M1: model,
+		M2: activation.New[T](activation.Tanh),
+	}
 
 	// == Forward
 
-	x := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := s.Module().forward(x) // TODO: test linear only
+	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	y := m.forward(x) // TODO: test linear only
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
-	gold := s.NewVariable(mat.NewVecDense([]T{0.0, 0.5, -0.4, -0.9, 0.9}), false)
+	gold := ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.5, -0.4, -0.9, 0.9}), false)
 	loss := losses.MSE(y, gold, false)
 	ag.Backward(loss)
 

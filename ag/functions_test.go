@@ -18,10 +18,9 @@ func TestUtils(t *testing.T) {
 
 func testUtils[T mat.DType](t *testing.T) {
 	t.Run("test `Map2`", func(t *testing.T) {
-		g := NewGraph[T]()
 		ys := Map2(Add[T],
-			[]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)},
-			[]Node[T]{g.NewScalar(4), g.NewScalar(5), g.NewScalar(6)},
+			[]Node[T]{NewScalar[T](1), NewScalar[T](2), NewScalar[T](3)},
+			[]Node[T]{NewScalar[T](4), NewScalar[T](5), NewScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
 		assert.Equal(t, T(5), ys[0].ScalarValue())
@@ -30,11 +29,10 @@ func testUtils[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
-		g := NewGraph[T]()
 		newEl := func(_ int) Node[T] {
-			return g.NewScalar(0)
+			return NewScalar[T](0)
 		}
-		ys := Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 5, newEl)
+		ys := Pad([]Node[T]{NewScalar[T](1), NewScalar[T](2), NewScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
 		assert.Equal(t, T(1), ys[0].ScalarValue())
 		assert.Equal(t, T(2), ys[1].ScalarValue())
@@ -44,11 +42,10 @@ func testUtils[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
-		g := NewGraph[T]()
 		newEl := func(_ int) Node[T] {
-			return g.NewScalar(0)
+			return NewScalar[T](0)
 		}
-		ys := Pad([]Node[T]{g.NewScalar(1), g.NewScalar(2), g.NewScalar(3)}, 3, newEl)
+		ys := Pad([]Node[T]{NewScalar[T](1), NewScalar[T](2), NewScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
 		assert.Equal(t, T(1), ys[0].ScalarValue())
 		assert.Equal(t, T(2), ys[1].ScalarValue())
@@ -98,8 +95,7 @@ func testRowViews[T mat.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
-			g := NewGraph[T]()
-			x := g.NewVariable(tc.x, true)
+			x := NewVariable[T](tc.x, true)
 			ys := RowViews(x)
 			assert.Len(t, ys, len(tc.ys))
 			for i, yn := range ys {
@@ -157,8 +153,7 @@ func testColViews[T mat.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
-			g := NewGraph[T]()
-			x := g.NewVariable(tc.x, true)
+			x := NewVariable[T](tc.x, true)
 			ys := ColViews(x)
 			assert.Len(t, ys, len(tc.ys))
 			for i, yn := range ys {

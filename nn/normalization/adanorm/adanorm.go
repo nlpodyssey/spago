@@ -45,11 +45,10 @@ func New[T mat.DType](scale T) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	g := m.Session.Graph()
-	eps := g.Constant(1e-10)
-	one := g.Constant(1.0)
-	k := g.Constant(0.1)
-	c := g.Constant(m.Scale)
+	eps := ag.Constant[T](1e-10)
+	one := ag.Constant[T](1.0)
+	k := ag.Constant[T](0.1)
+	c := ag.Constant[T](m.Scale)
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node[T], len(xs))
@@ -57,7 +56,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	for i, x := range xs {
 		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add[T](devVectors[i], eps))
 		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), c)
-		zs[i] = ag.Prod(y, g.NewWrapNoGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		zs[i] = ag.Prod(y, ag.NewWrapNoGrad[T](fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }

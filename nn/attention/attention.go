@@ -18,7 +18,7 @@ import (
 func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], scaleFactor T, useCausalMask bool) ([]ag.Node[T], []ag.Node[T]) {
 	attention := make([]ag.Node[T], len(q))
 	weights := make([]ag.Node[T], len(q))
-	factor := k.Graph().Constant(scaleFactor)
+	factor := ag.Constant(scaleFactor)
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
@@ -32,7 +32,7 @@ func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], sca
 
 			if causalMaskEnabled {
 				causalMask := mat.NewVecDense[T](makeCausalMask[T](i, kRows)) // TODO: use external cache for causal mask?
-				scores = ag.Add(scores, scores.Graph().NewVariable(causalMask, false))
+				scores = ag.Add(scores, ag.NewVariable[T](causalMask, false))
 			}
 
 			weights[i] = ag.Softmax(scores)
@@ -73,7 +73,7 @@ func LinearAttention[T mat.DType](q, k, v []ag.Node[T], mappingFunction MappingF
 	attKeysT := ag.T(ag.Stack(attKeys...))
 	kv := ag.Mul(attKeysT, ag.Stack(v...))
 
-	epsn := kv.Graph().Constant(eps)
+	epsn := ag.Constant[T](eps)
 	for i, qi := range q {
 		attQuery := mappingFunction(qi)
 		n := ag.T(ag.Mul(ag.T(attQuery), kv))

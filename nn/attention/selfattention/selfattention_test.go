@@ -19,13 +19,12 @@ func TestModel_SelfAttention(t *testing.T) {
 
 func testModelSelfAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
-	x1 := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	x2 := s.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
-	x3 := s.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
+	x1 := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
+	x3 := ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
 
-	output, _, _ := s.Module().Forward(Cache[T]{}, []ag.Node[T]{x1, x2, x3})
+	output, _, _ := model.Forward(Cache[T]{}, []ag.Node[T]{x1, x2, x3})
 
 	assert.InDeltaSlice(t, []T{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)

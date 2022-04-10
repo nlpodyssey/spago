@@ -18,36 +18,28 @@ var (
 // Wrapper is a type of node.
 type Wrapper[T mat.DType] struct {
 	GradValue[T]
-	graph    *Graph[T]
 	timeStep int
 	wrapGrad bool
 }
 
 // NewWrap creates a new wrapper Node for the given value, attaching it to
 // the graph.
-func (g *Graph[T]) NewWrap(value GradValue[T]) Node[T] {
+func NewWrap[T mat.DType](value GradValue[T]) Node[T] {
 	return &Wrapper[T]{
 		GradValue: value,
-		timeStep:  g.curTimeStep,
-		graph:     g,
+		timeStep:  -1,
 		wrapGrad:  true,
 	}
 }
 
 // NewWrapNoGrad is similar to NewWrap, but it disables automatic
 // differentiation on the new node.
-func (g *Graph[T]) NewWrapNoGrad(value GradValue[T]) Node[T] {
+func NewWrapNoGrad[T mat.DType](value GradValue[T]) Node[T] {
 	return &Wrapper[T]{
 		GradValue: value,
-		graph:     g,
-		timeStep:  g.curTimeStep,
+		timeStep:  -1,
 		wrapGrad:  false,
 	}
-}
-
-// Graph returns the graph this node belongs to.
-func (r *Wrapper[T]) Graph() *Graph[T] {
-	return r.graph
 }
 
 // Grad returns the gradients accumulated during the backward pass.

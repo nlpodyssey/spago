@@ -23,15 +23,14 @@ func TestModel_Forward(t *testing.T) {
 
 func testMixerBlockForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
-	x1 := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9}), true)
-	x2 := s.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5}), true)
-	x3 := s.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2}), true)
-	x4 := s.NewVariable(mat.NewVecDense([]T{-0.6, 0.1, 0.8}), true)
-	x5 := s.NewVariable(mat.NewVecDense([]T{0.5, 0.5, 0.1}), true)
+	x1 := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9}), true)
+	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.8, -0.3, 0.5}), true)
+	x3 := ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.7, 0.2}), true)
+	x4 := ag.NewVariable[T](mat.NewVecDense([]T{-0.6, 0.1, 0.8}), true)
+	x5 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.5, 0.1}), true)
 
-	output := s.Module().Forward(x1, x2, x3, x4, x5)
+	output := model.Forward(x1, x2, x3, x4, x5)
 	assert.InDeltaSlice(t, []T{0.61250253, -0.61697177, 0.5283925}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{1.39401254, -1.00455241, -0.125974}, output[1].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{1.18908357, 1.279643450, 0.4901403}, output[2].Value().Data(), 1.0e-05)
@@ -41,13 +40,12 @@ func testMixerBlockForward[T mat.DType](t *testing.T) {
 
 func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
 	model := newTestModelGelu[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
-	x1 := s.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}), true)
-	x2 := s.NewVariable(mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.1}), true)
-	x3 := s.NewVariable(mat.NewVecDense([]T{-0.4, -0.5, -0.6, -0.3}), true)
+	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}), true)
+	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.1}), true)
+	x3 := ag.NewVariable[T](mat.NewVecDense([]T{-0.4, -0.5, -0.6, -0.3}), true)
 
-	output := s.Module().Forward(x1, x2, x3)
+	output := model.Forward(x1, x2, x3)
 	assert.InDeltaSlice(t, []T{0.1966, 0.6945, 0.9838, 1.0145}, output[0].Value().Data(), 1.0e-03)
 	assert.InDeltaSlice(t, []T{0.1640, 0.6489, 0.5476, -0.3227}, output[1].Value().Data(), 1.0e-03)
 	assert.InDeltaSlice(t, []T{-0.7089, -0.6511, -1.3840, -0.5825}, output[2].Value().Data(), 1.0e-03)

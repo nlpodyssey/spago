@@ -5,7 +5,6 @@
 package nn
 
 import (
-	"github.com/nlpodyssey/spago/ag"
 	"reflect"
 	"sync"
 	"testing"
@@ -87,8 +86,11 @@ type ptModel6[T mat.DType] struct {
 }
 
 type testStructP[T mat.DType] struct {
-	ag.Differentiable[T]
 	P Param[T]
+}
+
+func (t testStructP[T]) TraverseParams(callback ParamsTraversalFunc[T]) {
+	callback(t.P, "p", Weights)
 }
 
 type testStructQ[T mat.DType] struct {

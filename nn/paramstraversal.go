@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/utils"
 )
@@ -82,11 +81,6 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFi
 		itemT.TraverseParams(pt.callback)
 	case Model[T]:
 		if pt.exploreSubModels {
-			pt.walk(item)
-		}
-	case ag.Differentiable[T]:
-		_, isModel := itemT.(Model[T])
-		if !isModel {
 			pt.walk(item)
 		}
 	case *sync.Map:

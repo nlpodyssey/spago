@@ -19,14 +19,11 @@ func init() {
 
 // Model is implemented by all neural network architectures.
 type Model[T mat.DType] interface {
-	ag.Differentiable[T]
 	mustEmbedBaseModel()
 }
 
 // BaseModel must be embedded into all neural models.
-type BaseModel[T mat.DType] struct {
-	ag.DifferentiableModule[T]
-}
+type BaseModel[T mat.DType] struct{}
 
 func (m BaseModel[T]) mustEmbedBaseModel() {}
 

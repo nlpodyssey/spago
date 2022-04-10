@@ -7,7 +7,6 @@ package embeddings
 import (
 	"fmt"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
@@ -70,11 +69,6 @@ func (e *Embedding[T, _]) AccGrad(gx mat.Matrix[T]) {
 // ZeroGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
 func (e *Embedding[_, _]) ZeroGrad() {
 	e.model.zeroGrad(e.key)
-}
-
-// Graph satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[T, _]) Graph() *ag.Graph[T] {
-	panic("nn: attempting to access Graph on a non-reified Embedding")
 }
 
 // TimeStep satisfies the interfaces nn.Param and ag.Node.

@@ -88,7 +88,7 @@ func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	s.C = ag.Tanh(ag.Affine[T](m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
 	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, m.Session.Graph().Constant(1.0)), yPrev))
+		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, ag.Constant[T](1.0)), yPrev))
 	}
 	return
 }

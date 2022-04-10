@@ -35,14 +35,12 @@ func testModelForward[T mat.DType](t *testing.T) {
 			4, 5, 6,
 		})
 
-		s := ag.NewSession[T](model, ag.Training)
-
 		xs := []ag.Node[T]{
-			s.NewVariable(mat.NewVecDense([]T{1, 2, 4, 0, -1}), false),
-			s.NewVariable(mat.NewVecDense([]T{1, 3, 3, 0, -1}), false),
-			s.NewVariable(mat.NewVecDense([]T{1, 4, 2, 0, -1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{1, 2, 4, 0, -1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{1, 3, 3, 0, -1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{1, 4, 2, 0, -1}), false),
 		}
-		ys := s.Module().Forward(xs...)
+		ys := model.Forward(xs...)
 		require.Len(t, ys, 2)
 		require.True(t, mat.IsVector(ys[0].Value()))
 		require.Equal(t, 5, ys[0].Value().Size())
@@ -65,15 +63,13 @@ func testModelForward[T mat.DType](t *testing.T) {
 			0.9, 0.8, 0.7, 0.6,
 		})
 
-		s := ag.NewSession[T](model, ag.Training)
-
 		xs := []ag.Node[T]{
-			s.NewVariable(mat.NewVecDense([]T{0.2, 0.9, 0.1}), false),
-			s.NewVariable(mat.NewVecDense([]T{0.4, 0.7, 0.1}), false),
-			s.NewVariable(mat.NewVecDense([]T{0.6, 0.5, 0.1}), false),
-			s.NewVariable(mat.NewVecDense([]T{0.8, 0.3, 0.1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{0.2, 0.9, 0.1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{0.4, 0.7, 0.1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{0.6, 0.5, 0.1}), false),
+			ag.NewVariable[T](mat.NewVecDense([]T{0.8, 0.3, 0.1}), false),
 		}
-		ys := s.Module().Forward(xs...)
+		ys := model.Forward(xs...)
 		assert.InDeltaSlice(t, []T{1.2, 1.1, 0.7}, ys[0].Value().Data(), 0.001)
 		assert.InDeltaSlice(t, []T{1.9, 1.96, 0.76}, ys[1].Value().Data(), 0.001)
 		assert.InDeltaSlice(t, []T{2.1, 2.6, 1}, ys[2].Value().Data(), 0.001)

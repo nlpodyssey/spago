@@ -107,7 +107,7 @@ func Mean[T mat.DType](xs []Node[T]) Node[T] {
 	for i := 1; i < len(xs); i++ {
 		sumVector = Add(sumVector, xs[i])
 	}
-	return DivScalar(sumVector, xs[0].Graph().Constant(T(len(xs))))
+	return DivScalar(sumVector, Constant(T(len(xs))))
 }
 
 // Maximum returns the value that describes the maximum of the sample.
@@ -165,8 +165,7 @@ func BiAffine[DT mat.DType](w, u, v, b, x1, x2 Node[DT]) Node[DT] {
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func PositiveELU[T mat.DType](x Node[T]) Node[T] {
-	g := x.Graph()
-	return AddScalar(ELU(x, g.Constant(1.0)), g.Constant(1.0))
+	return AddScalar(ELU(x, Constant[T](1.0)), Constant[T](1.0))
 }
 
 // LogSoftmax returns a new operator node as a result of Log(Softmax(x)).

@@ -20,26 +20,25 @@ func TestModel_Forward(t *testing.T) {
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
 	// == Forward
 
-	x1 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x1 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 	}), true)
 
-	x2 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x2 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
 	}), true)
 
-	x3 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x3 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
 	}), true)
 
-	y := s.Module().Forward(x1, x2, x3)
+	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.62914516, 0.42189900, 0.03997868,
@@ -136,26 +135,25 @@ func TestDepthwise_Forward(t *testing.T) {
 
 func testDepthwiseForward[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
-	s := ag.NewSession[T](model, ag.Training)
 
 	// == Forward
 
-	x1 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x1 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 	}), true)
 
-	x2 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x2 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
 	}), true)
 
-	x3 := s.NewVariable(mat.NewDense(2, 4, []T{
+	x3 := ag.NewVariable[T](mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
 	}), true)
 
-	y := s.Module().Forward(x1, x2, x3)
+	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
 		0.09, -0.3, -0.22,

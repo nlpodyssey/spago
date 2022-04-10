@@ -11,8 +11,6 @@ import (
 // Node is implemented by any value that can represent a node of a Graph.
 type Node[T mat.DType] interface {
 	GradValue[T]
-	// Graph returns the graph this node belongs to.
-	Graph() *Graph[T]
 	// TimeStep returns the time-step associated to this node.
 	TimeStep() int
 	// IncTimeStep increments the value of the node's TimeStep by one.

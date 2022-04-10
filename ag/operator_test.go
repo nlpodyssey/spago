@@ -18,10 +18,9 @@ func TestReleaseOperators(t *testing.T) {
 
 func testReleaseOperators[T mat.DType](t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph[T]()
 		op := Add(
-			g.NewVariable(mat.NewScalar[T](1), true),
-			g.NewVariable(mat.NewScalar[T](2), true),
+			NewVariable[T](mat.NewScalar[T](1), true),
+			NewVariable[T](mat.NewScalar[T](2), true),
 		)
 		op.Value() // wait for the value
 		Backward(op)
@@ -36,10 +35,9 @@ func testReleaseOperators[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("operators memory (values and grads) is cleared for reuse", func(t *testing.T) {
-		g := NewGraph[T]()
 		op := Add(
-			g.NewVariable(mat.NewScalar[T](1), true),
-			g.NewVariable(mat.NewScalar[T](2), true),
+			NewVariable[T](mat.NewScalar[T](1), true),
+			NewVariable[T](mat.NewScalar[T](2), true),
 		)
 		op.Value() // wait for the value
 		Backward(op)

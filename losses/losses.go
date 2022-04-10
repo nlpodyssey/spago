@@ -20,7 +20,7 @@ func MAE[T mat.DType](x ag.Node[T], y ag.Node[T], reduceMean bool) ag.Node[T] {
 
 // MSE measures the mean squared error (squared L2 norm) between each element in the input x and target y.
 func MSE[T mat.DType](x ag.Node[T], y ag.Node[T], reduceMean bool) ag.Node[T] {
-	loss := ag.ProdScalar(ag.Square(ag.Sub(x, y)), x.Graph().Constant(0.5))
+	loss := ag.ProdScalar(ag.Square(ag.Sub(x, y)), ag.Constant[T](0.5))
 	if reduceMean {
 		return ag.ReduceMean(loss)
 	}
@@ -46,7 +46,7 @@ func CrossEntropy[T mat.DType](x ag.Node[T], c int) ag.Node[T] {
 // This function is scaled by a weighting factor weights[class] ∈ [0,1]
 func WeightedCrossEntropy[T mat.DType](weights []T) func(x ag.Node[T], c int) ag.Node[T] {
 	return func(x ag.Node[T], c int) ag.Node[T] {
-		return ag.ProdScalar(CrossEntropy(x, c), x.Graph().NewScalar(weights[c]))
+		return ag.ProdScalar(CrossEntropy(x, c), ag.NewScalar[T](weights[c]))
 	}
 }
 
@@ -59,7 +59,7 @@ func WeightedCrossEntropy[T mat.DType](weights []T) func(x ag.Node[T], c int) ag
 func FocalLoss[T mat.DType](x ag.Node[T], c int, gamma T) ag.Node[T] {
 	ce := CrossEntropy(x, c)
 	p := ag.Exp(ag.Neg(ce))
-	sub := ag.ReverseSub(p, x.Graph().NewScalar(1.0))
+	sub := ag.ReverseSub(p, ag.NewScalar[T](1.0))
 	a := ag.Pow(sub, gamma)
 	return ag.Prod(a, ce)
 }
@@ -75,10 +75,10 @@ func WeightedFocalLoss[T mat.DType](weights []T) func(x ag.Node[T], c int, gamma
 	return func(x ag.Node[T], c int, gamma T) ag.Node[T] {
 		ce := CrossEntropy(x, c)
 		p := ag.Exp(ag.Neg(ce))
-		sub := ag.ReverseSub(p, x.Graph().NewScalar(1.0))
+		sub := ag.ReverseSub(p, ag.NewScalar[T](1.0))
 		b := ag.Pow(sub, gamma)
 		fl := ag.Prod(b, ce)
-		return ag.ProdScalar(fl, x.Graph().NewScalar(weights[c]))
+		return ag.ProdScalar(fl, ag.NewScalar[T](weights[c]))
 	}
 }
 
@@ -90,23 +90,23 @@ func Perplexity[T mat.DType](x ag.Node[T], c int) ag.Node[T] {
 // ZeroOneQuantization is a loss function that is minimized when each component
 // of x satisfies x(i) ≡ [x]i ∈ {0, 1}.
 func ZeroOneQuantization[T mat.DType](x ag.Node[T]) ag.Node[T] {
-	return ag.ReduceSum(ag.Prod(ag.Square(x), ag.Square(ag.ReverseSub(x, x.Graph().NewScalar(1.0)))))
+	return ag.ReduceSum(ag.Prod(ag.Square(x), ag.Square(ag.ReverseSub(x, ag.NewScalar[T](1.0)))))
 }
 
 // Norm2Quantization is a loss function that is minimized when norm2(x) = 1.
 func Norm2Quantization[T mat.DType](x ag.Node[T]) ag.Node[T] {
-	return ag.Square(ag.SubScalar(ag.ReduceSum(ag.Square(x)), x.Graph().NewScalar(1.0)))
+	return ag.Square(ag.SubScalar(ag.ReduceSum(ag.Square(x)), ag.NewScalar[T](1.0)))
 }
 
 // OneHotQuantization is a loss function that pushes towards the x vector to be 1-hot.
 // q is the quantization regularizer weight (suggested  0.00001).
 func OneHotQuantization[T mat.DType](x ag.Node[T], q T) ag.Node[T] {
-	return ag.ProdScalar(ag.Add(ZeroOneQuantization(x), Norm2Quantization(x)), x.Graph().NewScalar(q))
+	return ag.ProdScalar(ag.Add(ZeroOneQuantization(x), Norm2Quantization(x)), ag.NewScalar[T](q))
 }
 
 // Distance is a loss function that calculates the distance between target and x.
 func Distance[T mat.DType](x ag.Node[T], target T) ag.Node[T] {
-	return ag.Abs(ag.Sub(x.Graph().NewScalar(target), x))
+	return ag.Abs(ag.Sub(ag.NewScalar[T](target), x))
 }
 
 // MSESeq calculates the MSE loss on the given sequence.
@@ -116,7 +116,7 @@ func MSESeq[T mat.DType](predicted []ag.Node[T], target []ag.Node[T], reduceMean
 		loss = ag.Add(loss, MSE(predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, predicted[0].Graph().NewScalar(T(len(predicted))))
+		return ag.DivScalar(loss, ag.NewScalar[T](T(len(predicted))))
 	}
 	return loss
 }
@@ -128,7 +128,7 @@ func MAESeq[T mat.DType](predicted []ag.Node[T], target []ag.Node[T], reduceMean
 		loss = ag.Add(loss, MAE(predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, predicted[0].Graph().NewScalar(T(len(predicted))))
+		return ag.DivScalar(loss, ag.NewScalar[T](T(len(predicted))))
 	}
 	return loss
 }
@@ -140,7 +140,7 @@ func CrossEntropySeq[T mat.DType](predicted []ag.Node[T], target []int, reduceMe
 		loss = ag.Add(loss, CrossEntropy(predicted[i], target[i]))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, predicted[0].Graph().NewScalar(T(len(predicted))))
+		return ag.DivScalar(loss, ag.NewScalar[T](T(len(predicted))))
 	}
 	return loss
 }

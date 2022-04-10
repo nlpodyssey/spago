@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings"
 	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/embeddings/store/memstore"
@@ -184,12 +183,11 @@ func TestModel_Encode(t *testing.T) {
 			UseZeroEmbedding: true,
 		}
 		model := embeddings.New[T, string](conf, repo)
-		s := ag.NewSession[T](model, ag.Training)
 
-		e, _ := s.Module().Embedding("foo")
+		e, _ := model.Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 
-		result := s.Module().Encode([]string{"foo", "bar", "foo"})
+		result := model.Encode([]string{"foo", "bar", "foo"})
 		require.Len(t, result, 3)
 
 		assert.NotNil(t, result[0])
@@ -215,12 +213,11 @@ func TestModel_Encode(t *testing.T) {
 			UseZeroEmbedding: false,
 		}
 		model := embeddings.New[T, string](conf, repo)
-		s := ag.NewSession[T](model, ag.Training)
 
-		e, _ := s.Module().Embedding("foo")
+		e, _ := model.Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 
-		result := s.Module().Encode([]string{"foo", "bar", "foo"})
+		result := model.Encode([]string{"foo", "bar", "foo"})
 		require.Len(t, result, 3)
 
 		assert.NotNil(t, result[0])
