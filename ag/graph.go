@@ -87,16 +87,18 @@ func (g *Graph[_]) IncTimeStep() {
 // Since the values and the gradients within the nodes are handled through a pool of dense matrices,
 // releasing them allows the memory to be reused without being reallocated, improving performance.
 func (g *Graph[T]) releaseMemory() {
-	for _, node := range g.nodes {
-		op, ok := node.(*Operator[T])
-		if !ok {
-			continue
+	for i, node := range g.nodes {
+		if op, ok := node.(*Operator[T]); ok {
+			op.releaseValue()
+			op.ZeroGrad()
+			op.graph = nil
+			op.function = nil
+			op.valueMx = nil
+			op.valueCond = nil
+			op.gradMx = nil
+			g.nodes[i] = nil
+			// TODO: release constants?
 		}
-		op.releaseValue()
-		op.ZeroGrad()
-		*op = Operator[T]{} // free operator
-		getOperatorPool[T]().Put(op)
-		// TODO: release constants?
 	}
 }
 

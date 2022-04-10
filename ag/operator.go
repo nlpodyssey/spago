@@ -44,10 +44,9 @@ type Operator[T mat.DType] struct {
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
 func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
-	n := getOperatorPool[T]().Get().(*Operator[T])
 	valueMx := new(sync.RWMutex)
 
-	*n = Operator[T]{
+	n := &Operator[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
 		id:           -1, // set below, upon insertion
