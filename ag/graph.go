@@ -21,11 +21,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 	}
 }
 
-// Clear cleans the graph and should be called after the graph has been used.
-func (g *Graph[T]) Clear() {
-	g.curTimeStep = 0
-}
-
 // TimeStep is an integer value associated with the graph, which can be useful
 // to perform truncated back propagation. This value is 0 for a new Graph, and
 // can be incremented calling IncTimeStep.

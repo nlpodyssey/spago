@@ -27,7 +27,6 @@ func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 }
 
 // CopyValue returns a copy of the value of a Node. If the value is nil, CopyValue returns nil as well.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func CopyValue[T mat.DType](node Node[T]) mat.Matrix[T] {
@@ -47,7 +46,6 @@ func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
 }
 
 // CopyGrad returns a copy of the gradients of a Node. If the gradients are nil, CopyGrad returns nil as well.
-// The returned value is a copy, so it is safe to use even after the graph has been cleared calling Graph.Clear().
 // It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
 // graph's operations can be freed.
 func CopyGrad[T mat.DType](node Node[T]) mat.Matrix[T] {

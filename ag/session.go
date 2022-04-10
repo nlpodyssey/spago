@@ -70,7 +70,6 @@ func (s *Session[_, _]) Mode() ProcessingMode {
 // Trying to use the result of Module() after closing leads to panic,
 // as there is no graph on which to perform operations.
 func (s *Session[_, _]) Close() {
-	s.graph.Clear()
 	s.graph = nil
 }
 

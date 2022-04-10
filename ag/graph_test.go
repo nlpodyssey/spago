@@ -122,28 +122,6 @@ func testNodesTimeStep[T mat.DType](t *testing.T) {
 	assert.Equal(t, 2, c.TimeStep())
 }
 
-func TestGraph_Clear(t *testing.T) {
-	t.Run("float32", testGraphClear[float32])
-	t.Run("float64", testGraphClear[float64])
-}
-
-func testGraphClear[T mat.DType](t *testing.T) {
-	t.Run("it resets curTimeStep", func(t *testing.T) {
-		g := NewGraph[T]()
-		g.NewScalar(42)
-		g.IncTimeStep()
-		assert.Equal(t, 1, g.curTimeStep)
-		g.Clear()
-		assert.Equal(t, 0, g.curTimeStep)
-	})
-
-	t.Run("it works on a graph without nodes", func(t *testing.T) {
-		g := NewGraph[T]()
-		g.Clear()
-		assert.Equal(t, 0, g.curTimeStep)
-	})
-}
-
 func TestGraph_NewWrap(t *testing.T) {
 	t.Run("float32", testGraphNewWrap[float32])
 	t.Run("float64", testGraphNewWrap[float64])
