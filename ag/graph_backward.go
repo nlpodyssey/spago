@@ -77,10 +77,10 @@ func setupOperatorForBackward[T mat.DType](op *Operator[T]) {
 
 	op.pendingGrads++
 
-	if op.visited == 1 {
+	if op.visited {
 		return
 	}
-	op.visited = 1
+	op.visited = true
 	op.inBackward = true
 	op.gradMx.TryLock()
 
@@ -114,10 +114,10 @@ func backwardOperator[T mat.DType](wg *sync.WaitGroup, op *Operator[T]) {
 	if !op.requiresGrad {
 		return
 	}
-	if op.visited == 0 {
+	if !op.visited {
 		return
 	}
-	op.visited = 0
+	op.visited = false
 
 	wg.Add(1)
 	go func() {

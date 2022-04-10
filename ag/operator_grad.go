@@ -45,7 +45,7 @@ func (o *Operator[_]) ZeroGrad() {
 	mat.ReleaseMatrix(o.grad) // release memory
 	o.grad = nil
 	o.pendingGrads = 0
-	o.visited = 0
+	o.visited = false
 	o.inBackward = false
 }
 

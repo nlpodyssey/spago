@@ -22,20 +22,20 @@ var (
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
-	graph        *Graph[T]
+	requiresGrad bool
+	inBackward   bool
+	visited      bool
 	timeStep     int
 	id           int
+	graph        *Graph[T]
 	function     fn.Function[T, Node[T]]
 	value        atomic.Value // store the results of a forward evaluation
 	valueMx      *sync.RWMutex
 	valueCond    *sync.Cond
-	requiresGrad bool
 	grad         mat.Matrix[T]
 	gradMx       *sync.RWMutex
 	gradAccMx    sync.Mutex // to avoid data race during gradients accumulation
 	pendingGrads int64
-	visited      int64
-	inBackward   bool
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -59,7 +59,7 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		gradMx:       nil,
 		gradAccMx:    sync.Mutex{},
 		pendingGrads: 0,
-		visited:      0,
+		visited:      false,
 	}
 
 	if n.requiresGrad {
