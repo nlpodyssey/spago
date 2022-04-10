@@ -22,9 +22,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 }
 
 // Clear cleans the graph and should be called after the graph has been used.
-// It releases the matrices underlying the operator nodes so the node operators become weak references.
-// It is therefore recommended to make always a copy of the results of node.Value().
-// You can use the convenient ag.CopyValue(node) and ag.CopyGrad(node)
 func (g *Graph[T]) Clear() {
 	WaitForOngoingComputations() // this awaits computation of other graphs as well
 	g.curTimeStep = 0
