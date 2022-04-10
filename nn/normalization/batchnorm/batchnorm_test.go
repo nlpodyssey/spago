@@ -114,7 +114,6 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 				x[j] = s.NewVariable(mat.NewVecDense(data[j]), false)
 			}
 			y = s.Module().Forward(x...)
-			s.Close()
 		}
 
 		require.Equal(t, len(x), len(y))
@@ -142,7 +141,6 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 
 	s := ag.NewSession[T](model, ag.Inference)
-	defer s.Close()
 
 	data := []T{1.0, 2.0, 3.0}
 	x := s.NewVariable(mat.NewVecDense[T](data), false)
@@ -185,7 +183,6 @@ func TestModel_Forward(t *testing.T) {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 

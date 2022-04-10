@@ -39,7 +39,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 		},
 		ag.Training,
 	)
-	defer s.Close()
 
 	// == Forward
 

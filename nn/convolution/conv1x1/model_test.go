@@ -36,7 +36,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 		})
 
 		s := ag.NewSession[T](model, ag.Training)
-		defer s.Close()
 
 		xs := []ag.Node[T]{
 			s.NewVariable(mat.NewVecDense([]T{1, 2, 4, 0, -1}), false),
@@ -67,7 +66,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 		})
 
 		s := ag.NewSession[T](model, ag.Training)
-		defer s.Close()
 
 		xs := []ag.Node[T]{
 			s.NewVariable(mat.NewVecDense([]T{0.2, 0.9, 0.1}), false),

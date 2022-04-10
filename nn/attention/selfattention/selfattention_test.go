@@ -20,7 +20,6 @@ func TestModel_SelfAttention(t *testing.T) {
 func testModelSelfAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	x1 := s.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	x2 := s.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)

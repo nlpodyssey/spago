@@ -134,7 +134,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 	})
 
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	w1 := s.NewVariable(mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}), true)
 	w2 := s.NewVariable(mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}), true)

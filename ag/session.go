@@ -66,13 +66,6 @@ func (s *Session[_, _]) Mode() ProcessingMode {
 	return s.mode
 }
 
-// Close release resources associated with the Session.
-// Trying to use the result of Module() after closing leads to panic,
-// as there is no graph on which to perform operations.
-func (s *Session[_, _]) Close() {
-	s.graph = nil
-}
-
 // NewVariable creates and returns a new variable owned by the session's graph.
 func (s *Session[T, _]) NewVariable(value mat.Matrix[T], requiresGrad bool) Node[T] {
 	return s.graph.NewVariable(value, requiresGrad)

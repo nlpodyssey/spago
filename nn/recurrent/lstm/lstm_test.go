@@ -21,7 +21,6 @@ func TestModel_Forward(t *testing.T) {
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 
@@ -110,7 +109,6 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 	s0 := &State[T]{
@@ -286,7 +284,6 @@ func TestModel_ForwardSeq(t *testing.T) {
 func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 	s0 := &State[T]{

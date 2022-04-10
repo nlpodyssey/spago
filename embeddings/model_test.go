@@ -185,7 +185,6 @@ func TestModel_Encode(t *testing.T) {
 		}
 		model := embeddings.New[T, string](conf, repo)
 		s := ag.NewSession[T](model, ag.Training)
-		defer s.Close()
 
 		e, _ := s.Module().Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
@@ -217,7 +216,6 @@ func TestModel_Encode(t *testing.T) {
 		}
 		model := embeddings.New[T, string](conf, repo)
 		s := ag.NewSession[T](model, ag.Training)
-		defer s.Close()
 
 		e, _ := s.Module().Embedding("foo")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))

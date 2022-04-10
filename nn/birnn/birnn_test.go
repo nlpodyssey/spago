@@ -21,7 +21,6 @@ func TestModelConcat_Forward(t *testing.T) {
 func testModelConcatForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Concat)
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 
@@ -101,7 +100,6 @@ func TestModelSum_Forward(t *testing.T) {
 func testModelSumForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Sum)
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 
@@ -124,7 +122,6 @@ func TestModelAvg_Forward(t *testing.T) {
 func testModelAvgForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Avg)
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 
@@ -147,7 +144,6 @@ func TestModelProd_Forward(t *testing.T) {
 func testModelProdForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T](Prod)
 	s := ag.NewSession[T](model, ag.Training)
-	defer s.Close()
 
 	// == Forward
 
