@@ -166,29 +166,6 @@ func testGraphClear[T mat.DType](t *testing.T) {
 	})
 }
 
-func TestGraph_ZeroGrad(t *testing.T) {
-	t.Run("float32", testGraphZeroGrad[float32])
-	t.Run("float64", testGraphZeroGrad[float64])
-}
-
-func testGraphZeroGrad[T mat.DType](t *testing.T) {
-	g := NewGraph[T]()
-	v1 := g.NewVariable(mat.NewScalar[T](1), true)
-	v2 := g.NewVariable(mat.NewScalar[T](2), true)
-	op := Add(v1, v2)
-	Backward(op)
-
-	assert.NotNil(t, v1.Grad())
-	assert.NotNil(t, v2.Grad())
-	assert.NotNil(t, op.Grad())
-
-	g.ZeroGrad()
-
-	assert.Nil(t, v1.Grad())
-	assert.Nil(t, v2.Grad())
-	assert.Nil(t, op.Grad())
-}
-
 func TestGraph_NewWrap(t *testing.T) {
 	t.Run("float32", testGraphNewWrap[float32])
 	t.Run("float64", testGraphNewWrap[float64])

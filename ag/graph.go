@@ -49,13 +49,6 @@ func (g *Graph[T]) Clear() {
 	g.nodes = nil
 }
 
-// ZeroGrad sets the gradients of all nodes to zero.
-func (g *Graph[_]) ZeroGrad() {
-	for _, node := range g.nodes {
-		node.ZeroGrad()
-	}
-}
-
 // TimeStep is an integer value associated with the graph, which can be useful
 // to perform truncated back propagation. This value is 0 for a new Graph, and
 // can be incremented calling IncTimeStep.
