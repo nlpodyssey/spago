@@ -111,13 +111,3 @@ func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 	g.mu.Unlock()
 	return n
 }
-
-func (g *Graph[T]) nodeBoundaries(fromTimeStep, toTimeStep int) (startNodeIndex, endNodeIndex int) {
-	startNodeIndex = g.timeStepBoundaries[fromTimeStep] // inclusive
-	endNodeIndex = len(g.nodes)                         // exclusive
-
-	if toTimeStep != -1 && toTimeStep != g.TimeStep() {
-		endNodeIndex = g.timeStepBoundaries[toTimeStep+1]
-	}
-	return
-}
