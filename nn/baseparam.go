@@ -201,11 +201,6 @@ func (p *BaseParam[T]) Graph() *ag.Graph[T] {
 	panic("nn: attempting to access Graph on a not reified param.")
 }
 
-// ID returns always -1 since the "pure" parameter is not associated with any graph.
-func (p *BaseParam[_]) ID() int {
-	panic("nn: attempting to access the ID of a not reified param.")
-}
-
 // TimeStep returns always 0 since the "pure" parameter is not associated with any graph.
 func (p *BaseParam[_]) TimeStep() int {
 	panic("nn: attempting to access the TimeStep of a not reified param.")

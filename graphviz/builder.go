@@ -6,6 +6,7 @@ package graphviz
 
 import (
 	"fmt"
+	"unsafe"
 
 	"github.com/awalterschulze/gographviz"
 	"github.com/nlpodyssey/spago/ag"
@@ -78,14 +79,14 @@ func (b *builder[T]) build() (gographviz.Interface, error) {
 		return nil, err
 	}
 
-	var nodesWithoutEdges intSet
+	var nodesWithoutEdges map[ag.Node[T]]struct{}
 	if !b.showNodesWithoutEdges {
 		nodesWithoutEdges = b.findNodesWithoutEdges()
 	}
 
 	lastTimeStep := -1
 	for _, node := range b.g.Nodes() {
-		if nodesWithoutEdges != nil && nodesWithoutEdges.Has(node.ID()) {
+		if _, ok := nodesWithoutEdges[node]; ok {
 			continue
 		}
 		if ts := node.TimeStep(); ts != lastTimeStep {
@@ -116,18 +117,18 @@ func (b *builder[T]) build() (gographviz.Interface, error) {
 }
 
 func (b *builder[T]) addVariable(v *ag.Variable[T]) error {
-	id := fmt.Sprintf("%d", v.ID())
+	id := fmt.Sprintf("%d", uintptr(unsafe.Pointer(v)))
 	name := v.Name()
 	if name == "" {
 		name = "-"
 	}
 	label := fmt.Sprintf(
 		`<
-			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			<FONT COLOR="#707070" POINT-SIZE="11">%s</FONT><BR />
 			variable <B>%s</B><BR />
 			%s
 		>`,
-		v.ID(),
+		id,
 		name,
 		matrixShapeString(v.Value()),
 	)
@@ -145,14 +146,14 @@ func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
 		return b.addParam(v, param.Name())
 	}
 
-	id := fmt.Sprintf("%d", v.ID())
+	id := fmt.Sprintf("%d", uintptr(unsafe.Pointer(v)))
 	label := fmt.Sprintf(
 		`<
-			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			<FONT COLOR="#707070" POINT-SIZE="11">%s</FONT><BR />
 			wrapper<BR />
 			%s
 		>`,
-		v.ID(),
+		id,
 		matrixShapeString(v.Value()),
 	)
 	attrs := map[string]string{
@@ -169,14 +170,14 @@ func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
 	if name1 == "" {
 		name1 = "-"
 	}
-	id := fmt.Sprintf("%d", v.ID())
+	id := fmt.Sprintf("%d", uintptr(unsafe.Pointer(v)))
 	label := fmt.Sprintf(
 		`<
-			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			<FONT COLOR="#707070" POINT-SIZE="11">%s</FONT><BR />
 			param <B>%s</B><BR />
 			%s
 		>`,
-		v.ID(),
+		id,
 		name1,
 		matrixShapeString(v.Value()),
 	)
@@ -190,15 +191,15 @@ func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
 }
 
 func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
-	operatorID := fmt.Sprintf("%d", op.ID())
+	operatorID := fmt.Sprintf("%d", uintptr(unsafe.Pointer(op)))
 
 	label := fmt.Sprintf(
 		`<
-			<FONT COLOR="#707070" POINT-SIZE="11">%d</FONT><BR />
+			<FONT COLOR="#707070" POINT-SIZE="11">%s</FONT><BR />
 			<B>%s</B><BR />
 			%s
 		>`,
-		op.ID(),
+		operatorID,
 		op.Name(),
 		matrixShapeString(op.Value()),
 	)
@@ -212,7 +213,7 @@ func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
 	}
 
 	for _, operand := range op.Operands() {
-		operandID := fmt.Sprintf("%d", operand.ID())
+		operandID := fmt.Sprintf("%d", uintptr(unsafe.Pointer(&operand)))
 		if err := b.gv.AddEdge(operandID, operatorID, true, nil); err != nil {
 			return err
 		}
@@ -244,16 +245,16 @@ func (b *builder[T]) timeStepGraphName(timeStep int) string {
 	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
 
-func (b *builder[T]) findNodesWithoutEdges() intSet {
-	ids := newIntSet()
+func (b *builder[T]) findNodesWithoutEdges() map[ag.Node[T]]struct{} {
+	ids := make(map[ag.Node[T]]struct{})
 	for _, node := range b.g.Nodes() {
 		operator, isOperator := node.(*ag.Operator[T])
 		if !isOperator || len(operator.Operands()) == 0 {
-			ids.Add(node.ID())
+			ids[node] = struct{}{}
 			continue
 		}
 		for _, operand := range operator.Operands() {
-			ids.Delete(operand.ID())
+			delete(ids, operand)
 		}
 	}
 	return ids

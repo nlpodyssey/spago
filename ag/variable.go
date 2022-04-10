@@ -22,7 +22,6 @@ var (
 type Variable[T mat.DType] struct {
 	graph        *Graph[T]
 	timeStep     int
-	id           int
 	name         string
 	value        mat.Matrix[T] // store the results of a forward evaluation.
 	mu           sync.Mutex    // to avoid data race during gradients accumulation
@@ -79,11 +78,6 @@ func (g *Graph[T]) Constant(value T) Node[T] {
 	node := g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
 	g.constants[value] = node
 	return node
-}
-
-// ID returns the ID of the node in the graph.
-func (r *Variable[_]) ID() int {
-	return r.id
 }
 
 // Name returns the Name of the variable (it can be empty).
@@ -151,8 +145,4 @@ func (r *Variable[_]) ZeroGrad() {
 // TimeStep returns the time-step of the node.
 func (r *Variable[_]) TimeStep() int {
 	return r.timeStep
-}
-
-func (r *Variable[_]) setID(id int) {
-	r.id = id
 }

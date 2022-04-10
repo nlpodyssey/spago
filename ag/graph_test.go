@@ -20,7 +20,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 	runCommonAssertions := func(t *testing.T, g *Graph[T]) {
 		t.Helper()
 		assert.NotNil(t, g)
-		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
 		assert.Empty(t, g.constants)
@@ -56,14 +55,12 @@ func testGraphNewVariable[T mat.DType](t *testing.T) {
 		assert.False(t, v.RequiresGrad())
 	})
 
-	t.Run("it assigns the correct ID to the nodes and adds them to the graph", func(t *testing.T) {
+	t.Run("it appends the nodes to graph.nodes", func(t *testing.T) {
 		g := NewGraph[T]()
 		a := mat.NewScalar[T](1)
 		b := mat.NewScalar[T](2)
 		va := g.NewVariable(a, true)
 		vb := g.NewVariable(b, false)
-		assert.Equal(t, 0, va.ID())
-		assert.Equal(t, 1, vb.ID())
 		assert.Equal(t, []Node[T]{va, vb}, g.nodes)
 	})
 }
@@ -144,14 +141,6 @@ func TestGraph_Clear(t *testing.T) {
 }
 
 func testGraphClear[T mat.DType](t *testing.T) {
-	t.Run("it resets maxID", func(t *testing.T) {
-		g := NewGraph[T]()
-		g.NewScalar(42)
-		assert.Equal(t, 0, g.maxID)
-		g.Clear()
-		assert.Equal(t, -1, g.maxID)
-	})
-
 	t.Run("it resets curTimeStep", func(t *testing.T) {
 		g := NewGraph[T]()
 		g.NewScalar(42)
@@ -207,7 +196,6 @@ func testGraphClear[T mat.DType](t *testing.T) {
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
 		g.Clear()
-		assert.Equal(t, -1, g.maxID)
 		assert.Equal(t, 0, g.curTimeStep)
 		assert.Nil(t, g.nodes)
 	})
@@ -253,7 +241,6 @@ func testGraphNewWrap[T mat.DType](t *testing.T) {
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)
 	assert.Same(t, g, w.graph)
-	assert.Equal(t, 0, w.id)
 	assert.True(t, w.wrapGrad)
 }
 
@@ -274,6 +261,5 @@ func testGraphNewWrapNoGrad[T mat.DType](t *testing.T) {
 	assert.Same(t, s, w.GradValue)
 	assert.Equal(t, 1, w.timeStep)
 	assert.Same(t, g, w.graph)
-	assert.Equal(t, 0, w.id)
 	assert.False(t, w.wrapGrad)
 }

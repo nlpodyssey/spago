@@ -235,20 +235,6 @@ func TestEmbedding_Graph(t *testing.T) {
 	})
 }
 
-func TestEmbedding_ID(t *testing.T) {
-	repo := memstore.NewRepository()
-	conf := embeddings.Config{
-		Size:      3,
-		StoreName: "test-store",
-	}
-	m := embeddings.New[float32, string](conf, repo)
-
-	e, _ := m.Embedding("e")
-	assert.Panics(t, func() {
-		e.ID()
-	})
-}
-
 func TestEmbedding_TimeStep(t *testing.T) {
 	repo := memstore.NewRepository()
 	conf := embeddings.Config{

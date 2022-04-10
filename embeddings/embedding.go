@@ -77,11 +77,6 @@ func (e *Embedding[T, _]) Graph() *ag.Graph[T] {
 	panic("nn: attempting to access Graph on a non-reified Embedding")
 }
 
-// ID satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[_, _]) ID() int {
-	panic("nn: attempting to access ID on a non-reified Embedding")
-}
-
 // TimeStep satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[_, _]) TimeStep() int {
 	panic("nn: attempting to access TimeStep on a non-reified Embedding")

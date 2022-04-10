@@ -26,7 +26,6 @@ type Operator[T mat.DType] struct {
 	inBackward   bool
 	visited      bool
 	timeStep     int
-	id           int
 	graph        *Graph[T]
 	function     fn.Function[T, Node[T]]
 	value        atomic.Value // store the results of a forward evaluation
@@ -49,7 +48,6 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 	n := &Operator[T]{
 		graph:        g,
 		timeStep:     g.curTimeStep,
-		id:           -1, // set below, upon insertion
 		function:     f,
 		value:        atomic.Value{},
 		valueMx:      valueMx,
@@ -80,15 +78,6 @@ func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
 		}
 	}
 	return false
-}
-
-// ID returns the ID of the node in the graph.
-func (o *Operator[_]) ID() int {
-	return o.id
-}
-
-func (o *Operator[_]) setID(id int) {
-	o.id = id
 }
 
 // Name returns the Name of the operator.

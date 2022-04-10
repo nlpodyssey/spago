@@ -17,11 +17,6 @@ type ParamNode[T mat.DType] struct {
 	Node ag.Node[T]
 }
 
-// ID dispatches the call to the Node.
-func (p *ParamNode[_]) ID() int {
-	return p.Node.ID()
-}
-
 // TimeStep dispatches the call to the Node.
 func (p *ParamNode[_]) TimeStep() int {
 	return p.Node.TimeStep()

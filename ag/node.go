@@ -13,8 +13,6 @@ type Node[T mat.DType] interface {
 	GradValue[T]
 	// Graph returns the graph this node belongs to.
 	Graph() *Graph[T]
-	// ID returns the ID of the node in the graph.
-	ID() int
 	// TimeStep returns the time-step associated to this node.
 	TimeStep() int
 }
@@ -22,7 +20,6 @@ type Node[T mat.DType] interface {
 // nodeInternal extends the public Node with private methods.
 type nodeInternal[T mat.DType] interface {
 	Node[T]
-	setID(int)
 }
 
 // ToNodes cast a slice of N[T] into a slice of ag.Node.

@@ -15,12 +15,8 @@ import (
 type Graph[T mat.DType] struct {
 	// to avoid data race during concurrent computations (mu2 is used in Constant())
 	mu, mu2 sync.Mutex
-	// maxID is the id of the last inserted node (corresponds of len(nodes)-1)
-	maxID int
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int
-	// timeStepBoundaries holds the first node associated to each time-step
-	timeStepBoundaries []int
 	// nodes contains the list of nodes of the graph. The indices of the list are the nodes ids.
 	// The nodes are inserted one at a time in order of creation.
 	nodes []Node[T]
@@ -32,11 +28,9 @@ type Graph[T mat.DType] struct {
 // It can take an optional random generator of type rand.WithRand.
 func NewGraph[T mat.DType]() *Graph[T] {
 	return &Graph[T]{
-		maxID:              -1,
-		curTimeStep:        0,
-		timeStepBoundaries: []int{0},
-		nodes:              nil,
-		constants:          map[T]Node[T]{},
+		curTimeStep: 0,
+		nodes:       nil,
+		constants:   map[T]Node[T]{},
 	}
 }
 
@@ -51,9 +45,7 @@ func (g *Graph[T]) Clear() {
 	if g.nodes == nil {
 		return
 	}
-	g.maxID = -1
 	g.curTimeStep = 0
-	g.timeStepBoundaries = []int{0}
 	g.releaseMemory()
 	g.nodes = nil
 }
@@ -80,7 +72,6 @@ func (g *Graph[_]) TimeStep() int {
 // IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph[_]) IncTimeStep() {
 	g.curTimeStep++
-	g.timeStepBoundaries = append(g.timeStepBoundaries, g.maxID+1)
 }
 
 // releaseMemory clears the values and the gradients of operator nodes.
@@ -102,11 +93,9 @@ func (g *Graph[T]) releaseMemory() {
 	}
 }
 
-// insert append the node into the graph's nodes and assign it an id.
+// insert append the node into the graph's nodes.
 func (g *Graph[T]) insert(n nodeInternal[T]) Node[T] {
 	g.mu.Lock()
-	g.maxID++
-	n.setID(g.maxID)
 	g.nodes = append(g.nodes, n)
 	g.mu.Unlock()
 	return n
