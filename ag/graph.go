@@ -23,7 +23,6 @@ func NewGraph[T mat.DType]() *Graph[T] {
 
 // Clear cleans the graph and should be called after the graph has been used.
 func (g *Graph[T]) Clear() {
-	WaitForOngoingComputations() // this awaits computation of other graphs as well
 	g.curTimeStep = 0
 }
 

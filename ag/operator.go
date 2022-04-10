@@ -65,7 +65,6 @@ func (g *Graph[T]) NewOperator(f fn.Function[T, Node[T]]) Node[T] {
 		n.gradMx.Lock()
 	}
 
-	ongoingComputations.Add(1)
 	go n.forward()
 
 	return n
@@ -103,7 +102,6 @@ func (o *Operator[T]) Operands() []Node[T] {
 }
 
 func (o *Operator[T]) forward() {
-	defer ongoingComputations.Done()
 	o.value.Store(o.function.Forward())
 	o.valueMx.Lock()
 	o.valueCond.Broadcast()
