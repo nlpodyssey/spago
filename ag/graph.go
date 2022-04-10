@@ -49,11 +49,6 @@ func (g *Graph[T]) Clear() {
 	g.nodes = nil
 }
 
-// Nodes returns the nodes of the graph.
-func (g *Graph[T]) Nodes() []Node[T] {
-	return g.nodes
-}
-
 // ZeroGrad sets the gradients of all nodes to zero.
 func (g *Graph[_]) ZeroGrad() {
 	for _, node := range g.nodes {
