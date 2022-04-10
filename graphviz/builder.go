@@ -30,7 +30,11 @@ var timeStepColors = []string{
 }
 
 type builder[T mat.DType] struct {
-	g  *ag.Graph[T]
+	// List of unique nodes
+	nodes []ag.Node[T]
+	// Maximum time-step value among all nodes.
+	maxTimeStep int
+
 	gv gographviz.Interface
 
 	// coloredTimeSteps indicates whether to use different colors for
@@ -60,15 +64,53 @@ func ShowNodesWithoutEdges[T mat.DType](value bool) Option[T] {
 	}
 }
 
-func newBuilder[T mat.DType](g *ag.Graph[T], options ...Option[T]) *builder[T] {
+func newBuilder[T mat.DType](outputNodes []ag.Node[T], options ...Option[T]) *builder[T] {
+	nodes := uniqueNodes(outputNodes)
 	b := &builder[T]{
-		g:  g,
-		gv: gographviz.NewEscape(),
+		nodes:       nodes,
+		maxTimeStep: findMaxTimeStep(nodes),
+		gv:          gographviz.NewEscape(),
 	}
 	for _, option := range options {
 		option(b)
 	}
 	return b
+}
+
+func uniqueNodes[T mat.DType](outputNodes []ag.Node[T]) []ag.Node[T] {
+	visited := make(map[ag.Node[T]]struct{})
+	for _, node := range outputNodes {
+		visitUniqueNodes(visited, node)
+	}
+
+	nodes := make([]ag.Node[T], 0, len(visited))
+	for n := range visited {
+		nodes = append(nodes, n)
+	}
+	return nodes
+}
+
+func visitUniqueNodes[T mat.DType](visited map[ag.Node[T]]struct{}, node ag.Node[T]) {
+	if _, ok := visited[node]; ok {
+		return
+	}
+	visited[node] = struct{}{}
+
+	if op, ok := node.(*ag.Operator[T]); ok {
+		for _, operand := range op.Operands() {
+			visitUniqueNodes[T](visited, operand)
+		}
+	}
+}
+
+func findMaxTimeStep[T mat.DType](nodes []ag.Node[T]) int {
+	max := 0
+	for _, n := range nodes {
+		if ts := n.TimeStep(); ts > max {
+			max = ts
+		}
+	}
+	return max
 }
 
 func (b *builder[T]) build() (gographviz.Interface, error) {
@@ -85,7 +127,7 @@ func (b *builder[T]) build() (gographviz.Interface, error) {
 	}
 
 	lastTimeStep := -1
-	for _, node := range b.g.Nodes() {
+	for _, node := range b.nodes {
 		if _, ok := nodesWithoutEdges[node]; ok {
 			continue
 		}
@@ -239,7 +281,7 @@ func (b *builder[T]) timeStepColor(timeStep int) string {
 }
 
 func (b *builder[T]) timeStepGraphName(timeStep int) string {
-	if b.g.TimeStep() == 0 {
+	if b.maxTimeStep == 0 {
 		return fmt.Sprintf("time_step_%d", timeStep)
 	}
 	return fmt.Sprintf("cluster_time_step_%d", timeStep)
@@ -247,7 +289,7 @@ func (b *builder[T]) timeStepGraphName(timeStep int) string {
 
 func (b *builder[T]) findNodesWithoutEdges() map[ag.Node[T]]struct{} {
 	ids := make(map[ag.Node[T]]struct{})
-	for _, node := range b.g.Nodes() {
+	for _, node := range b.nodes {
 		operator, isOperator := node.(*ag.Operator[T])
 		if !isOperator || len(operator.Operands()) == 0 {
 			ids[node] = struct{}{}

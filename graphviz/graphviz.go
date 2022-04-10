@@ -12,14 +12,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Graphviz creates a gographviz representation of the Graph.
-func Graphviz[T mat.DType](g *ag.Graph[T], options ...Option[T]) (gographviz.Interface, error) {
-	return newBuilder(g, options...).build()
+// Graphviz creates a gographviz representation of the (sub-)graph up to outputNodes .
+func Graphviz[T mat.DType](outputNodes []ag.Node[T], options ...Option[T]) (gographviz.Interface, error) {
+	return newBuilder(outputNodes, options...).build()
 }
 
-// Marshal the graph in a dot (graphviz).
-func Marshal[T mat.DType](g *ag.Graph[T]) ([]byte, error) {
-	gv, err := Graphviz(g, WithColoredTimeSteps[T](true))
+// Marshal the (sub-)graph up to outputNodes into DOT (graphviz) format.
+func Marshal[T mat.DType](outputNodes []ag.Node[T]) ([]byte, error) {
+	gv, err := Graphviz(outputNodes, WithColoredTimeSteps[T](true))
 	if err != nil {
 		return nil, err
 	}
