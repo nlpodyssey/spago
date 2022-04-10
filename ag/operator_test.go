@@ -29,7 +29,7 @@ func testReleaseOperators[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		ReleaseOperators[T](op)
+		ReleaseGraph[T](op)
 
 		assert.Panics(t, func() { op.(*Operator[T]).Value() })
 		assert.Nil(t, op.Grad())
@@ -47,7 +47,7 @@ func testReleaseOperators[T mat.DType](t *testing.T) {
 		assert.NotNil(t, op.Value())
 		assert.NotNil(t, op.Grad())
 
-		ReleaseOperators[T](op)
+		ReleaseGraph[T](op)
 
 		assert.Nil(t, op.Grad())
 	})
