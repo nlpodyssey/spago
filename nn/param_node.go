@@ -22,6 +22,11 @@ func (p *ParamNode[_]) TimeStep() int {
 	return p.Node.TimeStep()
 }
 
+// IncTimeStep dispatches the call to the Node.
+func (p *ParamNode[_]) IncTimeStep() {
+	p.Node.IncTimeStep()
+}
+
 // Graph dispatches the call to the Node.
 func (p *ParamNode[T]) Graph() *ag.Graph[T] {
 	return p.Node.Graph()

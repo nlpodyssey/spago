@@ -94,3 +94,8 @@ func (r *Wrapper[_]) ZeroGrad() {
 func (r *Wrapper[_]) TimeStep() int {
 	return r.timeStep
 }
+
+// IncTimeStep increments the value of the wrapper's TimeStep by one.
+func (r *Wrapper[_]) IncTimeStep() {
+	r.timeStep++
+}

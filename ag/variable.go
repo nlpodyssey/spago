@@ -137,3 +137,8 @@ func (r *Variable[_]) ZeroGrad() {
 func (r *Variable[_]) TimeStep() int {
 	return r.timeStep
 }
+
+// IncTimeStep increments the value of the variable's TimeStep by one.
+func (r *Variable[_]) IncTimeStep() {
+	r.timeStep++
+}

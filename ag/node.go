@@ -15,6 +15,8 @@ type Node[T mat.DType] interface {
 	Graph() *Graph[T]
 	// TimeStep returns the time-step associated to this node.
 	TimeStep() int
+	// IncTimeStep increments the value of the node's TimeStep by one.
+	IncTimeStep()
 }
 
 // ToNodes cast a slice of N[T] into a slice of ag.Node.

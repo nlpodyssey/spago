@@ -96,6 +96,11 @@ func (o *Operator[_]) TimeStep() int {
 	return o.timeStep
 }
 
+// IncTimeStep increments the value of the operator's TimeStep by one.
+func (o *Operator[_]) IncTimeStep() {
+	o.timeStep++
+}
+
 // Operands returns the operands of the operator.
 func (o *Operator[T]) Operands() []Node[T] {
 	return o.function.Operands()
