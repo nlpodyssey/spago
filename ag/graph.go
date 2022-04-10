@@ -4,21 +4,13 @@
 
 package ag
 
-import (
-	"sync"
-
-	"github.com/nlpodyssey/spago/mat"
-)
+import "github.com/nlpodyssey/spago/mat"
 
 // The Graph a.k.a. expression graph or computational graph is the centerpiece of the spaGO machine learning framework.
 // It takes the form of a directed graph with no directed cycles (DAG).
 type Graph[T mat.DType] struct {
-	// mutex to avoid data race during concurrent computations in Constant()
-	constMu sync.Mutex
 	// the time-step is useful to perform truncated back propagation (default 0)
 	curTimeStep int
-	// constants maps scalar values that that doesn't require gradients to a Node. It is used in the Constant() method.
-	constants map[T]Node[T]
 }
 
 // NewGraph returns a new initialized graph.
@@ -26,7 +18,6 @@ type Graph[T mat.DType] struct {
 func NewGraph[T mat.DType]() *Graph[T] {
 	return &Graph[T]{
 		curTimeStep: 0,
-		constants:   map[T]Node[T]{},
 	}
 }
 

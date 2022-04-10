@@ -21,7 +21,6 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		t.Helper()
 		assert.NotNil(t, g)
 		assert.Equal(t, 0, g.curTimeStep)
-		assert.Empty(t, g.constants)
 	}
 
 	t.Run("new graph", func(t *testing.T) {
@@ -85,8 +84,6 @@ func testGraphConstant[T mat.DType](t *testing.T) {
 	assert.NotNil(t, v)
 	assert.True(t, mat.IsScalar(v))
 	assert.Equal(t, T(42.0), v.Scalar())
-	assert.Same(t, c, g.Constant(42))
-	assert.NotSame(t, c, g.Constant(43))
 }
 
 func TestGraph_IncTimeStep(t *testing.T) {

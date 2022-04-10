@@ -68,14 +68,7 @@ func (g *Graph[T]) NewScalarWithName(value T, name string) Node[T] {
 // For the same value, a previously created Node is returned without creating a new one.
 // Useful for example in the case of epsilon and number like 0.0 or 1.0.
 func (g *Graph[T]) Constant(value T) Node[T] {
-	g.constMu.Lock()
-	defer g.constMu.Unlock()
-	if node, ok := g.constants[value]; ok {
-		return node
-	}
-	node := g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
-	g.constants[value] = node
-	return node
+	return g.NewVariableWithName(mat.NewScalar(value), false, fmt.Sprint(value))
 }
 
 // Name returns the Name of the variable (it can be empty).
