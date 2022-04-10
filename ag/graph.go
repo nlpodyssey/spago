@@ -46,7 +46,6 @@ func (g *Graph[T]) Clear() {
 		return
 	}
 	g.curTimeStep = 0
-	g.releaseMemory()
 	g.nodes = nil
 }
 
@@ -72,25 +71,6 @@ func (g *Graph[_]) TimeStep() int {
 // IncTimeStep increments the value of the graph's TimeStep by one.
 func (g *Graph[_]) IncTimeStep() {
 	g.curTimeStep++
-}
-
-// releaseMemory clears the values and the gradients of operator nodes.
-// Since the values and the gradients within the nodes are handled through a pool of dense matrices,
-// releasing them allows the memory to be reused without being reallocated, improving performance.
-func (g *Graph[T]) releaseMemory() {
-	for i, node := range g.nodes {
-		if op, ok := node.(*Operator[T]); ok {
-			op.releaseValue()
-			op.ZeroGrad()
-			op.graph = nil
-			op.function = nil
-			op.valueMx = nil
-			op.valueCond = nil
-			op.gradMx = nil
-			g.nodes[i] = nil
-			// TODO: release constants?
-		}
-	}
 }
 
 // insert append the node into the graph's nodes.

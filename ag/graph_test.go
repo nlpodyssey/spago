@@ -158,41 +158,6 @@ func testGraphClear[T mat.DType](t *testing.T) {
 		assert.Nil(t, g.nodes)
 	})
 
-	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
-		g := NewGraph[T]()
-		op := Add(
-			g.NewVariable(mat.NewScalar[T](1), true),
-			g.NewVariable(mat.NewScalar[T](2), true),
-		)
-		op.Value() // wait for the value
-		Backward(op)
-
-		assert.NotNil(t, op.Value())
-		assert.NotNil(t, op.Grad())
-
-		g.Clear()
-
-		assert.Panics(t, func() { op.(*Operator[T]).Value() })
-		assert.Nil(t, op.Grad())
-	})
-
-	t.Run("operators memory (values and grads) is cleared for reuse", func(t *testing.T) {
-		g := NewGraph[T]()
-		op := Add(
-			g.NewVariable(mat.NewScalar[T](1), true),
-			g.NewVariable(mat.NewScalar[T](2), true),
-		)
-		op.Value() // wait for the value
-		Backward(op)
-
-		assert.NotNil(t, op.Value())
-		assert.NotNil(t, op.Grad())
-
-		g.Clear()
-
-		assert.Nil(t, op.Grad())
-	})
-
 	t.Run("it works on a graph without nodes", func(t *testing.T) {
 		g := NewGraph[T]()
 		g.Clear()
