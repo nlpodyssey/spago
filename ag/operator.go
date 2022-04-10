@@ -125,3 +125,45 @@ func (o *Operator[T]) backward() {
 	}
 	o.function.Backward(grad)
 }
+
+// ReleaseOperators traverses the (sub-)graphs consisting of operators and
+// nested operands, starting from the given nodes, and frees the resources
+// of each operator.
+//
+// Any Node implementation can be passed to the function, however only Operators
+// and their operands will be taken into account, and the rest simply ignored.
+//
+// This function is not concurrency safe.
+//
+// Freed resources include, but are not limited to, the value and the gradients.
+// Any freed operator MUST not be used after this operation is performed.
+func ReleaseOperators[T mat.DType](nodes ...Node[T]) {
+	visited := make(map[*Operator[T]]struct{})
+	for _, node := range nodes {
+		if op, ok := node.(*Operator[T]); ok {
+			releaseOperators[T](visited, op)
+		}
+	}
+}
+
+func releaseOperators[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T]) {
+	if _, ok := visited[op]; ok {
+		return
+	}
+	visited[op] = struct{}{}
+
+	op.releaseValue()
+	op.ZeroGrad()
+
+	for _, operand := range op.function.Operands() {
+		if oo, ok := operand.(*Operator[T]); ok {
+			releaseOperators[T](visited, oo)
+		}
+	}
+
+	op.graph = nil
+	op.function = nil
+	op.valueMx = nil
+	op.valueCond = nil
+	op.gradMx = nil
+}
