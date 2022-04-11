@@ -66,3 +66,26 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 		o.gradMx.Unlock()
 	}
 }
+
+func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {
+	if outputGrad != nil && o.grad != nil {
+		panic("ag: attempt to set output gradients on a node that already has gradients")
+	}
+
+	if o.grad != nil {
+		o.pendingGrads--
+		if o.pendingGrads == 0 {
+			o.gradMx.Unlock()
+		}
+		return
+	}
+
+	if outputGrad != nil {
+		o.AccGrad(outputGrad)
+		return
+	}
+
+	gx := o.Value().OnesLike()
+	o.AccGrad(gx)
+	mat.ReleaseMatrix(gx)
+}

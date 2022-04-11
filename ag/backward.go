@@ -26,21 +26,22 @@ func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
 		panic("ag: only none or one gradients matrix must be passed to Backward")
 	}
 
-	var outputGrad mat.Matrix[T] = nil
-	if len(grad) > 0 && grad[0] != nil {
-		outputGrad = grad[0]
-	}
-
-	if outputGrad != nil && x.HasGrad() {
-		panic("ag: attempt to start a backward with output gradients on a node that already has gradients")
-	}
-
 	op, ok := x.(*Operator[T])
 	if !ok {
 		return
 	}
 
-	backward(outputGrad, op)
+	setupOperatorForBackward(op)
+
+	var outputGrad mat.Matrix[T] = nil
+	if len(grad) > 0 && grad[0] != nil {
+		outputGrad = grad[0]
+	}
+	op.initOutputGrad(outputGrad)
+
+	wg := new(sync.WaitGroup)
+	backward(wg, op)
+	wg.Wait()
 }
 
 // BackwardMany performs the backpropagation from a list of nodes.
@@ -53,19 +54,18 @@ func BackwardMany[T mat.DType](xs ...Node[T]) {
 			ops = append(ops, op)
 		}
 	}
-	backward(nil, ops...)
-}
 
-func backward[T mat.DType](firstGrad mat.Matrix[T], ops ...*Operator[T]) {
 	for _, op := range ops {
 		setupOperatorForBackward(op)
 	}
 
-	accInitialOperatorGradients(firstGrad, ops...)
+	for _, op := range ops {
+		op.initOutputGrad(nil)
+	}
 
 	wg := new(sync.WaitGroup)
 	for _, op := range ops {
-		backwardOperator(wg, op)
+		backward(wg, op)
 	}
 	wg.Wait()
 }
@@ -91,26 +91,7 @@ func setupOperatorForBackward[T mat.DType](op *Operator[T]) {
 	}
 }
 
-func accInitialOperatorGradients[T mat.DType](firstGrad mat.Matrix[T], ops ...*Operator[T]) {
-	for i, op := range ops {
-		if op.grad != nil {
-			op.pendingGrads--
-			if op.pendingGrads == 0 {
-				op.gradMx.Unlock()
-			}
-			continue
-		}
-		if i == 0 && firstGrad != nil {
-			op.AccGrad(firstGrad)
-			continue
-		}
-		gx := op.Value().OnesLike()
-		op.AccGrad(gx)
-		mat.ReleaseMatrix(gx)
-	}
-}
-
-func backwardOperator[T mat.DType](wg *sync.WaitGroup, op *Operator[T]) {
+func backward[T mat.DType](wg *sync.WaitGroup, op *Operator[T]) {
 	if !op.requiresGrad {
 		return
 	}
@@ -127,7 +108,7 @@ func backwardOperator[T mat.DType](wg *sync.WaitGroup, op *Operator[T]) {
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			backwardOperator(wg, oo)
+			backward(wg, oo)
 		}
 	}
 }
