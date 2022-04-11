@@ -117,19 +117,11 @@ func TestEmbeddingWithDiskStore_ScalarValue(t *testing.T) {
 
 	e, _ := m.Embedding("e")
 
-	assert.Panics(t, func() {
-		e.ScalarValue()
-	}, "cannot get scalar value from embedding not in store")
+	assert.Nil(t, e.Value())
 
 	// Set a value for the first time
 	e.ReplaceValue(mat.NewScalar[T](42))
-	assert.Equal(t, T(42), e.ScalarValue())
-
-	// Set value to nil (weird corner case, but possible)
-	e.ReplaceValue(nil)
-	assert.Panics(t, func() {
-		e.ScalarValue()
-	}, "cannot get scalar value from embedding with nil value")
+	assert.Equal(t, T(42), e.Value().Scalar())
 }
 
 func TestEmbeddingWithDiskStore_Grad(t *testing.T) {
