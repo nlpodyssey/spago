@@ -10,7 +10,19 @@ import (
 
 // Node is implemented by any value that can represent a node of a Graph.
 type Node[T mat.DType] interface {
-	GradValue[T]
+	// Value returns the value of the node.
+	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.
+	Value() mat.Matrix[T]
+	// Grad returns the gradients accumulated during the backward pass.
+	Grad() mat.Matrix[T]
+	// HasGrad returns true if there are accumulated gradients.
+	HasGrad() bool
+	// RequiresGrad returns true if the node requires gradients.
+	RequiresGrad() bool
+	// AccGrad accumulate the gradients to the node.
+	AccGrad(gx mat.Matrix[T])
+	// ZeroGrad set the gradients to zeros.
+	ZeroGrad()
 	// TimeStep returns the time-step associated to this node.
 	TimeStep() int
 	// IncTimeStep increments the value of the node's TimeStep by one.

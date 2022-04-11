@@ -14,7 +14,6 @@ import (
 
 var (
 	_ fn.Operand[float32] = &Variable[float32]{}
-	_ GradValue[float32]  = &Variable[float32]{}
 	_ Node[float32]       = &Variable[float32]{}
 )
 
