@@ -26,13 +26,6 @@ func (o *Operator[T]) Value() mat.Matrix[T] {
 	}
 }
 
-// ScalarValue returns the scalar value of the node.
-// It panics if the value is not a scalar.
-// Note that it is not possible to start the backward step from a scalar value.
-func (o *Operator[T]) ScalarValue() T {
-	return o.Value().Scalar()
-}
-
 // releaseValue sets the operator's value to nil releases the memory.
 func (o *Operator[T]) releaseValue() {
 	o.Value() // wait for the forward goroutine to finish

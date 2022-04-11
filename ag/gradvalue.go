@@ -12,8 +12,6 @@ type GradValue[T mat.DType] interface {
 	// Value returns the value of the node.
 	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.
 	Value() mat.Matrix[T]
-	// ScalarValue returns the scalar value of the node. It panics if the value is not a scalar.
-	ScalarValue() T
 	// Grad returns the gradients accumulated during the backward pass.
 	Grad() mat.Matrix[T]
 	// HasGrad returns true if there are accumulated gradients.
