@@ -56,7 +56,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	for i, x := range xs {
 		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add[T](devVectors[i], eps))
 		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), c)
-		zs[i] = ag.Prod(y, ag.NewWrapNoGrad[T](fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		zs[i] = ag.Prod(y, ag.StopGrad[T](fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }

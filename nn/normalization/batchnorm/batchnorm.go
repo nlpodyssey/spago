@@ -49,8 +49,8 @@ func New[T mat.DType](size int) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	meanVector := ag.NewWrapNoGrad[T](m.Mean)
-	devVector := ag.NewWrapNoGrad[T](m.StdDev)
+	meanVector := ag.StopGrad[T](m.Mean)
+	devVector := ag.StopGrad[T](m.StdDev)
 	return m.process(xs, devVector, meanVector)
 }
 

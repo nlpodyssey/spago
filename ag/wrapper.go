@@ -17,77 +17,37 @@ var (
 
 // Wrapper is a type of node.
 type Wrapper[T mat.DType] struct {
-	GradValue[T]
-	timeStep int
-	wrapGrad bool
+	Node[T]
 }
 
-// NewWrap creates a new wrapper Node for the given value, attaching it to
-// the graph.
-func NewWrap[T mat.DType](value GradValue[T]) Node[T] {
+// StopGrad stops the accumulated gradient from flowing through that node in the backward direction.
+func StopGrad[T mat.DType](node Node[T]) Node[T] {
 	return &Wrapper[T]{
-		GradValue: value,
-		timeStep:  -1,
-		wrapGrad:  true,
-	}
-}
-
-// NewWrapNoGrad is similar to NewWrap, but it disables automatic
-// differentiation on the new node.
-func NewWrapNoGrad[T mat.DType](value GradValue[T]) Node[T] {
-	return &Wrapper[T]{
-		GradValue: value,
-		timeStep:  -1,
-		wrapGrad:  false,
+		Node: node,
 	}
 }
 
 // Grad returns the gradients accumulated during the backward pass.
 func (r *Wrapper[T]) Grad() mat.Matrix[T] {
-	if !r.wrapGrad {
-		return nil
-	}
-	return r.GradValue.Grad()
+	return nil
 }
 
 // AccGrad accumulates the gradients to the node.
-func (r *Wrapper[T]) AccGrad(gx mat.Matrix[T]) {
-	if !r.wrapGrad {
-		return
-	}
-	r.GradValue.AccGrad(gx)
+func (r *Wrapper[T]) AccGrad(_ mat.Matrix[T]) {
+	return
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (r *Wrapper[_]) HasGrad() bool {
-	if !r.wrapGrad {
-		return false
-	}
-	return r.GradValue.HasGrad()
+	return false
 }
 
 // RequiresGrad returns true if the node requires gradients.
 func (r *Wrapper[_]) RequiresGrad() bool {
-	if !r.wrapGrad {
-		return false
-	}
-	return r.GradValue.RequiresGrad()
+	return false
 }
 
 // ZeroGrad set the gradients to zeros.
 func (r *Wrapper[_]) ZeroGrad() {
-	if !r.wrapGrad {
-		return
-	}
-	r.GradValue.ZeroGrad()
-}
-
-// TimeStep returns the time-step of the node.
-func (r *Wrapper[_]) TimeStep() int {
-	return r.timeStep
-}
-
-// IncTimeStep increments the value of the wrapper's TimeStep by one.
-func (r *Wrapper[_]) IncTimeStep() {
-	r.timeStep++
+	return
 }

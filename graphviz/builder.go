@@ -184,7 +184,7 @@ func (b *builder[T]) addVariable(v *ag.Variable[T]) error {
 }
 
 func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
-	if param, ok := v.GradValue.(nn.Param[T]); ok {
+	if param, ok := v.Node.(nn.Param[T]); ok {
 		return b.addParam(v, param.Name())
 	}
 
@@ -196,7 +196,7 @@ func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
 			%s
 		>`,
 		id,
-		matrixShapeString(v.Value()),
+		matrixShapeString(v.Node.Value()),
 	)
 	attrs := map[string]string{
 		"label": label,
@@ -221,7 +221,7 @@ func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
 		>`,
 		id,
 		name1,
-		matrixShapeString(v.Value()),
+		matrixShapeString(v.Node.Value()),
 	)
 	attrs := map[string]string{
 		"label": label,
