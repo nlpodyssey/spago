@@ -29,28 +29,30 @@
         <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
     </a>
 </p>
-
-<p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
+<p align="center">
+    <br>
+    <i>If you like the project, please ★ star this repository to show your support! 🤩</i>
+    <br>
+<br>
+<p>
 
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
 
-spaGO is self-contained, in that it uses its own lightweight computational graph both for training and
-inference, easy to understand from start to finish.
+SpaGO is self-contained, in that it uses its own lightweight computational graph both for training and
+inference, easy to understand from start to finish. 
 
-## Features
+It provides:
+- Automatic differentiation via dynamic define-by-run execution
+- Gradient descent optimizers (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
+- Feed-forward layers (Linear, Highway, Convolution...)
+- Recurrent layers (LSTM, GRU, BiLSTM...)
+- Attention layers (Self-Attention, Multi-Head Attention...)
+- Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
 
-- Automatic differentiation:
-    - Define-by-Run (default, just like PyTorch does)
-  
-- Optimization methods:
-    - Gradient descent (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
-  
-- Neural networks:
-    - Feed-forward models (Linear, Highway, Convolution, ...)
-    - Recurrent models (LSTM, GRU, BiLSTM...)
-    - Attention mechanisms (Self-Attention, Multi-Head Attention, ...)
-    - Recursive auto-encoders
+> Look at the implementation of built-in neural models, such as
+the [LSTM](https://github.com/nlpodyssey/spago/blob/main/nn/recurrent/lstm/lstm.go). Don't be afraid, it is
+straightforward Go code. The idea is that you could have written SpaGO! :)
 
 ## Usage
 
@@ -64,16 +66,49 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
-At a high level, it comprises four main modules:
+### Getting Started
 
-1. Matrix
-2. Graph
-3. Model
-4. Optimizer
+The computational graph is the centerpiece of the SpaGO machine learning framework.
 
-To get started, look at the implementation of built-in neural models, such as
-the [LSTM](https://github.com/nlpodyssey/spago/blob/main/nn/recurrent/lstm/lstm.go). Don't be afraid, it is
-straightforward Go code. The idea is that you could have written spaGO :)
+Mathematical expressions must be defined using the auto-grad `ag` package in order to take advantage of automatic differentiation.
+
+Example:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/ag"
+)
+
+type T = float32
+
+func main() {
+	// create a new node of type variable with a scalar
+	a := ag.NewVariable[T](mat.NewScalar[T](2.0), true)
+	// create another node of type variable with a scalar
+	b := ag.NewVariable[T](mat.NewScalar[T](5.0), true)
+	// create an addition operator (the calculation is actually performed here)
+	c := ag.Add(a, b)
+	// print the result
+	fmt.Printf("c = %v\n", c.Value())
+
+	ag.Backward[T](c, mat.NewScalar[T](0.5))
+	fmt.Printf("ga = %v\n", a.Grad())
+	fmt.Printf("gb = %v\n", b.Grad())
+}
+```
+
+Output:
+
+```console
+c = [7]
+ga = [0.5]
+gb = [0.5]
+```
 
 ## Known Limits
 
@@ -99,7 +134,7 @@ questions or comments.
 Below is a list of known projects that use spaGO:
 
 * [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
-* [GoFlair](https://github.com/nlpodyssey/goflair) - State of the art Natural Language Processing in Go.
+* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
 * [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
   of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
 * [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
