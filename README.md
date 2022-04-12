@@ -62,6 +62,10 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
+The core version of SpaGO relies only on [testify](github.com/stretchr/testify) for unit testing. 
+In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
+
+
 ### Getting Started
 
 A good place to start is by looking at the implementation of built-in neural models, such as the [LSTM](https://github.com/nlpodyssey/spago/blob/af3871a650dddb94299de4f8d3f9eb6ab4fa4a37/nn/recurrent/lstm/lstm.go#L106).
