@@ -22,11 +22,11 @@
     <a href="https://opensource.org/licenses/BSD-2-Clause">
         <img alt="License" src="https://img.shields.io/badge/License-BSD%202--Clause-orange.svg">
     </a>
-    <a href="https://github.com/avelino/awesome-go">
-        <img alt="Awesome Go" src="https://awesome.re/mentioned-badge.svg">
-    </a>
     <a href="http://makeapullrequest.com">
         <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
+    </a>
+    <a href="https://github.com/avelino/awesome-go">
+        <img alt="Awesome Go" src="https://awesome.re/mentioned-badge.svg">
     </a>
 </p>
 <p align="center">
