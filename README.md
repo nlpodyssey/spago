@@ -39,7 +39,7 @@
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
 
-SpaGO is self-contained, in that it uses its own lightweight computational graph both for training and
+Spago is self-contained, in that it uses its own lightweight computational graph both for training and
 inference, easy to understand from start to finish. 
 
 It provides:
@@ -49,6 +49,20 @@ It provides:
 - Recurrent layers (LSTM, GRU, BiLSTM...)
 - Attention layers (Self-Attention, Multi-Head Attention...)
 - Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+
+## Projects using Spago
+
+Below is a list of projects that use Spago:
+
+* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
+* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
+* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
+  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
+* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
+  service.
+* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
+* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
+  news from multiple sources.
 
 ## Usage
 
@@ -62,9 +76,8 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
-The core version of SpaGO relies only on [testify](github.com/stretchr/testify) for unit testing. 
+The core version of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
 In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
-
 
 ### Getting Started
 
@@ -74,7 +87,7 @@ Except for a few linear algebra operations written in assembly for optimal perfo
 The behavior of a neural model is characterized by a combination of parameters and equations. 
 Mathematical expressions must be defined using the auto-grad `ag` package in order to take advantage of automatic differentiation.
 
-In this sense, we can say the computational graph is at the center of the SpaGO machine learning framework.
+In this sense, we can say the computational graph is at the center of the Spago machine learning framework.
 
 Example:
 
@@ -116,11 +129,11 @@ gb = [0.5]
 
 ## Known Limits
 
-Sadly, at the moment, spaGO is not GPU friendly by design.
+Sadly, at the moment, Spago is not GPU friendly by design.
 
 ## Contributing
 
-We're glad you're thinking about contributing to spaGO! If you think something is missing or could be improved, please
+We're glad you're thinking about contributing to Spago! If you think something is missing or could be improved, please
 open issues and pull requests. If you'd like to help this project grow, we'd love to have you!
 
 To start contributing, check
@@ -133,29 +146,15 @@ We encourage you to write an issue. This would help the community grow.
 If you really want to write to us privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your
 questions or comments.
 
-## Projects Using spaGO
-
-Below is a list of known projects that use spaGO:
-
-* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
-* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
-* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
-  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
-* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
-  news from multiple sources.
-* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
-  service.
-* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
-
 ## Acknowledgments
 
-spaGO is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative
+Spago is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative
 initiated by members of the EXOP team (now part of Crisis24). I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here,
 which is providing full support for development by promoting the project and giving it increasing importance.
 
 ## Sponsors
 
-We appreciate contributions of all kinds. We especially want to thank spaGO fiscal sponsors who contribute to ongoing
+We appreciate contributions of all kinds. We especially want to thank Spago fiscal sponsors who contribute to ongoing
 project maintenance.
 
 See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.
