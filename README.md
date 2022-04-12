@@ -1,6 +1,6 @@
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/spago_logo.png" width="400"/>
+    <img src="https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/assets/spago_logo.png" width="400"/>
     <br>
 <p>
 <p align="center">
