@@ -6,6 +6,8 @@ package multiheadattention
 
 import (
 	"encoding/gob"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -31,10 +33,17 @@ func (m *CrossAttention[T]) Forward(cache Cache[T], seq1 []ag.Node[T], seq2 []ag
 	weights := make([][]ag.Node[T], n)
 	nextCache := make(Cache[T], n)
 
+	var wg sync.WaitGroup
+	wg.Add(len(m.Heads))
 	for i, h := range m.Heads {
-		ca := selfattention.CrossAttention[T]{Model: h}
-		attentions[i], weights[i], nextCache[i] = ca.Forward(cache.At(i), seq1, seq2)
+		i, h := i, h
+		go func() {
+			defer wg.Done()
+			ca := selfattention.CrossAttention[T]{Model: h}
+			attentions[i], weights[i], nextCache[i] = ca.Forward(cache.At(i), seq1, seq2)
+		}()
 	}
+	wg.Wait()
 
 	projected := m.project(attentions, len(seq1))
 

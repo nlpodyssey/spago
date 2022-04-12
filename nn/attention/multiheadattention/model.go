@@ -6,6 +6,7 @@ package multiheadattention
 
 import (
 	"encoding/gob"
+	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
@@ -82,9 +83,16 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], 
 	weights := make([][]ag.Node[T], n)
 	nextCache := make(Cache[T], n)
 
+	var wg sync.WaitGroup
+	wg.Add(len(m.Heads))
 	for i, h := range m.Heads {
-		attentions[i], weights[i], nextCache[i] = h.Forward(cache.At(i), q, k, v)
+		i, h := i, h
+		go func() {
+			defer wg.Done()
+			attentions[i], weights[i], nextCache[i] = h.Forward(cache.At(i), q, k, v)
+		}()
 	}
+	wg.Wait()
 
 	projected := m.project(attentions, len(q))
 
