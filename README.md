@@ -50,10 +50,6 @@ It provides:
 - Attention layers (Self-Attention, Multi-Head Attention...)
 - Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
 
-> Look at the implementation of built-in neural models, such as
-the [LSTM](https://github.com/nlpodyssey/spago/blob/main/nn/recurrent/lstm/lstm.go). Don't be afraid, it is
-straightforward Go code. The idea is that you could have written SpaGO! :)
-
 ## Usage
 
 Requirements:
@@ -68,9 +64,13 @@ go get -u github.com/nlpodyssey/spago
 
 ### Getting Started
 
-The computational graph is the centerpiece of the SpaGO machine learning framework.
+A good place to start is by looking at the implementation of built-in neural models, such as the [LSTM](https://github.com/nlpodyssey/spago/blob/af3871a650dddb94299de4f8d3f9eb6ab4fa4a37/nn/recurrent/lstm/lstm.go#L106).
+Except for a few linear algebra operations written in assembly for optimal performance, it's straightforward Go code, so you don't have to worry. In fact, SpaGO could have been written by you :)
 
+The behavior of a neural model is characterized by a combination of parameters and equations. 
 Mathematical expressions must be defined using the auto-grad `ag` package in order to take advantage of automatic differentiation.
+
+In this sense, we can say the computational graph is at the center of the SpaGO machine learning framework.
 
 Example:
 
@@ -141,7 +141,7 @@ Below is a list of known projects that use spaGO:
   news from multiple sources.
 * [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
   service.
-* [PySquared](https://github.com/ErikPelli/PiSquared) A Telegram bot that asks you a question and evaluate the response you provide.
+* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
 
 ## Acknowledgments
 
