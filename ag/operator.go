@@ -34,9 +34,11 @@ type Operator[T mat.DType] struct {
 	// valueCond.L is set to &valueMx
 	valueCond sync.Cond
 	grad      mat.Matrix[T]
-	gradMx    sync.RWMutex
-	// gradAccMx prevents race conditions during gradients accumulation.
-	gradAccMx    sync.Mutex
+	// gradMx is the mutex used by gradCond. It's kept here to avoid an
+	// extra memory allocation, but it shouldn't be used directly.
+	gradMx sync.Mutex
+	// gradCond.L is set to &gradMx
+	gradCond     sync.Cond
 	pendingGrads int64
 }
 
@@ -55,10 +57,7 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	}
 
 	n.valueCond.L = &n.valueMx
-
-	if n.requiresGrad {
-		n.gradMx.Lock()
-	}
+	n.gradCond.L = &n.gradMx
 
 	go n.forward()
 
@@ -156,4 +155,5 @@ func releaseGraph[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T
 
 	op.function = nil
 	op.valueCond.L = nil
+	op.gradCond.L = nil
 }

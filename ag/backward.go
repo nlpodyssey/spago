@@ -82,7 +82,6 @@ func setupOperatorForBackward[T mat.DType](op *Operator[T]) {
 	}
 	op.visited = true
 	op.inBackward = true
-	op.gradMx.TryLock()
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
