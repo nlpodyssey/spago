@@ -5,7 +5,7 @@
 package asm64_test
 
 import (
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 	"math"
 	"testing"
 )

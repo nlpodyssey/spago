@@ -65,7 +65,7 @@ go get -u github.com/nlpodyssey/spago
 ### Getting Started
 
 A good place to start is by looking at the implementation of built-in neural models, such as the [LSTM](https://github.com/nlpodyssey/spago/blob/af3871a650dddb94299de4f8d3f9eb6ab4fa4a37/nn/recurrent/lstm/lstm.go#L106).
-Except for a few linear algebra operations written in assembly for optimal performance, it's straightforward Go code, so you don't have to worry. In fact, SpaGO could have been written by you :)
+Except for a few linear algebra operations written in assembly for optimal performance (a bit of copying from [Gonum](https://github.com/gonum/gonum)), it's straightforward Go code, so you don't have to worry. In fact, SpaGO could have been written by you :)
 
 The behavior of a neural model is characterized by a combination of parameters and equations. 
 Mathematical expressions must be defined using the auto-grad `ag` package in order to take advantage of automatic differentiation.

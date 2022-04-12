@@ -7,8 +7,8 @@ package rand
 import (
 	"fmt"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 	"github.com/nlpodyssey/spago/utils"
-	"golang.org/x/exp/rand"
 )
 
 // ShuffleInPlace pseudo-randomizes the order of elements, modifying the

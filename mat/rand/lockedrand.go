@@ -6,9 +6,10 @@ package rand
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat"
-	"golang.org/x/exp/rand"
 	"sync"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 )
 
 // LockedRand is an implementation of rand.Rand that is concurrency-safe.

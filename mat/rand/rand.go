@@ -6,8 +6,9 @@ package rand
 
 import (
 	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 )
 
 // Float returns, as a T, a pseudo-random number in [0.0,1.0)

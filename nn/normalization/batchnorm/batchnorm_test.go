@@ -5,8 +5,8 @@
 package batchnorm
 
 import (
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/rand"
 	"os"
 	"testing"
 
@@ -86,13 +86,13 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		},
 	}
 
-	rnd := rand.New(rand.NewSource(42))
+	rnd := rand.NewLockedRand[T](42)
 
 	testData := make([][]T, numDataInstances)
 	for i := range testData {
 		testData[i] = make([]T, dataSize)
 		for j := range testData[i] {
-			testData[i][j] = T(rnd.NormFloat64())
+			testData[i][j] = T(rnd.NormFloat())
 		}
 	}
 

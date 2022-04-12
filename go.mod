@@ -6,10 +6,7 @@ module github.com/nlpodyssey/spago
 
 go 1.18
 
-require (
-	github.com/stretchr/testify v1.7.0
-	golang.org/x/exp v0.0.0-20220328175248-053ad81199eb
-)
+require github.com/stretchr/testify v1.7.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

@@ -6,10 +6,11 @@ package asm64_test
 
 import (
 	"fmt"
-	. "github.com/nlpodyssey/spago/mat/internal/f64/asm64"
-	"golang.org/x/exp/rand"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 	"math"
 	"testing"
+
+	. "github.com/nlpodyssey/spago/mat/internal/f64/asm64"
 )
 
 func TestDotUnitary(t *testing.T) {
