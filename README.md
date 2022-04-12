@@ -76,8 +76,10 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
-The core version of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
+The core [module](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.mod) of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
 In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
+
+SpaGO uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features such as persistent embeddings or graph rendering are used.
 
 ### Getting Started
 
