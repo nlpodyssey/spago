@@ -1,32 +1,51 @@
-![alt text](https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/spago_logo.png)
-
-[![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
-[![Go Reference](https://pkg.go.dev/badge/github.com/nlpodyssey/spago/.svg)](https://pkg.go.dev/github.com/nlpodyssey/spago/)
-![Go](https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nlpodyssey/spago)](https://goreportcard.com/report/github.com/nlpodyssey/spago)
-[![Maintainability](https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability)](https://codeclimate.com/github/nlpodyssey/spago/maintainability)
-[![codecov](https://codecov.io/gh/nlpodyssey/spago/branch/main/graph/badge.svg)](https://codecov.io/gh/nlpodyssey/spago)
-[![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+<p align="center">
+    <br>
+    <img src="https://raw.githubusercontent.com/nlpodyssey/spago/main/assets/spago_logo.png" width="400"/>
+    <br>
+<p>
+<p align="center">
+    <a href="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master">
+        <img alt="Build" src="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master">
+    </a>
+    <a href="https://codecov.io/gh/nlpodyssey/spago">
+        <img alt="Coverage" src="https://codecov.io/gh/nlpodyssey/spago/branch/main/graph/badge.svg">
+    </a>
+    <a href="https://goreportcard.com/report/github.com/nlpodyssey/spago">
+        <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/nlpodyssey/spago">
+    </a>
+    <a href="https://codeclimate.com/github/nlpodyssey/spago/maintainability">
+        <img alt="Maintainability" src="https://api.codeclimate.com/v1/badges/be7350d3eb1a6a8aa503/maintainability">
+    </a>
+    <a href="https://pkg.go.dev/github.com/nlpodyssey/spago/">
+        <img alt="Documentation" src="https://pkg.go.dev/badge/github.com/nlpodyssey/spago/.svg">
+    </a>
+    <a href="https://opensource.org/licenses/BSD-2-Clause">
+        <img alt="License" src="https://img.shields.io/badge/License-BSD%202--Clause-orange.svg">
+    </a>
+    <a href="https://github.com/avelino/awesome-go">
+        <img alt="Awesome Go" src="https://awesome.re/mentioned-badge.svg">
+    </a>
+    <a href="http://makeapullrequest.com">
+        <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square">
+    </a>
+</p>
 
 <p align="center"><i>If you like the project, please ★ star this repository to show your support! 🤩</i></p>
 
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
 
-spaGO is self-contained, in that it uses its own lightweight *computational graph* framework for both training and
+spaGO is self-contained, in that it uses its own lightweight computational graph both for training and
 inference, easy to understand from start to finish.
 
 ## Features
 
 - Automatic differentiation:
     - Define-by-Run (default, just like PyTorch does)
-    - Define-and-Run (similar to the static graph of TensorFlow)
-
+  
 - Optimization methods:
     - Gradient descent (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
-    - Differential Evolution
-
+  
 - Neural networks:
     - Feed-forward models (Linear, Highway, Convolution, ...)
     - Recurrent models (LSTM, GRU, BiLSTM...)
@@ -79,13 +98,15 @@ questions or comments.
 
 Below is a list of known projects that use spaGO:
 
+* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
+* [GoFlair](https://github.com/nlpodyssey/goflair) - State of the art Natural Language Processing in Go.
 * [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
   of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
 * [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
   news from multiple sources.
 * [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
   service.
-* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State of the art Natural Language Processing in Go.
+* [PySquared](https://github.com/ErikPelli/PiSquared) A Telegram bot that asks you a question and evaluate the response you provide.
 
 ## Acknowledgments
 
