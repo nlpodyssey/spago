@@ -21,17 +21,22 @@ var (
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
-	requiresGrad bool
 	inBackward   bool
+	requiresGrad bool
 	visited      bool
 	timeStep     int
 	function     fn.Function[T, Node[T]]
-	value        atomic.Value // store the results of a forward evaluation
-	valueMx      *sync.RWMutex
-	valueCond    *sync.Cond
-	grad         mat.Matrix[T]
-	gradMx       *sync.RWMutex
-	gradAccMx    sync.Mutex // to avoid data race during gradients accumulation
+	// value is the results of a forward evaluation, as mat.Matrix[T].
+	value atomic.Value
+	// valueMx is the mutex used by valueCond. It's kept here to avoid an
+	// extra memory allocation, but it shouldn't be used directly.
+	valueMx sync.Mutex
+	// valueCond.L is set to &valueMx
+	valueCond sync.Cond
+	grad      mat.Matrix[T]
+	gradMx    sync.RWMutex
+	// gradAccMx prevents race conditions during gradients accumulation.
+	gradAccMx    sync.Mutex
 	pendingGrads int64
 }
 
@@ -41,24 +46,17 @@ type Operator[T mat.DType] struct {
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
 func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
-	valueMx := new(sync.RWMutex)
-
 	n := &Operator[T]{
+		requiresGrad: anyNodeRequiresGrad(f.Operands()),
+		visited:      false,
 		timeStep:     -1,
 		function:     f,
-		value:        atomic.Value{},
-		valueMx:      valueMx,
-		valueCond:    sync.NewCond(valueMx.RLocker()),
-		requiresGrad: anyNodeRequiresGrad(f.Operands()),
-		grad:         nil,
-		gradMx:       nil,
-		gradAccMx:    sync.Mutex{},
 		pendingGrads: 0,
-		visited:      false,
 	}
 
+	n.valueCond.L = &n.valueMx
+
 	if n.requiresGrad {
-		n.gradMx = new(sync.RWMutex)
 		n.gradMx.Lock()
 	}
 
@@ -100,9 +98,9 @@ func (o *Operator[T]) Operands() []Node[T] {
 
 func (o *Operator[T]) forward() {
 	o.value.Store(o.function.Forward())
-	o.valueMx.Lock()
+	o.valueCond.L.Lock()
 	o.valueCond.Broadcast()
-	o.valueMx.Unlock()
+	o.valueCond.L.Unlock()
 }
 
 func (o *Operator[T]) backward() {
@@ -157,7 +155,5 @@ func releaseGraph[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T
 	}
 
 	op.function = nil
-	op.valueMx = nil
-	op.valueCond = nil
-	op.gradMx = nil
+	op.valueCond.L = nil
 }
