@@ -216,11 +216,10 @@ func (o *Operator[T]) backward() {
 
 // releaseValue sets the operator's value to nil releases the memory.
 func (o *Operator[T]) releaseValue() {
-	o.Value() // wait for the forward goroutine to finish
-	value := o.value.Load()
+	value := o.Value() // also safely waits for any forward goroutine to finish
 	if value == nil {
 		return
 	}
-	mat.ReleaseMatrix(value.(mat.Matrix[T]))
+	mat.ReleaseMatrix(value)
 	o.value = atomic.Value{}
 }
