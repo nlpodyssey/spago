@@ -64,20 +64,93 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	return n
 }
 
-func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
-	for _, node := range nodes {
-		if node.RequiresGrad() {
-			return true
-		}
-	}
-	return false
-}
-
 // Name returns the Name of the operator.
 // The name is taken from the name of r.function via reflection.
 func (o *Operator[_]) Name() string {
 	value := reflect.ValueOf(o.function).Elem().Type().Name()
 	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
+}
+
+// Operands returns the operands of the operator.
+func (o *Operator[T]) Operands() []Node[T] {
+	return o.function.Operands()
+}
+
+// Value returns the result of the function.
+func (o *Operator[T]) Value() mat.Matrix[T] {
+	if v := o.value.Load(); v != nil {
+		return v.(mat.Matrix[T])
+	}
+
+	o.valueCond.L.Lock()
+	defer o.valueCond.L.Unlock()
+	for {
+		if v := o.value.Load(); v != nil {
+			return v.(mat.Matrix[T])
+		}
+		o.valueCond.Wait()
+	}
+}
+
+// Grad returns the gradients accumulated during the backward pass.
+func (o *Operator[T]) Grad() mat.Matrix[T] {
+	if !o.requiresGrad {
+		return nil
+	}
+
+	if atomic.LoadInt64(&o.pendingGrads) == 0 {
+		return o.grad
+	}
+
+	o.gradCond.L.Lock()
+	defer o.gradCond.L.Unlock()
+	for {
+		if atomic.LoadInt64(&o.pendingGrads) == 0 {
+			return o.grad
+		}
+		o.gradCond.Wait()
+	}
+}
+
+// HasGrad returns true if there are accumulated gradients.
+func (o *Operator[_]) HasGrad() bool {
+	return o.Grad() != nil
+}
+
+// RequiresGrad returns true if the node requires gradients.
+func (o *Operator[_]) RequiresGrad() bool {
+	return o.requiresGrad
+}
+
+// ZeroGrad clears the gradients.
+func (o *Operator[_]) ZeroGrad() {
+	o.Grad() // safety wait for the backward goroutine to finish
+	if o.grad == nil {
+		return
+	}
+	mat.ReleaseMatrix(o.grad)
+	o.grad = nil
+	o.pendingGrads = 0
+	o.visited = false
+	o.inBackward = false
+}
+
+// AccGrad accumulates the gradients to the node itself.
+func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
+	if !o.requiresGrad {
+		return
+	}
+	o.gradCond.L.Lock()
+	defer o.gradCond.L.Unlock()
+
+	if o.grad == nil {
+		o.grad = o.Value().ZerosLike()
+	}
+	o.grad.AddInPlace(grad)
+
+	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
+		o.gradCond.Broadcast() // notify all goroutines that have been waiting for the gradients
+	}
 }
 
 // TimeStep returns the time-step of the node.
@@ -90,11 +163,36 @@ func (o *Operator[_]) IncTimeStep() {
 	o.timeStep++
 }
 
-// Operands returns the operands of the operator.
-func (o *Operator[T]) Operands() []Node[T] {
-	return o.function.Operands()
+func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {
+	if outputGrad != nil && o.grad != nil {
+		panic("ag: attempt to set output gradients on a node that already has gradients")
+	}
+
+	if o.grad != nil {
+		o.pendingGrads--
+		return
+	}
+
+	if outputGrad != nil {
+		o.AccGrad(outputGrad)
+		return
+	}
+
+	gx := o.Value().OnesLike()
+	o.AccGrad(gx)
+	mat.ReleaseMatrix(gx)
 }
 
+func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
+	for _, node := range nodes {
+		if node.RequiresGrad() {
+			return true
+		}
+	}
+	return false
+}
+
+// forward executes the function and inform all goroutines that have been waiting for the result.
 func (o *Operator[T]) forward() {
 	o.value.Store(o.function.Forward())
 	o.valueCond.L.Lock()
@@ -102,6 +200,7 @@ func (o *Operator[T]) forward() {
 	o.valueCond.L.Unlock()
 }
 
+// backward executes the backward
 func (o *Operator[T]) backward() {
 	defer func() {
 		o.inBackward = false
@@ -111,49 +210,20 @@ func (o *Operator[T]) backward() {
 		return
 	}
 
-	grad := o.Grad()
+	grad := o.Grad() // wait for the forward goroutine to finish
 	if grad == nil {
 		return
 	}
 	o.function.Backward(grad)
 }
 
-// ReleaseGraph traverses the (sub-)graphs consisting of operators and
-// nested operands, starting from the given nodes, and frees the resources
-// of each operator.
-//
-// Any Node implementation can be passed to the function, however only Operators
-// and their operands will be taken into account, and the rest simply ignored.
-//
-// This function is not concurrency safe.
-//
-// Freed resources include, but are not limited to, the value and the gradients.
-// Any freed operator MUST not be used after this operation is performed.
-func ReleaseGraph[T mat.DType](nodes ...Node[T]) {
-	visited := make(map[*Operator[T]]struct{})
-	for _, node := range nodes {
-		if op, ok := node.(*Operator[T]); ok {
-			releaseGraph[T](visited, op)
-		}
-	}
-}
-
-func releaseGraph[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T]) {
-	if _, ok := visited[op]; ok {
+// releaseValue sets the operator's value to nil releases the memory.
+func (o *Operator[T]) releaseValue() {
+	o.Value() // wait for the forward goroutine to finish
+	value := o.value.Load()
+	if value == nil {
 		return
 	}
-	visited[op] = struct{}{}
-
-	op.releaseValue()
-	op.ZeroGrad()
-
-	for _, operand := range op.function.Operands() {
-		if oo, ok := operand.(*Operator[T]); ok {
-			releaseGraph[T](visited, oo)
-		}
-	}
-
-	op.function = nil
-	op.valueCond.L = nil
-	op.gradCond.L = nil
+	mat.ReleaseMatrix(value.(mat.Matrix[T]))
+	o.value = atomic.Value{}
 }
