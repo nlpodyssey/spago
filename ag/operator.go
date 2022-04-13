@@ -28,17 +28,15 @@ type Operator[T mat.DType] struct {
 	function     fn.Function[T, Node[T]]
 	// value is the results of a forward evaluation, as mat.Matrix[T].
 	value atomic.Value
-	// valueMx is the mutex used by valueCond. It's kept here to avoid an
-	// extra memory allocation, but it shouldn't be used directly.
-	valueMx sync.Mutex
-	// valueCond.L is set to &valueMx
-	valueCond sync.Cond
-	grad      mat.Matrix[T]
-	// gradMx is the mutex used by gradCond. It's kept here to avoid an
-	// extra memory allocation, but it shouldn't be used directly.
-	gradMx sync.Mutex
-	// gradCond.L is set to &gradMx
-	gradCond     sync.Cond
+	// cond is the condition variable used as rendezvous points for
+	// goroutines involved in both forward and backward operations.
+	// NewOperator sets cond.L to &mx.
+	cond sync.Cond
+	// mx is the mutex used by cond.
+	// It's defined here in order to avoid an extra memory allocation
+	// (from NewOperator), but it's never be used directly.
+	mx           sync.Mutex
+	grad         mat.Matrix[T]
 	pendingGrads int64
 }
 
@@ -56,8 +54,7 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 		pendingGrads: 0,
 	}
 
-	n.valueCond.L = &n.valueMx
-	n.gradCond.L = &n.gradMx
+	n.cond.L = &n.mx
 
 	go n.forward()
 
@@ -82,13 +79,13 @@ func (o *Operator[T]) Value() mat.Matrix[T] {
 		return v.(mat.Matrix[T])
 	}
 
-	o.valueCond.L.Lock()
-	defer o.valueCond.L.Unlock()
+	o.cond.L.Lock()
+	defer o.cond.L.Unlock()
 	for {
 		if v := o.value.Load(); v != nil {
 			return v.(mat.Matrix[T])
 		}
-		o.valueCond.Wait()
+		o.cond.Wait()
 	}
 }
 
@@ -102,13 +99,13 @@ func (o *Operator[T]) Grad() mat.Matrix[T] {
 		return o.grad
 	}
 
-	o.gradCond.L.Lock()
-	defer o.gradCond.L.Unlock()
+	o.cond.L.Lock()
+	defer o.cond.L.Unlock()
 	for {
 		if atomic.LoadInt64(&o.pendingGrads) == 0 {
 			return o.grad
 		}
-		o.gradCond.Wait()
+		o.cond.Wait()
 	}
 }
 
@@ -140,8 +137,8 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	if !o.requiresGrad {
 		return
 	}
-	o.gradCond.L.Lock()
-	defer o.gradCond.L.Unlock()
+	o.cond.L.Lock()
+	defer o.cond.L.Unlock()
 
 	if o.grad == nil {
 		o.grad = o.Value().ZerosLike()
@@ -149,7 +146,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	o.grad.AddInPlace(grad)
 
 	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
-		o.gradCond.Broadcast() // notify all goroutines that have been waiting for the gradients
+		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
 	}
 }
 
@@ -195,9 +192,9 @@ func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
 // forward executes the function and inform all goroutines that have been waiting for the result.
 func (o *Operator[T]) forward() {
 	o.value.Store(o.function.Forward())
-	o.valueCond.L.Lock()
-	o.valueCond.Broadcast()
-	o.valueCond.L.Unlock()
+	o.cond.L.Lock()
+	o.cond.Broadcast()
+	o.cond.L.Unlock()
 }
 
 // backward executes the backward

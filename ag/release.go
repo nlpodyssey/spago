@@ -42,6 +42,5 @@ func releaseGraph[T mat.DType](visited map[*Operator[T]]struct{}, op *Operator[T
 	}
 
 	op.function = nil
-	op.valueCond.L = nil
-	op.gradCond.L = nil
+	op.cond.L = nil
 }
