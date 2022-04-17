@@ -134,15 +134,6 @@ func NewInitVecDense[T DType](size int, v T) *Dense[T] {
 	return out
 }
 
-// NewDirtyVecDense returns a new column vector (size×1) whose values
-// are dirty due to memory reuse. Use with caution.
-func NewDirtyVecDense[T DType](size int) *Dense[T] {
-	if size < 0 {
-		panic("mat: a negative size is not allowed")
-	}
-	return densePool[T]().Get(size, 1)
-}
-
 // NewIdentityDense returns a square identity matrix (size×size), that is,
 // with ones on the diagonal and zeros elsewhere.
 func NewIdentityDense[T DType](size int) *Dense[T] {
