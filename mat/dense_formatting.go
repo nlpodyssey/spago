@@ -5,6 +5,7 @@
 package mat
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -46,9 +47,6 @@ func (d *Dense[_]) format(f fmt.State, c rune, precision int) {
 	maxWidths, maxWidth := d.formattingMaxColumnsWidth(f, c, precision)
 	spaceBuf := makeSpaceBuffer(maxWidth)
 	buf := make([]byte, 0, maxWidth)
-	_, _ = maxWidths, maxWidth
-	_ = spaceBuf
-	_ = buf
 	for row, index := 0, 0; row < d.rows; row++ {
 		rowPrefix, rowSuffix := d.formattingRowPrefixAndSuffix(row)
 		fmt.Fprintf(f, rowPrefix)
@@ -68,7 +66,7 @@ func (d *Dense[_]) format(f fmt.State, c rune, precision int) {
 func writeFormattedValue(f fmt.State, buf, spaceBuf []byte, maxW lrWidth) {
 	var leftPadding, rightPadding int
 
-	if pi, ok := indexOfPoint(buf); ok {
+	if pi := bytes.IndexByte(buf, '.'); pi != -1 {
 		leftPadding = maxW.left - pi
 		rightPadding = maxW.right - (len(buf) - pi - 1)
 	} else {
@@ -126,7 +124,7 @@ func (d *Dense[_]) formattingMaxColumnsWidth(
 			buf = formatValue(buf, d.data[index], c, precision)
 			w := len(buf)
 			maxWidth = maxInt(maxWidth, w)
-			if pi, ok := indexOfPoint(buf); ok {
+			if pi := bytes.IndexByte(buf, '.'); pi != -1 {
 				leftSize := pi
 				if minWidth > w {
 					leftSize += minWidth - w
@@ -144,15 +142,6 @@ func (d *Dense[_]) formattingMaxColumnsWidth(
 
 func formatValue[T DType](buf []byte, val T, c rune, precision int) []byte {
 	return strconv.AppendFloat(buf[:0], float64(val), byte(c), precision, 32)
-}
-
-func indexOfPoint(buf []byte) (int, bool) {
-	for i, b := range buf {
-		if b == byte('.') {
-			return i, true
-		}
-	}
-	return 0, false
 }
 
 func maxInt(a, b int) int {
