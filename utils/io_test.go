@@ -35,17 +35,3 @@ func TestFileSerialization(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, obj1, obj2)
 }
-
-func TestCountLines(t *testing.T) {
-	tempFile, err := os.CreateTemp("", "spago-count-lines-test-")
-	require.Nil(t, err)
-	fileName := tempFile.Name()
-	defer os.Remove(fileName)
-
-	err = os.WriteFile(fileName, []byte("foo\nbar\nbaz\n"), 0644)
-	require.Nil(t, err)
-
-	n, err := CountLines(fileName)
-	require.Nil(t, err)
-	assert.Equal(t, 3, n)
-}
