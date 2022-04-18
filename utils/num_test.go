@@ -14,12 +14,6 @@ func TestMinInt(t *testing.T) {
 	assert.Equal(t, 1, MinInt(2, 1))
 }
 
-func TestSumInt(t *testing.T) {
-	assert.Equal(t, 0, SumInt([]int{}))
-	assert.Equal(t, 0, SumInt([]int{0, 0}))
-	assert.Equal(t, 6, SumInt([]int{1, 2, 3}))
-}
-
 func TestReverseIntSlice(t *testing.T) {
 	assert.Equal(t, []int{}, ReverseIntSlice([]int{}))
 	assert.Equal(t, []int{1}, ReverseIntSlice([]int{1}))

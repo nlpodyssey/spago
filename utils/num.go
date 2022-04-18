@@ -12,14 +12,6 @@ func MinInt(a, b int) int {
 	return b
 }
 
-// SumInt returns the sum of all values from v.
-func SumInt(v []int) (s int) {
-	for _, e := range v {
-		s += e
-	}
-	return
-}
-
 // ReverseIntSlice returns a reversed version of the given slice.
 func ReverseIntSlice(lst []int) []int {
 	r := make([]int, len(lst))
