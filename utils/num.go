@@ -54,26 +54,6 @@ func IntSliceEqual(a, b []int) bool {
 	return true
 }
 
-// GetNeighborsIndices returns the indices of the (circular) neighbours at position index.
-func GetNeighborsIndices(size, index, windowSize int) []int {
-	low := index - windowSize
-	high := index + windowSize
-	indices := make([]int, 2*windowSize)
-	for i := 0; i < len(indices); i++ {
-		if low < 0 {
-			indices[i] = size + low
-			low++
-		} else if high > size {
-			indices[i] = high - size - 1
-			high--
-		} else {
-			indices[i] = low
-			low++
-		}
-	}
-	return indices
-}
-
 // Abs returns the absolute value of x.
 func Abs(x int) int {
 	if x < 0 {

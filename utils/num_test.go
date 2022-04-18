@@ -41,12 +41,6 @@ func TestContainsInt(t *testing.T) {
 	assert.False(t, ContainsInt([]int{1, 2}, 0))
 }
 
-func TestGetNeighborsIndices(t *testing.T) {
-	assert.Equal(t, []int{}, GetNeighborsIndices(0, 0, 0))
-	assert.Equal(t, []int{3, 4, 0, 1}, GetNeighborsIndices(5, 0, 2))
-	assert.Equal(t, []int{2, 3, 4, 0, 1, 2}, GetNeighborsIndices(5, 0, 3))
-}
-
 func TestAbs(t *testing.T) {
 	assert.Equal(t, 0, Abs(0))
 	assert.Equal(t, 42, Abs(42))
