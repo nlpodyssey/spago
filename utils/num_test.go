@@ -40,9 +40,3 @@ func TestContainsInt(t *testing.T) {
 	assert.True(t, ContainsInt([]int{1, 2}, 2))
 	assert.False(t, ContainsInt([]int{1, 2}, 0))
 }
-
-func TestAbs(t *testing.T) {
-	assert.Equal(t, 0, Abs(0))
-	assert.Equal(t, 42, Abs(42))
-	assert.Equal(t, 42, Abs(-42))
-}
