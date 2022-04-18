@@ -73,6 +73,26 @@ func testCopyValues[T mat.DType](t *testing.T) {
 	assert.NotSame(t, nodes[2].Value(), vs[2])
 }
 
+func TestCopyGrad(t *testing.T) {
+	t.Run("float32", testCopyGrad[float32])
+	t.Run("float64", testCopyGrad[float64])
+}
+
+func testCopyGrad[T mat.DType](t *testing.T) {
+	t.Run("nil grad", func(t *testing.T) {
+		n := &dummyNode[T]{grad: nil}
+		v := CopyGrad[T](n)
+		assert.Nil(t, v)
+	})
+
+	t.Run("matrix grad", func(t *testing.T) {
+		n := &dummyNode[T]{grad: mat.NewScalar[T](42)}
+		v := CopyGrad[T](n)
+		mattest.RequireMatrixEquals(t, n.grad, v)
+		assert.NotSame(t, n.grad, v)
+	})
+}
+
 type customNodeInterface[T mat.DType] interface {
 	Node[T]
 	Foo()
@@ -81,11 +101,12 @@ type customNodeInterface[T mat.DType] interface {
 type dummyNode[T mat.DType] struct {
 	id    int // just an identifier for testing and debugging
 	value mat.Matrix[T]
+	grad  mat.Matrix[T]
 }
 
 func (n *dummyNode[T]) Foo()                  { panic("not implemented") }
 func (n *dummyNode[T]) Value() mat.Matrix[T]  { return n.value }
-func (n *dummyNode[T]) Grad() mat.Matrix[T]   { panic("not implemented") }
+func (n *dummyNode[T]) Grad() mat.Matrix[T]   { return n.grad }
 func (n *dummyNode[_]) HasGrad() bool         { panic("not implemented") }
 func (n *dummyNode[_]) RequiresGrad() bool    { panic("not implemented") }
 func (n *dummyNode[T]) AccGrad(mat.Matrix[T]) { panic("not implemented") }
