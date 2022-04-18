@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,17 +30,38 @@ func testToNodes[T mat.DType](t *testing.T) {
 	assert.Same(t, n2, ys[1])
 }
 
+func TestCopyValue(t *testing.T) {
+	t.Run("float32", testCopyValue[float32])
+	t.Run("float64", testCopyValue[float64])
+}
+
+func testCopyValue[T mat.DType](t *testing.T) {
+	t.Run("nil value", func(t *testing.T) {
+		n := &dummyNode[T]{value: nil}
+		v := CopyValue[T](n)
+		assert.Nil(t, v)
+	})
+
+	t.Run("matrix value", func(t *testing.T) {
+		n := &dummyNode[T]{value: mat.NewScalar[T](42)}
+		v := CopyValue[T](n)
+		mattest.RequireMatrixEquals(t, n.value, v)
+		assert.NotSame(t, n.value, v)
+	})
+}
+
 type customNodeInterface[T mat.DType] interface {
 	Node[T]
 	Foo()
 }
 
 type dummyNode[T mat.DType] struct {
-	id int
+	id    int // just an identifier for testing and debugging
+	value mat.Matrix[T]
 }
 
 func (n *dummyNode[T]) Foo()                  { panic("not implemented") }
-func (n *dummyNode[T]) Value() mat.Matrix[T]  { panic("not implemented") }
+func (n *dummyNode[T]) Value() mat.Matrix[T]  { return n.value }
 func (n *dummyNode[T]) Grad() mat.Matrix[T]   { panic("not implemented") }
 func (n *dummyNode[_]) HasGrad() bool         { panic("not implemented") }
 func (n *dummyNode[_]) RequiresGrad() bool    { panic("not implemented") }
