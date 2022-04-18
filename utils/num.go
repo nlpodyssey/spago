@@ -12,17 +12,6 @@ func MinInt(a, b int) int {
 	return b
 }
 
-// ReverseIntSlice returns a reversed version of the given slice.
-func ReverseIntSlice(lst []int) []int {
-	r := make([]int, len(lst))
-	copy(r, lst)
-	for i := 0; i < len(r)/2; i++ {
-		j := len(r) - i - 1
-		r[i], r[j] = r[j], r[i]
-	}
-	return r
-}
-
 // MakeIndices returns a slice of the given size, where each element has
 // the same value of its own index position.
 func MakeIndices(size int) []int {

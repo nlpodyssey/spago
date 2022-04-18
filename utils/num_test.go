@@ -14,16 +14,6 @@ func TestMinInt(t *testing.T) {
 	assert.Equal(t, 1, MinInt(2, 1))
 }
 
-func TestReverseIntSlice(t *testing.T) {
-	assert.Equal(t, []int{}, ReverseIntSlice([]int{}))
-	assert.Equal(t, []int{1}, ReverseIntSlice([]int{1}))
-	assert.Equal(t, []int{2, 1}, ReverseIntSlice([]int{1, 2}))
-
-	source := []int{1, 2, 3}
-	assert.Equal(t, []int{3, 2, 1}, ReverseIntSlice(source))
-	assert.Equal(t, []int{1, 2, 3}, source, "the source is not modified")
-}
-
 func TestMakeIndices(t *testing.T) {
 	assert.Equal(t, []int{}, MakeIndices(0))
 	assert.Equal(t, []int{0}, MakeIndices(1))
