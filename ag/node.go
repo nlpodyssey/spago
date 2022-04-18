@@ -8,20 +8,22 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Node is implemented by any value that can represent a node of a Graph.
+// Node is implemented by any value that can represent a node of a graph.
 type Node[T mat.DType] interface {
 	// Value returns the value of the node.
-	// If the node is a variable it returns its value, otherwise returns the cached result of the forward pass.
+	// If the node is a variable it returns its value, otherwise returns the
+	// cached result of the forward pass.
 	Value() mat.Matrix[T]
 	// Grad returns the gradients accumulated during the backward pass.
+	// A matrix full of zeros and the nil value are considered equivalent.
 	Grad() mat.Matrix[T]
-	// HasGrad returns true if there are accumulated gradients.
+	// HasGrad reports whether there are accumulated gradients.
 	HasGrad() bool
-	// RequiresGrad returns true if the node requires gradients.
+	// RequiresGrad reports whether the node requires gradients.
 	RequiresGrad() bool
-	// AccGrad accumulate the gradients to the node.
+	// AccGrad accumulates the gradients into the node.
 	AccGrad(gx mat.Matrix[T])
-	// ZeroGrad set the gradients to zeros.
+	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
 	// TimeStep returns the time-step associated to this node.
 	TimeStep() int
@@ -29,7 +31,7 @@ type Node[T mat.DType] interface {
 	IncTimeStep()
 }
 
-// ToNodes cast a slice of N[T] into a slice of ag.Node.
+// ToNodes casts a slice of N[T] into a slice of ag.Node.
 func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 	ns := make([]Node[T], len(xs))
 	for i, v := range xs {
@@ -38,9 +40,11 @@ func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 	return ns
 }
 
-// CopyValue returns a copy of the value of a Node. If the value is nil, CopyValue returns nil as well.
-// It is important to remember that the Value() property of a Node is a weak access, as the matrix derived from
-// graph's operations can be freed.
+// CopyValue returns a copy of Node.Value.
+// If Node.Value is nil, CopyValue returns nil as well.
+//
+// It is important to remember that Node.Value is a weak value, as the matrix
+// derived from graph's operations can be freed (see ReleaseGraph).
 func CopyValue[T mat.DType](node Node[T]) mat.Matrix[T] {
 	if node.Value() == nil {
 		return nil
@@ -57,9 +61,11 @@ func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
 	return values
 }
 
-// CopyGrad returns a copy of the gradients of a Node. If the gradients are nil, CopyGrad returns nil as well.
-// It is important to remember that the Grad() property of a Node is a weak access, as the matrix derived from
-// graph's operations can be freed.
+// CopyGrad returns a copy of Node.Grad.
+// If Node.Grad is nil, CopyGrad returns nil as well.
+//
+// It is important to remember that Node.Grad is a weak value, as the matrix
+// derived from graph's operations can be freed (see Node.ZeroGrad).
 func CopyGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
 	if node.Grad() == nil {
 		return nil
