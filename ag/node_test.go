@@ -50,6 +50,29 @@ func testCopyValue[T mat.DType](t *testing.T) {
 	})
 }
 
+func TestCopyValues(t *testing.T) {
+	t.Run("float32", testCopyValues[float32])
+	t.Run("float64", testCopyValues[float64])
+}
+
+func testCopyValues[T mat.DType](t *testing.T) {
+	nodes := []Node[T]{
+		&dummyNode[T]{value: mat.NewScalar[T](1)},
+		&dummyNode[T]{value: nil},
+		&dummyNode[T]{value: mat.NewScalar[T](3)},
+	}
+	vs := CopyValues[T](nodes)
+	require.Len(t, vs, 3)
+
+	mattest.RequireMatrixEquals(t, nodes[0].Value(), vs[0])
+	assert.NotSame(t, nodes[0].Value(), vs[0])
+
+	assert.Nil(t, vs[1])
+
+	mattest.RequireMatrixEquals(t, nodes[2].Value(), vs[2])
+	assert.NotSame(t, nodes[2].Value(), vs[2])
+}
+
 type customNodeInterface[T mat.DType] interface {
 	Node[T]
 	Foo()
