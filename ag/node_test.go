@@ -113,3 +113,4 @@ func (n *dummyNode[T]) AccGrad(mat.Matrix[T]) { panic("not implemented") }
 func (n *dummyNode[_]) ZeroGrad()             { panic("not implemented") }
 func (n *dummyNode[_]) TimeStep() int         { panic("not implemented") }
 func (n *dummyNode[_]) IncTimeStep()          { panic("not implemented") }
+func (n *dummyNode[_]) Name() string          { panic("not implemented") }
