@@ -20,12 +20,12 @@ var (
 // Variable is a simple type of Node, primarily consisting of a value and
 // optional gradients.
 type Variable[T mat.DType] struct {
-	timeStep     int
-	name         string
-	value        mat.Matrix[T] // store the results of a forward evaluation.
-	mu           sync.Mutex    // to avoid data race during gradients accumulation
+	value        mat.Matrix[T]
 	grad         mat.Matrix[T]
+	gradMu       sync.RWMutex
+	timeStep     int
 	requiresGrad bool
+	name         string
 }
 
 // NewVariable creates a new Variable Node.
@@ -82,6 +82,8 @@ func (r *Variable[T]) Value() mat.Matrix[T] {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (r *Variable[T]) Grad() mat.Matrix[T] {
+	r.gradMu.RLock()
+	defer r.gradMu.RUnlock()
 	return r.grad
 }
 
@@ -90,8 +92,8 @@ func (r *Variable[T]) AccGrad(grad mat.Matrix[T]) {
 	if !r.requiresGrad {
 		return
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	r.gradMu.Lock()
+	defer r.gradMu.Unlock()
 	if r.grad == nil {
 		r.grad = grad.Clone()
 		return
@@ -101,7 +103,7 @@ func (r *Variable[T]) AccGrad(grad mat.Matrix[T]) {
 
 // HasGrad reports whether there are accumulated gradients.
 func (r *Variable[_]) HasGrad() bool {
-	return r.grad != nil
+	return r.Grad() != nil
 }
 
 // RequiresGrad reports whether the Variable requires gradients.
@@ -111,10 +113,12 @@ func (r *Variable[_]) RequiresGrad() bool {
 
 // ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 func (r *Variable[_]) ZeroGrad() {
-	if r.grad == nil {
+	if r.Grad() == nil {
 		return
 	}
-	defer mat.ReleaseMatrix(r.grad) // release memory
+	r.gradMu.Lock()
+	defer r.gradMu.Unlock()
+	mat.ReleaseMatrix(r.grad)
 	r.grad = nil
 }
 
