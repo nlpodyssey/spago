@@ -186,13 +186,3 @@ func (p *BaseParam[_]) ClearPayload() {
 	p.payload.ClearData()
 	p.payload = nil
 }
-
-// TimeStep always panics since the "pure" parameter is not associated with any graph.
-func (p *BaseParam[_]) TimeStep() int {
-	panic("nn: attempting to access the TimeStep of a not reified param.")
-}
-
-// IncTimeStep always panics since the "pure" parameter is not associated with any graph.
-func (p *BaseParam[_]) IncTimeStep() {
-	panic("nn: attempting to increment the TimeStep of a not reified param.")
-}

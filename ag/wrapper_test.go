@@ -21,7 +21,6 @@ func testWrapperStopGrad[T mat.DType](t *testing.T) {
 	result := StopGrad[T](s)
 	assert.IsType(t, &Wrapper[T]{}, result)
 	w := result.(*Wrapper[T])
-	w.IncTimeStep()
 
 	assert.Same(t, s, w.Node)
 }

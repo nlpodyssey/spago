@@ -24,7 +24,6 @@ type Operator[T mat.DType] struct {
 	inBackward   bool
 	requiresGrad bool
 	visited      bool
-	timeStep     int
 	function     fn.Function[T, Node[T]]
 	// value is the results of a forward evaluation, as mat.Matrix[T].
 	value atomic.Value
@@ -49,7 +48,6 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	n := &Operator[T]{
 		requiresGrad: anyNodeRequiresGrad(f.Operands()),
 		visited:      false,
-		timeStep:     -1,
 		function:     f,
 		pendingGrads: 0,
 	}
@@ -148,16 +146,6 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
 		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
 	}
-}
-
-// TimeStep returns the time-step of the node.
-func (o *Operator[_]) TimeStep() int {
-	return o.timeStep
-}
-
-// IncTimeStep increments the value of the operator's TimeStep by one.
-func (o *Operator[_]) IncTimeStep() {
-	o.timeStep++
 }
 
 func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {

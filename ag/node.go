@@ -25,10 +25,6 @@ type Node[T mat.DType] interface {
 	AccGrad(gx mat.Matrix[T])
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
-	// TimeStep returns the time-step associated to this node.
-	TimeStep() int
-	// IncTimeStep increments the value of the node's TimeStep by one.
-	IncTimeStep()
 	// Name returns a human-readable label to identify or describe the Node.
 	// It's optional and can be an empty string.
 	//

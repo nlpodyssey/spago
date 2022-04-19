@@ -71,16 +71,6 @@ func (e *Embedding[_, _]) ZeroGrad() {
 	e.model.zeroGrad(e.key)
 }
 
-// TimeStep satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[_, _]) TimeStep() int {
-	panic("nn: attempting to access TimeStep on a non-reified Embedding")
-}
-
-// IncTimeStep increments the value of the embedding's TimeStep by one.
-func (e *Embedding[_, _]) IncTimeStep() {
-	panic("nn: attempting to increment TimeStep on a non-reified Embedding")
-}
-
 // Name satisfies the interface nn.Param.
 func (e *Embedding[_, _]) Name() string {
 	switch k := any(e.key).(type) {

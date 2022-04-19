@@ -14,32 +14,12 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var timeStepColors = []string{
-	"#000000",
-	"#5899DA",
-	"#E8743B",
-	"#19A979",
-	"#ED4A7B",
-	"#945ECF",
-	"#13A4B4",
-	"#525DF4",
-	"#BF399E",
-	"#6C8893",
-	"#EE6868",
-	"#2F6497",
-}
-
 type builder[T mat.DType] struct {
 	// List of unique nodes
 	nodes []ag.Node[T]
-	// Maximum time-step value among all nodes.
-	maxTimeStep int
 
 	gv gographviz.Interface
 
-	// coloredTimeSteps indicates whether to use different colors for
-	// representing nodes with different time-step values.
-	coloredTimeSteps bool
 	// showNodesWithoutEdges indicates whether to show graph nodes
 	// which have no connections.
 	showNodesWithoutEdges bool
@@ -47,14 +27,6 @@ type builder[T mat.DType] struct {
 
 // Option allows to tweak the graphviz generation.
 type Option[T mat.DType] func(*builder[T])
-
-// WithColoredTimeSteps enables to use different colors for
-// representing nodes with different time-step values.
-func WithColoredTimeSteps[T mat.DType](value bool) Option[T] {
-	return func(m *builder[T]) {
-		m.coloredTimeSteps = value
-	}
-}
 
 // ShowNodesWithoutEdges enables whether to show graph nodes
 // which have no connections.
@@ -67,9 +39,8 @@ func ShowNodesWithoutEdges[T mat.DType](value bool) Option[T] {
 func newBuilder[T mat.DType](outputNodes []ag.Node[T], options ...Option[T]) *builder[T] {
 	nodes := uniqueNodes(outputNodes)
 	b := &builder[T]{
-		nodes:       nodes,
-		maxTimeStep: findMaxTimeStep(nodes),
-		gv:          gographviz.NewEscape(),
+		nodes: nodes,
+		gv:    gographviz.NewEscape(),
 	}
 	for _, option := range options {
 		option(b)
@@ -103,16 +74,6 @@ func visitUniqueNodes[T mat.DType](visited map[ag.Node[T]]struct{}, node ag.Node
 	}
 }
 
-func findMaxTimeStep[T mat.DType](nodes []ag.Node[T]) int {
-	max := 0
-	for _, n := range nodes {
-		if ts := n.TimeStep(); ts > max {
-			max = ts
-		}
-	}
-	return max
-}
-
 func (b *builder[T]) build() (gographviz.Interface, error) {
 	if err := b.gv.SetDir(true); err != nil {
 		return nil, err
@@ -126,18 +87,10 @@ func (b *builder[T]) build() (gographviz.Interface, error) {
 		nodesWithoutEdges = b.findNodesWithoutEdges()
 	}
 
-	lastTimeStep := -1
 	for _, node := range b.nodes {
 		if _, ok := nodesWithoutEdges[node]; ok {
 			continue
 		}
-		if ts := node.TimeStep(); ts != lastTimeStep {
-			if err := b.addTimeStepSubGraph(ts); err != nil {
-				return nil, err
-			}
-			lastTimeStep = ts
-		}
-
 		switch nt := node.(type) {
 		case *ag.Variable[T]:
 			if err := b.addVariable(nt); err != nil {
@@ -177,10 +130,8 @@ func (b *builder[T]) addVariable(v *ag.Variable[T]) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
-		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := b.timeStepGraphName(v.TimeStep())
-	return b.gv.AddNode(parentGraph, id, attrs)
+	return b.gv.AddNode("", id, attrs)
 }
 
 func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
@@ -201,10 +152,8 @@ func (b *builder[T]) addWrapper(v *ag.Wrapper[T]) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
-		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := b.timeStepGraphName(v.TimeStep())
-	return b.gv.AddNode(parentGraph, id, attrs)
+	return b.gv.AddNode("", id, attrs)
 }
 
 func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
@@ -226,10 +175,8 @@ func (b *builder[T]) addParam(v *ag.Wrapper[T], name string) error {
 	attrs := map[string]string{
 		"label": label,
 		"shape": "box",
-		"color": b.timeStepColor(v.TimeStep()),
 	}
-	parentGraph := b.timeStepGraphName(v.TimeStep())
-	return b.gv.AddNode(parentGraph, id, attrs)
+	return b.gv.AddNode("", id, attrs)
 }
 
 func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
@@ -247,10 +194,8 @@ func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
 	)
 	attrs := map[string]string{
 		"label": label,
-		"color": b.timeStepColor(op.TimeStep()),
 	}
-	parentGraph := b.timeStepGraphName(op.TimeStep())
-	if err := b.gv.AddNode(parentGraph, operatorID, attrs); err != nil {
+	if err := b.gv.AddNode("", operatorID, attrs); err != nil {
 		return err
 	}
 
@@ -261,30 +206,6 @@ func (b *builder[T]) addOperator(op *ag.Operator[T]) error {
 		}
 	}
 	return nil
-}
-
-func (b *builder[T]) addTimeStepSubGraph(timeStep int) error {
-	attrs := map[string]string{
-		"label":     fmt.Sprintf("Time Step %d", timeStep),
-		"color":     b.timeStepColor(timeStep),
-		"fontcolor": b.timeStepColor(timeStep),
-		"fontsize":  "11",
-	}
-	return b.gv.AddSubGraph("", b.timeStepGraphName(timeStep), attrs)
-}
-
-func (b *builder[T]) timeStepColor(timeStep int) string {
-	if !b.coloredTimeSteps {
-		return "#000000"
-	}
-	return timeStepColors[timeStep%len(timeStepColors)]
-}
-
-func (b *builder[T]) timeStepGraphName(timeStep int) string {
-	if b.maxTimeStep == 0 {
-		return fmt.Sprintf("time_step_%d", timeStep)
-	}
-	return fmt.Sprintf("cluster_time_step_%d", timeStep)
 }
 
 func (b *builder[T]) findNodesWithoutEdges() map[ag.Node[T]]struct{} {

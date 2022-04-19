@@ -23,7 +23,6 @@ type Variable[T mat.DType] struct {
 	value        mat.Matrix[T]
 	grad         mat.Matrix[T]
 	gradMu       sync.RWMutex
-	timeStep     int
 	requiresGrad bool
 	name         string
 }
@@ -31,7 +30,6 @@ type Variable[T mat.DType] struct {
 // NewVariable creates a new Variable Node.
 func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 	return &Variable[T]{
-		timeStep:     -1,
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
@@ -41,7 +39,6 @@ func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 // NewVariableWithName creates a new Variable Node with a given name.
 func NewVariableWithName[T mat.DType](value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
 	return &Variable[T]{
-		timeStep:     -1,
 		name:         name,
 		value:        value,
 		grad:         nil,
@@ -120,14 +117,4 @@ func (r *Variable[_]) ZeroGrad() {
 	defer r.gradMu.Unlock()
 	mat.ReleaseMatrix(r.grad)
 	r.grad = nil
-}
-
-// TimeStep returns the time-step associated to this Variable.
-func (r *Variable[_]) TimeStep() int {
-	return r.timeStep
-}
-
-// IncTimeStep increments the value of the Variable's TimeStep by one.
-func (r *Variable[_]) IncTimeStep() {
-	r.timeStep++
 }

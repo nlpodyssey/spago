@@ -19,7 +19,7 @@ func Graphviz[T mat.DType](outputNodes []ag.Node[T], options ...Option[T]) (gogr
 
 // Marshal the (sub-)graph up to outputNodes into DOT (graphviz) format.
 func Marshal[T mat.DType](outputNodes []ag.Node[T]) ([]byte, error) {
-	gv, err := Graphviz(outputNodes, WithColoredTimeSteps[T](true))
+	gv, err := Graphviz(outputNodes)
 	if err != nil {
 		return nil, err
 	}
