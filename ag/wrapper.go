@@ -14,39 +14,37 @@ var (
 	_ Node[float32]       = &Wrapper[float32]{}
 )
 
-// Wrapper is a type of node.
+// Wrapper embeds any Node implementation disabling gradients handling and
+// blocking gradients accumulation.
 type Wrapper[T mat.DType] struct {
 	Node[T]
 }
 
-// StopGrad stops the accumulated gradient from flowing through that node in the backward direction.
+// StopGrad creates a new Wrapper Node that stops the accumulated gradients from
+// flowing through the wrapped Node.
 func StopGrad[T mat.DType](node Node[T]) Node[T] {
 	return &Wrapper[T]{
 		Node: node,
 	}
 }
 
-// Grad returns the gradients accumulated during the backward pass.
+// Grad always returns nil on a Wrapper Node.
 func (r *Wrapper[T]) Grad() mat.Matrix[T] {
 	return nil
 }
 
-// AccGrad accumulates the gradients to the node.
-func (r *Wrapper[T]) AccGrad(_ mat.Matrix[T]) {
-	return
-}
+// AccGrad has no effects on a Wrapper Node.
+func (r *Wrapper[T]) AccGrad(mat.Matrix[T]) {}
 
-// HasGrad returns true if there are accumulated gradients.
+// HasGrad always returns false on a Wrapper Node.
 func (r *Wrapper[_]) HasGrad() bool {
 	return false
 }
 
-// RequiresGrad returns true if the node requires gradients.
+// RequiresGrad always returns false on a Wrapper Node.
 func (r *Wrapper[_]) RequiresGrad() bool {
 	return false
 }
 
-// ZeroGrad set the gradients to zeros.
-func (r *Wrapper[_]) ZeroGrad() {
-	return
-}
+// ZeroGrad has no effects on a Wrapper Node.
+func (r *Wrapper[_]) ZeroGrad() {}
