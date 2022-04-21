@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReleaseOperators(t *testing.T) {
-	t.Run("float32", testReleaseOperators[float32])
-	t.Run("float64", testReleaseOperators[float64])
+func TestReleaseGraph(t *testing.T) {
+	t.Run("float32", testReleaseGraph[float32])
+	t.Run("float64", testReleaseGraph[float64])
 }
 
-func testReleaseOperators[T mat.DType](t *testing.T) {
+func testReleaseGraph[T mat.DType](t *testing.T) {
 	t.Run("operators memory (values and grads) is released", func(t *testing.T) {
 		op := Add(
 			NewVariable[T](mat.NewScalar[T](1), true),
