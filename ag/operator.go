@@ -6,7 +6,7 @@ package ag
 
 import (
 	"reflect"
-	"regexp"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -62,8 +62,12 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 // Name returns the Name of the operator.
 // The name is taken from the name of r.function via reflection.
 func (o *Operator[_]) Name() string {
-	value := reflect.ValueOf(o.function).Elem().Type().Name()
-	return regexp.MustCompile(`\[.*\]`).ReplaceAllString(value, "") // remove generics
+	name := reflect.ValueOf(o.function).Elem().Type().Name()
+	// Strip trailing generics, if any: "foo[bar]" becomes "foo".
+	if i := strings.IndexByte(name, '['); i != -1 {
+		return name[:i]
+	}
+	return name
 }
 
 // Operands returns the operands of the operator.
