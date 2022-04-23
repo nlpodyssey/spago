@@ -143,7 +143,9 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	defer o.cond.L.Unlock()
 
 	if o.grad == nil {
+		o.cond.L.Unlock()
 		o.grad = o.Value().ZerosLike()
+		o.cond.L.Lock()
 	}
 	o.grad.AddInPlace(grad)
 
