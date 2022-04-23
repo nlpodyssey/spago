@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/require"
 	"testing"
 
@@ -61,6 +62,115 @@ func testOperatorOperands[T mat.DType](t *testing.T) {
 	op := NewOperator[T](f).(*Operator[T])
 	require.Equal(t, operands, op.Operands())
 	assert.Same(t, operands[0], op.Operands()[0])
+}
+
+func TestOperator_Value(t *testing.T) {
+	t.Run("with generics - float32", testOperatorValue[float32])
+	t.Run("with generics - float64", testOperatorValue[float64])
+}
+
+func testOperatorValue[T mat.DType](t *testing.T) {
+	forwardResult := mat.NewScalar[T](42)
+
+	f := &dummyFunction[T, Node[T]]{
+		forward: func() mat.Matrix[T] { return forwardResult },
+	}
+	op := NewOperator[T](f)
+
+	// The first call to Value() waits for the forward and returns the result
+	assert.Same(t, forwardResult, op.Value())
+
+	// The second call returns the same cached result
+	assert.Same(t, forwardResult, op.Value())
+
+	// The forward function must have been called only once
+	assert.Equal(t, 1, f.forwardCalls)
+}
+
+func TestOperator_RequiresGrad(t *testing.T) {
+	t.Run("with generics - float32", testOperatorRequiresGrad[float32])
+	t.Run("with generics - float64", testOperatorRequiresGrad[float64])
+}
+
+func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
+	t.Run("false without operands", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{})
+		assert.False(t, op.RequiresGrad())
+	})
+
+	t.Run("false if no operands require grad", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+			operands: func() []Node[T] {
+				return []Node[T]{
+					&dummyNode[T]{id: 1, requiresGrad: false},
+					&dummyNode[T]{id: 2, requiresGrad: false},
+				}
+			},
+		})
+		assert.False(t, op.RequiresGrad())
+	})
+
+	t.Run("true if at least one operand requires grad", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+			operands: func() []Node[T] {
+				return []Node[T]{
+					&dummyNode[T]{id: 1, requiresGrad: false},
+					&dummyNode[T]{id: 2, requiresGrad: true},
+				}
+			},
+		})
+		assert.True(t, op.RequiresGrad())
+	})
+}
+
+func TestOperator_Gradients(t *testing.T) {
+	t.Run("float32", testOperatorGradients[float32])
+	t.Run("float64", testOperatorGradients[float64])
+}
+
+func testOperatorGradients[T mat.DType](t *testing.T) {
+	t.Run("with requires gradient true", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+			forward: func() mat.Matrix[T] {
+				return mat.NewScalar[T](42)
+			},
+			operands: func() []Node[T] {
+				return []Node[T]{&dummyNode[T]{requiresGrad: true}}
+			},
+		})
+
+		require.Nil(t, op.Grad())
+		assert.False(t, op.HasGrad())
+
+		op.AccGrad(mat.NewScalar[T](5))
+		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](5), op.Grad())
+		assert.True(t, op.HasGrad())
+
+		op.AccGrad(mat.NewScalar[T](10))
+		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](15), op.Grad())
+		assert.True(t, op.HasGrad())
+
+		op.ZeroGrad()
+		require.Nil(t, op.Grad())
+		assert.False(t, op.HasGrad())
+	})
+
+	t.Run("with requires gradient false", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+			forward: func() mat.Matrix[T] { return mat.NewScalar[T](42) },
+		})
+
+		require.Nil(t, op.Grad())
+		assert.False(t, op.HasGrad())
+
+		op.AccGrad(mat.NewScalar[T](5))
+		require.Nil(t, op.Grad())
+		assert.False(t, op.HasGrad())
+
+		op.ZeroGrad()
+		require.Nil(t, op.Grad())
+		assert.False(t, op.HasGrad())
+	})
 }
 
 type dummyFunction[T mat.DType, O fn.Operand[T]] struct {
