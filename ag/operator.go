@@ -17,6 +17,7 @@ import (
 var (
 	_ fn.Operand[float32] = &Operator[float32]{}
 	_ Node[float32]       = &Operator[float32]{}
+	_ TimeStepper         = &Operator[float32]{}
 )
 
 // Operator is a type of node.
@@ -36,6 +37,7 @@ type Operator[T mat.DType] struct {
 	// (from NewOperator), but it's never be used directly.
 	mx           sync.Mutex
 	grad         mat.Matrix[T]
+	timeStep     int
 	pendingGrads int64
 }
 
@@ -45,18 +47,31 @@ type Operator[T mat.DType] struct {
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
 func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
-	n := &Operator[T]{
-		requiresGrad: anyNodeRequiresGrad(f.Operands()),
+	requiresGrad := false
+	timeStep := -1
+
+	for _, n := range f.Operands() {
+		if !requiresGrad && n.RequiresGrad() {
+			requiresGrad = true
+		}
+		if t := TimeStep(n); t > timeStep {
+			timeStep = t
+		}
+	}
+
+	op := &Operator[T]{
+		requiresGrad: requiresGrad,
 		visited:      false,
 		function:     f,
+		timeStep:     timeStep,
 		pendingGrads: 0,
 	}
 
-	n.cond.L = &n.mx
+	op.cond.L = &op.mx
 
-	go n.forward()
+	go op.forward()
 
-	return n
+	return op
 }
 
 // Name returns the Name of the operator.
@@ -154,6 +169,15 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	}
 }
 
+// The TimeStep associated to the Operator.
+// A negative value indicates that a timestep is not set.
+//
+// The timestep of an Operator is computed as the maximum among the
+// timestep values of its operands.
+func (o *Operator[_]) TimeStep() int {
+	return o.timeStep
+}
+
 func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {
 	if outputGrad != nil && o.grad != nil {
 		panic("ag: attempt to set output gradients on a node that already has gradients")
@@ -172,15 +196,6 @@ func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {
 	gx := o.Value().OnesLike()
 	o.AccGrad(gx)
 	mat.ReleaseMatrix(gx)
-}
-
-func anyNodeRequiresGrad[T mat.DType](nodes []Node[T]) bool {
-	for _, node := range nodes {
-		if node.RequiresGrad() {
-			return true
-		}
-	}
-	return false
 }
 
 // forward executes the function and inform all goroutines that have been waiting for the result.

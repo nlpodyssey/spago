@@ -15,6 +15,8 @@ import (
 var (
 	_ fn.Operand[float32] = &Variable[float32]{}
 	_ Node[float32]       = &Variable[float32]{}
+	_ TimeStepper         = &Variable[float32]{}
+	_ TimeStepSetter      = &Variable[float32]{}
 )
 
 // Variable is a simple type of Node, primarily consisting of a value and
@@ -24,6 +26,7 @@ type Variable[T mat.DType] struct {
 	grad         mat.Matrix[T]
 	gradMu       sync.RWMutex
 	requiresGrad bool
+	timeStep     int
 	name         string
 }
 
@@ -33,6 +36,7 @@ func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
+		timeStep:     -1,
 	}
 }
 
@@ -43,6 +47,7 @@ func NewVariableWithName[T mat.DType](value mat.Matrix[T], requiresGrad bool, na
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
+		timeStep:     -1,
 	}
 }
 
@@ -117,4 +122,16 @@ func (r *Variable[_]) ZeroGrad() {
 	defer r.gradMu.Unlock()
 	mat.ReleaseMatrix(r.grad)
 	r.grad = nil
+}
+
+// The TimeStep associated to the Variable.
+// A negative value indicates that a timestep is not set.
+func (r *Variable[T]) TimeStep() int {
+	return r.timeStep
+}
+
+// SetTimeStep sets the timestep associated to the Variable.
+// The timestep can be "unset" by setting it to a negative value.
+func (r *Variable[T]) SetTimeStep(v int) {
+	r.timeStep = v
 }

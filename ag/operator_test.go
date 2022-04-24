@@ -5,13 +5,13 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/mat/mattest"
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewOperator(t *testing.T) {
@@ -170,6 +170,32 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 		op.ZeroGrad()
 		require.Nil(t, op.Grad())
 		assert.False(t, op.HasGrad())
+	})
+}
+
+func TestOperator_TimeStep(t *testing.T) {
+	t.Run("float32", testOperatorTimeStep[float32])
+	t.Run("float64", testOperatorTimeStep[float64])
+}
+
+func testOperatorTimeStep[T mat.DType](t *testing.T) {
+	t.Run("with no operands", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{}).(*Operator[T])
+		assert.Equal(t, -1, op.TimeStep())
+	})
+
+	t.Run("with some operands", func(t *testing.T) {
+		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+			operands: func() []Node[T] {
+				return []Node[T]{
+					&dummyNode[T]{timeStep: -1},
+					&dummyNode[T]{timeStep: 10},
+					&dummyNode[T]{timeStep: 42},
+					&dummyNode[T]{timeStep: -1},
+				}
+			},
+		}).(*Operator[T])
+		assert.Equal(t, 42, op.TimeStep())
 	})
 }
 

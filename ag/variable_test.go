@@ -33,6 +33,7 @@ func testNewVariable[T mat.DType](t *testing.T) {
 			assert.Nil(t, v.Grad())
 			assert.False(t, v.HasGrad())
 			assert.Equal(t, tc.requiresGrad, v.RequiresGrad())
+			assert.Equal(t, -1, v.(*Variable[T]).TimeStep())
 		})
 	}
 }
@@ -62,6 +63,7 @@ func testNewVariableWithName[T mat.DType](t *testing.T) {
 			assert.Nil(t, v.Grad())
 			assert.False(t, v.HasGrad())
 			assert.Equal(t, tc.requiresGrad, v.RequiresGrad())
+			assert.Equal(t, -1, v.(*Variable[T]).TimeStep())
 		})
 	}
 }
@@ -79,6 +81,7 @@ func testNewScalar[T mat.DType](t *testing.T) {
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
+	assert.Equal(t, -1, v.(*Variable[T]).TimeStep())
 }
 
 func TestNewScalarWithName(t *testing.T) {
@@ -94,6 +97,7 @@ func testNewScalarWithName[T mat.DType](t *testing.T) {
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
+	assert.Equal(t, -1, v.(*Variable[T]).TimeStep())
 }
 
 func TestConstant(t *testing.T) {
@@ -109,6 +113,7 @@ func testConstant[T mat.DType](t *testing.T) {
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
+	assert.Equal(t, -1, v.(*Variable[T]).TimeStep())
 }
 
 func TestVariable_Gradients(t *testing.T) {
@@ -148,4 +153,20 @@ func testVariableGradients[T mat.DType](t *testing.T) {
 		require.Nil(t, v.Grad())
 		assert.False(t, v.HasGrad())
 	})
+}
+
+func TestVariable_SetTimeStep(t *testing.T) {
+	t.Run("float32", testVariableSetTimeStep[float32])
+	t.Run("float64", testVariableSetTimeStep[float64])
+}
+
+func testVariableSetTimeStep[T mat.DType](t *testing.T) {
+	v := NewVariable[T](mat.NewScalar[T](42), true).(*Variable[T])
+	require.Equal(t, -1, v.TimeStep())
+
+	v.SetTimeStep(42)
+	require.Equal(t, 42, v.TimeStep())
+
+	v.SetTimeStep(-1)
+	require.Equal(t, -1, v.TimeStep())
 }
