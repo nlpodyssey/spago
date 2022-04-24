@@ -28,8 +28,6 @@ type PCGSource struct {
 }
 
 const (
-	maxUint32 = (1 << 32) - 1
-
 	multiplier = 47026247687942121848144207491837523525
 	mulHigh    = multiplier >> 64
 	mulLow     = multiplier & maxUint64

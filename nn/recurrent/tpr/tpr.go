@@ -58,11 +58,9 @@ func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model[T] {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	ys := make([]ag.Node[T], len(xs))
-	states := make([]*State[T], 0)
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
-		states = append(states, s)
 		ys[i] = s.Y
 	}
 	return ys

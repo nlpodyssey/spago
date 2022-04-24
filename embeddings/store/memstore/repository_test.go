@@ -104,11 +104,13 @@ func TestRepository_DropAll(t *testing.T) {
 
 	{ // 2 - Data is still readable
 		s1, err := repo.Store("s1")
+		require.NoError(t, err)
 		keys, err := s1.Keys()
 		require.NoError(t, err)
 		assert.Equal(t, [][]byte{{11}}, keys)
 
 		s2, err := repo.Store("s2")
+		require.NoError(t, err)
 		keys, err = s2.Keys()
 		require.NoError(t, err)
 		assert.Equal(t, [][]byte{{22}}, keys)
@@ -119,11 +121,13 @@ func TestRepository_DropAll(t *testing.T) {
 
 	{ // 4 - Data most not be there anymore
 		s1, err := repo.Store("s1")
+		require.NoError(t, err)
 		keys, err := s1.Keys()
 		require.NoError(t, err)
 		assert.Nil(t, keys)
 
 		s2, err := repo.Store("s2")
+		require.NoError(t, err)
 		keys, err = s2.Keys()
 		require.NoError(t, err)
 		assert.Nil(t, keys)

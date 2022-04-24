@@ -24,13 +24,6 @@ type Model[T mat.DType] struct {
 	Scale T
 }
 
-type consts[T mat.DType] struct {
-	eps ag.Node[T]
-	one ag.Node[T]
-	k   ag.Node[T]
-	c   ag.Node[T]
-}
-
 func init() {
 	gob.Register(&Model[float32]{})
 	gob.Register(&Model[float64]{})

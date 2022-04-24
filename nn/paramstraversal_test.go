@@ -145,6 +145,8 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 		t.Parallel()
 
 		m := &ptModel1[T]{
+			a: 0,
+			b: "",
 			c: []int{1, 2},
 			d: []float32{3.4, 5.6},
 			e: []emptyStruct{{}, {}},

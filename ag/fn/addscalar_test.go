@@ -66,7 +66,7 @@ func testAddScalarForward2[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{
 		0.2, 0.3, 0.4, 0.1,
 		0.5, 0.6, -0.5, 0.8,
-		-0.4, 0.9, -0.7, -0.0,
+		-0.4, 0.9, -0.7, 0.0,
 	}, y.Data(), 1.0e-6)
 
 	f.Backward(mat.NewDense(3, 4, []T{

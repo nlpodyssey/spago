@@ -54,6 +54,9 @@ func (p *BaseParam[T]) UnmarshalBinary(data []byte) error {
 	}
 
 	hasPayload, err := buf.ReadByte()
+	if err != nil {
+		return err
+	}
 	if hasPayload == 0 {
 		p.payload = nil
 		return nil

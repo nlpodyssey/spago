@@ -36,7 +36,7 @@ func init() {
 
 // New returns a new model with parameters initialized to zeros.
 func New[T mat.DType](in, out, order int) *Model[T] {
-	wRec := make([]nn.Param[T], order, order)
+	wRec := make([]nn.Param[T], order)
 	for i := 0; i < order; i++ {
 		wRec[i] = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
 	}

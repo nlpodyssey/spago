@@ -49,17 +49,17 @@ func (d *Dense[_]) format(f fmt.State, c rune, precision int) {
 	buf := make([]byte, 0, maxWidth)
 	for row, index := 0, 0; row < d.rows; row++ {
 		rowPrefix, rowSuffix := d.formattingRowPrefixAndSuffix(row)
-		fmt.Fprintf(f, rowPrefix)
+		fmt.Fprint(f, rowPrefix)
 
 		for col := 0; col < d.cols; col, index = col+1, index+1 {
 			if col > 0 {
-				fmt.Fprintf(f, " ")
+				fmt.Fprint(f, " ")
 			}
 			buf = formatValue(buf, d.data[index], c, precision)
 			writeFormattedValue(f, buf, spaceBuf, maxWidths[col])
 		}
 
-		fmt.Fprintf(f, rowSuffix)
+		fmt.Fprint(f, rowSuffix)
 	}
 }
 

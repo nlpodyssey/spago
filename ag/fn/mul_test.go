@@ -31,7 +31,7 @@ func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
-			0.2, -0.0, -0.9,
+			0.2, 0.0, -0.9,
 		}),
 		grad:         nil,
 		requiresGrad: true,

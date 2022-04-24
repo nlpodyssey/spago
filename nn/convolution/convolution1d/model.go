@@ -49,15 +49,15 @@ func New[T mat.DType](config Config) *Model[T] {
 	var paramsSize int
 	if config.DepthWise {
 		if config.OutputChannels != config.InputChannels {
-			panic(fmt.Sprint("convolution: DepthWise convolution input channels must be equals to output channels"))
+			panic("convolution: DepthWise convolution input channels must be equals to output channels")
 		}
 		paramsSize = config.OutputChannels
 	} else {
 		paramsSize = config.InputChannels * config.OutputChannels
 	}
 
-	kernels := make([]nn.Param[T], paramsSize, paramsSize)
-	biases := make([]nn.Param[T], paramsSize, paramsSize)
+	kernels := make([]nn.Param[T], paramsSize)
+	biases := make([]nn.Param[T], paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
 		kernels[i] = nn.NewParam[T](mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad[T](requireGrad))

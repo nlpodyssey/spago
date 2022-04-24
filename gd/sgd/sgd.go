@@ -64,7 +64,7 @@ func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
 		}
 	}
 	if !o.Nesterov {
-		supp := make([]mat.Matrix[T], 2, 2)
+		supp := make([]mat.Matrix[T], 2)
 		supp[v] = mat.NewEmptyDense[T](r, c)
 		supp[buf] = mat.NewEmptyDense[T](r, c)
 		return &nn.Payload[T]{
@@ -72,7 +72,7 @@ func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
 			Data:  supp,
 		}
 	}
-	supp := make([]mat.Matrix[T], 4, 4)
+	supp := make([]mat.Matrix[T], 4)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[buf] = mat.NewEmptyDense[T](r, c)
 	supp[vPrev] = mat.NewEmptyDense[T](r, c)
