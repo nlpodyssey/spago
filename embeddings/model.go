@@ -52,7 +52,7 @@ type Model[T mat.DType, K Key] struct {
 	// This value is managed by the Model and its derived Embedding parameters
 	// and should be considered read-only for external access.
 	//
-	// Parameters whose gradient is "zeroed" (see ag.GradValue.ZeroGrad) are
+	// Parameters whose gradient is "zeroed" (see ag.Node.ZeroGrad) are
 	// automatically removed from this map, thus freeing resources that would
 	// otherwise be kept in memory indefinitely.
 	//

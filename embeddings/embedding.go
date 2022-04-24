@@ -17,7 +17,7 @@ type Embedding[T mat.DType, K Key] struct {
 	key   K
 }
 
-// Value satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// Value satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[T, _]) Value() mat.Matrix[T] {
 	sd := new(storeData[T])
 	exists, err := e.model.Store.Get(encodeKey(e.key), sd)
@@ -30,7 +30,7 @@ func (e *Embedding[T, _]) Value() mat.Matrix[T] {
 	return sd.Value()
 }
 
-// ScalarValue satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// ScalarValue satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[T, _]) ScalarValue() T {
 	v := e.Value()
 	if v == nil {
@@ -39,7 +39,7 @@ func (e *Embedding[T, _]) ScalarValue() T {
 	return v.Scalar()
 }
 
-// Grad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// Grad satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[T, _]) Grad() mat.Matrix[T] {
 	grad, exists := e.model.getGrad(e.key)
 	if !exists {
@@ -48,25 +48,25 @@ func (e *Embedding[T, _]) Grad() mat.Matrix[T] {
 	return grad
 }
 
-// HasGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// HasGrad satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[_, _]) HasGrad() bool {
 	_, exists := e.model.getGrad(e.key)
 	return exists
 }
 
-// RequiresGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// RequiresGrad satisfies the interfaces nn.Param and ag.Node.
 // It returns the same value of Config.Trainable of the Model tied to this
 // Embedding.
 func (e *Embedding[_, _]) RequiresGrad() bool {
 	return e.model.Trainable
 }
 
-// AccGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// AccGrad satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[T, _]) AccGrad(gx mat.Matrix[T]) {
 	e.model.accGrad(e, gx)
 }
 
-// ZeroGrad satisfies the interfaces nn.Param, ag.Node and ag.GradValue.
+// ZeroGrad satisfies the interfaces nn.Param and ag.Node.
 func (e *Embedding[_, _]) ZeroGrad() {
 	e.model.zeroGrad(e.key)
 }
