@@ -7,6 +7,7 @@ package embeddings
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -50,6 +51,11 @@ type storeData[T mat.DType] struct {
 	payload          *nn.Payload[T]
 	marshaledValue   []byte
 	marshaledPayload []byte
+}
+
+func init() {
+	gob.Register(storeData[float32]{})
+	gob.Register(storeData[float64]{})
 }
 
 // Value returns the mat.Matrix value, which is lazily decoded once if necessary.
