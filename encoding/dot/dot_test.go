@@ -17,8 +17,12 @@ import (
 )
 
 func TestEncode(t *testing.T) {
+	t.Run("float32", testEncode[float32])
+	t.Run("float64", testEncode[float64])
+}
+
+func testEncode[T mat.DType](t *testing.T) {
 	t.Run("without time steps", func(t *testing.T) {
-		type T = float32
 		a := ag.NewVariableWithName[T](mat.NewScalar[T](1), false, "a")
 		b := ag.NewVariableWithName[T](mat.NewScalar[T](3), false, "b")
 		y := ag.Sum(a, b)
@@ -46,19 +50,19 @@ func TestEncode(t *testing.T) {
 	})
 
 	t.Run("with time steps", func(t *testing.T) {
-		type T = float32
+		tsh := ag.NewTimeStepHandler[T]()
+
 		a := ag.NewVariableWithName[T](mat.NewScalar[T](1), false, "a")
 		b := ag.NewVariableWithName[T](mat.NewScalar[T](3), false, "b")
 		c := ag.NewVariableWithName[T](mat.NewScalar[T](5), false, "c")
 		d := ag.NewVariableWithName[T](mat.NewScalar[T](7), false, "d")
-		ag.SetTimeStep(c, 0)
-		ag.SetTimeStep(d, 0)
 
 		x := ag.Sum(a, b)
+		tsh.SetTimeStep(0, c, d)
 		y := ag.Sum(x, c)
 		z := ag.Sum(y, d)
 
-		g := encoding.NewGraph(z)
+		g := encoding.NewGraphWithTimeSteps(tsh, z)
 		buf := new(bytes.Buffer)
 		err := dot.Encode(g, buf)
 		require.NoError(t, err)

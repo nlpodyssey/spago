@@ -42,6 +42,9 @@ type Graph[T mat.DType] struct {
 
 // NewGraph builds a new Graph starting from one or more given nodes
 // (usually, the final output nodes of a computation).
+//
+// Time steps are not take into account: all nodes are assumed having time
+// step -1. For time step handling, use NewGraphWithTimeSteps.
 func NewGraph[T mat.DType](nodes ...ag.Node[T]) *Graph[T] {
 	g := &Graph[T]{
 		NodesMap:        make(map[ag.Node[T]]int, 0),
@@ -50,12 +53,28 @@ func NewGraph[T mat.DType](nodes ...ag.Node[T]) *Graph[T] {
 		Edges:           make(map[int][]int, 0),
 	}
 	for _, n := range nodes {
-		g.init(n)
+		g.init(nil, n)
 	}
 	return g
 }
 
-func (g *Graph[T]) init(n ag.Node[T]) {
+// NewGraphWithTimeSteps builds a new Graph starting from one or more
+// given nodes (usually, the final output nodes of a computation), also
+// taking time steps into account.
+func NewGraphWithTimeSteps[T mat.DType](tsh *ag.TimeStepHandler[T], nodes ...ag.Node[T]) *Graph[T] {
+	g := &Graph[T]{
+		NodesMap:        make(map[ag.Node[T]]int, 0),
+		NodesList:       make([]ag.Node[T], 0),
+		NodesByTimeStep: make(map[int][]int, 0),
+		Edges:           make(map[int][]int, 0),
+	}
+	for _, n := range nodes {
+		g.init(tsh, n)
+	}
+	return g
+}
+
+func (g *Graph[T]) init(tsh *ag.TimeStepHandler[T], n ag.Node[T]) {
 	if _, exists := g.NodesMap[n]; exists {
 		return
 	}
@@ -64,7 +83,10 @@ func (g *Graph[T]) init(n ag.Node[T]) {
 	g.NodesMap[n] = index
 	g.NodesList = append(g.NodesList, n)
 
-	ts := ag.TimeStep(n)
+	ts := -1
+	if tsh != nil {
+		ts = tsh.TimeStep(n)
+	}
 	g.NodesByTimeStep[ts] = append(g.NodesByTimeStep[ts], index)
 
 	op, isOp := n.(*ag.Operator[T])
@@ -75,7 +97,7 @@ func (g *Graph[T]) init(n ag.Node[T]) {
 	operands := op.Operands()
 	visitedOperands := make(map[int]struct{}, len(operands))
 	for _, operand := range operands {
-		g.init(operand)
+		g.init(tsh, operand)
 
 		operandIndex := g.NodesMap[operand]
 		if _, ok := visitedOperands[operandIndex]; ok {

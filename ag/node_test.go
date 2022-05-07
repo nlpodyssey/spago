@@ -109,7 +109,6 @@ type dummyNode[T mat.DType] struct {
 	value        mat.Matrix[T]
 	grad         mat.Matrix[T]
 	requiresGrad bool
-	timeStep     int
 }
 
 func (n *dummyNode[T]) Foo()                  { panic("not implemented") }
@@ -120,4 +119,3 @@ func (n *dummyNode[_]) RequiresGrad() bool    { return n.requiresGrad }
 func (n *dummyNode[T]) AccGrad(mat.Matrix[T]) { panic("not implemented") }
 func (n *dummyNode[_]) ZeroGrad()             { panic("not implemented") }
 func (n *dummyNode[_]) Name() string          { panic("not implemented") }
-func (n *dummyNode[_]) TimeStep() int         { return n.timeStep }

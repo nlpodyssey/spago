@@ -173,32 +173,6 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 	})
 }
 
-func TestOperator_TimeStep(t *testing.T) {
-	t.Run("float32", testOperatorTimeStep[float32])
-	t.Run("float64", testOperatorTimeStep[float64])
-}
-
-func testOperatorTimeStep[T mat.DType](t *testing.T) {
-	t.Run("with no operands", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{}).(*Operator[T])
-		assert.Equal(t, -1, op.TimeStep())
-	})
-
-	t.Run("with some operands", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{
-			operands: func() []Node[T] {
-				return []Node[T]{
-					&dummyNode[T]{timeStep: -1},
-					&dummyNode[T]{timeStep: 10},
-					&dummyNode[T]{timeStep: 42},
-					&dummyNode[T]{timeStep: -1},
-				}
-			},
-		}).(*Operator[T])
-		assert.Equal(t, 42, op.TimeStep())
-	})
-}
-
 type dummyFunction[T mat.DType, O fn.Operand[T]] struct {
 	forward       func() mat.Matrix[T]
 	backward      func(gy mat.Matrix[T])

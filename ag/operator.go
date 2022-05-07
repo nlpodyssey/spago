@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
@@ -17,7 +18,6 @@ import (
 var (
 	_ fn.Operand[float32] = &Operator[float32]{}
 	_ Node[float32]       = &Operator[float32]{}
-	_ TimeStepper         = &Operator[float32]{}
 )
 
 // Operator is a type of node.
@@ -37,8 +37,11 @@ type Operator[T mat.DType] struct {
 	// (from NewOperator), but it's never be used directly.
 	mx           sync.Mutex
 	grad         mat.Matrix[T]
-	timeStep     int
 	pendingGrads int64
+	// Creation unix time in nanoseconds. It's primarily useful for later
+	// associating a correct time-step to this operator, if needed for
+	// truncated backpropagation.
+	createdAt int64
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -48,14 +51,9 @@ type Operator[T mat.DType] struct {
 // consider wrapping the nodes you need with NewWrap().
 func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	requiresGrad := false
-	timeStep := -1
-
 	for _, n := range f.Operands() {
 		if !requiresGrad && n.RequiresGrad() {
 			requiresGrad = true
-		}
-		if t := TimeStep(n); t > timeStep {
-			timeStep = t
 		}
 	}
 
@@ -63,8 +61,8 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 		requiresGrad: requiresGrad,
 		visited:      false,
 		function:     f,
-		timeStep:     timeStep,
 		pendingGrads: 0,
+		createdAt:    time.Now().UnixNano(),
 	}
 
 	op.cond.L = &op.mx
@@ -167,15 +165,6 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
 		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
 	}
-}
-
-// The TimeStep associated to the Operator.
-// A negative value indicates that a timestep is not set.
-//
-// The timestep of an Operator is computed as the maximum among the
-// timestep values of its operands.
-func (o *Operator[_]) TimeStep() int {
-	return o.timeStep
 }
 
 func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {

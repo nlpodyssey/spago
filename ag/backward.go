@@ -22,22 +22,22 @@ import (
 //
 // It panics if gradients are passed but the node already has them assigned.
 func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
-	BackwardT[T](-1, x, grad...)
+	BackwardT[T](nil, -1, x, grad...)
 }
 
 // BackwardMany performs the backpropagation from a list of nodes.
 // This is particularly useful when there are previously assigned
 // gradients on root nodes or when there are multiple distinct losses.
 func BackwardMany[T mat.DType](xs ...Node[T]) {
-	BackwardManyT[T](-1, xs...)
+	BackwardManyT[T](nil, -1, xs...)
 }
 
 // BackwardT starts a truncated backpropagation from the node.
 // It works like Backward, but allows to specify a maximum number
-// of backward steps compared against the nodes' timestep.
+// of backward steps compared against the nodes' time step.
 //
 // If backSteps is a negative value, no truncation is applied.
-func BackwardT[T mat.DType](backSteps int, x Node[T], grad ...mat.Matrix[T]) {
+func BackwardT[T mat.DType](tsh *TimeStepHandler[T], backSteps int, x Node[T], grad ...mat.Matrix[T]) {
 	if len(grad) > 1 {
 		panic("ag: only none or one gradients matrix must be passed to Backward")
 	}
@@ -47,9 +47,9 @@ func BackwardT[T mat.DType](backSteps int, x Node[T], grad ...mat.Matrix[T]) {
 		return
 	}
 
-	stopAtTimeStep := timeStepBoundary(op, backSteps)
+	stopAtTimeStep := timeStepBoundary(tsh, op, backSteps)
 
-	setupOperatorForBackward(op, stopAtTimeStep)
+	setupOperatorForBackward(tsh, op, stopAtTimeStep)
 
 	var outputGrad mat.Matrix[T] = nil
 	if len(grad) > 0 && grad[0] != nil {
@@ -58,16 +58,16 @@ func BackwardT[T mat.DType](backSteps int, x Node[T], grad ...mat.Matrix[T]) {
 	op.initOutputGrad(outputGrad)
 
 	wg := new(sync.WaitGroup)
-	backward(wg, op, stopAtTimeStep)
+	backward(tsh, wg, op, stopAtTimeStep)
 	wg.Wait()
 }
 
 // BackwardManyT starts a truncated backpropagation from a list of nodes.
 // It works like BackwardMany, but allows to specify a maximum
-// number of backward steps compared against the nodes' timestep.
+// number of backward steps compared against the nodes' time step.
 //
 // If backSteps is a negative value, no truncation is applied.
-func BackwardManyT[T mat.DType](backSteps int, xs ...Node[T]) {
+func BackwardManyT[T mat.DType](tsh *TimeStepHandler[T], backSteps int, xs ...Node[T]) {
 	ops := make([]*Operator[T], 0, len(xs))
 	for _, x := range xs {
 		if op, ok := x.(*Operator[T]); ok {
@@ -76,7 +76,7 @@ func BackwardManyT[T mat.DType](backSteps int, xs ...Node[T]) {
 	}
 
 	for _, op := range ops {
-		setupOperatorForBackward(op, timeStepBoundary(op, backSteps))
+		setupOperatorForBackward(tsh, op, timeStepBoundary(tsh, op, backSteps))
 	}
 
 	for _, op := range ops {
@@ -85,13 +85,13 @@ func BackwardManyT[T mat.DType](backSteps int, xs ...Node[T]) {
 
 	wg := new(sync.WaitGroup)
 	for _, op := range ops {
-		backward(wg, op, timeStepBoundary(op, backSteps))
+		backward(tsh, wg, op, timeStepBoundary(tsh, op, backSteps))
 	}
 	wg.Wait()
 }
 
-func setupOperatorForBackward[T mat.DType](op *Operator[T], stopAtTimeStep int) {
-	if !op.requiresGrad || timeStepTruncation(op, stopAtTimeStep) {
+func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler[T], op *Operator[T], stopAtTimeStep int) {
+	if !op.requiresGrad || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
 
@@ -105,13 +105,13 @@ func setupOperatorForBackward[T mat.DType](op *Operator[T], stopAtTimeStep int) 
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			setupOperatorForBackward(oo, stopAtTimeStep)
+			setupOperatorForBackward(tsh, oo, stopAtTimeStep)
 		}
 	}
 }
 
-func backward[T mat.DType](wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep int) {
-	if !op.requiresGrad || !op.visited || timeStepTruncation(op, stopAtTimeStep) {
+func backward[T mat.DType](tsh *TimeStepHandler[T], wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep int) {
+	if !op.requiresGrad || !op.visited || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
 	op.visited = false
@@ -124,22 +124,25 @@ func backward[T mat.DType](wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep i
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
-			backward(wg, oo, stopAtTimeStep)
+			backward(tsh, wg, oo, stopAtTimeStep)
 		}
 	}
 }
 
-func timeStepBoundary[T mat.DType](op *Operator[T], backSteps int) int {
-	if backSteps < 0 {
+func timeStepBoundary[T mat.DType](tsh *TimeStepHandler[T], op *Operator[T], backSteps int) int {
+	if tsh == nil || backSteps < 0 {
 		return -1
 	}
-	// If backSteps > op.TimeStep(), the timestep boundary becomes
-	// negative, which will be equivalent to excluding timestep handling.
-	return op.TimeStep() - backSteps
+	ts := tsh.TimeStep(op)
+	// If backSteps > tsh.TimeStep(op), the time step boundary becomes
+	// negative, which will be equivalent to excluding time step handling.
+	return ts - backSteps
 }
 
-func timeStepTruncation[T mat.DType](op *Operator[T], stopAtTimeStep int) bool {
-	return stopAtTimeStep >= 0 &&
-		op.TimeStep() <= stopAtTimeStep &&
-		op.TimeStep() != -1
+func timeStepTruncation[T mat.DType](tsh *TimeStepHandler[T], op *Operator[T], stopAtTimeStep int) bool {
+	if tsh == nil || stopAtTimeStep < 0 {
+		return false
+	}
+	ts := tsh.TimeStep(op)
+	return ts != -1 && ts <= stopAtTimeStep
 }
