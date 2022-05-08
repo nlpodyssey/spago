@@ -33,10 +33,10 @@ strict digraph {
 {{end -}}
 
 {{- define "nodes" -}}
-	{{- if (le (len .NodesByTimeStep) 1) -}}
-		{{- template "singleCluster" .NodesList -}}
-	{{- else -}}
+	{{- if .HasTimeStepHandler -}}
 		{{- template "multiCluster" . -}}
+	{{- else -}}
+		{{- template "singleCluster" .NodesList -}}
 	{{- end -}}
 {{- end -}}
 

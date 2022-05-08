@@ -5,13 +5,13 @@
 package encoding_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/encoding"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewGraph(t *testing.T) {
@@ -38,13 +38,7 @@ func testNewGraph[T mat.DType](t *testing.T) {
 	}
 	assert.Equal(t, expectedMap, g.NodesMap)
 
-	assert.Len(t, g.NodesByTimeStep, 1)
-	require.Contains(t, g.NodesByTimeStep, -1)
-
 	m := g.NodesMap
-
-	assert.ElementsMatch(t, g.NodesByTimeStep[-1], []int{m[a], m[b], m[c], m[x], m[y], m[z]})
-
 	expectedEdges := map[int][]int{
 		m[a]: {m[x]},
 		m[x]: {m[y]},
@@ -53,51 +47,74 @@ func testNewGraph[T mat.DType](t *testing.T) {
 		m[c]: {m[z]},
 	}
 	assert.Equal(t, expectedEdges, g.Edges)
+
+	assert.Nil(t, g.TimeStepHandler)
 }
 
-func TestNewGraphWithTimeSteps(t *testing.T) {
-	t.Run("float32", testNewGraphWithTimeSteps[float32])
-	t.Run("float64", testNewGraphWithTimeSteps[float64])
+func TestGraph_WithTimeSteps(t *testing.T) {
+	t.Run("float32", testGraphWithTimeSteps[float32])
+	t.Run("float64", testGraphWithTimeSteps[float64])
 }
 
-func testNewGraphWithTimeSteps[T mat.DType](t *testing.T) {
+func testGraphWithTimeSteps[T mat.DType](t *testing.T) {
+	a := ag.NewVariable[T](mat.NewScalar[T](1), false)
 	tsh := ag.NewTimeStepHandler[T]()
 
-	a := ag.NewVariable[T](mat.NewScalar[T](1), false)
-	b := ag.NewVariable[T](mat.NewScalar[T](3), false)
-	c := ag.NewVariable[T](mat.NewScalar[T](5), false)
+	g := encoding.NewGraph(a)
+	assert.Nil(t, g.TimeStepHandler)
 
-	x := ag.Add(a, a)
-	y := ag.Add(x, b)
+	g2 := g.WithTimeSteps(tsh)
+	assert.Same(t, tsh, g.TimeStepHandler)
+	assert.Same(t, g, g2)
+}
 
-	tsh.SetTimeStep(0, c)
-	z := ag.Add(y, c)
+func TestGraph_NodesByTimeStep(t *testing.T) {
+	t.Run("float32", testGraphNodesByTimeStep[float32])
+	t.Run("float64", testGraphNodesByTimeStep[float64])
+}
 
-	g := encoding.NewGraphWithTimeSteps(tsh, z)
+func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
+	t.Run("without time step handler", func(t *testing.T) {
+		a := ag.NewVariable[T](mat.NewScalar[T](1), false)
+		b := ag.NewVariable[T](mat.NewScalar[T](3), false)
+		c := ag.NewVariable[T](mat.NewScalar[T](5), false)
 
-	assert.ElementsMatch(t, []ag.Node[T]{a, b, c, x, y, z}, g.NodesList)
+		x := ag.Add(a, a)
+		y := ag.Add(x, b)
+		z := ag.Add(y, c)
 
-	expectedMap := make(map[ag.Node[T]]int, len(g.NodesList))
-	for i, n := range g.NodesList {
-		expectedMap[n] = i
-	}
-	assert.Equal(t, expectedMap, g.NodesMap)
+		g := encoding.NewGraph(z)
 
-	assert.Len(t, g.NodesByTimeStep, 2)
-	require.Contains(t, g.NodesByTimeStep, -1)
-	require.Contains(t, g.NodesByTimeStep, 0)
+		nodesByTimeStep := g.NodesByTimeStep()
+		assert.Equal(t, map[int][]int{-1: {0, 1, 2, 3, 4, 5}}, nodesByTimeStep)
+	})
 
-	m := g.NodesMap
+	t.Run("with a time step handler", func(t *testing.T) {
+		tsh := ag.NewTimeStepHandler[T]()
 
-	assert.ElementsMatch(t, g.NodesByTimeStep[-1], []int{m[a], m[b], m[x], m[y]})
-	assert.ElementsMatch(t, g.NodesByTimeStep[0], []int{m[c], m[z]})
+		a := ag.NewVariable[T](mat.NewScalar[T](1), false)
+		b := ag.NewVariable[T](mat.NewScalar[T](3), false)
+		c := ag.NewVariable[T](mat.NewScalar[T](5), false)
 
-	expectedEdges := map[int][]int{
-		m[a]: {m[x]},
-		m[x]: {m[y]},
-		m[b]: {m[y]},
-		m[y]: {m[z]},
-		m[c]: {m[z]},
-	}
-	assert.Equal(t, expectedEdges, g.Edges)
+		x := ag.Add(a, a)
+
+		tsh.SetTimeStep(0, b)
+		y := ag.Add(x, b)
+
+		tsh.SetTimeStep(1, c)
+		z := ag.Add(y, c)
+
+		g := encoding.NewGraph(z).WithTimeSteps(tsh)
+
+		nodesByTimeStep := g.NodesByTimeStep()
+
+		assert.Len(t, nodesByTimeStep, 3)
+		require.Contains(t, nodesByTimeStep, -1)
+		require.Contains(t, nodesByTimeStep, 0)
+
+		m := g.NodesMap
+		assert.ElementsMatch(t, nodesByTimeStep[-1], []int{m[a], m[x]})
+		assert.ElementsMatch(t, nodesByTimeStep[0], []int{m[b], m[y]})
+		assert.ElementsMatch(t, nodesByTimeStep[1], []int{m[c], m[z]})
+	})
 }

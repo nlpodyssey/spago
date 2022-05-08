@@ -62,7 +62,7 @@ func testEncode[T mat.DType](t *testing.T) {
 		y := ag.Sum(x, c)
 		z := ag.Sum(y, d)
 
-		g := encoding.NewGraphWithTimeSteps(tsh, z)
+		g := encoding.NewGraph(z).WithTimeSteps(tsh)
 		buf := new(bytes.Buffer)
 		err := dot.Encode(g, buf)
 		require.NoError(t, err)
