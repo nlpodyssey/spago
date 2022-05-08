@@ -50,15 +50,15 @@ func TestIntrospect(t *testing.T) {
 	m2 := Introspect[T](m)
 	assert.Same(t, m, m2)
 
-	assert.Equal(t, "foo", m.Foo.Name())
+	assert.Equal(t, "Foo", m.Foo.Name())
 	assert.Equal(t, Biases, m.Foo.Type())
 
-	assert.Equal(t, "bar", m.Bar.Name())
+	assert.Equal(t, "Bar", m.Bar.Name())
 	assert.Equal(t, Undefined, m.Bar.Type())
 
-	assert.Equal(t, "baz", m.Other.Baz.Name())
+	assert.Equal(t, "Baz", m.Other.Baz.Name())
 	assert.Equal(t, Weights, m.Other.Baz.Type())
 
-	assert.Equal(t, "qux", m.Other.Qux.Name())
+	assert.Equal(t, "Qux", m.Other.Qux.Name())
 	assert.Equal(t, Undefined, m.Other.Qux.Type())
 }

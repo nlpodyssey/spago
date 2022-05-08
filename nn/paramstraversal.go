@@ -7,7 +7,6 @@ package nn
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -101,7 +100,7 @@ func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFie
 			return false // skip map if the key is not a string or an int
 		}
 
-		name := strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+		name := fmt.Sprintf("%s.%s", name, key)
 		switch reflect.ValueOf(value).Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
 			pt.walkStructOrPtr(value, name, tag)
@@ -138,7 +137,7 @@ func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFie
 			return // skip map if the key is not a string or an int
 		}
 
-		name := strings.ToLower(fmt.Sprintf("%s.%s", name, key))
+		name := fmt.Sprintf("%s.%s", name, key)
 		switch mapRange.Value().Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
 			pt.walkStructOrPtr(mapRange.Value().Interface(), name, tag)

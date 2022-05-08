@@ -6,7 +6,6 @@ package nn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	"strings"
 )
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
@@ -37,7 +36,7 @@ func ClearSupport[T mat.DType](m Model[T]) {
 func Introspect[T mat.DType, M Model[T]](m M) M {
 	ForEachParam(Model[T](m), func(param Param[T], name string, pType ParamsType) {
 		if p, ok := param.(ParamNameSetter); ok && param.Name() == "" {
-			p.SetName(strings.ToLower(name))
+			p.SetName(name)
 		}
 		if p, ok := param.(ParamTypeSetter); ok {
 			p.SetType(pType)
