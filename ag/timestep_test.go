@@ -5,7 +5,7 @@
 package ag
 
 import (
-	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -18,96 +18,63 @@ func TestTimeStepHandler(t *testing.T) {
 }
 
 func testTimeStepHandler[T mat.DType](t *testing.T) {
-	tsh := NewTimeStepHandler[T]()
+	tsh := NewTimeStepHandler()
+	require.Equal(t, 0, tsh.CurrentTimeStep())
 
-	// Simulate some parameters, with no associated time step (default -1)
+	// Simulate some parameters, with no associated time step (default 0)
 	paramA := NewVariableWithName[T](mat.NewScalar[T](1), true, "Param 0")
 	paramB := NewVariableWithName[T](mat.NewScalar[T](2), true, "Param 1")
 
-	// Perform an operation still without considering time steps (again -1)
+	// Perform an operation while still on initial time step 0
 	paramsSum := Sum(paramA, paramB)
 
-	// Time step 0
-	in0 := NewVariableWithName[T](mat.NewScalar[T](3), true, "Input 0")
-	tsh.SetTimeStep(0, in0)
-
-	a0 := Add(paramA, in0)
-	b0 := Add(a0, paramB)
-	out0 := Add(b0, paramsSum)
-
 	// Time step 1
-	in1 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 1")
-	tsh.SetTimeStep(1, in1)
+	tsh.IncTimeStep()
+	require.Equal(t, 1, tsh.CurrentTimeStep())
+	in1 := NewVariableWithName[T](mat.NewScalar[T](3), true, "Input 0")
 
 	a1 := Add(paramA, in1)
 	b1 := Add(a1, paramB)
-	c1 := Add(paramsSum, out0) // note: this is not linked to the input
-	out1 := Add(b1, c1)
+	out1 := Add(b1, paramsSum)
 
 	// Time step 2
-	in2 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 2")
-	tsh.SetTimeStep(2, in2)
+	tsh.IncTimeStep()
+	require.Equal(t, 2, tsh.CurrentTimeStep())
+	in2 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 1")
 
 	a2 := Add(paramA, in2)
 	b2 := Add(a2, paramB)
-	c2 := Add(paramsSum, out0) // note: this is not linked to the input
+	c2 := Add(paramsSum, out1) // note: this is not linked to the input
 	out2 := Add(b2, c2)
 
-	fmt.Printf("%#v\n", out2)
-	fmt.Printf("%#v\n", tsh)
+	// Time step 2
+	tsh.IncTimeStep()
+	in3 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 3")
 
-	assert.Equal(t, -1, tsh.TimeStep(paramA))
-	assert.Equal(t, -1, tsh.TimeStep(paramB))
-	assert.Equal(t, -1, tsh.TimeStep(paramsSum))
+	a3 := Add(paramA, in3)
+	b3 := Add(a3, paramB)
+	c3 := Add(paramsSum, out2) // note: this is not linked to the input
+	out3 := Add(b3, c3)
 
-	assert.Equal(t, 0, tsh.TimeStep(in0))
-	assert.Equal(t, 0, tsh.TimeStep(a0))
-	assert.Equal(t, 0, tsh.TimeStep(b0))
-	assert.Equal(t, 0, tsh.TimeStep(out0))
+	assert.Equal(t, 0, tsh.NodeTimeStep(paramA))
+	assert.Equal(t, 0, tsh.NodeTimeStep(paramB))
+	assert.Equal(t, 0, tsh.NodeTimeStep(paramsSum))
 
-	assert.Equal(t, 1, tsh.TimeStep(in1))
-	assert.Equal(t, 1, tsh.TimeStep(a1))
-	assert.Equal(t, 1, tsh.TimeStep(b1))
-	assert.Equal(t, 1, tsh.TimeStep(c1))
-	assert.Equal(t, 1, tsh.TimeStep(out1))
+	assert.Equal(t, 0, tsh.NodeTimeStep(in1))
+	assert.Equal(t, 0, tsh.NodeTimeStep(in2))
+	assert.Equal(t, 0, tsh.NodeTimeStep(in3))
 
-	assert.Equal(t, 2, tsh.TimeStep(in2))
-	assert.Equal(t, 2, tsh.TimeStep(a2))
-	assert.Equal(t, 2, tsh.TimeStep(b2))
-	assert.Equal(t, 2, tsh.TimeStep(c2))
-	assert.Equal(t, 2, tsh.TimeStep(out2))
-}
+	assert.Equal(t, 1, tsh.NodeTimeStep(a1))
+	assert.Equal(t, 1, tsh.NodeTimeStep(b1))
+	assert.Equal(t, 1, tsh.NodeTimeStep(out1))
 
-func TestTimeStepHandler_SetTimeStep(t *testing.T) {
-	t.Run("float32", testTimeStepHandlerSetTimeStep[float32])
-	t.Run("float64", testTimeStepHandlerSetTimeStep[float64])
-}
+	assert.Equal(t, 2, tsh.NodeTimeStep(a2))
+	assert.Equal(t, 2, tsh.NodeTimeStep(b2))
+	assert.Equal(t, 2, tsh.NodeTimeStep(c2))
+	assert.Equal(t, 2, tsh.NodeTimeStep(out2))
 
-func testTimeStepHandlerSetTimeStep[T mat.DType](t *testing.T) {
-	t.Run("it panics with a negative time step", func(t *testing.T) {
-		tsh := NewTimeStepHandler[T]()
-		n := NewVariable[T](mat.NewScalar[T](1), true)
-		assert.Panics(t, func() { tsh.SetTimeStep(-1, n) })
-	})
-
-	t.Run("it allows duplicate nodes", func(t *testing.T) {
-		tsh := NewTimeStepHandler[T]()
-		n := NewVariable[T](mat.NewScalar[T](1), true)
-		assert.NotPanics(t, func() { tsh.SetTimeStep(0, n, n) })
-	})
-
-	t.Run("it panics if called twice with the same time step", func(t *testing.T) {
-		tsh := NewTimeStepHandler[T]()
-		a := NewVariable[T](mat.NewScalar[T](1), true)
-		b := NewVariable[T](mat.NewScalar[T](2), true)
-		tsh.SetTimeStep(0, a)
-		assert.Panics(t, func() { tsh.SetTimeStep(0, b) })
-	})
-
-	t.Run("it panics if a node already has a different time step", func(t *testing.T) {
-		tsh := NewTimeStepHandler[T]()
-		n := NewVariable[T](mat.NewScalar[T](1), true)
-		tsh.SetTimeStep(0, n)
-		assert.Panics(t, func() { tsh.SetTimeStep(1, n) })
-	})
+	assert.Equal(t, 3, tsh.NodeTimeStep(a3))
+	assert.Equal(t, 3, tsh.NodeTimeStep(b3))
+	assert.Equal(t, 3, tsh.NodeTimeStep(c3))
+	assert.Equal(t, 3, tsh.NodeTimeStep(out3))
 }

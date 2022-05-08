@@ -37,7 +37,7 @@ type Graph[T mat.DType] struct {
 	Edges map[int][]int
 	// TimeStepHandler is the optional handler for time step information
 	// associated to the nodes.
-	TimeStepHandler *ag.TimeStepHandler[T]
+	TimeStepHandler *ag.TimeStepHandler
 }
 
 // NewGraph builds a new Graph starting from one or more given nodes
@@ -59,7 +59,7 @@ func NewGraph[T mat.DType](nodes ...ag.Node[T]) *Graph[T] {
 
 // WithTimeSteps associates a TimeStepHandler to the Graph, allowing
 // time steps to be taken into account.
-func (g *Graph[T]) WithTimeSteps(handler *ag.TimeStepHandler[T]) *Graph[T] {
+func (g *Graph[T]) WithTimeSteps(handler *ag.TimeStepHandler) *Graph[T] {
 	g.TimeStepHandler = handler
 	return g
 }
@@ -88,7 +88,7 @@ func (g *Graph[T]) NodesByTimeStep() map[int][]int {
 
 	m := make(map[int][]int, 0)
 	for nodeIndex, node := range g.NodesList {
-		ts := tsh.TimeStep(node)
+		ts := tsh.NodeTimeStep(node)
 		m[ts] = append(m[ts], nodeIndex)
 	}
 	return m

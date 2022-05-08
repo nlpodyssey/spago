@@ -58,7 +58,7 @@ func TestGraph_WithTimeSteps(t *testing.T) {
 
 func testGraphWithTimeSteps[T mat.DType](t *testing.T) {
 	a := ag.NewVariable[T](mat.NewScalar[T](1), false)
-	tsh := ag.NewTimeStepHandler[T]()
+	tsh := ag.NewTimeStepHandler()
 
 	g := encoding.NewGraph(a)
 	assert.Nil(t, g.TimeStepHandler)
@@ -90,7 +90,7 @@ func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("with a time step handler", func(t *testing.T) {
-		tsh := ag.NewTimeStepHandler[T]()
+		tsh := ag.NewTimeStepHandler()
 
 		a := ag.NewVariable[T](mat.NewScalar[T](1), false)
 		b := ag.NewVariable[T](mat.NewScalar[T](3), false)
@@ -98,10 +98,10 @@ func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
 
 		x := ag.Add(a, a)
 
-		tsh.SetTimeStep(0, b)
+		tsh.IncTimeStep()
 		y := ag.Add(x, b)
 
-		tsh.SetTimeStep(1, c)
+		tsh.IncTimeStep()
 		z := ag.Add(y, c)
 
 		g := encoding.NewGraph(z).WithTimeSteps(tsh)
@@ -109,12 +109,13 @@ func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
 		nodesByTimeStep := g.NodesByTimeStep()
 
 		assert.Len(t, nodesByTimeStep, 3)
-		require.Contains(t, nodesByTimeStep, -1)
 		require.Contains(t, nodesByTimeStep, 0)
+		require.Contains(t, nodesByTimeStep, 1)
+		require.Contains(t, nodesByTimeStep, 2)
 
 		m := g.NodesMap
-		assert.ElementsMatch(t, nodesByTimeStep[-1], []int{m[a], m[x]})
-		assert.ElementsMatch(t, nodesByTimeStep[0], []int{m[b], m[y]})
-		assert.ElementsMatch(t, nodesByTimeStep[1], []int{m[c], m[z]})
+		assert.ElementsMatch(t, nodesByTimeStep[0], []int{m[a], m[b], m[c], m[x]})
+		assert.ElementsMatch(t, nodesByTimeStep[1], []int{m[y]})
+		assert.ElementsMatch(t, nodesByTimeStep[2], []int{m[z]})
 	})
 }

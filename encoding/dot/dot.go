@@ -51,7 +51,7 @@ strict digraph {
 
 {{- define "multiCluster" -}}
 	{{- range $timeStep, $nodeIDs := .NodesByTimeStep}}
-	subgraph "cluster_timestep_{{$timeStep}}" {
+	subgraph cluster_timestep_{{$timeStep}} {
 		label="Time Step {{$timeStep}}";
 		{{- $color := (timeStepColor $timeStep)}}
 		color={{$color}};
@@ -59,9 +59,9 @@ strict digraph {
 		{{range $nodeIDs}}
 			{{- $node := (index $.NodesList .)}}
 		{{printf 
-			"%d [label=<<sup>%d</sup><br/><b>%s</b><br/><sub>%d×%d</sub>>,shape=%s,color=%s]" 
+			"%d [label=<<sup>%d</sup><br/><b>%s</b><br/><sub>%d×%d</sub>>,shape=%s]" 
 			. . ($node.Name | html)
-			$node.Value.Rows $node.Value.Columns (nodeShape $node) $color
+			$node.Value.Rows $node.Value.Columns (nodeShape $node)
 		}}
 		{{- end}}
 	}
@@ -78,9 +78,6 @@ strict digraph {
 var (
 	funcs = template.FuncMap{
 		"timeStepColor": func(timeStep int) string {
-			if timeStep < 0 {
-				return `""`
-			}
 			// dark28 color schemes has colors from 1 to 8
 			return strconv.Itoa((timeStep % 8) + 1)
 		},

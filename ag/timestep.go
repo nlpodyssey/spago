@@ -5,86 +5,61 @@
 package ag
 
 import (
-	"fmt"
+	"math"
 	"time"
-
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // TimeStepHandler allows handling time steps associated to the nodes of a
 // computational graph, making possible to perform truncated backpropagation.
-type TimeStepHandler[T mat.DType] struct {
-	timeStepCreatedAt map[int]int64
-	nodesTimeStep     map[Node[T]]int
+//
+// The initial implicit time step is 0, then it can be incremented with
+// IncTimeStep.
+type TimeStepHandler struct {
+	timeSteps []int64
 }
 
 // NewTimeStepHandler creates a new TimeStepHandler.
-func NewTimeStepHandler[T mat.DType]() *TimeStepHandler[T] {
-	return &TimeStepHandler[T]{
-		timeStepCreatedAt: make(map[int]int64, 0),
-		nodesTimeStep:     make(map[Node[T]]int, 0),
+func NewTimeStepHandler() *TimeStepHandler {
+	return &TimeStepHandler{
+		timeSteps: []int64{math.MinInt64},
 	}
 }
 
-// SetTimeStep associates a time step to the given nodes. It can be called
-// only once for each unique time step value.
-//
-// It panics it the time step is a negative value, or if a node is already
-// associated to another time step.
-//
-// Any operator created after this call, even if not directly linked to any of
-// the nodes specified here, will be implicitly associated to the same time
-// step, until the method is called again, for defining the next time
-// step.
-func (tsh *TimeStepHandler[T]) SetTimeStep(timeStep int, nodes ...Node[T]) {
-	if timeStep < 0 {
-		panic(fmt.Errorf("ag: invalid negative time step value %d", timeStep))
-	}
-	if _, ok := tsh.timeStepCreatedAt[timeStep]; ok {
-		panic(fmt.Errorf("ag: time step %d already defined", timeStep))
-	}
+// IncTimeStep increments the time step by 1, keeping track of when this
+// operation is performed.
+func (tsh *TimeStepHandler) IncTimeStep() {
+	tsh.timeSteps = append(tsh.timeSteps, time.Now().UnixNano())
+}
 
-	tsh.timeStepCreatedAt[timeStep] = time.Now().UnixNano()
+// CurrentTimeStep returns the current time step value.
+func (tsh *TimeStepHandler) CurrentTimeStep() int {
+	return len(tsh.timeSteps) - 1
+}
 
-	for _, node := range nodes {
-		if v, ok := tsh.nodesTimeStep[node]; ok && v != timeStep {
-			panic(fmt.Errorf("ag: cannot set time step %d to node with timestep %d", timeStep, v))
-		}
-		tsh.nodesTimeStep[node] = timeStep
+// NodeTimeStep resolve the time step of a node belonging to the computational
+// graph associated to this handler.
+//
+// If the node is an Operator, its creation timestamp is compared to the
+// creation timestamp of each time step; the result is resolved as the time
+// step associated to the closest preceding timestamp, if any, otherwise 0.
+// In any other case, it returns 0.
+func (tsh *TimeStepHandler) NodeTimeStep(node any) int {
+	switch n := node.(type) {
+	case *Operator[float32]:
+		return tsh.resolveTimeStep(n.createdAt)
+	case *Operator[float64]:
+		return tsh.resolveTimeStep(n.createdAt)
+	default:
+		return 0
 	}
 }
 
-// TimeStep returns the time step associated to the node.
-//
-// If a node is visited for the first time, and it is an Operator, its
-// creation timestamp is compared to the creation of each time step; the result
-// is resolved as the time step associated to the closest preceding timestamp,
-// if any, otherwise -1. In any other case, it returns -1.
-//
-// Results are memoized to avoid multiple computations for the same node.
-func (tsh *TimeStepHandler[T]) TimeStep(node Node[T]) int {
-	if ts, ok := tsh.nodesTimeStep[node]; ok {
-		return ts
-	}
-	ts := tsh.resolveTimeStep(node)
-	tsh.nodesTimeStep[node] = ts
-	return ts
-}
-
-func (tsh *TimeStepHandler[T]) resolveTimeStep(node Node[T]) int {
-	op, isOp := node.(*Operator[T])
-	if !isOp {
-		return -1
-	}
-	opCreationTime := op.createdAt
-
-	var closestCreationTime int64
-	closestTimeStep := -1
-	for timeStep, creationTime := range tsh.timeStepCreatedAt {
-		if creationTime < opCreationTime && creationTime > closestCreationTime {
-			closestCreationTime = creationTime
-			closestTimeStep = timeStep
+func (tsh *TimeStepHandler) resolveTimeStep(nodeCreatedAt int64) int {
+	timeSteps := tsh.timeSteps
+	for i := len(timeSteps) - 1; i >= 0; i-- {
+		if timeSteps[i] <= nodeCreatedAt {
+			return i
 		}
 	}
-	return closestTimeStep
+	return 0
 }
