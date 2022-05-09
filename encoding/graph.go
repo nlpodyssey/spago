@@ -64,7 +64,7 @@ func (g *Graph[T]) WithTimeSteps(handler *ag.TimeStepHandler) *Graph[T] {
 	return g
 }
 
-// HasTimeStepsHandler reports whether a TimeStepHandler is set on the Graph.
+// HasTimeStepHandler HasTimeStepsHandler reports whether a TimeStepHandler is set on the Graph.
 func (g *Graph[T]) HasTimeStepHandler() bool {
 	return g.TimeStepHandler != nil
 }
