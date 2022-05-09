@@ -10,6 +10,22 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
+// backwardState is an enumeration type associated to an Operator, to keep
+// track of its visited status among different backpropagation phases.
+type backwardState byte
+
+const (
+	// This value reports that gradient propagation is not pending for an
+	// operator node.
+	// It's the default zero value on an operator, and it's the final value
+	// set from the backward step once gradients have been propagated.
+	notInBackward backwardState = iota
+	// This value is set on an operator node from the preparatory phase of the
+	// backward step. It reports that the node is ready for gradients
+	// propagation (once the gradients of its operands are ready too).
+	backwardPending
+)
+
 // Backward starts the back-propagation from the node.
 //
 // It follows these mutually exclusive rules:
@@ -106,10 +122,10 @@ func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler, op *Operator[T]
 
 	op.pendingGrads++
 
-	if op.visited {
+	if op.backwardState != notInBackward {
 		return
 	}
-	op.visited = true
+	op.backwardState = backwardPending
 	op.inBackward = true
 
 	for _, operand := range op.function.Operands() {
@@ -120,10 +136,10 @@ func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler, op *Operator[T]
 }
 
 func backward[T mat.DType](tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep int) {
-	if !op.requiresGrad || !op.visited || timeStepTruncation(tsh, op, stopAtTimeStep) {
+	if !op.requiresGrad || op.backwardState != backwardPending || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
-	op.visited = false
+	op.backwardState = notInBackward
 
 	wg.Add(1)
 	go func() {

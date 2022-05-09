@@ -21,10 +21,10 @@ var (
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
-	inBackward   bool
-	requiresGrad bool
-	visited      bool
-	function     fn.Function[T, Node[T]]
+	inBackward    bool
+	requiresGrad  bool
+	backwardState backwardState
+	function      fn.Function[T, Node[T]]
 	// value is the results of a forward evaluation, as mat.Matrix[T].
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
@@ -56,11 +56,11 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 	}
 
 	op := &Operator[T]{
-		requiresGrad: requiresGrad,
-		visited:      false,
-		function:     f,
-		pendingGrads: 0,
-		createdAt:    atomic.LoadUint64(&tsCounter),
+		requiresGrad:  requiresGrad,
+		backwardState: notInBackward,
+		function:      f,
+		pendingGrads:  0,
+		createdAt:     atomic.LoadUint64(&tsCounter),
 	}
 
 	op.cond.L = &op.mx
@@ -141,7 +141,7 @@ func (o *Operator[_]) ZeroGrad() {
 	mat.ReleaseMatrix(o.grad)
 	o.grad = nil
 	o.pendingGrads = 0
-	o.visited = false
+	o.backwardState = notInBackward
 	o.inBackward = false
 }
 
