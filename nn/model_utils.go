@@ -44,33 +44,3 @@ func Introspect[T mat.DType, M Model[T]](m M) M {
 	})
 	return m
 }
-
-// DumpParamsVector dumps all params of a Model into a single Dense vector.
-func DumpParamsVector[T mat.DType](model Model[T]) mat.Matrix[T] {
-	data := make([]T, 0)
-	ForEachParam(model, func(param Param[T], _ string, _ ParamsType) {
-		data = append(data, param.Value().Data()...)
-	})
-	return mat.NewVecDense(data)
-}
-
-// LoadParamsVector sets all params of a Model from a previously dumped Dense vector.
-func LoadParamsVector[T mat.DType](model Model[T], vector mat.Matrix[T]) {
-	data := vector.Data()
-	offset := 0
-	ForEachParam(model, func(param Param[T], _ string, _ ParamsType) {
-		size := param.Value().Size()
-		param.Value().SetData(data[offset : offset+size])
-		offset += size
-	})
-}
-
-// MakeNewModels return n new models.
-// The callback is delegated to return a new model for each i-item.
-func MakeNewModels[T mat.DType](n int, callback func(i int) Model[T]) []Model[T] {
-	lst := make([]Model[T], n)
-	for i := 0; i < n; i++ {
-		lst[i] = callback(i)
-	}
-	return lst
-}
