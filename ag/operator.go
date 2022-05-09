@@ -155,7 +155,12 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	o.cond.L.Lock()
 	defer o.cond.L.Unlock()
 
-	if o.grad == nil {
+	// It is possible to observe `o.grad != nil` and at the same time `reflect.ValueOf(o.grad).IsNil() == true`.
+	// That means somewhere a nil pointer is being cast to `mat.Matrix[T]` and stored in `o.grad`.
+	// Since `mat.Matrix` is an interface, the "nil test" will return false but any method call will panic as
+	// `mat.Dense` does not consider the possibility of a nil pointer value.
+	// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
+	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
 		o.cond.L.Unlock()
 		o.grad = o.Value().ZerosLike()
 		o.cond.L.Lock()
