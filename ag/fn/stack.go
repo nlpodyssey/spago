@@ -41,7 +41,7 @@ func (r *Stack[T, O]) Backward(gy mat.Matrix[T]) {
 		if !x.RequiresGrad() {
 			continue
 		}
-		gyRow := gy.ExtractRow(i)
+		gyRow := gy.ExtractRow(i).ReshapeInPlace(x.Value().Dims())
 		x.AccGrad(gyRow)
 		mat.ReleaseMatrix(gyRow)
 	}
