@@ -15,15 +15,31 @@ import (
 type backwardState byte
 
 const (
-	// This value reports that gradient propagation is not pending for an
+	// idle reports that gradient propagation is not pending for an
 	// operator node.
-	// It's the default zero value on an operator, and it's the final value
-	// set from the backward step once gradients have been propagated.
-	notInBackward backwardState = iota
-	// This value is set on an operator node from the preparatory phase of the
-	// backward step. It reports that the node is ready for gradients
-	// propagation (once the gradients of its operands are ready too).
-	backwardPending
+	//
+	// It's the default zero-value state of an operator, and it's also the
+	// final value set from the backward step once gradients have been
+	// propagated.
+	//
+	// As soon as a backward operation is performed, the status will change to
+	// pending.
+	idle backwardState = iota
+	// pending is set on an operator node from the preparatory phase
+	// of the backward step.
+	// It reports that the node has been marked as a candidate for gradients
+	// propagation and the number of pendingGrads has been computed.
+	//
+	// The next logical state is ongoing.
+	pending
+	// ongoing is set on an operator node from the core phase of the
+	// backward step. It reports that the node has been visited once for
+	// performing its Operator.backward method.
+	//
+	// This status remains set until the gradients of all dependents have been
+	// resolved, and the node's own gradients have been propagated too.
+	// After that, the status is set back to idle.
+	ongoing
 )
 
 // Backward starts the back-propagation from the node.
@@ -122,11 +138,10 @@ func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler, op *Operator[T]
 
 	op.pendingGrads++
 
-	if op.backwardState != notInBackward {
+	if op.backwardState != idle {
 		return
 	}
-	op.backwardState = backwardPending
-	op.inBackward = true
+	op.backwardState = pending
 
 	for _, operand := range op.function.Operands() {
 		if oo, ok := operand.(*Operator[T]); ok {
@@ -136,14 +151,15 @@ func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler, op *Operator[T]
 }
 
 func backward[T mat.DType](tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep int) {
-	if !op.requiresGrad || op.backwardState != backwardPending || timeStepTruncation(tsh, op, stopAtTimeStep) {
+	if !op.requiresGrad || op.backwardState == ongoing || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
-	op.backwardState = notInBackward
+	op.backwardState = ongoing
 
 	wg.Add(1)
 	go func() {
 		op.backward()
+		op.backwardState = idle
 		wg.Done()
 	}()
 

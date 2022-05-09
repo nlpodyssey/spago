@@ -21,7 +21,6 @@ var (
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
-	inBackward    bool
 	requiresGrad  bool
 	backwardState backwardState
 	function      fn.Function[T, Node[T]]
@@ -57,7 +56,7 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 
 	op := &Operator[T]{
 		requiresGrad:  requiresGrad,
-		backwardState: notInBackward,
+		backwardState: idle,
 		function:      f,
 		pendingGrads:  0,
 		createdAt:     atomic.LoadUint64(&tsCounter),
@@ -141,8 +140,7 @@ func (o *Operator[_]) ZeroGrad() {
 	mat.ReleaseMatrix(o.grad)
 	o.grad = nil
 	o.pendingGrads = 0
-	o.backwardState = notInBackward
-	o.inBackward = false
+	o.backwardState = idle
 }
 
 // AccGrad accumulates the gradients to the node itself.
@@ -164,7 +162,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 		o.grad.AddInPlace(grad)
 	}
 
-	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
+	if o.backwardState != idle && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
 		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
 	}
 }
@@ -199,15 +197,11 @@ func (o *Operator[T]) forward() {
 
 // backward executes the backward
 func (o *Operator[T]) backward() {
-	defer func() {
-		o.inBackward = false
-	}()
-
 	if !o.requiresGrad {
 		return
 	}
 
-	grad := o.Grad() // wait for the forward goroutine to finish
+	grad := o.Grad()
 	if grad == nil {
 		return
 	}
