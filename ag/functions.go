@@ -6,6 +6,7 @@ package ag
 
 import (
 	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 

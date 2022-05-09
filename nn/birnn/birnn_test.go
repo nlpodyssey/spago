@@ -5,12 +5,13 @@
 package birnn
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/recurrent/srn"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestModelConcat_Forward(t *testing.T) {

@@ -6,6 +6,7 @@ package lstm
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -17,18 +18,23 @@ var _ nn.Model[float32] = &Model[float32]{}
 type Model[T mat.DType] struct {
 	nn.BaseModel[T]
 	UseRefinedGates bool
-	WIn             nn.Param[T] `spago:"type:weights"`
-	WInRec          nn.Param[T] `spago:"type:weights"`
-	BIn             nn.Param[T] `spago:"type:biases"`
-	WOut            nn.Param[T] `spago:"type:weights"`
-	WOutRec         nn.Param[T] `spago:"type:weights"`
-	BOut            nn.Param[T] `spago:"type:biases"`
-	WFor            nn.Param[T] `spago:"type:weights"`
-	WForRec         nn.Param[T] `spago:"type:weights"`
-	BFor            nn.Param[T] `spago:"type:biases"`
-	WCand           nn.Param[T] `spago:"type:weights"`
-	WCandRec        nn.Param[T] `spago:"type:weights"`
-	BCand           nn.Param[T] `spago:"type:biases"`
+
+	// Input gate
+	WIn    nn.Param[T] `spago:"type:weights"`
+	WInRec nn.Param[T] `spago:"type:weights"`
+	BIn    nn.Param[T] `spago:"type:biases"`
+	// Output gate
+	WOut    nn.Param[T] `spago:"type:weights"`
+	WOutRec nn.Param[T] `spago:"type:weights"`
+	BOut    nn.Param[T] `spago:"type:biases"`
+	// Forget gate
+	WFor    nn.Param[T] `spago:"type:weights"`
+	WForRec nn.Param[T] `spago:"type:weights"`
+	BFor    nn.Param[T] `spago:"type:biases"`
+	// Candiate gate
+	WCand    nn.Param[T] `spago:"type:weights"`
+	WCandRec nn.Param[T] `spago:"type:weights"`
+	BCand    nn.Param[T] `spago:"type:biases"`
 }
 
 // State represent a state of the LSTM recurrent network.
@@ -61,24 +67,31 @@ func SetRefinedGates[T mat.DType](value bool) Option[T] {
 
 // New returns a new model with parameters initialized to zeros.
 func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
-	m := &Model[T]{}
-	m.WIn, m.WInRec, m.BIn = newGateParams[T](in, out)
-	m.WOut, m.WOutRec, m.BOut = newGateParams[T](in, out)
-	m.WFor, m.WForRec, m.BFor = newGateParams[T](in, out)
-	m.WCand, m.WCandRec, m.BCand = newGateParams[T](in, out)
-	m.UseRefinedGates = false
+	m := &Model[T]{
+		UseRefinedGates: false,
+
+		// Input gate
+		WIn:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+		WInRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
+		BIn:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		// Output gate
+		WOut:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+		WOutRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
+		BOut:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		// Forget gate
+		WFor:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+		WForRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
+		BFor:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		// Candiate gate
+		WCand:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+		WCandRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
+		BCand:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+	}
 
 	for _, option := range options {
 		option(m)
 	}
 	return m
-}
-
-func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
-	w = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
-	wRec = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
-	b = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
-	return
 }
 
 // Forward performs the forward step for each input node and returns the result.

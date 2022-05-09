@@ -5,9 +5,10 @@
 package adagrad
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_Update(t *testing.T) {

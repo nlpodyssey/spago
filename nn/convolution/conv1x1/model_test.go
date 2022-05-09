@@ -5,11 +5,12 @@
 package conv1x1
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestModel_Forward(t *testing.T) {

@@ -6,10 +6,11 @@ package birnn
 
 import (
 	"encoding/gob"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"sync"
 )
 
 // MergeType is the enumeration-like type used for the set of merging methods

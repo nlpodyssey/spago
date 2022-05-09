@@ -7,6 +7,7 @@ package convolution1d
 import (
 	"encoding/gob"
 	"fmt"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"

@@ -6,10 +6,11 @@ package activation
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"reflect"
 	"strings"
+
+	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Name is the enumeration-like type used for the set of built-in activations.

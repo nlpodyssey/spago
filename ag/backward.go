@@ -5,8 +5,9 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"sync"
+
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Backward starts the back-propagation from the node.

@@ -5,11 +5,11 @@
 package ag
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTimeStepHandler(t *testing.T) {

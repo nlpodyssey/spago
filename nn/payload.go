@@ -7,6 +7,7 @@ package nn
 import (
 	"bytes"
 	"encoding/binary"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 

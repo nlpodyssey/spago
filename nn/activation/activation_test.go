@@ -5,11 +5,12 @@
 package activation
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestModelReLU_Forward(t *testing.T) {

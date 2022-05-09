@@ -5,9 +5,10 @@
 package adam
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func Test_IncExample(t *testing.T) {

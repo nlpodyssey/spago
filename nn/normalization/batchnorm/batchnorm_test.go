@@ -5,15 +5,15 @@
 package batchnorm
 
 import (
-	"github.com/nlpodyssey/spago/mat/rand"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 

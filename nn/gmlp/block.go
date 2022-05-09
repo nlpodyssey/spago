@@ -6,6 +6,7 @@ package gmlp
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"

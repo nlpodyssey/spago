@@ -6,9 +6,10 @@ package ag
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUtils(t *testing.T) {

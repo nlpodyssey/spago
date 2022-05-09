@@ -5,9 +5,10 @@
 package clipper
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestClipValue(t *testing.T) {

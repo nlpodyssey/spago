@@ -5,12 +5,12 @@
 package mlpmixer
 
 import (
-	"github.com/nlpodyssey/spago/nn/activation"
-	"github.com/nlpodyssey/spago/nn/linear"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/nn/activation"
+	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/stretchr/testify/assert"
 )
 

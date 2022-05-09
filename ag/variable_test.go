@@ -2,11 +2,12 @@ package ag
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestNewVariable(t *testing.T) {

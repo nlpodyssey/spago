@@ -4,9 +4,7 @@
 
 package ag
 
-import (
-	"github.com/nlpodyssey/spago/mat"
-)
+import "github.com/nlpodyssey/spago/mat"
 
 // Node is implemented by any value that can represent a node of a graph.
 type Node[T mat.DType] interface {

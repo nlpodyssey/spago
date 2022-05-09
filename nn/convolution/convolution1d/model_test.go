@@ -5,11 +5,12 @@
 package convolution1d
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 //gocyclo:ignore

@@ -8,6 +8,7 @@ package sgu
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
 	"github.com/nlpodyssey/spago/mat"

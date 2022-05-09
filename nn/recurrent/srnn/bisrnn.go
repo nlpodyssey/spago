@@ -11,6 +11,8 @@ package srnn
 
 import (
 	"encoding/gob"
+	"sync"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
@@ -18,7 +20,6 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 	"github.com/nlpodyssey/spago/nn/stack"
-	"sync"
 )
 
 var _ nn.Model[float32] = &BiModel[float32]{}
