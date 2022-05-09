@@ -9,7 +9,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
@@ -38,10 +37,9 @@ type Operator[T mat.DType] struct {
 	mx           sync.Mutex
 	grad         mat.Matrix[T]
 	pendingGrads int64
-	// Creation unix time in nanoseconds. It's primarily useful for later
-	// associating a correct time-step to this operator, if needed for
-	// truncated backpropagation.
-	createdAt int64
+	// It's primarily useful for later associating a correct time-step
+	// to this operator, if needed for truncated backpropagation.
+	createdAt uint64
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -62,7 +60,7 @@ func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
 		visited:      false,
 		function:     f,
 		pendingGrads: 0,
-		createdAt:    time.Now().UnixNano(),
+		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 
 	op.cond.L = &op.mx

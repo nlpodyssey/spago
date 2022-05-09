@@ -4,10 +4,9 @@
 
 package ag
 
-import (
-	"math"
-	"time"
-)
+import "sync/atomic"
+
+var tsCounter uint64
 
 // TimeStepHandler allows handling time steps associated to the nodes of a
 // computational graph, making possible to perform truncated backpropagation.
@@ -15,20 +14,20 @@ import (
 // The initial implicit time step is 0, then it can be incremented with
 // IncTimeStep.
 type TimeStepHandler struct {
-	timeSteps []int64
+	timeSteps []uint64
 }
 
 // NewTimeStepHandler creates a new TimeStepHandler.
 func NewTimeStepHandler() *TimeStepHandler {
 	return &TimeStepHandler{
-		timeSteps: []int64{math.MinInt64},
+		timeSteps: []uint64{0},
 	}
 }
 
 // IncTimeStep increments the time step by 1, keeping track of when this
 // operation is performed.
 func (tsh *TimeStepHandler) IncTimeStep() {
-	tsh.timeSteps = append(tsh.timeSteps, time.Now().UnixNano())
+	tsh.timeSteps = append(tsh.timeSteps, atomic.AddUint64(&tsCounter, 1))
 }
 
 // CurrentTimeStep returns the current time step value.
@@ -54,7 +53,7 @@ func (tsh *TimeStepHandler) NodeTimeStep(node any) int {
 	}
 }
 
-func (tsh *TimeStepHandler) resolveTimeStep(nodeCreatedAt int64) int {
+func (tsh *TimeStepHandler) resolveTimeStep(nodeCreatedAt uint64) int {
 	timeSteps := tsh.timeSteps
 	for i := len(timeSteps) - 1; i >= 0; i-- {
 		if timeSteps[i] <= nodeCreatedAt {
