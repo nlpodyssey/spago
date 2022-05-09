@@ -161,9 +161,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	// `mat.Dense` does not consider the possibility of a nil pointer value.
 	// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
 	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
-		o.cond.L.Unlock()
-		o.grad = o.Value().ZerosLike()
-		o.cond.L.Lock()
+		o.grad = grad.ZerosLike()
 	}
 	o.grad.AddInPlace(grad)
 
