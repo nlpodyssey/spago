@@ -159,9 +159,10 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	// `mat.Dense` does not consider the possibility of a nil pointer value.
 	// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
 	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
-		o.grad = grad.ZerosLike()
+		o.grad = grad.Clone()
+	} else {
+		o.grad.AddInPlace(grad)
 	}
-	o.grad.AddInPlace(grad)
 
 	if o.inBackward && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
 		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
