@@ -82,7 +82,7 @@ Mathematical expressions must be defined using the auto-grad `ag` package in ord
 
 In this sense, we can say the computational graph is at the center of the Spago machine learning framework.
 
-Example:
+Here is an example of how to calculate the sum of two variables:
 
 ```go
 package main
@@ -119,6 +119,43 @@ c = [7]
 ga = [0.5]
 gb = [0.5]
 ```
+
+Here is a simple implementation of the perceptron formula:
+
+```go
+package main
+
+import (
+  "log"
+  "os"
+
+  . "github.com/nlpodyssey/spago/ag"
+  "github.com/nlpodyssey/spago/ag/encoding"
+  "github.com/nlpodyssey/spago/ag/encoding/dot"
+  "github.com/nlpodyssey/spago/mat"
+)
+
+func main() {
+  x := NewVariableWithName[float32](mat.NewVecDense([]float32{-0.8}), true, "x")
+  w := NewVariableWithName[float32](mat.NewVecDense([]float32{0.4}), true, "w")
+  b := NewVariableWithName[float32](mat.NewVecDense([]float32{-0.2}), true, "b")
+
+  y := Sigmoid(Add(Mul(w, x), b))
+
+  err := dot.Encode[float32](encoding.NewGraph(y), os.Stdout)
+  if err != nil {
+    log.Fatal(err)
+  }
+}
+```
+
+In this case, we are interested in rendering the graph instead of displaying the result of the calculation:
+
+<p align="center">
+    <br>
+    <img src="https://github.com/nlpodyssey/spago/blob/main/assets/perceptron.png" width="400"/>
+    <br>
+<p>
 
 ## Projects using Spago
 
