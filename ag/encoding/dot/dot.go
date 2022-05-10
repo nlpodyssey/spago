@@ -25,10 +25,12 @@ const templateText = `
 {{- block "graph" . -}}
 strict digraph {
 	rankdir=LR;
+    ordering="in";
+    outputMode="edgesfirst";
 	colorscheme="dark28";
 	node [colorscheme="dark28"];
-{{template "nodes" .}}
 {{template "edges" .Edges}}
+{{template "nodes" .}}
 }
 {{end -}}
 
