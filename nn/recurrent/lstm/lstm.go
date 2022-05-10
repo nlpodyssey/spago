@@ -23,14 +23,17 @@ type Model[T mat.DType] struct {
 	WIn    nn.Param[T] `spago:"type:weights"`
 	WInRec nn.Param[T] `spago:"type:weights"`
 	BIn    nn.Param[T] `spago:"type:biases"`
+
 	// Output gate
 	WOut    nn.Param[T] `spago:"type:weights"`
 	WOutRec nn.Param[T] `spago:"type:weights"`
 	BOut    nn.Param[T] `spago:"type:biases"`
+
 	// Forget gate
 	WFor    nn.Param[T] `spago:"type:weights"`
 	WForRec nn.Param[T] `spago:"type:weights"`
 	BFor    nn.Param[T] `spago:"type:biases"`
+
 	// Candiate gate
 	WCand    nn.Param[T] `spago:"type:weights"`
 	WCandRec nn.Param[T] `spago:"type:weights"`
@@ -74,14 +77,17 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 		WIn:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
 		WInRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
 		BIn:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+
 		// Output gate
 		WOut:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
 		WOutRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
 		BOut:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+
 		// Forget gate
 		WFor:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
 		WForRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
 		BFor:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+
 		// Candiate gate
 		WCand:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
 		WCandRec: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
