@@ -151,7 +151,7 @@ func setupOperatorForBackward[T mat.DType](tsh *TimeStepHandler, op *Operator[T]
 }
 
 func backward[T mat.DType](tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operator[T], stopAtTimeStep int) {
-	if !op.requiresGrad || op.backwardState == ongoing || timeStepTruncation(tsh, op, stopAtTimeStep) {
+	if !op.requiresGrad || op.backwardState != pending || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
 	op.backwardState = ongoing
