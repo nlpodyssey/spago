@@ -4,7 +4,6 @@
 
 // Package rla provides an implementation of RLA (Recurrent Linear Attention).
 // See: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al., 2020.
-// TODO: support arbitrary mapping functions
 package rla
 
 import (
@@ -92,7 +91,8 @@ func (m *Model[T]) Next(prevState *State[T], x ag.Node[T]) (s *State[T]) {
 	return
 }
 
-// ELU(x) + 1
+// defaultMappingFunction returns ELU(x) + 1
+// TODO: support arbitrary mapping functions
 func defaultMappingFunction[T mat.DType](x ag.Node[T]) ag.Node[T] {
 	return ag.PositiveELU(x)
 }

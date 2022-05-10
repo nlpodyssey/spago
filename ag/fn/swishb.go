@@ -45,7 +45,7 @@ func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(swishBDeriv[T], r.beta.Value().Scalar())
-		// TODO: can defer mat.ReleaseDense(gb) ?
+		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

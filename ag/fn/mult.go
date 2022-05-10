@@ -37,7 +37,6 @@ func (r *MulT[T, O]) Operands() []O {
 }
 
 // Backward computes the backward pass.
-// TODO: backward of sparse gradients
 func (r *MulT[T, O]) Backward(gy mat.Matrix[T]) {
 	//if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 	//	panic("fn: matrices with not compatible size")

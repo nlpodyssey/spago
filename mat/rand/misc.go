@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/internal/rand"
-	"github.com/nlpodyssey/spago/utils"
 )
 
 // ShuffleInPlace pseudo-randomizes the order of elements, modifying the
@@ -51,7 +50,7 @@ func GetUniqueRandomInt(n, max int, valid func(r int) bool) []int {
 	a := make([]int, n)
 	for i := 0; i < n; i++ {
 		r := rand.Intn(max) // Warning: use global rand
-		for !valid(r) || utils.ContainsInt(a, r) {
+		for !valid(r) || contains(a, r) {
 			r = rand.Intn(max) // Warning: use global rand
 		}
 		a[i] = r
@@ -67,10 +66,20 @@ func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int 
 		// The generic type is irrelevant, since the given generator is nil.
 		// TODO: ugly API of ShuffleInPlace to be refactored
 		r := ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
-		for !valid(r) || utils.ContainsInt(a, r) {
+		for !valid(r) || contains(a, r) {
 			r = ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
 		}
 		a[i] = r
 	}
 	return a
+}
+
+// contains returns whether the list contains the x-element, or not.
+func contains(lst []int, x int) bool {
+	for _, element := range lst {
+		if element == x {
+			return true
+		}
+	}
+	return false
 }

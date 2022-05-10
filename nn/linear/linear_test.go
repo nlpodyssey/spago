@@ -41,7 +41,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	// == Forward
 
 	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	y := m.forward(x) // TODO: test linear only
+	y := m.forward(x)
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 

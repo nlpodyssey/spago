@@ -83,7 +83,7 @@ func (m *Model[T]) Next(states []*State[T], x ag.Node[T]) (s *State[T]) {
 	}
 
 	a := ag.Softmax(ag.Affine[T](m.Ba, m.Wax, x, m.Wah, yPrev))
-	r := ag.Sigmoid(ag.Affine[T](m.Br, m.Wrx, x, m.Wrh, yPrev)) // TODO: evaluate whether to calculate this only in case of previous states
+	r := ag.Sigmoid(ag.Affine[T](m.Br, m.Wrx, x, m.Wrh, yPrev))
 	s.Y = ag.Tanh(ag.Affine[T](m.B, m.Wx, x, m.Wh, tryProd[T](r, m.weightHistory(states, a))))
 	return
 }

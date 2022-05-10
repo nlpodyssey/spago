@@ -5,14 +5,12 @@
 package batchnorm
 
 import (
-	"os"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -146,32 +144,6 @@ func testModelInference[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
 }
 
-func Test_Serialize(t *testing.T) {
-	t.Run("float32", testSerialize[float32])
-	t.Run("float64", testSerialize[float64])
-}
-
-func testSerialize[T mat.DType](t *testing.T) {
-	model := NewWithMomentum[T](3, 0.777)
-	model.Mean = nn.NewParam[T](mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
-	tempFile, err := os.CreateTemp("", "test_serialize")
-	require.Nil(t, err)
-	tempFile.Close()
-	defer func() {
-		_ = os.Remove(tempFile.Name())
-	}()
-	err = utils.SerializeToFile(tempFile.Name(), &model)
-	require.Nil(t, err)
-
-	model2 := New[T](3)
-	err = utils.DeserializeFromFile(tempFile.Name(), &model2)
-	require.NoError(t, err)
-	require.Equal(t, model.Momentum.Value().Scalar(), model2.Momentum.Value().Scalar())
-	require.Equal(t, model.Mean.Value().Data(), model2.Mean.Value().Data())
-	require.Equal(t, model.StdDev.Value().Data(), model2.StdDev.Value().Data())
-}
-
 func TestModel_Forward(t *testing.T) {
 	t.Run("float32", testModelForward[float32])
 	t.Run("float64", testModelForward[float64])
@@ -186,7 +158,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	x2 := ag.NewVariable[T](mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
 	x3 := ag.NewVariable[T](mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
-	y := rectify(model.ForwardT(x1, x2, x3)) // TODO: rewrite tests without activation function
+	y := rectify(model.ForwardT(x1, x2, x3))
 
 	assert.InDeltaSlice(t, []T{1.1828427, 0.2, 0.0, 0.0}, y[0].Value().Data(), 1.0e-04)
 	assert.InDeltaSlice(t, []T{0.334314, 0.2, 0.0, 0.0}, y[1].Value().Data(), 1.0e-04)

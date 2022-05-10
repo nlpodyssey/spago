@@ -78,7 +78,7 @@ func (o *RMSProp[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Ma
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)
 	supp[v].AddInPlace(buf)
-	buf2 := supp[v].Sqrt() // TODO: this was "buf2 := mat.SqrtMatrix(supp[v])", is it the same?
+	buf2 := supp[v].Sqrt()
 	buf2.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)

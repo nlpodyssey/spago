@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/utils"
 )
 
 // ParamsTraversalFunc is the function called for each visited Param from
@@ -49,9 +48,8 @@ func newParamsTraversal[T mat.DType](fn ParamsTraversalFunc[T], exploreSubModels
 }
 
 // walk iterates through all the parameters of m.
-// TODO: don't loop the field every time, use a lazy initialized "params list" instead
 func (pt paramsTraversal[_]) walk(m any) {
-	utils.ForEachField(m, func(field any, name string, rTag reflect.StructTag) {
+	forEachField(m, func(field any, name string, rTag reflect.StructTag) {
 		tag, err := parseModuleFieldTag(rTag.Get("spago"))
 		if err != nil {
 			panic(err)
@@ -143,6 +141,29 @@ func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFie
 			pt.walkStructOrPtr(mapRange.Value().Interface(), name, tag)
 		default:
 			return // skip
+		}
+	}
+}
+
+// forEachField calls the callback for each field of the struct i.
+func forEachField(i any, callback func(field any, name string, tag reflect.StructTag)) {
+	v := reflect.ValueOf(i)
+	t := reflect.TypeOf(i)
+
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		t = t.Elem()
+	}
+
+	length := v.NumField()
+	for i := 0; i < length; i++ {
+		vField := v.Field(i)
+		tField := t.Field(i)
+		if vField.CanInterface() {
+			if vField.Kind() == reflect.Ptr && vField.IsNil() {
+				continue
+			}
+			callback(vField.Interface(), tField.Name, tField.Tag)
 		}
 	}
 }

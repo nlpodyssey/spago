@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/utils"
 )
 
 var _ nn.Model[float32] = &Model[float32]{}
@@ -71,9 +70,17 @@ func (m *Model[T]) Next(states []*State[T], x ag.Node[T]) (s *State[T]) {
 func (m *Model[T]) feedback(states []*State[T]) []ag.Node[T] {
 	var ys []ag.Node[T]
 	n := len(states)
-	for i := 0; i < utils.MinInt(len(m.WRec), n); i++ {
+	for i := 0; i < min(len(m.WRec), n); i++ {
 		alpha := ag.NewScalar[T](mat.Pow(0.6, T(i+1)))
 		ys = append(ys, m.WRec[i], ag.ProdScalar(states[n-1-i].Y, alpha))
 	}
 	return ys
+}
+
+// min returns the minimum value between a and b.
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

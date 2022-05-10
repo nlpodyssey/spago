@@ -25,7 +25,6 @@ func init() {
 }
 
 // New returns a new model.
-// TODO: think about possible configurations
 func New[T mat.DType]() *Model[T] {
 	return &Model[T]{}
 }

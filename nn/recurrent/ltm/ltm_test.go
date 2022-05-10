@@ -161,7 +161,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 	t.Run("float64", testModelForwardSeq[float64])
 }
 
-func testModelForwardSeq[T mat.DType](t *testing.T) { //TODO FIX TEST
+func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 
 	// == Forward

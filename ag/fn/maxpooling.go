@@ -6,7 +6,6 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/utils"
 )
 
 // MaxPooling is an operator to perform max pooling.
@@ -47,8 +46,8 @@ func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 	}
 
 	r.y = mat.NewEmptyDense[T](xv.Rows()/r.rows, xv.Columns()/r.cols)
-	r.argmaxI = utils.MakeIntMatrix(r.y.Dims()) // output argmax row index
-	r.argmaxJ = utils.MakeIntMatrix(r.y.Dims()) // output argmax column index
+	r.argmaxI = makeIntMatrix(r.y.Dims()) // output argmax row index
+	r.argmaxJ = makeIntMatrix(r.y.Dims()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Columns(); col++ {
@@ -68,6 +67,15 @@ func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 	}
 
 	return r.y
+}
+
+// makeIntMatrix returns a new 2-dimensional slice of int.
+func makeIntMatrix(rows, cols int) [][]int {
+	matrix := make([][]int, rows)
+	for i := 0; i < rows; i++ {
+		matrix[i] = make([]int, cols)
+	}
+	return matrix
 }
 
 // Backward computes the backward pass.
