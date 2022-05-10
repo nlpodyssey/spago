@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/encoding"
-	"github.com/nlpodyssey/spago/encoding/dot"
+	"github.com/nlpodyssey/spago/ag/encoding"
+	"github.com/nlpodyssey/spago/ag/encoding/dot"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

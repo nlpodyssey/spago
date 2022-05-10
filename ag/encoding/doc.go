@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package encoding provides data structures and functions to facilitate
-// the encoding of spaGO entities (graphs, models....) to various formats.
+// the encoding of the computational graph to various formats.
 //
 // This base package provides utilities which are mostly format-agnostic.
 // The subpackages are dedicated to the encoding/marshaling to

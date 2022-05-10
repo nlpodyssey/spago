@@ -11,7 +11,7 @@ import (
 	"text/template"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/encoding"
+	"github.com/nlpodyssey/spago/ag/encoding"
 	"github.com/nlpodyssey/spago/mat"
 )
 

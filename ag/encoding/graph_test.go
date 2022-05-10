@@ -5,13 +5,13 @@
 package encoding_test
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/encoding"
+	"github.com/nlpodyssey/spago/ag/encoding"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewGraph(t *testing.T) {
