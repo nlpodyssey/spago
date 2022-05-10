@@ -35,15 +35,17 @@ func testEncode[T mat.DType](t *testing.T) {
 
 		expectedOutput := `strict digraph {
 	rankdir=LR;
+    ordering="in";
+    outputMode="edgesfirst";
 	colorscheme="dark28";
 	node [colorscheme="dark28"];
+
+	1->0;
+	2->0;
 
 	0 [label=<<sup>0</sup><br/><b>Add</b><br/><sub>1×1</sub>>,shape=oval]
 	1 [label=<<sup>1</sup><br/><b>a</b><br/><sub>1×1</sub>>,shape=box]
 	2 [label=<<sup>2</sup><br/><b>b</b><br/><sub>1×1</sub>>,shape=box]
-
-	1->0;
-	2->0;
 }
 `
 		assert.Equal(t, expectedOutput, out)
@@ -70,8 +72,17 @@ func testEncode[T mat.DType](t *testing.T) {
 
 		expectedOutput := `strict digraph {
 	rankdir=LR;
+    ordering="in";
+    outputMode="edgesfirst";
 	colorscheme="dark28";
 	node [colorscheme="dark28"];
+
+	1->0;
+	2->1;
+	3->2;
+	4->2;
+	5->1;
+	6->0;
 
 	subgraph cluster_timestep_0 {
 		label="Time Step 0";
@@ -94,13 +105,6 @@ func testEncode[T mat.DType](t *testing.T) {
 		1 [label=<<sup>1</sup><br/><b>Add</b><br/><sub>1×1</sub>>,shape=oval]
 	}
 
-
-	1->0;
-	2->1;
-	3->2;
-	4->2;
-	5->1;
-	6->0;
 }
 `
 		assert.Equal(t, expectedOutput, out)
