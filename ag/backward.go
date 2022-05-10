@@ -173,5 +173,5 @@ func backward[T mat.DType](tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operato
 func timeStepTruncation[T mat.DType](tsh *TimeStepHandler, op *Operator[T], stopAtTimeStep int) bool {
 	return tsh != nil &&
 		stopAtTimeStep >= 0 &&
-		tsh.NodeTimeStep(op) <= stopAtTimeStep
+		NodeTimeStep[T](tsh, op) <= stopAtTimeStep
 }

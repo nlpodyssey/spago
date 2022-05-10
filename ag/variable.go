@@ -7,6 +7,7 @@ package ag
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
@@ -25,6 +26,9 @@ type Variable[T mat.DType] struct {
 	gradMu       sync.RWMutex
 	requiresGrad bool
 	name         string
+	// It's primarily useful for later associating a correct time-step
+	// to this variable, if needed for truncated backpropagation.
+	createdAt uint64
 }
 
 // NewVariable creates a new Variable Node.
@@ -33,6 +37,7 @@ func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
+		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 }
 
@@ -43,6 +48,7 @@ func NewVariableWithName[T mat.DType](value mat.Matrix[T], requiresGrad bool, na
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
+		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 }
 

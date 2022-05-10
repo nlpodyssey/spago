@@ -5,6 +5,8 @@
 package ag
 
 import (
+	"sync/atomic"
+
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -18,13 +20,17 @@ var (
 // blocking gradients accumulation.
 type Wrapper[T mat.DType] struct {
 	Node[T]
+	// It's primarily useful for later associating a correct time-step
+	// to this wrapper node, if needed for truncated backpropagation.
+	createdAt uint64
 }
 
 // StopGrad creates a new Wrapper Node that stops the accumulated gradients from
 // flowing through the wrapped Node.
 func StopGrad[T mat.DType](node Node[T]) Node[T] {
 	return &Wrapper[T]{
-		Node: node,
+		Node:      node,
+		createdAt: atomic.LoadUint64(&tsCounter),
 	}
 }
 

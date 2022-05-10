@@ -88,7 +88,7 @@ func (g *Graph[T]) NodesByTimeStep() map[int][]int {
 
 	m := make(map[int][]int, 0)
 	for nodeIndex, node := range g.NodesList {
-		ts := tsh.NodeTimeStep(node)
+		ts := ag.NodeTimeStep(tsh, node)
 		m[ts] = append(m[ts], nodeIndex)
 	}
 	return m

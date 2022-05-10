@@ -56,25 +56,24 @@ func testTimeStepHandler[T mat.DType](t *testing.T) {
 	c3 := Add(paramsSum, out2) // note: this is not linked to the input
 	out3 := Add(b3, c3)
 
-	assert.Equal(t, 0, tsh.NodeTimeStep(paramA))
-	assert.Equal(t, 0, tsh.NodeTimeStep(paramB))
-	assert.Equal(t, 0, tsh.NodeTimeStep(paramsSum))
+	assert.Equal(t, 0, NodeTimeStep(tsh, paramA))
+	assert.Equal(t, 0, NodeTimeStep(tsh, paramB))
+	assert.Equal(t, 0, NodeTimeStep(tsh, paramsSum))
 
-	assert.Equal(t, 0, tsh.NodeTimeStep(in1))
-	assert.Equal(t, 0, tsh.NodeTimeStep(in2))
-	assert.Equal(t, 0, tsh.NodeTimeStep(in3))
+	assert.Equal(t, 1, NodeTimeStep(tsh, in1))
+	assert.Equal(t, 1, NodeTimeStep(tsh, a1))
+	assert.Equal(t, 1, NodeTimeStep(tsh, b1))
+	assert.Equal(t, 1, NodeTimeStep(tsh, out1))
 
-	assert.Equal(t, 1, tsh.NodeTimeStep(a1))
-	assert.Equal(t, 1, tsh.NodeTimeStep(b1))
-	assert.Equal(t, 1, tsh.NodeTimeStep(out1))
+	assert.Equal(t, 2, NodeTimeStep(tsh, in2))
+	assert.Equal(t, 2, NodeTimeStep(tsh, a2))
+	assert.Equal(t, 2, NodeTimeStep(tsh, b2))
+	assert.Equal(t, 2, NodeTimeStep(tsh, c2))
+	assert.Equal(t, 2, NodeTimeStep(tsh, out2))
 
-	assert.Equal(t, 2, tsh.NodeTimeStep(a2))
-	assert.Equal(t, 2, tsh.NodeTimeStep(b2))
-	assert.Equal(t, 2, tsh.NodeTimeStep(c2))
-	assert.Equal(t, 2, tsh.NodeTimeStep(out2))
-
-	assert.Equal(t, 3, tsh.NodeTimeStep(a3))
-	assert.Equal(t, 3, tsh.NodeTimeStep(b3))
-	assert.Equal(t, 3, tsh.NodeTimeStep(c3))
-	assert.Equal(t, 3, tsh.NodeTimeStep(out3))
+	assert.Equal(t, 3, NodeTimeStep(tsh, in3))
+	assert.Equal(t, 3, NodeTimeStep(tsh, a3))
+	assert.Equal(t, 3, NodeTimeStep(tsh, b3))
+	assert.Equal(t, 3, NodeTimeStep(tsh, c3))
+	assert.Equal(t, 3, NodeTimeStep(tsh, out3))
 }
