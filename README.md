@@ -1,10 +1,10 @@
 <p align="center">
     <br>
-    <img src="https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/assets/spago_logo.png" width="400"/>
+    <img src="https://github.com/nlpodyssey/spago/blob/main/assets/spago_logo.png" width="400"/>
     <br>
 <p>
 <p align="center">
-    <a href="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master">
+    <a href="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=main">
         <img alt="Build" src="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master">
     </a>
     <a href="https://codecov.io/gh/nlpodyssey/spago">
@@ -36,6 +36,8 @@
 <br>
 <p>
 
+> Currently, the main branch contains version v1.0.0-alpha.0, which differs substantially from version v0.7.0. For NLP-related features, check out the [v0.7.0](https://github.com/nlpodyssey/spago/tree/v0.7.0) release branch.
+
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
 
@@ -49,20 +51,7 @@ It provides:
 - Recurrent layers (LSTM, GRU, BiLSTM...)
 - Attention layers (Self-Attention, Multi-Head Attention...)
 - Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
-
-## Projects using Spago
-
-Below is a list of projects that use Spago:
-
-* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
-* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
-* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
-  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
-* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
-  service.
-* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
-* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
-  news from multiple sources.
+- Gob compatible neural models for serialization
 
 ## Usage
 
@@ -76,10 +65,12 @@ Clone this repo or get the library:
 go get -u github.com/nlpodyssey/spago
 ```
 
+### Dependencies
+
 The core [module](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.mod) of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
 In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
 
-SpaGO uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features such as persistent embeddings or graph rendering are used.
+SpaGO uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features (e.g. persistent embeddings) are used.
 
 ### Getting Started
 
@@ -128,6 +119,20 @@ c = [7]
 ga = [0.5]
 gb = [0.5]
 ```
+
+## Projects using Spago
+
+Below is a list of projects that use Spago:
+
+* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
+* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
+* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
+  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
+* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
+  service.
+* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
+* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
+  news from multiple sources.
 
 ## Known Limits
 
