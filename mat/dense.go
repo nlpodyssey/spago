@@ -1453,7 +1453,7 @@ func (d *Dense[T]) DoNonZero(fn func(r, c int, v T)) {
 
 // DoVecNonZero calls a function for each non-zero element of the vector.
 // The parameters of the function are the element's index and value.
-func (d *Dense[T]) DoVecNonZero(fn func(i int, v T)) {
+func (d *Dense[T]) DoVecNonZero(fn func(i int, v float64)) {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
@@ -1461,7 +1461,7 @@ func (d *Dense[T]) DoVecNonZero(fn func(i int, v T)) {
 		if v == 0 {
 			continue
 		}
-		fn(i, v)
+		fn(i, float64(v))
 	}
 }
 

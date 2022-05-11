@@ -52,7 +52,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		var nzSum T = 0.0
 		var nzCount T = 0.0
-		r.y.DoVecNonZero(func(i int, _ T) {
+		r.y.DoVecNonZero(func(i int, _ float64) {
 			nzSum += gy.AtVec(i)
 			nzCount++
 		})
@@ -60,7 +60,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
-		r.y.DoVecNonZero(func(i int, _ T) {
+		r.y.DoVecNonZero(func(i int, _ float64) {
 			gx.SetVec(i, gy.AtVec(i)-nzSum)
 		})
 

@@ -3910,41 +3910,41 @@ func TestDense_DoVecNonZero(t *testing.T) {
 	t.Run("float64", testDenseDoVecNonZero[float64])
 }
 
-type doVecNonZeroVisit[T DType] struct {
+type doVecNonZeroVisit struct {
 	i int
-	v T
+	v float64
 }
 
 func testDenseDoVecNonZero[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.DoVecNonZero(func(i int, v T) {})
+			d.DoVecNonZero(func(i int, v float64) {})
 		})
 	})
 
 	testCases := []struct {
 		x      []T
-		visits []doVecNonZeroVisit[T]
+		visits []doVecNonZeroVisit
 	}{
-		{[]T{}, []doVecNonZeroVisit[T]{}},
-		{[]T{0}, []doVecNonZeroVisit[T]{}},
-		{[]T{0, 0}, []doVecNonZeroVisit[T]{}},
+		{[]T{}, []doVecNonZeroVisit{}},
+		{[]T{0}, []doVecNonZeroVisit{}},
+		{[]T{0, 0}, []doVecNonZeroVisit{}},
 		{
 			[]T{1},
-			[]doVecNonZeroVisit[T]{
+			[]doVecNonZeroVisit{
 				{0, 1},
 			},
 		},
 		{
 			[]T{0, 1},
-			[]doVecNonZeroVisit[T]{
+			[]doVecNonZeroVisit{
 				{1, 1},
 			},
 		},
 		{
 			[]T{1, 2, 3},
-			[]doVecNonZeroVisit[T]{
+			[]doVecNonZeroVisit{
 				{0, 1},
 				{1, 2},
 				{2, 3},
@@ -3952,7 +3952,7 @@ func testDenseDoVecNonZero[T DType](t *testing.T) {
 		},
 		{
 			[]T{1, 0, 2, 0, 3},
-			[]doVecNonZeroVisit[T]{
+			[]doVecNonZeroVisit{
 				{0, 1},
 				{2, 2},
 				{4, 3},
@@ -3963,18 +3963,18 @@ func testDenseDoVecNonZero[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
-			visits := []doVecNonZeroVisit[T]{}
-			d.DoVecNonZero(func(i int, v T) {
-				visits = append(visits, doVecNonZeroVisit[T]{i, v})
+			visits := []doVecNonZeroVisit{}
+			d.DoVecNonZero(func(i int, v float64) {
+				visits = append(visits, doVecNonZeroVisit{i, v})
 			})
 			assert.Equal(t, tc.visits, visits)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
-			visits := []doVecNonZeroVisit[T]{}
-			d.DoVecNonZero(func(i int, v T) {
-				visits = append(visits, doVecNonZeroVisit[T]{i, v})
+			visits := []doVecNonZeroVisit{}
+			d.DoVecNonZero(func(i int, v float64) {
+				visits = append(visits, doVecNonZeroVisit{i, v})
 			})
 			assert.Equal(t, tc.visits, visits)
 		})

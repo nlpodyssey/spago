@@ -206,7 +206,7 @@ type Matrix[T DType] interface {
 	DoNonZero(fn func(r, c int, v T))
 	// DoVecNonZero calls a function for each non-zero element of the vector.
 	// The parameters of the function are the element's index and value.
-	DoVecNonZero(fn func(i int, v T))
+	DoVecNonZero(fn func(i int, v float64))
 	// Clone returns a new matrix, copying all its values from the receiver.
 	Clone() Matrix[T]
 	// Copy copies the data from the other matrix to the receiver.
