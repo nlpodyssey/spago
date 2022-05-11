@@ -203,7 +203,7 @@ type Matrix[T DType] interface {
 	ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) Matrix[T]
 	// DoNonZero calls a function for each non-zero element of the matrix.
 	// The parameters of the function are the element's indices and value.
-	DoNonZero(fn func(r, c int, v T))
+	DoNonZero(fn func(r, c int, v float64))
 	// DoVecNonZero calls a function for each non-zero element of the vector.
 	// The parameters of the function are the element's index and value.
 	DoVecNonZero(fn func(i int, v float64))

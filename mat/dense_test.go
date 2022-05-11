@@ -3836,37 +3836,37 @@ func TestDense_DoNonZero(t *testing.T) {
 	t.Run("float64", testDenseDoNonZero[float64])
 }
 
-type doNonZeroVisit[T DType] struct {
+type doNonZeroVisit struct {
 	r int
 	c int
-	v T
+	v float64
 }
 
 func testDenseDoNonZero[T DType](t *testing.T) {
 	testCases := []struct {
 		d      *Dense[T]
-		visits []doNonZeroVisit[T]
+		visits []doNonZeroVisit
 	}{
-		{NewEmptyDense[T](0, 0), []doNonZeroVisit[T]{}},
-		{NewEmptyDense[T](0, 1), []doNonZeroVisit[T]{}},
-		{NewEmptyDense[T](1, 0), []doNonZeroVisit[T]{}},
-		{NewEmptyDense[T](2, 2), []doNonZeroVisit[T]{}},
-		{NewDense[T](1, 1, []T{0}), []doNonZeroVisit[T]{}},
+		{NewEmptyDense[T](0, 0), []doNonZeroVisit{}},
+		{NewEmptyDense[T](0, 1), []doNonZeroVisit{}},
+		{NewEmptyDense[T](1, 0), []doNonZeroVisit{}},
+		{NewEmptyDense[T](2, 2), []doNonZeroVisit{}},
+		{NewDense[T](1, 1, []T{0}), []doNonZeroVisit{}},
 		{
 			NewDense[T](1, 1, []T{1}),
-			[]doNonZeroVisit[T]{
+			[]doNonZeroVisit{
 				{0, 0, 1},
 			},
 		},
 		{
 			NewDense[T](1, 2, []T{0, 1}),
-			[]doNonZeroVisit[T]{
+			[]doNonZeroVisit{
 				{0, 1, 1},
 			},
 		},
 		{
 			NewDense[T](2, 1, []T{0, 1}),
-			[]doNonZeroVisit[T]{
+			[]doNonZeroVisit{
 				{1, 0, 1},
 			},
 		},
@@ -3875,7 +3875,7 @@ func testDenseDoNonZero[T DType](t *testing.T) {
 				1, 2,
 				3, 4,
 			}),
-			[]doNonZeroVisit[T]{
+			[]doNonZeroVisit{
 				{0, 0, 1},
 				{0, 1, 2},
 				{1, 0, 3},
@@ -3887,7 +3887,7 @@ func testDenseDoNonZero[T DType](t *testing.T) {
 				1, 0,
 				0, 2,
 			}),
-			[]doNonZeroVisit[T]{
+			[]doNonZeroVisit{
 				{0, 0, 1},
 				{1, 1, 2},
 			},
@@ -3896,9 +3896,9 @@ func testDenseDoNonZero[T DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d data %v", tc.d.rows, tc.d.cols, tc.d.data), func(t *testing.T) {
-			visits := []doNonZeroVisit[T]{}
-			tc.d.DoNonZero(func(r, c int, v T) {
-				visits = append(visits, doNonZeroVisit[T]{r, c, v})
+			visits := []doNonZeroVisit{}
+			tc.d.DoNonZero(func(r, c int, v float64) {
+				visits = append(visits, doNonZeroVisit{r, c, v})
 			})
 			assert.Equal(t, tc.visits, visits)
 		})

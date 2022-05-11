@@ -1439,14 +1439,14 @@ func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a
 
 // DoNonZero calls a function for each non-zero element of the matrix.
 // The parameters of the function are the element's indices and value.
-func (d *Dense[T]) DoNonZero(fn func(r, c int, v T)) {
+func (d *Dense[T]) DoNonZero(fn func(r, c int, v float64)) {
 	for r, di := 0, 0; r < d.rows; r++ {
 		for c := 0; c < d.cols; c, di = c+1, di+1 {
 			v := d.data[di]
 			if v == 0 {
 				continue
 			}
-			fn(r, c, v)
+			fn(r, c, float64(v))
 		}
 	}
 }
