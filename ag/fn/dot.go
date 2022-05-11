@@ -35,17 +35,17 @@ func (r *Dot[T, O]) Forward() mat.Matrix[T] {
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
 		panic("fn: matrices with not compatible size")
 	}
-	var y T = 0.0
 	if mat.IsVector(r.x1.Value()) && mat.IsVector(r.x2.Value()) {
-		y = r.x1.Value().DotUnitary(r.x2.Value())
+		return r.x1.Value().DotUnitary(r.x2.Value())
 	} else {
+		var y T = 0.0
 		for i := 0; i < r.x1.Value().Rows(); i++ {
 			for j := 0; j < r.x1.Value().Columns(); j++ {
 				y += r.x1.Value().At(i, j) * r.x2.Value().At(i, j)
 			}
 		}
+		return mat.NewScalar(y)
 	}
-	return mat.NewScalar(y)
 }
 
 // Backward computes the backward pass.

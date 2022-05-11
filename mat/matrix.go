@@ -125,8 +125,8 @@ type Matrix[T DType] interface {
 	// if A is an r x c Matrix, and B is j x k, r = j the resulting
 	// Matrix C will be c x k.
 	MulT(other Matrix[T]) Matrix[T]
-	// DotUnitary returns the dot product of two vectors.
-	DotUnitary(other Matrix[T]) T
+	// DotUnitary returns the dot product of two vectors as a scalar Matrix.
+	DotUnitary(other Matrix[T]) Matrix[T]
 	// ClipInPlace clips in place each value of the matrix.
 	ClipInPlace(min, max T) Matrix[T]
 	// Maximum returns a new matrix containing the element-wise maxima.

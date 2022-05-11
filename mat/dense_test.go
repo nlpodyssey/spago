@@ -2227,7 +2227,8 @@ func testDenseDotUnitary[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			v := tc.a.DotUnitary(tc.b)
-			assert.Equal(t, tc.v, v)
+			assertDenseDims(t, 1, 1, v.(*Dense[T]))
+			assert.Equal(t, []T{tc.v}, v.Data())
 		})
 	}
 }

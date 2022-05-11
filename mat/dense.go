@@ -835,16 +835,16 @@ func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
 	return out
 }
 
-// DotUnitary returns the dot product of two vectors.
-func (d *Dense[T]) DotUnitary(other Matrix[T]) T {
+// DotUnitary returns the dot product of two vectors as a scalar Matrix.
+func (d *Dense[T]) DotUnitary(other Matrix[T]) Matrix[T] {
 	if !VectorsOfSameSize[T](d, other) {
 		panic("mat: both matrices must be vectors and have the same size")
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		return T(asm32.DotUnitary(any(d.data).([]float32), any(other.Data()).([]float32)))
+		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), any(other.Data()).([]float32))))
 	case float64:
-		return T(asm64.DotUnitary(any(d.data).([]float64), any(other.Data()).([]float64)))
+		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), any(other.Data()).([]float64))))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
