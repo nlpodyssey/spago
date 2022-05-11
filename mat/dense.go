@@ -1397,7 +1397,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T]
 
 // ApplyWithAlpha creates a new matrix executing the unary function fn,
 // taking additional parameters alpha.
-func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ...T) Matrix[T] {
+func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix[T] {
 	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
@@ -1410,7 +1410,7 @@ func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ..
 	r := 0
 	c := 0
 	for i, v := range dData {
-		outData[i] = fn(r, c, v, alpha...)
+		outData[i] = T(fn(r, c, float64(v), alpha...))
 		c++
 		if c == d.cols {
 			r++

@@ -32,7 +32,7 @@ func (r *ELU[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *ELU[T, O]) Forward() mat.Matrix[T] {
-	y := r.x.Value().ApplyWithAlpha(elu[T], r.alpha.Value().Scalar())
+	y := r.x.Value().ApplyWithAlpha(elu, float64(r.alpha.Value().Scalar()))
 	return y
 }
 
@@ -42,7 +42,7 @@ func (r *ELU[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(eluDeriv[T], r.alpha.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(eluDeriv, float64(r.alpha.Value().Scalar()))
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)

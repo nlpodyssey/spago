@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -439,55 +441,61 @@ func softsignDeriv[T mat.DType](i, j int, v T) T {
 	return mat.Pow(1.0-mat.Abs(softsign(i, j, v)), 2.0)
 }
 
-func celu[T mat.DType](_, _ int, v T, alpha ...T) T {
+func celu(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
-		return alpha[0] * (mat.Exp(v/alpha[0]) - 1)
-	} else if v > 0 {
+		return alpha[0] * (math.Exp(v/alpha[0]) - 1)
+	}
+	if v > 0 {
 		return v
 	}
 	return 0
 }
 
-func celuDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func celuDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
-		return mat.Exp(v / alpha[0])
-	} else if v > 0 {
+		return math.Exp(v / alpha[0])
+	}
+	if v > 0 {
 		return 1
 	}
 	return 0
 }
 
-func elu[T mat.DType](_, _ int, v T, alpha ...T) T {
+func elu(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
-		return alpha[0] * (mat.Exp(v) - 1)
-	} else if v > 0 {
+		return alpha[0] * (math.Exp(v) - 1)
+	}
+	if v > 0 {
 		return v
 	}
 	return 0
 }
 
-func eluDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func eluDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
-		return alpha[0] * mat.Exp(v)
-	} else if v > 0 {
+		return alpha[0] * math.Exp(v)
+	}
+	if v > 0 {
 		return 1
 	}
 	return 0
 }
 
-func leakyReLU[T mat.DType](_, _ int, v T, alpha ...T) T {
+func leakyReLU(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
 		return alpha[0] * v // slope * v
-	} else if v > 0 {
+	}
+	if v > 0 {
 		return v
 	}
 	return 0
 }
 
-func leakyReLUDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func leakyReLUDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	if v <= 0 {
 		return alpha[0] // slope
-	} else if v > 0 {
+	}
+	if v > 0 {
 		return 1
 	}
 	return 0
@@ -495,11 +503,12 @@ func leakyReLUDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func selu[T mat.DType](_, _ int, v T, alpha ...T) T {
+func selu(_, _ int, v float64, alpha ...float64) float64 {
 	scale := alpha[1]
 	if v <= 0 {
-		return scale * alpha[0] * (mat.Exp(v) - 1)
-	} else if v > 0 {
+		return scale * alpha[0] * (math.Exp(v) - 1)
+	}
+	if v > 0 {
 		return scale * v
 	}
 	return 0
@@ -507,75 +516,82 @@ func selu[T mat.DType](_, _ int, v T, alpha ...T) T {
 
 // alpha[0] is the alpha
 // alpha[1] is the scale
-func seluDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func seluDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	scale := alpha[1]
 	if v <= 0 {
-		return scale * alpha[0] * mat.Exp(v)
-	} else if v > 0 {
+		return scale * alpha[0] * math.Exp(v)
+	}
+	if v > 0 {
 		return scale
 	}
 	return 0
 }
 
-func softPlus[T mat.DType](_, _ int, v T, alpha ...T) T {
+func softPlus(_, _ int, v float64, alpha ...float64) float64 {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
-		return (1 / beta) * mat.Log(1+mat.Exp(beta*v))
-	} else if v > threshold {
+		return (1 / beta) * math.Log(1+math.Exp(beta*v))
+	}
+	if v > threshold {
 		return v
 	}
 	return 0
 }
 
-func softPlusDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func softPlusDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	threshold := alpha[1]
 	beta := alpha[0]
 	if v <= threshold {
-		exp := mat.Exp(v * beta)
+		exp := math.Exp(v * beta)
 		return exp / (exp + 1)
-	} else if v > threshold {
+	}
+	if v > threshold {
 		return 1
 	}
 	return 0
 }
 
-func softShrink[T mat.DType](_, _ int, v T, alpha ...T) T {
+func softShrink(_, _ int, v float64, alpha ...float64) float64 {
 	lambda := alpha[0]
 	if v < -lambda {
 		return v + lambda
-	} else if v > lambda {
+	}
+	if v > lambda {
 		return v - lambda
 	}
 	return 0
 }
 
-func softShrinkDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
+func softShrinkDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	lambda := alpha[0]
 	if v < -lambda {
 		return 1
-	} else if v > lambda {
+	}
+	if v > lambda {
 		return 1
 	}
 	return 0
 }
 
-func threshold[T mat.DType](_, _ int, v T, alpha ...T) T {
+func threshold(_, _ int, v float64, alpha ...float64) float64 {
 	value := alpha[1]
-	threshold := alpha[0]
-	if v <= threshold {
+	t := alpha[0]
+	if v <= t {
 		return value
-	} else if v > threshold {
+	}
+	if v > t {
 		return v
 	}
 	return 0
 }
 
-func thresholdDeriv[T mat.DType](_, _ int, v T, alpha ...T) T {
-	threshold := alpha[0]
-	if v <= threshold {
+func thresholdDeriv(_, _ int, v float64, alpha ...float64) float64 {
+	t := alpha[0]
+	if v <= t {
 		return 0
-	} else if v > threshold {
+	}
+	if v > t {
 		return 1
 	}
 	return 0
@@ -586,16 +602,16 @@ func swish[T mat.DType](_, _ int, v T) T {
 }
 
 func swishDeriv[T mat.DType](i, j int, v T) T {
-	return swishBDeriv(i, j, v, 1.0)
+	return T(swishBDeriv(i, j, float64(v), 1.0))
 }
 
-func swishB[T mat.DType](_, _ int, v T, beta ...T) T {
-	return v * (1.0 / (1 + mat.Exp(beta[0]*-v)))
+func swishB(_, _ int, v float64, beta ...float64) float64 {
+	return v * (1.0 / (1 + math.Exp(beta[0]*-v)))
 }
 
-func swishBDeriv[T mat.DType](_, _ int, v T, beta ...T) T {
+func swishBDeriv(_, _ int, v float64, beta ...float64) float64 {
 	prod := v * beta[0]
-	exp := mat.Exp(prod)
+	exp := math.Exp(prod)
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 

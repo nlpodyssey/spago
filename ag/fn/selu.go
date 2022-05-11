@@ -33,8 +33,11 @@ func (r *SELU[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *SELU[T, O]) Forward() mat.Matrix[T] {
-	y := r.x.Value().ApplyWithAlpha(selu[T], r.alpha.Value().Scalar(), r.scale.Value().Scalar())
-	return y
+	return r.x.Value().ApplyWithAlpha(
+		selu,
+		float64(r.alpha.Value().Scalar()),
+		float64(r.scale.Value().Scalar()),
+	)
 }
 
 // Backward computes the backward pass.
@@ -43,7 +46,11 @@ func (r *SELU[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(seluDeriv[T], r.alpha.Value().Scalar(), r.scale.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(
+			seluDeriv,
+			float64(r.alpha.Value().Scalar()),
+			float64(r.scale.Value().Scalar()),
+		)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)

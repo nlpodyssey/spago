@@ -33,8 +33,11 @@ func (r *SoftPlus[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *SoftPlus[T, O]) Forward() mat.Matrix[T] {
-	y := r.x.Value().ApplyWithAlpha(softPlus[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
-	return y
+	return r.x.Value().ApplyWithAlpha(
+		softPlus,
+		float64(r.beta.Value().Scalar()),
+		float64(r.threshold.Value().Scalar()),
+	)
 }
 
 // Backward computes the backward pass.
@@ -43,7 +46,11 @@ func (r *SoftPlus[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(softPlusDeriv[T], r.beta.Value().Scalar(), r.threshold.Value().Scalar())
+		gx := r.x.Value().ApplyWithAlpha(
+			softPlusDeriv,
+			float64(r.beta.Value().Scalar()),
+			float64(r.threshold.Value().Scalar()),
+		)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)

@@ -3787,12 +3787,12 @@ func TestDense_ApplyWithAlpha(t *testing.T) {
 }
 
 func testDenseApplyWithAlpha[T DType](t *testing.T) {
-	inAlpha := []T{1, 2, 3}
+	inAlpha := []float64{1, 2, 3}
 	for _, tc := range applyTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
-			y := tc.d.ApplyWithAlpha(func(r, c int, v T, alpha ...T) T {
+			y := tc.d.ApplyWithAlpha(func(r, c int, v float64, alpha ...float64) float64 {
 				assert.Equal(t, inAlpha, alpha)
-				return T(c+1+(r+1)*10) + v*100
+				return float64(c+1+(r+1)*10) + v*100
 			}, inAlpha...)
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
 			assert.Equal(t, tc.y, y.Data())
