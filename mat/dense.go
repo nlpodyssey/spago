@@ -1213,7 +1213,12 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 }
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
-func (d *Dense[T]) Norm(pow T) T {
+// The result is a scalar Matrix.
+func (d *Dense[T]) Norm(pow T) Matrix[T] {
+	return NewScalar(d.norm(pow))
+}
+
+func (d *Dense[T]) norm(pow T) T {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
@@ -1226,7 +1231,7 @@ func (d *Dense[T]) Norm(pow T) T {
 
 // Normalize2 normalizes an array with the Euclidean norm.
 func (d *Dense[T]) Normalize2() Matrix[T] {
-	norm2 := d.Norm(2)
+	norm2 := d.norm(2)
 	if norm2 == 0 {
 		return d.Clone()
 	}

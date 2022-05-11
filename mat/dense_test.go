@@ -3425,13 +3425,15 @@ func testDenseNorm[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("column vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.Norm(tc.pow)
-			assert.InDelta(t, tc.y, y, 1.0e-04)
+			assertDenseDims(t, 1, 1, y.(*Dense[T]))
+			assert.InDeltaSlice(t, []T{tc.y}, y.Data(), 1.0e-04)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.Norm(tc.pow)
-			assert.InDelta(t, tc.y, y, 1.0e-04)
+			assertDenseDims(t, 1, 1, y.(*Dense[T]))
+			assert.InDeltaSlice(t, []T{tc.y}, y.Data(), 1.0e-04)
 		})
 	}
 }
