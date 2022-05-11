@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &MaxPooling[float32]{}
+var _ nn.Model = &MaxPooling[float32]{}
 
 // MaxPooling is a parameter-free model used to instantiate a new Processor.
 type MaxPooling[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Rows    int
 	Columns int
 }

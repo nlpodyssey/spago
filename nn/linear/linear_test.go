@@ -21,7 +21,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 type testLinearWithActivationModel[T mat.DType] struct {
-	nn.Model[T]
+	nn.Module
 	M1 *Model[T]
 	M2 *activation.Model[T]
 }

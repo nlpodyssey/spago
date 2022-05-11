@@ -28,11 +28,11 @@ const (
 	Avg
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Positive  nn.StandardModel[T] // positive time direction a.k.a. left-to-right
 	Negative  nn.StandardModel[T] // negative time direction a.k.a. right-to-left
 	MergeMode MergeType

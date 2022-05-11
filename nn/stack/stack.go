@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the sub-models.
 type Model[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Layers []nn.StandardModel[T]
 }
 
@@ -42,13 +42,13 @@ func Make[T mat.DType](size int, callback func(i int) nn.StandardModel[T]) *Mode
 }
 
 // LastLayer returns the last layer from the stack.
-func (m *Model[T]) LastLayer() nn.Model[T] {
+func (m *Model[T]) LastLayer() nn.Model {
 	return m.Layers[len(m.Layers)-1]
 }
 
 // Find returns all layer of type M and their index.
 // It not found, it returns nil, nil.
-func Find[T mat.DType, M nn.Model[T]](m *Model[T]) ([]int, []*M) {
+func Find[T mat.DType, M nn.Model](m *Model[T]) ([]int, []*M) {
 	result := make([]*M, 0)
 	idx := make([]int, 0)
 	for i, l := range m.Layers {
@@ -62,7 +62,7 @@ func Find[T mat.DType, M nn.Model[T]](m *Model[T]) ([]int, []*M) {
 
 // FindOne returns the first layer of type M and its index.
 // It not found, it returns -1, nil.
-func FindOne[T mat.DType, M nn.Model[T]](m *Model[T]) (int, *M) {
+func FindOne[T mat.DType, M nn.Model](m *Model[T]) (int, *M) {
 	for i, l := range m.Layers {
 		if l, ok := any(l).(*M); ok {
 			return i, l

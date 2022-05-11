@@ -17,14 +17,14 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
 type Cache[T mat.DType] [2]ag.Node[T]
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Config[T]
 	Query *linear.Model[T]
 	Key   *linear.Model[T]

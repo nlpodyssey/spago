@@ -76,7 +76,7 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFi
 		pt.callback(itemT, name, tag.paramType())
 	case ParamsTraverser[T]:
 		itemT.TraverseParams(pt.callback)
-	case Model[T]:
+	case Model:
 		if pt.exploreSubModels {
 			pt.walk(item)
 		}

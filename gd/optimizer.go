@@ -14,8 +14,8 @@ import (
 
 // Optimizer implements Gradients Descent (GD) optimization.
 type Optimizer[T mat.DType] struct {
-	model       nn.Model[T] // model to optimize
-	method      Method[T]   // optimization method (SGD, AdaGrad, Adam, ...)
+	model       nn.Model  // model to optimize
+	method      Method[T] // optimization method (SGD, AdaGrad, Adam, ...)
 	gradClipper clipper.GradClipper[T]
 }
 
@@ -41,7 +41,7 @@ func WithClipGradByNorm[T mat.DType](max, normType T) Option[T] {
 }
 
 // NewOptimizer returns a new Optimizer.
-func NewOptimizer[T mat.DType](model nn.Model[T], method Method[T], opts ...Option[T]) *Optimizer[T] {
+func NewOptimizer[T mat.DType](model nn.Model, method Method[T], opts ...Option[T]) *Optimizer[T] {
 	optimizer := &Optimizer[T]{
 		model:  model,
 		method: method,

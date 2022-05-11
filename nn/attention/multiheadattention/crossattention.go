@@ -13,7 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/attention/selfattention"
 )
 
-var _ nn.Model[float32] = &CrossAttention[float32]{}
+var _ nn.Model = &CrossAttention[float32]{}
 
 // CrossAttention wraps Model to perform multi-head cross-attention, where query, key and values belong to different sequences.
 type CrossAttention[T mat.DType] struct {

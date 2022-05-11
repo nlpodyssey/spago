@@ -22,11 +22,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model[float32] = &BiModel[float32]{}
+var _ nn.Model = &BiModel[float32]{}
 
 // BiModel contains the serializable parameters.
 type BiModel[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Config    Config
 	FC        *stack.Model[T]
 	FC2       *linear.Model[T]

@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	WPart    nn.Param[T] `spago:"type:weights"`
 	WPartRec nn.Param[T] `spago:"type:weights"`
 	BPart    nn.Param[T] `spago:"type:biases"`

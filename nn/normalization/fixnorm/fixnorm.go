@@ -16,11 +16,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Model[float32]{}
+var _ nn.Model = &Model[float32]{}
 
 // Model is an empty model used to instantiate a new Processor.
 type Model[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 }
 
 func init() {

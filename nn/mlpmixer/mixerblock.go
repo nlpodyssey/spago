@@ -16,11 +16,11 @@ import (
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
-var _ nn.Model[float32] = &MixerBlock[float32]{}
+var _ nn.Model = &MixerBlock[float32]{}
 
 // MixerBlock contains the serializable parameters.
 type MixerBlock[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	Config[T]
 	TokenLayerNorm   *layernorm.Model[T]
 	TokenMixerFF     *FeedForward[T]

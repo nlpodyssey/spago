@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ nn.Model[float32] = &embeddings.Model[float32, string]{}
+var _ nn.Model = &embeddings.Model[float32, string]{}
 
 func TestNew(t *testing.T) {
 	t.Run("creates a ZeroEmbedding param if UseZeroEmbedding is enabled", func(t *testing.T) {

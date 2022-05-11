@@ -12,7 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &SelfAttention[float32]{}
+var _ nn.Model = &SelfAttention[float32]{}
 
 // SelfAttention wraps Model to perform self-attention, where query, key and values belong to the same sequence.
 type SelfAttention[T mat.DType] struct {

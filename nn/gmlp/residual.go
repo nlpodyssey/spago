@@ -12,11 +12,11 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model[float32] = &Residual[float32]{}
+var _ nn.Model = &Residual[float32]{}
 
 // Residual is a helper model to perform residual connections.
 type Residual[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	PreNorm *PreNorm[T]
 }
 

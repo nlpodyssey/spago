@@ -11,27 +11,26 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Model[float32] = &Module[float32]{}
+var _ Model = &Module{}
 
 func init() {
-	gob.Register(&Module[float32]{})
-	gob.Register(&Module[float64]{})
+	gob.Register(&Module{})
 }
 
 // Model is implemented by all neural network architectures.
-type Model[T mat.DType] interface {
+type Model interface {
 	mustEmbedModule()
 }
 
 // Module must be embedded into all neural models.
-type Module[T mat.DType] struct{}
+type Module struct{}
 
-func (m Module[T]) mustEmbedModule() {}
+func (m Module) mustEmbedModule() {}
 
 // StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
 // It is called StandardModel since this is the most frequent forward method among all implemented neural models.
 type StandardModel[T mat.DType] interface {
-	Model[T]
+	Model
 
 	// Forward executes the forward step for each input and returns the result.
 	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward

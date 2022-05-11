@@ -14,7 +14,7 @@ import (
 
 // FeedForward is the model for feed-forward operations of a MixerBlock.
 type FeedForward[T mat.DType] struct {
-	nn.Module[T]
+	nn.Module
 	*stack.Model[T]
 }
 

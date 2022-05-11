@@ -29,10 +29,10 @@ func (ptt *ParamsTraversalTester[T]) collect(param Param[T], _ string, _ ParamsT
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Reify method.
 type ParamsTraversalBaseModel[T mat.DType] struct {
-	Module[T]
+	Module
 }
 
-var _ Model[float32] = &ParamsTraversalBaseModel[float32]{}
+var _ Model = &ParamsTraversalBaseModel[float32]{}
 
 func (ParamsTraversalBaseModel[_]) Forward(_ any) any {
 	panic("this should never be called")
@@ -70,13 +70,13 @@ type ptModel3[T mat.DType] struct {
 type ptModel4[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
 	P Param[T]
-	M Model[T]
+	M Model
 }
 
 type ptModel5[T mat.DType] struct {
 	ParamsTraversalBaseModel[T]
 	P Param[T]
-	M []Model[T]
+	M []Model
 }
 
 type ptModel6[T mat.DType] struct {
@@ -240,7 +240,7 @@ func testParamsTraversal[T mat.DType](t *testing.T) {
 
 		m := &ptModel5[T]{
 			P: NewParam[T](mat.NewScalar[T](1)),
-			M: []Model[T]{mA, mB},
+			M: []Model{mA, mB},
 		}
 
 		t.Run("with exploreSubModels false", func(t *testing.T) {
