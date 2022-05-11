@@ -19,7 +19,7 @@ type GradClipper[T mat.DType] interface {
 // ClipValue is a GradClipper which clips the values of a matrix between
 // -Value and +Value.
 type ClipValue[T mat.DType] struct {
-	Value T
+	Value float64
 }
 
 // Clip clips the values of the matrix in place.

@@ -41,7 +41,7 @@ func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
 	mat.ReleaseMatrix(zs)
 	mat.ReleaseMatrix(cumSumInput)
 
-	v.SubScalarInPlace(tau).ClipInPlace(0, xMax)
+	v.SubScalarInPlace(tau).ClipInPlace(0, float64(xMax))
 
 	r.y = v
 	return v

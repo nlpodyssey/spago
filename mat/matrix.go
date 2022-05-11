@@ -128,7 +128,7 @@ type Matrix[T DType] interface {
 	// DotUnitary returns the dot product of two vectors as a scalar Matrix.
 	DotUnitary(other Matrix[T]) Matrix[T]
 	// ClipInPlace clips in place each value of the matrix.
-	ClipInPlace(min, max T) Matrix[T]
+	ClipInPlace(min, max float64) Matrix[T]
 	// Maximum returns a new matrix containing the element-wise maxima.
 	Maximum(other Matrix[T]) Matrix[T]
 	// Minimum returns a new matrix containing the element-wise minima.

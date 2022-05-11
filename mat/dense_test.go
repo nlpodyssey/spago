@@ -2248,8 +2248,8 @@ func testDenseClipInPlace[T DType](t *testing.T) {
 
 	testCases := []struct {
 		d        *Dense[T]
-		min      T
-		max      T
+		min      float64
+		max      float64
 		expected []T
 	}{
 		{NewEmptyDense[T](0, 0), 0, 0, []T{}},

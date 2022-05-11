@@ -24,7 +24,7 @@ type Option[T mat.DType] func(*Optimizer[T])
 
 // WithClipGradByValue is an option to clip the gradients during the training between
 // -value and +value.
-func WithClipGradByValue[T mat.DType](value T) Option[T] {
+func WithClipGradByValue[T mat.DType](value float64) Option[T] {
 	return func(f *Optimizer[T]) {
 		f.gradClipper = &clipper.ClipValue[T]{Value: value}
 	}

@@ -853,17 +853,21 @@ func (d *Dense[T]) DotUnitary(other Matrix[T]) Matrix[T] {
 }
 
 // ClipInPlace clips in place each value of the matrix.
-func (d *Dense[T]) ClipInPlace(min, max T) Matrix[T] {
+func (d *Dense[T]) ClipInPlace(min, max float64) Matrix[T] {
 	if max < min {
 		panic("mat: cannot clip values with max < min")
 	}
+
+	tMin := T(min)
+	tMax := T(max)
+
 	data := d.data
 	for i, v := range data {
 		switch {
-		case v < min:
-			data[i] = min
-		case v > max:
-			data[i] = max
+		case v < tMin:
+			data[i] = tMin
+		case v > tMax:
+			data[i] = tMax
 		default:
 			continue
 		}
