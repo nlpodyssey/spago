@@ -11,22 +11,22 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Model[float32] = &BaseModel[float32]{}
+var _ Model[float32] = &Module[float32]{}
 
 func init() {
-	gob.Register(&BaseModel[float32]{})
-	gob.Register(&BaseModel[float64]{})
+	gob.Register(&Module[float32]{})
+	gob.Register(&Module[float64]{})
 }
 
 // Model is implemented by all neural network architectures.
 type Model[T mat.DType] interface {
-	mustEmbedBaseModel()
+	mustEmbedModule()
 }
 
-// BaseModel must be embedded into all neural models.
-type BaseModel[T mat.DType] struct{}
+// Module must be embedded into all neural models.
+type Module[T mat.DType] struct{}
 
-func (m BaseModel[T]) mustEmbedBaseModel() {}
+func (m Module[T]) mustEmbedModule() {}
 
 // StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
 // It is called StandardModel since this is the most frequent forward method among all implemented neural models.

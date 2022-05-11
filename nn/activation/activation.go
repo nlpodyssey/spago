@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the activation operator and serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Activation Name
 	Params     []nn.Param[T]
 }

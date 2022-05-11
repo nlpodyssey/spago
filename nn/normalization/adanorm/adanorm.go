@@ -21,7 +21,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the scaling factor.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Scale T
 }
 

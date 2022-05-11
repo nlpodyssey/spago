@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the sub-models.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Layers []nn.StandardModel[T]
 }
 

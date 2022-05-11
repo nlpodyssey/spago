@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Residual[float32]{}
 
 // Residual is a helper model to perform residual connections.
 type Residual[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	PreNorm *PreNorm[T]
 }
 

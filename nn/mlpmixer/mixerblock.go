@@ -20,7 +20,7 @@ var _ nn.Model[float32] = &MixerBlock[float32]{}
 
 // MixerBlock contains the serializable parameters.
 type MixerBlock[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config[T]
 	TokenLayerNorm   *layernorm.Model[T]
 	TokenMixerFF     *FeedForward[T]

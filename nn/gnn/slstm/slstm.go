@@ -23,7 +23,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config                 Config
 	InputGate              *HyperLinear4[T]
 	LeftCellGate           *HyperLinear4[T]
@@ -51,7 +51,7 @@ const windowSize = 3 // the window is fixed in this implementation
 
 // HyperLinear4 groups multiple params for an affine transformation.
 type HyperLinear4[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	W nn.Param[T] `spago:"type:weights"`
 	U nn.Param[T] `spago:"type:weights"`
 	V nn.Param[T] `spago:"type:weights"`
@@ -60,7 +60,7 @@ type HyperLinear4[T mat.DType] struct {
 
 // HyperLinear3 groups multiple params for an affine transformation.
 type HyperLinear3[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	W nn.Param[T] `spago:"type:weights"`
 	U nn.Param[T] `spago:"type:weights"`
 	B nn.Param[T] `spago:"type:biases"`

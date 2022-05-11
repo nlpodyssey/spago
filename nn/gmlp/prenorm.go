@@ -17,7 +17,7 @@ var _ nn.Model[float32] = &PreNorm[float32]{}
 
 // PreNorm is a helper model to perform pre-normalization.
 type PreNorm[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Block *Block[T]
 	Norm  *layernorm.Model[T]
 }

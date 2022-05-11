@@ -23,7 +23,7 @@ type Config struct {
 
 // Model contains the serializable parameters for an RLA neural network.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config
 	Wk nn.Param[T] `spago:"type:weights"`
 	Bk nn.Param[T] `spago:"type:biases"`

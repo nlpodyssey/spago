@@ -21,7 +21,7 @@ import (
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config Config[T]
 	Norm   *layernorm.Model[T]
 	Proj   *conv1x1.Model[T]

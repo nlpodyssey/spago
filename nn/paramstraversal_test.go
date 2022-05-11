@@ -29,7 +29,7 @@ func (ptt *ParamsTraversalTester[T]) collect(param Param[T], _ string, _ ParamsT
 // The sole purpose of this struct is to satisfy the Model interface,
 // providing a fake Reify method.
 type ParamsTraversalBaseModel[T mat.DType] struct {
-	BaseModel[T]
+	Module[T]
 }
 
 var _ Model[float32] = &ParamsTraversalBaseModel[float32]{}

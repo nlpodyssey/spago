@@ -14,13 +14,13 @@ func TestIntrospect(t *testing.T) {
 	type T = float32
 
 	type OtherModel struct {
-		BaseModel[T]
+		Module[T]
 		Baz Param[T] `spago:"type:weights"`
 		Qux Param[T]
 	}
 
 	type Model struct {
-		BaseModel[T]
+		Module[T]
 		Foo   Param[T] `spago:"type:biases"`
 		Bar   Param[T]
 		Other *OtherModel

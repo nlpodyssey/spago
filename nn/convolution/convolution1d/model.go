@@ -31,7 +31,7 @@ type Config struct {
 
 // Model contains the serializable parameters for a convolutional neural network model.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config Config
 	K      []nn.Param[T] `spago:"type:weights"`
 	B      []nn.Param[T] `spago:"type:biases"`

@@ -19,7 +19,7 @@ var _ nn.Model[float32] = &Block[float32]{}
 
 // Block is the core model of the gMLP.
 type Block[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	*stack.Model[T]
 }
 

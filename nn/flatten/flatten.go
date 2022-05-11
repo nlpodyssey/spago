@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model is a parameter-free model used to instantiate a new Processor.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 }
 
 func init() {

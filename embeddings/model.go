@@ -35,7 +35,7 @@ type Config struct {
 
 // A Model for handling embeddings.
 type Model[T mat.DType, K Key] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config
 	// ZeroEmbedding is used as a fallback value for missing embeddings.
 	//

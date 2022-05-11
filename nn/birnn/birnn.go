@@ -32,7 +32,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Positive  nn.StandardModel[T] // positive time direction a.k.a. left-to-right
 	Negative  nn.StandardModel[T] // negative time direction a.k.a. right-to-left
 	MergeMode MergeType

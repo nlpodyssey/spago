@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &Model[float32]{}
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	WIn     nn.Param[T] `spago:"type:weights"`
 	WInRec  nn.Param[T] `spago:"type:weights"`
 	BIn     nn.Param[T] `spago:"type:biases"`

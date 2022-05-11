@@ -24,7 +24,7 @@ type Cache[T mat.DType] [2]ag.Node[T]
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Config[T]
 	Query *linear.Model[T]
 	Key   *linear.Model[T]

@@ -16,7 +16,7 @@ var _ nn.Model[float32] = &MaxPooling[float32]{}
 
 // MaxPooling is a parameter-free model used to instantiate a new Processor.
 type MaxPooling[T mat.DType] struct {
-	nn.BaseModel[T]
+	nn.Module[T]
 	Rows    int
 	Columns int
 }
