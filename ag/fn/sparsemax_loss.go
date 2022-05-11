@@ -4,12 +4,16 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"math"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss[T mat.DType, O Operand[T]] struct {
 	x        O
-	tau      T             // computed during the forward pass
+	tau      float64       // computed during the forward pass
 	y        mat.Matrix[T] // computed during forward pass
 	operands []O
 }
@@ -49,7 +53,7 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 	v.SubScalarInPlace(regTerm)
 
 	r.y = v
-	r.tau = tau
+	r.tau = float64(tau)
 	return v
 }
 
@@ -57,10 +61,10 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		tau := r.tau
-		gySum := gy.Sum().Scalar()
+		gySum := float64(gy.Sum().Scalar())
 
-		sparseMax := r.x.Value().Apply(func(_, _ int, v T) T {
-			return mat.Max(0, v-tau) * gySum
+		sparseMax := r.x.Value().Apply(func(_, _ int, v float64) float64 {
+			return math.Max(0, v-tau) * gySum
 		})
 		defer mat.ReleaseMatrix(sparseMax)
 

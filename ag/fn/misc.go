@@ -20,8 +20,8 @@ func NewTan[T mat.DType, O Operand[T]](x O) *Tan[T, O] {
 	return &Tan[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        tan[T],
-			df:       tanDeriv[T],
+			f:        tan,
+			df:       tanDeriv,
 			operands: []O{x},
 		},
 	}
@@ -37,8 +37,8 @@ func NewTanh[T mat.DType, O Operand[T]](x O) *Tanh[T, O] {
 	return &Tanh[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        tanh[T],
-			df:       tanhDeriv[T],
+			f:        tanh,
+			df:       tanhDeriv,
 			operands: []O{x},
 		},
 	}
@@ -54,8 +54,8 @@ func NewSigmoid[T mat.DType, O Operand[T]](x O) *Sigmoid[T, O] {
 	return &Sigmoid[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        sigmoid[T],
-			df:       sigmoidDeriv[T],
+			f:        sigmoid,
+			df:       sigmoidDeriv,
 			operands: []O{x},
 		},
 	}
@@ -71,8 +71,8 @@ func NewHardSigmoid[T mat.DType, O Operand[T]](x O) *HardSigmoid[T, O] {
 	return &HardSigmoid[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        hardSigmoid[T],
-			df:       hardSigmoidDeriv[T],
+			f:        hardSigmoid,
+			df:       hardSigmoidDeriv,
 			operands: []O{x},
 		},
 	}
@@ -88,8 +88,8 @@ func NewHardTanh[T mat.DType, O Operand[T]](x O) *HardTanh[T, O] {
 	return &HardTanh[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        hardTanh[T],
-			df:       hardTanhDeriv[T],
+			f:        hardTanh,
+			df:       hardTanhDeriv,
 			operands: []O{x},
 		},
 	}
@@ -105,8 +105,8 @@ func NewReLU[T mat.DType, O Operand[T]](x O) *ReLU[T, O] {
 	return &ReLU[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        relu[T],
-			df:       reluDeriv[T],
+			f:        relu,
+			df:       reluDeriv,
 			operands: []O{x},
 		},
 	}
@@ -122,8 +122,8 @@ func NewSoftsign[T mat.DType, O Operand[T]](x O) *Softsign[T, O] {
 	return &Softsign[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        softsign[T],
-			df:       softsignDeriv[T],
+			f:        softsign,
+			df:       softsignDeriv,
 			operands: []O{x},
 		},
 	}
@@ -139,8 +139,8 @@ func NewCos[T mat.DType, O Operand[T]](x O) *Cos[T, O] {
 	return &Cos[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return mat.Cos(v) },
-			df:       func(i, j int, v T) T { return -mat.Sin(v) },
+			f:        func(_, _ int, v float64) float64 { return math.Cos(v) },
+			df:       func(_, _ int, v float64) float64 { return -math.Sin(v) },
 			operands: []O{x},
 		},
 	}
@@ -156,8 +156,8 @@ func NewSin[T mat.DType, O Operand[T]](x O) *Sin[T, O] {
 	return &Sin[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return mat.Sin(v) },
-			df:       func(i, j int, v T) T { return mat.Cos(v) },
+			f:        func(i, j int, v float64) float64 { return math.Sin(v) },
+			df:       func(i, j int, v float64) float64 { return math.Cos(v) },
 			operands: []O{x},
 		},
 	}
@@ -173,8 +173,8 @@ func NewExp[T mat.DType, O Operand[T]](x O) *Exp[T, O] {
 	return &Exp[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return mat.Exp(v) },
-			df:       func(i, j int, v T) T { return mat.Exp(v) },
+			f:        func(i, j int, v float64) float64 { return math.Exp(v) },
+			df:       func(i, j int, v float64) float64 { return math.Exp(v) },
 			operands: []O{x},
 		},
 	}
@@ -190,8 +190,8 @@ func NewLog[T mat.DType, O Operand[T]](x O) *Log[T, O] {
 	return &Log[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        safeLog[T],
-			df:       safeLogDeriv[T],
+			f:        safeLog,
+			df:       safeLogDeriv,
 			operands: []O{x},
 		},
 	}
@@ -207,8 +207,8 @@ func NewNeg[T mat.DType, O Operand[T]](x O) *Neg[T, O] {
 	return &Neg[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return -v },
-			df:       func(i, j int, v T) T { return -1.0 },
+			f:        func(i, j int, v float64) float64 { return -v },
+			df:       func(i, j int, v float64) float64 { return -1.0 },
 			operands: []O{x},
 		},
 	}
@@ -224,8 +224,8 @@ func NewReciprocal[T mat.DType, O Operand[T]](x O) *Reciprocal[T, O] {
 	return &Reciprocal[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return 1.0 / v },
-			df:       func(i, j int, v T) T { return -1.0 / (v * v) },
+			f:        func(i, j int, v float64) float64 { return 1.0 / v },
+			df:       func(i, j int, v float64) float64 { return -1.0 / (v * v) },
 			operands: []O{x},
 		},
 	}
@@ -241,8 +241,8 @@ func NewAbs[T mat.DType, O Operand[T]](x O) *Abs[T, O] {
 	return &Abs[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return mat.Abs(v) },
-			df:       absDeriv[T],
+			f:        func(i, j int, v float64) float64 { return math.Abs(v) },
+			df:       absDeriv,
 			operands: []O{x},
 		},
 	}
@@ -264,8 +264,8 @@ func NewMish[T mat.DType, O Operand[T]](x O) *Mish[T, O] {
 	return &Mish[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        mish[T],
-			df:       mishDeriv[T],
+			f:        mish,
+			df:       mishDeriv,
 			operands: []O{x},
 		},
 	}
@@ -281,8 +281,8 @@ func NewGELU[T mat.DType, O Operand[T]](x O) *GELU[T, O] {
 	return &GELU[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        gelu[T],
-			df:       geluDeriv[T],
+			f:        gelu,
+			df:       geluDeriv,
 			operands: []O{x},
 		},
 	}
@@ -298,8 +298,8 @@ func NewSqrt[T mat.DType, O Operand[T]](x O) *Sqrt[T, O] {
 	return &Sqrt[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        func(i, j int, v T) T { return mat.Sqrt(v) },
-			df:       func(i, j int, v T) T { return 0.5 * mat.Pow(v, -0.5) },
+			f:        func(i, j int, v float64) float64 { return math.Sqrt(v) },
+			df:       func(i, j int, v float64) float64 { return 0.5 * math.Pow(v, -0.5) },
 			operands: []O{x},
 		},
 	}
@@ -315,8 +315,8 @@ func NewSwish[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
 	return &Swish[T, O]{
 		UnaryElementwise: &UnaryElementwise[T, O]{
 			x:        x,
-			f:        swish[T],
-			df:       swishDeriv[T],
+			f:        swish,
+			df:       swishDeriv,
 			operands: []O{x},
 		},
 	}
@@ -328,117 +328,114 @@ func NewSiLU[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
 	return NewSwish[T, O](x)
 }
 
-func absDeriv[T mat.DType](_, _ int, v T) T {
+func absDeriv(_, _ int, v float64) float64 {
 	if v < 0 {
 		return -1
-	} else if v > 0 {
-		return 1
-	} else {
-		return 0 // undefined
 	}
+	if v > 0 {
+		return 1
+	}
+	return 0 // undefined
 }
 
 // safeLog is a simple work-around that make the math.Log() safe for zero or negative values
-func safeLog[T mat.DType](_, _ int, v T) T {
+func safeLog(_, _ int, v float64) float64 {
 	if v > 0.0 {
-		return mat.Log(v)
+		return math.Log(v)
 	}
 	if v == 0.0 {
-		return mat.Inf[T](-1)
+		return math.Inf(-1)
 	}
 	panic("ag: invalid log for negative values")
 }
 
-func safeLogDeriv[T mat.DType](_, _ int, v T) T {
+func safeLogDeriv(_, _ int, v float64) float64 {
 	if v > 0.0 {
 		return 1.0 / v
-	} else if v == 0.0 {
-		return 1.0 / 1.0e-08
-	} else {
-		panic("ag: invalid log for negative values")
 	}
+	if v == 0.0 {
+		return 1.0 / 1.0e-08
+	}
+	panic("ag: invalid log for negative values")
 }
 
-func tan[T mat.DType](_, _ int, v T) T {
-	return mat.Tan(v)
+func tan(_, _ int, v float64) float64 {
+	return math.Tan(v)
 }
 
-func tanDeriv[T mat.DType](i, j int, v T) T {
-	return 1.0 / square(i, j, mat.Cos(v))
+func tanDeriv(i, j int, v float64) float64 {
+	c := math.Cos(v)
+	return 1.0 / (c * c)
 }
 
-func square[T mat.DType](_, _ int, v T) T {
-	return v * v
+func tanh(_, _ int, v float64) float64 {
+	return math.Tanh(v)
 }
 
-func tanh[T mat.DType](_, _ int, v T) T {
-	return mat.Tanh(v)
+func tanhDeriv(_, _ int, v float64) float64 {
+	return 1.0 - math.Pow(math.Tanh(v), 2.0)
 }
 
-func tanhDeriv[T mat.DType](_, _ int, v T) T {
-	return 1.0 - mat.Pow(mat.Tanh(v), 2.0)
+func sigmoid(_, _ int, v float64) float64 {
+	return 1.0 / (1 + math.Exp(-v))
 }
 
-func sigmoid[T mat.DType](_, _ int, v T) T {
-	return 1.0 / (1 + mat.Exp(-v))
-}
-
-func sigmoidDeriv[T mat.DType](i, j int, v T) T {
+func sigmoidDeriv(i, j int, v float64) float64 {
 	fx := sigmoid(i, j, v)
 	return fx * (1.0 - fx)
 }
 
-func hardSigmoid[T mat.DType](_, _ int, v T) T {
+func hardSigmoid(_, _ int, v float64) float64 {
 	if v > 2.5 {
 		return 1.0
-	} else if v < -2.5 {
-		return 0.0
-	} else {
-		return 0.2*v + 0.5
 	}
+	if v < -2.5 {
+		return 0.0
+	}
+	return 0.2*v + 0.5
 }
 
-func hardSigmoidDeriv[T mat.DType](_, _ int, v T) T {
+func hardSigmoidDeriv(_, _ int, v float64) float64 {
 	if v < 2.5 && v > -2.5 {
 		return 0.2
 	}
 	return 0.0
 }
 
-func hardTanh[T mat.DType](_, _ int, v T) T {
+func hardTanh(_, _ int, v float64) float64 {
 	if v > 1.0 {
 		return 1.0
-	} else if v < -1.0 {
-		return -1.0
-	} else {
-		return v
 	}
+	if v < -1.0 {
+		return -1.0
+	}
+	return v
 }
 
-func hardTanhDeriv[T mat.DType](_, _ int, v T) T {
+func hardTanhDeriv(_, _ int, v float64) float64 {
 	if v < 1.0 && v > -1.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func relu[T mat.DType](_, _ int, v T) T {
-	return mat.Max(0.0, v)
+func relu(_, _ int, v float64) float64 {
+	return math.Max(0.0, v)
 }
 
-func reluDeriv[T mat.DType](_, _ int, v T) T {
+func reluDeriv(_, _ int, v float64) float64 {
 	if v >= 0.0 {
 		return 1.0
 	}
 	return 0.0
 }
 
-func softsign[T mat.DType](_, _ int, v T) T {
-	return v / (1.0 + mat.Abs(v))
+func softsign(_, _ int, v float64) float64 {
+	return v / (1.0 + math.Abs(v))
 }
 
-func softsignDeriv[T mat.DType](i, j int, v T) T {
-	return mat.Pow(1.0-mat.Abs(softsign(i, j, v)), 2.0)
+func softsignDeriv(i, j int, v float64) float64 {
+	return math.Pow(1.0-math.Abs(softsign(i, j, v)), 2.0)
 }
 
 func celu(_, _ int, v float64, alpha ...float64) float64 {
@@ -597,12 +594,12 @@ func thresholdDeriv(_, _ int, v float64, alpha ...float64) float64 {
 	return 0
 }
 
-func swish[T mat.DType](_, _ int, v T) T {
-	return v / (1 + mat.Exp(-v))
+func swish(_, _ int, v float64) float64 {
+	return v / (1 + math.Exp(-v))
 }
 
-func swishDeriv[T mat.DType](i, j int, v T) T {
-	return T(swishBDeriv(i, j, float64(v), 1.0))
+func swishDeriv(i, j int, v float64) float64 {
+	return swishBDeriv(i, j, v, 1.0)
 }
 
 func swishB(_, _ int, v float64, beta ...float64) float64 {
@@ -623,26 +620,26 @@ func swishBBetaDeriv[T mat.DType](v T, beta T) T {
 
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function" by Diganta Misra, 2019.
 // (https://arxiv.org/pdf/1908.08681.pdf)
-func mish[T mat.DType](_, _ int, v T) T {
-	return v * mat.Tanh(mat.Log(1+mat.Exp(v)))
+func mish(_, _ int, v float64) float64 {
+	return v * math.Tanh(math.Log(1+math.Exp(v)))
 }
 
-func mishDeriv[T mat.DType](_, _ int, v T) T {
-	exp := mat.Exp(v)
-	exp2 := mat.Exp(2 * v)
-	exp3 := mat.Exp(3 * v)
+func mishDeriv(_, _ int, v float64) float64 {
+	exp := math.Exp(v)
+	exp2 := math.Exp(2 * v)
+	exp3 := math.Exp(3 * v)
 	omega := 4.0*(v+1.0) + 4.0*exp2 + exp3 + exp*(4.0*v+6.0)
 	delta := 2*exp + exp2 + 2.0
 	return exp * (omega / (delta * delta))
 }
 
-func gelu[T mat.DType](_, _ int, v T) T {
-	return 0.5 * v * (1.0 + mat.Tanh(mat.Sqrt(2/mat.Pi[T]())*(v+0.044715*mat.Pow(v, 3.0))))
+func gelu(_, _ int, v float64) float64 {
+	return 0.5 * v * (1.0 + math.Tanh(math.Sqrt(2/math.Pi)*(v+0.044715*math.Pow(v, 3.0))))
 }
 
-func geluDeriv[T mat.DType](_, _ int, x T) T {
-	x3 := mat.Pow(x, 3)
-	return 0.5*mat.Tanh(0.0356774*x3+0.797885*x) +
+func geluDeriv(_, _ int, x float64) float64 {
+	x3 := math.Pow(x, 3)
+	return 0.5*math.Tanh(0.0356774*x3+0.797885*x) +
 		(0.0535161*x3+0.398942*x)*
-			mat.Pow(1.0/mat.Cosh(0.0356774*x3+0.797885*x), 2) + 0.5
+			math.Pow(1.0/math.Cosh(0.0356774*x3+0.797885*x), 2) + 0.5
 }

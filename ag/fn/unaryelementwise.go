@@ -12,8 +12,8 @@ import (
 type UnaryElementwise[T mat.DType, O Operand[T]] struct {
 	x        O
 	operands []O
-	f        func(i, j int, v T) T // function
-	df       func(i, j int, v T) T // derivative
+	f        func(i, j int, v float64) float64 // function
+	df       func(i, j int, v float64) float64 // derivative
 }
 
 // Operands returns the list of operands.

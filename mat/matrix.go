@@ -190,7 +190,7 @@ type Matrix[T DType] interface {
 	// Inverse returns the inverse of the Matrix.
 	Inverse() Matrix[T]
 	// Apply creates a new matrix executing the unary function fn.
-	Apply(fn func(r, c int, v T) T) Matrix[T]
+	Apply(fn func(r, c int, v float64) float64) Matrix[T]
 	// ApplyInPlace executes the unary function fn over the matrix a,
 	// and stores the result in the receiver, returning the receiver itself.
 	ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T]) Matrix[T]

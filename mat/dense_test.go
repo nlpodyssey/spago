@@ -3744,8 +3744,8 @@ func TestDense_Apply(t *testing.T) {
 func testDenseApply[T DType](t *testing.T) {
 	for _, tc := range applyTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
-			y := tc.d.Apply(func(r, c int, v T) T {
-				return T(c+1+(r+1)*10) + v*100
+			y := tc.d.Apply(func(r, c int, v float64) float64 {
+				return float64(c+1+(r+1)*10) + v*100
 			})
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
 			assert.Equal(t, tc.y, y.Data())

@@ -1345,7 +1345,7 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 }
 
 // Apply creates a new matrix executing the unary function fn.
-func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
+func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix[T] {
 	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
@@ -1358,7 +1358,7 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
 	r := 0
 	c := 0
 	for i, v := range dData {
-		outData[i] = fn(r, c, v)
+		outData[i] = T(fn(r, c, float64(v)))
 		c++
 		if c == d.cols {
 			r++
