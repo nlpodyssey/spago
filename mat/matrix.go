@@ -142,8 +142,8 @@ type Matrix[T DType] interface {
 	Sqrt() Matrix[T]
 	// Sum returns the sum of all values of the matrix as a scalar Matrix.
 	Sum() Matrix[T]
-	// Max returns the maximum value of the matrix.
-	Max() T
+	// Max returns the maximum value of the matrix as a scalar Matrix.
+	Max() Matrix[T]
 	// Min returns the minimum value of the matrix.
 	Min() T
 	// ArgMax returns the index of the vector's element with the maximum value.

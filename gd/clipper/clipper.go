@@ -43,7 +43,7 @@ func (c *ClipNorm[T]) Clip(gs []mat.Matrix[T]) {
 	var totalNorm T = 0.0
 	if mat.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = mat.Max(g.Abs().Max(), totalNorm)
+			totalNorm = mat.Max(g.Abs().Max().Scalar(), totalNorm)
 		}
 	} else {
 		var sum T = 0.0

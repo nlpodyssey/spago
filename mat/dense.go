@@ -960,8 +960,8 @@ func (d *Dense[T]) Sum() Matrix[T] {
 	}
 }
 
-// Max returns the maximum value of the matrix.
-func (d *Dense[T]) Max() T {
+// Max returns the maximum value of the matrix as a scalar Matrix.
+func (d *Dense[T]) Max() Matrix[T] {
 	if len(d.data) == 0 {
 		panic("mat: cannot find the maximum value in an empty matrix")
 	}
@@ -971,7 +971,7 @@ func (d *Dense[T]) Max() T {
 			max = v
 		}
 	}
-	return max
+	return NewScalar(max)
 }
 
 // Min returns the minimum value of the matrix.

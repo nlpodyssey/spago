@@ -32,7 +32,7 @@ func (r *SparseMax[T, O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
 	x := r.x.Value()
-	xMax := x.Max()
+	xMax := x.Max().Scalar()
 
 	// translate the input by max for numerical stability
 	v := x.SubScalar(xMax)
