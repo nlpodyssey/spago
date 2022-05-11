@@ -925,11 +925,11 @@ func (d *Dense[T]) Abs() Matrix[T] {
 
 // Pow returns a new matrix, applying the power function with given exponent
 // to all elements of the matrix.
-func (d *Dense[T]) Pow(power T) Matrix[T] {
+func (d *Dense[T]) Pow(power float64) Matrix[T] {
 	out := densePool[T]().Get(d.rows, d.cols)
 	outData := out.data
 	for i, val := range d.data {
-		outData[i] = Pow(val, power)
+		outData[i] = T(math.Pow(float64(val), power))
 	}
 	return out
 }

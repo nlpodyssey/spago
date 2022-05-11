@@ -31,7 +31,7 @@ func WithClipGradByValue[T mat.DType](value T) Option[T] {
 }
 
 // WithClipGradByNorm is an option to clip the gradients during the training by norm.
-func WithClipGradByNorm[T mat.DType](max, normType T) Option[T] {
+func WithClipGradByNorm[T mat.DType](max, normType float64) Option[T] {
 	return func(f *Optimizer[T]) {
 		f.gradClipper = &clipper.ClipNorm[T]{
 			MaxNorm:  max,

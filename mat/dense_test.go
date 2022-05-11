@@ -2434,7 +2434,7 @@ func TestDense_Pow(t *testing.T) {
 func testDensePow[T DType](t *testing.T) {
 	testCases := []struct {
 		d   *Dense[T]
-		pow T
+		pow float64
 		y   []T
 	}{
 		{NewEmptyDense[T](0, 0), 2, []T{}},

@@ -5,6 +5,7 @@
 package clipper
 
 import (
+	"math"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -54,7 +55,7 @@ func TestClipNormInf(t *testing.T) {
 
 func testClipNormInf[T mat.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
-	(&ClipNorm[T]{MaxNorm: 0.5, NormType: mat.Inf[T](+1)}).Clip(gs)
+	(&ClipNorm[T]{MaxNorm: 0.5, NormType: math.Inf(1)}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
 		0.25, 0.3, -0.4, -0.3,
 		0.35, -0.2, 0.05, -0.4,

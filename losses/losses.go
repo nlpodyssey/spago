@@ -56,7 +56,7 @@ func WeightedCrossEntropy[T mat.DType](weights []T) func(x ag.Node[T], c int) ag
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 // gamma is the focusing parameter (gamma ≥ 0).
-func FocalLoss[T mat.DType](x ag.Node[T], c int, gamma T) ag.Node[T] {
+func FocalLoss[T mat.DType](x ag.Node[T], c int, gamma float64) ag.Node[T] {
 	ce := CrossEntropy(x, c)
 	p := ag.Exp(ag.Neg(ce))
 	sub := ag.ReverseSub(p, ag.NewScalar[T](1.0))
@@ -71,8 +71,8 @@ func FocalLoss[T mat.DType](x ag.Node[T], c int, gamma T) ag.Node[T] {
 // c is the index of the gold class.
 // gamma is the focusing parameter (gamma ≥ 0).
 // This function is scaled by a weighting factor weights[class] ∈ [0,1].
-func WeightedFocalLoss[T mat.DType](weights []T) func(x ag.Node[T], c int, gamma T) ag.Node[T] {
-	return func(x ag.Node[T], c int, gamma T) ag.Node[T] {
+func WeightedFocalLoss[T mat.DType](weights []T) func(x ag.Node[T], c int, gamma float64) ag.Node[T] {
+	return func(x ag.Node[T], c int, gamma float64) ag.Node[T] {
 		ce := CrossEntropy(x, c)
 		p := ag.Exp(ag.Neg(ce))
 		sub := ag.ReverseSub(p, ag.NewScalar[T](1.0))

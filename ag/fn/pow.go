@@ -11,12 +11,12 @@ import (
 // Pow is an operator to perform element-wise pow function.
 type Pow[T mat.DType, O Operand[T]] struct {
 	x        O
-	power    T
+	power    float64
 	operands []O
 }
 
 // NewPow returns a new Pow Function.
-func NewPow[T mat.DType, O Operand[T]](x O, power T) *Pow[T, O] {
+func NewPow[T mat.DType, O Operand[T]](x O, power float64) *Pow[T, O] {
 	return &Pow[T, O]{
 		x:        x,
 		power:    power,
@@ -42,7 +42,7 @@ func (r *Pow[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().Pow(r.power - 1)
 		defer mat.ReleaseMatrix(gx)
-		gx.ProdScalarInPlace(r.power).ProdInPlace(gy)
+		gx.ProdScalarInPlace(T(r.power)).ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}
 }

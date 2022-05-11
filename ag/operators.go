@@ -169,7 +169,7 @@ func Neg[T mat.DType](x Node[T]) Node[T] {
 }
 
 // Pow returns a new operator node as a result of the fn.Pow function.
-func Pow[T mat.DType](x Node[T], power T) Node[T] {
+func Pow[T mat.DType](x Node[T], power float64) Node[T] {
 	return NewOperator[T](fn.NewPow[T](x, power))
 }
 

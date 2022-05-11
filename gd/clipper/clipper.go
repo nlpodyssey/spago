@@ -5,6 +5,8 @@
 package clipper
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -30,7 +32,8 @@ func (c *ClipValue[T]) Clip(gs []mat.Matrix[T]) {
 // ClipNorm is a GradClipper which clips the values of a matrix according to
 // the NormType. See ClipNorm.Clip.
 type ClipNorm[T mat.DType] struct {
-	MaxNorm, NormType T
+	MaxNorm  float64
+	NormType float64
 }
 
 // Clip clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
@@ -40,23 +43,23 @@ func (c *ClipNorm[T]) Clip(gs []mat.Matrix[T]) {
 		panic("gd: norm type required to be > 1.")
 	}
 
-	var totalNorm T = 0.0
-	if mat.IsInf(c.NormType, 1) {
+	var totalNorm float64
+	if math.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = mat.Max(g.Abs().Max().Scalar(), totalNorm)
+			totalNorm = math.Max(float64(g.Abs().Max().Scalar()), totalNorm)
 		}
 	} else {
 		var sum T = 0.0
 		for _, g := range gs {
 			sum += g.Abs().Pow(c.NormType).Sum().Scalar()
 		}
-		totalNorm = mat.Pow(sum, 1.0/c.NormType)
+		totalNorm = math.Pow(float64(sum), 1/c.NormType)
 	}
 
 	clipCoeff := c.MaxNorm / (totalNorm + 0.0000001)
 	if clipCoeff < 1.0 {
 		for _, g := range gs {
-			g.ProdScalarInPlace(clipCoeff)
+			g.ProdScalarInPlace(T(clipCoeff))
 		}
 	}
 }

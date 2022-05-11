@@ -137,7 +137,7 @@ type Matrix[T DType] interface {
 	Abs() Matrix[T]
 	// Pow returns a new matrix, applying the power function with given exponent
 	// to all elements of the matrix.
-	Pow(power T) Matrix[T]
+	Pow(power float64) Matrix[T]
 	// Sqrt returns a new matrix applying the square root function to all elements.
 	Sqrt() Matrix[T]
 	// Sum returns the sum of all values of the matrix as a scalar Matrix.
