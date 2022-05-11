@@ -200,7 +200,7 @@ type Matrix[T DType] interface {
 	// ApplyWithAlphaInPlace executes the unary function fn over the matrix a,
 	// taking additional parameters alpha, and stores the result in the
 	// receiver, returning the receiver itself.
-	ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) Matrix[T]
+	ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...float64) float64, a Matrix[T], alpha ...float64) Matrix[T]
 	// DoNonZero calls a function for each non-zero element of the matrix.
 	// The parameters of the function are the element's indices and value.
 	DoNonZero(fn func(r, c int, v float64))

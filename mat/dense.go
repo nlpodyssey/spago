@@ -1424,14 +1424,14 @@ func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v T, alpha ...T) T, alpha ..
 // ApplyWithAlphaInPlace executes the unary function fn over the matrix a,
 // taking additional parameters alpha, and stores the result in the
 // receiver, returning the receiver itself.
-func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v T, alpha ...T) T, a Matrix[T], alpha ...T) Matrix[T] {
+func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...float64) float64, a Matrix[T], alpha ...float64) Matrix[T] {
 	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	// TODO: rewrite for better performance
 	for r := 0; r < d.rows; r++ {
 		for c := 0; c < d.cols; c++ {
-			d.data[r*d.cols+c] = fn(r, c, a.At(r, c), alpha...)
+			d.data[r*d.cols+c] = T(fn(r, c, float64(a.At(r, c)), alpha...))
 		}
 	}
 	return d

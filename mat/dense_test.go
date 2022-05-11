@@ -3806,13 +3806,16 @@ func TestDense_ApplyWithAlphaInPlace(t *testing.T) {
 }
 
 func testDenseApplyWithAlphaInPlace[T DType](t *testing.T) {
-	inAlpha := []T{1, 2, 3}
+	inAlpha := []float64{1, 2, 3}
 
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
 		require.Panics(t, func() {
-			a.ApplyWithAlphaInPlace(func(r, c int, v T, alpha ...T) T { return 1 }, b, inAlpha...)
+			a.ApplyWithAlphaInPlace(
+				func(r, c int, v float64, alpha ...float64) float64 { return 1 },
+				b, inAlpha...,
+			)
 		})
 	})
 
@@ -3821,9 +3824,9 @@ func testDenseApplyWithAlphaInPlace[T DType](t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.d.OnesLike()
-			y2 := y.ApplyWithAlphaInPlace(func(r, c int, v T, alpha ...T) T {
+			y2 := y.ApplyWithAlphaInPlace(func(r, c int, v float64, alpha ...float64) float64 {
 				assert.Equal(t, inAlpha, alpha)
-				return T(c+1+(r+1)*10) + v*100
+				return float64(c+1+(r+1)*10) + v*100
 			}, tc.d, inAlpha...)
 			assert.Same(t, y, y2)
 			assert.Equal(t, tc.y, y.Data())
