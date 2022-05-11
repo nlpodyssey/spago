@@ -29,7 +29,7 @@ func (r *ReduceSum[T, O]) Operands() []O {
 
 // Forward computes the output of this function.
 func (r *ReduceSum[T, O]) Forward() mat.Matrix[T] {
-	return mat.NewScalar(r.x.Value().Sum())
+	return r.x.Value().Sum()
 }
 
 // Backward computes the backward pass.

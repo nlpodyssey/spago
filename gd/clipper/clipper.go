@@ -48,7 +48,7 @@ func (c *ClipNorm[T]) Clip(gs []mat.Matrix[T]) {
 	} else {
 		var sum T = 0.0
 		for _, g := range gs {
-			sum += g.Abs().Pow(c.NormType).Sum()
+			sum += g.Abs().Pow(c.NormType).Sum().Scalar()
 		}
 		totalNorm = mat.Pow(sum, 1.0/c.NormType)
 	}

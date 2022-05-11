@@ -30,7 +30,7 @@ func (r *ReduceMean[T, O]) Operands() []O {
 // Forward computes the output of this node.
 func (r *ReduceMean[T, O]) Forward() mat.Matrix[T] {
 	xv := r.x.Value()
-	return mat.NewScalar(xv.Sum() / T(xv.Size()))
+	return xv.Sum().ProdScalarInPlace(1 / T(xv.Size()))
 }
 
 // Backward computes the backward pass.

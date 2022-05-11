@@ -140,8 +140,8 @@ type Matrix[T DType] interface {
 	Pow(power T) Matrix[T]
 	// Sqrt returns a new matrix applying the square root function to all elements.
 	Sqrt() Matrix[T]
-	// Sum returns the sum of all values of the matrix.
-	Sum() T
+	// Sum returns the sum of all values of the matrix as a scalar Matrix.
+	Sum() Matrix[T]
 	// Max returns the maximum value of the matrix.
 	Max() T
 	// Min returns the minimum value of the matrix.

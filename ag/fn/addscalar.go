@@ -44,8 +44,8 @@ func (r *AddScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		r.x1.AccGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
-		gx := mat.NewScalar(gy.Sum())
-		defer mat.ReleaseDense(gx)
+		gx := gy.Sum()
+		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 }

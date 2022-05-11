@@ -948,13 +948,13 @@ func (d *Dense[T]) Sqrt() Matrix[T] {
 	return out
 }
 
-// Sum returns the sum of all values of the matrix.
-func (d *Dense[T]) Sum() T {
+// Sum returns the sum of all values of the matrix as a scalar Matrix.
+func (d *Dense[T]) Sum() Matrix[T] {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(asm32.Sum(any(d.data).([]float32)))
+		return NewScalar(T(asm32.Sum(any(d.data).([]float32))))
 	case float64:
-		return T(asm64.Sum(any(d.data).([]float64)))
+		return NewScalar(T(asm64.Sum(any(d.data).([]float64))))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}

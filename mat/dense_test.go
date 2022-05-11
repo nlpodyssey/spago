@@ -2531,7 +2531,8 @@ func testDenseSum[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Sum()
-			assert.Equal(t, tc.y, y)
+			assertDenseDims(t, 1, 1, y.(*Dense[T]))
+			assert.Equal(t, []T{tc.y}, y.Data())
 		})
 	}
 }
