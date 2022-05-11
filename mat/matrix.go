@@ -178,7 +178,7 @@ type Matrix[T DType] interface {
 	AppendRows(vs ...Matrix[T]) Matrix[T]
 	// Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 	// The result is a scalar Matrix.
-	Norm(pow T) Matrix[T]
+	Norm(pow float64) Matrix[T]
 	// Pivoting returns the partial pivots of a square matrix to reorder rows.
 	// Considerate square sub-matrix from element (offset, offset).
 	Pivoting(row int) (Matrix[T], bool, [2]int)

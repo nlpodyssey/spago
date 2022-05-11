@@ -6,6 +6,8 @@ package mat
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/nlpodyssey/spago/mat/internal/f32"
 	"github.com/nlpodyssey/spago/mat/internal/f32/asm32"
 	"github.com/nlpodyssey/spago/mat/internal/f64"
@@ -1214,19 +1216,19 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 // The result is a scalar Matrix.
-func (d *Dense[T]) Norm(pow T) Matrix[T] {
+func (d *Dense[T]) Norm(pow float64) Matrix[T] {
 	return NewScalar(d.norm(pow))
 }
 
-func (d *Dense[T]) norm(pow T) T {
+func (d *Dense[T]) norm(pow float64) T {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
 	var s T
 	for _, x := range d.data {
-		s += Pow(x, pow)
+		s += T(math.Pow(float64(x), pow))
 	}
-	return Pow(s, 1/pow)
+	return T(math.Pow(float64(s), 1/pow))
 }
 
 // Normalize2 normalizes an array with the Euclidean norm.

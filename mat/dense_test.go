@@ -3411,7 +3411,7 @@ func testDenseNorm[T DType](t *testing.T) {
 
 	testCases := []struct {
 		x   []T
-		pow T
+		pow float64
 		y   T
 	}{
 		{[]T{}, 2, 0},
