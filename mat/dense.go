@@ -1371,7 +1371,7 @@ func (d *Dense[T]) Apply(fn func(r, c int, v T) T) Matrix[T] {
 
 // ApplyInPlace executes the unary function fn over the matrix a,
 // and stores the result in the receiver, returning the receiver itself.
-func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T] {
+func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T]) Matrix[T] {
 	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
@@ -1385,7 +1385,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T]
 	dData := d.data
 	_ = dData[lastIndex]
 	for i, val := range aData {
-		dData[i] = fn(r, c, val)
+		dData[i] = T(fn(r, c, float64(val)))
 		c++
 		if c == d.cols {
 			r++

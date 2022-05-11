@@ -193,7 +193,7 @@ type Matrix[T DType] interface {
 	Apply(fn func(r, c int, v T) T) Matrix[T]
 	// ApplyInPlace executes the unary function fn over the matrix a,
 	// and stores the result in the receiver, returning the receiver itself.
-	ApplyInPlace(fn func(r, c int, v T) T, a Matrix[T]) Matrix[T]
+	ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T]) Matrix[T]
 	// ApplyWithAlpha creates a new matrix executing the unary function fn,
 	// taking additional parameters alpha.
 	ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix[T]

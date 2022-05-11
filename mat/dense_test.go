@@ -3763,7 +3763,7 @@ func testDenseApplyInPlace[T DType](t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
 		require.Panics(t, func() {
-			a.ApplyInPlace(func(r, c int, v T) T { return 1 }, b)
+			a.ApplyInPlace(func(r, c int, v float64) float64 { return 1 }, b)
 		})
 	})
 
@@ -3772,8 +3772,8 @@ func testDenseApplyInPlace[T DType](t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.d.OnesLike()
-			y2 := y.ApplyInPlace(func(r, c int, v T) T {
-				return T(c+1+(r+1)*10) + v*100
+			y2 := y.ApplyInPlace(func(r, c int, v float64) float64 {
+				return float64(c+1+(r+1)*10) + v*100
 			}, tc.d)
 			assert.Same(t, y, y2)
 			assert.Equal(t, tc.y, y.Data())
