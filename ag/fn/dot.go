@@ -53,7 +53,7 @@ func (r *Dot[T, O]) Backward(gy mat.Matrix[T]) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
-	gys := gy.Scalar()
+	gys := float64(gy.Scalar())
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().ProdScalar(gys)
 		defer mat.ReleaseMatrix(gx)

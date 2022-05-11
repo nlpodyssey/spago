@@ -10,26 +10,26 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for an AdaGrad optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	LR      T
-	Epsilon T
+	LR      float64
+	Epsilon float64
 }
 
 // NewConfig returns a new AdaGrad Config.
-func NewConfig[T mat.DType](lr, epsilon T) Config[T] {
-	return Config[T]{
+func NewConfig(lr, epsilon float64) Config {
+	return Config{
 		LR:      lr,
 		Epsilon: epsilon,
 	}
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig[T mat.DType]() Config[T] {
-	return Config[T]{
+func NewDefaultConfig() Config {
+	return Config{
 		LR:      0.01,
 		Epsilon: 1.0e-8,
 	}
@@ -42,11 +42,11 @@ var _ gd.Method[float32] = &AdaGrad[float32]{}
 //     Adaptive Subgradient Methods for Online Learning and Stochastic Optimization
 //     http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
 type AdaGrad[T mat.DType] struct {
-	Config[T]
+	Config
 }
 
 // New returns a new AdaGrad optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *AdaGrad[T] {
+func New[T mat.DType](c Config) *AdaGrad[T] {
 	return &AdaGrad[T]{Config: c}
 }
 
@@ -75,7 +75,7 @@ func (o *AdaGrad[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *AdaGrad[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[m].AddInPlace(grads.Prod(grads))
 	buf := supp[m].Sqrt() // TODO: this was "buf := mat.SqrtMatrix(supp[m])", is it the same?
-	buf.AddScalarInPlace(o.Epsilon)
+	buf.AddScalarInPlace(T(o.Epsilon))
 	delta := grads.Div(buf)
 	delta.ProdScalarInPlace(o.LR)
 	return delta

@@ -17,7 +17,7 @@ func Test_IncExample(t *testing.T) {
 }
 
 func testIncExample[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -33,7 +33,7 @@ func Test_Update(t *testing.T) {
 }
 
 func testUpdate[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2
@@ -59,7 +59,7 @@ func Test_Update2(t *testing.T) {
 }
 
 func testUpdate2[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
 		0.999,  // beta2

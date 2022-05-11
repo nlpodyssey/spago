@@ -20,18 +20,18 @@ import (
 // It panics if the config type is unknown or unsupported.
 func NewMethod[T mat.DType](config gd.MethodConfig) gd.Method[T] {
 	switch config := config.(type) {
-	case adagrad.Config[T]:
-		return adagrad.New(config)
-	case adam.Config[T]:
-		return adam.New(config)
-	case radam.Config[T]:
-		return radam.New(config)
-	case rmsprop.Config[T]:
-		return rmsprop.New(config)
-	case lamb.Config[T]:
-		return lamb.New(config)
-	case sgd.Config[T]:
-		return sgd.New(config)
+	case adagrad.Config:
+		return adagrad.New[T](config)
+	case adam.Config:
+		return adam.New[T](config)
+	case radam.Config:
+		return radam.New[T](config)
+	case rmsprop.Config:
+		return rmsprop.New[T](config)
+	case lamb.Config:
+		return lamb.New[T](config)
+	case sgd.Config:
+		return sgd.New[T](config)
 	default:
 		panic("gd: unknown method configuration")
 	}

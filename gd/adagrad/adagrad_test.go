@@ -17,7 +17,7 @@ func Test_Update(t *testing.T) {
 }
 
 func testUpdate[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](0.001, 1.0e-8))
+	updater := New[T](NewConfig(0.001, 1.0e-8))
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 	supp := updater.NewSupport(params.Dims()).Data
@@ -34,7 +34,7 @@ func Test_Update2(t *testing.T) {
 }
 
 func testUpdate2[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001,  // step size
 		1.0e-8, // epsilon
 	))

@@ -1837,7 +1837,7 @@ func testDenseProdInPlace[T DType](t *testing.T) {
 
 type prodScalarTestCase[T DType] struct {
 	a *Dense[T]
-	n T
+	n float64
 	y []T
 }
 

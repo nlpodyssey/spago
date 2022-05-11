@@ -14,7 +14,7 @@ import (
 type Dropout[T mat.DType, O Operand[T]] struct {
 	x        O
 	prob     T
-	q        T // 1 - p
+	q        float64 // 1 - p
 	randGen  *rand.LockedRand[T]
 	mask     mat.Matrix[T] // filled during the forward
 	operands []O
@@ -25,7 +25,7 @@ func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand[T]
 	return &Dropout[T, O]{
 		x:        x,
 		prob:     p,
-		q:        1.0 - p,
+		q:        1.0 - float64(p),
 		randGen:  randGen,
 		mask:     nil,
 		operands: []O{x},

@@ -5,32 +5,34 @@
 package radam
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for a RAdam optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	StepSize T
-	Beta1    T
-	Beta2    T
-	Epsilon  T
+	StepSize float64
+	Beta1    float64
+	Beta2    float64
+	Epsilon  float64
 }
 
 // NewConfig returns a new RAdam Config.
 // It panics if beta1 or beta2 are not in the range [0.0, 1.0).
-func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon T) Config[T] {
+func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
 	}
 	if !(beta2 >= 0.0 && beta2 < 1.0) {
 		panic("adam: `beta2` must be in the range [0.0, 1.0)")
 	}
-	return Config[T]{
+	return Config{
 		StepSize: stepSize,
 		Beta1:    beta1,
 		Beta2:    beta2,
@@ -39,8 +41,8 @@ func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon T) Config[T] {
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig[T mat.DType]() Config[T] {
-	return Config[T]{
+func NewDefaultConfig() Config {
+	return Config{
 		StepSize: 0.001,
 		Beta1:    0.9,
 		Beta2:    0.999,
@@ -52,13 +54,13 @@ var _ gd.Method[float32] = &RAdam[float32]{}
 
 // RAdam implements the RAdam gradient descent optimization method.
 type RAdam[T mat.DType] struct {
-	Config[T]
-	RoMax    T // The maximum length of the approximated SMA.
+	Config
+	RoMax    float64 // The maximum length of the approximated SMA.
 	TimeStep int
 }
 
 // New returns a new RAdam optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *RAdam[T] {
+func New[T mat.DType](c Config) *RAdam[T] {
 	adam := &RAdam[T]{
 		Config:   c,
 		RoMax:    2.0/(1.0-c.Beta2) - 1.0,
@@ -107,9 +109,9 @@ func (o *RAdam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *RAdam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	updateM(grads, supp, o.Beta1)
 	updateV(grads, supp, o.Beta2)
-	sqrtB2T := mat.Sqrt(1.0 - mat.Pow(o.Beta2, T(o.TimeStep)))
+	sqrtB2T := math.Sqrt(1.0 - math.Pow(o.Beta2, float64(o.TimeStep)))
 	alpha := o.calcAlpha()
-	buf := supp[v].Sqrt().AddScalarInPlace(o.Epsilon * sqrtB2T)
+	buf := supp[v].Sqrt().AddScalarInPlace(T(o.Epsilon * sqrtB2T))
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[m].Div(buf)
 	defer mat.ReleaseMatrix(suppDiv)
@@ -118,14 +120,14 @@ func (o *RAdam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matr
 }
 
 // m = m*beta1 + grads*(1.0-beta1)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 T) {
+func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
 	supp[m].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[m].AddInPlace(supp[buf1])
 }
 
 // v = v*beta2 + (grads*grads)*(1.0-beta2)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 T) {
+func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
 	supp[v].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)
@@ -133,14 +135,14 @@ func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 T) {
 	supp[v].AddInPlace(supp[buf2])
 }
 
-func (o *RAdam[T]) calcAlpha() T {
-	timeStep := T(o.TimeStep)
-	b1T := mat.Pow(o.Beta1, timeStep)
-	b2T := mat.Pow(o.Beta2, timeStep)
+func (o *RAdam[T]) calcAlpha() float64 {
+	timeStep := float64(o.TimeStep)
+	b1T := math.Pow(o.Beta1, timeStep)
+	b2T := math.Pow(o.Beta2, timeStep)
 	ro := o.RoMax - 2.0*timeStep*b2T/(1.0-b2T)
-	var rect T = 1.0
+	var rect float64 = 1
 	if ro > 4.0 { // i.e. if the variance is tractable
-		rect = mat.Sqrt((ro - 4.0) * (ro - 2.0) * o.RoMax / ((o.RoMax - 4.0) * (o.RoMax - 2.0) * ro))
+		rect = math.Sqrt((ro - 4.0) * (ro - 2.0) * o.RoMax / ((o.RoMax - 4.0) * (o.RoMax - 2.0) * ro))
 	}
 	return o.StepSize * rect * mat.Sqrt(1.0-b2T) / (1.0 - b1T)
 }

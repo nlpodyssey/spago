@@ -31,7 +31,7 @@ func (r *DivScalar[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *DivScalar[T, O]) Forward() mat.Matrix[T] {
-	return r.x1.Value().ProdScalar(1.0 / r.x2.Value().Scalar())
+	return r.x1.Value().ProdScalar(1.0 / float64(r.x2.Value().Scalar()))
 }
 
 // Backward computes the backward pass.
@@ -40,7 +40,7 @@ func (r *DivScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		r.x1.AccGrad(gy.ProdScalar(1.0 / r.x2.Value().Scalar()))
+		r.x1.AccGrad(gy.ProdScalar(1.0 / float64(r.x2.Value().Scalar())))
 	}
 	if r.x2.RequiresGrad() {
 		var gx T = 0.0

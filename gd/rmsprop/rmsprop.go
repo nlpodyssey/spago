@@ -10,19 +10,19 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for an RMSProp optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	LR      T
-	Epsilon T
-	Decay   T
+	LR      float64
+	Epsilon float64
+	Decay   float64
 }
 
 // NewConfig returns a new RMSProp Config.
-func NewConfig[T mat.DType](lr, epsilon, decay T) Config[T] {
-	return Config[T]{
+func NewConfig(lr, epsilon, decay float64) Config {
+	return Config{
 		LR:      lr,
 		Epsilon: epsilon,
 		Decay:   decay,
@@ -30,8 +30,8 @@ func NewConfig[T mat.DType](lr, epsilon, decay T) Config[T] {
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig[T mat.DType]() Config[T] {
-	return Config[T]{
+func NewDefaultConfig() Config {
+	return Config{
 		LR:      0.001,
 		Epsilon: 1e-08,
 		Decay:   0.95,
@@ -45,11 +45,11 @@ var _ gd.Method[float32] = &RMSProp[float32]{}
 //     RMSProp: Divide the gradient by a running average of its recent magnitude
 //     http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
 type RMSProp[T mat.DType] struct {
-	Config[T]
+	Config
 }
 
 // New returns a new RMSProp optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *RMSProp[T] {
+func New[T mat.DType](c Config) *RMSProp[T] {
 	return &RMSProp[T]{Config: c}
 }
 
@@ -79,7 +79,7 @@ func (o *RMSProp[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Ma
 	buf.ProdScalarInPlace(1.0 - o.Decay)
 	supp[v].AddInPlace(buf)
 	buf2 := supp[v].Sqrt()
-	buf2.AddScalarInPlace(o.Epsilon)
+	buf2.AddScalarInPlace(T(o.Epsilon))
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)
 	return delta

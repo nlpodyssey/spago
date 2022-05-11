@@ -5,32 +5,34 @@
 package lamb
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for Lamb optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	StepSize T
-	Beta1    T
-	Beta2    T
-	Epsilon  T
-	Lambda   T
+	StepSize float64
+	Beta1    float64
+	Beta2    float64
+	Epsilon  float64
+	Lambda   float64
 }
 
 // NewConfig returns a new Lamb Config.
-func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon, lambda T) Config[T] {
+func NewConfig(stepSize, beta1, beta2, epsilon, lambda float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("lamb: `beta1` must be in the range [0.0, 1.0)")
 	}
 	if !(beta2 >= 0.0 && beta2 < 1.0) {
 		panic("lamb: `beta2` must be in the range [0.0, 1.0)")
 	}
-	return Config[T]{
+	return Config{
 		StepSize: stepSize,
 		Beta1:    beta1,
 		Beta2:    beta2,
@@ -40,8 +42,8 @@ func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon, lambda T) Config[T]
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig[T mat.DType]() Config[T] {
-	return Config[T]{
+func NewDefaultConfig() Config {
+	return Config{
 		StepSize: 0.001,
 		Beta1:    0.9,
 		Beta2:    0.999,
@@ -54,13 +56,13 @@ var _ gd.Method[float32] = &Lamb[float32]{}
 
 // Lamb implements the Lamb gradient descent optimization method.
 type Lamb[T mat.DType] struct {
-	Config[T]
-	Alpha    T
+	Config
+	Alpha    float64
 	TimeStep int
 }
 
 // New returns a new Lamb optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *Lamb[T] {
+func New[T mat.DType](c Config) *Lamb[T] {
 	lamb := &Lamb[T]{
 		Config: c,
 		Alpha:  c.StepSize,
@@ -103,7 +105,8 @@ func (o *Lamb[_]) IncExample() {
 }
 
 func (o *Lamb[T]) updateAlpha() {
-	o.Alpha = o.StepSize * mat.Sqrt(1.0-mat.Pow(o.Beta2, T(o.TimeStep))) / (1.0 - mat.Pow(o.Beta1, T(o.TimeStep)))
+	ts := float64(o.TimeStep)
+	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, ts)) / (1.0 - math.Pow(o.Beta1, ts))
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
@@ -118,7 +121,7 @@ func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
+	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	if o.Lambda != 0.0 {
@@ -127,7 +130,7 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights m
 	}
 	weightsNorm := norm(weights)
 	adamStepNorm := norm(suppDiv)
-	trustRatio := T(1.0)
+	var trustRatio float64 = 1
 	if !(weightsNorm == 0.0 || adamStepNorm == 0.0) {
 		trustRatio = weightsNorm / adamStepNorm
 	}
@@ -137,14 +140,14 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights m
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 T) {
+func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
 	supp[v].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[v].AddInPlace(supp[buf1])
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 T) {
+func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)
@@ -152,10 +155,10 @@ func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 T) {
 	supp[m].AddInPlace(supp[buf2])
 }
 
-func norm[T mat.DType](grads mat.Matrix[T]) T {
+func norm[T mat.DType](grads mat.Matrix[T]) float64 {
 	sum := T(0.0)
 	for _, d := range grads.Data() {
 		sum += d * d
 	}
-	return mat.Sqrt(sum)
+	return math.Sqrt(float64(sum))
 }

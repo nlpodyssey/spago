@@ -59,7 +59,7 @@ func (c *ClipNorm[T]) Clip(gs []mat.Matrix[T]) {
 	clipCoeff := c.MaxNorm / (totalNorm + 0.0000001)
 	if clipCoeff < 1.0 {
 		for _, g := range gs {
-			g.ProdScalarInPlace(T(clipCoeff))
+			g.ProdScalarInPlace(clipCoeff)
 		}
 	}
 }

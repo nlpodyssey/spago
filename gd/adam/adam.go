@@ -5,32 +5,34 @@
 package adam
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for an Adam optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	StepSize T
-	Beta1    T
-	Beta2    T
-	Epsilon  T
-	Lambda   T // AdamW
+	StepSize float64
+	Beta1    float64
+	Beta2    float64
+	Epsilon  float64
+	Lambda   float64 // AdamW
 }
 
 // NewConfig returns a new Adam Config.
-func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon T) Config[T] {
+func NewConfig(stepSize, beta1, beta2, epsilon float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
 	}
 	if !(beta2 >= 0.0 && beta2 < 1.0) {
 		panic("adam: `beta2` must be in the range [0.0, 1.0)")
 	}
-	return Config[T]{
+	return Config{
 		StepSize: stepSize,
 		Beta1:    beta1,
 		Beta2:    beta2,
@@ -40,14 +42,14 @@ func NewConfig[T mat.DType](stepSize, beta1, beta2, epsilon T) Config[T] {
 }
 
 // NewAdamWConfig returns a new Adam Config.
-func NewAdamWConfig[T mat.DType](stepSize, beta1, beta2, epsilon, lambda T) Config[T] {
+func NewAdamWConfig(stepSize, beta1, beta2, epsilon, lambda float64) Config {
 	if !(beta1 >= 0.0 && beta1 < 1.0) {
 		panic("adam: `beta1` must be in the range [0.0, 1.0)")
 	}
 	if !(beta2 >= 0.0 && beta2 < 1.0) {
 		panic("adam: `beta2` must be in the range [0.0, 1.0)")
 	}
-	return Config[T]{
+	return Config{
 		StepSize: stepSize,
 		Beta1:    beta1,
 		Beta2:    beta2,
@@ -57,8 +59,8 @@ func NewAdamWConfig[T mat.DType](stepSize, beta1, beta2, epsilon, lambda T) Conf
 }
 
 // NewDefaultConfig returns a new Config with generically reasonable default values.
-func NewDefaultConfig[T mat.DType]() Config[T] {
-	return Config[T]{
+func NewDefaultConfig() Config {
+	return Config{
 		StepSize: 0.001,
 		Beta1:    0.9,
 		Beta2:    0.999,
@@ -70,14 +72,14 @@ var _ gd.Method[float32] = &Adam[float32]{}
 
 // Adam implements the Adam gradient descent optimization method.
 type Adam[T mat.DType] struct {
-	Config[T]
-	Alpha    T
+	Config
+	Alpha    float64
 	TimeStep int
 	adamw    bool
 }
 
 // New returns a new Adam optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *Adam[T] {
+func New[T mat.DType](c Config) *Adam[T] {
 	adam := &Adam[T]{
 		Config: c,
 		Alpha:  c.StepSize,
@@ -121,7 +123,8 @@ func (o *Adam[_]) IncExample() {
 }
 
 func (o *Adam[T]) updateAlpha() {
-	o.Alpha = o.StepSize * mat.Sqrt(1.0-mat.Pow(o.Beta2, T(o.TimeStep))) / (1.0 - mat.Pow(o.Beta1, T(o.TimeStep)))
+	ts := float64(o.TimeStep)
+	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, ts)) / (1.0 - math.Pow(o.Beta1, ts))
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
@@ -138,7 +141,7 @@ func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
+	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	defer mat.ReleaseMatrix(suppDiv)
@@ -152,7 +155,7 @@ func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matri
 func (o *Adam[T]) calcDeltaW(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
+	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	scaledW := weights.ProdScalar(o.Lambda)
@@ -163,14 +166,14 @@ func (o *Adam[T]) calcDeltaW(grads mat.Matrix[T], supp []mat.Matrix[T], weights 
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 T) {
+func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
 	supp[v].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[v].AddInPlace(supp[buf1])
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 T) {
+func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)

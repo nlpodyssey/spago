@@ -17,7 +17,7 @@ func TestSGD_Update(t *testing.T) {
 }
 
 func testSGDUpdate[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.0,   // momentum
 		false, // nesterov
@@ -38,7 +38,7 @@ func TestSGDMomentum_Update(t *testing.T) {
 }
 
 func testSGDMomentumUpdate[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
 		false, // nesterov
@@ -61,7 +61,7 @@ func TestSGDMomentum_Update2(t *testing.T) {
 }
 
 func testSGDMomentumUpdate2[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
 		false, // nesterov
@@ -126,7 +126,7 @@ func TestSGDNesterovMomentum_Update(t *testing.T) {
 }
 
 func testSGDNesterovMomentumUpdate[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
 		true,  // nesterov
@@ -149,7 +149,7 @@ func TestSGDNesterovMomentum_Update2(t *testing.T) {
 }
 
 func testSGDNesterovMomentumUpdate2[T mat.DType](t *testing.T) {
-	updater := New(NewConfig[T](
+	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
 		true,  // nesterov

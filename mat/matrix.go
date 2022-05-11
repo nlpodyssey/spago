@@ -105,13 +105,13 @@ type Matrix[T DType] interface {
 	// ProdInPlace performs the in-place element-wise product with the other matrix.
 	ProdInPlace(other Matrix[T]) Matrix[T]
 	// ProdScalar returns the multiplication between the matrix and the given value.
-	ProdScalar(n T) Matrix[T]
+	ProdScalar(n float64) Matrix[T]
 	// ProdScalarInPlace performs the in-place multiplication between the
 	// matrix and the given value.
-	ProdScalarInPlace(n T) Matrix[T]
+	ProdScalarInPlace(n float64) Matrix[T]
 	// ProdMatrixScalarInPlace multiplies the given matrix with the value,
 	// storing the result in the receiver.
-	ProdMatrixScalarInPlace(m Matrix[T], n T) Matrix[T]
+	ProdMatrixScalarInPlace(m Matrix[T], n float64) Matrix[T]
 	// Div returns the result of the element-wise division of the receiver by the other matrix.
 	Div(other Matrix[T]) Matrix[T]
 	// DivInPlace performs the in-place element-wise division of the receiver by the other matrix.

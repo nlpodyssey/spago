@@ -42,7 +42,7 @@ func (r *Pow[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().Pow(r.power - 1)
 		defer mat.ReleaseMatrix(gx)
-		gx.ProdScalarInPlace(T(r.power)).ProdInPlace(gy)
+		gx.ProdScalarInPlace(r.power).ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}
 }

@@ -10,19 +10,19 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ gd.MethodConfig = &Config[float32]{}
+var _ gd.MethodConfig = &Config{}
 
 // Config provides configuration settings for an SGD optimizer.
-type Config[T mat.DType] struct {
+type Config struct {
 	gd.MethodConfig
-	LR       T
-	Mu       T
+	LR       float64
+	Mu       float64
 	Nesterov bool
 }
 
 // NewConfig returns a new SGD Config.
-func NewConfig[T mat.DType](lr, momentum T, nesterov bool) Config[T] {
-	return Config[T]{
+func NewConfig(lr, momentum float64, nesterov bool) Config {
+	return Config{
 		LR:       lr,
 		Mu:       momentum,
 		Nesterov: nesterov,
@@ -33,12 +33,12 @@ var _ gd.Method[float32] = &SGD[float32]{}
 
 // SGD implements the SGD gradient descent optimization method.
 type SGD[T mat.DType] struct {
-	Config[T]
-	Alpha T
+	Config
+	Alpha float64
 }
 
 // New returns a new SGD optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config[T]) *SGD[T] {
+func New[T mat.DType](c Config) *SGD[T] {
 	return &SGD[T]{Config: c, Alpha: c.LR}
 }
 

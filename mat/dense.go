@@ -652,13 +652,13 @@ func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // ProdScalar returns the multiplication between the matrix and the given value.
-func (d *Dense[T]) ProdScalar(n T) Matrix[T] {
+func (d *Dense[T]) ProdScalar(n float64) Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols)
-	switch nt := any(n).(type) {
+	switch any(T(0)).(type) {
 	case float32:
-		asm32.ScalUnitaryTo(any(out.data).([]float32), nt, any(d.data).([]float32))
+		asm32.ScalUnitaryTo(any(out.data).([]float32), float32(n), any(d.data).([]float32))
 	case float64:
-		asm64.ScalUnitaryTo(any(out.data).([]float64), nt, any(d.data).([]float64))
+		asm64.ScalUnitaryTo(any(out.data).([]float64), n, any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -667,12 +667,12 @@ func (d *Dense[T]) ProdScalar(n T) Matrix[T] {
 
 // ProdScalarInPlace performs the in-place multiplication between the
 // matrix and the given value.
-func (d *Dense[T]) ProdScalarInPlace(n T) Matrix[T] {
-	switch nt := any(n).(type) {
+func (d *Dense[T]) ProdScalarInPlace(n float64) Matrix[T] {
+	switch any(T(0)).(type) {
 	case float32:
-		asm32.ScalUnitary(nt, any(d.data).([]float32))
+		asm32.ScalUnitary(float32(n), any(d.data).([]float32))
 	case float64:
-		asm64.ScalUnitary(nt, any(d.data).([]float64))
+		asm64.ScalUnitary(n, any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -681,15 +681,15 @@ func (d *Dense[T]) ProdScalarInPlace(n T) Matrix[T] {
 
 // ProdMatrixScalarInPlace multiplies the given matrix with the value,
 // storing the result in the receiver.
-func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n T) Matrix[T] {
+func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n float64) Matrix[T] {
 	if !(SameDims[T](d, m) || VectorsOfSameSize[T](d, m)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	switch nt := any(n).(type) {
+	switch any(T(0)).(type) {
 	case float32:
-		asm32.ScalUnitaryTo(any(d.data).([]float32), nt, any(m.Data()).([]float32))
+		asm32.ScalUnitaryTo(any(d.data).([]float32), float32(n), any(m.Data()).([]float32))
 	case float64:
-		asm64.ScalUnitaryTo(any(d.data).([]float64), nt, any(m.Data()).([]float64))
+		asm64.ScalUnitaryTo(any(d.data).([]float64), n, any(m.Data()).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -1221,18 +1221,18 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 // The result is a scalar Matrix.
 func (d *Dense[T]) Norm(pow float64) Matrix[T] {
-	return NewScalar(d.norm(pow))
+	return NewScalar(T(d.norm(pow)))
 }
 
-func (d *Dense[T]) norm(pow float64) T {
+func (d *Dense[T]) norm(pow float64) float64 {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
-	var s T
+	var s float64
 	for _, x := range d.data {
-		s += T(math.Pow(float64(x), pow))
+		s += math.Pow(float64(x), pow)
 	}
-	return T(math.Pow(float64(s), 1/pow))
+	return math.Pow(s, 1/pow)
 }
 
 // Normalize2 normalizes an array with the Euclidean norm.
