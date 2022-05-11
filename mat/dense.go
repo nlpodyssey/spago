@@ -974,8 +974,8 @@ func (d *Dense[T]) Max() Matrix[T] {
 	return NewScalar(max)
 }
 
-// Min returns the minimum value of the matrix.
-func (d *Dense[T]) Min() T {
+// Min returns the minimum value of the matrix as a scalar Matrix.
+func (d *Dense[T]) Min() Matrix[T] {
 	if len(d.data) == 0 {
 		panic("mat: cannot find the minimum value in an empty matrix")
 	}
@@ -985,7 +985,7 @@ func (d *Dense[T]) Min() T {
 			min = v
 		}
 	}
-	return min
+	return NewScalar(min)
 }
 
 // ArgMax returns the index of the vector's element with the maximum value.

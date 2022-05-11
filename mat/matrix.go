@@ -144,8 +144,8 @@ type Matrix[T DType] interface {
 	Sum() Matrix[T]
 	// Max returns the maximum value of the matrix as a scalar Matrix.
 	Max() Matrix[T]
-	// Min returns the minimum value of the matrix.
-	Min() T
+	// Min returns the minimum value of the matrix as a scalar Matrix.
+	Min() Matrix[T]
 	// ArgMax returns the index of the vector's element with the maximum value.
 	ArgMax() int
 	// Softmax applies the softmax function to the vector, returning the
