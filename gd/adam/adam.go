@@ -141,7 +141,7 @@ func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
+	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	defer mat.ReleaseMatrix(suppDiv)
@@ -155,7 +155,7 @@ func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matri
 func (o *Adam[T]) calcDeltaW(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
+	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	scaledW := weights.ProdScalar(o.Lambda)

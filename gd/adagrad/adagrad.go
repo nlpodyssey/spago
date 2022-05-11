@@ -75,7 +75,7 @@ func (o *AdaGrad[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *AdaGrad[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
 	supp[m].AddInPlace(grads.Prod(grads))
 	buf := supp[m].Sqrt() // TODO: this was "buf := mat.SqrtMatrix(supp[m])", is it the same?
-	buf.AddScalarInPlace(T(o.Epsilon))
+	buf.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf)
 	delta.ProdScalarInPlace(o.LR)
 	return delta

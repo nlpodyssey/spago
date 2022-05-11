@@ -111,7 +111,7 @@ func (o *RAdam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matr
 	updateV(grads, supp, o.Beta2)
 	sqrtB2T := math.Sqrt(1.0 - math.Pow(o.Beta2, float64(o.TimeStep)))
 	alpha := o.calcAlpha()
-	buf := supp[v].Sqrt().AddScalarInPlace(T(o.Epsilon * sqrtB2T))
+	buf := supp[v].Sqrt().AddScalarInPlace(o.Epsilon * sqrtB2T)
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[m].Div(buf)
 	defer mat.ReleaseMatrix(suppDiv)

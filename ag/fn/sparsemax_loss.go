@@ -50,7 +50,7 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 	}
 
 	regTerm = regTerm*0.5 + 0.5
-	v.SubScalarInPlace(regTerm)
+	v.SubScalarInPlace(float64(regTerm))
 
 	r.y = v
 	r.tau = float64(tau)

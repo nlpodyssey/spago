@@ -79,7 +79,7 @@ func (o *RMSProp[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Ma
 	buf.ProdScalarInPlace(1.0 - o.Decay)
 	supp[v].AddInPlace(buf)
 	buf2 := supp[v].Sqrt()
-	buf2.AddScalarInPlace(T(o.Epsilon))
+	buf2.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)
 	return delta

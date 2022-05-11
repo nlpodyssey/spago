@@ -89,17 +89,17 @@ type Matrix[T DType] interface {
 	// AddInPlace performs the in-place addition with the other matrix.
 	AddInPlace(other Matrix[T]) Matrix[T]
 	// AddScalar performs the addition between the matrix and the given value.
-	AddScalar(n T) Matrix[T]
+	AddScalar(n float64) Matrix[T]
 	// AddScalarInPlace adds the scalar to all values of the matrix.
-	AddScalarInPlace(n T) Matrix[T]
+	AddScalarInPlace(n float64) Matrix[T]
 	// Sub returns the subtraction of the other matrix from the receiver.
 	Sub(other Matrix[T]) Matrix[T]
 	// SubInPlace performs the in-place subtraction with the other matrix.
 	SubInPlace(other Matrix[T]) Matrix[T]
 	// SubScalar performs a subtraction between the matrix and the given value.
-	SubScalar(n T) Matrix[T]
+	SubScalar(n float64) Matrix[T]
 	// SubScalarInPlace subtracts the scalar from the receiver's values.
-	SubScalarInPlace(n T) Matrix[T]
+	SubScalarInPlace(n float64) Matrix[T]
 	// Prod performs the element-wise product between the receiver and the other matrix.
 	Prod(other Matrix[T]) Matrix[T]
 	// ProdInPlace performs the in-place element-wise product with the other matrix.

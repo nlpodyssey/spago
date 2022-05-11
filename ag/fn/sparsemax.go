@@ -32,7 +32,7 @@ func (r *SparseMax[T, O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
 	x := r.x.Value()
-	xMax := x.Max().Scalar()
+	xMax := float64(x.Max().Scalar())
 
 	// translate the input by max for numerical stability
 	v := x.SubScalar(xMax)
@@ -41,7 +41,7 @@ func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
 	mat.ReleaseMatrix(zs)
 	mat.ReleaseMatrix(cumSumInput)
 
-	v.SubScalarInPlace(tau).ClipInPlace(0, float64(xMax))
+	v.SubScalarInPlace(float64(tau)).ClipInPlace(0, xMax)
 
 	r.y = v
 	return v

@@ -121,7 +121,7 @@ func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(T(o.Epsilon))
+	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
 	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	if o.Lambda != 0.0 {

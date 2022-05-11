@@ -528,13 +528,13 @@ func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // AddScalar performs the addition between the matrix and the given value.
-func (d *Dense[T]) AddScalar(n T) Matrix[T] {
+func (d *Dense[T]) AddScalar(n float64) Matrix[T] {
 	out := NewDense(d.rows, d.cols, d.data)
-	switch nt := any(n).(type) {
+	switch any(T(0)).(type) {
 	case float32:
-		f32.AddConst(nt, any(out.data).([]float32))
+		f32.AddConst(float32(n), any(out.data).([]float32))
 	case float64:
-		asm64.AddConst(nt, any(out.data).([]float64))
+		asm64.AddConst(n, any(out.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -542,12 +542,12 @@ func (d *Dense[T]) AddScalar(n T) Matrix[T] {
 }
 
 // AddScalarInPlace adds the scalar to all values of the matrix.
-func (d *Dense[T]) AddScalarInPlace(n T) Matrix[T] {
-	switch nt := any(n).(type) {
+func (d *Dense[T]) AddScalarInPlace(n float64) Matrix[T] {
+	switch any(T(0)).(type) {
 	case float32:
-		f32.AddConst(nt, any(d.data).([]float32))
+		f32.AddConst(float32(n), any(d.data).([]float32))
 	case float64:
-		asm64.AddConst(nt, any(d.data).([]float64))
+		asm64.AddConst(n, any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -588,13 +588,13 @@ func (d *Dense[T]) SubInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // SubScalar performs a subtraction between the matrix and the given value.
-func (d *Dense[T]) SubScalar(n T) Matrix[T] {
+func (d *Dense[T]) SubScalar(n float64) Matrix[T] {
 	out := NewDense(d.rows, d.cols, d.data)
-	switch nt := any(n).(type) {
+	switch any(T(0)).(type) {
 	case float32:
-		f32.AddConst(-nt, any(out.data).([]float32))
+		f32.AddConst(-float32(n), any(out.data).([]float32))
 	case float64:
-		asm64.AddConst(-nt, any(out.data).([]float64))
+		asm64.AddConst(-n, any(out.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -602,12 +602,12 @@ func (d *Dense[T]) SubScalar(n T) Matrix[T] {
 }
 
 // SubScalarInPlace subtracts the scalar from the receiver's values.
-func (d *Dense[T]) SubScalarInPlace(n T) Matrix[T] {
-	switch nt := any(n).(type) {
+func (d *Dense[T]) SubScalarInPlace(n float64) Matrix[T] {
+	switch any(T(0)).(type) {
 	case float32:
-		f32.AddConst(-nt, any(d.data).([]float32))
+		f32.AddConst(-float32(n), any(d.data).([]float32))
 	case float64:
-		asm64.AddConst(-nt, any(d.data).([]float64))
+		asm64.AddConst(-n, any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}

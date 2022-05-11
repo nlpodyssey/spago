@@ -1553,7 +1553,7 @@ func testDenseAddInPlace[T DType](t *testing.T) {
 
 type addScalarTestCase[T DType] struct {
 	a *Dense[T]
-	n T
+	n float64
 	y []T
 }
 
@@ -1695,7 +1695,7 @@ func testDenseSubInPlace[T DType](t *testing.T) {
 
 type subScalarTestCase[T DType] struct {
 	a *Dense[T]
-	n T
+	n float64
 	y []T
 }
 

@@ -612,9 +612,9 @@ func swishBDeriv(_, _ int, v float64, beta ...float64) float64 {
 	return exp * (exp + prod + 1) / ((exp + 1) * (exp + 1))
 }
 
-func swishBBetaDeriv[T mat.DType](v T, beta T) T {
+func swishBBetaDeriv(v, beta float64) float64 {
 	prod := v * beta
-	exp := mat.Exp(-prod)
+	exp := math.Exp(-prod)
 	return (v * v * exp) / ((exp + 1) * (exp + 1))
 }
 
