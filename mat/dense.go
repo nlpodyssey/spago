@@ -223,9 +223,9 @@ func (d *Dense[T]) Zeros() {
 	}
 }
 
-// Set sets the value v at row r and column c.
+// SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) Set(r int, c int, v T) {
+func (d *Dense[T]) SetScalar(r int, c int, v T) {
 	if r < 0 || r >= d.rows {
 		panic("mat: 'r' argument out of range")
 	}
@@ -1123,9 +1123,9 @@ func (d *Dense[T]) Augment() Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols*2)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
-			out.Set(i, j, d.At(i, j))
+			out.SetScalar(i, j, d.At(i, j))
 		}
-		out.Set(i, i+d.rows, 1.0)
+		out.SetScalar(i, i+d.rows, 1.0)
 	}
 	return out
 }

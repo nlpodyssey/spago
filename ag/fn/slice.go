@@ -50,7 +50,7 @@ func (s *Slice[T, O]) Backward(gy mat.Matrix[T]) {
 		defer mat.ReleaseMatrix(gx)
 		for i := 0; i < lx; i++ {
 			for j := 0; j < ly; j++ {
-				gx.Set(i+s.fromRow, j+s.fromCol, gy.At(i, j))
+				gx.SetScalar(i+s.fromRow, j+s.fromCol, gy.At(i, j))
 			}
 		}
 		s.x.AccGrad(gx)

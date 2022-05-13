@@ -62,7 +62,7 @@ func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 					}
 				}
 			}
-			r.y.Set(row, col, maximum)
+			r.y.SetScalar(row, col, maximum)
 		}
 	}
 
@@ -87,7 +87,7 @@ func (r *MaxPooling[T, O]) Backward(gy mat.Matrix[T]) {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
 			for col := 0; col < r.y.Columns(); col++ {
-				gx.Set(rowi[col], rowj[col], gy.At(row, col))
+				gx.SetScalar(rowi[col], rowj[col], gy.At(row, col))
 			}
 		}
 		r.x.AccGrad(gx)

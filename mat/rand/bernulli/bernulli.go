@@ -18,9 +18,9 @@ func Distribution[T mat.DType](r, c int, prob T, generator *rand.LockedRand[T]) 
 		for j := 0; j < c; j++ {
 			val := dist.Next()
 			if val < prob {
-				out.Set(i, j, mat.Floor(val))
+				out.SetScalar(i, j, mat.Floor(val))
 			} else {
-				out.Set(i, j, mat.Floor(val)+1)
+				out.SetScalar(i, j, mat.Floor(val)+1)
 			}
 		}
 	}

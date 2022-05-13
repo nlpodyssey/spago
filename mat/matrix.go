@@ -34,9 +34,9 @@ type Matrix[T DType] interface {
 	Scalar() T
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
-	// Set sets the value v at row r and column c.
+	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
-	Set(r int, c int, v T)
+	SetScalar(r int, c int, v T)
 	// At returns the value at row r and column c.
 	// It panics if the given indices are out of range.
 	At(r int, c int) T

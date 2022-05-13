@@ -41,7 +41,7 @@ func (r *At[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)
-		dx.Set(r.i, r.j, gy.Scalar())
+		dx.SetScalar(r.i, r.j, gy.Scalar())
 		r.x.AccGrad(dx)
 	}
 }
