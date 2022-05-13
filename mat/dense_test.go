@@ -859,9 +859,9 @@ func testDenseSetVec[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_ScalarAtVec(t *testing.T) {
-	t.Run("float32", testDenseScalarAtVec[float32])
-	t.Run("float64", testDenseScalarAtVec[float64])
+func TestDense_AtVec(t *testing.T) {
+	t.Run("float32", testDenseAtVec[float32])
+	t.Run("float64", testDenseAtVec[float64])
 }
 
 func testDenseAtVec[T DType](t *testing.T) {
