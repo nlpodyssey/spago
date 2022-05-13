@@ -30,7 +30,7 @@ func (r *ReverseSubScalar[T, O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *ReverseSubScalar[T, O]) Forward() mat.Matrix[T] {
 	x1v, x2v := r.x1.Value(), r.x2.Value()
-	return mat.NewInitDense(x1v.Rows(), x1v.Columns(), x2v.Scalar()).Sub(x1v)
+	return mat.NewInitDense(x1v.Rows(), x1v.Columns(), mat.DTFloat[T](x2v.Scalar())).Sub(x1v)
 }
 
 // Backward computes the backward pass.

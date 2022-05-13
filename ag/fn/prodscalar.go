@@ -31,7 +31,7 @@ func (r *ProdScalar[T, O]) Operands() []O {
 
 // Forward computes the output of the node.
 func (r *ProdScalar[T, O]) Forward() mat.Matrix[T] {
-	return r.x1.Value().ProdScalar(float64(r.x2.Value().Scalar()))
+	return r.x1.Value().ProdScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
@@ -40,7 +40,7 @@ func (r *ProdScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x1.RequiresGrad() {
-		gx := gy.ProdScalar(float64(r.x2.Value().Scalar()))
+		gx := gy.ProdScalar(r.x2.Value().Scalar().Float64())
 		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}

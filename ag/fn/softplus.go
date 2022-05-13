@@ -35,8 +35,8 @@ func (r *SoftPlus[T, O]) Operands() []O {
 func (r *SoftPlus[T, O]) Forward() mat.Matrix[T] {
 	return r.x.Value().ApplyWithAlpha(
 		softPlus,
-		float64(r.beta.Value().Scalar()),
-		float64(r.threshold.Value().Scalar()),
+		r.beta.Value().Scalar().Float64(),
+		r.threshold.Value().Scalar().Float64(),
 	)
 }
 
@@ -48,8 +48,8 @@ func (r *SoftPlus[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(
 			softPlusDeriv,
-			float64(r.beta.Value().Scalar()),
-			float64(r.threshold.Value().Scalar()),
+			r.beta.Value().Scalar().Float64(),
+			r.threshold.Value().Scalar().Float64(),
 		)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)

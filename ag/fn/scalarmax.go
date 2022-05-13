@@ -30,7 +30,7 @@ func (r *ScalarMax[T, O]) Forward() mat.Matrix[T] {
 	var max T
 	var argmax int
 	for i, x := range r.xs {
-		val := x.Value().Scalar()
+		val := mat.DTFloat[T](x.Value().Scalar())
 		if val > max {
 			max = val
 			argmax = i

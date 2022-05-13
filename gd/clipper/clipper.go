@@ -46,14 +46,14 @@ func (c *ClipNorm[T]) Clip(gs []mat.Matrix[T]) {
 	var totalNorm float64
 	if math.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = math.Max(float64(g.Abs().Max().Scalar()), totalNorm)
+			totalNorm = math.Max(g.Abs().Max().Scalar().Float64(), totalNorm)
 		}
 	} else {
-		var sum T = 0.0
+		var sum float64
 		for _, g := range gs {
-			sum += g.Abs().Pow(c.NormType).Sum().Scalar()
+			sum += g.Abs().Pow(c.NormType).Sum().Scalar().Float64()
 		}
-		totalNorm = math.Pow(float64(sum), 1/c.NormType)
+		totalNorm = math.Pow(sum, 1/c.NormType)
 	}
 
 	clipCoeff := c.MaxNorm / (totalNorm + 0.0000001)

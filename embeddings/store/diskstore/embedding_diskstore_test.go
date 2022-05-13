@@ -121,7 +121,7 @@ func TestEmbeddingWithDiskStore_ScalarValue(t *testing.T) {
 
 	// Set a value for the first time
 	e.ReplaceValue(mat.NewScalar[T](42))
-	assert.Equal(t, T(42), e.Value().Scalar())
+	assert.Equal(t, mat.Float(T(42)), e.Value().Scalar())
 }
 
 func TestEmbeddingWithDiskStore_Grad(t *testing.T) {

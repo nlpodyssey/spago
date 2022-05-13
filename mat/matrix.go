@@ -31,7 +31,7 @@ type Matrix[T DType] interface {
 	OnesLike() Matrix[T]
 	// Scalar returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
-	Scalar() T
+	Scalar() FloatInterface
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
 	// Set sets the scalar value from a 1×1 matrix at row r and column c.

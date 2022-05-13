@@ -73,7 +73,7 @@ func (m *Model[T]) process(xs []ag.Node[T], devVector ag.Node[T], meanVector ag.
 }
 
 func (m *Model[T]) updateBatchNormParameters(meanVector, devVector mat.Matrix[T]) {
-	momentum := float64(m.Momentum.Value().Scalar())
+	momentum := m.Momentum.Value().Scalar().Float64()
 
 	m.Mean.ReplaceValue(
 		m.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))

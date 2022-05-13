@@ -36,7 +36,7 @@ func (e *Embedding[T, _]) ScalarValue() T {
 	if v == nil {
 		panic("embeddings: cannot get scalar value from nil Matrix")
 	}
-	return v.Scalar()
+	return mat.DTFloat[T](v.Scalar())
 }
 
 // Grad satisfies the interfaces nn.Param and ag.Node.

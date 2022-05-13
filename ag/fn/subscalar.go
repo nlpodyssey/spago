@@ -31,7 +31,7 @@ func (r *SubScalar[T, O]) Operands() []O {
 
 // Forward computes the output of the node.
 func (r *SubScalar[T, O]) Forward() mat.Matrix[T] {
-	return r.x1.Value().SubScalar(float64(r.x2.Value().Scalar()))
+	return r.x1.Value().SubScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.

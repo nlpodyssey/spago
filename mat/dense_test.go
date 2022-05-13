@@ -479,7 +479,7 @@ func testDenseScalar[T DType](t *testing.T) {
 
 	t.Run("scalar matrix", func(t *testing.T) {
 		d := NewScalar(T(42))
-		require.Equal(t, T(42), d.Scalar())
+		require.Equal(t, Float(T(42)), d.Scalar())
 	})
 }
 
@@ -648,7 +648,7 @@ func testDenseAt[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			v := d.At(tc.atR, tc.atC)
-			assert.Equal(t, tc.v, v.Scalar())
+			assert.Equal(t, Float(tc.v), v.Scalar())
 		})
 	}
 }
@@ -906,7 +906,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 				return T(r + 1)
 			})
 			v := d.AtVec(tc.i)
-			assert.Equal(t, tc.v, v.Scalar())
+			assert.Equal(t, Float(tc.v), v.Scalar())
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
@@ -914,7 +914,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 				return T(c + 1)
 			})
 			v := d.AtVec(tc.i)
-			assert.Equal(t, tc.v, v.Scalar())
+			assert.Equal(t, Float(tc.v), v.Scalar())
 		})
 	}
 }

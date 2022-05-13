@@ -39,7 +39,7 @@ func (r *ReduceMean[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar()/T(r.x.Value().Size()))
+		gx := mat.NewInitVecDense(r.x.Value().Size(), mat.DTFloat[T](gy.Scalar())/T(r.x.Value().Size()))
 		defer mat.ReleaseDense(gx)
 		r.x.AccGrad(gx)
 	}

@@ -34,7 +34,7 @@ func (r *SwishB[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *SwishB[T, O]) Forward() mat.Matrix[T] {
-	y := r.x.Value().ApplyWithAlpha(swishB, float64(r.beta.Value().Scalar()))
+	y := r.x.Value().ApplyWithAlpha(swishB, r.beta.Value().Scalar().Float64())
 	return y
 }
 
@@ -44,7 +44,7 @@ func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, float64(r.beta.Value().Scalar()))
+		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, r.beta.Value().Scalar().Float64())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
@@ -53,7 +53,7 @@ func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
 		gb := r.beta.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gb)
 		for i, x := range r.x.Value().Data() {
-			deriv := swishBBetaDeriv(float64(x), float64(r.beta.Value().Scalar()))
+			deriv := swishBBetaDeriv(float64(x), r.beta.Value().Scalar().Float64())
 			gyi := float64(gy.Data()[i])
 			gb.AddScalarInPlace(deriv * gyi)
 		}

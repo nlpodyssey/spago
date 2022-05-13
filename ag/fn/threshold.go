@@ -35,8 +35,8 @@ func (r *Threshold[T, O]) Operands() []O {
 func (r *Threshold[T, O]) Forward() mat.Matrix[T] {
 	y := r.x.Value().ApplyWithAlpha(
 		threshold,
-		float64(r.threshold.Value().Scalar()),
-		float64(r.k.Value().Scalar()),
+		r.threshold.Value().Scalar().Float64(),
+		r.k.Value().Scalar().Float64(),
 	)
 	return y
 }
@@ -49,8 +49,8 @@ func (r *Threshold[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(
 			thresholdDeriv,
-			float64(r.threshold.Value().Scalar()),
-			float64(r.k.Value().Scalar()),
+			r.threshold.Value().Scalar().Float64(),
+			r.k.Value().Scalar().Float64(),
 		)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)

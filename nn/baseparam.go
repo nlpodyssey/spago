@@ -102,7 +102,7 @@ func (p *BaseParam[T]) ReplaceValue(value mat.Matrix[T]) {
 func (p *BaseParam[T]) ScalarValue() T {
 	p.valueMu.RLock()
 	defer p.valueMu.RUnlock()
-	return p.value.Scalar()
+	return mat.DTFloat[T](p.value.Scalar())
 }
 
 // Grad returns the gradients accumulated during the backward pass.

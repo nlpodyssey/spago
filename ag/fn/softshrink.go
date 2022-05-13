@@ -31,7 +31,7 @@ func (r *SoftShrink[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *SoftShrink[T, O]) Forward() mat.Matrix[T] {
-	return r.x.Value().ApplyWithAlpha(softShrink, float64(r.lambda.Value().Scalar()))
+	return r.x.Value().ApplyWithAlpha(softShrink, r.lambda.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
@@ -40,7 +40,7 @@ func (r *SoftShrink[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(softShrinkDeriv, float64(r.lambda.Value().Scalar()))
+		gx := r.x.Value().ApplyWithAlpha(softShrinkDeriv, r.lambda.Value().Scalar().Float64())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)

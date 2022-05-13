@@ -38,7 +38,7 @@ func (r *ReduceSum[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewInitVecDense(r.x.Value().Size(), gy.Scalar())
+		gx := mat.NewInitVecDense(r.x.Value().Size(), mat.DTFloat[T](gy.Scalar()))
 		defer mat.ReleaseDense(gx)
 		r.x.AccGrad(gx)
 	}

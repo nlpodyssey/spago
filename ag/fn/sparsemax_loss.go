@@ -61,7 +61,7 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		tau := r.tau
-		gySum := float64(gy.Sum().Scalar())
+		gySum := gy.Sum().Scalar().Float64()
 
 		sparseMax := r.x.Value().Apply(func(_, _ int, v float64) float64 {
 			return math.Max(0, v-tau) * gySum

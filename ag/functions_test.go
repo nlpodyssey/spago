@@ -24,9 +24,9 @@ func testUtils[T mat.DType](t *testing.T) {
 			[]Node[T]{NewScalar[T](4), NewScalar[T](5), NewScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, T(5), ys[0].Value().Scalar())
-		assert.Equal(t, T(7), ys[1].Value().Scalar())
-		assert.Equal(t, T(9), ys[2].Value().Scalar())
+		assert.Equal(t, mat.Float(T(5)), ys[0].Value().Scalar())
+		assert.Equal(t, mat.Float(T(7)), ys[1].Value().Scalar())
+		assert.Equal(t, mat.Float(T(9)), ys[2].Value().Scalar())
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
@@ -35,11 +35,11 @@ func testUtils[T mat.DType](t *testing.T) {
 		}
 		ys := Pad([]Node[T]{NewScalar[T](1), NewScalar[T](2), NewScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
-		assert.Equal(t, T(1), ys[0].Value().Scalar())
-		assert.Equal(t, T(2), ys[1].Value().Scalar())
-		assert.Equal(t, T(3), ys[2].Value().Scalar())
-		assert.Equal(t, T(0), ys[3].Value().Scalar())
-		assert.Equal(t, T(0), ys[4].Value().Scalar())
+		assert.Equal(t, mat.Float(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, mat.Float(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, mat.Float(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, mat.Float(T(0)), ys[3].Value().Scalar())
+		assert.Equal(t, mat.Float(T(0)), ys[4].Value().Scalar())
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
@@ -48,9 +48,9 @@ func testUtils[T mat.DType](t *testing.T) {
 		}
 		ys := Pad([]Node[T]{NewScalar[T](1), NewScalar[T](2), NewScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, T(1), ys[0].Value().Scalar())
-		assert.Equal(t, T(2), ys[1].Value().Scalar())
-		assert.Equal(t, T(3), ys[2].Value().Scalar())
+		assert.Equal(t, mat.Float(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, mat.Float(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, mat.Float(T(3)), ys[2].Value().Scalar())
 	})
 }
 

@@ -208,11 +208,11 @@ func (d *Dense[T]) OnesLike() Matrix[T] {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (d *Dense[T]) Scalar() T {
+func (d *Dense[T]) Scalar() FloatInterface {
 	if !IsScalar[T](d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
-	return d.data[0]
+	return Float(d.data[0])
 }
 
 // Zeros sets all the values of the matrix to zero.
@@ -226,7 +226,7 @@ func (d *Dense[T]) Zeros() {
 // Set sets the scalar value from a 1×1 matrix at row r and column c.
 // It panics if the given matrix is not 1×1, or if indices are out of range.
 func (d *Dense[T]) Set(r int, c int, m Matrix[T]) {
-	d.set(r, c, m.Scalar())
+	d.set(r, c, DTFloat[T](m.Scalar()))
 }
 
 // At returns the value at row r and column c as a 1×1 matrix.
@@ -271,7 +271,7 @@ func (d *Dense[T]) at(r int, c int) T {
 // vector. It panics if the receiver is not a vector, or the given matrix is
 // not 1×1, or the position is out of range.
 func (d *Dense[T]) SetVec(i int, m Matrix[T]) {
-	d.setVec(i, m.Scalar())
+	d.setVec(i, DTFloat[T](m.Scalar()))
 }
 
 // AtVec returns the value at position i of a vector as a 1×1 matrix.

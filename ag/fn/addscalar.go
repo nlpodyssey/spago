@@ -32,7 +32,7 @@ func (r *AddScalar[T, O]) Operands() []O {
 // Forward computes the output of the function.
 // It doesn't backward on the scalar value x2.
 func (r *AddScalar[T, O]) Forward() mat.Matrix[T] {
-	return r.x1.Value().AddScalar(float64(r.x2.Value().Scalar()))
+	return r.x1.Value().AddScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.

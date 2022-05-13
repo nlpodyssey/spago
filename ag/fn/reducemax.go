@@ -44,11 +44,7 @@ func (r *ReduceMax[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewEmptyVecDense[T](r.x.Value().Size())
 		defer mat.ReleaseDense(gx)
-		for i := range gx.Data() {
-			if i == r.argmax {
-				gx.Data()[i] = gy.Scalar()
-			}
-		}
+		gx.SetVec(r.argmax, gy)
 		r.x.AccGrad(gx)
 	}
 }

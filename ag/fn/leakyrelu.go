@@ -32,7 +32,7 @@ func (r *LeakyReLU[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *LeakyReLU[T, O]) Forward() mat.Matrix[T] {
-	y := r.x.Value().ApplyWithAlpha(leakyReLU, float64(r.alpha.Value().Scalar()))
+	y := r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().Float64())
 	return y
 }
 
@@ -42,7 +42,7 @@ func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix[T]) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(leakyReLUDeriv, float64(r.alpha.Value().Scalar()))
+		gx := r.x.Value().ApplyWithAlpha(leakyReLUDeriv, r.alpha.Value().Scalar().Float64())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
