@@ -46,7 +46,7 @@ func (r *DivScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		var gx T = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
-				gx += gy.At(i, j) * (r.x1.Value().At(i, j) / (-1.0 * (r.x2.Value().Scalar() * r.x2.Value().Scalar())))
+				gx += gy.ScalarAt(i, j) * (r.x1.Value().ScalarAt(i, j) / (-1.0 * (r.x2.Value().Scalar() * r.x2.Value().Scalar())))
 			}
 		}
 		scalar := mat.NewScalar(gx)

@@ -33,7 +33,7 @@ func (r *At[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *At[T, O]) Forward() mat.Matrix[T] {
-	return mat.NewScalar(r.x.Value().At(r.i, r.j))
+	return mat.NewScalar(r.x.Value().ScalarAt(r.i, r.j))
 }
 
 // Backward computes the backward pass.

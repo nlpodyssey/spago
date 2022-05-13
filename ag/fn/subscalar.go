@@ -46,7 +46,7 @@ func (r *SubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		var gx T = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
-				gx -= gy.At(i, j)
+				gx -= gy.ScalarAt(i, j)
 			}
 		}
 		scalar := mat.NewScalar(gx)

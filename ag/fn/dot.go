@@ -41,7 +41,7 @@ func (r *Dot[T, O]) Forward() mat.Matrix[T] {
 		var y T = 0.0
 		for i := 0; i < r.x1.Value().Rows(); i++ {
 			for j := 0; j < r.x1.Value().Columns(); j++ {
-				y += r.x1.Value().At(i, j) * r.x2.Value().At(i, j)
+				y += r.x1.Value().ScalarAt(i, j) * r.x2.Value().ScalarAt(i, j)
 			}
 		}
 		return mat.NewScalar(y)

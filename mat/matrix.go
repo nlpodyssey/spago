@@ -37,9 +37,9 @@ type Matrix[T DType] interface {
 	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
 	SetScalar(r int, c int, v T)
-	// At returns the value at row r and column c.
+	// ScalarAt returns the value at row r and column c.
 	// It panics if the given indices are out of range.
-	At(r int, c int) T
+	ScalarAt(r int, c int) T
 	// SetVec sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
 	SetVec(i int, v T)

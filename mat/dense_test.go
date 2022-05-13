@@ -579,37 +579,37 @@ func testDenseSetScalar[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_At(t *testing.T) {
-	t.Run("float32", testDenseAt[float32])
-	t.Run("float64", testDenseAt[float64])
+func TestDense_ScalarAt(t *testing.T) {
+	t.Run("float32", testDenseScalarAt[float32])
+	t.Run("float64", testDenseScalarAt[float64])
 }
 
-func testDenseAt[T DType](t *testing.T) {
+func testDenseScalarAt[T DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.At(-1, 1)
+			d.ScalarAt(-1, 1)
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.At(1, -1)
+			d.ScalarAt(1, -1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.At(2, 1)
+			d.ScalarAt(2, 1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.At(1, 3)
+			d.ScalarAt(1, 3)
 		})
 	})
 
@@ -640,7 +640,7 @@ func testDenseAt[T DType](t *testing.T) {
 			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
 			})
-			v := d.At(tc.atR, tc.atC)
+			v := d.ScalarAt(tc.atR, tc.atC)
 			assert.Equal(t, tc.v, v)
 		})
 	}
@@ -934,9 +934,9 @@ func testDenseView[T DType](t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		v := d.View(1, 1)
 		d.SetScalar(0, 0, 42) // modifying d must modify v too
-		assert.Equal(t, T(42), v.At(0, 0))
+		assert.Equal(t, T(42), v.ScalarAt(0, 0))
 		v.SetScalar(0, 0, 2) // modifying v must modify d too
-		assert.Equal(t, T(2), d.At(0, 0))
+		assert.Equal(t, T(2), d.ScalarAt(0, 0))
 	})
 }
 
@@ -1146,7 +1146,7 @@ func testDenseReshape[T DType](t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		r := d.Reshape(1, 1)
 		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.At(0, 0))
+		assert.Equal(t, T(0), r.ScalarAt(0, 0))
 	})
 }
 
@@ -1342,14 +1342,14 @@ func testDenseResizeVector[T DType](t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(1)
 		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.At(0, 0))
+		assert.Equal(t, T(0), r.ScalarAt(0, 0))
 	})
 
 	t.Run("data is copied - bigger size", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(3)
 		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.At(0, 0))
+		assert.Equal(t, T(0), r.ScalarAt(0, 0))
 	})
 }
 
@@ -4012,7 +4012,7 @@ func testDenseClone[T DType](t *testing.T) {
 		d := NewDense(1, 1, []T{1})
 		y := d.Clone()
 		d.SetScalar(0, 0, 42)
-		assert.Equal(t, T(1), y.At(0, 0))
+		assert.Equal(t, T(1), y.ScalarAt(0, 0))
 	})
 }
 

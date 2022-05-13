@@ -43,8 +43,8 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int
 func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		score := maxVec.At(i, 0) + transitionMatrix.At(0, i+1)
-		if score > y.scores.At(i, 0) {
+		score := maxVec.ScalarAt(i, 0) + transitionMatrix.ScalarAt(0, i+1)
+		if score > y.scores.ScalarAt(i, 0) {
 			y.scores.SetVec(i, score)
 			y.backpointers[i] = i
 		}
@@ -55,8 +55,8 @@ func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *Vite
 func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		score := maxVec.At(i, 0) + transitionMatrix.At(i+1, 0)
-		if score > y.scores.At(i, 0) {
+		score := maxVec.ScalarAt(i, 0) + transitionMatrix.ScalarAt(i+1, 0)
+		if score > y.scores.ScalarAt(i, 0) {
 			y.scores.SetVec(i, score)
 			y.backpointers[i] = i
 		}
@@ -68,8 +68,8 @@ func viterbiStep[T mat.DType](transitionMatrix, maxVec, stepVec mat.Matrix[T]) *
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
-			score := maxVec.At(i, 0) + stepVec.At(j, 0) + transitionMatrix.At(i+1, j+1)
-			if score > y.scores.At(j, 0) {
+			score := maxVec.ScalarAt(i, 0) + stepVec.ScalarAt(j, 0) + transitionMatrix.ScalarAt(i+1, j+1)
+			if score > y.scores.ScalarAt(j, 0) {
 				y.scores.SetVec(j, score)
 				y.backpointers[j] = i
 			}

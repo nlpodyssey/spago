@@ -54,7 +54,7 @@ func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
 			maximum := mat.SmallestNonzero[T]()
 			for i := row * r.rows; i < (row*r.rows)+r.rows; i++ {
 				for j := col * r.cols; j < (col*r.cols)+r.rows; j++ {
-					val := xv.At(i, j)
+					val := xv.ScalarAt(i, j)
 					if val > maximum {
 						maximum = val
 						r.argmaxI[row][col] = i
@@ -87,7 +87,7 @@ func (r *MaxPooling[T, O]) Backward(gy mat.Matrix[T]) {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
 			for col := 0; col < r.y.Columns(); col++ {
-				gx.SetScalar(rowi[col], rowj[col], gy.At(row, col))
+				gx.SetScalar(rowi[col], rowj[col], gy.ScalarAt(row, col))
 			}
 		}
 		r.x.AccGrad(gx)

@@ -235,9 +235,9 @@ func (d *Dense[T]) SetScalar(r int, c int, v T) {
 	d.data[r*d.cols+c] = v
 }
 
-// At returns the value at row r and column c.
+// ScalarAt returns the value at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) At(r int, c int) T {
+func (d *Dense[T]) ScalarAt(r int, c int) T {
 	if r < 0 || r >= d.rows {
 		panic("mat: 'r' argument out of range")
 	}
@@ -1123,7 +1123,7 @@ func (d *Dense[T]) Augment() Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols*2)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
-			out.SetScalar(i, j, d.At(i, j))
+			out.SetScalar(i, j, d.ScalarAt(i, j))
 		}
 		out.SetScalar(i, i+d.rows, 1.0)
 	}
@@ -1435,7 +1435,7 @@ func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...f
 	// TODO: rewrite for better performance
 	for r := 0; r < d.rows; r++ {
 		for c := 0; c < d.cols; c++ {
-			d.data[r*d.cols+c] = T(fn(r, c, float64(a.At(r, c)), alpha...))
+			d.data[r*d.cols+c] = T(fn(r, c, float64(a.ScalarAt(r, c)), alpha...))
 		}
 	}
 	return d
