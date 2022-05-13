@@ -43,9 +43,12 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int
 func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		score := maxVec.ScalarAt(i, 0) + transitionMatrix.ScalarAt(0, i+1)
-		if score > y.scores.ScalarAt(i, 0) {
-			y.scores.SetVecScalar(i, score)
+		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
+		tv := mat.DTFloat[T](transitionMatrix.ScalarAt(0, i+1))
+		yv := mat.DTFloat[T](y.scores.ScalarAt(i, 0))
+		score := mv + tv
+		if score > yv {
+			y.scores.SetVecScalar(i, mat.Float(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -55,9 +58,12 @@ func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *Vite
 func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		score := maxVec.ScalarAt(i, 0) + transitionMatrix.ScalarAt(i+1, 0)
-		if score > y.scores.ScalarAt(i, 0) {
-			y.scores.SetVecScalar(i, score)
+		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
+		tv := mat.DTFloat[T](transitionMatrix.ScalarAt(i+1, 0))
+		yv := mat.DTFloat[T](y.scores.ScalarAt(i, 0))
+		score := mv + tv
+		if score > yv {
+			y.scores.SetVecScalar(i, mat.Float(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -68,9 +74,13 @@ func viterbiStep[T mat.DType](transitionMatrix, maxVec, stepVec mat.Matrix[T]) *
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
-			score := maxVec.ScalarAt(i, 0) + stepVec.ScalarAt(j, 0) + transitionMatrix.ScalarAt(i+1, j+1)
-			if score > y.scores.ScalarAt(j, 0) {
-				y.scores.SetVecScalar(j, score)
+			mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
+			sv := mat.DTFloat[T](stepVec.ScalarAt(j, 0))
+			tv := mat.DTFloat[T](transitionMatrix.ScalarAt(i+1, j+1))
+			yv := mat.DTFloat[T](y.scores.ScalarAt(j, 0))
+			score := mv + sv + tv
+			if score > yv {
+				y.scores.SetVecScalar(j, mat.Float(score))
 				y.backpointers[j] = i
 			}
 		}

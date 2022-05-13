@@ -43,11 +43,12 @@ func (r *Softmax[T, O]) Backward(gy mat.Matrix[T]) {
 		y := r.y
 		n := y.Size()
 		jb := mat.NewInitFuncDense[T](n, n, func(row, col int) T {
+			vRow := mat.DTFloat[T](y.ScalarAtVec(row))
 			if row == col {
-				v := y.ScalarAtVec(row)
-				return v * (1 - v)
+				return vRow * (1 - vRow)
 			}
-			return -(y.ScalarAtVec(row) * y.ScalarAtVec(col))
+			vCol := mat.DTFloat[T](y.ScalarAtVec(col))
+			return -(vRow * vCol)
 		})
 		defer mat.ReleaseDense(jb)
 		gx := jb.Mul(gy)

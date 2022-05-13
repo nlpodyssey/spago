@@ -42,10 +42,10 @@ type Matrix[T DType] interface {
 	At(r int, c int) Matrix[T]
 	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
-	SetScalar(r int, c int, v T)
+	SetScalar(r int, c int, v FloatInterface)
 	// ScalarAt returns the value at row r and column c.
 	// It panics if the given indices are out of range.
-	ScalarAt(r int, c int) T
+	ScalarAt(r int, c int) FloatInterface
 	// SetVec sets the scalar value from a 1×1 matrix at position i of a
 	// vector. It panics if the receiver is not a vector, or the given matrix is
 	// not 1×1, or the position is out of range.
@@ -55,10 +55,10 @@ type Matrix[T DType] interface {
 	AtVec(i int) Matrix[T]
 	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	SetVecScalar(i int, v T)
+	SetVecScalar(i int, v FloatInterface)
 	// ScalarAtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	ScalarAtVec(i int) T
+	ScalarAtVec(i int) FloatInterface
 	// ExtractRow returns a copy of the i-th row of the matrix,
 	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix[T]

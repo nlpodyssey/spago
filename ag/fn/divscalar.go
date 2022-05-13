@@ -43,10 +43,16 @@ func (r *DivScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		r.x1.AccGrad(gy.ProdScalar(1.0 / float64(r.x2.Value().Scalar())))
 	}
 	if r.x2.RequiresGrad() {
+		// TODO: rewrite avoiding loop
+		x1 := r.x1.Value()
+		x2v := r.x2.Value().Scalar()
+		negX2Sq := -(x2v * x2v)
 		var gx T = 0.0
 		for i := 0; i < gy.Rows(); i++ {
 			for j := 0; j < gy.Columns(); j++ {
-				gx += gy.ScalarAt(i, j) * (r.x1.Value().ScalarAt(i, j) / (-1.0 * (r.x2.Value().Scalar() * r.x2.Value().Scalar())))
+				gyij := mat.DTFloat[T](gy.ScalarAt(i, j))
+				x1ij := mat.DTFloat[T](x1.ScalarAt(i, j))
+				gx += gyij * (x1ij / negX2Sq)
 			}
 		}
 		scalar := mat.NewScalar(gx)

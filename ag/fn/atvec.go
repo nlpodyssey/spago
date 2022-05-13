@@ -31,7 +31,7 @@ func (r *AtVec[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *AtVec[T, O]) Forward() mat.Matrix[T] {
-	return mat.NewScalar(r.x.Value().ScalarAtVec(r.i))
+	return r.x.Value().AtVec(r.i)
 }
 
 // Backward computes the backward pass.
@@ -39,7 +39,7 @@ func (r *AtVec[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)
-		dx.SetVecScalar(r.i, gy.Scalar())
+		dx.SetVec(r.i, gy)
 		r.x.AccGrad(dx)
 	}
 }

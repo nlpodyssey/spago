@@ -53,7 +53,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 		var nzSum T = 0.0
 		var nzCount T = 0.0
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			nzSum += gy.ScalarAtVec(i)
+			nzSum += mat.DTFloat[T](gy.ScalarAtVec(i))
 			nzCount++
 		})
 		nzSum = nzSum / nzCount
@@ -61,7 +61,8 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			gx.SetVecScalar(i, gy.ScalarAtVec(i)-nzSum)
+			gyi := mat.DTFloat[T](gy.ScalarAtVec(i))
+			gx.SetVecScalar(i, mat.Float(gyi-nzSum))
 		})
 
 		r.x.AccGrad(gx)

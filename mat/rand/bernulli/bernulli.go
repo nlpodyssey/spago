@@ -5,6 +5,8 @@
 package bernulli
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/mat/rand/uniform"
@@ -17,10 +19,11 @@ func Distribution[T mat.DType](r, c int, prob T, generator *rand.LockedRand[T]) 
 	for i := 0; i < r; i++ {
 		for j := 0; j < c; j++ {
 			val := dist.Next()
+			fl := math.Floor(float64(val))
 			if val < prob {
-				out.SetScalar(i, j, mat.Floor(val))
+				out.SetScalar(i, j, mat.Float(fl))
 			} else {
-				out.SetScalar(i, j, mat.Floor(val)+1)
+				out.SetScalar(i, j, mat.Float(fl+1))
 			}
 		}
 	}

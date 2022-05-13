@@ -226,18 +226,28 @@ func (d *Dense[T]) Zeros() {
 // Set sets the scalar value from a 1×1 matrix at row r and column c.
 // It panics if the given matrix is not 1×1, or if indices are out of range.
 func (d *Dense[T]) Set(r int, c int, m Matrix[T]) {
-	d.SetScalar(r, c, m.Scalar())
+	d.set(r, c, m.Scalar())
 }
 
 // At returns the value at row r and column c as a 1×1 matrix.
 // It panics if the given indices are out of range.
 func (d *Dense[T]) At(r int, c int) Matrix[T] {
-	return NewScalar[T](d.ScalarAt(r, c))
+	return NewScalar[T](d.at(r, c))
 }
 
 // SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) SetScalar(r int, c int, v T) {
+func (d *Dense[T]) SetScalar(r int, c int, v FloatInterface) {
+	d.set(r, c, DTFloat[T](v))
+}
+
+// ScalarAt returns the value at row r and column c.
+// It panics if the given indices are out of range.
+func (d *Dense[T]) ScalarAt(r int, c int) FloatInterface {
+	return Float(d.at(r, c))
+}
+
+func (d *Dense[T]) set(r int, c int, v T) {
 	if r < 0 || r >= d.rows {
 		panic("mat: 'r' argument out of range")
 	}
@@ -247,9 +257,7 @@ func (d *Dense[T]) SetScalar(r int, c int, v T) {
 	d.data[r*d.cols+c] = v
 }
 
-// ScalarAt returns the value at row r and column c.
-// It panics if the given indices are out of range.
-func (d *Dense[T]) ScalarAt(r int, c int) T {
+func (d *Dense[T]) at(r int, c int) T {
 	if r < 0 || r >= d.rows {
 		panic("mat: 'r' argument out of range")
 	}
@@ -263,18 +271,28 @@ func (d *Dense[T]) ScalarAt(r int, c int) T {
 // vector. It panics if the receiver is not a vector, or the given matrix is
 // not 1×1, or the position is out of range.
 func (d *Dense[T]) SetVec(i int, m Matrix[T]) {
-	d.SetVecScalar(i, m.Scalar())
+	d.setVec(i, m.Scalar())
 }
 
 // AtVec returns the value at position i of a vector as a 1×1 matrix.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) AtVec(i int) Matrix[T] {
-	return NewScalar[T](d.ScalarAtVec(i))
+	return NewScalar[T](d.atVec(i))
 }
 
 // SetVecScalar sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) SetVecScalar(i int, v T) {
+func (d *Dense[T]) SetVecScalar(i int, v FloatInterface) {
+	d.setVec(i, DTFloat[T](v))
+}
+
+// ScalarAtVec returns the value at position i of a vector.
+// It panics if the receiver is not a vector or the position is out of range.
+func (d *Dense[T]) ScalarAtVec(i int) FloatInterface {
+	return Float(d.atVec(i))
+}
+
+func (d *Dense[T]) setVec(i int, v T) {
 	if !(IsVector[T](d)) {
 		panic("mat: expected vector")
 	}
@@ -284,9 +302,7 @@ func (d *Dense[T]) SetVecScalar(i int, v T) {
 	d.data[i] = v
 }
 
-// ScalarAtVec returns the value at position i of a vector.
-// It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) ScalarAtVec(i int) T {
+func (d *Dense[T]) atVec(i int) T {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}
@@ -1150,7 +1166,7 @@ func (d *Dense[T]) Augment() Matrix[T] {
 		for j := 0; j < d.cols; j++ {
 			out.SetScalar(i, j, d.ScalarAt(i, j))
 		}
-		out.SetScalar(i, i+d.rows, 1.0)
+		out.set(i, i+d.rows, 1.0)
 	}
 	return out
 }
@@ -1460,7 +1476,7 @@ func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...f
 	// TODO: rewrite for better performance
 	for r := 0; r < d.rows; r++ {
 		for c := 0; c < d.cols; c++ {
-			d.data[r*d.cols+c] = T(fn(r, c, float64(a.ScalarAt(r, c)), alpha...))
+			d.data[r*d.cols+c] = T(fn(r, c, a.ScalarAt(r, c).Float64(), alpha...))
 		}
 	}
 	return d

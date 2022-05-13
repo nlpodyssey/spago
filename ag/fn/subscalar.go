@@ -43,14 +43,10 @@ func (r *SubScalar[T, O]) Backward(gy mat.Matrix[T]) {
 		r.x1.AccGrad(gy) // equals to gy.ProdScalar(1.0)
 	}
 	if r.x2.RequiresGrad() {
-		var gx T = 0.0
-		for i := 0; i < gy.Rows(); i++ {
-			for j := 0; j < gy.Columns(); j++ {
-				gx -= gy.ScalarAt(i, j)
-			}
-		}
-		scalar := mat.NewScalar(gx)
-		defer mat.ReleaseDense(scalar)
-		r.x2.AccGrad(scalar)
+		neg := gy.ProdScalar(-1)
+		defer mat.ReleaseMatrix(neg)
+		gx := neg.Sum()
+		defer mat.ReleaseMatrix(gx)
+		r.x2.AccGrad(gx)
 	}
 }

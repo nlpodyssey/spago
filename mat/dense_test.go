@@ -662,28 +662,28 @@ func testDenseSetScalar[T DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(-1, 1, 42)
+			d.SetScalar(-1, 1, Float(T(42)))
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(1, -1, 42)
+			d.SetScalar(1, -1, Float(T(42)))
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(2, 1, 42)
+			d.SetScalar(2, 1, Float(T(42)))
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(1, 3, 42)
+			d.SetScalar(1, 3, Float(T(42)))
 		})
 	})
 
@@ -723,7 +723,7 @@ func testDenseSetScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			d.SetScalar(tc.setR, tc.setC, 42)
+			d.SetScalar(tc.setR, tc.setC, Float(T(42)))
 			assert.Equal(t, tc.d, d.Data())
 		})
 	}
@@ -791,7 +791,7 @@ func testDenseScalarAt[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			v := d.ScalarAt(tc.atR, tc.atC)
-			assert.Equal(t, tc.v, v)
+			assert.Equal(t, Float(tc.v), v)
 		})
 	}
 }
@@ -928,21 +928,21 @@ func testDenseSetVecScalar[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetVecScalar(1, 42)
+			d.SetVecScalar(1, Float(T(42)))
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVecScalar(-1, 42)
+			d.SetVecScalar(-1, Float(T(42)))
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVecScalar(2, 42)
+			d.SetVecScalar(2, Float(T(42)))
 		})
 	})
 
@@ -963,13 +963,13 @@ func testDenseSetVecScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
-			d.SetVecScalar(tc.i, 42)
+			d.SetVecScalar(tc.i, Float(T(42)))
 			assert.Equal(t, tc.d, d.Data())
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
-			d.SetVecScalar(tc.i, 42)
+			d.SetVecScalar(tc.i, Float(T(42)))
 			assert.Equal(t, tc.d, d.Data())
 		})
 	}
@@ -1022,7 +1022,7 @@ func testDenseScalarAtVec[T DType](t *testing.T) {
 				return T(r + 1)
 			})
 			v := d.ScalarAtVec(tc.i)
-			assert.Equal(t, tc.v, v)
+			assert.Equal(t, Float(tc.v), v)
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
@@ -1030,7 +1030,7 @@ func testDenseScalarAtVec[T DType](t *testing.T) {
 				return T(c + 1)
 			})
 			v := d.ScalarAtVec(tc.i)
-			assert.Equal(t, tc.v, v)
+			assert.Equal(t, Float(tc.v), v)
 		})
 	}
 }
@@ -1206,10 +1206,10 @@ func testDenseView[T DType](t *testing.T) {
 	t.Run("data is not copied", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		v := d.View(1, 1)
-		d.SetScalar(0, 0, 42) // modifying d must modify v too
-		assert.Equal(t, T(42), v.ScalarAt(0, 0))
-		v.SetScalar(0, 0, 2) // modifying v must modify d too
-		assert.Equal(t, T(2), d.ScalarAt(0, 0))
+		d.SetScalar(0, 0, Float(T(42))) // modifying d must modify v too
+		assert.Equal(t, Float(T(42)), v.ScalarAt(0, 0))
+		v.SetScalar(0, 0, Float(T(2))) // modifying v must modify d too
+		assert.Equal(t, Float(T(2)), d.ScalarAt(0, 0))
 	})
 }
 
@@ -1418,8 +1418,8 @@ func testDenseReshape[T DType](t *testing.T) {
 	t.Run("data is copied", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		r := d.Reshape(1, 1)
-		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
 	})
 }
 
@@ -1614,15 +1614,15 @@ func testDenseResizeVector[T DType](t *testing.T) {
 	t.Run("data is copied - smaller size", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(1)
-		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
 	})
 
 	t.Run("data is copied - bigger size", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(3)
-		d.SetScalar(0, 0, 42) // modifying d must not modify r
-		assert.Equal(t, T(0), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
 	})
 }
 
@@ -4284,8 +4284,8 @@ func testDenseClone[T DType](t *testing.T) {
 	t.Run("data is copied", func(t *testing.T) {
 		d := NewDense(1, 1, []T{1})
 		y := d.Clone()
-		d.SetScalar(0, 0, 42)
-		assert.Equal(t, T(1), y.ScalarAt(0, 0))
+		d.SetScalar(0, 0, Float(T(42)))
+		assert.Equal(t, Float(T(1)), y.ScalarAt(0, 0))
 	})
 }
 

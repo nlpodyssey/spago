@@ -33,7 +33,7 @@ func (r *ReduceMax[T, O]) Operands() []O {
 func (r *ReduceMax[T, O]) Forward() mat.Matrix[T] {
 	xv := r.x.Value()
 	r.argmax = xv.ArgMax()
-	return mat.NewScalar(xv.ScalarAtVec(r.argmax))
+	return xv.AtVec(r.argmax)
 }
 
 // Backward computes the backward pass.

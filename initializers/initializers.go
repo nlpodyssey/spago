@@ -32,7 +32,7 @@ func Uniform[T mat.DType](m mat.Matrix[T], min, max T, generator *rand.LockedRan
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, dist.Next())
+			m.SetScalar(i, j, mat.Float(dist.Next()))
 		}
 	}
 }
@@ -43,7 +43,7 @@ func Normal[T mat.DType](m mat.Matrix[T], mean, std T, generator *rand.LockedRan
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, dist.Next())
+			m.SetScalar(i, j, mat.Float(dist.Next()))
 		}
 	}
 }
@@ -52,7 +52,7 @@ func Normal[T mat.DType](m mat.Matrix[T], mean, std T, generator *rand.LockedRan
 func Constant[T mat.DType](m mat.Matrix[T], n T) {
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, n)
+			m.SetScalar(i, j, mat.Float(n))
 		}
 	}
 }
@@ -75,7 +75,7 @@ func XavierUniform[T mat.DType](m mat.Matrix[T], gain T, generator *rand.LockedR
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, dist.Next())
+			m.SetScalar(i, j, mat.Float(dist.Next()))
 		}
 	}
 }
@@ -90,7 +90,7 @@ func XavierNormal[T mat.DType](m mat.Matrix[T], gain T, generator *rand.LockedRa
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, dist.Next())
+			m.SetScalar(i, j, mat.Float(dist.Next()))
 		}
 	}
 }
@@ -103,17 +103,22 @@ func Achlioptas[T mat.DType](m mat.Matrix[T], generator *rand.LockedRand[T]) {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := T(1.0 / 6.0)
 	upper := 1.0 - lower
-	a := mat.Sqrt[T](3.0)
+
+	sqrt3 := mat.Sqrt[T](3.0)
+	a := mat.Float(sqrt3)
+	negA := mat.Float(-sqrt3)
+	zero := mat.Float(T(0))
+
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			r := dist.Next()
 			if r < lower {
-				m.SetScalar(i, j, -a)
+				m.SetScalar(i, j, negA)
 			} else if r > upper {
 				m.SetScalar(i, j, a)
 			} else {
-				m.SetScalar(i, j, 0.0)
+				m.SetScalar(i, j, zero)
 			}
 		}
 	}

@@ -37,15 +37,11 @@ func (r *Dot[T, O]) Forward() mat.Matrix[T] {
 	}
 	if mat.IsVector(r.x1.Value()) && mat.IsVector(r.x2.Value()) {
 		return r.x1.Value().DotUnitary(r.x2.Value())
-	} else {
-		var y T = 0.0
-		for i := 0; i < r.x1.Value().Rows(); i++ {
-			for j := 0; j < r.x1.Value().Columns(); j++ {
-				y += r.x1.Value().ScalarAt(i, j) * r.x2.Value().ScalarAt(i, j)
-			}
-		}
-		return mat.NewScalar(y)
 	}
+
+	prod := r.x1.Value().Prod(r.x2.Value())
+	defer mat.ReleaseMatrix(prod)
+	return prod.Sum()
 }
 
 // Backward computes the backward pass.
