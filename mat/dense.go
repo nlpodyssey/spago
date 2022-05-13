@@ -266,6 +266,12 @@ func (d *Dense[T]) SetVec(i int, m Matrix[T]) {
 	d.SetVecScalar(i, m.Scalar())
 }
 
+// AtVec returns the value at position i of a vector as a 1×1 matrix.
+// It panics if the receiver is not a vector or the position is out of range.
+func (d *Dense[T]) AtVec(i int) Matrix[T] {
+	return NewScalar[T](d.ScalarAtVec(i))
+}
+
 // SetVecScalar sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) SetVecScalar(i int, v T) {

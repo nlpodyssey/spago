@@ -50,6 +50,9 @@ type Matrix[T DType] interface {
 	// vector. It panics if the receiver is not a vector, or the given matrix is
 	// not 1×1, or the position is out of range.
 	SetVec(i int, m Matrix[T])
+	// AtVec returns the value at position i of a vector as a 1×1 matrix.
+	// It panics if the receiver is not a vector or the position is out of range.
+	AtVec(i int) Matrix[T]
 	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
 	SetVecScalar(i int, v T)
