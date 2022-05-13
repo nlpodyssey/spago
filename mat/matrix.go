@@ -37,6 +37,9 @@ type Matrix[T DType] interface {
 	// Set sets the scalar value from a 1×1 matrix at row r and column c.
 	// It panics if the given matrix is not 1×1, or if indices are out of range.
 	Set(r int, c int, m Matrix[T])
+	// At returns the value at row r and column c as a 1×1 matrix.
+	// It panics if the given indices are out of range.
+	At(r int, c int) Matrix[T]
 	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
 	SetScalar(r int, c int, v T)

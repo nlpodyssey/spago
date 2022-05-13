@@ -229,6 +229,12 @@ func (d *Dense[T]) Set(r int, c int, m Matrix[T]) {
 	d.SetScalar(r, c, m.Scalar())
 }
 
+// At returns the value at row r and column c as a 1×1 matrix.
+// It panics if the given indices are out of range.
+func (d *Dense[T]) At(r int, c int) Matrix[T] {
+	return NewScalar[T](d.ScalarAt(r, c))
+}
+
 // SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
 func (d *Dense[T]) SetScalar(r int, c int, v T) {
