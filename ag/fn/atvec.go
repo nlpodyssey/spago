@@ -31,7 +31,7 @@ func (r *AtVec[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *AtVec[T, O]) Forward() mat.Matrix[T] {
-	return mat.NewScalar(r.x.Value().AtVec(r.i))
+	return mat.NewScalar(r.x.Value().ScalarAtVec(r.i))
 }
 
 // Backward computes the backward pass.

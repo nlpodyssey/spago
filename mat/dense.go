@@ -259,9 +259,9 @@ func (d *Dense[T]) SetVecScalar(i int, v T) {
 	d.data[i] = v
 }
 
-// AtVec returns the value at position i of a vector.
+// ScalarAtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) AtVec(i int) T {
+func (d *Dense[T]) ScalarAtVec(i int) T {
 	if !IsVector[T](d) {
 		panic("mat: expected vector")
 	}

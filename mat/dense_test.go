@@ -702,30 +702,30 @@ func testDenseSetVecScalar[T DType](t *testing.T) {
 	}
 }
 
-func TestDense_AtVec(t *testing.T) {
-	t.Run("float32", testDenseAtVec[float32])
-	t.Run("float64", testDenseAtVec[float64])
+func TestDense_ScalarAtVec(t *testing.T) {
+	t.Run("float32", testDenseScalarAtVec[float32])
+	t.Run("float64", testDenseScalarAtVec[float64])
 }
 
-func testDenseAtVec[T DType](t *testing.T) {
+func testDenseScalarAtVec[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.AtVec(1)
+			d.ScalarAtVec(1)
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.AtVec(-1)
+			d.ScalarAtVec(-1)
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.AtVec(2)
+			d.ScalarAtVec(2)
 		})
 	})
 
@@ -748,7 +748,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
 			})
-			v := d.AtVec(tc.i)
+			v := d.ScalarAtVec(tc.i)
 			assert.Equal(t, tc.v, v)
 		})
 
@@ -756,7 +756,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
 				return T(c + 1)
 			})
-			v := d.AtVec(tc.i)
+			v := d.ScalarAtVec(tc.i)
 			assert.Equal(t, tc.v, v)
 		})
 	}

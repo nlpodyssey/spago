@@ -43,9 +43,9 @@ type Matrix[T DType] interface {
 	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
 	SetVecScalar(i int, v T)
-	// AtVec returns the value at position i of a vector.
+	// ScalarAtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	AtVec(i int) T
+	ScalarAtVec(i int) T
 	// ExtractRow returns a copy of the i-th row of the matrix,
 	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix[T]
