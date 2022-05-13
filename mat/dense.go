@@ -223,6 +223,12 @@ func (d *Dense[T]) Zeros() {
 	}
 }
 
+// Set sets the scalar value from a 1×1 matrix at row r and column c.
+// It panics if the given matrix is not 1×1, or if indices are out of range.
+func (d *Dense[T]) Set(r int, c int, m Matrix[T]) {
+	d.SetScalar(r, c, m.Scalar())
+}
+
 // SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
 func (d *Dense[T]) SetScalar(r int, c int, v T) {
