@@ -40,9 +40,9 @@ type Matrix[T DType] interface {
 	// ScalarAt returns the value at row r and column c.
 	// It panics if the given indices are out of range.
 	ScalarAt(r int, c int) T
-	// SetVec sets the value v at position i of a vector.
+	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	SetVec(i int, v T)
+	SetVecScalar(i int, v T)
 	// AtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
 	AtVec(i int) T

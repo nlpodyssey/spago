@@ -61,7 +61,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			gx.SetVec(i, gy.AtVec(i)-nzSum)
+			gx.SetVecScalar(i, gy.AtVec(i)-nzSum)
 		})
 
 		r.x.AccGrad(gx)
