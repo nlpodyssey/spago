@@ -253,6 +253,13 @@ func (d *Dense[T]) ScalarAt(r int, c int) T {
 	return d.data[r*d.cols+c]
 }
 
+// SetVec sets the scalar value from a 1×1 matrix at position i of a
+// vector. It panics if the receiver is not a vector, or the given matrix is
+// not 1×1, or the position is out of range.
+func (d *Dense[T]) SetVec(i int, m Matrix[T]) {
+	d.SetVecScalar(i, m.Scalar())
+}
+
 // SetVecScalar sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) SetVecScalar(i int, v T) {
