@@ -1531,3 +1531,87 @@ func (d *Dense[T]) Copy(other Matrix) {
 func (d *Dense[T]) String() string {
 	return fmt.Sprintf("Matrix|Dense[%T](%d×%d)%v", T(0), d.rows, d.cols, d.data)
 }
+
+// NewMatrix creates a new matrix, of the same type of the receiver, of
+// size rows×cols, initialized with a copy of raw data.
+//
+// Rows and columns MUST not be negative, and the length of data MUST be
+// equal to rows*cols, otherwise the method panics.
+func (d *Dense[T]) NewMatrix(rows, cols int, data FloatSliceInterface) Matrix {
+	return NewDense[T](rows, cols, DTFloatSlice[T](data))
+}
+
+// NewVec creates a new column vector (len(data)×1), of the same type of
+// the receiver, initialized with a copy of raw data.
+func (d *Dense[T]) NewVec(data FloatSliceInterface) Matrix {
+	return NewVecDense[T](DTFloatSlice[T](data))
+}
+
+// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
+// containing the given value.
+func (d *Dense[T]) NewScalar(v FloatInterface) Matrix {
+	return NewScalar[T](DTFloat[T](v))
+}
+
+// NewEmptyVec creates a new vector, of the same type of the receiver,
+// with dimensions size×1, initialized with zeros.
+func (d *Dense[T]) NewEmptyVec(size int) Matrix {
+	return NewEmptyVecDense[T](size)
+}
+
+// NewEmptyMatrix creates a new rows×cols matrix, of the same type of the
+// receiver, initialized with zeros.
+func (d *Dense[T]) NewEmptyMatrix(rows, cols int) Matrix {
+	return NewEmptyDense[T](rows, cols)
+}
+
+// NewInitMatrix creates a new rows×cols dense matrix, of the same type
+// of the receiver, initialized with a constant value.
+func (d *Dense[T]) NewInitMatrix(rows, cols int, v FloatInterface) Matrix {
+	return NewInitDense[T](rows, cols, DTFloat[T](v))
+}
+
+// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
+// of the receiver, initialized with the values returned from the
+// callback function.
+func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) FloatInterface) Matrix {
+	return NewInitFuncDense[T](rows, cols, func(r, c int) T {
+		return DTFloat[T](fn(r, c))
+	})
+}
+
+// NewInitVec creates a new column vector (size×1), of the same type of
+// the receiver, initialized with a constant value.
+func (d *Dense[T]) NewInitVec(size int, v FloatInterface) Matrix {
+	return NewInitVecDense[T](size, DTFloat[T](v))
+}
+
+// NewIdentityMatrix creates a new square identity matrix (size×size), of
+// the same type of the receiver, that is, with ones on the diagonal
+// and zeros elsewhere.
+func (d *Dense[T]) NewIdentityMatrix(size int) Matrix {
+	return NewIdentityDense[T](size)
+}
+
+// NewOneHotVec creates a new one-hot column vector (size×1), of the same
+// type of the receiver.
+func (d *Dense[T]) NewOneHotVec(size int, oneAt int) Matrix {
+	return NewOneHotVecDense[T](size, oneAt)
+}
+
+// NewConcatV creates a new column vector, of the same type of the receiver,
+// concatenating two or more vectors "vertically"
+// It accepts row or column vectors indifferently, virtually
+// treating all of them as column vectors.
+func (d *Dense[T]) NewConcatV(vs ...Matrix) Matrix {
+	return ConcatV[T](vs...)
+}
+
+// NewStack creates a new matrix, of the same type of the receiver, stacking
+// two or more vectors of the same size on top of each other; the result is
+// a new matrix where each row contains the data of each input vector.
+// It accepts row or column vectors indifferently, virtually treating all of
+// them as row vectors.
+func (d *Dense[T]) NewStack(vs ...Matrix) Matrix {
+	return Stack[T](vs...)
+}

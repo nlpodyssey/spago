@@ -226,6 +226,53 @@ type Matrix interface {
 	Copy(other Matrix)
 	// String returns a string representation of the matrix.
 	String() string
+
+	// NewMatrix creates a new matrix, of the same type of the receiver, of
+	// size rows×cols, initialized with a copy of raw data.
+	//
+	// Rows and columns MUST not be negative, and the length of data MUST be
+	// equal to rows*cols, otherwise the method panics.
+	NewMatrix(rows, cols int, data FloatSliceInterface) Matrix
+	// NewVec creates a new column vector (len(data)×1), of the same type of
+	// the receiver, initialized with a copy of raw data.
+	NewVec(data FloatSliceInterface) Matrix
+	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
+	// containing the given value.
+	NewScalar(v FloatInterface) Matrix
+	// NewEmptyVec creates a new vector, of the same type of the receiver,
+	// with dimensions size×1, initialized with zeros.
+	NewEmptyVec(size int) Matrix
+	// NewEmptyMatrix creates a new rows×cols matrix, of the same type of the
+	// receiver, initialized with zeros.
+	NewEmptyMatrix(rows, cols int) Matrix
+	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
+	// of the receiver, initialized with a constant value.
+	NewInitMatrix(rows, cols int, v FloatInterface) Matrix
+	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
+	// of the receiver, initialized with the values returned from the
+	// callback function.
+	NewInitFuncMatrix(rows, cols int, fn func(r, c int) FloatInterface) Matrix
+	// NewInitVec creates a new column vector (size×1), of the same type of
+	// the receiver, initialized with a constant value.
+	NewInitVec(size int, v FloatInterface) Matrix
+	// NewIdentityMatrix creates a new square identity matrix (size×size), of
+	// the same type of the receiver, that is, with ones on the diagonal
+	// and zeros elsewhere.
+	NewIdentityMatrix(size int) Matrix
+	// NewOneHotVec creates a new one-hot column vector (size×1), of the same
+	// type of the receiver.
+	NewOneHotVec(size int, oneAt int) Matrix
+	// NewConcatV creates a new column vector, of the same type of the receiver,
+	// concatenating two or more vectors "vertically"
+	// It accepts row or column vectors indifferently, virtually
+	// treating all of them as column vectors.
+	NewConcatV(vs ...Matrix) Matrix
+	// NewStack creates a new matrix, of the same type of the receiver, stacking
+	// two or more vectors of the same size on top of each other; the result is
+	// a new matrix where each row contains the data of each input vector.
+	// It accepts row or column vectors indifferently, virtually treating all of
+	// them as row vectors.
+	NewStack(vs ...Matrix) Matrix
 }
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional
