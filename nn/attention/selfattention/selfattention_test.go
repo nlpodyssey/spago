@@ -75,23 +75,23 @@ func newTestModel[T mat.DType]() *SelfAttention[T] {
 		ScaleFactor: 1.0 / mat.Sqrt[T](3.0),
 	})}
 
-	model.Value.W.Value().SetData([]T{
+	mat.SetData[T](model.Value.W.Value(), []T{
 		0.5, 0.6, -0.8, 0.7,
 		-0.4, 0.1, 0.7, -0.7,
 		0.3, 0.8, -0.9, 0.0,
 	})
-	model.Value.B.Value().SetData([]T{0.4, 0.0, -0.3})
-	model.Key.W.Value().SetData([]T{
+	mat.SetData[T](model.Value.B.Value(), []T{0.4, 0.0, -0.3})
+	mat.SetData[T](model.Key.W.Value(), []T{
 		0.7, -0.2, -0.1, 0.2,
 		-0.1, -0.1, 0.3, -0.2,
 		0.6, 0.1, 0.9, 0.3,
 	})
-	model.Key.B.Value().SetData([]T{0.8, -0.2, -0.5})
-	model.Query.W.Value().SetData([]T{
+	mat.SetData[T](model.Key.B.Value(), []T{0.8, -0.2, -0.5})
+	mat.SetData[T](model.Query.W.Value(), []T{
 		-0.8, -0.6, 0.2, 0.5,
 		0.7, -0.6, -0.3, 0.6,
 		-0.3, 0.3, 0.4, -0.8,
 	})
-	model.Query.B.Value().SetData([]T{0.3, 0.5, -0.7})
+	mat.SetData[T](model.Query.B.Value(), []T{0.3, 0.5, -0.7})
 	return model
 }

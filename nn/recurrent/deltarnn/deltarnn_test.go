@@ -111,25 +111,25 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4, 5)
-	model.W.Value().SetData([]T{
+	mat.SetData[T](model.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
 		0.8, -0.9, 0.0, -0.1,
 		0.4, 1.0, -0.7, 0.8,
 	})
-	model.WRec.Value().SetData([]T{
+	mat.SetData[T](model.WRec.Value(), []T{
 		0.0, 0.8, 0.8, -1.0, -0.7,
 		-0.7, -0.8, 0.2, -0.7, 0.7,
 		-0.9, 0.9, 0.7, -0.5, 0.5,
 		0.0, -0.1, 0.5, -0.2, -0.8,
 		-0.6, 0.6, 0.8, -0.1, -0.3,
 	})
-	model.B.Value().SetData([]T{0.4, 0.0, -0.3, 0.8, -0.4})
-	model.BPart.Value().SetData([]T{0.9, -0.5, 0.4, -0.8, 0.2})
-	model.Alpha.Value().SetData([]T{-0.5, -0.3, 0.3, 0.4, 0.1})
-	model.Beta1.Value().SetData([]T{-0.3, -0.4, -0.4, -0.4, -0.4})
-	model.Beta2.Value().SetData([]T{-0.4, -0.2, 1.0, -0.8, 0.1})
+	mat.SetData[T](model.B.Value(), []T{0.4, 0.0, -0.3, 0.8, -0.4})
+	mat.SetData[T](model.BPart.Value(), []T{0.9, -0.5, 0.4, -0.8, 0.2})
+	mat.SetData[T](model.Alpha.Value(), []T{-0.5, -0.3, 0.3, 0.4, 0.1})
+	mat.SetData[T](model.Beta1.Value(), []T{-0.3, -0.4, -0.4, -0.4, -0.4})
+	mat.SetData[T](model.Beta2.Value(), []T{-0.4, -0.2, 1.0, -0.8, 0.1})
 	return model
 }
 
@@ -185,19 +185,19 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 
 func newTestModel2[T mat.DType]() *Model[T] {
 	model := New[T](3, 2)
-	model.W.Value().SetData([]T{
+	mat.SetData[T](model.W.Value(), []T{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,
 	})
-	model.WRec.Value().SetData([]T{
+	mat.SetData[T](model.WRec.Value(), []T{
 		0.5, 0.3,
 		0.2, -0.1,
 	})
-	model.B.Value().SetData([]T{-0.2, 0.1})
-	model.BPart.Value().SetData([]T{0.5, 0.3})
-	model.Alpha.Value().SetData([]T{0.5, 0.4})
-	model.Beta1.Value().SetData([]T{-1.0, 0.5})
-	model.Beta2.Value().SetData([]T{0.3, 0.6})
+	mat.SetData[T](model.B.Value(), []T{-0.2, 0.1})
+	mat.SetData[T](model.BPart.Value(), []T{0.5, 0.3})
+	mat.SetData[T](model.Alpha.Value(), []T{0.5, 0.4})
+	mat.SetData[T](model.Beta1.Value(), []T{-1.0, 0.5})
+	mat.SetData[T](model.Beta2.Value(), []T{0.3, 0.6})
 
 	return model
 }

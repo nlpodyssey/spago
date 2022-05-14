@@ -21,7 +21,7 @@ func testUpdate[T mat.DType](t *testing.T) {
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 	supp := updater.NewSupport(params.Dims()).Data
-	supp[m].SetData([]T{1.0, 0.4, 0.7, 0.0, 0.2})
+	mat.SetData[T](supp[m], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 

@@ -234,7 +234,7 @@ type matrixInDeltaTestCase[T mat.DType] struct {
 	name     string
 	expected mat.Matrix[T]
 	actual   mat.Matrix[T]
-	delta    T
+	delta    float64
 	args     []any
 	success  bool
 	errorMsg string

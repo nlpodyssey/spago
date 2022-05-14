@@ -175,7 +175,7 @@ func testConcatV[T DType](t *testing.T) {
 			y := ConcatV[T](tc.xs...)
 			assert.Equal(t, len(tc.y), y.Rows())
 			assert.Equal(t, 1, y.Columns())
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -255,7 +255,7 @@ func testStack[T DType](t *testing.T) {
 				cols = tc.xs[0].Size()
 			}
 			assert.Equal(t, cols, y.Columns())
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -320,7 +320,7 @@ func TestInDelta(t *testing.T) {
 func testInDelta[T DType](t *testing.T) {
 	testCases := []struct {
 		a, b     Matrix[T]
-		delta    T
+		delta    float64
 		expected bool
 	}{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), 0, true},

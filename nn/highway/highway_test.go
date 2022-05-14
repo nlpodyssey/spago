@@ -60,22 +60,22 @@ func testModelForward[T mat.DType](t *testing.T) {
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4, activation.Tanh)
 
-	model.WIn.Value().SetData([]T{
+	mat.SetData[T](model.WIn.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
 		0.8, -0.9, 0.0, -0.1,
 	})
 
-	model.WT.Value().SetData([]T{
+	mat.SetData[T](model.WT.Value(), []T{
 		0.1, 0.4, -1.0, 0.4,
 		0.7, -0.2, 0.1, 0.0,
 		0.7, 0.8, -0.5, -0.3,
 		-0.9, 0.9, -0.3, -0.3,
 	})
 
-	model.BIn.Value().SetData([]T{0.4, 0.0, -0.3, 0.8})
-	model.BT.Value().SetData([]T{0.9, 0.2, -0.9, 0.2})
+	mat.SetData[T](model.BIn.Value(), []T{0.4, 0.0, -0.3, 0.8})
+	mat.SetData[T](model.BT.Value(), []T{0.9, 0.2, -0.9, 0.2})
 
 	return model
 }

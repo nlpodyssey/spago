@@ -105,7 +105,7 @@ func testRowViews[T mat.DType](t *testing.T) {
 
 				assert.Equal(t, 1, y.Rows())
 				assert.Equal(t, len(expected), y.Columns())
-				assert.Equal(t, expected, y.Data())
+				assert.Equal(t, expected, mat.Data[T](y))
 			}
 		})
 	}
@@ -163,7 +163,7 @@ func testColViews[T mat.DType](t *testing.T) {
 
 				assert.Equal(t, len(expected), y.Rows())
 				assert.Equal(t, 1, y.Columns())
-				assert.Equal(t, expected, y.Data())
+				assert.Equal(t, expected, mat.Data[T](y))
 			}
 		})
 	}

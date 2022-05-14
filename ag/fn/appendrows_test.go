@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,14 +44,12 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 
 	y := f.Forward()
 
-	assert.Equal(t, 4, y.Rows())
-	assert.Equal(t, 3, y.Columns())
-	assert.Equal(t, []T{
+	mattest.AssertMatrixEquals[T](t, mat.NewDense(4, 3, []T{
 		11, 12, 13,
 		21, 22, 23,
 		31, 32, 33,
 		41, 42, 43,
-	}, y.Data())
+	}), y)
 
 	f.Backward(mat.NewDense(4, 3, []T{
 		0, 1, 2,
@@ -59,10 +58,10 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 		9, 0, 1,
 	}))
 
-	assert.Equal(t, []T{
+	mattest.AssertMatrixEquals[T](t, mat.NewDense(2, 3, []T{
 		0, 1, 2,
 		3, 4, 5,
-	}, x.grad.Data())
-	assert.Equal(t, []T{6, 7, 8}, vs[0].grad.Data())
-	assert.Equal(t, []T{9, 0, 1}, vs[1].grad.Data())
+	}), x.grad)
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{6, 7, 8}).T(), vs[0].grad)
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{9, 0, 1}).T(), vs[1].grad)
 }

@@ -28,8 +28,8 @@ func testRAdamDeltaTimeStep1[T mat.DType](t *testing.T) {
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
 	supp := updater.NewSupport(params.Dims()).Data
-	supp[m].SetData([]T{0.7, 0.8, 0.5, 0.3, 0.2})
-	supp[v].SetData([]T{1.0, 0.4, 0.7, 0.0, 0.2})
+	mat.SetData[T](supp[m], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	mat.SetData[T](supp[v], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
@@ -53,8 +53,8 @@ func testRAdaDeltaTimeStep6[T mat.DType](t *testing.T) {
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
 	supp := updater.NewSupport(params.Dims()).Data
-	supp[m].SetData([]T{0.7, 0.8, 0.5, 0.3, 0.2})
-	supp[v].SetData([]T{1.0, 0.4, 0.7, 0.0, 0.2})
+	mat.SetData[T](supp[m], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	mat.SetData[T](supp[v], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	for i := 0; i < 5; i++ {
 		updater.IncBatch()

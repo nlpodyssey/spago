@@ -167,29 +167,29 @@ func newTestModel[T mat.DType](mergeType MergeType) *Model[T] {
 }
 
 func initPos[T mat.DType](m *srn.Model[T]) {
-	m.W.Value().SetData([]T{
+	mat.SetData[T](m.W.Value(), []T{
 		-0.9, 0.4,
 		0.7, -1.0,
 		-0.9, -0.4,
 	})
-	m.WRec.Value().SetData([]T{
+	mat.SetData[T](m.WRec.Value(), []T{
 		0.1, 0.9, -0.5,
 		-0.6, 0.7, 0.7,
 		0.3, 0.9, 0.0,
 	})
-	m.B.Value().SetData([]T{0.4, -0.3, 0.8})
+	mat.SetData[T](m.B.Value(), []T{0.4, -0.3, 0.8})
 }
 
 func initNeg[T mat.DType](m *srn.Model[T]) {
-	m.W.Value().SetData([]T{
+	mat.SetData[T](m.W.Value(), []T{
 		0.3, 0.1,
 		0.6, 0.0,
 		-0.7, 0.1,
 	})
-	m.WRec.Value().SetData([]T{
+	mat.SetData[T](m.WRec.Value(), []T{
 		-0.2, 0.7, 0.7,
 		-0.2, 0.0, -1.0,
 		0.5, -0.4, 0.4,
 	})
-	m.B.Value().SetData([]T{0.2, -0.9, -0.2})
+	mat.SetData[T](m.B.Value(), []T{0.2, -0.9, -0.2})
 }

@@ -100,21 +100,21 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	params := New[T](4, 5)
-	params.W.Value().SetData([]T{
+	mat.SetData[T](params.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
 		0.8, -0.9, 0.0, -0.1,
 		0.4, 1.0, -0.7, 0.8,
 	})
-	params.WRec.Value().SetData([]T{
+	mat.SetData[T](params.WRec.Value(), []T{
 		0.0, 0.8, 0.8, -1.0, -0.7,
 		-0.7, -0.8, 0.2, -0.7, 0.7,
 		-0.9, 0.9, 0.7, -0.5, 0.5,
 		0.0, -0.1, 0.5, -0.2, -0.8,
 		-0.6, 0.6, 0.8, -0.1, -0.3,
 	})
-	params.B.Value().SetData([]T{0.4, 0.0, -0.3, 0.8, -0.4})
+	mat.SetData[T](params.B.Value(), []T{0.4, 0.0, -0.3, 0.8, -0.4})
 	return params
 }
 
@@ -168,14 +168,14 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 
 func newTestModel2[T mat.DType]() *Model[T] {
 	model := New[T](3, 2)
-	model.W.Value().SetData([]T{
+	mat.SetData[T](model.W.Value(), []T{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,
 	})
-	model.WRec.Value().SetData([]T{
+	mat.SetData[T](model.WRec.Value(), []T{
 		0.5, 0.3,
 		0.2, -0.1,
 	})
-	model.B.Value().SetData([]T{-0.2, 0.1})
+	mat.SetData[T](model.B.Value(), []T{-0.2, 0.1})
 	return model
 }

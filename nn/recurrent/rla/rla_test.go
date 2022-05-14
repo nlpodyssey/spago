@@ -36,26 +36,26 @@ func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](Config{
 		InputSize: 4,
 	})
-	model.Wv.Value().SetData([]T{
+	mat.SetData[T](model.Wv.Value(), []T{
 		0.5, 0.6, -0.8, 0.7,
 		-0.4, 0.1, 0.7, -0.7,
 		0.3, 0.8, -0.9, 0.0,
 		0.5, -0.4, -0.5, -0.3,
 	})
-	model.Bv.Value().SetData([]T{0.4, 0.0, -0.3, 0.3})
-	model.Wk.Value().SetData([]T{
+	mat.SetData[T](model.Bv.Value(), []T{0.4, 0.0, -0.3, 0.3})
+	mat.SetData[T](model.Wk.Value(), []T{
 		0.7, -0.2, -0.1, 0.2,
 		-0.1, -0.1, 0.3, -0.2,
 		0.6, 0.1, 0.9, 0.3,
 		0.3, 0.6, 0.4, 0.2,
 	})
-	model.Bk.Value().SetData([]T{0.8, -0.2, -0.5, -0.9})
-	model.Wq.Value().SetData([]T{
+	mat.SetData[T](model.Bk.Value(), []T{0.8, -0.2, -0.5, -0.9})
+	mat.SetData[T](model.Wq.Value(), []T{
 		-0.8, -0.6, 0.2, 0.5,
 		0.7, -0.6, -0.3, 0.6,
 		-0.3, 0.3, 0.4, -0.8,
 		0.8, 0.2, 0.4, 0.3,
 	})
-	model.Bq.Value().SetData([]T{0.3, 0.5, -0.7, -0.6})
+	mat.SetData[T](model.Bq.Value(), []T{0.3, 0.5, -0.7, -0.6})
 	return model
 }

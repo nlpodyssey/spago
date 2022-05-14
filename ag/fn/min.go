@@ -43,14 +43,14 @@ func (r *Min[T, O]) Backward(gy mat.Matrix[T]) {
 	}
 
 	n := gy.Size()
-	gyData := gy.Data()
-	x1vData := x1v.Data()
-	x2vData := x2v.Data()
+	gyData := mat.Data[T](gy)
+	x1vData := mat.Data[T](x1v)
+	x2vData := mat.Data[T](x2v)
 
 	if r.x1.RequiresGrad() {
 		gx := x1v.ZerosLike()
 		defer mat.ReleaseMatrix(gx)
-		gxData := gx.Data()
+		gxData := mat.Data[T](gx)
 		for i := 0; i < n; i++ {
 			if x1vData[i] < x2vData[i] {
 				gxData[i] = gyData[i]
@@ -62,7 +62,7 @@ func (r *Min[T, O]) Backward(gy mat.Matrix[T]) {
 		gx := x2v.ZerosLike()
 		defer mat.ReleaseMatrix(gx)
 		n := gy.Size()
-		gxData := gx.Data()
+		gxData := mat.Data[T](gx)
 		for i := 0; i < n; i++ {
 			if x2vData[i] < x1vData[i] {
 				gxData[i] = gyData[i]

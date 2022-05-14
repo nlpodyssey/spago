@@ -10,6 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/embeddings"
 	"github.com/nlpodyssey/spago/embeddings/store/memstore"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,14 +44,14 @@ func TestEmbedding_Value(t *testing.T) {
 
 	e1.ReplaceValue(mat.NewVecDense([]T{10, 20, 30}))
 
-	assert.Equal(t, []T{10, 20, 30}, e1.Value().Data())
-	assert.Equal(t, []T{10, 20, 30}, e2.Value().Data())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{10, 20, 30}), e1.Value())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{10, 20, 30}), e2.Value())
 
 	// Apply delta
 	e1.ApplyDelta(mat.NewVecDense([]T{1, 2, 3}))
 
-	assert.Equal(t, []T{9, 18, 27}, e1.Value().Data())
-	assert.Equal(t, []T{9, 18, 27}, e2.Value().Data())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{9, 18, 27}), e1.Value())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{9, 18, 27}), e2.Value())
 
 	// Set value to nil (weird corner case, but possible)
 
@@ -91,14 +92,14 @@ func TestEmbedding_ReplaceValue(t *testing.T) {
 	e.SetPayload(payload)
 	e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 
-	require.Equal(t, []T{1, 2, 3}, e.Value().Data())
+	mattest.RequireMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), e.Value())
 	require.True(t, e.HasGrad())
-	require.Equal(t, []T{10, 20, 30}, e.Grad().Data())
+	mattest.RequireMatrixEquals[T](t, mat.NewVecDense([]T{10, 20, 30}), e.Grad())
 	assertPayloadEqual(t, payload, e.Payload())
 
 	e.ReplaceValue(mat.NewVecDense([]T{7, 8, 9}))
 
-	require.Equal(t, []T{7, 8, 9}, e.Value().Data())
+	mattest.RequireMatrixEquals[T](t, mat.NewVecDense([]T{7, 8, 9}), e.Value())
 	require.False(t, e.HasGrad())
 	require.Nil(t, e.Grad())
 	assert.Nil(t, e.Payload())
@@ -159,8 +160,8 @@ func TestEmbedding_Grad(t *testing.T) {
 
 	assert.NotNil(t, e1.Grad())
 	assert.NotNil(t, e2.Grad())
-	assert.Equal(t, []T{1, 2, 3}, e1.Grad().Data())
-	assert.Equal(t, []T{1, 2, 3}, e2.Grad().Data())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), e1.Grad())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), e2.Grad())
 	assert.Same(t, e1.Grad(), e2.Grad())
 
 	e1.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
@@ -170,8 +171,8 @@ func TestEmbedding_Grad(t *testing.T) {
 
 	assert.NotNil(t, e1.Grad())
 	assert.NotNil(t, e2.Grad())
-	assert.Equal(t, []T{11, 22, 33}, e1.Grad().Data())
-	assert.Equal(t, []T{11, 22, 33}, e2.Grad().Data())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{11, 22, 33}), e1.Grad())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{11, 22, 33}), e2.Grad())
 	assert.Same(t, e1.Grad(), e2.Grad())
 
 	e1.ZeroGrad()

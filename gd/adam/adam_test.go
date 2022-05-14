@@ -44,8 +44,8 @@ func testUpdate[T mat.DType](t *testing.T) {
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
 	supp := updater.NewSupport(params.Dims()).Data
-	supp[v].SetData([]T{0.7, 0.8, 0.5, 0.3, 0.2})
-	supp[m].SetData([]T{1.0, 0.4, 0.7, 0.0, 0.2})
+	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	mat.SetData[T](supp[m], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
@@ -150,8 +150,8 @@ func testAdamWUpdate[T mat.DType](t *testing.T) {
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
 	supp := updater.NewSupport(params.Dims()).Data
-	supp[v].SetData([]T{0.7, 0.8, 0.5, 0.3, 0.2})
-	supp[m].SetData([]T{1.0, 0.4, 0.7, 0.0, 0.2})
+	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	mat.SetData[T](supp[m], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	params.SubInPlace(updater.calcDeltaW(grads, supp, params))
 

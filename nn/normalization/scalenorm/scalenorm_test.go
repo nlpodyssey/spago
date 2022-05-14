@@ -44,6 +44,6 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4)
-	model.Gain.Value().SetData([]T{0.5, -0.2, 0.3, 0.8})
+	mat.SetData[T](model.Gain.Value(), []T{0.5, -0.2, 0.3, 0.8})
 	return model
 }

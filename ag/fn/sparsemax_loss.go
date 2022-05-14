@@ -40,10 +40,10 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 	defer mat.ReleaseMatrix(cumSumInput)
 
 	tauSquared := tau * tau
-	cumSumInputData := cumSumInput.Data()
+	cumSumInputData := mat.Data[T](cumSumInput)
 
 	var regTerm T = 0.0
-	for i, zsv := range zs.Data() {
+	for i, zsv := range mat.Data[T](zs) {
 		if bounds[i] > cumSumInputData[i] {
 			regTerm += zsv*zsv - tauSquared
 		}

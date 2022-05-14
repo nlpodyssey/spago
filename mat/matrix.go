@@ -19,10 +19,10 @@ type Matrix[T DType] interface {
 	Size() int
 	// Data returns the underlying data of the matrix, as a raw one-dimensional
 	// slice of values in row-major order.
-	Data() []T
+	Data() FloatSliceInterface
 	// SetData sets the content of the matrix, copying the given raw
 	// data representation as one-dimensional slice.
-	SetData(data []T)
+	SetData(data FloatSliceInterface)
 	// ZerosLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with zeroes.
 	ZerosLike() Matrix[T]
@@ -228,6 +228,18 @@ type Matrix[T DType] interface {
 	String() string
 }
 
+// Data returns the underlying data of the matrix, as a raw one-dimensional
+// slice of values in row-major order.
+func Data[T DType](m Matrix[T]) []T {
+	return DTFloatSlice[T](m.Data())
+}
+
+// SetData sets the content of the matrix, copying the given raw
+// data representation as one-dimensional slice.
+func SetData[T DType](m Matrix[T], data []T) {
+	m.SetData(FloatSlice(data))
+}
+
 // IsVector returns whether the matrix is either a row or column vector
 // (dimensions N×1 or 1×N).
 func IsVector[T DType](m Matrix[T]) bool {
@@ -265,7 +277,7 @@ func ConcatV[T DType](vs ...Matrix[T]) *Dense[T] {
 	out := densePool[T]().Get(size, 1)
 	data := out.data[:0] // convenient for using append below
 	for _, v := range vs {
-		data = append(data, v.Data()...)
+		data = append(data, Data[T](v)...)
 	}
 	out.data = data
 	return out
@@ -291,7 +303,7 @@ func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
 			panic("mat: all vectors must have the same size")
 		}
 		offset := i * cols
-		copy(data[offset:offset+cols], v.Data())
+		copy(data[offset:offset+cols], Data[T](v))
 	}
 	return out
 }
@@ -300,39 +312,13 @@ func Stack[T DType](vs ...Matrix[T]) *Dense[T] {
 func Equal[T DType](a, b Matrix[T]) bool {
 	return a.Rows() == b.Rows() &&
 		a.Columns() == b.Columns() &&
-		dataEqual(a.Data(), b.Data())
-}
-
-func dataEqual[T DType](a, b []T) bool {
-	if len(a) == 0 {
-		return true
-	}
-	_ = b[len(a)-1]
-	for i, ai := range a {
-		if ai != b[i] {
-			return false
-		}
-	}
-	return true
+		a.Data().Equals(b.Data())
 }
 
 // InDelta reports whether matrices a and b have the same shape and
 // all elements at the same positions are within delta.
-func InDelta[T DType](a, b Matrix[T], delta T) bool {
+func InDelta[T DType](a, b Matrix[T], delta float64) bool {
 	return a.Rows() == b.Rows() &&
 		a.Columns() == b.Columns() &&
-		dataInDelta(a.Data(), b.Data(), delta)
-}
-
-func dataInDelta[T DType](a, b []T, delta T) bool {
-	if len(a) == 0 {
-		return true
-	}
-	_ = b[len(a)-1]
-	for i, ai := range a {
-		if Abs(ai-b[i]) > delta {
-			return false
-		}
-	}
-	return true
+		a.Data().InDelta(b.Data(), delta)
 }

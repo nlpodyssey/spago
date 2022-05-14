@@ -63,7 +63,7 @@ func testNewDense[T DType](t *testing.T) {
 			assertDenseDims(t, tc.r, tc.c, d)
 			assert.Len(t, d.Data(), len(tc.e))
 			if tc.e != nil {
-				assert.Equal(t, tc.e, d.Data())
+				assert.Equal(t, tc.e, Data[T](d))
 			}
 		})
 	}
@@ -95,7 +95,7 @@ func testNewVecDense[T DType](t *testing.T) {
 			assertDenseDims(t, len(tc), 1, d)
 			assert.Len(t, d.Data(), len(tc))
 			if tc != nil {
-				assert.Equal(t, tc, d.Data())
+				assert.Equal(t, tc, Data[T](d))
 			}
 		})
 	}
@@ -116,7 +116,7 @@ func TestNewScalar(t *testing.T) {
 func testNewScalar[T DType](t *testing.T) {
 	d := NewScalar(T(42))
 	assertDenseDims(t, 1, 1, d)
-	assert.Equal(t, []T{42}, d.Data())
+	assert.Equal(t, []T{42}, Data[T](d))
 }
 
 func TestNewEmptyVecDense(t *testing.T) {
@@ -135,7 +135,7 @@ func testNewEmptyVecDense[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
 			d := NewEmptyVecDense[T](size)
 			assertDenseDims(t, size, 1, d)
-			for _, v := range d.Data() {
+			for _, v := range Data[T](d) {
 				require.Equal(t, T(0), v)
 			}
 		})
@@ -165,7 +165,7 @@ func testNewEmptyDense[T DType](t *testing.T) {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
 				d := NewEmptyDense[T](r, c)
 				assertDenseDims(t, r, c, d)
-				for _, v := range d.Data() {
+				for _, v := range Data[T](d) {
 					require.Equal(t, T(0), v)
 				}
 			})
@@ -219,7 +219,7 @@ func testNewOneHotVecDense[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d, %d", tc.s, tc.i), func(t *testing.T) {
 			d := NewOneHotVecDense[T](tc.s, tc.i)
 			assertDenseDims(t, tc.s, 1, d)
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -247,7 +247,7 @@ func testNewInitDense[T DType](t *testing.T) {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
 				d := NewInitDense(r, c, T(42))
 				assertDenseDims(t, r, c, d)
-				for _, v := range d.Data() {
+				for _, v := range Data[T](d) {
 					require.Equal(t, T(42), v)
 				}
 			})
@@ -312,7 +312,7 @@ func testNewInitFuncDense[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			assertDenseDims(t, tc.r, tc.c, d)
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -333,7 +333,7 @@ func testNewInitVecDense[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("size %d", size), func(t *testing.T) {
 			d := NewInitVecDense(size, T(42))
 			assertDenseDims(t, size, 1, d)
-			for _, v := range d.Data() {
+			for _, v := range Data[T](d) {
 				require.Equal(t, T(42), v)
 			}
 		})
@@ -378,7 +378,7 @@ func testNewIdentityDense[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("size %d", tc.s), func(t *testing.T) {
 			d := NewIdentityDense[T](tc.s)
 			assertDenseDims(t, tc.s, tc.s, d)
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -392,33 +392,33 @@ func testDenseSetData[T DType](t *testing.T) {
 	t.Run("incompatible data size", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetData([]T{1, 2, 3})
+			SetData[T](d, []T{1, 2, 3})
 		})
 	})
 
 	t.Run("zero size - nil", func(t *testing.T) {
 		d := NewEmptyDense[T](0, 0)
-		d.SetData(nil)
+		SetData[T](d, nil)
 		assert.Equal(t, []T{}, d.data)
 	})
 
 	t.Run("zero size - empty slice", func(t *testing.T) {
 		d := NewEmptyDense[T](0, 0)
-		d.SetData([]T{})
+		SetData[T](d, []T{})
 		assert.Equal(t, []T{}, d.data)
 	})
 
 	t.Run("data is set correctly", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		v := []T{1, 2, 3, 7, 8, 9}
-		d.SetData(v)
+		SetData[T](d, v)
 		assert.Equal(t, v, d.data)
 	})
 
 	t.Run("data is copied", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		s := []T{1}
-		d.SetData(s)
+		SetData[T](d, s)
 		s[0] = 42 // modifying s must not modify d.data
 		assert.Equal(t, T(1), d.data[0])
 	})
@@ -436,7 +436,7 @@ func testDenseZerosLike[T DType](t *testing.T) {
 				d1 := NewInitDense(r, c, T(42))
 				d2 := d1.ZerosLike()
 				assertDenseDims(t, r, c, d2.(*Dense[T]))
-				for _, v := range d2.Data() {
+				for _, v := range Data[T](d2) {
 					require.Equal(t, T(0), v)
 				}
 			})
@@ -456,7 +456,7 @@ func testDenseOnesLike[T DType](t *testing.T) {
 				d1 := NewInitDense(r, c, T(42))
 				d2 := d1.OnesLike()
 				assertDenseDims(t, r, c, d2.(*Dense[T]))
-				for _, v := range d2.Data() {
+				for _, v := range Data[T](d2) {
 					require.Equal(t, T(1), v)
 				}
 			})
@@ -495,7 +495,7 @@ func testDenseZeros[T DType](t *testing.T) {
 				d := NewInitDense(r, c, T(42))
 				d.Zeros()
 				assertDenseDims(t, r, c, d)
-				for _, v := range d.Data() {
+				for _, v := range Data[T](d) {
 					require.Equal(t, T(0), v)
 				}
 			})
@@ -581,7 +581,7 @@ func testDenseSet[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
 			d.Set(tc.setR, tc.setC, NewScalar(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -724,7 +724,7 @@ func testDenseSetScalar[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
 			d.SetScalar(tc.setR, tc.setC, Float(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -848,13 +848,13 @@ func testDenseSetVec[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
 			d.SetVec(tc.i, NewScalar(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
 			d.SetVec(tc.i, NewScalar(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -964,13 +964,13 @@ func testDenseSetVecScalar[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
 			d.SetVecScalar(tc.i, Float(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
 			d.SetVecScalar(tc.i, Float(T(42)))
-			assert.Equal(t, tc.d, d.Data())
+			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
 }
@@ -1080,7 +1080,7 @@ func testDenseExtractRow[T DType](t *testing.T) {
 			})
 			r := d.ExtractRow(tc.i)
 			assertDenseDims(t, 1, len(tc.d), r.(*Dense[T]))
-			assert.Equal(t, tc.d, r.Data())
+			assert.Equal(t, tc.d, Data[T](r))
 		})
 	}
 }
@@ -1130,7 +1130,7 @@ func testDenseExtractColumn[T DType](t *testing.T) {
 			})
 			c := d.ExtractColumn(tc.i)
 			assertDenseDims(t, len(tc.d), 1, c.(*Dense[T]))
-			assert.Equal(t, tc.d, c.Data())
+			assert.Equal(t, tc.d, Data[T](c))
 		})
 	}
 }
@@ -1342,7 +1342,7 @@ func testDenseSlice[T DType](t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			y := tc.d.Slice(tc.fromRow, tc.fromCol, tc.toRow, tc.toCol)
 			assertDenseDims(t, tc.toRow-tc.fromRow, tc.toCol-tc.fromCol, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -1533,7 +1533,7 @@ func testDenseFlatten[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
 			y := tc.x.Flatten()
 			assertDenseDims(t, 1, len(tc.y), y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -1599,7 +1599,7 @@ func testDenseResizeVector[T DType](t *testing.T) {
 				return T(r + 1)
 			})
 			r := d.ResizeVector(tc.newSize)
-			assert.Equal(t, tc.d, r.Data())
+			assert.Equal(t, tc.d, Data[T](r))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
@@ -1607,7 +1607,7 @@ func testDenseResizeVector[T DType](t *testing.T) {
 				return T(c + 1)
 			})
 			r := d.ResizeVector(tc.newSize)
-			assert.Equal(t, tc.d, r.Data())
+			assert.Equal(t, tc.d, Data[T](r))
 		})
 	}
 
@@ -1662,7 +1662,7 @@ func testDenseT[T DType](t *testing.T) {
 			})
 			tr := d.T()
 			assertDenseDims(t, tc.c, tc.r, tr.(*Dense[T]))
-			assert.Equal(t, tc.d, tr.Data())
+			assert.Equal(t, tc.d, Data[T](tr))
 		})
 	}
 }
@@ -1796,7 +1796,7 @@ func testDenseAdd[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.Add(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -1819,7 +1819,7 @@ func testDenseAddInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			a2 := tc.a.AddInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -1861,7 +1861,7 @@ func testDenseAddScalar[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.AddScalar(tc.n)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -1876,7 +1876,7 @@ func testDenseAddScalarInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.AddScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -1938,7 +1938,7 @@ func testDenseSub[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.Sub(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -1961,7 +1961,7 @@ func testDenseSubInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			a2 := tc.a.SubInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -2003,7 +2003,7 @@ func testDenseSubScalar[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.SubScalar(tc.n)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2018,7 +2018,7 @@ func testDenseSubScalarInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.SubScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -2080,7 +2080,7 @@ func testDenseProd[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.Prod(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2103,7 +2103,7 @@ func testDenseProdInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			a2 := tc.a.ProdInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -2149,7 +2149,7 @@ func testDenseProdScalar[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.ProdScalar(tc.n)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2164,7 +2164,7 @@ func testDenseProdScalarInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.ProdScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -2190,7 +2190,7 @@ func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
 			y := tc.a.OnesLike()
 			y.ProdMatrixScalarInPlace(tc.a, tc.n)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2252,7 +2252,7 @@ func testDenseDiv[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.Div(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2275,7 +2275,7 @@ func testDenseDivInPlace[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			a2 := tc.a.DivInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
-			assert.Equal(t, tc.y, tc.a.Data())
+			assert.Equal(t, tc.y, Data[T](tc.a))
 		})
 	}
 }
@@ -2354,7 +2354,7 @@ func testDenseMul[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.Mul(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.b.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2440,7 +2440,7 @@ func testDenseMulT[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			y := tc.a.MulT(tc.b)
 			assertDenseDims(t, tc.a.cols, 1, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2501,7 +2501,7 @@ func testDenseDotUnitary[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
 			v := tc.a.DotUnitary(tc.b)
 			assertDenseDims(t, 1, 1, v.(*Dense[T]))
-			assert.Equal(t, []T{tc.v}, v.Data())
+			assert.Equal(t, []T{tc.v}, Data[T](v))
 		})
 	}
 }
@@ -2602,7 +2602,7 @@ func testDenseMaximum[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.a.rows, tc.a.cols), func(t *testing.T) {
 			y := tc.a.Maximum(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2655,7 +2655,7 @@ func testDenseMinimum[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.a.rows, tc.a.cols), func(t *testing.T) {
 			y := tc.a.Minimum(tc.b)
 			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2694,7 +2694,7 @@ func testDenseAbs[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Abs()
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2733,7 +2733,7 @@ func testDensePow[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d pow %g", tc.d.rows, tc.d.cols, tc.pow), func(t *testing.T) {
 			y := tc.d.Pow(tc.pow)
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2772,7 +2772,7 @@ func testDenseSqrt[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Sqrt()
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -2805,7 +2805,7 @@ func testDenseSum[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Sum()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
-			assert.Equal(t, []T{tc.y}, y.Data())
+			assert.Equal(t, []T{tc.y}, Data[T](y))
 		})
 	}
 }
@@ -2842,7 +2842,7 @@ func testDenseMax[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Max()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
-			assert.Equal(t, []T{tc.y}, y.Data())
+			assert.Equal(t, []T{tc.y}, Data[T](y))
 		})
 	}
 }
@@ -2879,7 +2879,7 @@ func testDenseMin[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Min()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
-			assert.Equal(t, []T{tc.y}, y.Data())
+			assert.Equal(t, []T{tc.y}, Data[T](y))
 		})
 	}
 }
@@ -3006,14 +3006,14 @@ func testDenseCumSum[T DType](t *testing.T) {
 			d := NewDense[T](len(tc.x), 1, tc.x)
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
 			d := NewDense[T](1, len(tc.x), tc.x)
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3081,7 +3081,7 @@ func testDenseRange[T DType](t *testing.T) {
 			})
 			y := d.Range(tc.start, tc.end)
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
@@ -3090,7 +3090,7 @@ func testDenseRange[T DType](t *testing.T) {
 			})
 			y := d.Range(tc.start, tc.end)
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3160,7 +3160,7 @@ func testDenseSplitV[T DType](t *testing.T) {
 			for i, v := range y {
 				expectedData := tc.y[i]
 				assertDenseDims(t, len(expectedData), 1, v.(*Dense[T]))
-				assert.Equal(t, expectedData, v.Data())
+				assert.Equal(t, expectedData, Data[T](v))
 			}
 		})
 
@@ -3171,7 +3171,7 @@ func testDenseSplitV[T DType](t *testing.T) {
 			for i, v := range y {
 				expectedData := tc.y[i]
 				assertDenseDims(t, len(expectedData), 1, v.(*Dense[T]))
-				assert.Equal(t, expectedData, v.Data())
+				assert.Equal(t, expectedData, Data[T](v))
 			}
 		})
 	}
@@ -3224,7 +3224,7 @@ func testDenseAugment[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Augment()
 			assertDenseDims(t, tc.d.rows, tc.d.cols*2, y.(*Dense[T]))
-			require.Equal(t, tc.y, y.Data())
+			require.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3436,7 +3436,7 @@ func testDensePadRows[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
 			y := tc.d.PadRows(tc.n)
 			assertDenseDims(t, tc.d.rows+tc.n, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3554,7 +3554,7 @@ func testDensePadColumns[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
 			y := tc.d.PadColumns(tc.n)
 			assertDenseDims(t, tc.d.rows, tc.d.cols+tc.n, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3654,7 +3654,7 @@ func testDenseAppendRows[T DType](t *testing.T) {
 			}
 			y := tc.d.AppendRows(vs...)
 			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 
 		t.Run(fmt.Sprintf("append %d row vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
@@ -3664,7 +3664,7 @@ func testDenseAppendRows[T DType](t *testing.T) {
 			}
 			y := tc.d.AppendRows(vs...)
 			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -3791,7 +3791,7 @@ func testDensePivoting[T DType](t *testing.T) {
 			0, 1, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1,
-		}, p.Data())
+		}, Data[T](p))
 		assert.False(t, swap)
 		assert.Equal(t, [2]int{0, 0}, positions)
 	})
@@ -3811,7 +3811,7 @@ func testDensePivoting[T DType](t *testing.T) {
 			0, 1, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1,
-		}, p.Data())
+		}, Data[T](p))
 		assert.False(t, swap)
 		assert.Equal(t, [2]int{0, 0}, positions)
 
@@ -3822,7 +3822,7 @@ func testDensePivoting[T DType](t *testing.T) {
 			0, 1, 0, 0,
 			0, 0, 0, 1,
 			0, 0, 1, 0,
-		}, p.Data())
+		}, Data[T](p))
 		assert.True(t, swap)
 		assert.Equal(t, [2]int{3, 2}, positions)
 
@@ -3833,7 +3833,7 @@ func testDensePivoting[T DType](t *testing.T) {
 			0, 0, 1, 0,
 			0, 1, 0, 0,
 			0, 0, 0, 1,
-		}, p.Data())
+		}, Data[T](p))
 		assert.True(t, swap)
 		assert.Equal(t, [2]int{2, 1}, positions)
 	})
@@ -4021,7 +4021,7 @@ func testDenseApply[T DType](t *testing.T) {
 				return float64(c+1+(r+1)*10) + v*100
 			})
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -4049,7 +4049,7 @@ func testDenseApplyInPlace[T DType](t *testing.T) {
 				return float64(c+1+(r+1)*10) + v*100
 			}, tc.d)
 			assert.Same(t, y, y2)
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -4068,7 +4068,7 @@ func testDenseApplyWithAlpha[T DType](t *testing.T) {
 				return float64(c+1+(r+1)*10) + v*100
 			}, inAlpha...)
 			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -4102,7 +4102,7 @@ func testDenseApplyWithAlphaInPlace[T DType](t *testing.T) {
 				return float64(c+1+(r+1)*10) + v*100
 			}, tc.d, inAlpha...)
 			assert.Same(t, y, y2)
-			assert.Equal(t, tc.y, y.Data())
+			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
 }
@@ -4277,7 +4277,7 @@ func testDenseClone[T DType](t *testing.T) {
 		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
 			y := tc.Clone()
 			assertDenseDims(t, tc.rows, tc.cols, y.(*Dense[T]))
-			assert.Equal(t, tc.data, y.Data())
+			assert.Equal(t, tc.data, Data[T](y))
 		})
 	}
 
@@ -4319,7 +4319,7 @@ func testDenseCopy[T DType](t *testing.T) {
 			// and initial data is irrelevant
 			y := tc.OnesLike()
 			y.Copy(tc)
-			assert.Equal(t, tc.data, y.Data())
+			assert.Equal(t, tc.data, Data[T](y))
 		})
 	}
 }

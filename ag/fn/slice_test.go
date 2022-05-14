@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,21 +33,19 @@ func testSliceForward[T mat.DType](t *testing.T) {
 
 	y := f.Forward()
 
-	assert.Equal(t, 2, y.Rows())
-	assert.Equal(t, 2, y.Columns())
-	assert.Equal(t, []T{
+	mattest.AssertMatrixEquals[T](t, mat.NewDense(2, 2, []T{
 		22, 23,
 		32, 33,
-	}, y.Data())
+	}), y)
 
 	f.Backward(mat.NewDense(2, 2, []T{
 		1, 2,
 		3, 4,
 	}))
 
-	assert.Equal(t, []T{
+	mattest.AssertMatrixEquals[T](t, mat.NewDense(3, 4, []T{
 		0, 0, 0, 0,
 		0, 1, 2, 0,
 		0, 3, 4, 0,
-	}, x.grad.Data())
+	}), x.grad)
 }

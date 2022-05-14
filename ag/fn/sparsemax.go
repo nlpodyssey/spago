@@ -71,7 +71,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 
 func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T], bounds []T, tau T) {
 	zsData := make([]T, v.Size())
-	copy(zsData, v.Data())
+	copy(zsData, mat.Data[T](v))
 
 	// Sort zs in descending order.
 	sort.Slice(zsData, func(i, j int) bool {
@@ -86,7 +86,7 @@ func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T
 	}
 
 	cumSumInput = zs.CumSum()
-	cumSumInputData := cumSumInput.Data()
+	cumSumInputData := mat.Data[T](cumSumInput)
 
 	k := -1
 	tau = 0.0

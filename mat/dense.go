@@ -176,17 +176,18 @@ func (d *Dense[_]) Size() int {
 //
 // The data slice IS NOT a copy: any changes applied to the returned slice are
 // reflected in the Dense matrix too.
-func (d *Dense[T]) Data() []T {
-	return d.data
+func (d *Dense[T]) Data() FloatSliceInterface {
+	return FloatSlice(d.data)
 }
 
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
-func (d *Dense[T]) SetData(data []T) {
-	if len(data) != len(d.data) {
-		panic(fmt.Sprintf("mat: incompatible data size. Expected: %d Found: %d", len(d.data), len(data)))
+func (d *Dense[T]) SetData(data FloatSliceInterface) {
+	v := DTFloatSlice[T](data)
+	if len(v) != len(d.data) {
+		panic(fmt.Sprintf("mat: incompatible data size, expected %d, actual %d", len(d.data), len(v)))
 	}
-	copy(d.data, data)
+	copy(d.data, v)
 }
 
 // ZerosLike returns a new matrix with the same dimensions of the
@@ -543,9 +544,9 @@ func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitaryTo(any(out.data).([]float32), 1, any(other.Data()).([]float32), any(d.data).([]float32))
+		asm32.AxpyUnitaryTo(any(out.data).([]float32), 1, other.Data().Float32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitaryTo(any(out.data).([]float64), 1, any(other.Data()).([]float64), any(d.data).([]float64))
+		asm64.AxpyUnitaryTo(any(out.data).([]float64), 1, other.Data().Float64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -559,9 +560,9 @@ func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitary(1, any(other.Data()).([]float32), any(d.data).([]float32))
+		asm32.AxpyUnitary(1, other.Data().Float32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitary(1, any(other.Data()).([]float64), any(d.data).([]float64))
+		asm64.AxpyUnitary(1, other.Data().Float64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -603,9 +604,9 @@ func (d *Dense[T]) Sub(other Matrix[T]) Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitaryTo(any(out.data).([]float32), -1, any(other.Data()).([]float32), any(d.data).([]float32))
+		asm32.AxpyUnitaryTo(any(out.data).([]float32), -1, other.Data().Float32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitaryTo(any(out.data).([]float64), -1, any(other.Data()).([]float64), any(d.data).([]float64))
+		asm64.AxpyUnitaryTo(any(out.data).([]float64), -1, other.Data().Float64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -619,9 +620,9 @@ func (d *Dense[T]) SubInPlace(other Matrix[T]) Matrix[T] {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitary(-1, any(other.Data()).([]float32), any(d.data).([]float32))
+		asm32.AxpyUnitary(-1, other.Data().Float32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitary(-1, any(other.Data()).([]float64), any(d.data).([]float64))
+		asm64.AxpyUnitary(-1, other.Data().Float64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -665,7 +666,7 @@ func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
 
 	// Avoid bounds checks in loop
 	dData := d.data
-	oData := other.Data()
+	oData := Data[T](other)
 	outData := out.data
 	lastIndex := len(oData) - 1
 	if lastIndex < 0 {
@@ -685,7 +686,7 @@ func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	dData := d.data
-	oData := other.Data()
+	oData := Data[T](other)
 	for i, val := range oData {
 		dData[i] *= val
 	}
@@ -728,9 +729,9 @@ func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n float64) Matrix[T] {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.ScalUnitaryTo(any(d.data).([]float32), float32(n), any(m.Data()).([]float32))
+		asm32.ScalUnitaryTo(any(d.data).([]float32), float32(n), m.Data().Float32())
 	case float64:
-		asm64.ScalUnitaryTo(any(d.data).([]float64), n, any(m.Data()).([]float64))
+		asm64.ScalUnitaryTo(any(d.data).([]float64), n, m.Data().Float64())
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -745,9 +746,9 @@ func (d *Dense[T]) Div(other Matrix[T]) Matrix[T] {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		f32.DivTo(any(out.data).([]float32), any(d.data).([]float32), any(other.Data()).([]float32))
+		f32.DivTo(any(out.data).([]float32), any(d.data).([]float32), other.Data().Float32())
 	case float64:
-		asm64.DivTo(any(out.data).([]float64), any(d.data).([]float64), any(other.Data()).([]float64))
+		asm64.DivTo(any(out.data).([]float64), any(d.data).([]float64), other.Data().Float64())
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -759,7 +760,7 @@ func (d *Dense[T]) DivInPlace(other Matrix[T]) Matrix[T] {
 	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	for i, val := range other.Data() {
+	for i, val := range Data[T](other) {
 		d.data[i] *= 1.0 / val
 	}
 	return d
@@ -778,52 +779,52 @@ func (d *Dense[T]) Mul(other Matrix[T]) Matrix[T] {
 	case float32:
 		if out.cols != 1 {
 			f32.MatrixMul(
-				d.rows,                        // aRows
-				d.cols,                        // aCols
-				other.Columns(),               // bCols
-				any(d.data).([]float32),       // a
-				any(other.Data()).([]float32), // b
-				any(out.data).([]float32),     // c
+				d.rows,                    // aRows
+				d.cols,                    // aCols
+				other.Columns(),           // bCols
+				any(d.data).([]float32),   // a
+				other.Data().Float32(),    // b
+				any(out.data).([]float32), // c
 			)
 			return out
 		}
 
 		asm32.GemvN(
-			uintptr(d.rows),               // m
-			uintptr(d.cols),               // n
-			1,                             // alpha
-			any(d.data).([]float32),       // a
-			uintptr(d.cols),               // lda
-			any(other.Data()).([]float32), // x
-			1,                             // incX
-			0,                             // beta
-			any(out.data).([]float32),     // y
-			1,                             // incY
+			uintptr(d.rows),           // m
+			uintptr(d.cols),           // n
+			1,                         // alpha
+			any(d.data).([]float32),   // a
+			uintptr(d.cols),           // lda
+			other.Data().Float32(),    // x
+			1,                         // incX
+			0,                         // beta
+			any(out.data).([]float32), // y
+			1,                         // incY
 		)
 	case float64:
 		if out.cols != 1 {
 			f64.MatrixMul(
-				d.rows,                        // aRows
-				d.cols,                        // aCols
-				other.Columns(),               // bCols
-				any(d.data).([]float64),       // a
-				any(other.Data()).([]float64), // b
-				any(out.data).([]float64),     // c
+				d.rows,                    // aRows
+				d.cols,                    // aCols
+				other.Columns(),           // bCols
+				any(d.data).([]float64),   // a
+				other.Data().Float64(),    // b
+				any(out.data).([]float64), // c
 			)
 			return out
 		}
 
 		asm64.GemvN(
-			uintptr(d.rows),               // m
-			uintptr(d.cols),               // n
-			1,                             // alpha
-			any(d.data).([]float64),       // a
-			uintptr(d.cols),               // lda
-			any(other.Data()).([]float64), // x
-			1,                             // incX
-			0,                             // beta
-			any(out.data).([]float64),     // y
-			1,                             // incY
+			uintptr(d.rows),           // m
+			uintptr(d.cols),           // n
+			1,                         // alpha
+			any(d.data).([]float64),   // a
+			uintptr(d.cols),           // lda
+			other.Data().Float64(),    // x
+			1,                         // incX
+			0,                         // beta
+			any(out.data).([]float64), // y
+			1,                         // incY
 		)
 		return out
 	default:
@@ -848,29 +849,29 @@ func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
 	switch any(T(0)).(type) {
 	case float32:
 		asm32.GemvT(
-			uintptr(d.rows),               // m
-			uintptr(d.cols),               // n
-			1,                             // alpha
-			any(d.data).([]float32),       // a
-			uintptr(d.cols),               // lda
-			any(other.Data()).([]float32), // x
-			1,                             // incX
-			0,                             // beta
-			any(out.data).([]float32),     // y
-			1,                             // incY
+			uintptr(d.rows),           // m
+			uintptr(d.cols),           // n
+			1,                         // alpha
+			any(d.data).([]float32),   // a
+			uintptr(d.cols),           // lda
+			other.Data().Float32(),    // x
+			1,                         // incX
+			0,                         // beta
+			any(out.data).([]float32), // y
+			1,                         // incY
 		)
 	case float64:
 		asm64.GemvT(
-			uintptr(d.rows),               // m
-			uintptr(d.cols),               // n
-			1,                             // alpha
-			any(d.data).([]float64),       // a
-			uintptr(d.cols),               // lda
-			any(other.Data()).([]float64), // x
-			1,                             // incX
-			0,                             // beta
-			any(out.data).([]float64),     // y
-			1,                             // incY
+			uintptr(d.rows),           // m
+			uintptr(d.cols),           // n
+			1,                         // alpha
+			any(d.data).([]float64),   // a
+			uintptr(d.cols),           // lda
+			other.Data().Float64(),    // x
+			1,                         // incX
+			0,                         // beta
+			any(out.data).([]float64), // y
+			1,                         // incY
 		)
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
@@ -885,9 +886,9 @@ func (d *Dense[T]) DotUnitary(other Matrix[T]) Matrix[T] {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), any(other.Data()).([]float32))))
+		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), other.Data().Float32())))
 	case float64:
-		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), any(other.Data()).([]float64))))
+		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), other.Data().Float64())))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -923,7 +924,7 @@ func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
-	otherData := other.Data()
+	otherData := Data[T](other)
 	outData := out.data
 	for i := range outData {
 		dV := dData[i]
@@ -944,7 +945,7 @@ func (d *Dense[T]) Minimum(other Matrix[T]) Matrix[T] {
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
-	otherData := other.Data()
+	otherData := Data[T](other)
 	outData := out.data
 	for i := range outData {
 		dV := dData[i]
@@ -1250,7 +1251,7 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 		if !IsVector[T](v) || v.Size() != cols {
 			panic("mat: expected vectors with same size of matrix columns")
 		}
-		vData := v.Data()
+		vData := Data[T](v)
 		end := offset + cols
 		copy(outData[offset:end], vData)
 		offset = end
@@ -1332,7 +1333,7 @@ func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
 	u = NewDense(d.rows, d.cols, d.data)
 	p = NewIdentityDense[T](d.cols)
 	l = NewEmptyDense[T](d.cols, d.cols)
-	lData := l.Data()
+	lData := Data[T](l)
 	for i := 0; i < d.cols; i++ {
 		_, swap, positions := u.Pivoting(i)
 		if swap {
@@ -1342,7 +1343,7 @@ func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
 		}
 		lt := NewIdentityDense[T](d.cols)
 		ltData := lt.data
-		uData := u.Data()
+		uData := Data[T](u)
 		for k := i + 1; k < d.cols; k++ {
 			ltData[k*d.cols+i] = -uData[k*d.cols+i] / (uData[i*d.cols+i])
 			lData[k*d.cols+i] = uData[k*d.cols+i] / (uData[i*d.cols+i])
@@ -1365,9 +1366,9 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 	s := NewEmptyDense[T](d.cols, d.cols)
 	sData := s.data
 	l, u, p := d.LU()
-	lData := l.Data()
-	uData := u.Data()
-	pData := p.Data()
+	lData := Data[T](l)
+	uData := Data[T](u)
+	pData := Data[T](p)
 	for b := 0; b < d.cols; b++ {
 		// find solution of Ly = b
 		for i := 0; i < l.Rows(); i++ {
@@ -1420,7 +1421,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T
 	if !SameDims[T](d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
-	aData := a.Data()
+	aData := Data[T](a)
 	lastIndex := len(aData) - 1
 	if lastIndex < 0 {
 		return d
@@ -1523,7 +1524,7 @@ func (d *Dense[T]) Copy(other Matrix[T]) {
 	if !SameDims[T](d, other) {
 		panic("mat: incompatible matrix dimensions")
 	}
-	copy(d.data, other.Data())
+	copy(d.data, Data[T](other))
 }
 
 // String returns a string representation of the matrix.

@@ -61,40 +61,40 @@ func newTestModel[T mat.DType]() *MixerBlock[T] {
 		ActFunctionChannelMixer: activation.Tanh,
 		Eps:                     1e-12,
 	})
-	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value(), []T{
 		0.5, 0.6, -0.8, -0.3, -0.7,
 		0.7, -0.4, 0.1, 0.8, -0.9,
 		0.7, -0.7, 0.3, 0.4, 1.0,
 		0.3, 0.9, -0.9, 0.0, 0.1,
 	})
-	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{0.4, 0.0, -0.3, 0.8})
-	model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value(), []T{0.4, 0.0, -0.3, 0.8})
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value(), []T{
 		0.7, -0.1, -0.6, 0.0,
 		0.3, 0.4, 0.8, -0.9,
 		0.7, -0.4, 0.3, -0.7,
 		0.3, 0.2, 0.1, -0.3,
 		0.1, 0.0, -0.8, 0.5,
 	})
-	model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value().SetData([]T{0.6, 0.3, 0.9, 0.8, -0.3})
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value(), []T{0.6, 0.3, 0.9, 0.8, -0.3})
 
-	model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value(), []T{
 		0.2, 0.0, -0.1,
 		0.2, -0.1, 0.0,
 		0.6, -0.8, 0.0,
 		-0.1, -0.2, -0.1,
 	})
-	model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{-0.4, -0.4, -0.5, -0.8})
-	model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value(), []T{-0.4, -0.4, -0.5, -0.8})
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value(), []T{
 		-0.9, -0.4, -0.7, 0.0,
 		0.5, 0.2, 0.7, 0.1,
 		-0.4, -0.5, 0.8, -0.1,
 	})
-	model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value().SetData([]T{-0.5, 0.4, 0.1})
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value(), []T{-0.5, 0.4, 0.1})
 
-	model.TokenLayerNorm.W.Value().SetData([]T{0.6, 0.3, 0.9})
-	model.TokenLayerNorm.B.Value().SetData([]T{0.4, -0.3, 0.1})
-	model.ChannelLayerNorm.W.Value().SetData([]T{-0.8, -0.2, 0.0})
-	model.ChannelLayerNorm.B.Value().SetData([]T{0.8, 0.9, 0.6})
+	mat.SetData[T](model.TokenLayerNorm.W.Value(), []T{0.6, 0.3, 0.9})
+	mat.SetData[T](model.TokenLayerNorm.B.Value(), []T{0.4, -0.3, 0.1})
+	mat.SetData[T](model.ChannelLayerNorm.W.Value(), []T{-0.8, -0.2, 0.0})
+	mat.SetData[T](model.ChannelLayerNorm.B.Value(), []T{0.8, 0.9, 0.6})
 
 	return model
 }
@@ -109,39 +109,39 @@ func newTestModelGelu[T mat.DType]() *MixerBlock[T] {
 		ActFunctionChannelMixer: activation.GELU,
 		Eps:                     1e-12,
 	})
-	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value(), []T{
 		-0.5501, -0.2185, 0.4135,
 		-0.0010, 0.2711, 0.2285,
 		-0.0786, 0.2479, -0.4105,
 		0.1127, 0.5231, 0.3254,
 	})
-	model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{-0.4270, -0.1825, 0.2412, -0.2058})
-	model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value(), []T{-0.4270, -0.1825, 0.2412, -0.2058})
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value(), []T{
 		0.1136, -0.4490, 0.0887, 0.4140,
 		-0.2453, 0.4136, 0.3570, -0.1167,
 		-0.1264, 0.0561, -0.4304, -0.2422,
 	})
-	model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value().SetData([]T{0.1743, -0.4632, -0.4156})
+	mat.SetData[T](model.TokenMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value(), []T{0.1743, -0.4632, -0.4156})
 
-	model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).W.Value(), []T{
 		0.3128, -0.1252, -0.1354, -0.0303,
 		-0.4723, 0.0339, 0.3345, 0.3320,
 		0.2801, 0.2333, 0.1404, 0.0909,
 		0.3981, 0.3470, 0.4891, 0.3329,
 	})
-	model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value().SetData([]T{-0.0408, -0.4873, 0.2798, 0.4100})
-	model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value().SetData([]T{
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[0].(*linear.Model[T]).B.Value(), []T{-0.0408, -0.4873, 0.2798, 0.4100})
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).W.Value(), []T{
 		-0.2669, -0.4191, 0.3017, 0.1028,
 		-0.2485, -0.2905, -0.1644, -0.0897,
 		-0.4520, 0.4314, 0.0751, -0.2115,
 		-0.4676, 0.3695, 0.1510, -0.2781,
 	})
-	model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value().SetData([]T{0.0767, 0.4476, 0.1588, 0.1684})
+	mat.SetData[T](model.ChannelMixerFF.Model.Layers[2].(*linear.Model[T]).B.Value(), []T{0.0767, 0.4476, 0.1588, 0.1684})
 
-	model.TokenLayerNorm.W.Value().SetData([]T{1.0, 1.0, 1.0, 1.0})
-	model.TokenLayerNorm.B.Value().SetData([]T{0.0, 0.0, 0.0, 0.0})
-	model.ChannelLayerNorm.W.Value().SetData([]T{1.0, 1.0, 1.0, 1.0})
-	model.ChannelLayerNorm.B.Value().SetData([]T{0.0, 0.0, 0.0, 0.0})
+	mat.SetData[T](model.TokenLayerNorm.W.Value(), []T{1.0, 1.0, 1.0, 1.0})
+	mat.SetData[T](model.TokenLayerNorm.B.Value(), []T{0.0, 0.0, 0.0, 0.0})
+	mat.SetData[T](model.ChannelLayerNorm.W.Value(), []T{1.0, 1.0, 1.0, 1.0})
+	mat.SetData[T](model.ChannelLayerNorm.B.Value(), []T{0.0, 0.0, 0.0, 0.0})
 
 	return model
 }

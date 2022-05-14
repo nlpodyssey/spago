@@ -149,12 +149,12 @@ func testDensePoolGet[T DType](t *testing.T) {
 
 	assert.Equal(t, 2, d.Rows())
 	assert.Equal(t, 3, d.Columns())
-	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data())
+	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, Data[T](d))
 
-	d.SetData([]T{1, 2, 3, 4, 5, 6})
+	SetData[T](d, []T{1, 2, 3, 4, 5, 6})
 	densePool[T]().Put(d)
 	d = densePool[T]().Get(2, 3)
-	assert.Equal(t, []T{1, 2, 3, 4, 5, 6}, d.Data(), "possible dirty data is not zeroed")
+	assert.Equal(t, []T{1, 2, 3, 4, 5, 6}, Data[T](d), "possible dirty data is not zeroed")
 	densePool[T]().Put(d)
 	runtime.GC()
 }
@@ -169,12 +169,12 @@ func testDensePoolGetEmpty[T DType](t *testing.T) {
 
 	assert.Equal(t, 2, d.Rows())
 	assert.Equal(t, 3, d.Columns())
-	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data())
+	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, Data[T](d))
 
-	d.SetData([]T{1, 2, 3, 4, 5, 6})
+	SetData[T](d, []T{1, 2, 3, 4, 5, 6})
 	densePool[T]().Put(d)
 	d = densePool[T]().GetEmpty(2, 3)
-	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, d.Data(), "possible dirty data is zeroed")
+	assert.Equal(t, []T{0, 0, 0, 0, 0, 0}, Data[T](d), "possible dirty data is zeroed")
 	densePool[T]().Put(d)
 }
 

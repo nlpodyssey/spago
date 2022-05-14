@@ -30,8 +30,8 @@ func testModelForward[T mat.DType](t *testing.T) {
 		require.Equal(t, 2, model.B.Value().Rows())
 		require.Equal(t, 1, model.B.Value().Columns())
 
-		model.B.Value().SetData([]T{0.1, 0.2})
-		model.W.Value().SetData([]T{
+		mat.SetData[T](model.B.Value(), []T{0.1, 0.2})
+		mat.SetData[T](model.W.Value(), []T{
 			1, 2, 3,
 			4, 5, 6,
 		})
@@ -57,8 +57,8 @@ func testModelForward[T mat.DType](t *testing.T) {
 			OutputChannels: 3,
 		})
 
-		model.B.Value().SetData([]T{0.6, 0.5, 0.7})
-		model.W.Value().SetData([]T{
+		mat.SetData[T](model.B.Value(), []T{0.6, 0.5, 0.7})
+		mat.SetData[T](model.W.Value(), []T{
 			0.1, 0.2, 0.3, 0.4,
 			0.5, 0.6, 0.7, 0.8,
 			0.9, 0.8, 0.7, 0.6,

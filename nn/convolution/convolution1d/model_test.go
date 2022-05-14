@@ -180,36 +180,36 @@ func newTestModel[T mat.DType]() *Model[T] {
 		DepthWise:      false,
 		Activation:     activation.Tanh,
 	})
-	model.K[0].Value().SetData([]T{
+	mat.SetData[T](model.K[0].Value(), []T{
 		0.5, -0.4,
 		0.3, 0.3,
 	})
-	model.K[1].Value().SetData([]T{
+	mat.SetData[T](model.K[1].Value(), []T{
 		-0.5, 0.3,
 		0.2, 0.9,
 	})
-	model.K[2].Value().SetData([]T{
+	mat.SetData[T](model.K[2].Value(), []T{
 		0.4, 0.3,
 		0.2, 0.6,
 	})
-	model.B[0].Value().SetData([]T{0.0})
-	model.B[1].Value().SetData([]T{0.2})
-	model.B[2].Value().SetData([]T{0.5})
-	model.K[3].Value().SetData([]T{
+	mat.SetData[T](model.B[0].Value(), []T{0.0})
+	mat.SetData[T](model.B[1].Value(), []T{0.2})
+	mat.SetData[T](model.B[2].Value(), []T{0.5})
+	mat.SetData[T](model.K[3].Value(), []T{
 		0.4, 0.8,
 		-0.9, 0.4,
 	})
-	model.K[4].Value().SetData([]T{
+	mat.SetData[T](model.K[4].Value(), []T{
 		0.0, 0.5,
 		0.3, -0.5,
 	})
-	model.K[5].Value().SetData([]T{
+	mat.SetData[T](model.K[5].Value(), []T{
 		0.3, 0.6,
 		0.2, 0.8,
 	})
-	model.B[3].Value().SetData([]T{0.4})
-	model.B[4].Value().SetData([]T{0.1})
-	model.B[5].Value().SetData([]T{0.5})
+	mat.SetData[T](model.B[3].Value(), []T{0.4})
+	mat.SetData[T](model.B[4].Value(), []T{0.1})
+	mat.SetData[T](model.B[5].Value(), []T{0.5})
 	return model
 }
 
@@ -224,20 +224,20 @@ func newTestModel2[T mat.DType]() *Model[T] {
 		DepthWise:      true,
 		Activation:     activation.Identity,
 	})
-	model.K[0].Value().SetData([]T{
+	mat.SetData[T](model.K[0].Value(), []T{
 		0.5, -0.4,
 		0.3, 0.3,
 	})
-	model.K[1].Value().SetData([]T{
+	mat.SetData[T](model.K[1].Value(), []T{
 		-0.5, 0.3,
 		0.2, 0.9,
 	})
-	model.K[2].Value().SetData([]T{
+	mat.SetData[T](model.K[2].Value(), []T{
 		0.4, 0.3,
 		0.2, 0.6,
 	})
-	model.B[0].Value().SetData([]T{0.0})
-	model.B[1].Value().SetData([]T{0.2})
-	model.B[2].Value().SetData([]T{0.5})
+	mat.SetData[T](model.B[0].Value(), []T{0.0})
+	mat.SetData[T](model.B[1].Value(), []T{0.2})
+	mat.SetData[T](model.B[2].Value(), []T{0.5})
 	return model
 }

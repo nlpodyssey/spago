@@ -68,13 +68,13 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4, 5)
-	model.W.Value().SetData([]T{
+	mat.SetData[T](model.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
 		0.8, -0.9, 0.0, -0.1,
 		0.4, 1.0, -0.7, 0.8,
 	})
-	model.B.Value().SetData([]T{0.4, 0.0, -0.3, 0.8, -0.4})
+	mat.SetData[T](model.B.Value(), []T{0.4, 0.0, -0.3, 0.8, -0.4})
 	return model
 }

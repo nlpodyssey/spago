@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"testing"
 
 	"github.com/nlpodyssey/spago/embeddings"
@@ -39,7 +40,7 @@ func TestNew(t *testing.T) {
 		require.NotNil(t, v)
 		assert.Equal(t, 5, v.Rows())
 		assert.Equal(t, 1, v.Columns())
-		assert.Equal(t, []T{0, 0, 0, 0, 0}, v.Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{0, 0, 0, 0, 0}), v)
 	})
 
 	t.Run("leaves ZeroEmbedding nil if UseZeroEmbedding is disabled", func(t *testing.T) {
@@ -192,15 +193,15 @@ func TestModel_Encode(t *testing.T) {
 
 		assert.NotNil(t, result[0])
 		assert.NotNil(t, result[0].Value())
-		assert.Equal(t, []T{1, 2, 3}, result[0].Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), result[0].Value())
 
 		assert.NotNil(t, result[1])
 		assert.NotNil(t, result[1].Value())
-		assert.Equal(t, []T{0, 0, 0}, result[1].Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{0, 0, 0}), result[1].Value())
 
 		assert.NotNil(t, result[2])
 		assert.NotNil(t, result[2].Value())
-		assert.Equal(t, []T{1, 2, 3}, result[2].Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), result[2].Value())
 	})
 
 	t.Run("with UseZeroEmbedding disabled", func(t *testing.T) {
@@ -222,13 +223,13 @@ func TestModel_Encode(t *testing.T) {
 
 		assert.NotNil(t, result[0])
 		assert.NotNil(t, result[0].Value())
-		assert.Equal(t, []T{1, 2, 3}, result[0].Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), result[0].Value())
 
 		assert.Nil(t, result[1])
 
 		assert.NotNil(t, result[2])
 		assert.NotNil(t, result[2].Value())
-		assert.Equal(t, []T{1, 2, 3}, result[2].Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), result[2].Value())
 	})
 }
 
@@ -247,7 +248,7 @@ func TestModel_ClearEmbeddingsWithGrad(t *testing.T) {
 	e.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
 
 	assert.NotNil(t, e.Grad())
-	assert.Equal(t, []T{1, 2, 3}, e.Grad().Data())
+	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{1, 2, 3}), e.Grad())
 
 	m.ClearEmbeddingsWithGrad()
 
@@ -434,7 +435,7 @@ func TestModel(t *testing.T) {
 		assert.Equal(t, conf, decoded.Config)
 
 		require.NotNil(t, decoded.ZeroEmbedding)
-		assert.Equal(t, []T{0, 0, 0}, decoded.ZeroEmbedding.Value().Data())
+		mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{0, 0, 0}), decoded.ZeroEmbedding.Value())
 
 		require.NotNil(t, decoded.Store)
 		assert.Nil(t, decoded.Store.(store.PreventStoreMarshaling).Store)

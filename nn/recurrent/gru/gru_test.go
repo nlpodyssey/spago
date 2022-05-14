@@ -159,7 +159,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 func newTestModel[T mat.DType]() *Model[T] {
 	params := New[T](4, 5)
 
-	params.WPart.Value().SetData([]T{
+	mat.SetData[T](params.WPart.Value(), []T{
 		0.1, 0.4, -1.0, 0.4,
 		0.7, -0.2, 0.1, 0.0,
 		0.7, 0.8, -0.5, -0.3,
@@ -167,7 +167,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 		-0.7, 0.6, -0.6, -0.8,
 	})
 
-	params.WPartRec.Value().SetData([]T{
+	mat.SetData[T](params.WPartRec.Value(), []T{
 		0.1, -0.6, -1.0, -0.1, -0.4,
 		0.5, -0.9, 0.0, 0.8, 0.3,
 		-0.3, -0.9, 0.3, 1.0, -0.2,
@@ -175,9 +175,9 @@ func newTestModel[T mat.DType]() *Model[T] {
 		-0.2, 0.5, -0.2, -0.9, 0.4,
 	})
 
-	params.BPart.Value().SetData([]T{0.9, 0.2, -0.9, 0.2, -0.9})
+	mat.SetData[T](params.BPart.Value(), []T{0.9, 0.2, -0.9, 0.2, -0.9})
 
-	params.WRes.Value().SetData([]T{
+	mat.SetData[T](params.WRes.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
@@ -185,7 +185,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 		0.4, 1.0, -0.7, 0.8,
 	})
 
-	params.WResRec.Value().SetData([]T{
+	mat.SetData[T](params.WResRec.Value(), []T{
 		0.0, 0.8, 0.8, -1.0, -0.7,
 		-0.7, -0.8, 0.2, -0.7, 0.7,
 		-0.9, 0.9, 0.7, -0.5, 0.5,
@@ -193,9 +193,9 @@ func newTestModel[T mat.DType]() *Model[T] {
 		-0.6, 0.6, 0.8, -0.1, -0.3,
 	})
 
-	params.BRes.Value().SetData([]T{0.4, 0.0, -0.3, 0.8, -0.4})
+	mat.SetData[T](params.BRes.Value(), []T{0.4, 0.0, -0.3, 0.8, -0.4})
 
-	params.WCand.Value().SetData([]T{
+	mat.SetData[T](params.WCand.Value(), []T{
 		-1.0, 0.2, 0.0, 0.2,
 		-0.7, 0.7, -0.3, -0.3,
 		0.3, -0.6, 0.0, 0.7,
@@ -203,7 +203,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 		0.5, 0.8, -0.9, -0.8,
 	})
 
-	params.WCandRec.Value().SetData([]T{
+	mat.SetData[T](params.WCandRec.Value(), []T{
 		0.2, -0.3, -0.3, -0.5, -0.7,
 		0.4, -0.1, -0.6, -0.4, -0.8,
 		0.6, 0.6, 0.1, 0.7, -0.4,
@@ -211,7 +211,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 		-0.5, -0.3, -0.6, -0.6, 0.1,
 	})
 
-	params.BCand.Value().SetData([]T{0.5, -0.5, 1.0, 0.4, 0.9})
+	mat.SetData[T](params.BCand.Value(), []T{0.5, -0.5, 1.0, 0.4, 0.9})
 
 	return params
 }
@@ -292,32 +292,32 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 
 func newTestModel2[T mat.DType]() *Model[T] {
 	model := New[T](3, 2)
-	model.WRes.Value().SetData([]T{
+	mat.SetData[T](model.WRes.Value(), []T{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,
 	})
-	model.WResRec.Value().SetData([]T{
+	mat.SetData[T](model.WResRec.Value(), []T{
 		0.5, 0.3,
 		0.2, -0.1,
 	})
-	model.BRes.Value().SetData([]T{-0.2, 0.1})
-	model.WPart.Value().SetData([]T{
+	mat.SetData[T](model.BRes.Value(), []T{-0.2, 0.1})
+	mat.SetData[T](model.WPart.Value(), []T{
 		0.3, 0.2, -0.4,
 		0.4, 0.1, -0.6,
 	})
-	model.WPartRec.Value().SetData([]T{
+	mat.SetData[T](model.WPartRec.Value(), []T{
 		-0.5, 0.22,
 		0.8, -0.6,
 	})
-	model.BPart.Value().SetData([]T{0.5, 0.3})
-	model.WCand.Value().SetData([]T{
+	mat.SetData[T](model.BPart.Value(), []T{0.5, 0.3})
+	mat.SetData[T](model.WCand.Value(), []T{
 		-0.001, -0.3, 0.5,
 		0.4, 0.6, -0.3,
 	})
-	model.WCandRec.Value().SetData([]T{
+	mat.SetData[T](model.WCandRec.Value(), []T{
 		0.2, 0.7,
 		0.1, -0.1,
 	})
-	model.BCand.Value().SetData([]T{0.4, 0.3})
+	mat.SetData[T](model.BCand.Value(), []T{0.4, 0.3})
 	return model
 }

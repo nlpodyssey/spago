@@ -115,11 +115,11 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 
 		require.Equal(t, len(x), len(y))
 
-		for i, v := range model.Mean.Value().Data() {
+		for i, v := range mat.Data[T](model.Mean.Value()) {
 			assert.InDeltaf(t, tt.expectedAvg, v, 1e-1, "Momentum %f Mean %d: expected zero, go %f", tt.momentum, i, v)
 		}
 
-		for i, v := range model.StdDev.Value().Data() {
+		for i, v := range mat.Data[T](model.StdDev.Value()) {
 			assert.InDeltaf(t, tt.expectedStdDev, v, 1e-1, "Momentum %f StdDev %d: expected %f, got %f", tt.momentum, i, tt.expectedStdDev, v)
 		}
 	}
@@ -188,7 +188,7 @@ func rectify[T mat.DType](xs []ag.Node[T]) []ag.Node[T] {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4)
-	model.W.Value().SetData([]T{0.4, 0.0, -0.3, 0.8})
-	model.B.Value().SetData([]T{0.9, 0.2, -0.9, 0.2})
+	mat.SetData[T](model.W.Value(), []T{0.4, 0.0, -0.3, 0.8})
+	mat.SetData[T](model.B.Value(), []T{0.9, 0.2, -0.9, 0.2})
 	return model
 }

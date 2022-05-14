@@ -211,66 +211,66 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4, 5)
-	model.WIn.Value().SetData([]T{
+	mat.SetData[T](model.WIn.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
 		0.7, -0.4, 0.1, -0.8,
 		0.7, -0.7, 0.3, 0.5,
 		0.8, -0.9, 0.0, -0.1,
 		0.4, 1.0, -0.7, 0.8,
 	})
-	model.WInRec.Value().SetData([]T{
+	mat.SetData[T](model.WInRec.Value(), []T{
 		0.0, 0.8, 0.8, -1.0, -0.7,
 		-0.7, -0.8, 0.2, -0.7, 0.7,
 		-0.9, 0.9, 0.7, -0.5, 0.5,
 		0.0, -0.1, 0.5, -0.2, -0.8,
 		-0.6, 0.6, 0.8, -0.1, -0.3,
 	})
-	model.BIn.Value().SetData([]T{0.4, 0.0, -0.3, 0.8, -0.4})
-	model.WOut.Value().SetData([]T{
+	mat.SetData[T](model.BIn.Value(), []T{0.4, 0.0, -0.3, 0.8, -0.4})
+	mat.SetData[T](model.WOut.Value(), []T{
 		0.1, 0.4, -1.0, 0.4,
 		0.7, -0.2, 0.1, 0.0,
 		0.7, 0.8, -0.5, -0.3,
 		-0.9, 0.9, -0.3, -0.3,
 		-0.7, 0.6, -0.6, -0.8,
 	})
-	model.WOutRec.Value().SetData([]T{
+	mat.SetData[T](model.WOutRec.Value(), []T{
 		0.1, -0.6, -1.0, -0.1, -0.4,
 		0.5, -0.9, 0.0, 0.8, 0.3,
 		-0.3, -0.9, 0.3, 1.0, -0.2,
 		0.7, 0.2, 0.3, -0.4, -0.6,
 		-0.2, 0.5, -0.2, -0.9, 0.4,
 	})
-	model.BOut.Value().SetData([]T{0.9, 0.2, -0.9, 0.2, -0.9})
-	model.WFor.Value().SetData([]T{
+	mat.SetData[T](model.BOut.Value(), []T{0.9, 0.2, -0.9, 0.2, -0.9})
+	mat.SetData[T](model.WFor.Value(), []T{
 		-1.0, 0.2, 0.0, 0.2,
 		-0.7, 0.7, -0.3, -0.3,
 		0.3, -0.6, 0.0, 0.7,
 		-1.0, -0.6, 0.9, 0.8,
 		0.5, 0.8, -0.9, -0.8,
 	})
-	model.WForRec.Value().SetData([]T{
+	mat.SetData[T](model.WForRec.Value(), []T{
 		0.2, -0.3, -0.3, -0.5, -0.7,
 		0.4, -0.1, -0.6, -0.4, -0.8,
 		0.6, 0.6, 0.1, 0.7, -0.4,
 		-0.8, 0.9, 0.1, -0.1, -0.2,
 		-0.5, -0.3, -0.6, -0.6, 0.1,
 	})
-	model.BFor.Value().SetData([]T{0.5, -0.5, 1.0, 0.4, 0.9})
-	model.WCand.Value().SetData([]T{
+	mat.SetData[T](model.BFor.Value(), []T{0.5, -0.5, 1.0, 0.4, 0.9})
+	mat.SetData[T](model.WCand.Value(), []T{
 		0.2, 0.6, 0.0, 0.1,
 		0.1, -0.3, -0.8, -0.5,
 		-0.1, 0.0, 0.4, -0.4,
 		-0.8, -0.3, -0.7, 0.3,
 		-0.4, 0.9, 0.8, -0.3,
 	})
-	model.WCandRec.Value().SetData([]T{
+	mat.SetData[T](model.WCandRec.Value(), []T{
 		-0.3, 0.3, -0.1, 0.6, -0.7,
 		-0.2, -0.8, -0.6, -0.5, -0.4,
 		-0.4, 0.8, -0.5, -0.1, 0.9,
 		0.3, 0.7, 0.3, 0.0, -0.4,
 		-0.3, 0.3, -0.7, 0.0, 0.7,
 	})
-	model.BCand.Value().SetData([]T{0.2, -0.9, -0.9, 0.5, 0.1})
+	mat.SetData[T](model.BCand.Value(), []T{0.2, -0.9, -0.9, 0.5, 0.1})
 	return model
 }
 
@@ -369,41 +369,41 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 
 func newTestModel2[T mat.DType]() *Model[T] {
 	model := New[T](3, 2)
-	model.WIn.Value().SetData([]T{
+	mat.SetData[T](model.WIn.Value(), []T{
 		-0.2, -0.3, 0.5,
 		0.8, 0.2, 0.01,
 	})
-	model.WInRec.Value().SetData([]T{
+	mat.SetData[T](model.WInRec.Value(), []T{
 		0.5, 0.3,
 		0.2, -0.1,
 	})
-	model.BIn.Value().SetData([]T{-0.2, 0.1})
-	model.WOut.Value().SetData([]T{
+	mat.SetData[T](model.BIn.Value(), []T{-0.2, 0.1})
+	mat.SetData[T](model.WOut.Value(), []T{
 		-0.7, 0.2, 0.1,
 		0.5, 0.0, -0.5,
 	})
-	model.WOutRec.Value().SetData([]T{
+	mat.SetData[T](model.WOutRec.Value(), []T{
 		0.2, 0.7,
 		0.1, -0.7,
 	})
-	model.BOut.Value().SetData([]T{-0.8, 0.0})
-	model.WFor.Value().SetData([]T{
+	mat.SetData[T](model.BOut.Value(), []T{-0.8, 0.0})
+	mat.SetData[T](model.WFor.Value(), []T{
 		0.3, 0.2, -0.4,
 		0.4, 0.1, -0.6,
 	})
-	model.WForRec.Value().SetData([]T{
+	mat.SetData[T](model.WForRec.Value(), []T{
 		-0.5, 0.22,
 		0.8, -0.6,
 	})
-	model.BFor.Value().SetData([]T{0.5, 0.3})
-	model.WCand.Value().SetData([]T{
+	mat.SetData[T](model.BFor.Value(), []T{0.5, 0.3})
+	mat.SetData[T](model.WCand.Value(), []T{
 		-0.001, -0.3, 0.5,
 		0.4, 0.6, -0.3,
 	})
-	model.WCandRec.Value().SetData([]T{
+	mat.SetData[T](model.WCandRec.Value(), []T{
 		0.2, 0.7,
 		0.1, -0.1,
 	})
-	model.BCand.Value().SetData([]T{0.4, 0.3})
+	mat.SetData[T](model.BCand.Value(), []T{0.4, 0.3})
 	return model
 }

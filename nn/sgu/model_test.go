@@ -22,18 +22,18 @@ func testModelForward[T mat.DType](t *testing.T) {
 		Activation: activation.Identity,
 	})
 
-	model.Norm.W.Value().SetData([]T{
+	mat.SetData[T](model.Norm.W.Value(), []T{
 		0.2, 0.4, 0.6, 0.8, 0.1, 0.3, 0.5, 0.7,
 	})
-	model.Norm.B.Value().SetData([]T{
+	mat.SetData[T](model.Norm.B.Value(), []T{
 		0.02, 0.04, 0.06, 0.08, 0.01, 0.03, 0.05, 0.07,
 	})
 
-	model.Proj.W.Value().SetData([]T{
+	mat.SetData[T](model.Proj.W.Value(), []T{
 		0.41, 0.42,
 		0.43, 0.44,
 	})
-	model.Proj.B.Value().SetData([]T{
+	mat.SetData[T](model.Proj.B.Value(), []T{
 		0.48, 0.49,
 	})
 

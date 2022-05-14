@@ -153,36 +153,36 @@ func newTestModel[T mat.DType]() *Model[T] {
 		3, // nRoles
 		2, // dRoles
 	)
-	params.WInS.Value().SetData([]T{
+	mat.SetData[T](params.WInS.Value(), []T{
 		0.2, 0.1, 0.3, -0.4,
 		0.3, -0.1, 0.9, 0.3,
 		0.4, 0.2, -0.3, 0.1,
 		0.6, 0.5, -0.4, 0.5,
 	})
-	params.WInR.Value().SetData([]T{
+	mat.SetData[T](params.WInR.Value(), []T{
 		0.3, 0.5, -0.5, -0.5,
 		0.5, 0.4, 0.1, 0.3,
 		0.6, 0.7, 0.8, 0.6,
 	})
-	params.WRecS.Value().SetData([]T{
+	mat.SetData[T](params.WRecS.Value(), []T{
 		0.4, 0.2, -0.4, 0.5, 0.2, -0.5,
 		-0.2, 0.7, 0.8, -0.5, 0.5, 0.7,
 		0.4, -0.1, 0.1, 0.7, -0.1, 0.3,
 		0.3, 0.2, -0.7, -0.8, -0.3, 0.6,
 	})
-	params.WRecR.Value().SetData([]T{
+	mat.SetData[T](params.WRecR.Value(), []T{
 		0.4, 0.8, -0.4, 0.7, 0.2, -0.5,
 		-0.2, 0.7, 0.8, -0.5, 0.3, 0.7,
 		0.3, -0.1, 0.1, 0.3, -0.1, 0.2,
 	})
-	params.BS.Value().SetData([]T{0.3, 0.4, 0.8, 0.6})
-	params.BR.Value().SetData([]T{0.3, 0.2, -0.1})
-	params.S.Value().SetData([]T{
+	mat.SetData[T](params.BS.Value(), []T{0.3, 0.4, 0.8, 0.6})
+	mat.SetData[T](params.BR.Value(), []T{0.3, 0.2, -0.1})
+	mat.SetData[T](params.S.Value(), []T{
 		0.3, -0.2, -0.1, 0.5,
 		0.6, 0.7, 0.5, -0.6,
 		0.4, 0.2, 0.5, -0.6,
 	})
-	params.R.Value().SetData([]T{
+	mat.SetData[T](params.R.Value(), []T{
 		0.4, 0.3, 0.3,
 		0.3, 0.2, 0.1,
 	})

@@ -52,9 +52,9 @@ func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
 	if r.beta.RequiresGrad() {
 		gb := r.beta.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gb)
-		for i, x := range r.x.Value().Data() {
+		for i, x := range mat.Data[T](r.x.Value()) {
 			deriv := swishBBetaDeriv(float64(x), r.beta.Value().Scalar().Float64())
-			gyi := float64(gy.Data()[i])
+			gyi := gy.ScalarAtVec(i).Float64()
 			gb.AddScalarInPlace(deriv * gyi)
 		}
 		r.beta.AccGrad(gb)

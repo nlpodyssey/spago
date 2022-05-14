@@ -95,7 +95,7 @@ func testModelLoss[T mat.DType](t *testing.T) {
 
 func newTestModel[T mat.DType]() *Model[T] {
 	model := New[T](4)
-	model.TransitionScores.Value().SetData([]T{
+	mat.SetData[T](model.TransitionScores.Value(), []T{
 		0.0, 0.6, 0.8, 1.2, 1.6,
 		0.2, 0.5, 0.02, 0.03, 0.45,
 		0.3, 0.2, 0.6, 0.01, 0.19,

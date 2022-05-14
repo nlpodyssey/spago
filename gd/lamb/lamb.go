@@ -156,9 +156,9 @@ func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float
 }
 
 func norm[T mat.DType](grads mat.Matrix[T]) float64 {
-	sum := T(0.0)
-	for _, d := range grads.Data() {
-		sum += d * d
-	}
-	return math.Sqrt(float64(sum))
+	prod := grads.Prod(grads)
+	defer mat.ReleaseMatrix(prod)
+	sum := prod.Sum()
+	defer mat.ReleaseMatrix(sum)
+	return math.Sqrt(sum.Scalar().Float64())
 }
