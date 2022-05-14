@@ -24,7 +24,7 @@ func init() {
 func (p *BaseParam[T]) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	err := mat.MarshalBinaryMatrix[T](p.value, buf)
+	err := mat.MarshalBinaryMatrix(p.value, buf)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (p *BaseParam[T]) UnmarshalBinary(data []byte) error {
 	var err error
 	buf := bytes.NewReader(data)
 
-	p.value, err = mat.UnmarshalBinaryMatrix[T](buf)
+	p.value, err = mat.UnmarshalBinaryMatrix(buf)
 	if err != nil {
 		return err
 	}

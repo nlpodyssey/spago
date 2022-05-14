@@ -12,11 +12,12 @@ import (
 
 const (
 	binaryMatrixNil byte = iota
-	binaryMatrixDense
+	binaryMatrixDense32
+	binaryMatrixDense64
 )
 
 // MarshalBinaryMatrix encodes a Matrix into binary form.
-func MarshalBinaryMatrix[T DType](m Matrix, w io.Writer) error {
+func MarshalBinaryMatrix(m Matrix, w io.Writer) error {
 	var identifier byte
 	var data []byte
 	var err error
@@ -25,8 +26,14 @@ func MarshalBinaryMatrix[T DType](m Matrix, w io.Writer) error {
 	case nil:
 		_, err = w.Write([]byte{binaryMatrixNil})
 		return err
-	case *Dense[T]:
-		identifier = binaryMatrixDense
+	case *Dense[float32]:
+		identifier = binaryMatrixDense32
+		data, err = mt.MarshalBinary()
+		if err != nil {
+			return err
+		}
+	case *Dense[float64]:
+		identifier = binaryMatrixDense64
 		data, err = mt.MarshalBinary()
 		if err != nil {
 			return err
@@ -49,7 +56,7 @@ func MarshalBinaryMatrix[T DType](m Matrix, w io.Writer) error {
 }
 
 // UnmarshalBinaryMatrix decodes a Matrix from binary form.
-func UnmarshalBinaryMatrix[T DType](r io.Reader) (Matrix, error) {
+func UnmarshalBinaryMatrix(r io.Reader) (Matrix, error) {
 	idAndSize := [9]byte{}
 
 	_, err := r.Read(idAndSize[:1])
@@ -75,8 +82,15 @@ func UnmarshalBinaryMatrix[T DType](r io.Reader) (Matrix, error) {
 	}
 
 	switch identifier {
-	case binaryMatrixDense:
-		d := new(Dense[T])
+	case binaryMatrixDense32:
+		d := new(Dense[float32])
+		err = d.UnmarshalBinary(data)
+		if err != nil {
+			return nil, err
+		}
+		return d, nil
+	case binaryMatrixDense64:
+		d := new(Dense[float64])
 		err = d.UnmarshalBinary(data)
 		if err != nil {
 			return nil, err

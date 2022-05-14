@@ -49,7 +49,7 @@ func (p Payload[T]) MarshalBinary() ([]byte, error) {
 	buf.Write(binLen)
 
 	for _, m := range p.Data {
-		err := mat.MarshalBinaryMatrix[T](m, buf)
+		err := mat.MarshalBinaryMatrix(m, buf)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func (p *Payload[T]) UnmarshalBinary(data []byte) error {
 
 	p.Data = make([]mat.Matrix, dataLen)
 	for i := range p.Data {
-		p.Data[i], err = mat.UnmarshalBinaryMatrix[T](r)
+		p.Data[i], err = mat.UnmarshalBinaryMatrix(r)
 		if err != nil {
 			return err
 		}

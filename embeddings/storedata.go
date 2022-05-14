@@ -55,7 +55,7 @@ type storeData[T mat.DType] struct {
 // Value returns the mat.Matrix value, which is lazily decoded once if necessary.
 func (sd *storeData[T]) Value() mat.Matrix {
 	if sd.marshaledValue != nil {
-		m, err := mat.UnmarshalBinaryMatrix[T](bytes.NewReader(sd.marshaledValue))
+		m, err := mat.UnmarshalBinaryMatrix(bytes.NewReader(sd.marshaledValue))
 		if err != nil {
 			panic(err)
 		}
@@ -135,7 +135,7 @@ func (sd *storeData[T]) marshalValue() ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	if err := mat.MarshalBinaryMatrix[T](sd.value, &buf); err != nil {
+	if err := mat.MarshalBinaryMatrix(sd.value, &buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
