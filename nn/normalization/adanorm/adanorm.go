@@ -38,26 +38,29 @@ func New[T mat.DType](scale T) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	eps := ag.Constant[T](1e-10)
-	one := ag.Constant[T](1.0)
-	k := ag.Constant[T](0.1)
-	c := ag.Constant[T](m.Scale)
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	if len(xs) == 0 {
+		return nil
+	}
+	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(1e-10)))
+	one := ag.Constant(xs[0].Value().NewScalar(mat.Float(1.0)))
+	k := ag.Constant(xs[0].Value().NewScalar(mat.Float(0.1)))
+	c := ag.Constant(xs[0].Value().NewScalar(mat.Float(m.Scale)))
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
-	zs := make([]ag.Node[T], len(xs))
+	zs := make([]ag.Node, len(xs))
 
 	for i, x := range xs {
-		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add[T](devVectors[i], eps))
+		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add(devVectors[i], eps))
 		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), c)
-		zs[i] = ag.Prod(y, ag.StopGrad[T](fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
+		zs[i] = ag.Prod(y, ag.StopGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs
 }
 
 // Mean computes the mean of the input.
-func (m *Model[T]) Mean(xs []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Mean(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ReduceMean(x)
 	}
@@ -65,8 +68,8 @@ func (m *Model[T]) Mean(xs []ag.Node[T]) []ag.Node[T] {
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model[T]) StdDev(meanVectors []ag.Node[T], xs []ag.Node[T]) []ag.Node[T] {
-	devVectors := make([]ag.Node[T], len(xs))
+func (m *Model[T]) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		diffVector := ag.Square(ag.SubScalar(x, meanVectors[i]))
 		devVectors[i] = ag.Sqrt(ag.ReduceMean(diffVector))

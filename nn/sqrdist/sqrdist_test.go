@@ -21,13 +21,13 @@ func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.NewVariable[T](mat.NewVecDense([]T{0.3, 0.5, -0.4}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{0.3, 0.5, -0.4}), true)
 	y := model.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.5928}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
-	ag.Backward[T](y, mat.NewScalar[T](-0.8))
+	ag.Backward(y, mat.NewScalar[T](-0.8))
 
 	assert.InDeltaSlice(t, []T{-0.9568, -0.848, 0.5936}, x.Grad().Data(), 1.0e-05)
 

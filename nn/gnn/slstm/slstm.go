@@ -68,21 +68,21 @@ type HyperLinear3[T mat.DType] struct {
 
 // State contains nodes used during the forward step.
 type State[T mat.DType] struct {
-	xUi []ag.Node[T]
-	xUl []ag.Node[T]
-	xUr []ag.Node[T]
-	xUf []ag.Node[T]
-	xUs []ag.Node[T]
-	xUo []ag.Node[T]
-	xUu []ag.Node[T]
+	xUi []ag.Node
+	xUl []ag.Node
+	xUr []ag.Node
+	xUf []ag.Node
+	xUs []ag.Node
+	xUo []ag.Node
+	xUu []ag.Node
 
-	ViPrevG ag.Node[T]
-	VlPrevG ag.Node[T]
-	VrPrevG ag.Node[T]
-	VfPrevG ag.Node[T]
-	VsPrevG ag.Node[T]
-	VoPrevG ag.Node[T]
-	VuPrevG ag.Node[T]
+	ViPrevG ag.Node
+	VlPrevG ag.Node
+	VrPrevG ag.Node
+	VfPrevG ag.Node
+	VsPrevG ag.Node
+	VoPrevG ag.Node
+	VuPrevG ag.Node
 }
 
 func init() {
@@ -129,15 +129,15 @@ func newGate3[T mat.DType](size int) *HyperLinear3[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	steps := m.Config.Steps
 	n := len(xs)
-	h := make([][]ag.Node[T], steps)
-	c := make([][]ag.Node[T], steps)
-	g := make([]ag.Node[T], steps)
-	cg := make([]ag.Node[T], steps)
-	h[0] = make([]ag.Node[T], n)
-	c[0] = make([]ag.Node[T], n)
+	h := make([][]ag.Node, steps)
+	c := make([][]ag.Node, steps)
+	g := make([]ag.Node, steps)
+	cg := make([]ag.Node, steps)
+	h[0] = make([]ag.Node, n)
+	c[0] = make([]ag.Node, n)
 
 	g[0] = m.InitValue
 	cg[0] = m.InitValue
@@ -157,60 +157,60 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	return h[len(h)-1]
 }
 
-func (m *Model[T]) computeUx(s *State[T], xs []ag.Node[T]) {
+func (m *Model[T]) computeUx(s *State[T], xs []ag.Node) {
 	n := len(xs)
-	s.xUi = make([]ag.Node[T], n)
-	s.xUl = make([]ag.Node[T], n)
-	s.xUr = make([]ag.Node[T], n)
-	s.xUf = make([]ag.Node[T], n)
-	s.xUs = make([]ag.Node[T], n)
-	s.xUo = make([]ag.Node[T], n)
-	s.xUu = make([]ag.Node[T], n)
+	s.xUi = make([]ag.Node, n)
+	s.xUl = make([]ag.Node, n)
+	s.xUr = make([]ag.Node, n)
+	s.xUf = make([]ag.Node, n)
+	s.xUs = make([]ag.Node, n)
+	s.xUo = make([]ag.Node, n)
+	s.xUu = make([]ag.Node, n)
 
 	for i := 0; i < n; i++ {
-		s.xUi[i] = ag.Mul[T](m.InputGate.U, xs[i])
-		s.xUl[i] = ag.Mul[T](m.LeftCellGate.U, xs[i])
-		s.xUr[i] = ag.Mul[T](m.RightCellGate.U, xs[i])
-		s.xUf[i] = ag.Mul[T](m.CellGate.U, xs[i])
-		s.xUs[i] = ag.Mul[T](m.SentCellGate.U, xs[i])
-		s.xUo[i] = ag.Mul[T](m.OutputGate.U, xs[i])
-		s.xUu[i] = ag.Mul[T](m.InputActivation.U, xs[i])
+		s.xUi[i] = ag.Mul(m.InputGate.U, xs[i])
+		s.xUl[i] = ag.Mul(m.LeftCellGate.U, xs[i])
+		s.xUr[i] = ag.Mul(m.RightCellGate.U, xs[i])
+		s.xUf[i] = ag.Mul(m.CellGate.U, xs[i])
+		s.xUs[i] = ag.Mul(m.SentCellGate.U, xs[i])
+		s.xUo[i] = ag.Mul(m.OutputGate.U, xs[i])
+		s.xUu[i] = ag.Mul(m.InputActivation.U, xs[i])
 	}
 }
 
-func (m *Model[T]) computeVg(s *State[T], prevG ag.Node[T]) {
-	s.ViPrevG = ag.Mul[T](m.InputGate.V, prevG)
-	s.VlPrevG = ag.Mul[T](m.LeftCellGate.V, prevG)
-	s.VrPrevG = ag.Mul[T](m.RightCellGate.V, prevG)
-	s.VfPrevG = ag.Mul[T](m.CellGate.V, prevG)
-	s.VsPrevG = ag.Mul[T](m.SentCellGate.V, prevG)
-	s.VoPrevG = ag.Mul[T](m.OutputGate.V, prevG)
-	s.VuPrevG = ag.Mul[T](m.InputActivation.U, prevG)
+func (m *Model[T]) computeVg(s *State[T], prevG ag.Node) {
+	s.ViPrevG = ag.Mul(m.InputGate.V, prevG)
+	s.VlPrevG = ag.Mul(m.LeftCellGate.V, prevG)
+	s.VrPrevG = ag.Mul(m.RightCellGate.V, prevG)
+	s.VfPrevG = ag.Mul(m.CellGate.V, prevG)
+	s.VsPrevG = ag.Mul(m.SentCellGate.V, prevG)
+	s.VoPrevG = ag.Mul(m.OutputGate.V, prevG)
+	s.VuPrevG = ag.Mul(m.InputActivation.U, prevG)
 }
 
-func (m *Model[T]) updateHiddenNodes(s *State[T], prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) ([]ag.Node[T], []ag.Node[T]) {
+func (m *Model[T]) updateHiddenNodes(s *State[T], prevH []ag.Node, prevC []ag.Node, prevG ag.Node) ([]ag.Node, []ag.Node) {
 	n := len(prevH)
-	h := make([]ag.Node[T], n)
-	c := make([]ag.Node[T], n)
+	h := make([]ag.Node, n)
+	c := make([]ag.Node, n)
 	for i := 0; i < n; i++ {
 		h[i], c[i] = m.processNode(s, i, prevH, prevC, prevG)
 	}
 	return h, c
 }
 
-func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (ag.Node[T], ag.Node[T]) {
+func (m *Model[T]) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
 	n := len(prevH)
 	avgH := ag.Mean(prevH)
-	fG := ag.Sigmoid(ag.Affine[T](m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
-	oG := ag.Sigmoid(ag.Affine[T](m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
+	fG := ag.Sigmoid(ag.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
+	oG := ag.Sigmoid(ag.Affine(m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
-	hG := make([]ag.Node[T], n)
-	gG := ag.Affine[T](m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
+	hG := make([]ag.Node, n)
+	gG := ag.Affine(m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
-		hG[i] = ag.Sigmoid(ag.Add[T](gG, ag.Mul[T](m.NonLocalInputGate.U, prevH[i])))
+		hG[i] = ag.Sigmoid(ag.Add(gG, ag.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}
 
-	var sum ag.Node[T]
+	var sum ag.Node
 	for i := 0; i < n; i++ {
 		sum = ag.Add(sum, ag.Prod(hG[i], prevC[i]))
 	}
@@ -220,21 +220,21 @@ func (m *Model[T]) updateSentenceState(prevH []ag.Node[T], prevC []ag.Node[T], p
 	return gt, cg
 }
 
-func (m *Model[T]) processNode(s *State[T], i int, prevH []ag.Node[T], prevC []ag.Node[T], prevG ag.Node[T]) (h ag.Node[T], c ag.Node[T]) {
+func (m *Model[T]) processNode(s *State[T], i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
 	n := len(prevH)
 	first := 0
 	last := n - 1
 	j := i - 1
 	k := i + 1
 
-	var prevHj, prevCj ag.Node[T]
+	var prevHj, prevCj ag.Node
 	if j < first {
 		prevHj, prevCj = m.StartH, m.StartH
 	} else {
 		prevHj, prevCj = prevH[j], prevC[j]
 	}
 
-	var prevHk, prevCk ag.Node[T]
+	var prevHk, prevCk ag.Node
 	if k > last {
 		prevHk, prevCk = m.EndH, m.EndH
 	} else {
@@ -242,13 +242,13 @@ func (m *Model[T]) processNode(s *State[T], i int, prevH []ag.Node[T], prevC []a
 	}
 
 	context := ag.Concat(prevHj, prevH[i], prevHk)
-	iG := ag.Sigmoid(ag.Sum[T](m.InputGate.B, ag.Mul[T](m.InputGate.W, context), s.ViPrevG, s.xUi[i]))
-	lG := ag.Sigmoid(ag.Sum[T](m.LeftCellGate.B, ag.Mul[T](m.LeftCellGate.W, context), s.VlPrevG, s.xUl[i]))
-	rG := ag.Sigmoid(ag.Sum[T](m.RightCellGate.B, ag.Mul[T](m.RightCellGate.W, context), s.VrPrevG, s.xUr[i]))
-	fG := ag.Sigmoid(ag.Sum[T](m.CellGate.B, ag.Mul[T](m.CellGate.W, context), s.VfPrevG, s.xUf[i]))
-	sG := ag.Sigmoid(ag.Sum[T](m.SentCellGate.B, ag.Mul[T](m.SentCellGate.W, context), s.VsPrevG, s.xUs[i]))
-	oG := ag.Sigmoid(ag.Sum[T](m.OutputGate.B, ag.Mul[T](m.OutputGate.W, context), s.VoPrevG, s.xUo[i]))
-	uG := ag.Tanh(ag.Sum[T](m.InputActivation.B, ag.Mul[T](m.InputActivation.W, context), s.VuPrevG, s.xUu[i]))
+	iG := ag.Sigmoid(ag.Sum(m.InputGate.B, ag.Mul(m.InputGate.W, context), s.ViPrevG, s.xUi[i]))
+	lG := ag.Sigmoid(ag.Sum(m.LeftCellGate.B, ag.Mul(m.LeftCellGate.W, context), s.VlPrevG, s.xUl[i]))
+	rG := ag.Sigmoid(ag.Sum(m.RightCellGate.B, ag.Mul(m.RightCellGate.W, context), s.VrPrevG, s.xUr[i]))
+	fG := ag.Sigmoid(ag.Sum(m.CellGate.B, ag.Mul(m.CellGate.W, context), s.VfPrevG, s.xUf[i]))
+	sG := ag.Sigmoid(ag.Sum(m.SentCellGate.B, ag.Mul(m.SentCellGate.W, context), s.VsPrevG, s.xUs[i]))
+	oG := ag.Sigmoid(ag.Sum(m.OutputGate.B, ag.Mul(m.OutputGate.W, context), s.VoPrevG, s.xUo[i]))
+	uG := ag.Tanh(ag.Sum(m.InputActivation.B, ag.Mul(m.InputActivation.W, context), s.VuPrevG, s.xUu[i]))
 	c1 := ag.Prod(lG, prevCj)
 	c2 := ag.Prod(fG, prevC[i])
 	c3 := ag.Prod(rG, prevCk)

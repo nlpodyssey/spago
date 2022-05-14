@@ -30,10 +30,10 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the GRU recurrent network.
 type State[T mat.DType] struct {
-	R ag.Node[T]
-	P ag.Node[T]
-	C ag.Node[T]
-	Y ag.Node[T]
+	R ag.Node
+	P ag.Node
+	C ag.Node
+	Y ag.Node
 }
 
 func init() {
@@ -58,8 +58,8 @@ func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -74,26 +74,27 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // p = sigmoid(wp (dot) x + bp + wpRec (dot) yPrev)
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if state != nil {
 		yPrev = state.Y
 	}
 
-	s.R = ag.Sigmoid(ag.Affine[T](m.BRes, m.WRes, x, m.WResRec, yPrev))
-	s.P = ag.Sigmoid(ag.Affine[T](m.BPart, m.WPart, x, m.WPartRec, yPrev))
-	s.C = ag.Tanh(ag.Affine[T](m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
+	s.R = ag.Sigmoid(ag.Affine(m.BRes, m.WRes, x, m.WResRec, yPrev))
+	s.P = ag.Sigmoid(ag.Affine(m.BPart, m.WPart, x, m.WPartRec, yPrev))
+	s.C = ag.Tanh(ag.Affine(m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
 	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, ag.Constant[T](1.0)), yPrev))
+		one := ag.Constant(x.Value().NewScalar(mat.Float(1.0)))
+		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, one), yPrev))
 	}
 	return
 }
 
 // tryProd returns the product if 'a' il not nil, otherwise nil
-func tryProd[T mat.DType](a, b ag.Node[T]) ag.Node[T] {
+func tryProd(a, b ag.Node) ag.Node {
 	if a != nil {
 		return ag.Prod(a, b)
 	}

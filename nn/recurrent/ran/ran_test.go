@@ -22,7 +22,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 	// == Forward
 
-	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	st := model.Next(nil, x)
 
 	assert.InDeltaSlice(t, []T{0.39652, 0.25162, 0.5, 0.70475, 0.45264}, st.InG.Value().Data(), 1.0e-05)
@@ -32,7 +32,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.NewVariable[T](mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := ag.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(st.Y, gold, false)
 	ag.Backward(loss)
 
@@ -80,10 +80,10 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	// == Forward
 
 	s0 := &State[T]{
-		C: ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
-		Y: ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
+		C: ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
+		Y: ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
 	}
-	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{0.72312, 0.24974, 0.54983, 0.82054, 0.53494}, s1.InG.Value().Data(), 1.0e-05)
@@ -93,7 +93,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.NewVariable[T](mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := ag.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(s1.Y, gold, false)
 	ag.Backward(loss)
 

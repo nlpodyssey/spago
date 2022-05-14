@@ -12,11 +12,10 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/ag/encoding"
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // Encode encodes the graph g in Graphviz DOT format, writing the output to w.
-func Encode[T mat.DType](g *encoding.Graph[T], w io.Writer) error {
+func Encode(g *encoding.Graph, w io.Writer) error {
 	return dotTemplate.Execute(w, g)
 }
 
@@ -85,7 +84,7 @@ var (
 		},
 		"nodeShape": func(node any) string {
 			switch node.(type) {
-			case *ag.Operator[float32], *ag.Operator[float64]:
+			case *ag.Operator:
 				return "oval"
 			default:
 				return "box"

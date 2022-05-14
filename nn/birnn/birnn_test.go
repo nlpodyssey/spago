@@ -24,9 +24,9 @@ func testModelConcatForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.6}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.7, -0.4}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, -0.7}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.6}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
 	y := model.Forward(x1, x2, x3)
 
@@ -102,9 +102,9 @@ func testModelSumForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.6}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.7, -0.4}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, -0.7}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.6}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
 	y := model.Forward(x1, x2, x3)
 
@@ -123,9 +123,9 @@ func testModelAvgForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.6}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.7, -0.4}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, -0.7}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.6}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
 	y := model.Forward(x1, x2, x3)
 
@@ -144,9 +144,9 @@ func testModelProdForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.6}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.7, -0.4}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{0.0, -0.7}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.6}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.7, -0.4}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{0.0, -0.7}), true)
 
 	y := model.Forward(x1, x2, x3)
 

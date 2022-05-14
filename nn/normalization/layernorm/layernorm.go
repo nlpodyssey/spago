@@ -42,14 +42,17 @@ func New[T mat.DType](size int, eps T) *Model[T] {
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	eps := ag.Constant(m.Eps)
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	if len(xs) == 0 {
+		return nil
+	}
+	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(m.Eps)))
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)
 		stdDev := ag.Sqrt(ag.Add(ag.ReduceMean(ag.Square(dev)), eps))
-		ys[i] = ag.Add[T](ag.Prod[T](ag.DivScalar(dev, stdDev), m.W), m.B)
+		ys[i] = ag.Add(ag.Prod(ag.DivScalar(dev, stdDev), m.W), m.B)
 	}
 	return ys
 }

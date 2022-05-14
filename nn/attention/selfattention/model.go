@@ -20,7 +20,7 @@ import (
 var _ nn.Model = &Model[float32]{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
-type Cache[T mat.DType] [2]ag.Node[T]
+type Cache[T mat.DType] [2]ag.Node
 
 // Model contains the serializable parameters.
 type Model[T mat.DType] struct {
@@ -65,16 +65,16 @@ func (m *Model[T]) Init(rng *rand.LockedRand) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], []ag.Node[T], Cache[T]) {
+func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache[T]) {
 	pq := m.Query.Forward(q...)
 
 	fwKeys := m.Key.Forward(k...)
 	fwValues := m.Value.Forward(v...)
 
-	var pk, pv ag.Node[T]
+	var pk, pv ag.Node
 	if cache[0] == nil {
-		pk = ag.Stack[T](fwKeys...)
-		pv = ag.Stack[T](fwValues...)
+		pk = ag.Stack(fwKeys...)
+		pv = ag.Stack(fwValues...)
 	} else {
 		pk = ag.AppendRows(cache[0], fwKeys...)
 		pv = ag.AppendRows(cache[1], fwValues...)

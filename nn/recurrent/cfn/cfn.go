@@ -28,10 +28,10 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the CFN recurrent network.
 type State[T mat.DType] struct {
-	InG  ag.Node[T]
-	ForG ag.Node[T]
-	Cand ag.Node[T]
-	Y    ag.Node[T]
+	InG  ag.Node
+	ForG ag.Node
+	Cand ag.Node
+	Y    ag.Node
 }
 
 func init() {
@@ -56,8 +56,8 @@ func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -72,17 +72,17 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // forG = sigmoid(wForG (dot) x + bForG + wrForG (dot) yPrev)
 // c = f(wc (dot) x)
 // y = inG * c + f(yPrev) * forG
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if state != nil {
 		yPrev = state.Y
 	}
 
-	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = ag.Tanh(ag.Mul[T](m.WCand, x))
+	s.InG = ag.Sigmoid(ag.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = ag.Sigmoid(ag.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = ag.Tanh(ag.Mul(m.WCand, x))
 	s.Y = ag.Prod(s.InG, s.Cand)
 	if yPrev != nil {
 		s.Y = ag.Add(s.Y, ag.Prod(ag.Tanh(yPrev), s.ForG))

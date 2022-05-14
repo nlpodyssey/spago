@@ -7,7 +7,7 @@ package ag
 import "github.com/nlpodyssey/spago/mat"
 
 // Node is implemented by any value that can represent a node of a graph.
-type Node[T mat.DType] interface {
+type Node interface {
 	// Value returns the value of the node.
 	// If the node is a variable it returns its value, otherwise returns the
 	// cached result of the forward pass.
@@ -32,8 +32,8 @@ type Node[T mat.DType] interface {
 }
 
 // ToNodes casts a slice of N[T] into a slice of ag.Node.
-func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
-	ns := make([]Node[T], len(xs))
+func ToNodes[N Node](xs []N) []Node {
+	ns := make([]Node, len(xs))
 	for i, v := range xs {
 		ns[i] = v
 	}
@@ -45,7 +45,7 @@ func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 //
 // It is important to remember that Node.Value is a weak value, as the matrix
 // derived from graph's operations can be freed (see ReleaseGraph).
-func CopyValue[T mat.DType](node Node[T]) mat.Matrix {
+func CopyValue(node Node) mat.Matrix {
 	if node.Value() == nil {
 		return nil
 	}
@@ -53,7 +53,7 @@ func CopyValue[T mat.DType](node Node[T]) mat.Matrix {
 }
 
 // CopyValues calls CopyValue for each node of the slice.
-func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix {
+func CopyValues(nodes []Node) []mat.Matrix {
 	values := make([]mat.Matrix, len(nodes))
 	for i, n := range nodes {
 		values[i] = CopyValue(n)
@@ -66,7 +66,7 @@ func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix {
 //
 // It is important to remember that Node.Grad is a weak value, as the matrix
 // derived from graph's operations can be freed (see Node.ZeroGrad).
-func CopyGrad[T mat.DType](node Node[T]) mat.Matrix {
+func CopyGrad(node Node) mat.Matrix {
 	if node.Grad() == nil {
 		return nil
 	}

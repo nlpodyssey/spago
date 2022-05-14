@@ -7,30 +7,33 @@ package crf
 import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"math"
 )
 
+// FIXME: ViterbiStructure currently works with float64 only
+
 // ViterbiStructure implements Viterbi decoding.
-type ViterbiStructure[T mat.DType] struct {
+type ViterbiStructure struct {
 	scores       mat.Matrix
 	backpointers []int
 }
 
 // NewViterbiStructure returns a new ViterbiStructure ready to use.
-func NewViterbiStructure[T mat.DType](size int) *ViterbiStructure[T] {
-	return &ViterbiStructure[T]{
-		scores:       mat.NewInitVecDense(size, mat.Inf[T](-1)),
+func NewViterbiStructure(size int) *ViterbiStructure {
+	return &ViterbiStructure{
+		scores:       mat.NewInitVecDense(size, math.Inf(-1)),
 		backpointers: make([]int, size),
 	}
 }
 
 // Viterbi decodes the xs sequence according to the transitionMatrix.
-func Viterbi[T mat.DType](transitionMatrix mat.Matrix, xs []ag.Node[T]) []int {
-	alpha := make([]*ViterbiStructure[T], len(xs)+1)
-	alpha[0] = viterbiStepStart[T](transitionMatrix, xs[0].Value())
+func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
+	alpha := make([]*ViterbiStructure, len(xs)+1)
+	alpha[0] = viterbiStepStart(transitionMatrix, xs[0].Value())
 	for i := 1; i < len(xs); i++ {
-		alpha[i] = viterbiStep[T](transitionMatrix, alpha[i-1].scores, xs[i].Value())
+		alpha[i] = viterbiStep(transitionMatrix, alpha[i-1].scores, xs[i].Value())
 	}
-	alpha[len(xs)] = viterbiStepEnd[T](transitionMatrix, alpha[len(xs)-1].scores)
+	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
 	ys[len(xs)-1] = alpha[len(xs)].scores.ArgMax()
@@ -40,12 +43,12 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix, xs []ag.Node[T]) []int {
 	return ys
 }
 
-func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix) *ViterbiStructure[T] {
-	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
+func viterbiStepStart(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
+	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
-		tv := mat.DTFloat[T](transitionMatrix.ScalarAt(0, i+1))
-		yv := mat.DTFloat[T](y.scores.ScalarAt(i, 0))
+		mv := maxVec.ScalarAt(i, 0).Float64()
+		tv := transitionMatrix.ScalarAt(0, i+1).Float64()
+		yv := y.scores.ScalarAt(i, 0).Float64()
 		score := mv + tv
 		if score > yv {
 			y.scores.SetVecScalar(i, mat.Float(score))
@@ -55,12 +58,12 @@ func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix) *Viterbi
 	return y
 }
 
-func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix) *ViterbiStructure[T] {
-	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
+func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
+	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
-		tv := mat.DTFloat[T](transitionMatrix.ScalarAt(i+1, 0))
-		yv := mat.DTFloat[T](y.scores.ScalarAt(i, 0))
+		mv := maxVec.ScalarAt(i, 0).Float64()
+		tv := transitionMatrix.ScalarAt(i+1, 0).Float64()
+		yv := y.scores.ScalarAt(i, 0).Float64()
 		score := mv + tv
 		if score > yv {
 			y.scores.SetVecScalar(i, mat.Float(score))
@@ -70,14 +73,14 @@ func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix) *ViterbiSt
 	return y
 }
 
-func viterbiStep[T mat.DType](transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure[T] {
-	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
+func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure {
+	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
-			mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
-			sv := mat.DTFloat[T](stepVec.ScalarAt(j, 0))
-			tv := mat.DTFloat[T](transitionMatrix.ScalarAt(i+1, j+1))
-			yv := mat.DTFloat[T](y.scores.ScalarAt(j, 0))
+			mv := maxVec.ScalarAt(i, 0).Float64()
+			sv := stepVec.ScalarAt(j, 0).Float64()
+			tv := transitionMatrix.ScalarAt(i+1, j+1).Float64()
+			yv := y.scores.ScalarAt(j, 0).Float64()
 			score := mv + sv + tv
 			if score > yv {
 				y.scores.SetVecScalar(j, mat.Float(score))

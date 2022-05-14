@@ -5,6 +5,7 @@
 package attention
 
 import (
+	"math"
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -15,10 +16,10 @@ import (
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], scaleFactor T, useCausalMask bool) ([]ag.Node[T], []ag.Node[T]) {
-	attention := make([]ag.Node[T], len(q))
-	weights := make([]ag.Node[T], len(q))
-	factor := ag.Constant(scaleFactor)
+func ScaledDotProductAttention[T mat.DType](q []ag.Node, k, v ag.Node, scaleFactor T, useCausalMask bool) ([]ag.Node, []ag.Node) {
+	attention := make([]ag.Node, len(q))
+	weights := make([]ag.Node, len(q))
+	factor := ag.Constant(k.Value().NewScalar(mat.Float(scaleFactor)))
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
@@ -27,12 +28,12 @@ func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], sca
 	wg.Add(len(q))
 
 	for i, qi := range q {
-		go func(i int, qi ag.Node[T]) {
+		go func(i int, qi ag.Node) {
 			scores := ag.ProdScalar(ag.Mul(k, qi), factor)
 
 			if causalMaskEnabled {
-				causalMask := mat.NewVecDense[T](makeCausalMask[T](i, kRows)) // TODO: use external cache for causal mask?
-				scores = ag.Add(scores, ag.NewVariable[T](causalMask, false))
+				causalMask := k.Value().NewVec(mat.FloatSlice(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
+				scores = ag.Add(scores, ag.NewVariable(causalMask, false))
 			}
 
 			weights[i] = ag.Softmax(scores)
@@ -46,25 +47,30 @@ func ScaledDotProductAttention[T mat.DType](q []ag.Node[T], k, v ag.Node[T], sca
 }
 
 // makeCausalMask returns a slice of size seqLength filled with zeros until curIndex, and the rest with -inf.
-func makeCausalMask[T mat.DType](curIndex, seqLength int) []T {
-	causalMask := make([]T, seqLength)
+// FIXME: avoid specific float64 type, later passed to NewVec
+func makeCausalMask(curIndex, seqLength int) []float64 {
+	negInf := math.Inf(-1)
+	causalMask := make([]float64, seqLength)
 	for k := curIndex + 1; k < seqLength; k++ {
-		causalMask[k] = mat.Inf[T](-1)
+		causalMask[k] = negInf
 	}
 	return causalMask
 }
 
 // MappingFunc is a mapping function used by LinearAttention.
-type MappingFunc[T mat.DType] func(x ag.Node[T]) ag.Node[T]
+type MappingFunc[T mat.DType] func(x ag.Node) ag.Node
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention[T mat.DType](q, k, v []ag.Node[T], mappingFunction MappingFunc[T], eps T) []ag.Node[T] {
-	context := make([]ag.Node[T], len(q))
-	attKeys := make([]ag.Node[T], len(k))
+func LinearAttention[T mat.DType](q, k, v []ag.Node, mappingFunction MappingFunc[T], eps T) []ag.Node {
+	if len(q) == 0 {
+		return nil
+	}
+	context := make([]ag.Node, len(q))
+	attKeys := make([]ag.Node, len(k))
 
-	var attKeysSum ag.Node[T] = nil
+	var attKeysSum ag.Node = nil
 	for i := range k {
 		attKeys[i] = mappingFunction(k[i])
 		attKeysSum = ag.Add(attKeysSum, attKeys[i])
@@ -73,7 +79,7 @@ func LinearAttention[T mat.DType](q, k, v []ag.Node[T], mappingFunction MappingF
 	attKeysT := ag.T(ag.Stack(attKeys...))
 	kv := ag.Mul(attKeysT, ag.Stack(v...))
 
-	epsn := ag.Constant[T](eps)
+	epsn := ag.Constant(q[0].Value().NewScalar(mat.Float(eps)))
 	for i, qi := range q {
 		attQuery := mappingFunction(qi)
 		n := ag.T(ag.Mul(ag.T(attQuery), kv))

@@ -33,11 +33,11 @@ func init() {
 
 // State represent a state of the DeltaRNN recurrent network.
 type State[T mat.DType] struct {
-	D1 ag.Node[T]
-	D2 ag.Node[T]
-	C  ag.Node[T]
-	P  ag.Node[T]
-	Y  ag.Node[T]
+	D1 ag.Node
+	D2 ag.Node
+	C  ag.Node
+	P  ag.Node
+	Y  ag.Node
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -54,8 +54,8 @@ func New[T mat.DType](in, out int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -71,27 +71,28 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // c = tanh(d1 + d2 + bc)
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if state != nil {
 		yPrev = state.Y
 	}
 
-	wx := ag.Mul[T](m.W, x)
+	wx := ag.Mul(m.W, x)
 	if yPrev == nil {
-		s.D1 = ag.Prod[T](m.Beta1, wx)
-		s.C = ag.Tanh(ag.Add[T](s.D1, m.B))
-		s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
+		s.D1 = ag.Prod(m.Beta1, wx)
+		s.C = ag.Tanh(ag.Add(s.D1, m.B))
+		s.P = ag.Sigmoid(ag.Add(wx, m.BPart))
 		s.Y = ag.Tanh(ag.Prod(s.P, s.C))
 		return
 	}
-	wyRec := ag.Mul[T](m.WRec, yPrev)
-	s.D1 = ag.Add(ag.Prod[T](m.Beta1, wx), ag.Prod[T](m.Beta2, wyRec))
-	s.D2 = ag.Prod(ag.Prod[T](m.Alpha, wx), wyRec)
-	s.C = ag.Tanh(ag.Add[T](ag.Add[T](s.D1, s.D2), m.B))
-	s.P = ag.Sigmoid(ag.Add[T](wx, m.BPart))
-	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, ag.Constant[T](1.0)), yPrev)))
+	wyRec := ag.Mul(m.WRec, yPrev)
+	s.D1 = ag.Add(ag.Prod(m.Beta1, wx), ag.Prod(m.Beta2, wyRec))
+	s.D2 = ag.Prod(ag.Prod(m.Alpha, wx), wyRec)
+	s.C = ag.Tanh(ag.Add(ag.Add(s.D1, s.D2), m.B))
+	s.P = ag.Sigmoid(ag.Add(wx, m.BPart))
+	one := ag.Constant(s.P.Value().NewScalar(mat.Float(1.0)))
+	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, one), yPrev)))
 	return
 }

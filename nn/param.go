@@ -11,7 +11,7 @@ import (
 
 // Param is the interface for a Model parameter.
 type Param[T mat.DType] interface {
-	ag.Node[T]
+	ag.Node
 
 	// Name returns the params name (can be empty string).
 	Name() string

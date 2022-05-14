@@ -4,10 +4,6 @@
 
 package ag
 
-import (
-	"github.com/nlpodyssey/spago/mat"
-)
-
 // ReleaseGraph traverses the (sub-)graphs consisting of operators and
 // nested operands, starting from the given nodes, and frees the resources
 // of each operator.
@@ -19,12 +15,12 @@ import (
 //
 // Freed resources include, but are not limited to, the value and the gradients.
 // Any freed operator MUST not be used after this operation is performed.
-func ReleaseGraph[T mat.DType](nodes ...Node[T]) {
-	visited := make(map[*Operator[T]]struct{})
-	toVisit := make([]*Operator[T], 0, len(nodes))
+func ReleaseGraph(nodes ...Node) {
+	visited := make(map[*Operator]struct{})
+	toVisit := make([]*Operator, 0, len(nodes))
 
 	for _, node := range nodes {
-		if op, ok := node.(*Operator[T]); ok {
+		if op, ok := node.(*Operator); ok {
 			toVisit = append(toVisit, op)
 		}
 	}
@@ -41,7 +37,7 @@ func ReleaseGraph[T mat.DType](nodes ...Node[T]) {
 		visited[op] = struct{}{}
 
 		for _, operand := range op.function.Operands() {
-			if oo, ok := operand.(*Operator[T]); ok {
+			if oo, ok := operand.(*Operator); ok {
 				toVisit = append(toVisit, oo)
 			}
 		}

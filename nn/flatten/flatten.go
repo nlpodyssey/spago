@@ -30,9 +30,9 @@ func New[T mat.DType]() *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	vectorized := func(x ag.Node[T]) ag.Node[T] {
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	vectorized := func(x ag.Node) ag.Node {
 		return ag.T(ag.Flatten(x))
 	}
-	return []ag.Node[T]{ag.Concat(ag.Map(vectorized, xs)...)}
+	return []ag.Node{ag.Concat(ag.Map(vectorized, xs)...)}
 }

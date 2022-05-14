@@ -14,13 +14,13 @@ import (
 )
 
 var (
-	_ fn.Operand    = &Variable[float32]{}
-	_ Node[float32] = &Variable[float32]{}
+	_ fn.Operand = &Variable{}
+	_ Node       = &Variable{}
 )
 
 // Variable is a simple type of Node, primarily consisting of a value and
 // optional gradients.
-type Variable[T mat.DType] struct {
+type Variable struct {
 	value        mat.Matrix
 	grad         mat.Matrix
 	gradMu       sync.RWMutex
@@ -32,8 +32,8 @@ type Variable[T mat.DType] struct {
 }
 
 // NewVariable creates a new Variable Node.
-func NewVariable[T mat.DType](value mat.Matrix, requiresGrad bool) Node[T] {
-	return &Variable[T]{
+func NewVariable(value mat.Matrix, requiresGrad bool) Node {
+	return &Variable{
 		value:        value,
 		grad:         nil,
 		requiresGrad: requiresGrad,
@@ -42,8 +42,8 @@ func NewVariable[T mat.DType](value mat.Matrix, requiresGrad bool) Node[T] {
 }
 
 // NewVariableWithName creates a new Variable Node with a given name.
-func NewVariableWithName[T mat.DType](value mat.Matrix, requiresGrad bool, name string) Node[T] {
-	return &Variable[T]{
+func NewVariableWithName(value mat.Matrix, requiresGrad bool, name string) Node {
+	return &Variable{
 		name:         name,
 		value:        value,
 		grad:         nil,
@@ -54,44 +54,53 @@ func NewVariableWithName[T mat.DType](value mat.Matrix, requiresGrad bool, name 
 
 // NewScalar creates a new scalar Variable Node that doesn't require gradients.
 // TODO: Why shouldn't gradient be required by default?
-func NewScalar[T mat.DType](value T) Node[T] {
-	return NewVariable[T](mat.NewScalar(value), false)
+func NewScalar(value mat.Matrix) Node {
+	if !mat.IsScalar(value) {
+		panic("ag: NewScalar parameter must be a 1×1 matrix")
+	}
+	return NewVariable(value, false)
 }
 
 // NewScalarWithName creates a new scalar Variable Node that doesn't require
 // gradients, with a given name
 // TODO: Why shouldn't gradient be required by default?
-func NewScalarWithName[T mat.DType](value T, name string) Node[T] {
-	return NewVariableWithName[T](mat.NewScalar(value), false, name)
+func NewScalarWithName(value mat.Matrix, name string) Node {
+	if !mat.IsScalar(value) {
+		panic("ag: NewScalar parameter must be a 1×1 matrix")
+	}
+	return NewVariableWithName(value, false, name)
 }
 
 // Constant returns a scalar Node that that doesn't require gradients.
-func Constant[T mat.DType](value T) Node[T] {
-	return NewVariableWithName[T](mat.NewScalar(value), false, fmt.Sprint(value))
+func Constant(value mat.Matrix) Node {
+	if !mat.IsScalar(value) {
+		panic("ag: a Constant value must be a 1×1 matrix")
+	}
+	return NewVariableWithName(value, false, fmt.Sprint(value.Scalar()))
 }
 
 // Name returns the Name of the variable (it can be empty).
 //
 // Identifying a Variable solely upon its name is highly discourages.
 // The name should be used solely for debugging or testing purposes.
-func (r *Variable[_]) Name() string {
+func (r *Variable) Name() string {
 	return r.name
 }
 
 // Value returns the value of the variable itself.
-func (r *Variable[T]) Value() mat.Matrix {
+func (r *Variable) Value() mat.Matrix {
 	return r.value
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Variable[T]) Grad() mat.Matrix {
+func (r *Variable) Grad() mat.Matrix {
 	r.gradMu.RLock()
 	defer r.gradMu.RUnlock()
 	return r.grad
 }
 
 // AccGrad accumulates the gradients into the Variable.
-func (r *Variable[T]) AccGrad(grad mat.Matrix) {
+func (r *Variable) AccGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}
@@ -105,17 +114,17 @@ func (r *Variable[T]) AccGrad(grad mat.Matrix) {
 }
 
 // HasGrad reports whether there are accumulated gradients.
-func (r *Variable[_]) HasGrad() bool {
+func (r *Variable) HasGrad() bool {
 	return r.Grad() != nil
 }
 
 // RequiresGrad reports whether the Variable requires gradients.
-func (r *Variable[_]) RequiresGrad() bool {
+func (r *Variable) RequiresGrad() bool {
 	return r.requiresGrad
 }
 
 // ZeroGrad zeroes the gradients, setting the value of Grad to nil.
-func (r *Variable[_]) ZeroGrad() {
+func (r *Variable) ZeroGrad() {
 	if r.Grad() == nil {
 		return
 	}

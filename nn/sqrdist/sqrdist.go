@@ -33,15 +33,15 @@ func New[T mat.DType](in, rank int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
 	return ys
 }
 
-func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
-	bh := ag.Mul[T](m.B, x)
-	return ag.Mul[T](ag.T(bh), bh)
+func (m *Model[T]) forward(x ag.Node) ag.Node {
+	bh := ag.Mul(m.B, x)
+	return ag.Mul(ag.T(bh), bh)
 }

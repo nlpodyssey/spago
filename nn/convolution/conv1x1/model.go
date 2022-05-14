@@ -45,14 +45,14 @@ func New[T mat.DType](config Config) *Model[T] {
 }
 
 // Forward performs the forward step. Each "x" is a channel.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	xm := ag.Stack(xs...)
-	mm := ag.Mul[T](m.W, xm)
+	mm := ag.Mul(m.W, xm)
 
-	ys := make([]ag.Node[T], m.Config.OutputChannels)
+	ys := make([]ag.Node, m.Config.OutputChannels)
 	for outCh := range ys {
 		val := ag.T(ag.RowView(mm, outCh))
-		bias := ag.AtVec[T](m.B, outCh)
+		bias := ag.AtVec(m.B, outCh)
 		ys[outCh] = ag.AddScalar(val, bias)
 	}
 	return ys

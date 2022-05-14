@@ -76,10 +76,10 @@ func (r Cache[T]) At(i int) selfattention.Cache[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], [][]ag.Node[T], Cache[T]) {
+func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, [][]ag.Node, Cache[T]) {
 	n := len(m.Heads)
-	attentions := make([][]ag.Node[T], n)
-	weights := make([][]ag.Node[T], n)
+	attentions := make([][]ag.Node, n)
+	weights := make([][]ag.Node, n)
 	nextCache := make(Cache[T], n)
 
 	for i, h := range m.Heads {
@@ -91,10 +91,10 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], 
 	return projected, weights, nextCache
 }
 
-func (m *Model[T]) project(heads [][]ag.Node[T], seqLen int) []ag.Node[T] {
+func (m *Model[T]) project(heads [][]ag.Node, seqLen int) []ag.Node {
 	n := len(heads)
-	concat := make([]ag.Node[T], seqLen)
-	buf := make([]ag.Node[T], n*seqLen)
+	concat := make([]ag.Node, seqLen)
+	buf := make([]ag.Node, n*seqLen)
 	for i := 0; i < seqLen; i++ {
 		buf2 := buf[i*n : i*n+n]
 		for j := 0; j < n; j++ {

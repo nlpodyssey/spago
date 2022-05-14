@@ -22,8 +22,8 @@ func testToNodes[T mat.DType](t *testing.T) {
 	n1 := &dummyNode[T]{id: 1}
 	n2 := &dummyNode[T]{id: 2}
 
-	xs := []customNodeInterface[T]{n1, n2}
-	ys := ToNodes[T](xs)
+	xs := []customNodeInterface{n1, n2}
+	ys := ToNodes(xs)
 
 	require.Len(t, ys, 2)
 	assert.Same(t, n1, ys[0])
@@ -38,13 +38,13 @@ func TestCopyValue(t *testing.T) {
 func testCopyValue[T mat.DType](t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {
 		n := &dummyNode[T]{value: nil}
-		v := CopyValue[T](n)
+		v := CopyValue(n)
 		assert.Nil(t, v)
 	})
 
 	t.Run("matrix value", func(t *testing.T) {
 		n := &dummyNode[T]{value: mat.NewScalar[T](42)}
-		v := CopyValue[T](n)
+		v := CopyValue(n)
 		mattest.RequireMatrixEquals(t, n.value, v)
 		assert.NotSame(t, n.value, v)
 	})
@@ -56,12 +56,12 @@ func TestCopyValues(t *testing.T) {
 }
 
 func testCopyValues[T mat.DType](t *testing.T) {
-	nodes := []Node[T]{
+	nodes := []Node{
 		&dummyNode[T]{value: mat.NewScalar[T](1)},
 		&dummyNode[T]{value: nil},
 		&dummyNode[T]{value: mat.NewScalar[T](3)},
 	}
-	vs := CopyValues[T](nodes)
+	vs := CopyValues(nodes)
 	require.Len(t, vs, 3)
 
 	mattest.RequireMatrixEquals(t, nodes[0].Value(), vs[0])
@@ -84,7 +84,7 @@ func testCopyGrad[T mat.DType](t *testing.T) {
 			grad:         nil,
 			requiresGrad: true,
 		}
-		v := CopyGrad[T](n)
+		v := CopyGrad(n)
 		assert.Nil(t, v)
 	})
 
@@ -93,14 +93,14 @@ func testCopyGrad[T mat.DType](t *testing.T) {
 			grad:         mat.NewScalar[T](42),
 			requiresGrad: true,
 		}
-		v := CopyGrad[T](n)
+		v := CopyGrad(n)
 		mattest.RequireMatrixEquals(t, n.grad, v)
 		assert.NotSame(t, n.grad, v)
 	})
 }
 
-type customNodeInterface[T mat.DType] interface {
-	Node[T]
+type customNodeInterface interface {
+	Node
 	Foo()
 }
 

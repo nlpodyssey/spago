@@ -62,13 +62,13 @@ func NewBidirectional[T mat.DType](config Config) *BiModel[T] {
 }
 
 // Forward performs the forward step for each input and returns the result.
-func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *BiModel[T]) Forward(xs ...ag.Node) []ag.Node {
 	n := len(xs)
-	ys := make([]ag.Node[T], n)
+	ys := make([]ag.Node, n)
 	b := m.transformInputConcurrent(xs)
 
-	var hfwd []ag.Node[T]
-	var hbwd []ag.Node[T]
+	var hfwd []ag.Node
+	var hbwd []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -89,9 +89,9 @@ func (m *BiModel[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	return ys
 }
 
-func (m *BiModel[T]) forwardHidden(b []ag.Node[T]) []ag.Node[T] {
+func (m *BiModel[T]) forwardHidden(b []ag.Node) []ag.Node {
 	n := len(b)
-	h := make([]ag.Node[T], n)
+	h := make([]ag.Node, n)
 	h[0] = ag.ReLU(b[0])
 	for i := 1; i < n; i++ {
 		h[i] = ag.ReLU(ag.Add(b[i], ag.RotateR(h[i-1], 1)))
@@ -99,7 +99,7 @@ func (m *BiModel[T]) forwardHidden(b []ag.Node[T]) []ag.Node[T] {
 	return h
 }
 
-func (m *BiModel[T]) transformInput(x ag.Node[T]) ag.Node[T] {
+func (m *BiModel[T]) transformInput(x ag.Node) ag.Node {
 	b := m.FC.Forward(x)[0]
 	if m.Config.MultiHead {
 		sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
@@ -108,11 +108,11 @@ func (m *BiModel[T]) transformInput(x ag.Node[T]) ag.Node[T] {
 	return b
 }
 
-func (m *BiModel[T]) transformInputConcurrent(xs []ag.Node[T]) []ag.Node[T] {
+func (m *BiModel[T]) transformInputConcurrent(xs []ag.Node) []ag.Node {
 	var wg sync.WaitGroup
 	n := len(xs)
 	wg.Add(n)
-	ys := make([]ag.Node[T], n)
+	ys := make([]ag.Node, n)
 	for i := 0; i < n; i++ {
 		go func(i int) {
 			defer wg.Done()
@@ -123,8 +123,8 @@ func (m *BiModel[T]) transformInputConcurrent(xs []ag.Node[T]) []ag.Node[T] {
 	return ys
 }
 
-func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
-	r := make([]ag.Node[T], len(ns))
+func reversed(ns []ag.Node) []ag.Node {
+	r := make([]ag.Node, len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1

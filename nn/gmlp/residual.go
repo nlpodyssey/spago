@@ -33,9 +33,9 @@ func NewResidual[T mat.DType](preNorm *PreNorm[T]) *Residual[T] {
 }
 
 // Forward performs the forward step.
-func (m *Residual[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Residual[T]) Forward(xs ...ag.Node) []ag.Node {
 	pns := m.PreNorm.Forward(xs...)
-	ys := make([]ag.Node[T], len(pns))
+	ys := make([]ag.Node, len(pns))
 	for i, pn := range pns {
 		ys[i] = ag.Add(pn, xs[i])
 	}

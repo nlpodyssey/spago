@@ -26,10 +26,10 @@ func init() {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *SelfAttention[T]) Forward(cache Cache[T], xs []ag.Node[T]) ([]ag.Node[T], [][]ag.Node[T], Cache[T]) {
+func (m *SelfAttention[T]) Forward(cache Cache[T], xs []ag.Node) ([]ag.Node, [][]ag.Node, Cache[T]) {
 	n := len(m.Heads)
-	attentions := make([][]ag.Node[T], n)
-	weights := make([][]ag.Node[T], n)
+	attentions := make([][]ag.Node, n)
+	weights := make([][]ag.Node, n)
 	nextCache := make(Cache[T], n)
 
 	for i, h := range m.Heads {

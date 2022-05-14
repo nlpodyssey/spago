@@ -7,6 +7,7 @@ package horn
 
 import (
 	"encoding/gob"
+	"math"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
@@ -25,7 +26,7 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the Horn recurrent network.
 type State[T mat.DType] struct {
-	Y ag.Node[T]
+	Y ag.Node
 }
 
 func init() {
@@ -47,8 +48,8 @@ func New[T mat.DType](in, out, order int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	states := make([]*State[T], 0)
 	var s *State[T] = nil
 	for i, x := range xs {
@@ -60,18 +61,18 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(states []*State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(states []*State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
-	h := ag.Affine(append([]ag.Node[T]{m.B, m.W, x}, m.feedback(states)...)...)
+	h := ag.Affine(append([]ag.Node{m.B, m.W, x}, m.feedback(states)...)...)
 	s.Y = ag.Tanh(h)
 	return
 }
 
-func (m *Model[T]) feedback(states []*State[T]) []ag.Node[T] {
-	var ys []ag.Node[T]
+func (m *Model[T]) feedback(states []*State[T]) []ag.Node {
+	var ys []ag.Node
 	n := len(states)
 	for i := 0; i < min(len(m.WRec), n); i++ {
-		alpha := ag.NewScalar[T](mat.Pow(0.6, T(i+1)))
+		alpha := ag.NewScalar(m.WRec[i].Value().NewScalar(mat.Float(math.Pow(0.6, float64(i+1)))))
 		ys = append(ys, m.WRec[i], ag.ProdScalar(states[n-1-i].Y, alpha))
 	}
 	return ys

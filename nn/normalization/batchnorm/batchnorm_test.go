@@ -104,11 +104,11 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 			}
 		}
 
-		x := make([]ag.Node[T], len(testData))
-		var y []ag.Node[T]
+		x := make([]ag.Node, len(testData))
+		var y []ag.Node
 		for i := 0; i < tt.forwardSteps; i++ {
 			for j := range data {
-				x[j] = ag.NewVariable[T](mat.NewVecDense(data[j]), false)
+				x[j] = ag.NewVariable(mat.NewVecDense(data[j]), false)
 			}
 			y = model.ForwardT(x...)
 		}
@@ -138,7 +138,7 @@ func testModelInference[T mat.DType](t *testing.T) {
 	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
 
 	data := []T{1.0, 2.0, 3.0}
-	x := ag.NewVariable[T](mat.NewVecDense[T](data), false)
+	x := ag.NewVariable(mat.NewVecDense[T](data), false)
 	y := model.Forward(x)
 	require.Equal(t, 1, len(y))
 	assert.InDeltaSlice(t, []T{1.0, 4.0, 2.0}, y[0].Value().Data(), 1e-3)
@@ -154,9 +154,9 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable[T](mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
+	x1 := ag.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.8, -0.7, -0.5}), true)
+	x2 := ag.NewVariable(mat.NewVecDense[T]([]T{-0.4, -0.6, -0.2, -0.9}), true)
+	x3 := ag.NewVariable(mat.NewVecDense[T]([]T{0.4, 0.4, 0.2, 0.8}), true)
 
 	y := rectify(model.ForwardT(x1, x2, x3))
 
@@ -178,8 +178,8 @@ func testModelForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
-func rectify[T mat.DType](xs []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func rectify(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ReLU(x)
 	}

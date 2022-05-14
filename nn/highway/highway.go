@@ -42,8 +42,8 @@ func New[T mat.DType](in int, activation activation.Name) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
@@ -53,9 +53,9 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // t = sigmoid(wT (dot) x + bT)
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
-func (m *Model[T]) forward(x ag.Node[T]) ag.Node[T] {
-	t := ag.Sigmoid(ag.Affine[T](m.BT, m.WT, x))
-	h := activation.Do(m.Activation, ag.Affine[T](m.BIn, m.WIn, x))
-	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, ag.NewScalar[T](1.0)), x))
+func (m *Model[T]) forward(x ag.Node) ag.Node {
+	t := ag.Sigmoid(ag.Affine(m.BT, m.WT, x))
+	h := activation.Do(m.Activation, ag.Affine(m.BIn, m.WIn, x))
+	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, ag.NewScalar(x.Value().NewScalar(mat.Float(1.0)))), x))
 	return y
 }

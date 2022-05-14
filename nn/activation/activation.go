@@ -35,12 +35,12 @@ func New[T mat.DType](activation Name, params ...nn.Param[T]) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	if m.Activation == Identity {
 		return xs
 	}
-	transformed := func(x ag.Node[T]) ag.Node[T] {
-		return Do(m.Activation, append([]ag.Node[T]{x}, ag.ToNodes[T](m.Params)...)...)
+	transformed := func(x ag.Node) ag.Node {
+		return Do(m.Activation, append([]ag.Node{x}, ag.ToNodes(m.Params)...)...)
 	}
 	return ag.Map(transformed, xs)
 }

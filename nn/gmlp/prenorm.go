@@ -36,7 +36,7 @@ func NewPreNorm[T mat.DType](dim int, block *Block[T]) *PreNorm[T] {
 }
 
 // Forward performs the forward step.
-func (m *PreNorm[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *PreNorm[T]) Forward(xs ...ag.Node) []ag.Node {
 	ns := m.Norm.Forward(xs...)
 	return m.Block.Forward(ns...)
 }

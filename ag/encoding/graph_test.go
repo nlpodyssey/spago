@@ -20,9 +20,9 @@ func TestNewGraph(t *testing.T) {
 }
 
 func testNewGraph[T mat.DType](t *testing.T) {
-	a := ag.NewVariable[T](mat.NewScalar[T](1), false)
-	b := ag.NewVariable[T](mat.NewScalar[T](3), false)
-	c := ag.NewVariable[T](mat.NewScalar[T](5), false)
+	a := ag.NewVariable(mat.NewScalar[T](1), false)
+	b := ag.NewVariable(mat.NewScalar[T](3), false)
+	c := ag.NewVariable(mat.NewScalar[T](5), false)
 
 	x := ag.Add(a, a)
 	y := ag.Add(x, b)
@@ -30,9 +30,9 @@ func testNewGraph[T mat.DType](t *testing.T) {
 
 	g := encoding.NewGraph(z)
 
-	assert.ElementsMatch(t, []ag.Node[T]{a, b, c, x, y, z}, g.NodesList)
+	assert.ElementsMatch(t, []ag.Node{a, b, c, x, y, z}, g.NodesList)
 
-	expectedMap := make(map[ag.Node[T]]int, len(g.NodesList))
+	expectedMap := make(map[ag.Node]int, len(g.NodesList))
 	for i, n := range g.NodesList {
 		expectedMap[n] = i
 	}
@@ -57,7 +57,7 @@ func TestGraph_WithTimeSteps(t *testing.T) {
 }
 
 func testGraphWithTimeSteps[T mat.DType](t *testing.T) {
-	a := ag.NewVariable[T](mat.NewScalar[T](1), false)
+	a := ag.NewVariable(mat.NewScalar[T](1), false)
 	tsh := ag.NewTimeStepHandler()
 
 	g := encoding.NewGraph(a)
@@ -75,9 +75,9 @@ func TestGraph_NodesByTimeStep(t *testing.T) {
 
 func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
 	t.Run("without time step handler", func(t *testing.T) {
-		a := ag.NewVariable[T](mat.NewScalar[T](1), false)
-		b := ag.NewVariable[T](mat.NewScalar[T](3), false)
-		c := ag.NewVariable[T](mat.NewScalar[T](5), false)
+		a := ag.NewVariable(mat.NewScalar[T](1), false)
+		b := ag.NewVariable(mat.NewScalar[T](3), false)
+		c := ag.NewVariable(mat.NewScalar[T](5), false)
 
 		x := ag.Add(a, a)
 		y := ag.Add(x, b)
@@ -92,9 +92,9 @@ func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
 	t.Run("with a time step handler", func(t *testing.T) {
 		tsh := ag.NewTimeStepHandler()
 
-		a := ag.NewVariable[T](mat.NewScalar[T](1), false)
-		b := ag.NewVariable[T](mat.NewScalar[T](3), false)
-		c := ag.NewVariable[T](mat.NewScalar[T](5), false)
+		a := ag.NewVariable(mat.NewScalar[T](1), false)
+		b := ag.NewVariable(mat.NewScalar[T](3), false)
+		c := ag.NewVariable(mat.NewScalar[T](5), false)
 
 		x := ag.Add(a, a)
 

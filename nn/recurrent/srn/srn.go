@@ -24,7 +24,7 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the SRN recurrent network.
 type State[T mat.DType] struct {
-	Y ag.Node[T]
+	Y ag.Node
 }
 
 func init() {
@@ -41,8 +41,8 @@ func New[T mat.DType](in, out int) *Model[T] {
 	}
 }
 
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -54,14 +54,14 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // Next performs a single forward step, producing a new state.
 //
 // y = tanh(w (dot) x + b + wRec (dot) yPrev)
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if state != nil {
 		yPrev = state.Y
 	}
 
-	s.Y = ag.Tanh(ag.Affine[T](m.B, m.W, x, m.WRec, yPrev))
+	s.Y = ag.Tanh(ag.Affine(m.B, m.W, x, m.WRec, yPrev))
 	return
 }

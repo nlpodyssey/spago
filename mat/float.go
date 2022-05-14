@@ -45,3 +45,8 @@ func (f float[_]) Float32() float32 {
 func (f float[_]) Float64() float64 {
 	return float64(f.v)
 }
+
+// Float64 returns the value as float64, converting it if necessary.
+func (f float[_]) String() string {
+	return fmt.Sprint(f.v)
+}

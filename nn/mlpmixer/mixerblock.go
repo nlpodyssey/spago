@@ -56,7 +56,7 @@ func New[T mat.DType](config Config[T]) *MixerBlock[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *MixerBlock[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *MixerBlock[T]) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) > m.Config.Channels {
 		panic(fmt.Sprintf("mlpmixer: maximum sequence length is %d, got %d",
 			m.Config.Channels, len(xs)))
@@ -67,19 +67,19 @@ func (m *MixerBlock[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 	return xs
 }
 
-func (m *MixerBlock[T]) tokenMix(xs []ag.Node[T]) []ag.Node[T] {
+func (m *MixerBlock[T]) tokenMix(xs []ag.Node) []ag.Node {
 	normalized := m.TokenLayerNorm.Forward(xs...)
 	cols := ag.ColViews(ag.Stack(normalized...))
 	ys := m.TokenMixerFF.Forward(cols...)
 	return ag.RowViews(ag.T(ag.Stack(ys...)))
 }
 
-func (m *MixerBlock[T]) channelMix(xs []ag.Node[T]) []ag.Node[T] {
+func (m *MixerBlock[T]) channelMix(xs []ag.Node) []ag.Node {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
-	transposed := ag.Map(ag.T[T], normalized)
+	transposed := ag.Map(ag.T, normalized)
 	return m.ChannelMixerFF.Forward(transposed...)
 }
 
-func (m *MixerBlock[T]) residual(xs []ag.Node[T], residual []ag.Node[T]) []ag.Node[T] {
-	return ag.Map2(ag.Add[T], xs, residual)
+func (m *MixerBlock[T]) residual(xs []ag.Node, residual []ag.Node) []ag.Node {
+	return ag.Map2(ag.Add, xs, residual)
 }

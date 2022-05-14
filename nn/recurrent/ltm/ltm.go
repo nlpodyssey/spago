@@ -25,12 +25,12 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the LTM recurrent network.
 type State[T mat.DType] struct {
-	L1   ag.Node[T]
-	L2   ag.Node[T]
-	L3   ag.Node[T]
-	Cand ag.Node[T]
-	Cell ag.Node[T]
-	Y    ag.Node[T]
+	L1   ag.Node
+	L2   ag.Node
+	L3   ag.Node
+	Cand ag.Node
+	Cell ag.Node
+	Y    ag.Node
 }
 
 func init() {
@@ -49,8 +49,8 @@ func New[T mat.DType](in int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -67,10 +67,10 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // c = l1 * l2 + cellPrev
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev, cellPrev ag.Node[T] = nil, nil
+	var yPrev, cellPrev ag.Node = nil, nil
 	if state != nil {
 		yPrev, cellPrev = state.Y, state.Cell
 	}
@@ -79,14 +79,14 @@ func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
 	if yPrev != nil {
 		h = ag.Add(h, yPrev)
 	}
-	s.L1 = ag.Sigmoid(ag.Mul[T](m.W1, h))
-	s.L2 = ag.Sigmoid(ag.Mul[T](m.W2, h))
-	s.L3 = ag.Sigmoid(ag.Mul[T](m.W3, h))
+	s.L1 = ag.Sigmoid(ag.Mul(m.W1, h))
+	s.L2 = ag.Sigmoid(ag.Mul(m.W2, h))
+	s.L3 = ag.Sigmoid(ag.Mul(m.W3, h))
 	s.Cand = ag.Prod(s.L1, s.L2)
 	if cellPrev != nil {
 		s.Cand = ag.Add(s.Cand, cellPrev)
 	}
-	s.Cell = ag.Sigmoid(ag.Mul[T](m.WCell, s.Cand))
+	s.Cell = ag.Sigmoid(ag.Mul(m.WCell, s.Cand))
 	s.Y = ag.Prod(s.Cell, s.L3)
 	return
 }

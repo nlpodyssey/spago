@@ -42,12 +42,12 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the LSTM recurrent network.
 type State[T mat.DType] struct {
-	InG  ag.Node[T]
-	OutG ag.Node[T]
-	ForG ag.Node[T]
-	Cand ag.Node[T]
-	Cell ag.Node[T]
-	Y    ag.Node[T]
+	InG  ag.Node
+	OutG ag.Node
+	ForG ag.Node
+	Cand ag.Node
+	Cell ag.Node
+	Y    ag.Node
 }
 
 // Option allows to configure a new Model with your specific needs.
@@ -101,8 +101,8 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -120,18 +120,18 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev, cellPrev ag.Node[T] = nil, nil
+	var yPrev, cellPrev ag.Node = nil, nil
 	if state != nil {
 		yPrev, cellPrev = state.Y, state.Cell
 	}
 
-	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.OutG = ag.Sigmoid(ag.Affine[T](m.BOut, m.WOut, x, m.WOutRec, yPrev))
-	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = ag.Tanh(ag.Affine[T](m.BCand, m.WCand, x, m.WCandRec, yPrev))
+	s.InG = ag.Sigmoid(ag.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.OutG = ag.Sigmoid(ag.Affine(m.BOut, m.WOut, x, m.WOutRec, yPrev))
+	s.ForG = ag.Sigmoid(ag.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = ag.Tanh(ag.Affine(m.BCand, m.WCand, x, m.WCandRec, yPrev))
 
 	if m.UseRefinedGates {
 		s.InG = ag.Prod(s.InG, x)

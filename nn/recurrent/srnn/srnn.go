@@ -41,8 +41,8 @@ type Config struct {
 
 // State represent a state of the SRNN recurrent network.
 type State[T mat.DType] struct {
-	Y ag.Node[T]
-	H ag.Node[T]
+	Y ag.Node
+	H ag.Node
 }
 
 func init() {
@@ -74,10 +74,10 @@ func New[T mat.DType](config Config) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	b := m.transformInput(xs)
-	var h ag.Node[T] = nil
+	var h ag.Node = nil
 	for i := range xs {
 		h, ys[i] = m.Next(h, b[i])
 	}
@@ -85,7 +85,7 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(hPrev, b ag.Node[T]) (h ag.Node[T], y ag.Node[T]) {
+func (m *Model[T]) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	if hPrev != nil {
 		h = ag.ReLU(ag.Add(b, ag.RotateR(hPrev, 1)))
 	} else {
@@ -95,8 +95,8 @@ func (m *Model[T]) Next(hPrev, b ag.Node[T]) (h ag.Node[T], y ag.Node[T]) {
 	return
 }
 
-func (m *Model[T]) transformInput(xs []ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) transformInput(xs []ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		b := m.FC.Forward(x)[0]
 		if m.Config.MultiHead {

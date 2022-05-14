@@ -27,7 +27,7 @@ func testNewVariable[T mat.DType](t *testing.T) {
 	for _, tc := range testCases {
 		name := fmt.Sprintf("NewVariable(%g, %v)", tc.value, tc.requiresGrad)
 		t.Run(name, func(t *testing.T) {
-			v := NewVariable[T](tc.value, tc.requiresGrad)
+			v := NewVariable(tc.value, tc.requiresGrad)
 			require.NotNil(t, v)
 			assert.Empty(t, v.Name())
 			assert.Same(t, tc.value, v.Value())
@@ -56,7 +56,7 @@ func testNewVariableWithName[T mat.DType](t *testing.T) {
 	for _, tc := range testCases {
 		name := fmt.Sprintf("NewVariableWithName(%g, %v, %#v)", tc.value, tc.requiresGrad, tc.name)
 		t.Run(name, func(t *testing.T) {
-			v := NewVariableWithName[T](tc.value, tc.requiresGrad, tc.name)
+			v := NewVariableWithName(tc.value, tc.requiresGrad, tc.name)
 			require.NotNil(t, v)
 			assert.Equal(t, tc.name, v.Name())
 			assert.Same(t, tc.value, v.Value())
@@ -73,7 +73,7 @@ func TestNewScalar(t *testing.T) {
 }
 
 func testNewScalar[T mat.DType](t *testing.T) {
-	v := NewScalar[T](42)
+	v := NewScalar(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
 	assert.Empty(t, v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
@@ -88,7 +88,7 @@ func TestNewScalarWithName(t *testing.T) {
 }
 
 func testNewScalarWithName[T mat.DType](t *testing.T) {
-	v := NewScalarWithName[T](42, "foo")
+	v := NewScalarWithName(mat.NewScalar(T(42)), "foo")
 	require.NotNil(t, v)
 	assert.Equal(t, "foo", v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
@@ -103,7 +103,7 @@ func TestConstant(t *testing.T) {
 }
 
 func testConstant[T mat.DType](t *testing.T) {
-	v := Constant[T](42)
+	v := Constant(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
 	assert.Equal(t, "42", v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
@@ -119,7 +119,7 @@ func TestVariable_Gradients(t *testing.T) {
 
 func testVariableGradients[T mat.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
-		v := NewVariable[T](mat.NewScalar[T](42), true)
+		v := NewVariable(mat.NewScalar[T](42), true)
 		require.Nil(t, v.Grad())
 		assert.False(t, v.HasGrad())
 
@@ -137,7 +137,7 @@ func testVariableGradients[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("with requires gradient false", func(t *testing.T) {
-		v := NewVariable[T](mat.NewScalar[T](42), false)
+		v := NewVariable(mat.NewScalar[T](42), false)
 		require.Nil(t, v.Grad())
 		assert.False(t, v.HasGrad())
 

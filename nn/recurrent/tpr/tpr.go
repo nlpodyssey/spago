@@ -29,11 +29,11 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the TPR recurrent network.
 type State[T mat.DType] struct {
-	AR ag.Node[T]
-	AS ag.Node[T]
-	S  ag.Node[T]
-	R  ag.Node[T]
-	Y  ag.Node[T]
+	AR ag.Node
+	AS ag.Node
+	S  ag.Node
+	R  ag.Node
+	Y  ag.Node
 }
 
 func init() {
@@ -56,8 +56,8 @@ func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -74,18 +74,18 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // s = embS (dot) aS
 // b = s (dot) rT
 // y = vec(b)
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (st *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (st *State[T]) {
 	st = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if state != nil {
 		yPrev = state.Y
 	}
 
-	st.AR = ag.Sigmoid(ag.Affine[T](m.BR, m.WInR, x, m.WRecR, yPrev))
-	st.AS = ag.Sigmoid(ag.Affine[T](m.BS, m.WInS, x, m.WRecS, yPrev))
-	st.R = ag.Mul[T](m.R, st.AR)
-	st.S = ag.Mul[T](m.S, st.AS)
+	st.AR = ag.Sigmoid(ag.Affine(m.BR, m.WInR, x, m.WRecR, yPrev))
+	st.AS = ag.Sigmoid(ag.Affine(m.BS, m.WInS, x, m.WRecS, yPrev))
+	st.R = ag.Mul(m.R, st.AR)
+	st.S = ag.Mul(m.S, st.AS)
 	b := ag.Mul(st.S, ag.T(st.R))
 	st.Y = ag.T(ag.Flatten(b))
 	return

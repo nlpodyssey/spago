@@ -49,25 +49,25 @@ func New[T mat.DType](size int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	meanVector := ag.StopGrad[T](m.Mean)
-	devVector := ag.StopGrad[T](m.StdDev)
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	meanVector := ag.StopGrad(m.Mean)
+	devVector := ag.StopGrad(m.StdDev)
 	return m.process(xs, devVector, meanVector)
 }
 
 // ForwardT performs the forward step for each input node and returns the result.
-func (m *Model[T]) ForwardT(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Model[T]) ForwardT(xs ...ag.Node) []ag.Node {
 	meanVector := m.mean(xs)
 	devVector := m.stdDev(meanVector, xs)
 	m.updateBatchNormParameters(meanVector.Value(), devVector.Value())
 	return m.process(xs, devVector, meanVector)
 }
 
-func (m *Model[T]) process(xs []ag.Node[T], devVector ag.Node[T], meanVector ag.Node[T]) []ag.Node[T] {
-	devVector = ag.Div[T](m.W, ag.AddScalar(devVector, ag.Constant[T](epsilon)))
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
+	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Constant(m.W.Value().NewScalar(mat.Float(epsilon)))))
+	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		ys[i] = ag.Add[T](ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
+		ys[i] = ag.Add(ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
 	}
 	return ys
 }
@@ -83,22 +83,22 @@ func (m *Model[T]) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
 }
 
 // Mean computes the mean of the input.
-func (m *Model[T]) mean(xs []ag.Node[T]) ag.Node[T] {
+func (m *Model[T]) mean(xs []ag.Node) ag.Node {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, ag.NewScalar[T](T(len(xs))+epsilon))
+	return ag.DivScalar(sumVector, ag.NewScalar(xs[0].Value().NewScalar(mat.Float(float64(len(xs))+epsilon))))
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model[T]) stdDev(meanVector ag.Node[T], xs []ag.Node[T]) ag.Node[T] {
-	devVector := ag.NewVariable[T](meanVector.Value().ZerosLike(), false)
+func (m *Model[T]) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
+	devVector := ag.NewVariable(meanVector.Value().ZerosLike(), false)
 	for _, x := range xs {
 		diffVector := ag.Square(ag.Sub(meanVector, x))
 		devVector = ag.Add(devVector, diffVector)
 	}
-	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.NewScalar[T](T(len(xs))+epsilon)))
+	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.NewScalar(xs[0].Value().NewScalar(mat.Float(float64(len(xs))+epsilon)))))
 	return devVector
 }

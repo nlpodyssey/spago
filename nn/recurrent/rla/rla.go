@@ -35,9 +35,9 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the RLA recurrent network.
 type State[T mat.DType] struct {
-	S ag.Node[T]
-	Z ag.Node[T]
-	Y ag.Node[T]
+	S ag.Node
+	Z ag.Node
+	Y ag.Node
 }
 
 func init() {
@@ -58,8 +58,8 @@ func New[T mat.DType](config Config) *Model[T] {
 	}
 }
 
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -69,12 +69,12 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(prevState *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(prevState *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	key := ag.Affine[T](m.Bk, m.Wk, x)
-	value := ag.Affine[T](m.Bv, m.Wv, x)
-	query := ag.Affine[T](m.Bq, m.Wq, x)
+	key := ag.Affine(m.Bk, m.Wk, x)
+	value := ag.Affine(m.Bv, m.Wv, x)
+	query := ag.Affine(m.Bq, m.Wq, x)
 
 	attKey := defaultMappingFunction(key)
 	attQuery := defaultMappingFunction(query)
@@ -87,12 +87,13 @@ func (m *Model[T]) Next(prevState *State[T], x ag.Node[T]) (s *State[T]) {
 		s.Z = attKey
 	}
 
-	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), ag.Constant[T](1e-12)))
+	e := ag.Constant(s.Z.Value().NewScalar(mat.Float(1e-12)))
+	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), e))
 	return
 }
 
 // defaultMappingFunction returns ELU(x) + 1
 // TODO: support arbitrary mapping functions
-func defaultMappingFunction[T mat.DType](x ag.Node[T]) ag.Node[T] {
+func defaultMappingFunction(x ag.Node) ag.Node {
 	return ag.PositiveELU(x)
 }

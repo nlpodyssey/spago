@@ -15,15 +15,15 @@ import (
 )
 
 var (
-	_ fn.Operand    = &Operator[float32]{}
-	_ Node[float32] = &Operator[float32]{}
+	_ fn.Operand = &Operator{}
+	_ Node       = &Operator{}
 )
 
 // Operator is a type of node.
-type Operator[T mat.DType] struct {
+type Operator struct {
 	requiresGrad  bool
 	backwardState backwardState
-	function      fn.Function[Node[T]]
+	function      fn.Function[Node]
 	// value is the results of a forward evaluation, as mat.Matrix.
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
@@ -46,7 +46,7 @@ type Operator[T mat.DType] struct {
 // result in unpredictable outcomes.
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
-func NewOperator[T mat.DType](f fn.Function[Node[T]]) Node[T] {
+func NewOperator(f fn.Function[Node]) Node {
 	requiresGrad := false
 	for _, n := range f.Operands() {
 		if !requiresGrad && n.RequiresGrad() {
@@ -54,7 +54,7 @@ func NewOperator[T mat.DType](f fn.Function[Node[T]]) Node[T] {
 		}
 	}
 
-	op := &Operator[T]{
+	op := &Operator{
 		requiresGrad:  requiresGrad,
 		backwardState: idle,
 		function:      f,
@@ -71,7 +71,7 @@ func NewOperator[T mat.DType](f fn.Function[Node[T]]) Node[T] {
 
 // Name returns the Name of the operator.
 // The name is taken from the name of r.function via reflection.
-func (o *Operator[_]) Name() string {
+func (o *Operator) Name() string {
 	name := reflect.ValueOf(o.function).Elem().Type().Name()
 	// Strip trailing generics, if any: "foo[bar]" becomes "foo".
 	if i := strings.IndexByte(name, '['); i != -1 {
@@ -81,12 +81,12 @@ func (o *Operator[_]) Name() string {
 }
 
 // Operands returns the operands of the operator.
-func (o *Operator[T]) Operands() []Node[T] {
+func (o *Operator) Operands() []Node {
 	return o.function.Operands()
 }
 
 // Value returns the result of the function.
-func (o *Operator[T]) Value() mat.Matrix {
+func (o *Operator) Value() mat.Matrix {
 	if v := o.value.Load(); v != nil {
 		return v.(mat.Matrix)
 	}
@@ -102,7 +102,7 @@ func (o *Operator[T]) Value() mat.Matrix {
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (o *Operator[T]) Grad() mat.Matrix {
+func (o *Operator) Grad() mat.Matrix {
 	if !o.requiresGrad {
 		return nil
 	}
@@ -122,17 +122,17 @@ func (o *Operator[T]) Grad() mat.Matrix {
 }
 
 // HasGrad returns true if there are accumulated gradients.
-func (o *Operator[_]) HasGrad() bool {
+func (o *Operator) HasGrad() bool {
 	return o.Grad() != nil
 }
 
 // RequiresGrad returns true if the node requires gradients.
-func (o *Operator[_]) RequiresGrad() bool {
+func (o *Operator) RequiresGrad() bool {
 	return o.requiresGrad
 }
 
 // ZeroGrad clears the gradients.
-func (o *Operator[_]) ZeroGrad() {
+func (o *Operator) ZeroGrad() {
 	o.Grad() // safety wait for the backward goroutine to finish
 	if o.grad == nil {
 		return
@@ -144,7 +144,7 @@ func (o *Operator[_]) ZeroGrad() {
 }
 
 // AccGrad accumulates the gradients to the node itself.
-func (o *Operator[T]) AccGrad(grad mat.Matrix) {
+func (o *Operator) AccGrad(grad mat.Matrix) {
 	if !o.requiresGrad {
 		return
 	}
@@ -167,7 +167,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix) {
 	}
 }
 
-func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix) {
+func (o *Operator) initOutputGrad(outputGrad mat.Matrix) {
 	if outputGrad != nil && o.grad != nil {
 		panic("ag: attempt to set output gradients on a node that already has gradients")
 	}
@@ -188,7 +188,7 @@ func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix) {
 }
 
 // forward executes the function and inform all goroutines that have been waiting for the result.
-func (o *Operator[T]) forward() {
+func (o *Operator) forward() {
 	o.value.Store(o.function.Forward())
 	o.cond.L.Lock()
 	o.cond.Broadcast()
@@ -196,7 +196,7 @@ func (o *Operator[T]) forward() {
 }
 
 // backward executes the backward
-func (o *Operator[T]) backward() {
+func (o *Operator) backward() {
 	if !o.requiresGrad {
 		return
 	}
@@ -209,7 +209,7 @@ func (o *Operator[T]) backward() {
 }
 
 // releaseValue sets the operator's value to nil releases the memory.
-func (o *Operator[T]) releaseValue() {
+func (o *Operator) releaseValue() {
 	value := o.Value() // also safely waits for any forward goroutine to finish
 	mat.ReleaseMatrix(value)
 	o.value = atomic.Value{}

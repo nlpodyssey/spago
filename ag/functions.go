@@ -6,6 +6,7 @@ package ag
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -13,8 +14,8 @@ import (
 // Map returns a transformed version of xs with all its components modified according to the mapping function.
 // It is useful for applying an operator to a sequence of nodes. Keep in mind that using this function has an overhead
 // because of the callback, however insignificant compared to mathematical computations.
-func Map[T mat.DType](mapping func(Node[T]) Node[T], xs []Node[T]) []Node[T] {
-	ys := make([]Node[T], len(xs))
+func Map(mapping func(Node) Node, xs []Node) []Node {
+	ys := make([]Node, len(xs))
 	for i, x := range xs {
 		ys[i] = mapping(x)
 	}
@@ -23,11 +24,11 @@ func Map[T mat.DType](mapping func(Node[T]) Node[T], xs []Node[T]) []Node[T] {
 
 // Map2 takes two arguments and applies a mapping function (that must take two arguments) to the items from the two node-slices in parallel.
 // It panics if one slice is shorter than the other.
-func Map2[T mat.DType](mapping func(a Node[T], b Node[T]) Node[T], xs1 []Node[T], xs2 []Node[T]) []Node[T] {
+func Map2(mapping func(a Node, b Node) Node, xs1 []Node, xs2 []Node) []Node {
 	if len(xs1) != len(xs2) {
 		panic(fmt.Sprintf("ag: arguments must have the same size (%d != %d)", len(xs1), len(xs2)))
 	}
-	ys := make([]Node[T], len(xs1))
+	ys := make([]Node, len(xs1))
 	for i, x1 := range xs1 {
 		ys[i] = mapping(x1, xs2[i])
 	}
@@ -35,14 +36,14 @@ func Map2[T mat.DType](mapping func(a Node[T], b Node[T]) Node[T], xs1 []Node[T]
 }
 
 // Pad down/up samples the input to the given size.
-func Pad[T mat.DType](xs []Node[T], seqLen int, padding func(i int) Node[T]) []Node[T] {
+func Pad(xs []Node, seqLen int, padding func(i int) Node) []Node {
 	if len(xs) == seqLen {
 		return xs
 	}
 	if len(xs) > seqLen {
 		return xs[:seqLen]
 	}
-	padded := make([]Node[T], seqLen)
+	padded := make([]Node, seqLen)
 	copy(padded[:len(xs)], xs)
 	for i := len(xs); i < len(padded); i++ {
 		padded[i] = padding(i)
@@ -52,11 +53,11 @@ func Pad[T mat.DType](xs []Node[T], seqLen int, padding func(i int) Node[T]) []N
 
 // SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
-func SeparateMatrix[T mat.DType](x Node[T]) [][]Node[T] {
+func SeparateMatrix(x Node) [][]Node {
 	rows, cols := x.Value().Dims()
-	ys := make([][]Node[T], rows)
+	ys := make([][]Node, rows)
 	for i := range ys {
-		row := make([]Node[T], cols)
+		row := make([]Node, cols)
 		for j := range row {
 			row[j] = At(x, i, j)
 		}
@@ -68,9 +69,9 @@ func SeparateMatrix[T mat.DType](x Node[T]) [][]Node[T] {
 // SeparateVec returns a slice of Node(s) containing the elements extracted from the input.
 // The size of the vector equals the number of input elements.
 // You can think of this method as the inverse of the ag.Concat operator.
-func SeparateVec[T mat.DType](x Node[T]) []Node[T] {
+func SeparateVec(x Node) []Node {
 	size := x.Value().Size()
-	ys := make([]Node[T], size)
+	ys := make([]Node, size)
 	for i := 0; i < size; i++ {
 		ys[i] = AtVec(x, i)
 	}
@@ -78,13 +79,13 @@ func SeparateVec[T mat.DType](x Node[T]) []Node[T] {
 }
 
 // SplitVec splits the x Node into multiple chunks.
-func SplitVec[T mat.DType](x Node[T], chunks int) []Node[T] {
+func SplitVec(x Node, chunks int) []Node {
 	if x.Value().Size()%chunks != 0 {
 		panic("nn: incompatible chunks size")
 	}
 	l := 0
-	size := int(mat.Ceil(T(x.Value().Size()) / T(chunks)))
-	ys := make([]Node[T], chunks)
+	size := int(math.Ceil(float64(x.Value().Size()) / float64(chunks)))
+	ys := make([]Node, chunks)
 	for i := 0; i < chunks; i++ {
 		ys[i] = Slice(x, l, 0, l+size, 1)
 		l += size
@@ -94,7 +95,7 @@ func SplitVec[T mat.DType](x Node[T], chunks int) []Node[T] {
 
 // Sum returns the value that describes the sum of the sample.
 // It panics if the input is empty.
-func Sum[T mat.DType](xs ...Node[T]) Node[T] {
+func Sum(xs ...Node) Node {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = Add(sumVector, xs[i])
@@ -103,16 +104,17 @@ func Sum[T mat.DType](xs ...Node[T]) Node[T] {
 }
 
 // Mean returns the value that describes the average of the sample.
-func Mean[T mat.DType](xs []Node[T]) Node[T] {
+func Mean(xs []Node) Node {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = Add(sumVector, xs[i])
 	}
-	return DivScalar(sumVector, Constant(T(len(xs))))
+	ln := sumVector.Value().NewScalar(mat.Float(float64(len(xs))))
+	return DivScalar(sumVector, Constant(ln))
 }
 
 // Maximum returns the value that describes the maximum of the sample.
-func Maximum[T mat.DType](xs []Node[T]) Node[T] {
+func Maximum(xs []Node) Node {
 	maxVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		maxVector = Max(maxVector, xs[i])
@@ -121,7 +123,7 @@ func Maximum[T mat.DType](xs []Node[T]) Node[T] {
 }
 
 // Minimum returns the value that describes the minimum of the sample.
-func Minimum[T mat.DType](xs []Node[T]) Node[T] {
+func Minimum(xs []Node) Node {
 	minVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		minVector = Min(minVector, xs[i])
@@ -134,7 +136,7 @@ func Minimum[T mat.DType](xs []Node[T]) Node[T] {
 // The remaining nodes of the form "Wx" are multiplied together in pairs, then added.
 // The pairs except the first whose "x" is nil are not considered.
 // y = b + W1x1 + W2x2 + ... + WnXn
-func Affine[T mat.DType](xs ...Node[T]) Node[T] {
+func Affine(xs ...Node) Node {
 	if len(xs)%2 == 0 {
 		panic("nn: the number of arguments of the affine transformation should be odd")
 	}
@@ -155,29 +157,30 @@ func Affine[T mat.DType](xs ...Node[T]) Node[T] {
 }
 
 // BiLinear performs a bilinear transformation of the type (x_1 W x_2)
-func BiLinear[DT mat.DType](w, x1, x2 Node[DT]) Node[DT] {
+func BiLinear(w, x1, x2 Node) Node {
 	return Mul(Mul(T(x1), w), x2)
 }
 
 // BiAffine performs a biaffine transformation.
-func BiAffine[DT mat.DType](w, u, v, b, x1, x2 Node[DT]) Node[DT] {
+func BiAffine(w, u, v, b, x1, x2 Node) Node {
 	return Add(Add(Add(BiLinear(w, x1, x2), Mul(T(u), x1)), Mul(T(v), x2)), b)
 }
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
-func PositiveELU[T mat.DType](x Node[T]) Node[T] {
-	return AddScalar(ELU(x, Constant[T](1.0)), Constant[T](1.0))
+func PositiveELU(x Node) Node {
+	one := Constant(x.Value().NewScalar(mat.Float(1.0)))
+	return AddScalar(ELU(x, one), one)
 }
 
 // LogSoftmax returns a new operator node as a result of Log(Softmax(x)).
-func LogSoftmax[T mat.DType](x Node[T]) Node[T] {
+func LogSoftmax(x Node) Node {
 	return Log(Softmax(x))
 }
 
 // LogSumExp "trick" computes the log of the sum of exponentials of input elements.
 // When the input is one, this must be a vector. Alternatively, the calculation
 // is conducted on a list of scalars.
-func LogSumExp[T mat.DType](xs ...Node[T]) Node[T] {
+func LogSumExp(xs ...Node) Node {
 	if len(xs) == 1 {
 		x := xs[0]
 		max := ReduceMax(x)
@@ -186,7 +189,7 @@ func LogSumExp[T mat.DType](xs ...Node[T]) Node[T] {
 	}
 
 	max := ScalarMax(xs)
-	var sum Node[T]
+	var sum Node
 	for _, v := range xs {
 		sum = Add(sum, Exp(Sub(v, max)))
 	}
@@ -195,8 +198,8 @@ func LogSumExp[T mat.DType](xs ...Node[T]) Node[T] {
 
 // RowViews calls RowView for each row of x, returning a new slice
 // of row-view Nodes.
-func RowViews[T mat.DType](x Node[T]) []Node[T] {
-	ys := make([]Node[T], x.Value().Rows())
+func RowViews(x Node) []Node {
+	ys := make([]Node, x.Value().Rows())
 	for i := range ys {
 		ys[i] = RowView(x, i)
 	}
@@ -205,8 +208,8 @@ func RowViews[T mat.DType](x Node[T]) []Node[T] {
 
 // ColViews calls ColView for each column of x, returning a new slice
 // of column-view Nodes.
-func ColViews[T mat.DType](x Node[T]) []Node[T] {
-	ys := make([]Node[T], x.Value().Columns())
+func ColViews(x Node) []Node {
+	ys := make([]Node, x.Value().Columns())
 	for i := range ys {
 		ys[i] = ColView(x, i)
 	}

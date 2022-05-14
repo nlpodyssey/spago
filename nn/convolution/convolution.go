@@ -6,11 +6,10 @@ package convolution
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // Conv1D performs a 1D convolution.
-func Conv1D[T mat.DType](w, x ag.Node[T], stride int) ag.Node[T] {
+func Conv1D(w, x ag.Node, stride int) ag.Node {
 	var dim int
 	wr, wc := w.Value().Rows(), w.Value().Columns()
 	xr, xc := x.Value().Rows(), x.Value().Columns()
@@ -21,7 +20,7 @@ func Conv1D[T mat.DType](w, x ag.Node[T], stride int) ag.Node[T] {
 		panic("Incompatible stride value for rows")
 	}
 	dim = (xc-wc)/stride + 1
-	ys := make([]ag.Node[T], dim)
+	ys := make([]ag.Node, dim)
 	for i := 0; i < dim; i++ {
 		fromCol := i * stride
 		ys[i] = ag.Dot(ag.Slice(x, 0, fromCol, wr, fromCol+wc), w)
@@ -30,7 +29,7 @@ func Conv1D[T mat.DType](w, x ag.Node[T], stride int) ag.Node[T] {
 }
 
 // Conv2D performs a 2D convolution.
-func Conv2D[T mat.DType](w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
+func Conv2D(w, x ag.Node, xStride, yStride int) ag.Node {
 	var dimx, dimy int
 	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
 		panic("Incompatible stride value for rows")
@@ -43,7 +42,7 @@ func Conv2D[T mat.DType](w, x ag.Node[T], xStride, yStride int) ag.Node[T] {
 
 	wRows, wCols := w.Value().Dims()
 
-	var outList []ag.Node[T]
+	var outList []ag.Node
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
 			fromRow := i * xStride

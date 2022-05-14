@@ -73,25 +73,25 @@ func New[T mat.DType](config Config) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], m.Config.OutputChannels)
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = m.forward(xs, i)
 	}
 	return ys
 }
 
-func (m *Model[T]) forward(xs []ag.Node[T], outputChannel int) ag.Node[T] {
+func (m *Model[T]) forward(xs []ag.Node, outputChannel int) ag.Node {
 	offset := outputChannel * m.Config.InputChannels
-	var out ag.Node[T]
+	var out ag.Node
 	if m.Config.DepthWise {
-		out = convolution.Conv2D[T](m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
-		out = ag.AddScalar[T](out, m.B[outputChannel])
+		out = convolution.Conv2D(m.K[outputChannel], xs[outputChannel], m.Config.XStride, m.Config.YStride)
+		out = ag.AddScalar(out, m.B[outputChannel])
 	} else {
 		for i := 0; i < len(xs); i++ {
 			if m.Config.Mask == nil || m.Config.Mask[i] == 1 {
-				out = ag.Add[T](out, convolution.Conv2D[T](m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
-				out = ag.AddScalar[T](out, m.B[i+offset])
+				out = ag.Add(out, convolution.Conv2D(m.K[i+offset], xs[i], m.Config.XStride, m.Config.YStride))
+				out = ag.AddScalar(out, m.B[i+offset])
 			}
 		}
 	}

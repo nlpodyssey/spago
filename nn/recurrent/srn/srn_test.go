@@ -22,7 +22,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 
 	y := model.Forward(x)[0]
 
@@ -30,7 +30,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.NewVariable[T](mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := ag.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(y, gold, false)
 	ag.Backward(loss)
 
@@ -62,8 +62,8 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	yPrev := ag.Tanh(ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
+	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
+	yPrev := ag.Tanh(ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true))
 
 	s1 := model.Next(&State[T]{Y: yPrev}, x)
 
@@ -71,7 +71,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.NewVariable[T](mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
+	gold := ag.NewVariable(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}), false)
 	loss := losses.MSE(s1.Y, gold, false)
 	ag.Backward(loss)
 
@@ -129,14 +129,14 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	// == Forward
 
 	s0 := &State[T]{
-		Y: ag.NewVariable[T](mat.NewVecDense([]T{0.0, 0.0}), true),
+		Y: ag.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true),
 	}
-	x := ag.NewVariable[T](mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{-0.9732261643, 0.9987757968}, s1.Y.Value().Data(), 1.0e-05)
 
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{3.3, -2.0, 0.1}), true)
 	s2 := model.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{-0.3773622668, 0.9671682519}, s2.Y.Value().Data(), 1.0e-05)

@@ -22,10 +22,10 @@ func TestNewOperator(t *testing.T) {
 func testNewOperator[T mat.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
-	f := &dummyFunction[T, Node[T]]{
+	f := &dummyFunction[T, Node]{
 		forward: func() mat.Matrix { return forwardResult },
 	}
-	op := NewOperator[T](f)
+	op := NewOperator(f)
 
 	require.NotNil(t, op)
 
@@ -36,7 +36,7 @@ func testNewOperator[T mat.DType](t *testing.T) {
 
 func TestOperator_Name(t *testing.T) {
 	t.Run("without generics", func(t *testing.T) {
-		op := NewOperator[float32](&dummyFunctionFloat32{})
+		op := NewOperator(&dummyFunctionFloat32{})
 		assert.Equal(t, "dummyFunctionFloat32", op.Name())
 	})
 
@@ -45,7 +45,7 @@ func TestOperator_Name(t *testing.T) {
 }
 
 func testOperatorName[T mat.DType](t *testing.T) {
-	op := NewOperator[T](&dummyFunction[T, Node[T]]{})
+	op := NewOperator(&dummyFunction[T, Node]{})
 	assert.Equal(t, "dummyFunction", op.Name())
 }
 
@@ -55,11 +55,11 @@ func TestOperator_Operands(t *testing.T) {
 }
 
 func testOperatorOperands[T mat.DType](t *testing.T) {
-	operands := []Node[T]{&dummyNode[T]{id: 1}}
-	f := &dummyFunction[T, Node[T]]{
-		operands: func() []Node[T] { return operands },
+	operands := []Node{&dummyNode[T]{id: 1}}
+	f := &dummyFunction[T, Node]{
+		operands: func() []Node { return operands },
 	}
-	op := NewOperator[T](f).(*Operator[T])
+	op := NewOperator(f).(*Operator)
 	require.Equal(t, operands, op.Operands())
 	assert.Same(t, operands[0], op.Operands()[0])
 }
@@ -72,10 +72,10 @@ func TestOperator_Value(t *testing.T) {
 func testOperatorValue[T mat.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
-	f := &dummyFunction[T, Node[T]]{
+	f := &dummyFunction[T, Node]{
 		forward: func() mat.Matrix { return forwardResult },
 	}
-	op := NewOperator[T](f)
+	op := NewOperator(f)
 
 	// The first call to Value() waits for the forward and returns the result
 	assert.Same(t, forwardResult, op.Value())
@@ -94,14 +94,14 @@ func TestOperator_RequiresGrad(t *testing.T) {
 
 func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
 	t.Run("false without operands", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{})
+		op := NewOperator(&dummyFunction[T, Node]{})
 		assert.False(t, op.RequiresGrad())
 	})
 
 	t.Run("false if no operands require grad", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{
-			operands: func() []Node[T] {
-				return []Node[T]{
+		op := NewOperator(&dummyFunction[T, Node]{
+			operands: func() []Node {
+				return []Node{
 					&dummyNode[T]{id: 1, requiresGrad: false},
 					&dummyNode[T]{id: 2, requiresGrad: false},
 				}
@@ -111,9 +111,9 @@ func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("true if at least one operand requires grad", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{
-			operands: func() []Node[T] {
-				return []Node[T]{
+		op := NewOperator(&dummyFunction[T, Node]{
+			operands: func() []Node {
+				return []Node{
 					&dummyNode[T]{id: 1, requiresGrad: false},
 					&dummyNode[T]{id: 2, requiresGrad: true},
 				}
@@ -130,12 +130,12 @@ func TestOperator_Gradients(t *testing.T) {
 
 func testOperatorGradients[T mat.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+		op := NewOperator(&dummyFunction[T, Node]{
 			forward: func() mat.Matrix {
 				return mat.NewScalar[T](42)
 			},
-			operands: func() []Node[T] {
-				return []Node[T]{&dummyNode[T]{requiresGrad: true}}
+			operands: func() []Node {
+				return []Node{&dummyNode[T]{requiresGrad: true}}
 			},
 		})
 
@@ -156,7 +156,7 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 	})
 
 	t.Run("with requires gradient false", func(t *testing.T) {
-		op := NewOperator[T](&dummyFunction[T, Node[T]]{
+		op := NewOperator(&dummyFunction[T, Node]{
 			forward: func() mat.Matrix { return mat.NewScalar[T](42) },
 		})
 
@@ -205,5 +205,5 @@ func (f *dummyFunction[T, O]) Operands() []O {
 }
 
 type dummyFunctionFloat32 struct {
-	dummyFunction[float32, Node[float32]]
+	dummyFunction[float32, Node]
 }

@@ -6,7 +6,6 @@ package encoding
 
 import (
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // Graph provides different views over a set of "ag.Node"s being part
@@ -22,14 +21,14 @@ import (
 // associated to each node during the Graph creation (see NewGraph).
 // These numbers have no special meaning, and they are just incrementally
 // assigned while each node is visited for the first time.
-type Graph[T mat.DType] struct {
+type Graph struct {
 	// NodesList is a slice containing the unique nodes being part of a graph
 	// (or graphs) discovered starting from the nodes passed to NewGraph.
 	// Each slice index corresponds to the artificial ID of each node.
-	NodesList []ag.Node[T]
+	NodesList []ag.Node
 	// NodesMap acts as an inverted index from NodesList. It associates each
 	// unique Node to its artificial ID, that's also its index from NodesList.
-	NodesMap map[ag.Node[T]]int
+	NodesMap map[ag.Node]int
 	// The Edges of the graph (or graphs), built by following the
 	// relationships between operator-Nodes and their operands. To each
 	// unique Node ID is associated a list of IDs of operator-Node IDs being
@@ -45,10 +44,10 @@ type Graph[T mat.DType] struct {
 //
 // Time steps are not take into account: all nodes are assumed having time
 // step -1. For time step handling, call WithTimeSteps on the new Graph.
-func NewGraph[T mat.DType](nodes ...ag.Node[T]) *Graph[T] {
-	g := &Graph[T]{
-		NodesMap:  make(map[ag.Node[T]]int, 0),
-		NodesList: make([]ag.Node[T], 0),
+func NewGraph(nodes ...ag.Node) *Graph {
+	g := &Graph{
+		NodesMap:  make(map[ag.Node]int, 0),
+		NodesList: make([]ag.Node, 0),
 		Edges:     make(map[int][]int, 0),
 	}
 	for _, n := range nodes {
@@ -59,13 +58,13 @@ func NewGraph[T mat.DType](nodes ...ag.Node[T]) *Graph[T] {
 
 // WithTimeSteps associates a TimeStepHandler to the Graph, allowing
 // time steps to be taken into account.
-func (g *Graph[T]) WithTimeSteps(handler *ag.TimeStepHandler) *Graph[T] {
+func (g *Graph) WithTimeSteps(handler *ag.TimeStepHandler) *Graph {
 	g.TimeStepHandler = handler
 	return g
 }
 
 // HasTimeStepHandler HasTimeStepsHandler reports whether a TimeStepHandler is set on the Graph.
-func (g *Graph[T]) HasTimeStepHandler() bool {
+func (g *Graph) HasTimeStepHandler() bool {
 	return g.TimeStepHandler != nil
 }
 
@@ -75,7 +74,7 @@ func (g *Graph[T]) HasTimeStepHandler() bool {
 // It's intended to be used when a TimeStepHandler has been associated to
 // the Graph (see Graph.WithTimeSteps). If not, all nodes are associated to
 // a single timestep -1.
-func (g *Graph[T]) NodesByTimeStep() map[int][]int {
+func (g *Graph) NodesByTimeStep() map[int][]int {
 	tsh := g.TimeStepHandler
 
 	if tsh == nil {
@@ -94,7 +93,7 @@ func (g *Graph[T]) NodesByTimeStep() map[int][]int {
 	return m
 }
 
-func (g *Graph[T]) init(n ag.Node[T]) {
+func (g *Graph) init(n ag.Node) {
 	if _, exists := g.NodesMap[n]; exists {
 		return
 	}
@@ -103,7 +102,7 @@ func (g *Graph[T]) init(n ag.Node[T]) {
 	g.NodesMap[n] = index
 	g.NodesList = append(g.NodesList, n)
 
-	op, isOp := n.(*ag.Operator[T])
+	op, isOp := n.(*ag.Operator)
 	if !isOp {
 		return
 	}

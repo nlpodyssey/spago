@@ -36,7 +36,7 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the MIST recurrent network.
 type State[T mat.DType] struct {
-	Y ag.Node[T]
+	Y ag.Node
 }
 
 func init() {
@@ -61,8 +61,8 @@ func New[T mat.DType](in, out, numOfDelays int) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	states := make([]*State[T], 0)
 	var s *State[T] = nil
 	for i, x := range xs {
@@ -74,22 +74,22 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(states []*State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(states []*State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev ag.Node[T] = nil
+	var yPrev ag.Node = nil
 	if states != nil {
 		yPrev = states[len(states)-1].Y
 	}
 
-	a := ag.Softmax(ag.Affine[T](m.Ba, m.Wax, x, m.Wah, yPrev))
-	r := ag.Sigmoid(ag.Affine[T](m.Br, m.Wrx, x, m.Wrh, yPrev))
-	s.Y = ag.Tanh(ag.Affine[T](m.B, m.Wx, x, m.Wh, tryProd[T](r, m.weightHistory(states, a))))
+	a := ag.Softmax(ag.Affine(m.Ba, m.Wax, x, m.Wah, yPrev))
+	r := ag.Sigmoid(ag.Affine(m.Br, m.Wrx, x, m.Wrh, yPrev))
+	s.Y = ag.Tanh(ag.Affine(m.B, m.Wx, x, m.Wh, tryProd[T](r, m.weightHistory(states, a))))
 	return
 }
 
-func (m *Model[T]) weightHistory(states []*State[T], a ag.Node[T]) ag.Node[T] {
-	var sum ag.Node[T]
+func (m *Model[T]) weightHistory(states []*State[T], a ag.Node) ag.Node {
+	var sum ag.Node
 	n := len(states)
 	for i := 0; i < m.NumOfDelays; i++ {
 		k := int(mat.Pow(2.0, T(i))) // base-2 exponential delay
@@ -101,7 +101,7 @@ func (m *Model[T]) weightHistory(states []*State[T], a ag.Node[T]) ag.Node[T] {
 }
 
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
-func tryProd[T mat.DType](a, b ag.Node[T]) ag.Node[T] {
+func tryProd[T mat.DType](a, b ag.Node) ag.Node {
 	if a != nil && b != nil {
 		return ag.Prod(a, b)
 	}

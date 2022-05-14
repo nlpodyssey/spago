@@ -24,11 +24,11 @@ func TestModel_Forward(t *testing.T) {
 func testMixerBlockForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{-0.8, -0.9, -0.9}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.8, -0.3, 0.5}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{-0.2, 0.7, 0.2}), true)
-	x4 := ag.NewVariable[T](mat.NewVecDense([]T{-0.6, 0.1, 0.8}), true)
-	x5 := ag.NewVariable[T](mat.NewVecDense([]T{0.5, 0.5, 0.1}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2}), true)
+	x4 := ag.NewVariable(mat.NewVecDense([]T{-0.6, 0.1, 0.8}), true)
+	x5 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.5, 0.1}), true)
 
 	output := model.Forward(x1, x2, x3, x4, x5)
 	assert.InDeltaSlice(t, []T{0.61250253, -0.61697177, 0.5283925}, output[0].Value().Data(), 1.0e-05)
@@ -41,9 +41,9 @@ func testMixerBlockForward[T mat.DType](t *testing.T) {
 func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
 	model := newTestModelGelu[T]()
 
-	x1 := ag.NewVariable[T](mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}), true)
-	x2 := ag.NewVariable[T](mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.1}), true)
-	x3 := ag.NewVariable[T](mat.NewVecDense([]T{-0.4, -0.5, -0.6, -0.3}), true)
+	x1 := ag.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}), true)
+	x2 := ag.NewVariable(mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.1}), true)
+	x3 := ag.NewVariable(mat.NewVecDense([]T{-0.4, -0.5, -0.6, -0.3}), true)
 
 	output := model.Forward(x1, x2, x3)
 	assert.InDeltaSlice(t, []T{0.1966, 0.6945, 0.9838, 1.0145}, output[0].Value().Data(), 1.0e-03)

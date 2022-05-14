@@ -29,11 +29,11 @@ type Model[T mat.DType] struct {
 
 // State represent a state of the RAN recurrent network.
 type State[T mat.DType] struct {
-	InG  ag.Node[T]
-	ForG ag.Node[T]
-	Cand ag.Node[T]
-	C    ag.Node[T]
-	Y    ag.Node[T]
+	InG  ag.Node
+	ForG ag.Node
+	Cand ag.Node
+	C    ag.Node
+	Y    ag.Node
 }
 
 func init() {
@@ -58,8 +58,8 @@ func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
 	return
 }
 
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	var s *State[T] = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -75,17 +75,17 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 // cand = wc (dot) x + bc
 // c = inG * c + forG * cPrev
 // y = f(c)
-func (m *Model[T]) Next(state *State[T], x ag.Node[T]) (s *State[T]) {
+func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 	s = new(State[T])
 
-	var yPrev, cPrev ag.Node[T] = nil, nil
+	var yPrev, cPrev ag.Node = nil, nil
 	if state != nil {
 		yPrev, cPrev = state.Y, state.C
 	}
 
-	s.InG = ag.Sigmoid(ag.Affine[T](m.BIn, m.WIn, x, m.WInRec, yPrev))
-	s.ForG = ag.Sigmoid(ag.Affine[T](m.BFor, m.WFor, x, m.WForRec, yPrev))
-	s.Cand = ag.Affine[T](m.BCand, m.WCand, x)
+	s.InG = ag.Sigmoid(ag.Affine(m.BIn, m.WIn, x, m.WInRec, yPrev))
+	s.ForG = ag.Sigmoid(ag.Affine(m.BFor, m.WFor, x, m.WForRec, yPrev))
+	s.Cand = ag.Affine(m.BCand, m.WCand, x)
 	s.C = ag.Prod(s.InG, s.Cand)
 	if cPrev != nil {
 		s.C = ag.Add(s.C, ag.Prod(s.ForG, cPrev))

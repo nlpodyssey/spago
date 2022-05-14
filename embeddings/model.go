@@ -145,11 +145,11 @@ func (m *Model[T, K]) Embedding(key K) (nn.Param[T], bool) {
 //
 // Missing embedding values can be either nil or ZeroEmbedding, according
 // to the Model's Config.
-func (m *Model[T, K]) Encode(keys []K) []ag.Node[T] {
-	nodes := make([]ag.Node[T], len(keys))
+func (m *Model[T, K]) Encode(keys []K) []ag.Node {
+	nodes := make([]ag.Node, len(keys))
 
 	// reuse the same node for the same key
-	cache := make(map[string]ag.Node[T], len(keys))
+	cache := make(map[string]ag.Node, len(keys))
 
 	for i, key := range keys {
 		strKey := stringifyKey(key)
@@ -159,7 +159,7 @@ func (m *Model[T, K]) Encode(keys []K) []ag.Node[T] {
 			continue
 		}
 
-		var n ag.Node[T]
+		var n ag.Node
 		if e, ok := m.Embedding(key); ok {
 			n = e
 		} else {

@@ -22,8 +22,8 @@ func testTimeStepHandler[T mat.DType](t *testing.T) {
 	require.Equal(t, 0, tsh.CurrentTimeStep())
 
 	// Simulate some parameters, with no associated time step (default 0)
-	paramA := NewVariableWithName[T](mat.NewScalar[T](1), true, "Param 0")
-	paramB := NewVariableWithName[T](mat.NewScalar[T](2), true, "Param 1")
+	paramA := NewVariableWithName(mat.NewScalar[T](1), true, "Param 0")
+	paramB := NewVariableWithName(mat.NewScalar[T](2), true, "Param 1")
 
 	// Perform an operation while still on initial time step 0
 	paramsSum := Sum(paramA, paramB)
@@ -31,7 +31,7 @@ func testTimeStepHandler[T mat.DType](t *testing.T) {
 	// Time step 1
 	tsh.IncTimeStep()
 	require.Equal(t, 1, tsh.CurrentTimeStep())
-	in1 := NewVariableWithName[T](mat.NewScalar[T](3), true, "Input 0")
+	in1 := NewVariableWithName(mat.NewScalar[T](3), true, "Input 0")
 
 	a1 := Add(paramA, in1)
 	b1 := Add(a1, paramB)
@@ -40,7 +40,7 @@ func testTimeStepHandler[T mat.DType](t *testing.T) {
 	// Time step 2
 	tsh.IncTimeStep()
 	require.Equal(t, 2, tsh.CurrentTimeStep())
-	in2 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 1")
+	in2 := NewVariableWithName(mat.NewScalar[T](4), true, "Input 1")
 
 	a2 := Add(paramA, in2)
 	b2 := Add(a2, paramB)
@@ -49,7 +49,7 @@ func testTimeStepHandler[T mat.DType](t *testing.T) {
 
 	// Time step 2
 	tsh.IncTimeStep()
-	in3 := NewVariableWithName[T](mat.NewScalar[T](4), true, "Input 3")
+	in3 := NewVariableWithName(mat.NewScalar[T](4), true, "Input 3")
 
 	a3 := Add(paramA, in3)
 	b3 := Add(a3, paramB)

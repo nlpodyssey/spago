@@ -50,18 +50,18 @@ func New[T mat.DType](in, out int, options ...Option[T]) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	ys := make([]ag.Node[T], len(xs))
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	ys := make([]ag.Node, len(xs))
 	if len(xs) == 1 {
-		ys[0] = ag.Affine[T](m.B, m.W, xs[0])
+		ys[0] = ag.Affine(m.B, m.W, xs[0])
 		return ys
 	}
 
 	var wg sync.WaitGroup
 	wg.Add(len(xs))
 	for i, x := range xs {
-		go func(i int, x ag.Node[T]) {
-			ys[i] = ag.Affine[T](m.B, m.W, x)
+		go func(i int, x ag.Node) {
+			ys[i] = ag.Affine(m.B, m.W, x)
 			wg.Done()
 		}(i, x)
 	}

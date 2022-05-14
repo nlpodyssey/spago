@@ -72,7 +72,7 @@ func FindOne[T mat.DType, M nn.Model](m *Model[T]) (int, *M) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	ys := m.Layers[0].Forward(xs...)
 	for i := 1; i < len(m.Layers); i++ {
 		ys = m.Layers[i].Forward(ys...)

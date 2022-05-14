@@ -53,9 +53,9 @@ func New[T mat.DType](positive, negative nn.StandardModel[T], merge MergeType) *
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
-	var pos []ag.Node[T]
-	var neg []ag.Node[T]
+func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+	var pos []ag.Node
+	var neg []ag.Node
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -67,15 +67,15 @@ func (m *Model[T]) Forward(xs ...ag.Node[T]) []ag.Node[T] {
 		neg = m.Negative.Forward(reversed(xs)...)
 	}()
 	wg.Wait()
-	out := make([]ag.Node[T], len(pos))
+	out := make([]ag.Node, len(pos))
 	for i := range out {
 		out[i] = m.merge(pos[i], neg[len(out)-1-i])
 	}
 	return out
 }
 
-func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
-	r := make([]ag.Node[T], len(ns))
+func reversed(ns []ag.Node) []ag.Node {
+	r := make([]ag.Node, len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1
@@ -84,7 +84,7 @@ func reversed[T mat.DType](ns []ag.Node[T]) []ag.Node[T] {
 	return r
 }
 
-func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
+func (m *Model[T]) merge(a, b ag.Node) ag.Node {
 	switch m.MergeMode {
 	case Concat:
 		return ag.Concat(a, b)
@@ -93,7 +93,7 @@ func (m *Model[T]) merge(a, b ag.Node[T]) ag.Node[T] {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), ag.Constant[T](0.5))
+		return ag.ProdScalar(ag.Add(a, b), ag.Constant(a.Value().NewScalar(mat.Float(0.5))))
 	default:
 		panic("birnn: invalid merge mode")
 	}

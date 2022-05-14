@@ -6,8 +6,6 @@ package ag
 
 import (
 	"sync/atomic"
-
-	"github.com/nlpodyssey/spago/mat"
 )
 
 var tsCounter uint64
@@ -46,14 +44,14 @@ func (tsh *TimeStepHandler) CurrentTimeStep() int {
 // is compared to the creation timestamp of each time step; the result is resolved
 // as the time step associated to the closest preceding timestamp, if any, otherwise 0.
 // In any other case, it returns 0.
-func NodeTimeStep[T mat.DType](h *TimeStepHandler, node Node[T]) int {
+func NodeTimeStep(h *TimeStepHandler, node Node) int {
 	var nodeCreatedAt uint64
 	switch n := node.(type) {
-	case *Operator[T]:
+	case *Operator:
 		nodeCreatedAt = n.createdAt
-	case *Variable[T]:
+	case *Variable:
 		nodeCreatedAt = n.createdAt
-	case *Wrapper[T]:
+	case *Wrapper:
 		nodeCreatedAt = n.createdAt
 	default:
 		return 0
