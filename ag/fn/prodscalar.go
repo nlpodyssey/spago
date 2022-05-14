@@ -9,15 +9,15 @@ import (
 )
 
 // ProdScalar is an operator to perform element-wise product with a scalar value.
-type ProdScalar[T mat.DType, O Operand[T]] struct {
+type ProdScalar[O Operand] struct {
 	x1       O
 	x2       O // scalar
 	operands []O
 }
 
 // NewProdScalar returns a new ProdScalar Function.
-func NewProdScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ProdScalar[T, O] {
-	return &ProdScalar[T, O]{
+func NewProdScalar[O Operand](x1 O, x2 O) *ProdScalar[O] {
+	return &ProdScalar[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -25,17 +25,17 @@ func NewProdScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *ProdScalar[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *ProdScalar[T, O]) Operands() []O {
+func (r *ProdScalar[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *ProdScalar[T, O]) Forward() mat.Matrix {
+func (r *ProdScalar[O]) Forward() mat.Matrix {
 	return r.x1.Value().ProdScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *ProdScalar[T, O]) Backward(gy mat.Matrix) {
+func (r *ProdScalar[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

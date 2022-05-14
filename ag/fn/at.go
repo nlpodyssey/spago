@@ -9,7 +9,7 @@ import (
 )
 
 // At is an operator to obtain the i,j-th value of a matrix.
-type At[T mat.DType, O Operand[T]] struct {
+type At[O Operand] struct {
 	x        O
 	i        int
 	j        int
@@ -17,8 +17,8 @@ type At[T mat.DType, O Operand[T]] struct {
 }
 
 // NewAt returns a new At Function.
-func NewAt[T mat.DType, O Operand[T]](x O, i int, j int) *At[T, O] {
-	return &At[T, O]{
+func NewAt[O Operand](x O, i int, j int) *At[O] {
+	return &At[O]{
 		x:        x,
 		i:        i,
 		j:        j,
@@ -27,17 +27,17 @@ func NewAt[T mat.DType, O Operand[T]](x O, i int, j int) *At[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *At[T, O]) Operands() []O {
+func (r *At[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *At[T, O]) Forward() mat.Matrix {
+func (r *At[O]) Forward() mat.Matrix {
 	return r.x.Value().At(r.i, r.j)
 }
 
 // Backward computes the backward pass.
-func (r *At[T, O]) Backward(gy mat.Matrix) {
+func (r *At[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)

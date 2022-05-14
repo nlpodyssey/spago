@@ -9,7 +9,7 @@ import (
 )
 
 // Threshold function: f(x) = x if x > threshold; k otherwise.
-type Threshold[T mat.DType, O Operand[T]] struct {
+type Threshold[O Operand] struct {
 	x         O
 	threshold O // scalar
 	k         O // scalar
@@ -17,8 +17,8 @@ type Threshold[T mat.DType, O Operand[T]] struct {
 }
 
 // NewThreshold returns a new Threshold Function.
-func NewThreshold[T mat.DType, O Operand[T]](x O, threshold, k O) *Threshold[T, O] {
-	return &Threshold[T, O]{
+func NewThreshold[O Operand](x O, threshold, k O) *Threshold[O] {
+	return &Threshold[O]{
 		x:         x,
 		threshold: threshold,
 		k:         k,
@@ -27,12 +27,12 @@ func NewThreshold[T mat.DType, O Operand[T]](x O, threshold, k O) *Threshold[T, 
 }
 
 // Operands returns the list of operands.
-func (r *Threshold[T, O]) Operands() []O {
+func (r *Threshold[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Threshold[T, O]) Forward() mat.Matrix {
+func (r *Threshold[O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(
 		threshold,
 		r.threshold.Value().Scalar().Float64(),
@@ -42,7 +42,7 @@ func (r *Threshold[T, O]) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Threshold[T, O]) Backward(gy mat.Matrix) {
+func (r *Threshold[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

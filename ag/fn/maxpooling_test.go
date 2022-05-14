@@ -26,7 +26,7 @@ func testMaxPoolForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewMaxPooling[T](x, 2, 2)
+	f := NewMaxPooling(x, 2, 2)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

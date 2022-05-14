@@ -26,7 +26,7 @@ func testLeakyReLUForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: false,
 	}
-	f := NewLeakyReLU[T](x, alpha)
+	f := NewLeakyReLU(x, alpha)
 	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
 
 	y := f.Forward()

@@ -10,15 +10,15 @@ import (
 
 // CELU is an operator to perform the CELU activation.
 // CELU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
-type CELU[T mat.DType, O Operand[T]] struct {
+type CELU[O Operand] struct {
 	x        O
 	alpha    O // scalar
 	operands []O
 }
 
 // NewCELU returns a new CELU Function.
-func NewCELU[T mat.DType, O Operand[T]](x O, alpha O) *CELU[T, O] {
-	return &CELU[T, O]{
+func NewCELU[O Operand](x O, alpha O) *CELU[O] {
+	return &CELU[O]{
 		x:        x,
 		alpha:    alpha,
 		operands: []O{x, alpha},
@@ -26,17 +26,17 @@ func NewCELU[T mat.DType, O Operand[T]](x O, alpha O) *CELU[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *CELU[T, O]) Operands() []O {
+func (r *CELU[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *CELU[T, O]) Forward() mat.Matrix {
+func (r *CELU[O]) Forward() mat.Matrix {
 	return r.x.Value().ApplyWithAlpha(celu, r.alpha.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *CELU[T, O]) Backward(gy mat.Matrix) {
+func (r *CELU[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

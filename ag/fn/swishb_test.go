@@ -26,7 +26,7 @@ func testSwishBForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSwishB[T](x, beta)
+	f := NewSwishB(x, beta)
 	assert.Equal(t, []*variable[T]{x, beta}, f.Operands())
 
 	y := f.Forward()

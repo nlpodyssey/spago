@@ -7,18 +7,18 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // RowView is a function to extract the i-th row from the input matrix.
-type RowView[T mat.DType, O Operand[T]] struct {
+type RowView[O Operand] struct {
 	x        O
 	i        int
 	operands []O
 }
 
 // NewRowView returns a new RowView Function.
-func NewRowView[T mat.DType, O Operand[T]](x O, i int) *RowView[T, O] {
+func NewRowView[O Operand](x O, i int) *RowView[O] {
 	if i < 0 {
 		panic("fn: invalid row index")
 	}
-	return &RowView[T, O]{
+	return &RowView[O]{
 		x:        x,
 		i:        i,
 		operands: []O{x},
@@ -26,17 +26,17 @@ func NewRowView[T mat.DType, O Operand[T]](x O, i int) *RowView[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *RowView[T, O]) Operands() []O {
+func (r *RowView[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *RowView[T, O]) Forward() mat.Matrix {
+func (r *RowView[O]) Forward() mat.Matrix {
 	return r.x.Value().ExtractRow(r.i)
 }
 
 // Backward computes the backward pass.
-func (r *RowView[T, O]) Backward(gy mat.Matrix) {
+func (r *RowView[O]) Backward(gy mat.Matrix) {
 	if !(r.x.Value().Columns() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

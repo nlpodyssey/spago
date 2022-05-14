@@ -15,15 +15,15 @@ import (
 )
 
 var (
-	_ fn.Operand[float32] = &Operator[float32]{}
-	_ Node[float32]       = &Operator[float32]{}
+	_ fn.Operand    = &Operator[float32]{}
+	_ Node[float32] = &Operator[float32]{}
 )
 
 // Operator is a type of node.
 type Operator[T mat.DType] struct {
 	requiresGrad  bool
 	backwardState backwardState
-	function      fn.Function[T, Node[T]]
+	function      fn.Function[Node[T]]
 	// value is the results of a forward evaluation, as mat.Matrix.
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
@@ -46,7 +46,7 @@ type Operator[T mat.DType] struct {
 // result in unpredictable outcomes.
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
-func NewOperator[T mat.DType](f fn.Function[T, Node[T]]) Node[T] {
+func NewOperator[T mat.DType](f fn.Function[Node[T]]) Node[T] {
 	requiresGrad := false
 	for _, n := range f.Operands() {
 		if !requiresGrad && n.RequiresGrad() {

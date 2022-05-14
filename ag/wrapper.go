@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	_ fn.Operand[float32] = &Wrapper[float32]{}
-	_ Node[float32]       = &Wrapper[float32]{}
+	_ fn.Operand    = &Wrapper[float32]{}
+	_ Node[float32] = &Wrapper[float32]{}
 )
 
 // Wrapper embeds any Node implementation disabling gradients handling and

@@ -21,7 +21,7 @@ func testRotateRForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewRotateR[T](x, 1)
+	f := NewRotateR(x, 1)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

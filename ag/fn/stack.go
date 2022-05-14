@@ -8,31 +8,34 @@ import "github.com/nlpodyssey/spago/mat"
 
 // Stack is a Function which stacks together all given operand matrices,
 // producing a single bigger matrix as result.
-type Stack[T mat.DType, O Operand[T]] struct {
+type Stack[O Operand] struct {
 	xs []O
 }
 
 // NewStack returns a new Stack Function.
-func NewStack[T mat.DType, O Operand[T]](xs []O) *Stack[T, O] {
-	return &Stack[T, O]{xs: xs}
+func NewStack[O Operand](xs []O) *Stack[O] {
+	return &Stack[O]{xs: xs}
 }
 
 // Operands returns the list of operands.
-func (r *Stack[T, O]) Operands() []O {
+func (r *Stack[O]) Operands() []O {
 	return r.xs
 }
 
 // Forward computes the output of the function.
-func (r *Stack[T, O]) Forward() mat.Matrix {
+func (r *Stack[O]) Forward() mat.Matrix {
+	if len(r.xs) == 0 {
+		panic("fn: Stack has no operands")
+	}
 	vs := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
 		vs[i] = x.Value()
 	}
-	return mat.Stack[T](vs...)
+	return vs[0].NewStack(vs...)
 }
 
 // Backward computes the backward pass.
-func (r *Stack[T, O]) Backward(gy mat.Matrix) {
+func (r *Stack[O]) Backward(gy mat.Matrix) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")
 	}

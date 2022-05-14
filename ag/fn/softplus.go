@@ -9,7 +9,7 @@ import (
 )
 
 // SoftPlus function: f(x) = 1 / β ∗ log(1 + exp(β ∗ x))
-type SoftPlus[T mat.DType, O Operand[T]] struct {
+type SoftPlus[O Operand] struct {
 	x         O
 	beta      O
 	threshold O
@@ -17,8 +17,8 @@ type SoftPlus[T mat.DType, O Operand[T]] struct {
 }
 
 // NewSoftPlus returns a new SoftPlus Function.
-func NewSoftPlus[T mat.DType, O Operand[T]](x O, beta, threshold O) *SoftPlus[T, O] {
-	return &SoftPlus[T, O]{
+func NewSoftPlus[O Operand](x O, beta, threshold O) *SoftPlus[O] {
+	return &SoftPlus[O]{
 		x:         x,
 		beta:      beta,
 		threshold: threshold,
@@ -27,12 +27,12 @@ func NewSoftPlus[T mat.DType, O Operand[T]](x O, beta, threshold O) *SoftPlus[T,
 }
 
 // Operands returns the list of operands.
-func (r *SoftPlus[T, O]) Operands() []O {
+func (r *SoftPlus[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *SoftPlus[T, O]) Forward() mat.Matrix {
+func (r *SoftPlus[O]) Forward() mat.Matrix {
 	return r.x.Value().ApplyWithAlpha(
 		softPlus,
 		r.beta.Value().Scalar().Float64(),
@@ -41,7 +41,7 @@ func (r *SoftPlus[T, O]) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *SoftPlus[T, O]) Backward(gy mat.Matrix) {
+func (r *SoftPlus[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

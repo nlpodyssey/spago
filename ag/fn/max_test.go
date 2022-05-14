@@ -27,7 +27,7 @@ func testMaxForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewMax[T](x1, x2)
+	f := NewMax(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

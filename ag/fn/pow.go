@@ -9,15 +9,15 @@ import (
 )
 
 // Pow is an operator to perform element-wise pow function.
-type Pow[T mat.DType, O Operand[T]] struct {
+type Pow[O Operand] struct {
 	x        O
 	power    float64
 	operands []O
 }
 
 // NewPow returns a new Pow Function.
-func NewPow[T mat.DType, O Operand[T]](x O, power float64) *Pow[T, O] {
-	return &Pow[T, O]{
+func NewPow[O Operand](x O, power float64) *Pow[O] {
+	return &Pow[O]{
 		x:        x,
 		power:    power,
 		operands: []O{x},
@@ -25,17 +25,17 @@ func NewPow[T mat.DType, O Operand[T]](x O, power float64) *Pow[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Pow[T, O]) Operands() []O {
+func (r *Pow[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Pow[T, O]) Forward() mat.Matrix {
+func (r *Pow[O]) Forward() mat.Matrix {
 	return r.x.Value().Pow(r.power)
 }
 
 // Backward computes the backward pass.
-func (r *Pow[T, O]) Backward(gy mat.Matrix) {
+func (r *Pow[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

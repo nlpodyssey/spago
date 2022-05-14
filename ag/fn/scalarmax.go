@@ -10,38 +10,42 @@ import (
 
 // ScalarMax is an operator to perform reduce-max function on a list of scalars.
 // It gets the maximum element of the Operand x
-type ScalarMax[T mat.DType, O Operand[T]] struct {
+type ScalarMax[O Operand] struct {
 	xs     []O
 	argmax int
 }
 
 // NewScalarMax returns a new ScalarMax Function.
-func NewScalarMax[T mat.DType, O Operand[T]](xs []O) *ScalarMax[T, O] {
-	return &ScalarMax[T, O]{xs: xs}
+func NewScalarMax[O Operand](xs []O) *ScalarMax[O] {
+	return &ScalarMax[O]{xs: xs}
 }
 
 // Operands returns the list of operands.
-func (r *ScalarMax[T, O]) Operands() []O {
+func (r *ScalarMax[O]) Operands() []O {
 	return r.xs
 }
 
 // Forward computes the output of this function.
-func (r *ScalarMax[T, O]) Forward() mat.Matrix {
-	var max T
+func (r *ScalarMax[O]) Forward() mat.Matrix {
+	if len(r.xs) == 0 {
+		panic("fn: ScalarMax has no operands")
+	}
+	var max float64
 	var argmax int
 	for i, x := range r.xs {
-		val := mat.DTFloat[T](x.Value().Scalar())
+		// FIXME: avoid casting to specific type
+		val := x.Value().Scalar().Float64()
 		if val > max {
 			max = val
 			argmax = i
 		}
 	}
 	r.argmax = argmax
-	return mat.NewScalar(max)
+	return r.xs[argmax].Value().Clone()
 }
 
 // Backward computes the backward pass.
-func (r *ScalarMax[T, O]) Backward(gy mat.Matrix) {
+func (r *ScalarMax[O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

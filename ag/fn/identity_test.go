@@ -26,7 +26,7 @@ func testIdentityForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewIdentity[T](x)
+	f := NewIdentity(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

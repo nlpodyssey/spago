@@ -21,7 +21,7 @@ func testSoftmaxForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSoftmax[T](x)
+	f := NewSoftmax(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

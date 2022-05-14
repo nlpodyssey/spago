@@ -32,7 +32,7 @@ func testThresholdForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewThreshold[T](x, ts, k)
+	f := NewThreshold(x, ts, k)
 	assert.Equal(t, []*variable[T]{x, ts, k}, f.Operands())
 
 	y := f.Forward()

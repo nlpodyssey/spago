@@ -27,7 +27,7 @@ func testSoftShrinkForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewSoftShrink[T](x, lambda)
+	f := NewSoftShrink(x, lambda)
 	assert.Equal(t, []*variable[T]{x, lambda}, f.Operands())
 
 	y := f.Forward()

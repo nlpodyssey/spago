@@ -22,7 +22,7 @@ func testAtVecForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewAtVec[T](x, 1)
+	f := NewAtVec(x, 1)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

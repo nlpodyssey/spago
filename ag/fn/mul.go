@@ -10,15 +10,15 @@ import (
 )
 
 // Mul is an operator to perform matrix-vector multiplication.
-type Mul[T mat.DType, O Operand[T]] struct {
+type Mul[O Operand] struct {
 	x1       O // matrix
 	x2       O // vector
 	operands []O
 }
 
 // NewMul returns a new Mul Function.
-func NewMul[T mat.DType, O Operand[T]](x1 O, x2 O) *Mul[T, O] {
-	return &Mul[T, O]{
+func NewMul[O Operand](x1 O, x2 O) *Mul[O] {
+	return &Mul[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -26,17 +26,17 @@ func NewMul[T mat.DType, O Operand[T]](x1 O, x2 O) *Mul[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Mul[T, O]) Operands() []O {
+func (r *Mul[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Mul[T, O]) Forward() mat.Matrix {
+func (r *Mul[O]) Forward() mat.Matrix {
 	return r.x1.Value().Mul(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Mul[T, O]) Backward(gy mat.Matrix) {
+func (r *Mul[O]) Backward(gy mat.Matrix) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}

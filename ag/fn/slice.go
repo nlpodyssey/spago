@@ -7,7 +7,7 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // Slice is a function to extract a portion of a matrix.
-type Slice[T mat.DType, O Operand[T]] struct {
+type Slice[O Operand] struct {
 	x        O
 	fromRow  int
 	fromCol  int
@@ -17,8 +17,8 @@ type Slice[T mat.DType, O Operand[T]] struct {
 }
 
 // NewSlice returns a new Slice Function.
-func NewSlice[T mat.DType, O Operand[T]](x O, fromRow, fromCol, toRow, toCol int) *Slice[T, O] {
-	return &Slice[T, O]{
+func NewSlice[O Operand](x O, fromRow, fromCol, toRow, toCol int) *Slice[O] {
+	return &Slice[O]{
 		x:        x,
 		fromRow:  fromRow,
 		fromCol:  fromCol,
@@ -29,17 +29,17 @@ func NewSlice[T mat.DType, O Operand[T]](x O, fromRow, fromCol, toRow, toCol int
 }
 
 // Operands returns the list of operands.
-func (s *Slice[T, O]) Operands() []O {
+func (s *Slice[O]) Operands() []O {
 	return s.operands
 }
 
 // Forward computes the output of the function.
-func (s *Slice[T, O]) Forward() mat.Matrix {
+func (s *Slice[O]) Forward() mat.Matrix {
 	return s.x.Value().Slice(s.fromRow, s.fromCol, s.toRow, s.toCol)
 }
 
 // Backward computes the backward pass.
-func (s *Slice[T, O]) Backward(gy mat.Matrix) {
+func (s *Slice[O]) Backward(gy mat.Matrix) {
 	lx := s.toRow - s.fromRow
 	ly := s.toCol - s.fromCol
 	if !(gy.Rows() == lx && gy.Columns() == ly) {

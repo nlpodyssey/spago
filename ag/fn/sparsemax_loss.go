@@ -11,7 +11,7 @@ import (
 )
 
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
-type SparseMaxLoss[T mat.DType, O Operand[T]] struct {
+type SparseMaxLoss[O Operand] struct {
 	x        O
 	tau      float64    // computed during the forward pass
 	y        mat.Matrix // computed during forward pass
@@ -19,46 +19,46 @@ type SparseMaxLoss[T mat.DType, O Operand[T]] struct {
 }
 
 // NewSparseMaxLoss returns a new SparseMaxLoss Function.
-func NewSparseMaxLoss[T mat.DType, O Operand[T]](x O) *SparseMaxLoss[T, O] {
-	return &SparseMaxLoss[T, O]{
+func NewSparseMaxLoss[O Operand](x O) *SparseMaxLoss[O] {
+	return &SparseMaxLoss[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *SparseMaxLoss[T, O]) Operands() []O {
+func (r *SparseMaxLoss[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix {
+func (r *SparseMaxLoss[O]) Forward() mat.Matrix {
 	v := r.x.Value().Clone()
 
-	zs, cumSumInput, bounds, tau := sparseMaxCommon[T](v)
+	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
 	defer mat.ReleaseMatrix(zs)
 	defer mat.ReleaseMatrix(cumSumInput)
 
 	tauSquared := tau * tau
-	cumSumInputData := mat.Data[T](cumSumInput)
+	cumSumInputData := cumSumInput.Data().Float64()
 
-	var regTerm T = 0.0
-	for i, zsv := range mat.Data[T](zs) {
+	var regTerm float64
+	for i, zsv := range zs.Data().Float64() {
 		if bounds[i] > cumSumInputData[i] {
 			regTerm += zsv*zsv - tauSquared
 		}
 	}
 
 	regTerm = regTerm*0.5 + 0.5
-	v.SubScalarInPlace(float64(regTerm))
+	v.SubScalarInPlace(regTerm)
 
 	r.y = v
-	r.tau = float64(tau)
+	r.tau = tau
 	return v
 }
 
 // Backward computes the backward pass.
-func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix) {
+func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		tau := r.tau
 		gySum := gy.Sum().Scalar().Float64()

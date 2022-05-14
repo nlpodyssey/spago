@@ -27,7 +27,7 @@ func testDivForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewDiv[T](x1, x2)
+	f := NewDiv(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

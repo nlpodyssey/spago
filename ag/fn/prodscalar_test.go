@@ -27,7 +27,7 @@ func testScalarProdForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewProdScalar[T](x1, x2)
+	f := NewProdScalar(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

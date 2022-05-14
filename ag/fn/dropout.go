@@ -11,9 +11,9 @@ import (
 )
 
 // Dropout is an operator to perform elements dropout with a probability.
-type Dropout[T mat.DType, O Operand[T]] struct {
+type Dropout[O Operand] struct {
 	x        O
-	prob     T
+	prob     float64
 	q        float64 // 1 - p
 	randGen  *rand.LockedRand
 	mask     mat.Matrix // filled during the forward
@@ -21,8 +21,8 @@ type Dropout[T mat.DType, O Operand[T]] struct {
 }
 
 // NewDropout returns a new Dropout Function.
-func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand) *Dropout[T, O] {
-	return &Dropout[T, O]{
+func NewDropout[O Operand](x O, p float64, randGen *rand.LockedRand) *Dropout[O] {
+	return &Dropout[O]{
 		x:        x,
 		prob:     p,
 		q:        1.0 - float64(p),
@@ -33,12 +33,12 @@ func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand) *
 }
 
 // Operands returns the list of operands.
-func (r *Dropout[T, O]) Operands() []O {
+func (r *Dropout[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Dropout[T, O]) Forward() mat.Matrix {
+func (r *Dropout[O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	if r.q > 0.0 {
 		r.mask = bernulli.Distribution(xv.Rows(), xv.Columns(), r.prob, r.randGen)
@@ -50,7 +50,7 @@ func (r *Dropout[T, O]) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Dropout[T, O]) Backward(gy mat.Matrix) {
+func (r *Dropout[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

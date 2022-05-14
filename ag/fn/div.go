@@ -9,15 +9,15 @@ import (
 )
 
 // Div is an operator to perform element-wise division over two values.
-type Div[T mat.DType, O Operand[T]] struct {
+type Div[O Operand] struct {
 	x1       O
 	x2       O
 	operands []O
 }
 
 // NewDiv returns a new Div Function.
-func NewDiv[T mat.DType, O Operand[T]](x1 O, x2 O) *Div[T, O] {
-	return &Div[T, O]{
+func NewDiv[O Operand](x1 O, x2 O) *Div[O] {
+	return &Div[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -25,17 +25,17 @@ func NewDiv[T mat.DType, O Operand[T]](x1 O, x2 O) *Div[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Div[T, O]) Operands() []O {
+func (r *Div[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Div[T, O]) Forward() mat.Matrix {
+func (r *Div[O]) Forward() mat.Matrix {
 	return r.x1.Value().Div(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Div[T, O]) Backward(gy mat.Matrix) {
+func (r *Div[O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

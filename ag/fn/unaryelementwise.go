@@ -9,7 +9,7 @@ import (
 )
 
 // UnaryElementwise is a single-input element-wise function.
-type UnaryElementwise[T mat.DType, O Operand[T]] struct {
+type UnaryElementwise[O Operand] struct {
 	x        O
 	operands []O
 	f        func(i, j int, v float64) float64 // function
@@ -17,17 +17,17 @@ type UnaryElementwise[T mat.DType, O Operand[T]] struct {
 }
 
 // Operands returns the list of operands.
-func (r *UnaryElementwise[T, O]) Operands() []O {
+func (r *UnaryElementwise[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of this node.
-func (r *UnaryElementwise[T, O]) Forward() mat.Matrix {
+func (r *UnaryElementwise[O]) Forward() mat.Matrix {
 	return r.x.Value().Apply(r.f)
 }
 
 // Backward computes the backward pass.
-func (r *UnaryElementwise[T, O]) Backward(gy mat.Matrix) {
+func (r *UnaryElementwise[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

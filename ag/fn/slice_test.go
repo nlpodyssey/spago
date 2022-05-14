@@ -28,7 +28,7 @@ func testSliceForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewSlice[T](x, 1, 1, 3, 3)
+	f := NewSlice(x, 1, 1, 3, 3)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

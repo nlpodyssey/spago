@@ -9,15 +9,15 @@ import (
 )
 
 // SubScalar is an element-wise subtraction function with a scalar value.
-type SubScalar[T mat.DType, O Operand[T]] struct {
+type SubScalar[O Operand] struct {
 	x1       O
 	x2       O // scalar
 	operands []O
 }
 
 // NewSubScalar returns a new SubScalar Function.
-func NewSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *SubScalar[T, O] {
-	return &SubScalar[T, O]{
+func NewSubScalar[O Operand](x1 O, x2 O) *SubScalar[O] {
+	return &SubScalar[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -25,17 +25,17 @@ func NewSubScalar[T mat.DType, O Operand[T]](x1 O, x2 O) *SubScalar[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *SubScalar[T, O]) Operands() []O {
+func (r *SubScalar[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *SubScalar[T, O]) Forward() mat.Matrix {
+func (r *SubScalar[O]) Forward() mat.Matrix {
 	return r.x1.Value().SubScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *SubScalar[T, O]) Backward(gy mat.Matrix) {
+func (r *SubScalar[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

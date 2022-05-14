@@ -22,7 +22,7 @@ func testPowForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewPow[T](x, 3.0)
+	f := NewPow(x, 3.0)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

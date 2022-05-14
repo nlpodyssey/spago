@@ -9,48 +9,49 @@ import (
 )
 
 // Softmax is a single-input softmax function.
-type Softmax[T mat.DType, O Operand[T]] struct {
+type Softmax[O Operand] struct {
 	x        O
 	y        mat.Matrix // initialized during the forward pass (required by the backward pass)
 	operands []O
 }
 
 // NewSoftmax returns a new Softmax Function.
-func NewSoftmax[T mat.DType, O Operand[T]](x O) *Softmax[T, O] {
-	return &Softmax[T, O]{
+func NewSoftmax[O Operand](x O) *Softmax[O] {
+	return &Softmax[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Softmax[T, O]) Operands() []O {
+func (r *Softmax[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of this function.
-func (r *Softmax[T, O]) Forward() mat.Matrix {
+func (r *Softmax[O]) Forward() mat.Matrix {
 	r.y = r.x.Value().Softmax()
 	return r.y
 }
 
 // Backward computes the backward pass.
-func (r *Softmax[T, O]) Backward(gy mat.Matrix) {
+func (r *Softmax[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		y := r.y
 		n := y.Size()
-		jb := mat.NewInitFuncDense[T](n, n, func(row, col int) T {
-			vRow := mat.DTFloat[T](y.ScalarAtVec(row))
+		jb := y.NewInitFuncMatrix(n, n, func(row, col int) mat.FloatInterface {
+			// FIXME: avoid casting to specific type
+			vRow := y.ScalarAtVec(row).Float64()
 			if row == col {
-				return vRow * (1 - vRow)
+				return mat.Float(vRow * (1 - vRow))
 			}
-			vCol := mat.DTFloat[T](y.ScalarAtVec(col))
-			return -(vRow * vCol)
+			vCol := y.ScalarAtVec(col).Float64()
+			return mat.Float(-(vRow * vCol))
 		})
-		defer mat.ReleaseDense(jb)
+		defer mat.ReleaseMatrix(jb)
 		gx := jb.Mul(gy)
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)

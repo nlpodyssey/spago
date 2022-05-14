@@ -23,7 +23,7 @@ func testScalarMaxForward[T mat.DType](t *testing.T) {
 		{mat.NewScalar[T](-4.0), nil, true},
 	}
 
-	max := NewScalarMax[T](xs)
+	max := NewScalarMax(xs)
 	assert.Equal(t, xs, max.Operands())
 
 	y := max.Forward()

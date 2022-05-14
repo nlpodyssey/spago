@@ -7,19 +7,19 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // AppendRows is a Function which appends new tail rows to a matrix.
-type AppendRows[T mat.DType, O Operand[T]] struct {
+type AppendRows[O Operand] struct {
 	x        O
 	vs       []O
 	operands []O
 }
 
 // NewAppendRows returns a new AppendRows Function.
-func NewAppendRows[T mat.DType, O Operand[T]](x O, vs ...O) *AppendRows[T, O] {
+func NewAppendRows[O Operand](x O, vs ...O) *AppendRows[O] {
 	operands := make([]O, len(vs)+1)
 	operands[0] = x
 	copy(operands[1:], vs)
 
-	return &AppendRows[T, O]{
+	return &AppendRows[O]{
 		x:        x,
 		vs:       vs,
 		operands: operands,
@@ -27,12 +27,12 @@ func NewAppendRows[T mat.DType, O Operand[T]](x O, vs ...O) *AppendRows[T, O] {
 }
 
 // Operands returns the list of operands.
-func (a *AppendRows[T, O]) Operands() []O {
+func (a *AppendRows[O]) Operands() []O {
 	return a.operands
 }
 
 // Forward computes the output of the function.
-func (a *AppendRows[T, O]) Forward() mat.Matrix {
+func (a *AppendRows[O]) Forward() mat.Matrix {
 	nodes := a.vs
 	vs := make([]mat.Matrix, len(nodes))
 	for i, n := range nodes {
@@ -42,7 +42,7 @@ func (a *AppendRows[T, O]) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (a *AppendRows[T, O]) Backward(gy mat.Matrix) {
+func (a *AppendRows[O]) Backward(gy mat.Matrix) {
 	xVal := a.x.Value()
 	if gy.Rows() != xVal.Rows()+len(a.vs) {
 		panic("fn: matrices have incompatible dimensions")

@@ -7,7 +7,7 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // Operand is implemented by any value that implements automatic differentiation features.
-type Operand[T mat.DType] interface {
+type Operand interface {
 	// Value returns the value of the operand.
 	Value() mat.Matrix
 	// AccGrad accumulate the gradients gx to the operands.
@@ -17,7 +17,7 @@ type Operand[T mat.DType] interface {
 }
 
 // Function represents a function with automatic differentiation features.
-type Function[T mat.DType, O Operand[T]] interface {
+type Function[O Operand] interface {
 	// Forward computes the output of the function.
 	Forward() mat.Matrix
 	// Backward computes the backward pass.

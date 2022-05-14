@@ -26,7 +26,7 @@ func testColForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewColView[T](x, 2)
+	f := NewColView(x, 2)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

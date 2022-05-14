@@ -32,7 +32,7 @@ func testStackForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewStack[T]([]*variable[T]{x1, x2, x3})
+	f := NewStack([]*variable[T]{x1, x2, x3})
 	assert.Equal(t, []*variable[T]{x1, x2, x3}, f.Operands())
 
 	y := f.Forward()

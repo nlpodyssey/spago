@@ -27,7 +27,7 @@ func testSubScalarForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewSubScalar[T](x1, x2)
+	f := NewSubScalar(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

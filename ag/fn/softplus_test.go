@@ -32,7 +32,7 @@ func testSoftPlusForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewSoftPlus[T](x, beta, threshold)
+	f := NewSoftPlus(x, beta, threshold)
 	assert.Equal(t, []*variable[T]{x, beta, threshold}, f.Operands())
 
 	y := f.Forward()

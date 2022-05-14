@@ -10,15 +10,15 @@ import (
 
 // LeakyReLU is an operator to perform the LeakyReLU activation function.
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
-type LeakyReLU[T mat.DType, O Operand[T]] struct {
+type LeakyReLU[O Operand] struct {
 	x        O
 	alpha    O // scalar
 	operands []O
 }
 
 // NewLeakyReLU returns a new LeakyReLU Function.
-func NewLeakyReLU[T mat.DType, O Operand[T]](x, alpha O) *LeakyReLU[T, O] {
-	return &LeakyReLU[T, O]{
+func NewLeakyReLU[O Operand](x, alpha O) *LeakyReLU[O] {
+	return &LeakyReLU[O]{
 		x:        x,
 		alpha:    alpha,
 		operands: []O{x, alpha},
@@ -26,18 +26,18 @@ func NewLeakyReLU[T mat.DType, O Operand[T]](x, alpha O) *LeakyReLU[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *LeakyReLU[T, O]) Operands() []O {
+func (r *LeakyReLU[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *LeakyReLU[T, O]) Forward() mat.Matrix {
+func (r *LeakyReLU[O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().Float64())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix) {
+func (r *LeakyReLU[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

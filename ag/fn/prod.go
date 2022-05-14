@@ -9,15 +9,15 @@ import (
 )
 
 // Prod is an operator to perform element-wise product over two values.
-type Prod[T mat.DType, O Operand[T]] struct {
+type Prod[O Operand] struct {
 	x1       O
 	x2       O
 	operands []O
 }
 
 // NewProd returns a new Prod Function.
-func NewProd[T mat.DType, O Operand[T]](x1 O, x2 O) *Prod[T, O] {
-	return &Prod[T, O]{
+func NewProd[O Operand](x1 O, x2 O) *Prod[O] {
+	return &Prod[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -25,17 +25,17 @@ func NewProd[T mat.DType, O Operand[T]](x1 O, x2 O) *Prod[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Prod[T, O]) Operands() []O {
+func (r *Prod[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *Prod[T, O]) Forward() mat.Matrix {
+func (r *Prod[O]) Forward() mat.Matrix {
 	return r.x1.Value().Prod(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Prod[T, O]) Backward(gy mat.Matrix) {
+func (r *Prod[O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

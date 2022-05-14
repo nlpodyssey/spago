@@ -9,38 +9,41 @@ import (
 )
 
 // ReduceMean is an operator to perform reduce-mean function.
-type ReduceMean[T mat.DType, O Operand[T]] struct {
+type ReduceMean[O Operand] struct {
 	x        O
 	operands []O
 }
 
 // NewReduceMean returns a new ReduceMean Function.
-func NewReduceMean[T mat.DType, O Operand[T]](x O) *ReduceMean[T, O] {
-	return &ReduceMean[T, O]{
+func NewReduceMean[O Operand](x O) *ReduceMean[O] {
+	return &ReduceMean[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *ReduceMean[T, O]) Operands() []O {
+func (r *ReduceMean[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean[T, O]) Forward() mat.Matrix {
+func (r *ReduceMean[O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	return xv.Sum().ProdScalarInPlace(1 / float64(xv.Size()))
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean[T, O]) Backward(gy mat.Matrix) {
+func (r *ReduceMean[O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewInitVecDense(r.x.Value().Size(), mat.DTFloat[T](gy.Scalar())/T(r.x.Value().Size()))
-		defer mat.ReleaseDense(gx)
+		x := r.x.Value()
+		size := x.Size()
+		v := gy.Scalar().Float64() / float64(size)
+		gx := x.NewInitVec(size, mat.Float(v))
+		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 }

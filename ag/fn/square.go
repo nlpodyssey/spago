@@ -4,25 +4,21 @@
 
 package fn
 
-import (
-	"github.com/nlpodyssey/spago/mat"
-)
-
 // Square is an operator to perform element-wise square.
-type Square[T mat.DType, O Operand[T]] struct {
-	*Prod[T, O]
+type Square[O Operand] struct {
+	*Prod[O]
 	operands []O
 }
 
 // NewSquare returns a new Square Function.
-func NewSquare[T mat.DType, O Operand[T]](x O) *Square[T, O] {
-	return &Square[T, O]{
-		Prod:     &Prod[T, O]{x1: x, x2: x},
+func NewSquare[O Operand](x O) *Square[O] {
+	return &Square[O]{
+		Prod:     &Prod[O]{x1: x, x2: x},
 		operands: []O{x, x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Square[T, O]) Operands() []O {
+func (r *Square[O]) Operands() []O {
 	return r.operands
 }

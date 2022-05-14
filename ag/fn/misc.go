@@ -6,19 +6,17 @@ package fn
 
 import (
 	"math"
-
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // Tan is an operator to perform element-wise tangent.
-type Tan[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Tan[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewTan returns a new UnaryElementwise tangent function.
-func NewTan[T mat.DType, O Operand[T]](x O) *Tan[T, O] {
-	return &Tan[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewTan[O Operand](x O) *Tan[O] {
+	return &Tan[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        tan,
 			df:       tanDeriv,
@@ -28,14 +26,14 @@ func NewTan[T mat.DType, O Operand[T]](x O) *Tan[T, O] {
 }
 
 // Tanh is an operator to perform element-wise hyperbolic tangent.
-type Tanh[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Tanh[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewTanh returns a new UnaryElementwise hyperbolic tangent function.
-func NewTanh[T mat.DType, O Operand[T]](x O) *Tanh[T, O] {
-	return &Tanh[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewTanh[O Operand](x O) *Tanh[O] {
+	return &Tanh[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        tanh,
 			df:       tanhDeriv,
@@ -45,14 +43,14 @@ func NewTanh[T mat.DType, O Operand[T]](x O) *Tanh[T, O] {
 }
 
 // Sigmoid is an operator to perform element-wise sigmoid.
-type Sigmoid[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Sigmoid[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewSigmoid returns a new UnaryElementwise sigmoid function.
-func NewSigmoid[T mat.DType, O Operand[T]](x O) *Sigmoid[T, O] {
-	return &Sigmoid[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewSigmoid[O Operand](x O) *Sigmoid[O] {
+	return &Sigmoid[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        sigmoid,
 			df:       sigmoidDeriv,
@@ -62,14 +60,14 @@ func NewSigmoid[T mat.DType, O Operand[T]](x O) *Sigmoid[T, O] {
 }
 
 // HardSigmoid is an operator to perform element-wise hard sigmoid.
-type HardSigmoid[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type HardSigmoid[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewHardSigmoid returns a new UnaryElementwise hard sigmoid function.
-func NewHardSigmoid[T mat.DType, O Operand[T]](x O) *HardSigmoid[T, O] {
-	return &HardSigmoid[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewHardSigmoid[O Operand](x O) *HardSigmoid[O] {
+	return &HardSigmoid[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        hardSigmoid,
 			df:       hardSigmoidDeriv,
@@ -79,14 +77,14 @@ func NewHardSigmoid[T mat.DType, O Operand[T]](x O) *HardSigmoid[T, O] {
 }
 
 // HardTanh is an operator to perform element-wise hard hyperbolic tangent.
-type HardTanh[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type HardTanh[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewHardTanh returns a new UnaryElementwise hard hyperbolic tangent function.
-func NewHardTanh[T mat.DType, O Operand[T]](x O) *HardTanh[T, O] {
-	return &HardTanh[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewHardTanh[O Operand](x O) *HardTanh[O] {
+	return &HardTanh[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        hardTanh,
 			df:       hardTanhDeriv,
@@ -96,14 +94,14 @@ func NewHardTanh[T mat.DType, O Operand[T]](x O) *HardTanh[T, O] {
 }
 
 // ReLU is an operator to perform element-wise Rectified Linear Unit (ReLU)
-type ReLU[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type ReLU[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewReLU returns a new UnaryElementwise Rectified Linear Unit (ReLU) function.
-func NewReLU[T mat.DType, O Operand[T]](x O) *ReLU[T, O] {
-	return &ReLU[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewReLU[O Operand](x O) *ReLU[O] {
+	return &ReLU[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        relu,
 			df:       reluDeriv,
@@ -113,14 +111,14 @@ func NewReLU[T mat.DType, O Operand[T]](x O) *ReLU[T, O] {
 }
 
 // Softsign is an operator to perform element-wise softsign.
-type Softsign[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Softsign[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewSoftsign returns a new UnaryElementwise softsign function.
-func NewSoftsign[T mat.DType, O Operand[T]](x O) *Softsign[T, O] {
-	return &Softsign[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewSoftsign[O Operand](x O) *Softsign[O] {
+	return &Softsign[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        softsign,
 			df:       softsignDeriv,
@@ -130,14 +128,14 @@ func NewSoftsign[T mat.DType, O Operand[T]](x O) *Softsign[T, O] {
 }
 
 // Cos is an operator to perform element-wise cos.
-type Cos[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Cos[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewCos returns a new UnaryElementwise cos function.
-func NewCos[T mat.DType, O Operand[T]](x O) *Cos[T, O] {
-	return &Cos[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewCos[O Operand](x O) *Cos[O] {
+	return &Cos[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(_, _ int, v float64) float64 { return math.Cos(v) },
 			df:       func(_, _ int, v float64) float64 { return -math.Sin(v) },
@@ -147,14 +145,14 @@ func NewCos[T mat.DType, O Operand[T]](x O) *Cos[T, O] {
 }
 
 // Sin is an operator to perform element-wise sin.
-type Sin[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Sin[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewSin returns a new UnaryElementwise sine function.
-func NewSin[T mat.DType, O Operand[T]](x O) *Sin[T, O] {
-	return &Sin[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewSin[O Operand](x O) *Sin[O] {
+	return &Sin[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return math.Sin(v) },
 			df:       func(i, j int, v float64) float64 { return math.Cos(v) },
@@ -164,14 +162,14 @@ func NewSin[T mat.DType, O Operand[T]](x O) *Sin[T, O] {
 }
 
 // Exp is an operator to perform element-wise base-e exponential.
-type Exp[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Exp[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewExp returns a new UnaryElementwise base-e exponential function.
-func NewExp[T mat.DType, O Operand[T]](x O) *Exp[T, O] {
-	return &Exp[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewExp[O Operand](x O) *Exp[O] {
+	return &Exp[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return math.Exp(v) },
 			df:       func(i, j int, v float64) float64 { return math.Exp(v) },
@@ -181,14 +179,14 @@ func NewExp[T mat.DType, O Operand[T]](x O) *Exp[T, O] {
 }
 
 // Log is an operator to perform element-wise natural logarithm.
-type Log[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Log[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewLog returns a new UnaryElementwise natural logarithm function.
-func NewLog[T mat.DType, O Operand[T]](x O) *Log[T, O] {
-	return &Log[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewLog[O Operand](x O) *Log[O] {
+	return &Log[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        safeLog,
 			df:       safeLogDeriv,
@@ -198,14 +196,14 @@ func NewLog[T mat.DType, O Operand[T]](x O) *Log[T, O] {
 }
 
 // Neg is an operator to perform element-wise f(x) = -x
-type Neg[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Neg[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewNeg returns a new UnaryElementwise f(x) = -x function.
-func NewNeg[T mat.DType, O Operand[T]](x O) *Neg[T, O] {
-	return &Neg[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewNeg[O Operand](x O) *Neg[O] {
+	return &Neg[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return -v },
 			df:       func(i, j int, v float64) float64 { return -1.0 },
@@ -215,14 +213,14 @@ func NewNeg[T mat.DType, O Operand[T]](x O) *Neg[T, O] {
 }
 
 // Reciprocal is an operator to perform element-wise reciprocal.
-type Reciprocal[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Reciprocal[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewReciprocal returns a new UnaryElementwise reciprocal function.
-func NewReciprocal[T mat.DType, O Operand[T]](x O) *Reciprocal[T, O] {
-	return &Reciprocal[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewReciprocal[O Operand](x O) *Reciprocal[O] {
+	return &Reciprocal[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return 1.0 / v },
 			df:       func(i, j int, v float64) float64 { return -1.0 / (v * v) },
@@ -232,14 +230,14 @@ func NewReciprocal[T mat.DType, O Operand[T]](x O) *Reciprocal[T, O] {
 }
 
 // Abs is an operator to perform element-wise absolute value function.
-type Abs[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Abs[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewAbs returns a new UnaryElementwise absolute value function.
-func NewAbs[T mat.DType, O Operand[T]](x O) *Abs[T, O] {
-	return &Abs[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewAbs[O Operand](x O) *Abs[O] {
+	return &Abs[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return math.Abs(v) },
 			df:       absDeriv,
@@ -249,8 +247,8 @@ func NewAbs[T mat.DType, O Operand[T]](x O) *Abs[T, O] {
 }
 
 // Mish is an operator to perform element-wise mish.
-type Mish[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Mish[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewMish returns a new UnaryElementwise Mish function.
@@ -260,9 +258,9 @@ type Mish[T mat.DType, O Operand[T]] struct {
 //
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function"
 // by Diganta Misra, 2019 (https://arxiv.org/pdf/1908.08681.pdf)
-func NewMish[T mat.DType, O Operand[T]](x O) *Mish[T, O] {
-	return &Mish[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewMish[O Operand](x O) *Mish[O] {
+	return &Mish[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        mish,
 			df:       mishDeriv,
@@ -272,14 +270,14 @@ func NewMish[T mat.DType, O Operand[T]](x O) *Mish[T, O] {
 }
 
 // GELU is an operator to perform element-wise GELU.
-type GELU[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type GELU[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
-func NewGELU[T mat.DType, O Operand[T]](x O) *GELU[T, O] {
-	return &GELU[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewGELU[O Operand](x O) *GELU[O] {
+	return &GELU[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        gelu,
 			df:       geluDeriv,
@@ -289,14 +287,14 @@ func NewGELU[T mat.DType, O Operand[T]](x O) *GELU[T, O] {
 }
 
 // Sqrt is an operator to perform element-wise square root.
-type Sqrt[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Sqrt[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewSqrt returns a new UnaryElementwise square root function.
-func NewSqrt[T mat.DType, O Operand[T]](x O) *Sqrt[T, O] {
-	return &Sqrt[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewSqrt[O Operand](x O) *Sqrt[O] {
+	return &Sqrt[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        func(i, j int, v float64) float64 { return math.Sqrt(v) },
 			df:       func(i, j int, v float64) float64 { return 0.5 * math.Pow(v, -0.5) },
@@ -306,14 +304,14 @@ func NewSqrt[T mat.DType, O Operand[T]](x O) *Sqrt[T, O] {
 }
 
 // Swish is an operator to perform element-wise x * sigmoid(x).
-type Swish[T mat.DType, O Operand[T]] struct {
-	*UnaryElementwise[T, O]
+type Swish[O Operand] struct {
+	*UnaryElementwise[O]
 }
 
 // NewSwish returns a new function of the form f(x) = x * sigmoid(x).
-func NewSwish[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
-	return &Swish[T, O]{
-		UnaryElementwise: &UnaryElementwise[T, O]{
+func NewSwish[O Operand](x O) *Swish[O] {
+	return &Swish[O]{
+		UnaryElementwise: &UnaryElementwise[O]{
 			x:        x,
 			f:        swish,
 			df:       swishDeriv,
@@ -324,8 +322,8 @@ func NewSwish[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
 
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
 // The function in an alias of NewSwish.
-func NewSiLU[T mat.DType, O Operand[T]](x O) *Swish[T, O] {
-	return NewSwish[T, O](x)
+func NewSiLU[O Operand](x O) *Swish[O] {
+	return NewSwish[O](x)
 }
 
 func absDeriv(_, _ int, v float64) float64 {
@@ -363,7 +361,7 @@ func tan(_, _ int, v float64) float64 {
 	return math.Tan(v)
 }
 
-func tanDeriv(i, j int, v float64) float64 {
+func tanDeriv(_, _ int, v float64) float64 {
 	c := math.Cos(v)
 	return 1.0 / (c * c)
 }

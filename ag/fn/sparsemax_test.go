@@ -21,7 +21,7 @@ func testSparseMaxForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewSparseMax[T](x)
+	f := NewSparseMax(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()
@@ -45,7 +45,7 @@ func testSparseMaxLossForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewSparseMaxLoss[T](x)
+	f := NewSparseMaxLoss(x)
 
 	y := f.Forward()
 	assert.InDeltaSlice(t, []T{-1.3009, -0.2396, -1.2110, -0.7479, -0.2606}, y.Data(), 1.0e-2)

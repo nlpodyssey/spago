@@ -7,7 +7,7 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // RotateR is a function to perform a right circular shift of a vector.
-type RotateR[T mat.DType, O Operand[T]] struct {
+type RotateR[O Operand] struct {
 	x        O
 	i        int
 	operands []O
@@ -15,8 +15,8 @@ type RotateR[T mat.DType, O Operand[T]] struct {
 
 // NewRotateR returns a new RotateR Function. `i` is the number of places by
 // which the elements are shifted.
-func NewRotateR[T mat.DType, O Operand[T]](x O, i int) *RotateR[T, O] {
-	return &RotateR[T, O]{
+func NewRotateR[O Operand](x O, i int) *RotateR[O] {
+	return &RotateR[O]{
 		x:        x,
 		i:        i,
 		operands: []O{x},
@@ -24,30 +24,33 @@ func NewRotateR[T mat.DType, O Operand[T]](x O, i int) *RotateR[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *RotateR[T, O]) Operands() []O {
+func (r *RotateR[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *RotateR[T, O]) Forward() mat.Matrix {
-	return mat.NewVecDense(rotateR(mat.Data[T](r.x.Value()), r.i))
+func (r *RotateR[O]) Forward() mat.Matrix {
+	x := r.x.Value()
+	return rotate(x, x.Size()-r.i)
 }
 
 // Backward computes the backward pass.
-func (r *RotateR[T, O]) Backward(gy mat.Matrix) {
+func (r *RotateR[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
-		gx := mat.NewVecDense(rotateL(mat.Data[T](gy), r.i))
-		defer mat.ReleaseDense(gx)
+		gx := rotate(gy, r.i)
+		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 }
 
-func rotateR[T mat.DType](a []T, i int) []T {
-	x, b := a[:(len(a)-i)], a[(len(a)-i):]
-	return append(b, x...)
-}
+func rotate(m mat.Matrix, i int) mat.Matrix {
+	size := m.Size()
 
-func rotateL[T mat.DType](a []T, i int) []T {
-	x, b := a[:i], a[i:]
-	return append(b, x...)
+	left := m.Slice(0, 0, i, 1)
+	defer mat.ReleaseMatrix(left)
+
+	right := m.Slice(i, 0, size, 1)
+	defer mat.ReleaseMatrix(right)
+
+	return m.NewConcatV(right, left)
 }

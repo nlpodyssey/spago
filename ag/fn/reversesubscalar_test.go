@@ -27,7 +27,7 @@ func testReverseSubScalarForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewReverseSubScalar[T](x1, x2)
+	f := NewReverseSubScalar(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

@@ -27,7 +27,7 @@ func testAddScalarForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewAddScalar[T](x1, x2)
+	f := NewAddScalar(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()
@@ -60,7 +60,7 @@ func testAddScalarForward2[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewAddScalar[T](x1, x2)
+	f := NewAddScalar(x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	_ fn.Operand[float32] = &Variable[float32]{}
-	_ Node[float32]       = &Variable[float32]{}
+	_ fn.Operand    = &Variable[float32]{}
+	_ Node[float32] = &Variable[float32]{}
 )
 
 // Variable is a simple type of Node, primarily consisting of a value and

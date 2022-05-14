@@ -8,15 +8,15 @@ import "github.com/nlpodyssey/spago/mat"
 
 // Dot is an operator to perform the dot product over two matrices.
 // y = x1 dot x2
-type Dot[T mat.DType, O Operand[T]] struct {
+type Dot[O Operand] struct {
 	x1       O
 	x2       O
 	operands []O
 }
 
 // NewDot returns a new Dot Function.
-func NewDot[T mat.DType, O Operand[T]](x1 O, x2 O) *Dot[T, O] {
-	return &Dot[T, O]{
+func NewDot[O Operand](x1 O, x2 O) *Dot[O] {
+	return &Dot[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -24,12 +24,12 @@ func NewDot[T mat.DType, O Operand[T]](x1 O, x2 O) *Dot[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Dot[T, O]) Operands() []O {
+func (r *Dot[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *Dot[T, O]) Forward() mat.Matrix {
+func (r *Dot[O]) Forward() mat.Matrix {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -45,7 +45,7 @@ func (r *Dot[T, O]) Forward() mat.Matrix {
 }
 
 // Backward computes the backward pass.
-func (r *Dot[T, O]) Backward(gy mat.Matrix) {
+func (r *Dot[O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

@@ -26,7 +26,7 @@ func testTransposeForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewTranspose[T](x)
+	f := NewTranspose(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

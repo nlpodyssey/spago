@@ -9,15 +9,15 @@ import (
 )
 
 // Sub is an element-wise subtraction function over two values.
-type Sub[T mat.DType, O Operand[T]] struct {
+type Sub[O Operand] struct {
 	x1       O
 	x2       O
 	operands []O
 }
 
 // NewSub returns a new Sub Function.
-func NewSub[T mat.DType, O Operand[T]](x1 O, x2 O) *Sub[T, O] {
-	return &Sub[T, O]{
+func NewSub[O Operand](x1 O, x2 O) *Sub[O] {
+	return &Sub[O]{
 		x1:       x1,
 		x2:       x2,
 		operands: []O{x1, x2},
@@ -25,17 +25,17 @@ func NewSub[T mat.DType, O Operand[T]](x1 O, x2 O) *Sub[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Sub[T, O]) Operands() []O {
+func (r *Sub[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *Sub[T, O]) Forward() mat.Matrix {
+func (r *Sub[O]) Forward() mat.Matrix {
 	return r.x1.Value().Sub(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Sub[T, O]) Backward(gy mat.Matrix) {
+func (r *Sub[O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

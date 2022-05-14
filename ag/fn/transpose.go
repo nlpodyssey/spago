@@ -9,31 +9,31 @@ import (
 )
 
 // Transpose is a Function to calculate the transpose of the matrix-operand.
-type Transpose[T mat.DType, O Operand[T]] struct {
+type Transpose[O Operand] struct {
 	x        O
 	operands []O
 }
 
 // NewTranspose returns a new Transpose Function.
-func NewTranspose[T mat.DType, O Operand[T]](x O) *Transpose[T, O] {
-	return &Transpose[T, O]{
+func NewTranspose[O Operand](x O) *Transpose[O] {
+	return &Transpose[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Transpose[T, O]) Operands() []O {
+func (r *Transpose[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *Transpose[T, O]) Forward() mat.Matrix {
+func (r *Transpose[O]) Forward() mat.Matrix {
 	return r.x.Value().T()
 }
 
 // Backward computes the backward pass.
-func (r *Transpose[T, O]) Backward(gy mat.Matrix) {
+func (r *Transpose[O]) Backward(gy mat.Matrix) {
 	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
 		panic("fn: matrices with not compatible size")
 	}

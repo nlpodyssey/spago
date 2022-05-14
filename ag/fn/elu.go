@@ -10,15 +10,15 @@ import (
 
 // ELU is an operator to perform the ELU activation function.
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))
-type ELU[T mat.DType, O Operand[T]] struct {
+type ELU[O Operand] struct {
 	x        O
 	alpha    O // scalar
 	operands []O
 }
 
 // NewELU returns a new ELU Function.
-func NewELU[T mat.DType, O Operand[T]](x O, alpha O) *ELU[T, O] {
-	return &ELU[T, O]{
+func NewELU[O Operand](x O, alpha O) *ELU[O] {
+	return &ELU[O]{
 		x:        x,
 		alpha:    alpha,
 		operands: []O{x, alpha},
@@ -26,18 +26,18 @@ func NewELU[T mat.DType, O Operand[T]](x O, alpha O) *ELU[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *ELU[T, O]) Operands() []O {
+func (r *ELU[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *ELU[T, O]) Forward() mat.Matrix {
+func (r *ELU[O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(elu, r.alpha.Value().Scalar().Float64())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *ELU[T, O]) Backward(gy mat.Matrix) {
+func (r *ELU[O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

@@ -10,7 +10,7 @@ import (
 
 // Reshape is a Function which reshapes an operand into a new matrix of given
 // rows × columns size.
-type Reshape[T mat.DType, O Operand[T]] struct {
+type Reshape[O Operand] struct {
 	x        O
 	rows     int
 	cols     int
@@ -18,8 +18,8 @@ type Reshape[T mat.DType, O Operand[T]] struct {
 }
 
 // NewReshape returns a new Reshape Function.
-func NewReshape[T mat.DType, O Operand[T]](x O, r, c int) *Reshape[T, O] {
-	return &Reshape[T, O]{
+func NewReshape[O Operand](x O, r, c int) *Reshape[O] {
+	return &Reshape[O]{
 		x:        x,
 		rows:     r,
 		cols:     c,
@@ -28,17 +28,17 @@ func NewReshape[T mat.DType, O Operand[T]](x O, r, c int) *Reshape[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *Reshape[T, O]) Operands() []O {
+func (r *Reshape[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *Reshape[T, O]) Forward() mat.Matrix {
+func (r *Reshape[O]) Forward() mat.Matrix {
 	return r.x.Value().Reshape(r.rows, r.cols)
 }
 
 // Backward computes the backward pass.
-func (r *Reshape[T, O]) Backward(gy mat.Matrix) {
+func (r *Reshape[O]) Backward(gy mat.Matrix) {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
 		panic("fn: matrices with not compatible size")
 	}

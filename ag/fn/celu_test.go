@@ -27,7 +27,7 @@ func testCELUForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewCELU[T](x, alpha)
+	f := NewCELU(x, alpha)
 	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
 
 	y := f.Forward()

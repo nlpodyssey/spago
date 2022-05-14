@@ -21,7 +21,7 @@ func testReduceMeanForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReduceMean[T](x)
+	f := NewReduceMean(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

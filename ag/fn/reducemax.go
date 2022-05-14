@@ -10,40 +10,41 @@ import (
 
 // ReduceMax is an operator to perform reduce-max function.
 // It gets the maximum element of the Operand x
-type ReduceMax[T mat.DType, O Operand[T]] struct {
+type ReduceMax[O Operand] struct {
 	x        O
 	argmax   int
 	operands []O
 }
 
 // NewReduceMax returns a new ReduceMax Function.
-func NewReduceMax[T mat.DType, O Operand[T]](x O) *ReduceMax[T, O] {
-	return &ReduceMax[T, O]{
+func NewReduceMax[O Operand](x O) *ReduceMax[O] {
+	return &ReduceMax[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *ReduceMax[T, O]) Operands() []O {
+func (r *ReduceMax[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of this function.
-func (r *ReduceMax[T, O]) Forward() mat.Matrix {
+func (r *ReduceMax[O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	r.argmax = xv.ArgMax()
 	return xv.AtVec(r.argmax)
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMax[T, O]) Backward(gy mat.Matrix) {
+func (r *ReduceMax[O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
-		gx := mat.NewEmptyVecDense[T](r.x.Value().Size())
-		defer mat.ReleaseDense(gx)
+		x := r.x.Value()
+		gx := x.ZerosLike()
+		defer mat.ReleaseMatrix(gx)
 		gx.SetVec(r.argmax, gy)
 		r.x.AccGrad(gx)
 	}

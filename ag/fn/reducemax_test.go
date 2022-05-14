@@ -21,7 +21,7 @@ func testReduceMaxForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReduceMax[T](x)
+	f := NewReduceMax(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

@@ -32,7 +32,7 @@ func testSELUForward[T mat.DType](t *testing.T) {
 		requiresGrad: false,
 	}
 
-	f := NewSELU[T](x, alpha, scale)
+	f := NewSELU(x, alpha, scale)
 	assert.Equal(t, []*variable[T]{x, alpha, scale}, f.Operands())
 
 	y := f.Forward()

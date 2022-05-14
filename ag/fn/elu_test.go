@@ -26,7 +26,7 @@ func testELUForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: false,
 	}
-	f := NewELU[T](x, alpha)
+	f := NewELU(x, alpha)
 	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
 
 	y := f.Forward()

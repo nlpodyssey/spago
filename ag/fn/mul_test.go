@@ -37,7 +37,7 @@ func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewMul[T](x1, x2)
+	f := NewMul(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()
@@ -90,7 +90,7 @@ func testMulForwardMatrixVector[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewMul[T](x1, x2)
+	f := NewMul(x1, x2)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)

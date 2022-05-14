@@ -9,26 +9,29 @@ import (
 )
 
 // Concat is an operator to perform vector concatenation.
-type Concat[T mat.DType, O Operand[T]] struct {
+type Concat[O Operand] struct {
 	xs    []O
 	ySize int
 }
 
 // NewConcat returns a new Concat Function.
-func NewConcat[T mat.DType, O Operand[T]](xs []O) *Concat[T, O] {
-	return &Concat[T, O]{
+func NewConcat[O Operand](xs []O) *Concat[O] {
+	return &Concat[O]{
 		xs:    xs,
 		ySize: 0, // assigned during the Forward()
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Concat[T, O]) Operands() []O {
+func (r *Concat[O]) Operands() []O {
 	return r.xs
 }
 
 // Forward computes the output of the function.
-func (r *Concat[T, O]) Forward() mat.Matrix {
+func (r *Concat[O]) Forward() mat.Matrix {
+	if len(r.xs) == 0 {
+		panic("fn: Concat has no operands")
+	}
 	r.ySize = 0 // reset output size
 	ms := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
@@ -36,11 +39,11 @@ func (r *Concat[T, O]) Forward() mat.Matrix {
 		ms[i] = value
 		r.ySize += value.Size()
 	}
-	return mat.ConcatV[T](ms...)
+	return ms[0].NewConcatV(ms...)
 }
 
 // Backward computes the backward pass.
-func (r *Concat[T, O]) Backward(gy mat.Matrix) {
+func (r *Concat[O]) Backward(gy mat.Matrix) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")
 	}

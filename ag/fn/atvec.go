@@ -9,15 +9,15 @@ import (
 )
 
 // AtVec is an operator to obtain the i-th value of a vector.
-type AtVec[T mat.DType, O Operand[T]] struct {
+type AtVec[O Operand] struct {
 	x        O
 	i        int
 	operands []O
 }
 
 // NewAtVec returns a new AtVec Function.
-func NewAtVec[T mat.DType, O Operand[T]](x O, i int) *AtVec[T, O] {
-	return &AtVec[T, O]{
+func NewAtVec[O Operand](x O, i int) *AtVec[O] {
+	return &AtVec[O]{
 		x:        x,
 		i:        i,
 		operands: []O{x},
@@ -25,17 +25,17 @@ func NewAtVec[T mat.DType, O Operand[T]](x O, i int) *AtVec[T, O] {
 }
 
 // Operands returns the list of operands.
-func (r *AtVec[T, O]) Operands() []O {
+func (r *AtVec[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the function.
-func (r *AtVec[T, O]) Forward() mat.Matrix {
+func (r *AtVec[O]) Forward() mat.Matrix {
 	return r.x.Value().AtVec(r.i)
 }
 
 // Backward computes the backward pass.
-func (r *AtVec[T, O]) Backward(gy mat.Matrix) {
+func (r *AtVec[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)

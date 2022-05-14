@@ -21,7 +21,7 @@ func testAbsForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewAbs[T](x)
+	f := NewAbs(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()
@@ -44,7 +44,7 @@ func testSafeLogForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewLog[T](x)
+	f := NewLog(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{-2.3025855, -1.6094379, -1.203972, mat.Inf[T](-1)}, y.Data(), 1.0e-5)
@@ -65,7 +65,7 @@ func testTanForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewTan[T](x)
+	f := NewTan(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1003346, 0.20271, 0.3093362, 0.0}, y.Data(), 1.0e-6)
@@ -86,7 +86,7 @@ func testTanhForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewTanh[T](x)
+	f := NewTanh(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.09966799, 0.19737532, 0.29131261, 0.0}, y.Data(), 1.0e-6)
@@ -107,7 +107,7 @@ func testSigmoidForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSigmoid[T](x)
+	f := NewSigmoid(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.5249791, 0.54983399, 0.574442516, 0.5}, y.Data(), 1.0e-6)
@@ -128,7 +128,7 @@ func testHardSigmoidForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewHardSigmoid[T](x)
+	f := NewHardSigmoid(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.52, 0.54, 0.56, 0.5}, y.Data(), 1.0e-6)
@@ -149,7 +149,7 @@ func testHardTanhForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewHardTanh[T](x)
+	f := NewHardTanh(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
@@ -170,7 +170,7 @@ func testReluForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReLU[T](x)
+	f := NewReLU(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Data(), 1.0e-6)
@@ -191,7 +191,7 @@ func testNewSoftsignForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSoftsign[T](x)
+	f := NewSoftsign(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.09090909, 0.16666666, 0.23076923, 0.0}, y.Data(), 1.0e-6)
@@ -212,7 +212,7 @@ func testNewCosForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewCos[T](x)
+	f := NewCos(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.9950041, 0.9800665, 0.9553364, 1.0}, y.Data(), 1.0e-6)
@@ -233,7 +233,7 @@ func testNewSinForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewSin[T](x)
+	f := NewSin(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.09983341, 0.19866933, 0.2955202, 0.0}, y.Data(), 1.0e-6)
@@ -254,7 +254,7 @@ func testNewExpForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewExp[T](x)
+	f := NewExp(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{1.10517091, 1.22140275, 1.3498588, 1.0}, y.Data(), 1.0e-6)
@@ -275,7 +275,7 @@ func testNewNegForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewNeg[T](x)
+	f := NewNeg(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{-0.1, -0.2, -0.3, 0.0}, y.Data(), 1.0e-6)
@@ -296,7 +296,7 @@ func testNewReciprocalForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewReciprocal[T](x)
+	f := NewReciprocal(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{10.0, 5.0, 3.33333333, -10}, y.Data(), 1.0e-6)
@@ -317,7 +317,7 @@ func testNewMishForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewMish[T](x)
+	f := NewMish(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.0631794175, 0.1325990019, 0.2080013723, -0.0567885752}, y.Data(), 1.0e-6)
@@ -338,7 +338,7 @@ func testNewGELUForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewGELU[T](x)
+	f := NewGELU(x)
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, y.Data(), 1.0e-6)

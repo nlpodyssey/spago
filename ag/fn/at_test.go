@@ -26,7 +26,7 @@ func testAtForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewAt[T](x, 2, 3)
+	f := NewAt(x, 2, 3)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

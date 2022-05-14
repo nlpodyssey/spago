@@ -173,7 +173,7 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 	})
 }
 
-type dummyFunction[T mat.DType, O fn.Operand[T]] struct {
+type dummyFunction[T mat.DType, O fn.Operand] struct {
 	forward       func() mat.Matrix
 	backward      func(gy mat.Matrix)
 	operands      func() []O

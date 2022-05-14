@@ -76,8 +76,8 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node[T]) ([]ag.Node[T], 
 		pk = ag.Stack[T](fwKeys...)
 		pv = ag.Stack[T](fwValues...)
 	} else {
-		pk = ag.AppendRows[T](cache[0], fwKeys...)
-		pv = ag.AppendRows[T](cache[1], fwValues...)
+		pk = ag.AppendRows(cache[0], fwKeys...)
+		pv = ag.AppendRows(cache[1], fwValues...)
 	}
 
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)

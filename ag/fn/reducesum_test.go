@@ -22,7 +22,7 @@ func testReduceSumForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewReduceSum[T](x)
+	f := NewReduceSum(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

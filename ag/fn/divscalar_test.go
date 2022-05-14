@@ -26,7 +26,7 @@ func testScalarDivForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: false,
 	}
-	f := NewDivScalar[T](x1, x2)
+	f := NewDivScalar(x1, x2)
 	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
 
 	y := f.Forward()

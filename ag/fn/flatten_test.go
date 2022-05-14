@@ -26,7 +26,7 @@ func testFlattenForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	f := NewFlatten[T](x)
+	f := NewFlatten(x)
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()

@@ -9,31 +9,31 @@ import (
 )
 
 // Flatten is a Function to reshape a matrix-operand into a "flattened" row vector.
-type Flatten[T mat.DType, O Operand[T]] struct {
+type Flatten[O Operand] struct {
 	x        O
 	operands []O
 }
 
 // NewFlatten returns a new Flatten Function.
-func NewFlatten[T mat.DType, O Operand[T]](x O) *Flatten[T, O] {
-	return &Flatten[T, O]{
+func NewFlatten[O Operand](x O) *Flatten[O] {
+	return &Flatten[O]{
 		x:        x,
 		operands: []O{x},
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Flatten[T, O]) Operands() []O {
+func (r *Flatten[O]) Operands() []O {
 	return r.operands
 }
 
 // Forward computes the output of the node.
-func (r *Flatten[T, O]) Forward() mat.Matrix {
+func (r *Flatten[O]) Forward() mat.Matrix {
 	return r.x.Value().Flatten()
 }
 
 // Backward computes the backward pass.
-func (r *Flatten[T, O]) Backward(gy mat.Matrix) {
+func (r *Flatten[O]) Backward(gy mat.Matrix) {
 	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

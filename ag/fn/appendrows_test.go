@@ -38,7 +38,7 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 			requiresGrad: true,
 		},
 	}
-	f := NewAppendRows[T](x, vs...)
+	f := NewAppendRows(x, vs...)
 
 	assert.Equal(t, []*variable[T]{x, vs[0], vs[1]}, f.Operands())
 
