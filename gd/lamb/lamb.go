@@ -86,7 +86,7 @@ const (
 
 // NewSupport returns a new support structure with the given dimensions.
 func (o *Lamb[T]) NewSupport(r, c int) *nn.Payload[T] {
-	supp := make([]mat.Matrix[T], 5)
+	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
@@ -110,7 +110,7 @@ func (o *Lamb[T]) updateAlpha() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data, param.Value())
 }
 
@@ -118,7 +118,7 @@ func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // weights = ||params|| / || (v / (sqrt(m) + eps)) + (lambda * weights)
 // d = (v / (sqrt(m) + eps)) + (lambda * weights) * alpha
-func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
+func (o *Lamb[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix) mat.Matrix {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
@@ -140,14 +140,14 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T], weights m
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
+func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 	supp[v].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[v].AddInPlace(supp[buf1])
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
+func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)
@@ -155,7 +155,7 @@ func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float
 	supp[m].AddInPlace(supp[buf2])
 }
 
-func norm[T mat.DType](grads mat.Matrix[T]) float64 {
+func norm(grads mat.Matrix) float64 {
 	prod := grads.Prod(grads)
 	defer mat.ReleaseMatrix(prod)
 	sum := prod.Sum()

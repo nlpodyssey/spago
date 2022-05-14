@@ -22,12 +22,12 @@ func (r *UnaryElementwise[T, O]) Operands() []O {
 }
 
 // Forward computes the output of this node.
-func (r *UnaryElementwise[T, O]) Forward() mat.Matrix[T] {
+func (r *UnaryElementwise[T, O]) Forward() mat.Matrix {
 	return r.x.Value().Apply(r.f)
 }
 
 // Backward computes the backward pass.
-func (r *UnaryElementwise[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *UnaryElementwise[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

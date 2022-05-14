@@ -64,16 +64,16 @@ const v = 0
 func (o *RMSProp[T]) NewSupport(r, c int) *nn.Payload[T] {
 	return &nn.Payload[T]{
 		Label: gd.RMSProp,
-		Data:  []mat.Matrix[T]{mat.NewEmptyDense[T](r, c)}, // v at index 0
+		Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // v at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RMSProp[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+func (o *RMSProp[T]) Delta(param nn.Param[T]) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
 }
 
-func (o *RMSProp[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
+func (o *RMSProp[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	supp[v].ProdScalarInPlace(o.Decay)
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)

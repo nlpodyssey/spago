@@ -9,9 +9,9 @@ import "github.com/nlpodyssey/spago/mat"
 // Operand is implemented by any value that implements automatic differentiation features.
 type Operand[T mat.DType] interface {
 	// Value returns the value of the operand.
-	Value() mat.Matrix[T]
+	Value() mat.Matrix
 	// AccGrad accumulate the gradients gx to the operands.
-	AccGrad(gx mat.Matrix[T])
+	AccGrad(gx mat.Matrix)
 	// RequiresGrad returns true if the operand requires gradients.
 	RequiresGrad() bool
 }
@@ -19,9 +19,9 @@ type Operand[T mat.DType] interface {
 // Function represents a function with automatic differentiation features.
 type Function[T mat.DType, O Operand[T]] interface {
 	// Forward computes the output of the function.
-	Forward() mat.Matrix[T]
+	Forward() mat.Matrix
 	// Backward computes the backward pass.
-	Backward(gy mat.Matrix[T])
+	Backward(gy mat.Matrix)
 	// Operands returns the list of operands.
 	Operands() []O
 }

@@ -192,13 +192,13 @@ func (d *Dense[T]) SetData(data FloatSliceInterface) {
 
 // ZerosLike returns a new matrix with the same dimensions of the
 // receiver, initialized with zeroes.
-func (d *Dense[T]) ZerosLike() Matrix[T] {
+func (d *Dense[T]) ZerosLike() Matrix {
 	return NewEmptyDense[T](d.rows, d.cols)
 }
 
 // OnesLike returns a new matrix with the same dimensions of the
 // receiver, initialized with ones.
-func (d *Dense[T]) OnesLike() Matrix[T] {
+func (d *Dense[T]) OnesLike() Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
@@ -210,7 +210,7 @@ func (d *Dense[T]) OnesLike() Matrix[T] {
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
 func (d *Dense[T]) Scalar() FloatInterface {
-	if !IsScalar[T](d) {
+	if !IsScalar(d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
 	return Float(d.data[0])
@@ -226,13 +226,13 @@ func (d *Dense[T]) Zeros() {
 
 // Set sets the scalar value from a 1×1 matrix at row r and column c.
 // It panics if the given matrix is not 1×1, or if indices are out of range.
-func (d *Dense[T]) Set(r int, c int, m Matrix[T]) {
+func (d *Dense[T]) Set(r int, c int, m Matrix) {
 	d.set(r, c, DTFloat[T](m.Scalar()))
 }
 
 // At returns the value at row r and column c as a 1×1 matrix.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) At(r int, c int) Matrix[T] {
+func (d *Dense[T]) At(r int, c int) Matrix {
 	return NewScalar[T](d.at(r, c))
 }
 
@@ -271,13 +271,13 @@ func (d *Dense[T]) at(r int, c int) T {
 // SetVec sets the scalar value from a 1×1 matrix at position i of a
 // vector. It panics if the receiver is not a vector, or the given matrix is
 // not 1×1, or the position is out of range.
-func (d *Dense[T]) SetVec(i int, m Matrix[T]) {
+func (d *Dense[T]) SetVec(i int, m Matrix) {
 	d.setVec(i, DTFloat[T](m.Scalar()))
 }
 
 // AtVec returns the value at position i of a vector as a 1×1 matrix.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) AtVec(i int) Matrix[T] {
+func (d *Dense[T]) AtVec(i int) Matrix {
 	return NewScalar[T](d.atVec(i))
 }
 
@@ -294,7 +294,7 @@ func (d *Dense[T]) ScalarAtVec(i int) FloatInterface {
 }
 
 func (d *Dense[T]) setVec(i int, v T) {
-	if !(IsVector[T](d)) {
+	if !(IsVector(d)) {
 		panic("mat: expected vector")
 	}
 	if i < 0 || i >= len(d.data) {
@@ -304,7 +304,7 @@ func (d *Dense[T]) setVec(i int, v T) {
 }
 
 func (d *Dense[T]) atVec(i int) T {
-	if !IsVector[T](d) {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	if i < 0 || i >= len(d.data) {
@@ -315,7 +315,7 @@ func (d *Dense[T]) atVec(i int) T {
 
 // ExtractRow returns a copy of the i-th row of the matrix,
 // as a row vector (1×cols).
-func (d *Dense[T]) ExtractRow(i int) Matrix[T] {
+func (d *Dense[T]) ExtractRow(i int) Matrix {
 	if i < 0 || i >= d.rows {
 		panic("mat: index out of range")
 	}
@@ -327,7 +327,7 @@ func (d *Dense[T]) ExtractRow(i int) Matrix[T] {
 
 // ExtractColumn returns a copy of the i-th column of the matrix,
 // as a column vector (rows×1).
-func (d *Dense[T]) ExtractColumn(i int) Matrix[T] {
+func (d *Dense[T]) ExtractColumn(i int) Matrix {
 	if i < 0 || i >= d.cols {
 		panic("mat: index out of range")
 	}
@@ -341,7 +341,7 @@ func (d *Dense[T]) ExtractColumn(i int) Matrix[T] {
 }
 
 // View returns a new Matrix sharing the same underlying data.
-func (d *Dense[T]) View(rows, cols int) Matrix[T] {
+func (d *Dense[T]) View(rows, cols int) Matrix {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -359,7 +359,7 @@ func (d *Dense[T]) View(rows, cols int) Matrix[T] {
 // Slice returns a new matrix obtained by slicing the receiver across the
 // given positions. The parameters "fromRow" and "fromCol" are inclusive,
 // while "toRow" and "toCol" are exclusive.
-func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix[T] {
+func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix {
 	dRows := d.rows
 	dCols := d.cols
 	if fromRow < 0 || fromRow >= dRows || fromCol < 0 || fromCol >= dCols ||
@@ -387,7 +387,7 @@ func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix[T] {
 
 // Reshape returns a copy of the matrix.
 // It panics if the dimensions are incompatible.
-func (d *Dense[T]) Reshape(rows, cols int) Matrix[T] {
+func (d *Dense[T]) Reshape(rows, cols int) Matrix {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -400,7 +400,7 @@ func (d *Dense[T]) Reshape(rows, cols int) Matrix[T] {
 // ReshapeInPlace changes the dimensions of the matrix in place and returns the
 // matrix itself.
 // It panics if the dimensions are incompatible.
-func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
+func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -414,7 +414,7 @@ func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix[T] {
 
 // Flatten creates a new row vector (1×size) corresponding to the
 // "flattened" row-major ordered representation of the initial matrix.
-func (d *Dense[T]) Flatten() Matrix[T] {
+func (d *Dense[T]) Flatten() Matrix {
 	out := densePool[T]().Get(1, len(d.data))
 	copy(out.data, d.data)
 	return out
@@ -424,7 +424,7 @@ func (d *Dense[T]) Flatten() Matrix[T] {
 // obtaining a row vector (1×size) containing the "flattened" row-major
 // ordered representation of the initial value.
 // It returns the matrix itself.
-func (d *Dense[T]) FlattenInPlace() Matrix[T] {
+func (d *Dense[T]) FlattenInPlace() Matrix {
 	d.rows = 1
 	d.cols = len(d.data)
 	return d
@@ -435,8 +435,8 @@ func (d *Dense[T]) FlattenInPlace() Matrix[T] {
 // If the new size is smaller than the input vector, the remaining tail
 // elements are removed. If it's bigger, the additional tail elements
 // are set to zero.
-func (d *Dense[T]) ResizeVector(newSize int) Matrix[T] {
-	if !(IsVector[T](d)) {
+func (d *Dense[T]) ResizeVector(newSize int) Matrix {
+	if !(IsVector(d)) {
 		panic("mat: expected vector")
 	}
 	if newSize < 0 {
@@ -453,12 +453,12 @@ func (d *Dense[T]) ResizeVector(newSize int) Matrix[T] {
 }
 
 // T returns the transpose of the matrix.
-func (d *Dense[T]) T() Matrix[T] {
+func (d *Dense[T]) T() Matrix {
 	dRows := d.rows
 	dCols := d.cols
 
 	m := densePool[T]().Get(dCols, dRows)
-	if IsVector[T](d) {
+	if IsVector(d) {
 		copy(m.data, d.data)
 		return m
 	}
@@ -477,11 +477,11 @@ func (d *Dense[T]) T() Matrix[T] {
 
 // TransposeInPlace transposes the matrix in place, and returns the
 // matrix itself.
-func (d *Dense[T]) TransposeInPlace() Matrix[T] {
+func (d *Dense[T]) TransposeInPlace() Matrix {
 	d.rows, d.cols = d.cols, d.rows
 
 	// Vector, scalar, or empty data
-	if IsVector[T](d) || len(d.data) <= 1 {
+	if IsVector(d) || len(d.data) <= 1 {
 		return d
 	}
 
@@ -537,8 +537,8 @@ mainLoop:
 }
 
 // Add returns the addition between the receiver and another matrix.
-func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) Add(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -554,8 +554,8 @@ func (d *Dense[T]) Add(other Matrix[T]) Matrix[T] {
 }
 
 // AddInPlace performs the in-place addition with the other matrix.
-func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) AddInPlace(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	switch any(T(0)).(type) {
@@ -570,7 +570,7 @@ func (d *Dense[T]) AddInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // AddScalar performs the addition between the matrix and the given value.
-func (d *Dense[T]) AddScalar(n float64) Matrix[T] {
+func (d *Dense[T]) AddScalar(n float64) Matrix {
 	out := NewDense(d.rows, d.cols, d.data)
 	switch any(T(0)).(type) {
 	case float32:
@@ -584,7 +584,7 @@ func (d *Dense[T]) AddScalar(n float64) Matrix[T] {
 }
 
 // AddScalarInPlace adds the scalar to all values of the matrix.
-func (d *Dense[T]) AddScalarInPlace(n float64) Matrix[T] {
+func (d *Dense[T]) AddScalarInPlace(n float64) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		f32.AddConst(float32(n), any(d.data).([]float32))
@@ -597,8 +597,8 @@ func (d *Dense[T]) AddScalarInPlace(n float64) Matrix[T] {
 }
 
 // Sub returns the subtraction of the other matrix from the receiver.
-func (d *Dense[T]) Sub(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) Sub(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -614,8 +614,8 @@ func (d *Dense[T]) Sub(other Matrix[T]) Matrix[T] {
 }
 
 // SubInPlace performs the in-place subtraction with the other matrix.
-func (d *Dense[T]) SubInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) SubInPlace(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	switch any(T(0)).(type) {
@@ -630,7 +630,7 @@ func (d *Dense[T]) SubInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // SubScalar performs a subtraction between the matrix and the given value.
-func (d *Dense[T]) SubScalar(n float64) Matrix[T] {
+func (d *Dense[T]) SubScalar(n float64) Matrix {
 	out := NewDense(d.rows, d.cols, d.data)
 	switch any(T(0)).(type) {
 	case float32:
@@ -644,7 +644,7 @@ func (d *Dense[T]) SubScalar(n float64) Matrix[T] {
 }
 
 // SubScalarInPlace subtracts the scalar from the receiver's values.
-func (d *Dense[T]) SubScalarInPlace(n float64) Matrix[T] {
+func (d *Dense[T]) SubScalarInPlace(n float64) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		f32.AddConst(-float32(n), any(d.data).([]float32))
@@ -657,8 +657,8 @@ func (d *Dense[T]) SubScalarInPlace(n float64) Matrix[T] {
 }
 
 // Prod performs the element-wise product between the receiver and the other matrix.
-func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) Prod(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 
@@ -681,8 +681,8 @@ func (d *Dense[T]) Prod(other Matrix[T]) Matrix[T] {
 }
 
 // ProdInPlace performs the in-place element-wise product with the other matrix.
-func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) ProdInPlace(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	dData := d.data
@@ -694,7 +694,7 @@ func (d *Dense[T]) ProdInPlace(other Matrix[T]) Matrix[T] {
 }
 
 // ProdScalar returns the multiplication between the matrix and the given value.
-func (d *Dense[T]) ProdScalar(n float64) Matrix[T] {
+func (d *Dense[T]) ProdScalar(n float64) Matrix {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
@@ -709,7 +709,7 @@ func (d *Dense[T]) ProdScalar(n float64) Matrix[T] {
 
 // ProdScalarInPlace performs the in-place multiplication between the
 // matrix and the given value.
-func (d *Dense[T]) ProdScalarInPlace(n float64) Matrix[T] {
+func (d *Dense[T]) ProdScalarInPlace(n float64) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		asm32.ScalUnitary(float32(n), any(d.data).([]float32))
@@ -723,8 +723,8 @@ func (d *Dense[T]) ProdScalarInPlace(n float64) Matrix[T] {
 
 // ProdMatrixScalarInPlace multiplies the given matrix with the value,
 // storing the result in the receiver.
-func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n float64) Matrix[T] {
-	if !(SameDims[T](d, m) || VectorsOfSameSize[T](d, m)) {
+func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
+	if !(SameDims(d, m) || VectorsOfSameSize(d, m)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	switch any(T(0)).(type) {
@@ -739,8 +739,8 @@ func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix[T], n float64) Matrix[T] {
 }
 
 // Div returns the result of the element-wise division of the receiver by the other matrix.
-func (d *Dense[T]) Div(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) Div(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := NewEmptyDense[T](d.rows, d.cols)
@@ -756,8 +756,8 @@ func (d *Dense[T]) Div(other Matrix[T]) Matrix[T] {
 }
 
 // DivInPlace performs the in-place element-wise division of the receiver by the other matrix.
-func (d *Dense[T]) DivInPlace(other Matrix[T]) Matrix[T] {
-	if !(SameDims[T](d, other) || VectorsOfSameSize[T](d, other)) {
+func (d *Dense[T]) DivInPlace(other Matrix) Matrix {
+	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	for i, val := range Data[T](other) {
@@ -769,7 +769,7 @@ func (d *Dense[T]) DivInPlace(other Matrix[T]) Matrix[T] {
 // Mul performs the multiplication row by column.
 // If A is an i×j Matrix, and B is j×k, then the resulting Matrix
 // C = AB will be i×k.
-func (d *Dense[T]) Mul(other Matrix[T]) Matrix[T] {
+func (d *Dense[T]) Mul(other Matrix) Matrix {
 	if d.cols != other.Rows() {
 		panic("mat: matrices have incompatible dimensions")
 	}
@@ -837,7 +837,7 @@ func (d *Dense[T]) Mul(other Matrix[T]) Matrix[T] {
 // ATB = C, where AT is the transpose of A
 // if A is an r x c Matrix, and B is j x k, r = j the resulting
 // Matrix C will be c x k.
-func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
+func (d *Dense[T]) MulT(other Matrix) Matrix {
 	if d.rows != other.Rows() {
 		panic("mat: matrices have incompatible dimensions")
 	}
@@ -880,8 +880,8 @@ func (d *Dense[T]) MulT(other Matrix[T]) Matrix[T] {
 }
 
 // DotUnitary returns the dot product of two vectors as a scalar Matrix.
-func (d *Dense[T]) DotUnitary(other Matrix[T]) Matrix[T] {
-	if !VectorsOfSameSize[T](d, other) {
+func (d *Dense[T]) DotUnitary(other Matrix) Matrix {
+	if !VectorsOfSameSize(d, other) {
 		panic("mat: both matrices must be vectors and have the same size")
 	}
 	switch any(T(0)).(type) {
@@ -895,7 +895,7 @@ func (d *Dense[T]) DotUnitary(other Matrix[T]) Matrix[T] {
 }
 
 // ClipInPlace clips in place each value of the matrix.
-func (d *Dense[T]) ClipInPlace(min, max float64) Matrix[T] {
+func (d *Dense[T]) ClipInPlace(min, max float64) Matrix {
 	if max < min {
 		panic("mat: cannot clip values with max < min")
 	}
@@ -918,8 +918,8 @@ func (d *Dense[T]) ClipInPlace(min, max float64) Matrix[T] {
 }
 
 // Maximum returns a new matrix containing the element-wise maxima.
-func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
-	if !SameDims[T](d, other) {
+func (d *Dense[T]) Maximum(other Matrix) Matrix {
+	if !SameDims(d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
@@ -939,8 +939,8 @@ func (d *Dense[T]) Maximum(other Matrix[T]) Matrix[T] {
 }
 
 // Minimum returns a new matrix containing the element-wise minima.
-func (d *Dense[T]) Minimum(other Matrix[T]) Matrix[T] {
-	if !SameDims[T](d, other) {
+func (d *Dense[T]) Minimum(other Matrix) Matrix {
+	if !SameDims(d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
@@ -960,7 +960,7 @@ func (d *Dense[T]) Minimum(other Matrix[T]) Matrix[T] {
 }
 
 // Abs returns a new matrix applying the absolute value function to all elements.
-func (d *Dense[T]) Abs() Matrix[T] {
+func (d *Dense[T]) Abs() Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	outData := out.data
 	for i, val := range d.data {
@@ -971,7 +971,7 @@ func (d *Dense[T]) Abs() Matrix[T] {
 
 // Pow returns a new matrix, applying the power function with given exponent
 // to all elements of the matrix.
-func (d *Dense[T]) Pow(power float64) Matrix[T] {
+func (d *Dense[T]) Pow(power float64) Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	outData := out.data
 	for i, val := range d.data {
@@ -981,7 +981,7 @@ func (d *Dense[T]) Pow(power float64) Matrix[T] {
 }
 
 // Sqrt returns a new matrix applying the square root function to all elements.
-func (d *Dense[T]) Sqrt() Matrix[T] {
+func (d *Dense[T]) Sqrt() Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	inData := d.data
 	lastIndex := len(inData) - 1
@@ -997,7 +997,7 @@ func (d *Dense[T]) Sqrt() Matrix[T] {
 }
 
 // Sum returns the sum of all values of the matrix as a scalar Matrix.
-func (d *Dense[T]) Sum() Matrix[T] {
+func (d *Dense[T]) Sum() Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		return NewScalar(T(asm32.Sum(any(d.data).([]float32))))
@@ -1009,7 +1009,7 @@ func (d *Dense[T]) Sum() Matrix[T] {
 }
 
 // Max returns the maximum value of the matrix as a scalar Matrix.
-func (d *Dense[T]) Max() Matrix[T] {
+func (d *Dense[T]) Max() Matrix {
 	if len(d.data) == 0 {
 		panic("mat: cannot find the maximum value in an empty matrix")
 	}
@@ -1023,7 +1023,7 @@ func (d *Dense[T]) Max() Matrix[T] {
 }
 
 // Min returns the minimum value of the matrix as a scalar Matrix.
-func (d *Dense[T]) Min() Matrix[T] {
+func (d *Dense[T]) Min() Matrix {
 	if len(d.data) == 0 {
 		panic("mat: cannot find the minimum value in an empty matrix")
 	}
@@ -1038,7 +1038,7 @@ func (d *Dense[T]) Min() Matrix[T] {
 
 // ArgMax returns the index of the vector's element with the maximum value.
 func (d *Dense[T]) ArgMax() int {
-	if !IsVector[T](d) {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	data := d.data
@@ -1058,8 +1058,8 @@ func (d *Dense[T]) ArgMax() int {
 
 // Softmax applies the softmax function to the vector, returning the
 // result as a new column vector.
-func (d *Dense[T]) Softmax() Matrix[T] {
-	if !IsVector[T](d) {
+func (d *Dense[T]) Softmax() Matrix {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 
@@ -1094,8 +1094,8 @@ func (d *Dense[T]) Softmax() Matrix[T] {
 
 // CumSum computes the cumulative sum of the vector's elements, returning
 // the result as a new column vector.
-func (d *Dense[T]) CumSum() Matrix[T] {
-	if !IsVector[T](d) {
+func (d *Dense[T]) CumSum() Matrix {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 
@@ -1118,8 +1118,8 @@ func (d *Dense[T]) CumSum() Matrix[T] {
 
 // Range creates a new vector initialized with data extracted from the
 // matrix raw data, from start (inclusive) to end (exclusive).
-func (d *Dense[T]) Range(start, end int) Matrix[T] {
-	if !IsVector[T](d) {
+func (d *Dense[T]) Range(start, end int) Matrix {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	if end < start {
@@ -1133,14 +1133,14 @@ func (d *Dense[T]) Range(start, end int) Matrix[T] {
 
 // SplitV splits the vector in N chunks of given sizes,
 // so that N[i] has size sizes[i].
-func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
-	if !IsVector[T](d) {
+func (d *Dense[T]) SplitV(sizes ...int) []Matrix {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	if len(sizes) == 0 {
 		return nil
 	}
-	out := make([]Matrix[T], len(sizes))
+	out := make([]Matrix, len(sizes))
 	offset := 0
 	for i, size := range sizes {
 		if size < 0 {
@@ -1157,7 +1157,7 @@ func (d *Dense[T]) SplitV(sizes ...int) []Matrix[T] {
 }
 
 // Augment places the identity matrix at the end of the original matrix.
-func (d *Dense[T]) Augment() Matrix[T] {
+func (d *Dense[T]) Augment() Matrix {
 	if d.cols != d.rows {
 		panic("mat: matrix must be square")
 	}
@@ -1173,7 +1173,7 @@ func (d *Dense[T]) Augment() Matrix[T] {
 }
 
 // SwapInPlace swaps two rows of the matrix in place.
-func (d *Dense[T]) SwapInPlace(r1, r2 int) Matrix[T] {
+func (d *Dense[T]) SwapInPlace(r1, r2 int) Matrix {
 	if r1 < 0 || r1 >= d.rows {
 		panic("mat: 'r1' argument out of range")
 	}
@@ -1190,7 +1190,7 @@ func (d *Dense[T]) SwapInPlace(r1, r2 int) Matrix[T] {
 
 // PadRows returns a copy of the matrix with n additional tail rows.
 // The additional elements are set to zero.
-func (d *Dense[T]) PadRows(n int) Matrix[T] {
+func (d *Dense[T]) PadRows(n int) Matrix {
 	if n < 0 {
 		panic("mat: negative 'n' argument is not allowed")
 	}
@@ -1212,7 +1212,7 @@ func (d *Dense[T]) PadRows(n int) Matrix[T] {
 
 // PadColumns returns a copy of the matrix with n additional tail columns.
 // The additional elements are set to zero.
-func (d *Dense[T]) PadColumns(n int) Matrix[T] {
+func (d *Dense[T]) PadColumns(n int) Matrix {
 	if n < 0 {
 		panic("mat: negative 'n' argument is not allowed")
 	}
@@ -1239,7 +1239,7 @@ func (d *Dense[T]) PadColumns(n int) Matrix[T] {
 //
 // It accepts row or column vectors indifferently, virtually treating all of
 // them as row vectors.
-func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
+func (d *Dense[T]) AppendRows(vs ...Matrix) Matrix {
 	cols := d.cols
 	out := densePool[T]().Get(d.rows+len(vs), cols)
 	dData := d.data
@@ -1248,7 +1248,7 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 
 	offset := len(dData)
 	for _, v := range vs {
-		if !IsVector[T](v) || v.Size() != cols {
+		if !IsVector(v) || v.Size() != cols {
 			panic("mat: expected vectors with same size of matrix columns")
 		}
 		vData := Data[T](v)
@@ -1262,12 +1262,12 @@ func (d *Dense[T]) AppendRows(vs ...Matrix[T]) Matrix[T] {
 
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 // The result is a scalar Matrix.
-func (d *Dense[T]) Norm(pow float64) Matrix[T] {
+func (d *Dense[T]) Norm(pow float64) Matrix {
 	return NewScalar(T(d.norm(pow)))
 }
 
 func (d *Dense[T]) norm(pow float64) float64 {
-	if !IsVector[T](d) {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	var s float64
@@ -1278,7 +1278,7 @@ func (d *Dense[T]) norm(pow float64) float64 {
 }
 
 // Normalize2 normalizes an array with the Euclidean norm.
-func (d *Dense[T]) Normalize2() Matrix[T] {
+func (d *Dense[T]) Normalize2() Matrix {
 	norm2 := d.norm(2)
 	if norm2 == 0 {
 		return d.Clone()
@@ -1288,7 +1288,7 @@ func (d *Dense[T]) Normalize2() Matrix[T] {
 
 // Pivoting returns the partial pivots of a square matrix to reorder rows.
 // Considerate square sub-matrix from element (offset, offset).
-func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
+func (d *Dense[T]) Pivoting(row int) (Matrix, bool, [2]int) {
 	if d.rows != d.cols {
 		panic("mat: matrix must be square")
 	}
@@ -1326,7 +1326,7 @@ func (d *Dense[T]) Pivoting(row int) (Matrix[T], bool, [2]int) {
 
 // LU performs lower–upper (LU) decomposition of a square matrix D such as
 // PLU = D, L is lower diagonal and U is upper diagonal, p are pivots.
-func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
+func (d *Dense[T]) LU() (l, u, p Matrix) {
 	if d.rows != d.cols {
 		panic("mat: matrix must be square")
 	}
@@ -1357,7 +1357,7 @@ func (d *Dense[T]) LU() (l, u, p Matrix[T]) {
 }
 
 // Inverse returns the inverse of the Matrix.
-func (d *Dense[T]) Inverse() Matrix[T] {
+func (d *Dense[T]) Inverse() Matrix {
 	if d.cols != d.rows {
 		panic("mat: matrix must be square")
 	}
@@ -1391,7 +1391,7 @@ func (d *Dense[T]) Inverse() Matrix[T] {
 }
 
 // Apply creates a new matrix executing the unary function fn.
-func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix[T] {
+func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
@@ -1417,8 +1417,8 @@ func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix[T] {
 
 // ApplyInPlace executes the unary function fn over the matrix a,
 // and stores the result in the receiver, returning the receiver itself.
-func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T]) Matrix[T] {
-	if !SameDims[T](d, a) {
+func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix) Matrix {
+	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	aData := Data[T](a)
@@ -1443,7 +1443,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix[T
 
 // ApplyWithAlpha creates a new matrix executing the unary function fn,
 // taking additional parameters alpha.
-func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix[T] {
+func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
@@ -1470,8 +1470,8 @@ func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64)
 // ApplyWithAlphaInPlace executes the unary function fn over the matrix a,
 // taking additional parameters alpha, and stores the result in the
 // receiver, returning the receiver itself.
-func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...float64) float64, a Matrix[T], alpha ...float64) Matrix[T] {
-	if !SameDims[T](d, a) {
+func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...float64) float64, a Matrix, alpha ...float64) Matrix {
+	if !SameDims(d, a) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	// TODO: rewrite for better performance
@@ -1500,7 +1500,7 @@ func (d *Dense[T]) DoNonZero(fn func(r, c int, v float64)) {
 // DoVecNonZero calls a function for each non-zero element of the vector.
 // The parameters of the function are the element's index and value.
 func (d *Dense[T]) DoVecNonZero(fn func(i int, v float64)) {
-	if !IsVector[T](d) {
+	if !IsVector(d) {
 		panic("mat: expected vector")
 	}
 	for i, v := range d.data {
@@ -1512,7 +1512,7 @@ func (d *Dense[T]) DoVecNonZero(fn func(i int, v float64)) {
 }
 
 // Clone returns a new matrix, copying all its values from the receiver.
-func (d *Dense[T]) Clone() Matrix[T] {
+func (d *Dense[T]) Clone() Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
 	copy(out.data, d.data)
 	return out
@@ -1520,8 +1520,8 @@ func (d *Dense[T]) Clone() Matrix[T] {
 
 // Copy copies the data from the other matrix to the receiver.
 // It panics if the matrices have different dimensions.
-func (d *Dense[T]) Copy(other Matrix[T]) {
-	if !SameDims[T](d, other) {
+func (d *Dense[T]) Copy(other Matrix) {
+	if !SameDims(d, other) {
 		panic("mat: incompatible matrix dimensions")
 	}
 	copy(d.data, Data[T](other))

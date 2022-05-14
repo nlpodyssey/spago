@@ -20,9 +20,9 @@ type Param[T mat.DType] interface {
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.
-	ReplaceValue(value mat.Matrix[T])
+	ReplaceValue(value mat.Matrix)
 	// ApplyDelta updates the value applying the delta.
-	ApplyDelta(delta mat.Matrix[T])
+	ApplyDelta(delta mat.Matrix)
 	// Payload returns the optimizer support structure (can be nil).
 	Payload() *Payload[T]
 	// SetPayload is a thread safe operation to set the given Payload on the

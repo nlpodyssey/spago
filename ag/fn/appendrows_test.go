@@ -44,7 +44,7 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 
 	y := f.Forward()
 
-	mattest.AssertMatrixEquals[T](t, mat.NewDense(4, 3, []T{
+	mattest.AssertMatrixEquals(t, mat.NewDense(4, 3, []T{
 		11, 12, 13,
 		21, 22, 23,
 		31, 32, 33,
@@ -58,10 +58,10 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 		9, 0, 1,
 	}))
 
-	mattest.AssertMatrixEquals[T](t, mat.NewDense(2, 3, []T{
+	mattest.AssertMatrixEquals(t, mat.NewDense(2, 3, []T{
 		0, 1, 2,
 		3, 4, 5,
 	}), x.grad)
-	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{6, 7, 8}).T(), vs[0].grad)
-	mattest.AssertMatrixEquals[T](t, mat.NewVecDense([]T{9, 0, 1}).T(), vs[1].grad)
+	mattest.AssertMatrixEquals(t, mat.NewVecDense([]T{6, 7, 8}).T(), vs[0].grad)
+	mattest.AssertMatrixEquals(t, mat.NewVecDense([]T{9, 0, 1}).T(), vs[1].grad)
 }

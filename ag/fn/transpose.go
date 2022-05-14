@@ -28,12 +28,12 @@ func (r *Transpose[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Transpose[T, O]) Forward() mat.Matrix[T] {
+func (r *Transpose[T, O]) Forward() mat.Matrix {
 	return r.x.Value().T()
 }
 
 // Backward computes the backward pass.
-func (r *Transpose[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Transpose[T, O]) Backward(gy mat.Matrix) {
 	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
 		panic("fn: matrices with not compatible size")
 	}

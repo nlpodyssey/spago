@@ -26,7 +26,7 @@ func (r *ScalarMax[T, O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ScalarMax[T, O]) Forward() mat.Matrix[T] {
+func (r *ScalarMax[T, O]) Forward() mat.Matrix {
 	var max T
 	var argmax int
 	for i, x := range r.xs {
@@ -41,7 +41,7 @@ func (r *ScalarMax[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *ScalarMax[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ScalarMax[T, O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

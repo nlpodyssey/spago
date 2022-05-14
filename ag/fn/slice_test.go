@@ -33,7 +33,7 @@ func testSliceForward[T mat.DType](t *testing.T) {
 
 	y := f.Forward()
 
-	mattest.AssertMatrixEquals[T](t, mat.NewDense(2, 2, []T{
+	mattest.AssertMatrixEquals(t, mat.NewDense(2, 2, []T{
 		22, 23,
 		32, 33,
 	}), y)
@@ -43,7 +43,7 @@ func testSliceForward[T mat.DType](t *testing.T) {
 		3, 4,
 	}))
 
-	mattest.AssertMatrixEquals[T](t, mat.NewDense(3, 4, []T{
+	mattest.AssertMatrixEquals(t, mat.NewDense(3, 4, []T{
 		0, 0, 0, 0,
 		0, 1, 2, 0,
 		0, 3, 4, 0,

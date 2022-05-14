@@ -11,8 +11,8 @@ import (
 	"testing"
 )
 
-var _ Matrix[float32] = &Dense[float32]{}
-var _ Matrix[float64] = &Dense[float64]{}
+var _ Matrix = &Dense[float32]{}
+var _ Matrix = &Dense[float64]{}
 
 func TestNewDense(t *testing.T) {
 	t.Run("float32", testNewDense[float32])
@@ -3648,7 +3648,7 @@ func testDenseAppendRows[T DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("append %d column vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
-			vs := make([]Matrix[T], len(tc.vs))
+			vs := make([]Matrix, len(tc.vs))
 			for i, v := range tc.vs {
 				vs[i] = NewDense[T](len(v), 1, v)
 			}
@@ -3658,7 +3658,7 @@ func testDenseAppendRows[T DType](t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("append %d row vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
-			vs := make([]Matrix[T], len(tc.vs))
+			vs := make([]Matrix, len(tc.vs))
 			for i, v := range tc.vs {
 				vs[i] = NewDense[T](1, len(v), v)
 			}

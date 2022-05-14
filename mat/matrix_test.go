@@ -36,7 +36,7 @@ func testIsVector[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			require.Equal(t, tc.b, IsVector[T](d))
+			require.Equal(t, tc.b, IsVector(d))
 		})
 	}
 }
@@ -64,7 +64,7 @@ func testIsScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			require.Equal(t, tc.b, IsScalar[T](d))
+			require.Equal(t, tc.b, IsScalar(d))
 		})
 	}
 }
@@ -78,15 +78,15 @@ func testSameDims[T DType](t *testing.T) {
 	t.Run("different dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](3, 2)
-		assert.False(t, SameDims[T](a, b))
-		assert.False(t, SameDims[T](b, a))
+		assert.False(t, SameDims(a, b))
+		assert.False(t, SameDims(b, a))
 	})
 
 	t.Run("same dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 3)
-		assert.True(t, SameDims[T](a, b))
-		assert.True(t, SameDims[T](b, a))
+		assert.True(t, SameDims(a, b))
+		assert.True(t, SameDims(b, a))
 	})
 }
 
@@ -97,8 +97,8 @@ func TestVectorsOfSameSize(t *testing.T) {
 
 func testVectorsOfSameSize[T DType](t *testing.T) {
 	testCases := []struct {
-		a Matrix[T]
-		b Matrix[T]
+		a Matrix
+		b Matrix
 		y bool
 	}{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), false},
@@ -127,36 +127,36 @@ func TestConcatV(t *testing.T) {
 
 func testConcatV[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		var d Matrix[T] = NewEmptyDense[T](2, 3)
+		var d Matrix = NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			ConcatV(d)
+			ConcatV[T](d)
 		})
 	})
 
 	testCases := []struct {
-		xs []Matrix[T]
+		xs []Matrix
 		y  []T
 	}{
-		{[]Matrix[T]{}, []T{}},
-		{[]Matrix[T]{NewEmptyDense[T](0, 1)}, []T{}},
-		{[]Matrix[T]{NewEmptyDense[T](1, 0)}, []T{}},
-		{[]Matrix[T]{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{[]Matrix{}, []T{}},
+		{[]Matrix{NewEmptyDense[T](0, 1)}, []T{}},
+		{[]Matrix{NewEmptyDense[T](1, 0)}, []T{}},
+		{[]Matrix{NewDense[T](1, 1, []T{1})}, []T{1}},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](1, 1, []T{1}),
 				NewDense[T](1, 1, []T{2}),
 			},
 			[]T{1, 2},
 		},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](1, 2, []T{1, 2}),
 				NewDense[T](2, 1, []T{3, 4}),
 			},
 			[]T{1, 2, 3, 4},
 		},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](1, 1, []T{1}),
 				NewDense[T](2, 1, []T{2, 3}),
 				NewDense[T](1, 3, []T{4, 5, 6}),
@@ -187,30 +187,30 @@ func TestStack(t *testing.T) {
 
 func testStack[T DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		var d Matrix[T] = NewEmptyDense[T](2, 3)
+		var d Matrix = NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			Stack(d)
+			Stack[T](d)
 		})
 	})
 
 	t.Run("vectors of different sizes", func(t *testing.T) {
-		var a Matrix[T] = NewEmptyDense[T](1, 2)
-		var b Matrix[T] = NewEmptyDense[T](1, 3)
+		var a Matrix = NewEmptyDense[T](1, 2)
+		var b Matrix = NewEmptyDense[T](1, 3)
 		require.Panics(t, func() {
-			Stack(a, b)
+			Stack[T](a, b)
 		})
 	})
 
 	testCases := []struct {
-		xs []Matrix[T]
+		xs []Matrix
 		y  []T
 	}{
-		{[]Matrix[T]{}, []T{}},
-		{[]Matrix[T]{NewEmptyDense[T](0, 1)}, []T{}},
-		{[]Matrix[T]{NewEmptyDense[T](1, 0)}, []T{}},
-		{[]Matrix[T]{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{[]Matrix{}, []T{}},
+		{[]Matrix{NewEmptyDense[T](0, 1)}, []T{}},
+		{[]Matrix{NewEmptyDense[T](1, 0)}, []T{}},
+		{[]Matrix{NewDense[T](1, 1, []T{1})}, []T{1}},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](1, 1, []T{1}),
 				NewDense[T](1, 1, []T{2}),
 			},
@@ -220,7 +220,7 @@ func testStack[T DType](t *testing.T) {
 			},
 		},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](2, 1, []T{1, 2}),
 				NewDense[T](2, 1, []T{3, 4}),
 			},
@@ -230,7 +230,7 @@ func testStack[T DType](t *testing.T) {
 			},
 		},
 		{
-			[]Matrix[T]{
+			[]Matrix{
 				NewDense[T](2, 1, []T{1, 2}),
 				NewDense[T](1, 2, []T{3, 4}),
 			},
@@ -267,7 +267,7 @@ func TestEqual(t *testing.T) {
 
 func testEqual[T DType](t *testing.T) {
 	testCases := []struct {
-		a, b     Matrix[T]
+		a, b     Matrix
 		expected bool
 	}{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), true},
@@ -319,7 +319,7 @@ func TestInDelta(t *testing.T) {
 
 func testInDelta[T DType](t *testing.T) {
 	testCases := []struct {
-		a, b     Matrix[T]
+		a, b     Matrix
 		delta    float64
 		expected bool
 	}{

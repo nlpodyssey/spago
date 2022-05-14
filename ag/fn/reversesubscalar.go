@@ -28,13 +28,13 @@ func (r *ReverseSubScalar[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *ReverseSubScalar[T, O]) Forward() mat.Matrix[T] {
+func (r *ReverseSubScalar[T, O]) Forward() mat.Matrix {
 	x1v, x2v := r.x1.Value(), r.x2.Value()
 	return mat.NewInitDense(x1v.Rows(), x1v.Columns(), mat.DTFloat[T](x2v.Scalar())).Sub(x1v)
 }
 
 // Backward computes the backward pass.
-func (r *ReverseSubScalar[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ReverseSubScalar[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

@@ -30,12 +30,12 @@ func (r *SoftShrink[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SoftShrink[T, O]) Forward() mat.Matrix[T] {
+func (r *SoftShrink[T, O]) Forward() mat.Matrix {
 	return r.x.Value().ApplyWithAlpha(softShrink, r.lambda.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *SoftShrink[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *SoftShrink[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

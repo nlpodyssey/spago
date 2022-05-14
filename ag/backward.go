@@ -54,7 +54,7 @@ const (
 // Unless that's what you want, make sure all nodes have zero gradients.
 //
 // It panics if gradients are passed but the node already has them assigned.
-func Backward[T mat.DType](x Node[T], grad ...mat.Matrix[T]) {
+func Backward[T mat.DType](x Node[T], grad ...mat.Matrix) {
 	BackwardT[T](nil, -1, x, grad...)
 }
 
@@ -70,7 +70,7 @@ func BackwardMany[T mat.DType](xs ...Node[T]) {
 // of backward steps compared against the nodes' time step.
 //
 // If backSteps is a negative value, no truncation is applied.
-func BackwardT[T mat.DType](tsh *TimeStepHandler, backSteps int, x Node[T], grad ...mat.Matrix[T]) {
+func BackwardT[T mat.DType](tsh *TimeStepHandler, backSteps int, x Node[T], grad ...mat.Matrix) {
 	if len(grad) > 1 {
 		panic("ag: only none or one gradients matrix must be passed to Backward")
 	}
@@ -87,7 +87,7 @@ func BackwardT[T mat.DType](tsh *TimeStepHandler, backSteps int, x Node[T], grad
 
 	setupOperatorForBackward(tsh, op, stopAtTimeStep)
 
-	var outputGrad mat.Matrix[T] = nil
+	var outputGrad mat.Matrix = nil
 	if len(grad) > 0 && grad[0] != nil {
 		outputGrad = grad[0]
 	}

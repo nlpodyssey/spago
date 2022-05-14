@@ -32,7 +32,7 @@ func testAssertMatrixEquals[T mat.DType](t *testing.T) {
 				}
 			}
 
-			mattest.AssertMatrixEquals[T](dt, tc.expected, tc.actual, tc.args...)
+			mattest.AssertMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			assert.Equal(t, 0, dt.failNowCalls)
@@ -63,7 +63,7 @@ func testRequireMatrixEquals[T mat.DType](t *testing.T) {
 				}
 			}
 
-			mattest.RequireMatrixEquals[T](dt, tc.expected, tc.actual, tc.args...)
+			mattest.RequireMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			if tc.success {
@@ -95,7 +95,7 @@ func testAssertMatrixInDelta[T mat.DType](t *testing.T) {
 				}
 			}
 
-			mattest.AssertMatrixInDelta[T](dt, tc.expected, tc.actual, tc.delta, tc.args...)
+			mattest.AssertMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			assert.Equal(t, 0, dt.failNowCalls)
@@ -126,7 +126,7 @@ func testRequireMatrixInDelta[T mat.DType](t *testing.T) {
 				}
 			}
 
-			mattest.RequireMatrixInDelta[T](dt, tc.expected, tc.actual, tc.delta, tc.args...)
+			mattest.RequireMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			if tc.success {
@@ -142,8 +142,8 @@ func testRequireMatrixInDelta[T mat.DType](t *testing.T) {
 
 type matrixEqualsTestCase[T mat.DType] struct {
 	name     string
-	expected mat.Matrix[T]
-	actual   mat.Matrix[T]
+	expected mat.Matrix
+	actual   mat.Matrix
 	args     []any
 	success  bool
 	errorMsg string
@@ -232,8 +232,8 @@ func matrixEqualsTestCases[T mat.DType]() []matrixEqualsTestCase[T] {
 
 type matrixInDeltaTestCase[T mat.DType] struct {
 	name     string
-	expected mat.Matrix[T]
-	actual   mat.Matrix[T]
+	expected mat.Matrix
+	actual   mat.Matrix
 	delta    float64
 	args     []any
 	success  bool

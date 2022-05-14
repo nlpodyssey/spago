@@ -30,12 +30,12 @@ func (r *Div[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Div[T, O]) Forward() mat.Matrix[T] {
+func (r *Div[T, O]) Forward() mat.Matrix {
 	return r.x1.Value().Div(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Div[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Div[T, O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

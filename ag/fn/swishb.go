@@ -33,13 +33,13 @@ func (r *SwishB[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SwishB[T, O]) Forward() mat.Matrix[T] {
+func (r *SwishB[T, O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(swishB, r.beta.Value().Scalar().Float64())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *SwishB[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *SwishB[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

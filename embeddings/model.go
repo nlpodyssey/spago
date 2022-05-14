@@ -74,7 +74,7 @@ type Model[T mat.DType, K Key] struct {
 	// The Embedding values stored in EmbeddingsWithGrad don't contain any
 	// gradient value; instead the Model provides private methods allowing
 	// reading and writing gradients by key, which are stored here.
-	grads map[string]mat.Matrix[T]
+	grads map[string]mat.Matrix
 	mu    sync.RWMutex
 }
 
@@ -212,7 +212,7 @@ func (m *Model[_, _]) storeExists() bool {
 	}
 }
 
-func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix[T], exists bool) {
+func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix, exists bool) {
 	if !m.Trainable {
 		return nil, false
 	}
@@ -223,7 +223,7 @@ func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix[T], exists bool) {
 	return
 }
 
-func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix[T]) {
+func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix) {
 	if !m.Trainable {
 		return
 	}
@@ -239,7 +239,7 @@ func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix[T]) {
 	}
 
 	if m.grads == nil {
-		m.grads = make(map[string]mat.Matrix[T])
+		m.grads = make(map[string]mat.Matrix)
 		m.EmbeddingsWithGrad = make(ParamsMap[T])
 	}
 	m.grads[key] = gx.Clone()

@@ -24,7 +24,7 @@ type Operator[T mat.DType] struct {
 	requiresGrad  bool
 	backwardState backwardState
 	function      fn.Function[T, Node[T]]
-	// value is the results of a forward evaluation, as mat.Matrix[T].
+	// value is the results of a forward evaluation, as mat.Matrix.
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
 	// goroutines involved in both forward and backward operations.
@@ -34,7 +34,7 @@ type Operator[T mat.DType] struct {
 	// It's defined here in order to avoid an extra memory allocation
 	// (from NewOperator), but it's never be used directly.
 	mx           sync.Mutex
-	grad         mat.Matrix[T]
+	grad         mat.Matrix
 	pendingGrads int64
 	// It's primarily useful for later associating a correct time-step
 	// to this operator, if needed for truncated backpropagation.
@@ -86,23 +86,23 @@ func (o *Operator[T]) Operands() []Node[T] {
 }
 
 // Value returns the result of the function.
-func (o *Operator[T]) Value() mat.Matrix[T] {
+func (o *Operator[T]) Value() mat.Matrix {
 	if v := o.value.Load(); v != nil {
-		return v.(mat.Matrix[T])
+		return v.(mat.Matrix)
 	}
 
 	o.cond.L.Lock()
 	defer o.cond.L.Unlock()
 	for {
 		if v := o.value.Load(); v != nil {
-			return v.(mat.Matrix[T])
+			return v.(mat.Matrix)
 		}
 		o.cond.Wait()
 	}
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (o *Operator[T]) Grad() mat.Matrix[T] {
+func (o *Operator[T]) Grad() mat.Matrix {
 	if !o.requiresGrad {
 		return nil
 	}
@@ -144,7 +144,7 @@ func (o *Operator[_]) ZeroGrad() {
 }
 
 // AccGrad accumulates the gradients to the node itself.
-func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
+func (o *Operator[T]) AccGrad(grad mat.Matrix) {
 	if !o.requiresGrad {
 		return
 	}
@@ -152,7 +152,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	defer o.cond.L.Unlock()
 
 	// It is possible to observe `o.grad != nil` and at the same time `reflect.ValueOf(o.grad).IsNil() == true`.
-	// That means somewhere a nil pointer is being cast to `mat.Matrix[T]` and stored in `o.grad`.
+	// That means somewhere a nil pointer is being cast to `mat.Matrix` and stored in `o.grad`.
 	// Since `mat.Matrix` is an interface, the "nil test" will return false but any method call will panic as
 	// `mat.Dense` does not consider the possibility of a nil pointer value.
 	// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
@@ -167,7 +167,7 @@ func (o *Operator[T]) AccGrad(grad mat.Matrix[T]) {
 	}
 }
 
-func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix[T]) {
+func (o *Operator[T]) initOutputGrad(outputGrad mat.Matrix) {
 	if outputGrad != nil && o.grad != nil {
 		panic("ag: attempt to set output gradients on a node that already has gradients")
 	}

@@ -216,12 +216,12 @@ func testReleaseMatrix[T DType](t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
 		view := d.View(4, 3)
 		assert.Panics(t, func() { ReleaseMatrix(view) })
-		ReleaseMatrix[T](d)
+		ReleaseMatrix(d)
 	})
 
 	t.Run("it panics if the matrix is not of Dense", func(t *testing.T) {
 		d := new(foreignMatrixImplementation[T])
-		assert.Panics(t, func() { ReleaseMatrix[T](d) })
+		assert.Panics(t, func() { ReleaseMatrix(d) })
 	})
 }
 

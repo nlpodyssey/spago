@@ -13,7 +13,7 @@ import (
 )
 
 // Distribution creates a new matrix initialized with Bernoulli distribution.
-func Distribution[T mat.DType](r, c int, prob T, generator *rand.LockedRand[T]) mat.Matrix[T] {
+func Distribution[T mat.DType](r, c int, prob T, generator *rand.LockedRand[T]) mat.Matrix {
 	out := mat.NewEmptyDense[T](r, c)
 	dist := uniform.New(0.0, 1.0, generator)
 	for i := 0; i < r; i++ {

@@ -18,7 +18,7 @@ type Embedding[T mat.DType, K Key] struct {
 }
 
 // Value satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[T, _]) Value() mat.Matrix[T] {
+func (e *Embedding[T, _]) Value() mat.Matrix {
 	sd := new(storeData[T])
 	exists, err := e.model.Store.Get(encodeKey(e.key), sd)
 	if err != nil {
@@ -40,7 +40,7 @@ func (e *Embedding[T, _]) ScalarValue() T {
 }
 
 // Grad satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[T, _]) Grad() mat.Matrix[T] {
+func (e *Embedding[T, _]) Grad() mat.Matrix {
 	grad, exists := e.model.getGrad(e.key)
 	if !exists {
 		return nil
@@ -62,7 +62,7 @@ func (e *Embedding[_, _]) RequiresGrad() bool {
 }
 
 // AccGrad satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[T, _]) AccGrad(gx mat.Matrix[T]) {
+func (e *Embedding[T, _]) AccGrad(gx mat.Matrix) {
 	e.model.accGrad(e, gx)
 }
 
@@ -102,7 +102,7 @@ func (e *Embedding[_, _]) SetRequiresGrad(bool) {
 }
 
 // ReplaceValue satisfies the interface nn.Param.
-func (e *Embedding[T, _]) ReplaceValue(value mat.Matrix[T]) {
+func (e *Embedding[T, _]) ReplaceValue(value mat.Matrix) {
 	e.model.zeroGrad(e.key)
 
 	// Start with a new storeData, so that any
@@ -116,7 +116,7 @@ func (e *Embedding[T, _]) ReplaceValue(value mat.Matrix[T]) {
 }
 
 // ApplyDelta satisfies the interface nn.Param.
-func (e *Embedding[T, _]) ApplyDelta(delta mat.Matrix[T]) {
+func (e *Embedding[T, _]) ApplyDelta(delta mat.Matrix) {
 	sd := new(storeData[T])
 	key := encodeKey(e.key)
 

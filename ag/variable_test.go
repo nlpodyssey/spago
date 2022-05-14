@@ -17,7 +17,7 @@ func TestNewVariable(t *testing.T) {
 
 func testNewVariable[T mat.DType](t *testing.T) {
 	testCases := []struct {
-		value        mat.Matrix[T]
+		value        mat.Matrix
 		requiresGrad bool
 	}{
 		{mat.NewScalar[T](42), true},
@@ -45,7 +45,7 @@ func TestNewVariableWithName(t *testing.T) {
 
 func testNewVariableWithName[T mat.DType](t *testing.T) {
 	testCases := []struct {
-		value        mat.Matrix[T]
+		value        mat.Matrix
 		requiresGrad bool
 		name         string
 	}{
@@ -76,7 +76,7 @@ func testNewScalar[T mat.DType](t *testing.T) {
 	v := NewScalar[T](42)
 	require.NotNil(t, v)
 	assert.Empty(t, v.Name())
-	mattest.AssertMatrixEquals[T](t, mat.NewScalar[T](42), v.Value())
+	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
@@ -91,7 +91,7 @@ func testNewScalarWithName[T mat.DType](t *testing.T) {
 	v := NewScalarWithName[T](42, "foo")
 	require.NotNil(t, v)
 	assert.Equal(t, "foo", v.Name())
-	mattest.AssertMatrixEquals[T](t, mat.NewScalar[T](42), v.Value())
+	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
@@ -106,7 +106,7 @@ func testConstant[T mat.DType](t *testing.T) {
 	v := Constant[T](42)
 	require.NotNil(t, v)
 	assert.Equal(t, "42", v.Name())
-	mattest.AssertMatrixEquals[T](t, mat.NewScalar[T](42), v.Value())
+	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
@@ -124,11 +124,11 @@ func testVariableGradients[T mat.DType](t *testing.T) {
 		assert.False(t, v.HasGrad())
 
 		v.AccGrad(mat.NewScalar[T](5))
-		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](5), v.Grad())
+		mattest.RequireMatrixEquals(t, mat.NewScalar[T](5), v.Grad())
 		assert.True(t, v.HasGrad())
 
 		v.AccGrad(mat.NewScalar[T](10))
-		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](15), v.Grad())
+		mattest.RequireMatrixEquals(t, mat.NewScalar[T](15), v.Grad())
 		assert.True(t, v.HasGrad())
 
 		v.ZeroGrad()

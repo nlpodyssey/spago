@@ -29,7 +29,7 @@ func (r *Dot[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Dot[T, O]) Forward() mat.Matrix[T] {
+func (r *Dot[T, O]) Forward() mat.Matrix {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
@@ -45,7 +45,7 @@ func (r *Dot[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Dot[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Dot[T, O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

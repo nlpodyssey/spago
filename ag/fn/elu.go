@@ -31,13 +31,13 @@ func (r *ELU[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *ELU[T, O]) Forward() mat.Matrix[T] {
+func (r *ELU[T, O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(elu, r.alpha.Value().Scalar().Float64())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *ELU[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ELU[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

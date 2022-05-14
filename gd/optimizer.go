@@ -98,7 +98,7 @@ func (o *Optimizer[T]) clipGradsInPlace(params []nn.Param[T]) {
 	if o.gradClipper == nil {
 		return
 	}
-	var gs []mat.Matrix[T]
+	var gs []mat.Matrix
 	for _, param := range params {
 		gs = append(gs, param.Grad())
 	}

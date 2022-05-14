@@ -28,19 +28,19 @@ func (r *Concat[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Concat[T, O]) Forward() mat.Matrix[T] {
+func (r *Concat[T, O]) Forward() mat.Matrix {
 	r.ySize = 0 // reset output size
-	ms := make([]mat.Matrix[T], len(r.xs))
+	ms := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
 		value := x.Value()
 		ms[i] = value
 		r.ySize += value.Size()
 	}
-	return mat.ConcatV(ms...)
+	return mat.ConcatV[T](ms...)
 }
 
 // Backward computes the backward pass.
-func (r *Concat[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Concat[T, O]) Backward(gy mat.Matrix) {
 	if r.ySize != gy.Size() {
 		panic("fn: vectors with not compatible size")
 	}

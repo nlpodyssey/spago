@@ -22,8 +22,8 @@ func TestDense_Marshaling(t *testing.T) {
 
 	t.Run("gob encoding", func(t *testing.T) {
 		type MyType struct {
-			A Matrix[float32]
-			B Matrix[float64]
+			A Matrix
+			B Matrix
 		}
 
 		x := MyType{

@@ -13,8 +13,8 @@ import (
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss[T mat.DType, O Operand[T]] struct {
 	x        O
-	tau      float64       // computed during the forward pass
-	y        mat.Matrix[T] // computed during forward pass
+	tau      float64    // computed during the forward pass
+	y        mat.Matrix // computed during forward pass
 	operands []O
 }
 
@@ -32,10 +32,10 @@ func (r *SparseMaxLoss[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
+func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix {
 	v := r.x.Value().Clone()
 
-	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
+	zs, cumSumInput, bounds, tau := sparseMaxCommon[T](v)
 	defer mat.ReleaseMatrix(zs)
 	defer mat.ReleaseMatrix(cumSumInput)
 
@@ -58,7 +58,7 @@ func (r *SparseMaxLoss[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *SparseMaxLoss[T, O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		tau := r.tau
 		gySum := gy.Sum().Scalar().Float64()

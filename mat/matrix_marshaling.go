@@ -16,7 +16,7 @@ const (
 )
 
 // MarshalBinaryMatrix encodes a Matrix into binary form.
-func MarshalBinaryMatrix[T DType](m Matrix[T], w io.Writer) error {
+func MarshalBinaryMatrix[T DType](m Matrix, w io.Writer) error {
 	var identifier byte
 	var data []byte
 	var err error
@@ -49,7 +49,7 @@ func MarshalBinaryMatrix[T DType](m Matrix[T], w io.Writer) error {
 }
 
 // UnmarshalBinaryMatrix decodes a Matrix from binary form.
-func UnmarshalBinaryMatrix[T DType](r io.Reader) (Matrix[T], error) {
+func UnmarshalBinaryMatrix[T DType](r io.Reader) (Matrix, error) {
 	idAndSize := [9]byte{}
 
 	_, err := r.Read(idAndSize[:1])

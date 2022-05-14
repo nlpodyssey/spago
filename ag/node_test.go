@@ -106,16 +106,16 @@ type customNodeInterface[T mat.DType] interface {
 
 type dummyNode[T mat.DType] struct {
 	id           int // just an identifier for testing and debugging
-	value        mat.Matrix[T]
-	grad         mat.Matrix[T]
+	value        mat.Matrix
+	grad         mat.Matrix
 	requiresGrad bool
 }
 
-func (n *dummyNode[T]) Foo()                  { panic("not implemented") }
-func (n *dummyNode[T]) Value() mat.Matrix[T]  { return n.value }
-func (n *dummyNode[T]) Grad() mat.Matrix[T]   { return n.grad }
-func (n *dummyNode[_]) HasGrad() bool         { return n.grad != nil }
-func (n *dummyNode[_]) RequiresGrad() bool    { return n.requiresGrad }
-func (n *dummyNode[T]) AccGrad(mat.Matrix[T]) { panic("not implemented") }
-func (n *dummyNode[_]) ZeroGrad()             { panic("not implemented") }
-func (n *dummyNode[_]) Name() string          { panic("not implemented") }
+func (n *dummyNode[T]) Foo()               { panic("not implemented") }
+func (n *dummyNode[T]) Value() mat.Matrix  { return n.value }
+func (n *dummyNode[T]) Grad() mat.Matrix   { return n.grad }
+func (n *dummyNode[_]) HasGrad() bool      { return n.grad != nil }
+func (n *dummyNode[_]) RequiresGrad() bool { return n.requiresGrad }
+func (n *dummyNode[T]) AccGrad(mat.Matrix) { panic("not implemented") }
+func (n *dummyNode[_]) ZeroGrad()          { panic("not implemented") }
+func (n *dummyNode[_]) Name() string       { panic("not implemented") }

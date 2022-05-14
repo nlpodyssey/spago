@@ -25,7 +25,7 @@ func testParamGob[T mat.DType](t *testing.T) {
 		paramToEncode := NewParam[T](mat.NewScalar[T](12))
 		paramToEncode.SetPayload(&Payload[T]{
 			Label: 42,
-			Data:  []mat.Matrix[T]{mat.NewScalar[T](34)},
+			Data:  []mat.Matrix{mat.NewScalar[T](34)},
 		})
 
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)

@@ -46,14 +46,14 @@ import (
 // part of the final encoded data. In this way, there has been no need to
 // decode nor re-encode the payload.
 type storeData[T mat.DType] struct {
-	value            mat.Matrix[T]
+	value            mat.Matrix
 	payload          *nn.Payload[T]
 	marshaledValue   []byte
 	marshaledPayload []byte
 }
 
 // Value returns the mat.Matrix value, which is lazily decoded once if necessary.
-func (sd *storeData[T]) Value() mat.Matrix[T] {
+func (sd *storeData[T]) Value() mat.Matrix {
 	if sd.marshaledValue != nil {
 		m, err := mat.UnmarshalBinaryMatrix[T](bytes.NewReader(sd.marshaledValue))
 		if err != nil {
@@ -81,7 +81,7 @@ func (sd *storeData[T]) Payload() *nn.Payload[T] {
 
 // SetValue sets the mat.Matrix value. If a previously unmarshaled value's raw
 // data is present, it is invalidated (removed).
-func (sd *storeData[T]) SetValue(v mat.Matrix[T]) {
+func (sd *storeData[T]) SetValue(v mat.Matrix) {
 	sd.marshaledValue = nil
 	sd.value = v
 }
@@ -135,7 +135,7 @@ func (sd *storeData[T]) marshalValue() ([]byte, error) {
 	}
 
 	var buf bytes.Buffer
-	if err := mat.MarshalBinaryMatrix(sd.value, &buf); err != nil {
+	if err := mat.MarshalBinaryMatrix[T](sd.value, &buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

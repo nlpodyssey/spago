@@ -31,12 +31,12 @@ func (r *AddScalar[T, O]) Operands() []O {
 
 // Forward computes the output of the function.
 // It doesn't backward on the scalar value x2.
-func (r *AddScalar[T, O]) Forward() mat.Matrix[T] {
+func (r *AddScalar[T, O]) Forward() mat.Matrix {
 	return r.x1.Value().AddScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *AddScalar[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *AddScalar[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

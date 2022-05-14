@@ -30,14 +30,14 @@ func (r *ReduceMax[T, O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ReduceMax[T, O]) Forward() mat.Matrix[T] {
+func (r *ReduceMax[T, O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	r.argmax = xv.ArgMax()
 	return xv.AtVec(r.argmax)
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMax[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ReduceMax[T, O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

@@ -33,12 +33,12 @@ func (r *Reshape[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Reshape[T, O]) Forward() mat.Matrix[T] {
+func (r *Reshape[T, O]) Forward() mat.Matrix {
 	return r.x.Value().Reshape(r.rows, r.cols)
 }
 
 // Backward computes the backward pass.
-func (r *Reshape[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Reshape[T, O]) Backward(gy mat.Matrix) {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
 		panic("fn: matrices with not compatible size")
 	}

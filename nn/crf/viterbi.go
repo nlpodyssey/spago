@@ -11,7 +11,7 @@ import (
 
 // ViterbiStructure implements Viterbi decoding.
 type ViterbiStructure[T mat.DType] struct {
-	scores       mat.Matrix[T]
+	scores       mat.Matrix
 	backpointers []int
 }
 
@@ -24,13 +24,13 @@ func NewViterbiStructure[T mat.DType](size int) *ViterbiStructure[T] {
 }
 
 // Viterbi decodes the xs sequence according to the transitionMatrix.
-func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int {
+func Viterbi[T mat.DType](transitionMatrix mat.Matrix, xs []ag.Node[T]) []int {
 	alpha := make([]*ViterbiStructure[T], len(xs)+1)
-	alpha[0] = viterbiStepStart(transitionMatrix, xs[0].Value())
+	alpha[0] = viterbiStepStart[T](transitionMatrix, xs[0].Value())
 	for i := 1; i < len(xs); i++ {
-		alpha[i] = viterbiStep(transitionMatrix, alpha[i-1].scores, xs[i].Value())
+		alpha[i] = viterbiStep[T](transitionMatrix, alpha[i-1].scores, xs[i].Value())
 	}
-	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
+	alpha[len(xs)] = viterbiStepEnd[T](transitionMatrix, alpha[len(xs)-1].scores)
 
 	ys := make([]int, len(xs))
 	ys[len(xs)-1] = alpha[len(xs)].scores.ArgMax()
@@ -40,7 +40,7 @@ func Viterbi[T mat.DType](transitionMatrix mat.Matrix[T], xs []ag.Node[T]) []int
 	return ys
 }
 
-func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
+func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
@@ -55,7 +55,7 @@ func viterbiStepStart[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *Vite
 	return y
 }
 
-func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *ViterbiStructure[T] {
+func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		mv := mat.DTFloat[T](maxVec.ScalarAt(i, 0))
@@ -70,7 +70,7 @@ func viterbiStepEnd[T mat.DType](transitionMatrix, maxVec mat.Matrix[T]) *Viterb
 	return y
 }
 
-func viterbiStep[T mat.DType](transitionMatrix, maxVec, stepVec mat.Matrix[T]) *ViterbiStructure[T] {
+func viterbiStep[T mat.DType](transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure[T] {
 	y := NewViterbiStructure[T](transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {

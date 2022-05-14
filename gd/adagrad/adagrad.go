@@ -61,18 +61,18 @@ func (o *AdaGrad[_]) Label() int {
 func (o *AdaGrad[T]) NewSupport(r, c int) *nn.Payload[T] {
 	return &nn.Payload[T]{
 		Label: o.Label(),
-		Data:  []mat.Matrix[T]{mat.NewEmptyDense[T](r, c)}, // m at index 0
+		Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // m at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *AdaGrad[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+func (o *AdaGrad[T]) Delta(param nn.Param[T]) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
 }
 
 // m = m + grads*grads
 // delta = (grads / (sqrt(m) + eps)) * lr
-func (o *AdaGrad[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
+func (o *AdaGrad[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	supp[m].AddInPlace(grads.Prod(grads))
 	buf := supp[m].Sqrt() // TODO: this was "buf := mat.SqrtMatrix(supp[m])", is it the same?
 	buf.AddScalarInPlace(o.Epsilon)

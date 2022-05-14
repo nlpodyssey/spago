@@ -28,13 +28,13 @@ func (r *ReduceMean[T, O]) Operands() []O {
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean[T, O]) Forward() mat.Matrix[T] {
+func (r *ReduceMean[T, O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	return xv.Sum().ProdScalarInPlace(1 / float64(xv.Size()))
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ReduceMean[T, O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

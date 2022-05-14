@@ -29,7 +29,7 @@ func (r *Add[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Add[T, O]) Forward() mat.Matrix[T] {
+func (r *Add[T, O]) Forward() mat.Matrix {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if x1v == nil {
@@ -40,7 +40,7 @@ func (r *Add[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *Add[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Add[T, O]) Backward(gy mat.Matrix) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
 		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {

@@ -21,8 +21,8 @@ var (
 // Variable is a simple type of Node, primarily consisting of a value and
 // optional gradients.
 type Variable[T mat.DType] struct {
-	value        mat.Matrix[T]
-	grad         mat.Matrix[T]
+	value        mat.Matrix
+	grad         mat.Matrix
 	gradMu       sync.RWMutex
 	requiresGrad bool
 	name         string
@@ -32,7 +32,7 @@ type Variable[T mat.DType] struct {
 }
 
 // NewVariable creates a new Variable Node.
-func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
+func NewVariable[T mat.DType](value mat.Matrix, requiresGrad bool) Node[T] {
 	return &Variable[T]{
 		value:        value,
 		grad:         nil,
@@ -42,7 +42,7 @@ func NewVariable[T mat.DType](value mat.Matrix[T], requiresGrad bool) Node[T] {
 }
 
 // NewVariableWithName creates a new Variable Node with a given name.
-func NewVariableWithName[T mat.DType](value mat.Matrix[T], requiresGrad bool, name string) Node[T] {
+func NewVariableWithName[T mat.DType](value mat.Matrix, requiresGrad bool, name string) Node[T] {
 	return &Variable[T]{
 		name:         name,
 		value:        value,
@@ -79,19 +79,19 @@ func (r *Variable[_]) Name() string {
 }
 
 // Value returns the value of the variable itself.
-func (r *Variable[T]) Value() mat.Matrix[T] {
+func (r *Variable[T]) Value() mat.Matrix {
 	return r.value
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (r *Variable[T]) Grad() mat.Matrix[T] {
+func (r *Variable[T]) Grad() mat.Matrix {
 	r.gradMu.RLock()
 	defer r.gradMu.RUnlock()
 	return r.grad
 }
 
 // AccGrad accumulates the gradients into the Variable.
-func (r *Variable[T]) AccGrad(grad mat.Matrix[T]) {
+func (r *Variable[T]) AccGrad(grad mat.Matrix) {
 	if !r.requiresGrad {
 		return
 	}

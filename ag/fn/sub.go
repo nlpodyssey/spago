@@ -30,12 +30,12 @@ func (r *Sub[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Sub[T, O]) Forward() mat.Matrix[T] {
+func (r *Sub[T, O]) Forward() mat.Matrix {
 	return r.x1.Value().Sub(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Sub[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Sub[T, O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&

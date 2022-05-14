@@ -8,16 +8,16 @@ import "github.com/nlpodyssey/spago/mat"
 
 // variable is a simple implementation satisfying the Operand interface.
 type variable[T mat.DType] struct {
-	value        mat.Matrix[T]
-	grad         mat.Matrix[T]
+	value        mat.Matrix
+	grad         mat.Matrix
 	requiresGrad bool
 }
 
-func (v *variable[T]) Value() mat.Matrix[T] {
+func (v *variable[T]) Value() mat.Matrix {
 	return v.value
 }
 
-func (v *variable[T]) AccGrad(gx mat.Matrix[T]) {
+func (v *variable[T]) AccGrad(gx mat.Matrix) {
 	if v.grad == nil {
 		v.grad = gx.Clone()
 		return

@@ -32,7 +32,7 @@ func (r *SoftPlus[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SoftPlus[T, O]) Forward() mat.Matrix[T] {
+func (r *SoftPlus[T, O]) Forward() mat.Matrix {
 	return r.x.Value().ApplyWithAlpha(
 		softPlus,
 		r.beta.Value().Scalar().Float64(),
@@ -41,7 +41,7 @@ func (r *SoftPlus[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *SoftPlus[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *SoftPlus[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

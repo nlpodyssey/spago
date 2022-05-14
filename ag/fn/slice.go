@@ -34,12 +34,12 @@ func (s *Slice[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (s *Slice[T, O]) Forward() mat.Matrix[T] {
+func (s *Slice[T, O]) Forward() mat.Matrix {
 	return s.x.Value().Slice(s.fromRow, s.fromCol, s.toRow, s.toCol)
 }
 
 // Backward computes the backward pass.
-func (s *Slice[T, O]) Backward(gy mat.Matrix[T]) {
+func (s *Slice[T, O]) Backward(gy mat.Matrix) {
 	lx := s.toRow - s.fromRow
 	ly := s.toCol - s.fromCol
 	if !(gy.Rows() == lx && gy.Columns() == ly) {

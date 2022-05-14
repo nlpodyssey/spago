@@ -29,12 +29,12 @@ func (r *RotateR[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *RotateR[T, O]) Forward() mat.Matrix[T] {
+func (r *RotateR[T, O]) Forward() mat.Matrix {
 	return mat.NewVecDense(rotateR(mat.Data[T](r.x.Value()), r.i))
 }
 
 // Backward computes the backward pass.
-func (r *RotateR[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *RotateR[T, O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := mat.NewVecDense(rotateL(mat.Data[T](gy), r.i))
 		defer mat.ReleaseDense(gx)

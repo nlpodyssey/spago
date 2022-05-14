@@ -84,7 +84,7 @@ const (
 
 // NewSupport returns a new support structure with the given dimensions.
 func (o *RAdam[T]) NewSupport(r, c int) *nn.Payload[T] {
-	supp := make([]mat.Matrix[T], 5)
+	supp := make([]mat.Matrix, 5)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
@@ -102,11 +102,11 @@ func (o *RAdam[_]) IncBatch() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RAdam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+func (o *RAdam[T]) Delta(param nn.Param[T]) mat.Matrix {
 	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
 }
 
-func (o *RAdam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
+func (o *RAdam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	updateM(grads, supp, o.Beta1)
 	updateV(grads, supp, o.Beta2)
 	sqrtB2T := math.Sqrt(1.0 - math.Pow(o.Beta2, float64(o.TimeStep)))
@@ -120,14 +120,14 @@ func (o *RAdam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matr
 }
 
 // m = m*beta1 + grads*(1.0-beta1)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
+func updateM(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 	supp[m].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[m].AddInPlace(supp[buf1])
 }
 
 // v = v*beta2 + (grads*grads)*(1.0-beta2)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
+func updateV(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[v].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)

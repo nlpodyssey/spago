@@ -14,7 +14,7 @@ type MaxPooling[T mat.DType, O Operand[T]] struct {
 	rows int
 	cols int
 	// initialized during the forward pass
-	y        mat.Matrix[T]
+	y        mat.Matrix
 	argmaxI  [][]int
 	argmaxJ  [][]int
 	operands []O
@@ -39,7 +39,7 @@ func (r *MaxPooling[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *MaxPooling[T, O]) Forward() mat.Matrix[T] {
+func (r *MaxPooling[T, O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	if !(xv.Rows()%r.rows == 0 && xv.Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
@@ -79,7 +79,7 @@ func makeIntMatrix(rows, cols int) [][]int {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *MaxPooling[T, O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)

@@ -28,12 +28,12 @@ func (r *ReduceSum[T, O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ReduceSum[T, O]) Forward() mat.Matrix[T] {
+func (r *ReduceSum[T, O]) Forward() mat.Matrix {
 	return r.x.Value().Sum()
 }
 
 // Backward computes the backward pass.
-func (r *ReduceSum[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ReduceSum[T, O]) Backward(gy mat.Matrix) {
 	if !mat.IsScalar(gy) {
 		panic("fn: the gradient had to be a scalar")
 	}

@@ -184,7 +184,7 @@ func testMSESeqLoss[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.15, -0.05, 0.05, 0.15}, x2.Grad().Data(), 1.0e-6)
 }
 
-func assertScalarEqualApprox[T mat.DType](t *testing.T, expected T, actual mat.Matrix[T]) {
+func assertScalarEqualApprox[T mat.DType](t *testing.T, expected T, actual mat.Matrix) {
 	t.Helper()
 	v := mat.DTFloat[T](actual.Scalar())
 	assert.InDelta(t, expected, v, 1.0e-06)

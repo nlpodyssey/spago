@@ -12,7 +12,7 @@ import (
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMax[T mat.DType, O Operand[T]] struct {
 	x        O
-	y        mat.Matrix[T] // initialized during the forward pass, required by the backward pass
+	y        mat.Matrix // initialized during the forward pass, required by the backward pass
 	operands []O
 }
 
@@ -30,14 +30,14 @@ func (r *SparseMax[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
+func (r *SparseMax[T, O]) Forward() mat.Matrix {
 	x := r.x.Value()
 	xMax := x.Max().Scalar().Float64()
 
 	// translate the input by max for numerical stability
 	v := x.SubScalar(xMax)
 
-	zs, cumSumInput, _, tau := sparseMaxCommon(v)
+	zs, cumSumInput, _, tau := sparseMaxCommon[T](v)
 	mat.ReleaseMatrix(zs)
 	mat.ReleaseMatrix(cumSumInput)
 
@@ -48,7 +48,7 @@ func (r *SparseMax[T, O]) Forward() mat.Matrix[T] {
 }
 
 // Backward computes the backward pass.
-func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *SparseMax[T, O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		var nzSum T = 0.0
 		var nzCount T = 0.0
@@ -69,7 +69,7 @@ func (r *SparseMax[T, O]) Backward(gy mat.Matrix[T]) {
 	}
 }
 
-func sparseMaxCommon[T mat.DType](v mat.Matrix[T]) (zs, cumSumInput mat.Matrix[T], bounds []T, tau T) {
+func sparseMaxCommon[T mat.DType](v mat.Matrix) (zs, cumSumInput mat.Matrix, bounds []T, tau T) {
 	zsData := make([]T, v.Size())
 	copy(zsData, mat.Data[T](v))
 

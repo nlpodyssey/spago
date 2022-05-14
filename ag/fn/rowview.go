@@ -31,12 +31,12 @@ func (r *RowView[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *RowView[T, O]) Forward() mat.Matrix[T] {
+func (r *RowView[T, O]) Forward() mat.Matrix {
 	return r.x.Value().ExtractRow(r.i)
 }
 
 // Backward computes the backward pass.
-func (r *RowView[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *RowView[T, O]) Backward(gy mat.Matrix) {
 	if !(r.x.Value().Columns() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

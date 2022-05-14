@@ -19,9 +19,9 @@ var (
 // BaseParam is the default implementation satisfying the Param interface.
 type BaseParam[T mat.DType] struct {
 	name         string
-	pType        ParamsType    // lazy initialization
-	value        mat.Matrix[T] // store the results of a forward evaluation.
-	grad         mat.Matrix[T]
+	pType        ParamsType // lazy initialization
+	value        mat.Matrix // store the results of a forward evaluation.
+	grad         mat.Matrix
 	payload      *Payload[T] // additional data used for example by gradient-descend optimization methods
 	requiresGrad bool
 	// Allows thread-safe locking for operations on value.
@@ -43,7 +43,7 @@ func RequiresGrad[T mat.DType](value bool) ParamOption[T] {
 }
 
 // NewParam returns a new param.
-func NewParam[T mat.DType](value mat.Matrix[T], opts ...ParamOption[T]) Param[T] {
+func NewParam[T mat.DType](value mat.Matrix, opts ...ParamOption[T]) Param[T] {
 	p := &BaseParam[T]{
 		name:         "",        // lazy initialization
 		pType:        Undefined, // lazy initialization
@@ -79,7 +79,7 @@ func (p *BaseParam[_]) Type() ParamsType {
 }
 
 // Value returns the value of the delegate itself.
-func (p *BaseParam[T]) Value() mat.Matrix[T] {
+func (p *BaseParam[T]) Value() mat.Matrix {
 	p.valueMu.RLock()
 	defer p.valueMu.RUnlock()
 	return p.value
@@ -87,7 +87,7 @@ func (p *BaseParam[T]) Value() mat.Matrix[T] {
 
 // ReplaceValue replaces the value of the parameter and clears the gradients and
 // the support structure.
-func (p *BaseParam[T]) ReplaceValue(value mat.Matrix[T]) {
+func (p *BaseParam[T]) ReplaceValue(value mat.Matrix) {
 	p.ClearPayload()
 	p.ZeroGrad()
 
@@ -106,14 +106,14 @@ func (p *BaseParam[T]) ScalarValue() T {
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (p *BaseParam[T]) Grad() mat.Matrix[T] {
+func (p *BaseParam[T]) Grad() mat.Matrix {
 	p.gradMu.RLock()
 	defer p.gradMu.RUnlock()
 	return p.grad
 }
 
 // AccGrad accumulate the gradients
-func (p *BaseParam[T]) AccGrad(grad mat.Matrix[T]) {
+func (p *BaseParam[T]) AccGrad(grad mat.Matrix) {
 	if !p.requiresGrad {
 		return
 	}
@@ -155,7 +155,7 @@ func (p *BaseParam[_]) ZeroGrad() {
 }
 
 // ApplyDelta updates the value applying the delta.
-func (p *BaseParam[T]) ApplyDelta(delta mat.Matrix[T]) {
+func (p *BaseParam[T]) ApplyDelta(delta mat.Matrix) {
 	p.valueMu.Lock()
 	defer p.valueMu.Unlock()
 	p.value.SubInPlace(delta)

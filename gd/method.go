@@ -35,7 +35,7 @@ type Method[T mat.DType] interface {
 	// Label returns the enumeration-like value which identifies this gradient descent method.
 	Label() int
 	// Delta returns the difference between the current params and where the method wants it to be.
-	Delta(param nn.Param[T]) mat.Matrix[T]
+	Delta(param nn.Param[T]) mat.Matrix
 	// NewSupport returns a new support structure with the given dimensions.
 	NewSupport(r, c int) *nn.Payload[T]
 }

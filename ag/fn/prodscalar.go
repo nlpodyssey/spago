@@ -30,12 +30,12 @@ func (r *ProdScalar[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *ProdScalar[T, O]) Forward() mat.Matrix[T] {
+func (r *ProdScalar[T, O]) Forward() mat.Matrix {
 	return r.x1.Value().ProdScalar(r.x2.Value().Scalar().Float64())
 }
 
 // Backward computes the backward pass.
-func (r *ProdScalar[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *ProdScalar[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

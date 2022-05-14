@@ -11,16 +11,16 @@ type Node[T mat.DType] interface {
 	// Value returns the value of the node.
 	// If the node is a variable it returns its value, otherwise returns the
 	// cached result of the forward pass.
-	Value() mat.Matrix[T]
+	Value() mat.Matrix
 	// Grad returns the gradients accumulated during the backward pass.
 	// A matrix full of zeros and the nil value are considered equivalent.
-	Grad() mat.Matrix[T]
+	Grad() mat.Matrix
 	// HasGrad reports whether there are accumulated gradients.
 	HasGrad() bool
 	// RequiresGrad reports whether the node requires gradients.
 	RequiresGrad() bool
 	// AccGrad accumulates the gradients into the node.
-	AccGrad(gx mat.Matrix[T])
+	AccGrad(gx mat.Matrix)
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
 	// Name returns a human-readable label to identify or describe the Node.
@@ -45,7 +45,7 @@ func ToNodes[T mat.DType, N Node[T]](xs []N) []Node[T] {
 //
 // It is important to remember that Node.Value is a weak value, as the matrix
 // derived from graph's operations can be freed (see ReleaseGraph).
-func CopyValue[T mat.DType](node Node[T]) mat.Matrix[T] {
+func CopyValue[T mat.DType](node Node[T]) mat.Matrix {
 	if node.Value() == nil {
 		return nil
 	}
@@ -53,8 +53,8 @@ func CopyValue[T mat.DType](node Node[T]) mat.Matrix[T] {
 }
 
 // CopyValues calls CopyValue for each node of the slice.
-func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
-	values := make([]mat.Matrix[T], len(nodes))
+func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix {
+	values := make([]mat.Matrix, len(nodes))
 	for i, n := range nodes {
 		values[i] = CopyValue(n)
 	}
@@ -66,7 +66,7 @@ func CopyValues[T mat.DType](nodes []Node[T]) []mat.Matrix[T] {
 //
 // It is important to remember that Node.Grad is a weak value, as the matrix
 // derived from graph's operations can be freed (see Node.ZeroGrad).
-func CopyGrad[T mat.DType](node Node[T]) mat.Matrix[T] {
+func CopyGrad[T mat.DType](node Node[T]) mat.Matrix {
 	if node.Grad() == nil {
 		return nil
 	}

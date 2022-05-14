@@ -24,7 +24,7 @@ func TestMatrixMarshaling(t *testing.T) {
 }
 
 func testMatrixMarshalingDense[T DType](t *testing.T) {
-	testCases := []Matrix[T]{
+	testCases := []Matrix{
 		NewEmptyDense[T](0, 0),
 		NewEmptyDense[T](0, 1),
 		NewEmptyDense[T](1, 0),
@@ -61,7 +61,7 @@ func testMatrixMarshalingNil[T DType](t *testing.T) {
 }
 
 func testMatrixMarshalingDenseWrongType[T1, T2 DType](t *testing.T) {
-	var d Matrix[T1] = NewScalar[T1](42)
+	var d Matrix = NewScalar[T1](42)
 	var buf bytes.Buffer
 	err := MarshalBinaryMatrix[T1](d, &buf)
 	require.NoError(t, err)

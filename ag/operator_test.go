@@ -23,7 +23,7 @@ func testNewOperator[T mat.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node[T]]{
-		forward: func() mat.Matrix[T] { return forwardResult },
+		forward: func() mat.Matrix { return forwardResult },
 	}
 	op := NewOperator[T](f)
 
@@ -73,7 +73,7 @@ func testOperatorValue[T mat.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node[T]]{
-		forward: func() mat.Matrix[T] { return forwardResult },
+		forward: func() mat.Matrix { return forwardResult },
 	}
 	op := NewOperator[T](f)
 
@@ -131,7 +131,7 @@ func TestOperator_Gradients(t *testing.T) {
 func testOperatorGradients[T mat.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
 		op := NewOperator[T](&dummyFunction[T, Node[T]]{
-			forward: func() mat.Matrix[T] {
+			forward: func() mat.Matrix {
 				return mat.NewScalar[T](42)
 			},
 			operands: func() []Node[T] {
@@ -143,11 +143,11 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 		assert.False(t, op.HasGrad())
 
 		op.AccGrad(mat.NewScalar[T](5))
-		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](5), op.Grad())
+		mattest.RequireMatrixEquals(t, mat.NewScalar[T](5), op.Grad())
 		assert.True(t, op.HasGrad())
 
 		op.AccGrad(mat.NewScalar[T](10))
-		mattest.RequireMatrixEquals[T](t, mat.NewScalar[T](15), op.Grad())
+		mattest.RequireMatrixEquals(t, mat.NewScalar[T](15), op.Grad())
 		assert.True(t, op.HasGrad())
 
 		op.ZeroGrad()
@@ -157,7 +157,7 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 
 	t.Run("with requires gradient false", func(t *testing.T) {
 		op := NewOperator[T](&dummyFunction[T, Node[T]]{
-			forward: func() mat.Matrix[T] { return mat.NewScalar[T](42) },
+			forward: func() mat.Matrix { return mat.NewScalar[T](42) },
 		})
 
 		require.Nil(t, op.Grad())
@@ -174,14 +174,14 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 }
 
 type dummyFunction[T mat.DType, O fn.Operand[T]] struct {
-	forward       func() mat.Matrix[T]
-	backward      func(gy mat.Matrix[T])
+	forward       func() mat.Matrix
+	backward      func(gy mat.Matrix)
 	operands      func() []O
 	forwardCalls  int
 	backwardCalls int
 }
 
-func (f *dummyFunction[T, O]) Forward() mat.Matrix[T] {
+func (f *dummyFunction[T, O]) Forward() mat.Matrix {
 	f.forwardCalls++
 	if f.forward == nil {
 		return mat.NewEmptyDense[T](0, 0) // since nil values are not allowed
@@ -189,7 +189,7 @@ func (f *dummyFunction[T, O]) Forward() mat.Matrix[T] {
 	return f.forward()
 }
 
-func (f *dummyFunction[T, O]) Backward(gy mat.Matrix[T]) {
+func (f *dummyFunction[T, O]) Backward(gy mat.Matrix) {
 	f.backwardCalls++
 	if f.backward == nil {
 		return

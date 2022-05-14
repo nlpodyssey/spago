@@ -35,12 +35,12 @@ func StopGrad[T mat.DType](node Node[T]) Node[T] {
 }
 
 // Grad always returns nil on a Wrapper Node.
-func (r *Wrapper[T]) Grad() mat.Matrix[T] {
+func (r *Wrapper[T]) Grad() mat.Matrix {
 	return nil
 }
 
 // AccGrad has no effects on a Wrapper Node.
-func (r *Wrapper[T]) AccGrad(mat.Matrix[T]) {}
+func (r *Wrapper[T]) AccGrad(mat.Matrix) {}
 
 // HasGrad always returns false on a Wrapper Node.
 func (r *Wrapper[_]) HasGrad() bool {

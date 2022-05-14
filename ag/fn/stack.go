@@ -23,16 +23,16 @@ func (r *Stack[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Stack[T, O]) Forward() mat.Matrix[T] {
-	vs := make([]mat.Matrix[T], len(r.xs))
+func (r *Stack[T, O]) Forward() mat.Matrix {
+	vs := make([]mat.Matrix, len(r.xs))
 	for i, x := range r.xs {
 		vs[i] = x.Value()
 	}
-	return mat.Stack(vs...)
+	return mat.Stack[T](vs...)
 }
 
 // Backward computes the backward pass.
-func (r *Stack[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Stack[T, O]) Backward(gy mat.Matrix) {
 	if gy.Rows() != len(r.xs) {
 		panic("fn: matrices with not compatible size")
 	}

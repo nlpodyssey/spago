@@ -39,7 +39,7 @@ func TestStoreData(t *testing.T) {
 
 	payload := &nn.Payload[float32]{
 		Label: 123,
-		Data: []mat.Matrix[float32]{
+		Data: []mat.Matrix{
 			mat.NewScalar[float32](11),
 			mat.NewScalar[float32](22),
 		},
@@ -72,7 +72,7 @@ func TestStoreData_MarshalBinary(t *testing.T) {
 	value := mat.NewScalar[float32](42)
 	payload := &nn.Payload[float32]{
 		Label: 123,
-		Data: []mat.Matrix[float32]{
+		Data: []mat.Matrix{
 			mat.NewScalar[float32](11),
 			mat.NewScalar[float32](22),
 		},
@@ -166,7 +166,7 @@ func assertStoreDataEqual(t *testing.T, expected, actual *storeData[float32]) {
 	assertPayloadEqual(t, expected.Payload(), actual.Payload())
 }
 
-func assertMatrixEqual(t *testing.T, expected, actual mat.Matrix[float32]) {
+func assertMatrixEqual(t *testing.T, expected, actual mat.Matrix) {
 	t.Helper()
 
 	if expected == nil {

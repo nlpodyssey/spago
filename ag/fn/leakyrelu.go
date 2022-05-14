@@ -31,13 +31,13 @@ func (r *LeakyReLU[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *LeakyReLU[T, O]) Forward() mat.Matrix[T] {
+func (r *LeakyReLU[T, O]) Forward() mat.Matrix {
 	y := r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().Float64())
 	return y
 }
 
 // Backward computes the backward pass.
-func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *LeakyReLU[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
 		panic("fn: matrices with not compatible size")
 	}

@@ -28,7 +28,7 @@ type T interface {
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error.
-func AssertMatrixEquals[DT mat.DType](t T, expected, actual mat.Matrix[DT], args ...any) bool {
+func AssertMatrixEquals(t T, expected, actual mat.Matrix, args ...any) bool {
 	t.Helper()
 	if expected == nil {
 		t.Error("the expected matrix must not be nil")
@@ -53,7 +53,7 @@ func AssertMatrixEquals[DT mat.DType](t T, expected, actual mat.Matrix[DT], args
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error and fails.
-func RequireMatrixEquals[DT mat.DType](t T, expected, actual mat.Matrix[DT], args ...any) {
+func RequireMatrixEquals(t T, expected, actual mat.Matrix, args ...any) {
 	t.Helper()
 	if !AssertMatrixEquals(t, expected, actual, args...) {
 		t.FailNow()
@@ -68,7 +68,7 @@ func RequireMatrixEquals[DT mat.DType](t T, expected, actual mat.Matrix[DT], arg
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error.
-func AssertMatrixInDelta[DT mat.DType](t T, expected, actual mat.Matrix[DT], delta float64, args ...any) bool {
+func AssertMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args ...any) bool {
 	t.Helper()
 	if expected == nil {
 		t.Error("the expected matrix must not be nil")
@@ -93,7 +93,7 @@ func AssertMatrixInDelta[DT mat.DType](t T, expected, actual mat.Matrix[DT], del
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error and fails.
-func RequireMatrixInDelta[DT mat.DType](t T, expected, actual mat.Matrix[DT], delta float64, args ...any) {
+func RequireMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args ...any) {
 	t.Helper()
 	if !AssertMatrixInDelta(t, expected, actual, delta, args...) {
 		t.FailNow()

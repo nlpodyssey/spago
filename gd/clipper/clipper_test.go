@@ -66,8 +66,8 @@ func testClipNormInf[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.45, 0.35, 0.2, 0.4, 0.05}, gs[1].Data(), 1.0e-06)
 }
 
-func buildTestGrads[T mat.DType]() []mat.Matrix[T] {
-	return []mat.Matrix[T]{
+func buildTestGrads[T mat.DType]() []mat.Matrix {
+	return []mat.Matrix{
 		mat.NewDense(4, 5, []T{
 			0.5, 0.6, -0.8, -0.6,
 			0.7, -0.4, 0.1, -0.8,

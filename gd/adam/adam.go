@@ -104,7 +104,7 @@ const (
 
 // NewSupport returns a new support structure with the given dimensions.
 func (o *Adam[T]) NewSupport(r, c int) *nn.Payload[T] {
-	supp := make([]mat.Matrix[T], 5)
+	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
@@ -128,7 +128,7 @@ func (o *Adam[T]) updateAlpha() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
+func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix {
 	if o.adamw {
 		return o.calcDeltaW(param.Grad(), gd.GetOrSetPayload[T](param, o).Data, param.Value())
 	}
@@ -138,7 +138,7 @@ func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix[T] {
 // v = v*beta1 + grads*(1.0-beta1)
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // d = (v / (sqrt(m) + eps)) * alpha
-func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matrix[T] {
+func (o *Adam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
@@ -152,7 +152,7 @@ func (o *Adam[T]) calcDelta(grads mat.Matrix[T], supp []mat.Matrix[T]) mat.Matri
 // v = v*beta1 + grads*(1.0-beta1)
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // d = (v / (sqrt(m) + eps))  + (lambda * weights) + alpha
-func (o *Adam[T]) calcDeltaW(grads mat.Matrix[T], supp []mat.Matrix[T], weights mat.Matrix[T]) mat.Matrix[T] {
+func (o *Adam[T]) calcDeltaW(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix) mat.Matrix {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
@@ -166,14 +166,14 @@ func (o *Adam[T]) calcDeltaW(grads mat.Matrix[T], supp []mat.Matrix[T], weights 
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta1 float64) {
+func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 	supp[v].ProdScalarInPlace(beta1)
 	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
 	supp[v].AddInPlace(supp[buf1])
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM[T mat.DType](grads mat.Matrix[T], supp []mat.Matrix[T], beta2 float64) {
+func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
 	defer mat.ReleaseMatrix(sqGrad)

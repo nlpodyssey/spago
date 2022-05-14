@@ -123,10 +123,12 @@ func (dp *densePoolType[T]) Put(d *Dense[T]) {
 // ReleaseMatrix puts the given matrix in the appropriate global pool.
 // It currently works with Dense matrices only. For any other matrix
 // implementation, it panics.
-func ReleaseMatrix[T DType](m Matrix[T]) {
+func ReleaseMatrix(m Matrix) {
 	switch mt := m.(type) {
-	case *Dense[T]:
-		densePool[T]().Put(mt)
+	case *Dense[float32]:
+		densePool[float32]().Put(mt)
+	case *Dense[float64]:
+		densePool[float64]().Put(mt)
 	default:
 		panic(fmt.Sprintf("mat: cannot release matrix of type %T", mt))
 	}

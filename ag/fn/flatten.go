@@ -28,12 +28,12 @@ func (r *Flatten[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Flatten[T, O]) Forward() mat.Matrix[T] {
+func (r *Flatten[T, O]) Forward() mat.Matrix {
 	return r.x.Value().Flatten()
 }
 
 // Backward computes the backward pass.
-func (r *Flatten[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Flatten[T, O]) Backward(gy mat.Matrix) {
 	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
 		panic("fn: matrices with not compatible size")
 	}

@@ -21,10 +21,10 @@ func init() {
 }
 
 // MarshalBinary marshals a param into binary form.
-func (p *BaseParam[_]) MarshalBinary() ([]byte, error) {
+func (p *BaseParam[T]) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
-	err := mat.MarshalBinaryMatrix(p.value, buf)
+	err := mat.MarshalBinaryMatrix[T](p.value, buf)
 	if err != nil {
 		return nil, err
 	}

@@ -31,12 +31,12 @@ func (r *Mul[T, O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Mul[T, O]) Forward() mat.Matrix[T] {
+func (r *Mul[T, O]) Forward() mat.Matrix {
 	return r.x1.Value().Mul(r.x2.Value())
 }
 
 // Backward computes the backward pass.
-func (r *Mul[T, O]) Backward(gy mat.Matrix[T]) {
+func (r *Mul[T, O]) Backward(gy mat.Matrix) {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
 		panic("fn: matrices with not compatible size")
 	}
