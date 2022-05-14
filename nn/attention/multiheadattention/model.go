@@ -40,7 +40,7 @@ func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model[T] {
 }
 
 // Init initializes the self-attention heads and the merge layer with uniform Xavier random distribution.
-func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
+func (m *Model[T]) Init(rng *rand.LockedRand) {
 	gain := initializers.Gain[T](activation.Identity)
 	initializers.XavierUniform(m.OutputMerge.W.Value(), gain, rng)
 	for _, h := range m.Heads {

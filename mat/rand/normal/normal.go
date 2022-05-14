@@ -13,12 +13,12 @@ import (
 type Normal[T mat.DType] struct {
 	Std       T
 	Mean      T
-	generator *rand.LockedRand[T]
+	generator *rand.LockedRand
 }
 
 // New returns a new Normal, initialized with the given standard deviation and
 // mean parameters.
-func New[T mat.DType](std, mean T, generator *rand.LockedRand[T]) *Normal[T] {
+func New[T mat.DType](std, mean T, generator *rand.LockedRand) *Normal[T] {
 	return &Normal[T]{
 		Std:       std,
 		Mean:      mean,
@@ -28,5 +28,5 @@ func New[T mat.DType](std, mean T, generator *rand.LockedRand[T]) *Normal[T] {
 
 // Next returns a random sample drawn from the distribution.
 func (n Normal[T]) Next() T {
-	return n.generator.NormFloat()*n.Std + n.Mean
+	return T(n.generator.NormFloat64())*n.Std + n.Mean
 }

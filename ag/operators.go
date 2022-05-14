@@ -86,7 +86,7 @@ func Dropout[T mat.DType](x Node[T], p T) Node[T] {
 	if p == 0.0 {
 		return x
 	}
-	return NewOperator[T](fn.NewDropout[T](x, p, globalGenerator[T]()))
+	return NewOperator[T](fn.NewDropout[T](x, p, globalGenerator))
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.

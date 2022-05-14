@@ -28,7 +28,7 @@ func Gain[T mat.DType](f activation.Name) T {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Uniform[T mat.DType](m mat.Matrix, min, max T, generator *rand.LockedRand[T]) {
+func Uniform[T mat.DType](m mat.Matrix, min, max T, generator *rand.LockedRand) {
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -39,7 +39,7 @@ func Uniform[T mat.DType](m mat.Matrix, min, max T, generator *rand.LockedRand[T
 
 // Normal fills the input matrix with random samples from a normal (Gaussian)
 // distribution.
-func Normal[T mat.DType](m mat.Matrix, mean, std T, generator *rand.LockedRand[T]) {
+func Normal[T mat.DType](m mat.Matrix, mean, std T, generator *rand.LockedRand) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -69,7 +69,7 @@ func Zeros[T mat.DType](m mat.Matrix) {
 
 // XavierUniform fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
-func XavierUniform[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand[T]) {
+func XavierUniform[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
 	a := gain * mat.Sqrt(6.0/T(rows+cols))
 	dist := uniform.New(-a, a, generator)
@@ -84,7 +84,7 @@ func XavierUniform[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand
 // described in "Understanding the difficulty of training deep feedforward
 // neural networks" - Glorot, X. & Bengio, Y. (2010), using a normal
 // distribution.
-func XavierNormal[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand[T]) {
+func XavierNormal[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
 	std := gain * mat.Sqrt(2.0/T(rows+cols))
 	dist := normal.New(std, 0, generator)
@@ -99,7 +99,7 @@ func XavierNormal[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand[
 // described on "Database-friendly random projections: Johnson-Lindenstrauss
 // with binary coins", by Dimitris Achlioptas 2001
 // (https://core.ac.uk/download/pdf/82724427.pdf)
-func Achlioptas[T mat.DType](m mat.Matrix, generator *rand.LockedRand[T]) {
+func Achlioptas[T mat.DType](m mat.Matrix, generator *rand.LockedRand) {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := T(1.0 / 6.0)
 	upper := 1.0 - lower
@@ -112,7 +112,7 @@ func Achlioptas[T mat.DType](m mat.Matrix, generator *rand.LockedRand[T]) {
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			r := dist.Next()
+			r := T(dist.Next())
 			if r < lower {
 				m.SetScalar(i, j, negA)
 			} else if r > upper {

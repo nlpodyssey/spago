@@ -66,7 +66,7 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 
 // Initialize set the projection weights as near-zero values and the biases as ones to improve training stability.
 func (m *Model[T]) Initialize(seed uint64) {
-	r := rand.NewLockedRand[T](seed)
+	r := rand.NewLockedRand(seed)
 	eps := m.Config.InitEps / T(m.Config.DimSeq)
 	initializers.Uniform[T](m.Proj.W.Value(), -eps, eps, r)
 	initializers.Constant[T](m.Proj.B.Value(), 1)

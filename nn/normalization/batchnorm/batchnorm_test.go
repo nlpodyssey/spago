@@ -84,13 +84,13 @@ func testModelForwardParams[T mat.DType](t *testing.T) {
 		},
 	}
 
-	rnd := rand.NewLockedRand[T](42)
+	rnd := rand.NewLockedRand(42)
 
 	testData := make([][]T, numDataInstances)
 	for i := range testData {
 		testData[i] = make([]T, dataSize)
 		for j := range testData[i] {
-			testData[i][j] = T(rnd.NormFloat())
+			testData[i][j] = T(rnd.NormFloat64())
 		}
 	}
 

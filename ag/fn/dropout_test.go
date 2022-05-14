@@ -22,7 +22,7 @@ func testDropoutForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout[T](x, 0.25, rand.NewLockedRand[T](1))
+	f := NewDropout[T](x, 0.25, rand.NewLockedRand(1))
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()
@@ -49,7 +49,7 @@ func testZeroDropoutForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout[T](x, 0.0, rand.NewLockedRand[T](1))
+	f := NewDropout[T](x, 0.0, rand.NewLockedRand(1))
 	assert.Equal(t, []*variable[T]{x}, f.Operands())
 
 	y := f.Forward()
@@ -76,7 +76,7 @@ func testTotalDropoutForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	f := NewDropout[T](x, 1.0, rand.NewLockedRand[T](1))
+	f := NewDropout[T](x, 1.0, rand.NewLockedRand(1))
 	y := f.Forward()
 
 	assert.InDeltaSlice(t, []T{

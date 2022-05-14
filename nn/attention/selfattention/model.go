@@ -57,7 +57,7 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 }
 
 // Init initializes the query, key and value linear layers with uniform Xavier random distribution.
-func (m *Model[T]) Init(rng *rand.LockedRand[T]) {
+func (m *Model[T]) Init(rng *rand.LockedRand) {
 	gain := initializers.Gain[T](activation.Identity)
 	initializers.XavierUniform(m.Query.W.Value(), gain, rng)
 	initializers.XavierUniform(m.Key.W.Value(), gain, rng)

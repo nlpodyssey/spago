@@ -14,11 +14,11 @@ import (
 type Uniform[T mat.DType] struct {
 	Min       T
 	Max       T
-	generator *rand.LockedRand[T]
+	generator *rand.LockedRand
 }
 
 // New returns a new Normal, initialized with the given min and max parameters.
-func New[T mat.DType](min, max T, generator *rand.LockedRand[T]) *Uniform[T] {
+func New[T mat.DType](min, max T, generator *rand.LockedRand) *Uniform[T] {
 	return &Uniform[T]{
 		Min:       min,
 		Max:       max,
@@ -28,5 +28,5 @@ func New[T mat.DType](min, max T, generator *rand.LockedRand[T]) *Uniform[T] {
 
 // Next returns a random sample drawn from the distribution.
 func (u Uniform[T]) Next() T {
-	return u.generator.Float()*(u.Max-u.Min) + u.Min
+	return rand.LockedRandFloat[T](u.generator)*(u.Max-u.Min) + u.Min
 }

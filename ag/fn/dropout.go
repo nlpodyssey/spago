@@ -15,13 +15,13 @@ type Dropout[T mat.DType, O Operand[T]] struct {
 	x        O
 	prob     T
 	q        float64 // 1 - p
-	randGen  *rand.LockedRand[T]
+	randGen  *rand.LockedRand
 	mask     mat.Matrix // filled during the forward
 	operands []O
 }
 
 // NewDropout returns a new Dropout Function.
-func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand[T]) *Dropout[T, O] {
+func NewDropout[T mat.DType, O Operand[T]](x O, p T, randGen *rand.LockedRand) *Dropout[T, O] {
 	return &Dropout[T, O]{
 		x:        x,
 		prob:     p,
