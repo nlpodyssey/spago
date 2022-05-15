@@ -169,7 +169,7 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 	}, y[2].Value().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,
@@ -213,7 +213,7 @@ func newTestModel[T mat.DType]() *Model[T] {
 	return model
 }
 
-func newTestModel2[T mat.DType]() *Model[T] {
+func newTestModel2[T mat.DType]() *Model {
 	model := New[T](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,

@@ -5,6 +5,7 @@
 package selfattention
 
 import (
+	"math"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -24,7 +25,7 @@ func testModelSelfAttention[T mat.DType](t *testing.T) {
 	x2 := ag.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
 	x3 := ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
 
-	output, _, _ := model.Forward(Cache[T]{}, []ag.Node{x1, x2, x3})
+	output, _, _ := model.Forward(Cache{}, []ag.Node{x1, x2, x3})
 
 	assert.InDeltaSlice(t, []T{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)
@@ -66,13 +67,13 @@ func testModelSelfAttention[T mat.DType](t *testing.T) {
 	}, model.Query.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *SelfAttention[T] {
-	model := &SelfAttention[T]{New(Config[T]{
+func newTestModel[T mat.DType]() *SelfAttention {
+	model := &SelfAttention{New[T](Config{
 		InputSize:   4,
 		QuerySize:   3,
 		KeySize:     3,
 		ValueSize:   3,
-		ScaleFactor: 1.0 / mat.Sqrt[T](3.0),
+		ScaleFactor: 1.0 / math.Sqrt(3.0),
 	})}
 
 	mat.SetData[T](model.Value.W.Value(), []T{

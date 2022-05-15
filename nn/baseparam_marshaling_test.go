@@ -22,16 +22,16 @@ func testParamGob[T mat.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam[T](mat.NewScalar[T](12))
-		paramToEncode.SetPayload(&Payload[T]{
+		paramToEncode := NewParam(mat.NewScalar(T(12)))
+		paramToEncode.SetPayload(&Payload{
 			Label: 42,
-			Data:  []mat.Matrix{mat.NewScalar[T](34)},
+			Data:  []mat.Matrix{mat.NewScalar(T(34))},
 		})
 
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param[T]
+		var decodedParam Param
 
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
@@ -49,12 +49,12 @@ func testParamGob[T mat.DType](t *testing.T) {
 	t.Run("nil value and payload", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam[T](nil)
+		paramToEncode := NewParam(nil)
 
 		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param[T]
+		var decodedParam Param
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
@@ -72,11 +72,11 @@ func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		paramToEncode := NewParam[T](mat.NewScalar[T](42)).(*BaseParam[T])
+		paramToEncode := NewParam(mat.NewScalar[T](42)).(*BaseParam)
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
-		decodedParam, err := UnmarshalBinaryParam[T](buf)
+		decodedParam, err := UnmarshalBinaryParam(buf)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
 		assert.Equal(t, mat.Float(T(42)), decodedParam.Value().Scalar())
@@ -85,11 +85,11 @@ func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		var paramToEncode *BaseParam[T] = nil
+		var paramToEncode *BaseParam = nil
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
-		decodedParam, err := UnmarshalBinaryParam[T](buf)
+		decodedParam, err := UnmarshalBinaryParam(buf)
 		require.Nil(t, err)
 		assert.Nil(t, decodedParam)
 	})

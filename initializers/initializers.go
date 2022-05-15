@@ -10,16 +10,19 @@ import (
 	"github.com/nlpodyssey/spago/mat/rand/normal"
 	"github.com/nlpodyssey/spago/mat/rand/uniform"
 	"github.com/nlpodyssey/spago/nn/activation"
+	"math"
 )
+
+var sqrt2 = math.Sqrt(2.0)
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
 // Use it to find the gain value for Xavier initializations.
-func Gain[T mat.DType](f activation.Name) T {
+func Gain(f activation.Name) float64 {
 	switch f {
 	case activation.Sigmoid:
 		return 1.0
 	case activation.ReLU:
-		return mat.Sqrt[T](2.0)
+		return sqrt2
 	case activation.Tanh:
 		return 5.0 / 3
 	default:
@@ -28,7 +31,7 @@ func Gain[T mat.DType](f activation.Name) T {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Uniform[T mat.DType](m mat.Matrix, min, max T, generator *rand.LockedRand) {
+func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -39,7 +42,7 @@ func Uniform[T mat.DType](m mat.Matrix, min, max T, generator *rand.LockedRand) 
 
 // Normal fills the input matrix with random samples from a normal (Gaussian)
 // distribution.
-func Normal[T mat.DType](m mat.Matrix, mean, std T, generator *rand.LockedRand) {
+func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
@@ -49,29 +52,30 @@ func Normal[T mat.DType](m mat.Matrix, mean, std T, generator *rand.LockedRand) 
 }
 
 // Constant fills the input matrix with the value n.
-func Constant[T mat.DType](m mat.Matrix, n T) {
+func Constant(m mat.Matrix, n float64) {
+	c := m.NewScalar(mat.Float(n))
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, mat.Float(n))
+			m.Set(i, j, c)
 		}
 	}
 }
 
 // Ones fills the input matrix with the scalar value `1`.
-func Ones[T mat.DType](m mat.Matrix) {
-	Constant(m, 1.0)
+func Ones(m mat.Matrix) {
+	Constant(m, 1)
 }
 
 // Zeros fills the input matrix with the scalar value `0`.
-func Zeros[T mat.DType](m mat.Matrix) {
+func Zeros(m mat.Matrix) {
 	m.Zeros()
 }
 
 // XavierUniform fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
-func XavierUniform[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand) {
+func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
-	a := gain * mat.Sqrt(6.0/T(rows+cols))
+	a := gain * math.Sqrt(6.0/float64(rows+cols))
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -84,9 +88,9 @@ func XavierUniform[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand
 // described in "Understanding the difficulty of training deep feedforward
 // neural networks" - Glorot, X. & Bengio, Y. (2010), using a normal
 // distribution.
-func XavierNormal[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand) {
+func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	rows, cols := m.Dims()
-	std := gain * mat.Sqrt(2.0/T(rows+cols))
+	std := gain * math.Sqrt(2.0/float64(rows+cols))
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
@@ -99,26 +103,26 @@ func XavierNormal[T mat.DType](m mat.Matrix, gain T, generator *rand.LockedRand)
 // described on "Database-friendly random projections: Johnson-Lindenstrauss
 // with binary coins", by Dimitris Achlioptas 2001
 // (https://core.ac.uk/download/pdf/82724427.pdf)
-func Achlioptas[T mat.DType](m mat.Matrix, generator *rand.LockedRand) {
+func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	dist := uniform.New(0.0, 1.0, generator)
-	lower := T(1.0 / 6.0)
+	lower := 1.0 / 6.0
 	upper := 1.0 - lower
 
-	sqrt3 := mat.Sqrt[T](3.0)
-	a := mat.Float(sqrt3)
-	negA := mat.Float(-sqrt3)
-	zero := mat.Float(T(0))
+	sqrt3 := math.Sqrt(3)
+	a := m.NewScalar(mat.Float(sqrt3))
+	negA := m.NewScalar(mat.Float(-sqrt3))
+	zero := m.NewScalar(mat.Float(0.0))
 
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			r := T(dist.Next())
+			r := dist.Next()
 			if r < lower {
-				m.SetScalar(i, j, negA)
+				m.Set(i, j, negA)
 			} else if r > upper {
-				m.SetScalar(i, j, a)
+				m.Set(i, j, a)
 			} else {
-				m.SetScalar(i, j, zero)
+				m.Set(i, j, zero)
 			}
 		}
 	}

@@ -15,7 +15,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func testModelForward[T mat.DType](t *testing.T) {
-	model := New(Config[T]{
+	model := New[T](Config{
 		Dim:        16,
 		DimSeq:     2,
 		InitEps:    0.001,

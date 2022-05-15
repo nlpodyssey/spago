@@ -12,14 +12,14 @@ import (
 )
 
 // Payload contains the support data used for example by the optimization methods
-type Payload[T mat.DType] struct {
+type Payload struct {
 	Label int
 	Data  []mat.Matrix
 }
 
 // NewPayload returns an empty support structure, not connected to any optimization method.
-func NewPayload[T mat.DType]() *Payload[T] {
-	return &Payload[T]{
+func NewPayload() *Payload {
+	return &Payload{
 		Label: 0, // important set the label to zero
 		Data:  make([]mat.Matrix, 0),
 	}
@@ -27,7 +27,7 @@ func NewPayload[T mat.DType]() *Payload[T] {
 
 // ClearData removes and releases all matrices from Data, setting data to an
 // empty slice.
-func (p *Payload[_]) ClearData() {
+func (p *Payload) ClearData() {
 	data := p.Data
 	for i, m := range data {
 		mat.ReleaseMatrix(m)
@@ -37,7 +37,7 @@ func (p *Payload[_]) ClearData() {
 }
 
 // MarshalBinary encodes the Payload into binary form.
-func (p Payload[T]) MarshalBinary() ([]byte, error) {
+func (p Payload) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	binLabel := make([]byte, 8)
@@ -59,7 +59,7 @@ func (p Payload[T]) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary decodes a Payload from binary form.
-func (p *Payload[T]) UnmarshalBinary(data []byte) error {
+func (p *Payload) UnmarshalBinary(data []byte) error {
 	p.Label = int(binary.LittleEndian.Uint64(data))
 	dataLen := int(binary.LittleEndian.Uint32(data[8:]))
 

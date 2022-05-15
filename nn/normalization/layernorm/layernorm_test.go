@@ -33,7 +33,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-1.0, -0.2, 0.4, 0.6}, model.B.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4, 1e-12)
 	mat.SetData[T](model.W.Value(), []T{0.4, 0.0, -0.3, 0.8})
 	mat.SetData[T](model.B.Value(), []T{0.9, 0.2, -0.9, 0.2})

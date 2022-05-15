@@ -31,7 +31,7 @@ type Node interface {
 	Name() string
 }
 
-// ToNodes casts a slice of N[T] into a slice of ag.Node.
+// ToNodes casts a slice []N into a slice []ag.Node.
 func ToNodes[N Node](xs []N) []Node {
 	ns := make([]Node, len(xs))
 	for i, v := range xs {

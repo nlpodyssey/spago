@@ -28,24 +28,24 @@ const (
 	Avg
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Positive  nn.StandardModel[T] // positive time direction a.k.a. left-to-right
-	Negative  nn.StandardModel[T] // negative time direction a.k.a. right-to-left
+	Positive  nn.StandardModel // positive time direction a.k.a. left-to-right
+	Negative  nn.StandardModel // negative time direction a.k.a. right-to-left
 	MergeMode MergeType
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](positive, negative nn.StandardModel[T], merge MergeType) *Model[T] {
-	return &Model[T]{
+func New(positive, negative nn.StandardModel, merge MergeType) *Model {
+	return &Model{
 		Positive:  positive,
 		Negative:  negative,
 		MergeMode: merge,
@@ -53,7 +53,7 @@ func New[T mat.DType](positive, negative nn.StandardModel[T], merge MergeType) *
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	var pos []ag.Node
 	var neg []ag.Node
 	var wg sync.WaitGroup
@@ -84,7 +84,7 @@ func reversed(ns []ag.Node) []ag.Node {
 	return r
 }
 
-func (m *Model[T]) merge(a, b ag.Node) ag.Node {
+func (m *Model) merge(a, b ag.Node) ag.Node {
 	switch m.MergeMode {
 	case Concat:
 		return ag.Concat(a, b)

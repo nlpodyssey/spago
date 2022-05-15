@@ -5,7 +5,6 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"time"
 )
@@ -13,13 +12,13 @@ import (
 var globalGenerator = rand.NewLockedRand(12345)
 
 // Seed sets the seed for generating random numbers to the current time (converted to uint64).
-func Seed[T mat.DType]() *rand.LockedRand {
+func Seed() *rand.LockedRand {
 	globalGenerator.Seed(uint64(time.Now().UnixNano()))
 	return globalGenerator
 }
 
 // ManualSeed sets the seed for generating random numbers.
-func ManualSeed[T mat.DType](seed uint64) *rand.LockedRand {
+func ManualSeed(seed uint64) *rand.LockedRand {
 	globalGenerator.Seed(seed)
 	return globalGenerator
 }

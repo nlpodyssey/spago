@@ -17,28 +17,27 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the scaling factor.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Scale T
+	Scale float64
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model.
-func New[T mat.DType](scale T) *Model[T] {
-	return &Model[T]{
+func New(scale float64) *Model {
+	return &Model{
 		Scale: scale,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
@@ -59,7 +58,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Mean computes the mean of the input.
-func (m *Model[T]) Mean(xs []ag.Node) []ag.Node {
+func (m *Model) Mean(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ReduceMean(x)
@@ -68,7 +67,7 @@ func (m *Model[T]) Mean(xs []ag.Node) []ag.Node {
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model[T]) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
+func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
 	devVectors := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		diffVector := ag.Square(ag.SubScalar(x, meanVectors[i]))

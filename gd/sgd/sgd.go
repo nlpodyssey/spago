@@ -29,7 +29,7 @@ func NewConfig(lr, momentum float64, nesterov bool) Config {
 	}
 }
 
-var _ gd.Method[float32] = &SGD[float32]{}
+var _ gd.Method = &SGD[float32]{}
 
 // SGD implements the SGD gradient descent optimization method.
 type SGD[T mat.DType] struct {
@@ -55,10 +55,10 @@ const (
 )
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
+func (o *SGD[T]) NewSupport(r, c int) *nn.Payload {
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
-		return &nn.Payload[T]{
+		return &nn.Payload{
 			Label: o.Label(),
 			Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // v at index 0
 		}
@@ -67,7 +67,7 @@ func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
 		supp := make([]mat.Matrix, 2)
 		supp[v] = mat.NewEmptyDense[T](r, c)
 		supp[buf] = mat.NewEmptyDense[T](r, c)
-		return &nn.Payload[T]{
+		return &nn.Payload{
 			Label: o.Label(),
 			Data:  supp,
 		}
@@ -77,15 +77,15 @@ func (o *SGD[T]) NewSupport(r, c int) *nn.Payload[T] {
 	supp[buf] = mat.NewEmptyDense[T](r, c)
 	supp[vPrev] = mat.NewEmptyDense[T](r, c)
 	supp[vTmp] = mat.NewEmptyDense[T](r, c)
-	return &nn.Payload[T]{
+	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *SGD[T]) Delta(param nn.Param[T]) mat.Matrix {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
+func (o *SGD[T]) Delta(param nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 func (o *SGD[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

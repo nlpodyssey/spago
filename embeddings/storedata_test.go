@@ -15,12 +15,12 @@ import (
 )
 
 var (
-	_ encoding.BinaryMarshaler   = &storeData[float32]{}
-	_ encoding.BinaryUnmarshaler = &storeData[float32]{}
+	_ encoding.BinaryMarshaler   = &storeData{}
+	_ encoding.BinaryUnmarshaler = &storeData{}
 )
 
 func TestStoreData(t *testing.T) {
-	sd := &storeData[float32]{}
+	sd := &storeData{}
 
 	assert.Nil(t, sd.Value())
 	assert.Nil(t, sd.Payload())
@@ -37,7 +37,7 @@ func TestStoreData(t *testing.T) {
 
 	// Set Payload
 
-	payload := &nn.Payload[float32]{
+	payload := &nn.Payload{
 		Label: 123,
 		Data: []mat.Matrix{
 			mat.NewScalar[float32](11),
@@ -70,7 +70,7 @@ func TestStoreData(t *testing.T) {
 
 func TestStoreData_MarshalBinary(t *testing.T) {
 	value := mat.NewScalar[float32](42)
-	payload := &nn.Payload[float32]{
+	payload := &nn.Payload{
 		Label: 123,
 		Data: []mat.Matrix{
 			mat.NewScalar[float32](11),
@@ -78,7 +78,7 @@ func TestStoreData_MarshalBinary(t *testing.T) {
 		},
 	}
 
-	sd := marshalUnmarshal(t, &storeData[float32]{
+	sd := marshalUnmarshal(t, &storeData{
 		value:   value,
 		payload: payload,
 	})
@@ -142,25 +142,25 @@ func TestStoreData_MarshalBinary(t *testing.T) {
 	}
 }
 
-func assertMarshalUnmarshalProducesSameValue(t *testing.T, sd *storeData[float32]) {
+func assertMarshalUnmarshalProducesSameValue(t *testing.T, sd *storeData) {
 	t.Helper()
 	other := marshalUnmarshal(t, sd)
 	assertStoreDataEqual(t, sd, other)
 }
 
-func marshalUnmarshal(t *testing.T, sd *storeData[float32]) *storeData[float32] {
+func marshalUnmarshal(t *testing.T, sd *storeData) *storeData {
 	t.Helper()
 
 	data, err := sd.MarshalBinary()
 	require.NoError(t, err)
 
-	other := new(storeData[float32])
+	other := new(storeData)
 	err = other.UnmarshalBinary(data)
 	require.NoError(t, err)
 	return other
 }
 
-func assertStoreDataEqual(t *testing.T, expected, actual *storeData[float32]) {
+func assertStoreDataEqual(t *testing.T, expected, actual *storeData) {
 	t.Helper()
 	assertMatrixEqual(t, expected.Value(), actual.Value())
 	assertPayloadEqual(t, expected.Payload(), actual.Payload())
@@ -183,7 +183,7 @@ func assertMatrixEqual(t *testing.T, expected, actual mat.Matrix) {
 	assert.Equal(t, expected.Data(), actual.Data())
 }
 
-func assertPayloadEqual(t *testing.T, expected, actual *nn.Payload[float32]) {
+func assertPayloadEqual(t *testing.T, expected, actual *nn.Payload) {
 	t.Helper()
 
 	if expected == nil {

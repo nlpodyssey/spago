@@ -19,7 +19,7 @@ func TestModelReLU_Forward(t *testing.T) {
 }
 
 func testModelReLUForward[T mat.DType](t *testing.T) {
-	m := New[T](ReLU)
+	m := New(ReLU)
 
 	x := ag.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
 	y := m.Forward(x)[0]
@@ -38,11 +38,11 @@ func TestModelSwish_Forward(t *testing.T) {
 }
 
 func testModelSwishForward[T mat.DType](t *testing.T) {
-	beta := nn.NewParam[T](mat.NewScalar[T](2.0))
+	beta := nn.NewParam(mat.NewScalar(T(2)))
 	m := New(SwishB, beta)
 
 	// == Forward
-	x := ag.NewVariable(mat.NewVecDense[T]([]T{0.1, -0.2, 0.3, 0.0}), true)
+	x := ag.NewVariable(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}), true)
 	y := m.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Value().Data(), 1.0e-6)

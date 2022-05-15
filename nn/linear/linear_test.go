@@ -20,22 +20,22 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-type testLinearWithActivationModel[T mat.DType] struct {
+type testLinearWithActivationModel struct {
 	nn.Module
-	M1 *Model[T]
-	M2 *activation.Model[T]
+	M1 *Model
+	M2 *activation.Model
 }
 
-func (m *testLinearWithActivationModel[T]) forward(x ag.Node) ag.Node {
+func (m *testLinearWithActivationModel) forward(x ag.Node) ag.Node {
 	return m.M2.Forward(m.M1.Forward(x)[0])[0]
 }
 
 func testModelForward[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	m := &testLinearWithActivationModel[T]{
+	m := &testLinearWithActivationModel{
 		M1: model,
-		M2: activation.New[T](activation.Tanh),
+		M2: activation.New(activation.Tanh),
 	}
 
 	// == Forward
@@ -66,7 +66,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	}, model.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4, 5)
 	mat.SetData[T](model.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,

@@ -55,7 +55,7 @@ func TestOperator_Operands(t *testing.T) {
 }
 
 func testOperatorOperands[T mat.DType](t *testing.T) {
-	operands := []Node{&dummyNode[T]{id: 1}}
+	operands := []Node{&dummyNode{id: 1}}
 	f := &dummyFunction[T, Node]{
 		operands: func() []Node { return operands },
 	}
@@ -102,8 +102,8 @@ func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{
 			operands: func() []Node {
 				return []Node{
-					&dummyNode[T]{id: 1, requiresGrad: false},
-					&dummyNode[T]{id: 2, requiresGrad: false},
+					&dummyNode{id: 1, requiresGrad: false},
+					&dummyNode{id: 2, requiresGrad: false},
 				}
 			},
 		})
@@ -114,8 +114,8 @@ func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{
 			operands: func() []Node {
 				return []Node{
-					&dummyNode[T]{id: 1, requiresGrad: false},
-					&dummyNode[T]{id: 2, requiresGrad: true},
+					&dummyNode{id: 1, requiresGrad: false},
+					&dummyNode{id: 2, requiresGrad: true},
 				}
 			},
 		})
@@ -135,7 +135,7 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 				return mat.NewScalar[T](42)
 			},
 			operands: func() []Node {
-				return []Node{&dummyNode[T]{requiresGrad: true}}
+				return []Node{&dummyNode{requiresGrad: true}}
 			},
 		})
 

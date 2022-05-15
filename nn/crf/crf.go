@@ -12,41 +12,40 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Size             int
-	TransitionScores nn.Param[T] `spago:"type:weights"`
+	TransitionScores nn.Param `spago:"type:weights"`
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New[T mat.DType](size int) *Model[T] {
-	return &Model[T]{
+func New[T mat.DType](size int) *Model {
+	return &Model{
 		Size:             size,
-		TransitionScores: nn.NewParam[T](mat.NewEmptyDense[T](size+1, size+1)), // +1 for start and end transitions
+		TransitionScores: nn.NewParam(mat.NewEmptyDense[T](size+1, size+1)), // +1 for start and end transitions
 	}
 }
 
 // Decode performs viterbi decoding.
-func (m *Model[T]) Decode(emissionScores []ag.Node) []int {
+func (m *Model) Decode(emissionScores []ag.Node) []int {
 	return Viterbi(m.TransitionScores.Value(), emissionScores)
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.
-func (m *Model[T]) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
+func (m *Model) NegativeLogLoss(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := m.goldScore(emissionScores, target)
 	totalScore := m.totalScore(emissionScores)
 	return ag.Sub(totalScore, goldScore)
 }
 
-func (m *Model[T]) goldScore(emissionScores []ag.Node, target []int) ag.Node {
+func (m *Model) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 	goldScore := ag.At(emissionScores[0], target[0], 0)
 	goldScore = ag.Add(goldScore, ag.At(m.TransitionScores, 0, target[0]+1)) // start transition
 	prevIndex := target[0] + 1
@@ -59,7 +58,7 @@ func (m *Model[T]) goldScore(emissionScores []ag.Node, target []int) ag.Node {
 	return goldScore
 }
 
-func (m *Model[T]) totalScore(predicted []ag.Node) ag.Node {
+func (m *Model) totalScore(predicted []ag.Node) ag.Node {
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
 		totalVector = m.totalScoreStep(totalVector, ag.SeparateVec(predicted[i]))
@@ -68,7 +67,7 @@ func (m *Model[T]) totalScore(predicted []ag.Node) ag.Node {
 	return ag.Log(ag.ReduceSum(ag.Concat(totalVector...)))
 }
 
-func (m *Model[T]) totalScoreStart(stepVec ag.Node) []ag.Node {
+func (m *Model) totalScoreStart(stepVec ag.Node) []ag.Node {
 	scores := make([]ag.Node, m.Size)
 	for i := 0; i < m.Size; i++ {
 		scores[i] = ag.Add(ag.AtVec(stepVec, i), ag.At(m.TransitionScores, 0, i+1))
@@ -76,7 +75,7 @@ func (m *Model[T]) totalScoreStart(stepVec ag.Node) []ag.Node {
 	return scores
 }
 
-func (m *Model[T]) totalScoreEnd(stepVec []ag.Node) []ag.Node {
+func (m *Model) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	scores := make([]ag.Node, m.Size)
 	for i := 0; i < m.Size; i++ {
 		vecTrans := ag.Add(stepVec[i], ag.At(m.TransitionScores, i+1, 0))
@@ -85,7 +84,7 @@ func (m *Model[T]) totalScoreEnd(stepVec []ag.Node) []ag.Node {
 	return scores
 }
 
-func (m *Model[T]) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
+func (m *Model) totalScoreStep(totalVec []ag.Node, stepVec []ag.Node) []ag.Node {
 	scores := make([]ag.Node, m.Size)
 	for i := 0; i < m.Size; i++ {
 		nodei := totalVec[i]

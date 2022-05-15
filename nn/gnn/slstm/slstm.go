@@ -16,28 +16,28 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // TODO(1): code refactoring using a structure to maintain states.
 // TODO(2): use a gradient policy (i.e. reinforcement learning) to increase the context with dynamic skip connections.
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Config                 Config
-	InputGate              *HyperLinear4[T]
-	LeftCellGate           *HyperLinear4[T]
-	RightCellGate          *HyperLinear4[T]
-	CellGate               *HyperLinear4[T]
-	SentCellGate           *HyperLinear4[T]
-	OutputGate             *HyperLinear4[T]
-	InputActivation        *HyperLinear4[T]
-	NonLocalSentCellGate   *HyperLinear3[T]
-	NonLocalInputGate      *HyperLinear3[T]
-	NonLocalSentOutputGate *HyperLinear3[T]
-	StartH                 nn.Param[T] `spago:"type:weights"`
-	EndH                   nn.Param[T] `spago:"type:weights"`
-	InitValue              nn.Param[T] `spago:"type:weights"`
+	InputGate              *HyperLinear4
+	LeftCellGate           *HyperLinear4
+	RightCellGate          *HyperLinear4
+	CellGate               *HyperLinear4
+	SentCellGate           *HyperLinear4
+	OutputGate             *HyperLinear4
+	InputActivation        *HyperLinear4
+	NonLocalSentCellGate   *HyperLinear3
+	NonLocalInputGate      *HyperLinear3
+	NonLocalSentOutputGate *HyperLinear3
+	StartH                 nn.Param `spago:"type:weights"`
+	EndH                   nn.Param `spago:"type:weights"`
+	InitValue              nn.Param `spago:"type:weights"`
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.
@@ -50,24 +50,24 @@ type Config struct {
 const windowSize = 3 // the window is fixed in this implementation
 
 // HyperLinear4 groups multiple params for an affine transformation.
-type HyperLinear4[T mat.DType] struct {
+type HyperLinear4 struct {
 	nn.Module
-	W nn.Param[T] `spago:"type:weights"`
-	U nn.Param[T] `spago:"type:weights"`
-	V nn.Param[T] `spago:"type:weights"`
-	B nn.Param[T] `spago:"type:biases"`
+	W nn.Param `spago:"type:weights"`
+	U nn.Param `spago:"type:weights"`
+	V nn.Param `spago:"type:weights"`
+	B nn.Param `spago:"type:biases"`
 }
 
 // HyperLinear3 groups multiple params for an affine transformation.
-type HyperLinear3[T mat.DType] struct {
+type HyperLinear3 struct {
 	nn.Module
-	W nn.Param[T] `spago:"type:weights"`
-	U nn.Param[T] `spago:"type:weights"`
-	B nn.Param[T] `spago:"type:biases"`
+	W nn.Param `spago:"type:weights"`
+	U nn.Param `spago:"type:weights"`
+	B nn.Param `spago:"type:biases"`
 }
 
 // State contains nodes used during the forward step.
-type State[T mat.DType] struct {
+type State struct {
 	xUi []ag.Node
 	xUl []ag.Node
 	xUr []ag.Node
@@ -86,14 +86,13 @@ type State[T mat.DType] struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config) *Model[T] {
+func New[T mat.DType](config Config) *Model {
 	in, out := config.InputSize, config.OutputSize
-	return &Model[T]{
+	return &Model{
 		Config:                 config,
 		InputGate:              newGate4[T](in, out),
 		LeftCellGate:           newGate4[T](in, out),
@@ -105,31 +104,31 @@ func New[T mat.DType](config Config) *Model[T] {
 		NonLocalSentCellGate:   newGate3[T](out),
 		NonLocalInputGate:      newGate3[T](out),
 		NonLocalSentOutputGate: newGate3[T](out),
-		StartH:                 nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
-		EndH:                   nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
-		InitValue:              nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		StartH:                 nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		EndH:                   nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		InitValue:              nn.NewParam(mat.NewEmptyVecDense[T](out)),
 	}
 }
 
-func newGate4[T mat.DType](in, out int) *HyperLinear4[T] {
-	return &HyperLinear4[T]{
-		W: nn.NewParam[T](mat.NewEmptyDense[T](out, out*windowSize)),
-		U: nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
-		V: nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
-		B: nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+func newGate4[T mat.DType](in, out int) *HyperLinear4 {
+	return &HyperLinear4{
+		W: nn.NewParam(mat.NewEmptyDense[T](out, out*windowSize)),
+		U: nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		V: nn.NewParam(mat.NewEmptyDense[T](out, out)),
+		B: nn.NewParam(mat.NewEmptyVecDense[T](out)),
 	}
 }
 
-func newGate3[T mat.DType](size int) *HyperLinear3[T] {
-	return &HyperLinear3[T]{
-		W: nn.NewParam[T](mat.NewEmptyDense[T](size, size)),
-		U: nn.NewParam[T](mat.NewEmptyDense[T](size, size)),
-		B: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+func newGate3[T mat.DType](size int) *HyperLinear3 {
+	return &HyperLinear3{
+		W: nn.NewParam(mat.NewEmptyDense[T](size, size)),
+		U: nn.NewParam(mat.NewEmptyDense[T](size, size)),
+		B: nn.NewParam(mat.NewEmptyVecDense[T](size)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	steps := m.Config.Steps
 	n := len(xs)
 	h := make([][]ag.Node, steps)
@@ -146,7 +145,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 		c[0][i] = m.InitValue
 	}
 
-	s := &State[T]{}
+	s := &State{}
 	m.computeUx(s, xs) // the result is shared among all steps
 	for t := 1; t < m.Config.Steps; t++ {
 		m.computeVg(s, g[t-1]) // the result is shared among all nodes of the same step
@@ -157,7 +156,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	return h[len(h)-1]
 }
 
-func (m *Model[T]) computeUx(s *State[T], xs []ag.Node) {
+func (m *Model) computeUx(s *State, xs []ag.Node) {
 	n := len(xs)
 	s.xUi = make([]ag.Node, n)
 	s.xUl = make([]ag.Node, n)
@@ -178,7 +177,7 @@ func (m *Model[T]) computeUx(s *State[T], xs []ag.Node) {
 	}
 }
 
-func (m *Model[T]) computeVg(s *State[T], prevG ag.Node) {
+func (m *Model) computeVg(s *State, prevG ag.Node) {
 	s.ViPrevG = ag.Mul(m.InputGate.V, prevG)
 	s.VlPrevG = ag.Mul(m.LeftCellGate.V, prevG)
 	s.VrPrevG = ag.Mul(m.RightCellGate.V, prevG)
@@ -188,7 +187,7 @@ func (m *Model[T]) computeVg(s *State[T], prevG ag.Node) {
 	s.VuPrevG = ag.Mul(m.InputActivation.U, prevG)
 }
 
-func (m *Model[T]) updateHiddenNodes(s *State[T], prevH []ag.Node, prevC []ag.Node, prevG ag.Node) ([]ag.Node, []ag.Node) {
+func (m *Model) updateHiddenNodes(s *State, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) ([]ag.Node, []ag.Node) {
 	n := len(prevH)
 	h := make([]ag.Node, n)
 	c := make([]ag.Node, n)
@@ -198,7 +197,7 @@ func (m *Model[T]) updateHiddenNodes(s *State[T], prevH []ag.Node, prevC []ag.No
 	return h, c
 }
 
-func (m *Model[T]) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
+func (m *Model) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
 	n := len(prevH)
 	avgH := ag.Mean(prevH)
 	fG := ag.Sigmoid(ag.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
@@ -220,7 +219,7 @@ func (m *Model[T]) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG a
 	return gt, cg
 }
 
-func (m *Model[T]) processNode(s *State[T], i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
+func (m *Model) processNode(s *State, i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
 	n := len(prevH)
 	first := 0
 	last := n - 1

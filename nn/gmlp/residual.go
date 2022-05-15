@@ -8,32 +8,30 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Residual[float32]{}
+var _ nn.Model = &Residual{}
 
 // Residual is a helper model to perform residual connections.
-type Residual[T mat.DType] struct {
+type Residual struct {
 	nn.Module
-	PreNorm *PreNorm[T]
+	PreNorm *PreNorm
 }
 
 func init() {
-	gob.Register(&Residual[float32]{})
-	gob.Register(&Residual[float64]{})
+	gob.Register(&Residual{})
 }
 
 // NewResidual returns a new Residual.
-func NewResidual[T mat.DType](preNorm *PreNorm[T]) *Residual[T] {
-	return &Residual[T]{
+func NewResidual(preNorm *PreNorm) *Residual {
+	return &Residual{
 		PreNorm: preNorm,
 	}
 }
 
 // Forward performs the forward step.
-func (m *Residual[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Residual) Forward(xs ...ag.Node) []ag.Node {
 	pns := m.PreNorm.Forward(xs...)
 	ys := make([]ag.Node, len(pns))
 	for i, pn := range pns {

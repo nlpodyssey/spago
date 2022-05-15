@@ -20,34 +20,33 @@ import (
 )
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Config Config[T]
-	Norm   *layernorm.Model[T]
-	Proj   *conv1x1.Model[T]
-	Act    *activation.Model[T]
+	Config Config
+	Norm   *layernorm.Model
+	Proj   *conv1x1.Model
+	Act    *activation.Model
 }
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Config provides configuration parameters for Model.
-type Config[T mat.DType] struct {
+type Config struct {
 	Dim        int
 	DimSeq     int
-	InitEps    T
+	InitEps    float64
 	Activation activation.Name
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new Model initialized to zeros.
-func New[T mat.DType](config Config[T]) *Model[T] {
+func New[T mat.DType](config Config) *Model {
 	dimOut := config.Dim / 2
 
-	m := &Model[T]{
+	m := &Model{
 		Config: config,
 		Norm:   layernorm.New[T](dimOut, 1e-12),
 		Proj: conv1x1.New[T](conv1x1.Config{
@@ -58,22 +57,22 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 	}
 
 	if config.Activation != activation.Identity {
-		m.Act = activation.New[T](config.Activation)
+		m.Act = activation.New(config.Activation)
 	}
 
 	return m
 }
 
 // Initialize set the projection weights as near-zero values and the biases as ones to improve training stability.
-func (m *Model[T]) Initialize(seed uint64) {
+func (m *Model) Initialize(seed uint64) {
 	r := rand.NewLockedRand(seed)
-	eps := m.Config.InitEps / T(m.Config.DimSeq)
-	initializers.Uniform[T](m.Proj.W.Value(), -eps, eps, r)
-	initializers.Constant[T](m.Proj.B.Value(), 1)
+	eps := m.Config.InitEps / float64(m.Config.DimSeq)
+	initializers.Uniform(m.Proj.W.Value(), -eps, eps, r)
+	initializers.Constant(m.Proj.B.Value(), 1)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	size := xs[0].Value().Size()
 	halfSize := size / 2
 

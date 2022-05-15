@@ -15,23 +15,23 @@ func TestIntrospect(t *testing.T) {
 
 	type OtherModel struct {
 		Module
-		Baz Param[T] `spago:"type:weights"`
-		Qux Param[T]
+		Baz Param `spago:"type:weights"`
+		Qux Param
 	}
 
 	type Model struct {
 		Module
-		Foo   Param[T] `spago:"type:biases"`
-		Bar   Param[T]
+		Foo   Param `spago:"type:biases"`
+		Bar   Param
 		Other *OtherModel
 	}
 
 	m := &Model{
-		Foo: NewParam[T](mat.NewScalar[T](1)),
-		Bar: NewParam[T](mat.NewScalar[T](2)),
+		Foo: NewParam(mat.NewScalar[T](1)),
+		Bar: NewParam(mat.NewScalar[T](2)),
 		Other: &OtherModel{
-			Baz: NewParam[T](mat.NewScalar[T](3)),
-			Qux: NewParam[T](mat.NewScalar[T](4)),
+			Baz: NewParam(mat.NewScalar[T](3)),
+			Qux: NewParam(mat.NewScalar[T](4)),
 		},
 	}
 
@@ -47,7 +47,7 @@ func TestIntrospect(t *testing.T) {
 	assert.Equal(t, "", m.Other.Qux.Name())
 	assert.Equal(t, Undefined, m.Other.Qux.Type())
 
-	m2 := Introspect[T](m)
+	m2 := Introspect(m)
 	assert.Same(t, m, m2)
 
 	assert.Equal(t, "Foo", m.Foo.Name())

@@ -16,25 +16,24 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model is an empty model used to instantiate a new Processor.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model.
-func New[T mat.DType]() *Model[T] {
-	return &Model[T]{}
+func New() *Model {
+	return &Model{}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(1e-10)))
 	for i, x := range xs {

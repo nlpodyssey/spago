@@ -16,12 +16,12 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	Config Config
-	*stack.Model[T]
+	*stack.Model
 }
 
 // Config provides configuration parameters for a the gMLP Model.
@@ -35,15 +35,14 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new Model.
-func New[T mat.DType](config Config) *Model[T] {
-	layer := func(_ int) nn.StandardModel[T] {
+func New[T mat.DType](config Config) *Model {
+	layer := func(_ int) nn.StandardModel {
 		return NewResidual(
-			NewPreNorm(
+			NewPreNorm[T](
 				config.Dim,
 				NewBlock[T](BlockConfig{
 					Dim:        config.Dim,
@@ -54,19 +53,22 @@ func New[T mat.DType](config Config) *Model[T] {
 			),
 		)
 	}
-	return &Model[T]{
+	return &Model{
 		Config: config,
 		Model:  stack.Make(config.Depth, layer), // TODO: add "prob to survive" in the `stack` pkg
 	}
 }
 
 // Forward performs the forward step. It adds pads if necessary.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
-	padded := ag.Pad(xs, m.Config.SeqLen, func(_ int) ag.Node {
-		return ag.NewVariable(mat.NewEmptyVecDense[T](m.Config.Dim), false)
+	if len(xs) == 0 {
+		return nil
+	}
+	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.Node {
+		return ag.NewVariable(xs[0].Value().NewEmptyVec(m.Config.Dim), false)
 	})
 	return m.Model.Forward(padded...)
 }

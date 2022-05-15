@@ -35,7 +35,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.Method[float32] = &AdaGrad[float32]{}
+var _ gd.Method = &AdaGrad[float32]{}
 
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References
@@ -58,16 +58,16 @@ func (o *AdaGrad[_]) Label() int {
 }
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *AdaGrad[T]) NewSupport(r, c int) *nn.Payload[T] {
-	return &nn.Payload[T]{
+func (o *AdaGrad[T]) NewSupport(r, c int) *nn.Payload {
+	return &nn.Payload{
 		Label: o.Label(),
 		Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // m at index 0
 	}
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *AdaGrad[T]) Delta(param nn.Param[T]) mat.Matrix {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
+func (o *AdaGrad[T]) Delta(param nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 // m = m + grads*grads

@@ -8,29 +8,27 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model is a parameter-free model used to instantiate a new Processor.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model.
-func New[T mat.DType]() *Model[T] {
-	return &Model[T]{}
+func New() *Model {
+	return &Model{}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	vectorized := func(x ag.Node) ag.Node {
 		return ag.T(ag.Flatten(x))
 	}

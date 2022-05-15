@@ -12,28 +12,27 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	B nn.Param[T] `spago:"type:weights"`
+	B nn.Param `spago:"type:weights"`
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, rank int) *Model[T] {
-	return &Model[T]{
-		B: nn.NewParam[T](mat.NewEmptyDense[T](rank, in)),
+func New[T mat.DType](in, rank int) *Model {
+	return &Model{
+		B: nn.NewParam(mat.NewEmptyDense[T](rank, in)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
@@ -41,7 +40,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
-func (m *Model[T]) forward(x ag.Node) ag.Node {
+func (m *Model) forward(x ag.Node) ag.Node {
 	bh := ag.Mul(m.B, x)
 	return ag.Mul(ag.T(bh), bh)
 }

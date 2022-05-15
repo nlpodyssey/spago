@@ -52,7 +52,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.Method[float32] = &Lamb[float32]{}
+var _ gd.Method = &Lamb[float32]{}
 
 // Lamb implements the Lamb gradient descent optimization method.
 type Lamb[T mat.DType] struct {
@@ -85,14 +85,14 @@ const (
 )
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *Lamb[T]) NewSupport(r, c int) *nn.Payload[T] {
+func (o *Lamb[T]) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.Payload[T]{
+	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
 	}
@@ -110,8 +110,8 @@ func (o *Lamb[T]) updateAlpha() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *Lamb[T]) Delta(param nn.Param[T]) mat.Matrix {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data, param.Value())
+func (o *Lamb[T]) Delta(param nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data, param.Value())
 }
 
 // v = v*beta1 + grads*(1.0-beta1)

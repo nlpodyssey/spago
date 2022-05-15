@@ -12,24 +12,24 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	WPart    nn.Param[T] `spago:"type:weights"`
-	WPartRec nn.Param[T] `spago:"type:weights"`
-	BPart    nn.Param[T] `spago:"type:biases"`
-	WRes     nn.Param[T] `spago:"type:weights"`
-	WResRec  nn.Param[T] `spago:"type:weights"`
-	BRes     nn.Param[T] `spago:"type:biases"`
-	WCand    nn.Param[T] `spago:"type:weights"`
-	WCandRec nn.Param[T] `spago:"type:weights"`
-	BCand    nn.Param[T] `spago:"type:biases"`
+	WPart    nn.Param `spago:"type:weights"`
+	WPartRec nn.Param `spago:"type:weights"`
+	BPart    nn.Param `spago:"type:biases"`
+	WRes     nn.Param `spago:"type:weights"`
+	WResRec  nn.Param `spago:"type:weights"`
+	BRes     nn.Param `spago:"type:biases"`
+	WCand    nn.Param `spago:"type:weights"`
+	WCandRec nn.Param `spago:"type:weights"`
+	BCand    nn.Param `spago:"type:biases"`
 }
 
 // State represent a state of the GRU recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	R ag.Node
 	P ag.Node
 	C ag.Node
@@ -37,30 +37,29 @@ type State[T mat.DType] struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int) *Model[T] {
-	m := &Model[T]{}
+func New[T mat.DType](in, out int) *Model {
+	m := &Model{}
 	m.WPart, m.WPartRec, m.BPart = newGateParams[T](in, out)
 	m.WRes, m.WResRec, m.BRes = newGateParams[T](in, out)
 	m.WCand, m.WCandRec, m.BCand = newGateParams[T](in, out)
 	return m
 }
 
-func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
-	w = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
-	wRec = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
-	b = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
+func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param) {
+	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
+	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
+	b = nn.NewParam(mat.NewEmptyVecDense[T](out))
 	return
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	var s *State[T] = nil
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
 		ys[i] = s.Y
@@ -74,8 +73,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 // p = sigmoid(wp (dot) x + bp + wpRec (dot) yPrev)
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
-func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(state *State, x ag.Node) (s *State) {
+	s = new(State)
 
 	var yPrev ag.Node = nil
 	if state != nil {

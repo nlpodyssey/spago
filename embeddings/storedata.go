@@ -45,15 +45,15 @@ import (
 // modified) is still in its original raw-bite form, which is used as-is as
 // part of the final encoded data. In this way, there has been no need to
 // decode nor re-encode the payload.
-type storeData[T mat.DType] struct {
+type storeData struct {
 	value            mat.Matrix
-	payload          *nn.Payload[T]
+	payload          *nn.Payload
 	marshaledValue   []byte
 	marshaledPayload []byte
 }
 
 // Value returns the mat.Matrix value, which is lazily decoded once if necessary.
-func (sd *storeData[T]) Value() mat.Matrix {
+func (sd *storeData) Value() mat.Matrix {
 	if sd.marshaledValue != nil {
 		m, err := mat.UnmarshalBinaryMatrix(bytes.NewReader(sd.marshaledValue))
 		if err != nil {
@@ -66,10 +66,10 @@ func (sd *storeData[T]) Value() mat.Matrix {
 }
 
 // Payload returns the nn.Payload value, which is lazily decoded once if necessary.
-func (sd *storeData[T]) Payload() *nn.Payload[T] {
+func (sd *storeData) Payload() *nn.Payload {
 	if sd.marshaledPayload != nil {
 		if len(sd.marshaledPayload) > 0 {
-			sd.payload = new(nn.Payload[T])
+			sd.payload = new(nn.Payload)
 			if err := sd.payload.UnmarshalBinary(sd.marshaledPayload); err != nil {
 				panic(err)
 			}
@@ -81,20 +81,20 @@ func (sd *storeData[T]) Payload() *nn.Payload[T] {
 
 // SetValue sets the mat.Matrix value. If a previously unmarshaled value's raw
 // data is present, it is invalidated (removed).
-func (sd *storeData[T]) SetValue(v mat.Matrix) {
+func (sd *storeData) SetValue(v mat.Matrix) {
 	sd.marshaledValue = nil
 	sd.value = v
 }
 
 // SetPayload sets the nn.Payload value. If a previously unmarshaled payload's
 // raw data is present, it is invalidated (removed).
-func (sd *storeData[T]) SetPayload(v *nn.Payload[T]) {
+func (sd *storeData) SetPayload(v *nn.Payload) {
 	sd.marshaledPayload = nil
 	sd.payload = v
 }
 
 // MarshalBinary satisfies encoding.BinaryMarshaler interface.
-func (sd *storeData[T]) MarshalBinary() ([]byte, error) {
+func (sd *storeData) MarshalBinary() ([]byte, error) {
 	valueBytes, err := sd.marshalValue()
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (sd *storeData[T]) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
-func (sd *storeData[T]) UnmarshalBinary(data []byte) (err error) {
+func (sd *storeData) UnmarshalBinary(data []byte) (err error) {
 	payloadOffset := int(binary.LittleEndian.Uint64(data[:8]))
 	sd.marshaledValue = data[8:payloadOffset]
 	sd.marshaledPayload = data[payloadOffset:]
@@ -129,7 +129,7 @@ func (sd *storeData[T]) UnmarshalBinary(data []byte) (err error) {
 	return nil
 }
 
-func (sd *storeData[T]) marshalValue() ([]byte, error) {
+func (sd *storeData) marshalValue() ([]byte, error) {
 	if sd.marshaledValue != nil {
 		return sd.marshaledValue, nil
 	}
@@ -141,7 +141,7 @@ func (sd *storeData[T]) marshalValue() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (sd *storeData[T]) marshalPayload() ([]byte, error) {
+func (sd *storeData) marshalPayload() ([]byte, error) {
 	if sd.marshaledPayload != nil {
 		return sd.marshaledPayload, nil
 	}

@@ -133,9 +133,9 @@ func TestModel_Inference(t *testing.T) {
 func testModelInference[T mat.DType](t *testing.T) {
 
 	model := New[T](3)
-	model.Mean = nn.NewParam[T](mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam[T](mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
-	model.W = nn.NewParam[T](mat.NewInitVecDense[T](3, 1.0))
+	model.Mean = nn.NewParam(mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
+	model.StdDev = nn.NewParam(mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
+	model.W = nn.NewParam(mat.NewInitVecDense[T](3, 1.0))
 
 	data := []T{1.0, 2.0, 3.0}
 	x := ag.NewVariable(mat.NewVecDense[T](data), false)
@@ -186,7 +186,7 @@ func rectify(xs []ag.Node) []ag.Node {
 	return ys
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4)
 	mat.SetData[T](model.W.Value(), []T{0.4, 0.0, -0.3, 0.8})
 	mat.SetData[T](model.B.Value(), []T{0.9, 0.2, -0.9, 0.2})

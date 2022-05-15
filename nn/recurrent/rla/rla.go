@@ -14,7 +14,7 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Config provides configuration settings for a RLA Model.
 type Config struct {
@@ -22,45 +22,44 @@ type Config struct {
 }
 
 // Model contains the serializable parameters for an RLA neural network.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Config
-	Wk nn.Param[T] `spago:"type:weights"`
-	Bk nn.Param[T] `spago:"type:biases"`
-	Wv nn.Param[T] `spago:"type:weights"`
-	Bv nn.Param[T] `spago:"type:biases"`
-	Wq nn.Param[T] `spago:"type:weights"`
-	Bq nn.Param[T] `spago:"type:biases"`
+	Wk nn.Param `spago:"type:weights"`
+	Bk nn.Param `spago:"type:biases"`
+	Wv nn.Param `spago:"type:weights"`
+	Bv nn.Param `spago:"type:biases"`
+	Wq nn.Param `spago:"type:weights"`
+	Bq nn.Param `spago:"type:biases"`
 }
 
 // State represent a state of the RLA recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	S ag.Node
 	Z ag.Node
 	Y ag.Node
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new RLA Model, initialized according to the given configuration.
-func New[T mat.DType](config Config) *Model[T] {
-	return &Model[T]{
+func New[T mat.DType](config Config) *Model {
+	return &Model{
 		Config: config,
-		Wk:     nn.NewParam[T](mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bk:     nn.NewParam[T](mat.NewEmptyVecDense[T](config.InputSize)),
-		Wv:     nn.NewParam[T](mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bv:     nn.NewParam[T](mat.NewEmptyVecDense[T](config.InputSize)),
-		Wq:     nn.NewParam[T](mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bq:     nn.NewParam[T](mat.NewEmptyVecDense[T](config.InputSize)),
+		Wk:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
+		Bk:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
+		Wv:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
+		Bv:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
+		Wq:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
+		Bq:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
 	}
 }
 
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	var s *State[T] = nil
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
 		ys[i] = s.Y
@@ -69,8 +68,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(prevState *State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(prevState *State, x ag.Node) (s *State) {
+	s = new(State)
 
 	key := ag.Affine(m.Bk, m.Wk, x)
 	value := ag.Affine(m.Bv, m.Wv, x)

@@ -16,7 +16,7 @@ import (
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention[T mat.DType](q []ag.Node, k, v ag.Node, scaleFactor T, useCausalMask bool) ([]ag.Node, []ag.Node) {
+func ScaledDotProductAttention(q []ag.Node, k, v ag.Node, scaleFactor float64, useCausalMask bool) ([]ag.Node, []ag.Node) {
 	attention := make([]ag.Node, len(q))
 	weights := make([]ag.Node, len(q))
 	factor := ag.Constant(k.Value().NewScalar(mat.Float(scaleFactor)))
@@ -58,12 +58,12 @@ func makeCausalMask(curIndex, seqLength int) []float64 {
 }
 
 // MappingFunc is a mapping function used by LinearAttention.
-type MappingFunc[T mat.DType] func(x ag.Node) ag.Node
+type MappingFunc func(x ag.Node) ag.Node
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention[T mat.DType](q, k, v []ag.Node, mappingFunction MappingFunc[T], eps T) []ag.Node {
+func LinearAttention(q, k, v []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
 	if len(q) == 0 {
 		return nil
 	}

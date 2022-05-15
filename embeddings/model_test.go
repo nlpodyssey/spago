@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ nn.Model = &embeddings.Model[float32, string]{}
+var _ nn.Model = &embeddings.Model[string]{}
 
 func TestNew(t *testing.T) {
 	t.Run("creates a ZeroEmbedding param if UseZeroEmbedding is enabled", func(t *testing.T) {
@@ -131,7 +131,7 @@ func TestModel_Embedding(t *testing.T) {
 		assert.False(t, exists)
 
 		// Modify the value
-		e.SetPayload(&nn.Payload[T]{
+		e.SetPayload(&nn.Payload{
 			Label: 123,
 			Data: []mat.Matrix{
 				mat.NewScalar[T](11),
@@ -260,7 +260,7 @@ func TestModel_UseRepository(t *testing.T) {
 
 	t.Run("when Store is nil", func(t *testing.T) {
 		repo := memstore.NewRepository()
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -278,7 +278,7 @@ func TestModel_UseRepository(t *testing.T) {
 
 	t.Run("when Store is PreventStoreMarshaling{nil}", func(t *testing.T) {
 		repo := memstore.NewRepository()
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -296,7 +296,7 @@ func TestModel_UseRepository(t *testing.T) {
 
 	t.Run("when Store is *PreventStoreMarshaling{nil}", func(t *testing.T) {
 		repo := memstore.NewRepository()
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -318,7 +318,7 @@ func TestModel_UseRepository(t *testing.T) {
 		st, err := repo.Store("foo")
 		require.NoError(t, err)
 
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -338,7 +338,7 @@ func TestModel_UseRepository(t *testing.T) {
 
 		mst := store.PreventStoreMarshaling{Store: st}
 
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -358,7 +358,7 @@ func TestModel_UseRepository(t *testing.T) {
 
 		mst := &store.PreventStoreMarshaling{Store: st}
 
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -384,7 +384,7 @@ func TestModel_UseRepository(t *testing.T) {
 			},
 		}
 
-		m := &embeddings.Model[T, string]{
+		m := &embeddings.Model[string]{
 			Config: embeddings.Config{
 				StoreName: "foo",
 			},
@@ -413,7 +413,7 @@ func TestModel(t *testing.T) {
 		e, _ := m.Embedding("e")
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
-		e.SetPayload(&nn.Payload[T]{
+		e.SetPayload(&nn.Payload{
 			Label: 123,
 			Data: []mat.Matrix{
 				mat.NewScalar[T](11),
@@ -428,7 +428,7 @@ func TestModel(t *testing.T) {
 		var buf bytes.Buffer
 		require.NoError(t, gob.NewEncoder(&buf).Encode(m))
 
-		var decoded *embeddings.Model[T, string]
+		var decoded *embeddings.Model[string]
 		require.NoError(t, gob.NewDecoder(&buf).Decode(&decoded))
 
 		require.NotNil(t, decoded)

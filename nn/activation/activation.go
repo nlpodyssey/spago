@@ -8,34 +8,32 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the activation operator and serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Activation Name
-	Params     []nn.Param[T]
+	Params     []nn.Param
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model.
-func New[T mat.DType](activation Name, params ...nn.Param[T]) *Model[T] {
-	return &Model[T]{
+func New(activation Name, params ...nn.Param) *Model {
+	return &Model{
 		Activation: activation,
 		Params:     params,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.Activation == Identity {
 		return xs
 	}

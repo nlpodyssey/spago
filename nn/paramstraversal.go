@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
-
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // ParamsTraversalFunc is the function called for each visited Param from
@@ -21,34 +19,34 @@ import (
 //     usually corresponding to the name of a struct's field
 //   - pType: type of the parameter, if available, usually derived from
 //     a `spago:"type:..."` tag from a struct's field
-type ParamsTraversalFunc[T mat.DType] func(param Param[T], name string, pType ParamsType)
+type ParamsTraversalFunc func(param Param, name string, pType ParamsType)
 
 // ParamsTraverser allows you to define a custom procedure to traverse the parameters of a model.
 // If a model implements this procedure, it will take precedence over the regular parameters visit.
-type ParamsTraverser[T mat.DType] interface {
+type ParamsTraverser interface {
 	// TraverseParams calls ParamsTraversalFunc for each visited Param.
-	TraverseParams(callback ParamsTraversalFunc[T])
+	TraverseParams(callback ParamsTraversalFunc)
 }
 
 // paramsTraversal allows the traversal of Model parameters.
 // The given callback is invoked for each parameter of the Model.
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
-type paramsTraversal[T mat.DType] struct {
-	callback         ParamsTraversalFunc[T]
+type paramsTraversal struct {
+	callback         ParamsTraversalFunc
 	exploreSubModels bool
 }
 
 // newParamsTraversal returns a new paramsTraversal.
-func newParamsTraversal[T mat.DType](fn ParamsTraversalFunc[T], exploreSubModels bool) paramsTraversal[T] {
-	return paramsTraversal[T]{
+func newParamsTraversal(fn ParamsTraversalFunc, exploreSubModels bool) paramsTraversal {
+	return paramsTraversal{
 		callback:         fn,
 		exploreSubModels: exploreSubModels,
 	}
 }
 
 // walk iterates through all the parameters of m.
-func (pt paramsTraversal[_]) walk(m any) {
+func (pt paramsTraversal) walk(m any) {
 	forEachField(m, func(field any, name string, rTag reflect.StructTag) {
 		tag, err := parseModuleFieldTag(rTag.Get("spago"))
 		if err != nil {
@@ -66,15 +64,15 @@ func (pt paramsTraversal[_]) walk(m any) {
 	})
 }
 
-func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleFieldTag) {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
 		return
 	}
 	switch itemT := item.(type) {
-	case Param[T]:
+	case Param:
 		pt.callback(itemT, name, tag.paramType())
-	case ParamsTraverser[T]:
+	case ParamsTraverser:
 		itemT.TraverseParams(pt.callback)
 	case Model:
 		if pt.exploreSubModels {
@@ -87,7 +85,7 @@ func (pt paramsTraversal[T]) walkStructOrPtr(item any, name string, tag moduleFi
 	}
 }
 
-func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
 	i.Range(func(key, value any) bool {
 		switch k := key.(type) {
 		case string:
@@ -109,7 +107,7 @@ func (pt paramsTraversal[_]) walkSyncMap(i *sync.Map, name string, tag moduleFie
 	})
 }
 
-func (pt paramsTraversal[_]) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
 	length := v.Len()
 	for i := 0; i < length; i++ {
 		p := v.Index(i)
@@ -122,7 +120,7 @@ func (pt paramsTraversal[_]) walkSlice(v reflect.Value, name string, tag moduleF
 	}
 }
 
-func (pt paramsTraversal[_]) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
 	mapRange := v.MapRange()
 	for mapRange.Next() {
 		key := ""

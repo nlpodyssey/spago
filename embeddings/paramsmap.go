@@ -7,7 +7,6 @@ package embeddings
 import (
 	"fmt"
 
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -16,18 +15,18 @@ import (
 //
 // This is useful to prevent cache-like data to be serialized with other
 // primary Model's data. See Model.EmbeddingsWithGrad.
-type ParamsMap[T mat.DType] map[string]nn.Param[T]
+type ParamsMap map[string]nn.Param
 
 // MarshalBinary satisfies encoding.BinaryMarshaler interface.
 // It always produces empty data (nil) and no error.
-func (pm ParamsMap[T]) MarshalBinary() ([]byte, error) {
+func (pm ParamsMap) MarshalBinary() ([]byte, error) {
 	return []byte{}, nil
 }
 
 // UnmarshalBinary satisfies encoding.BinaryUnmarshaler interface.
 // It only accepts empty data (nil or zero-length slice), producing no
 // side effects at all. If data is not blank, it returns an error.
-func (pm ParamsMap[T]) UnmarshalBinary(data []byte) error {
+func (pm ParamsMap) UnmarshalBinary(data []byte) error {
 	if len(data) != 0 {
 		return fmt.Errorf("embeddings.ParamsMap.UnmarshalBinary: empty data expected, actual data len %d", len(data))
 	}

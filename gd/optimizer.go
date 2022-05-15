@@ -13,27 +13,27 @@ import (
 )
 
 // Optimizer implements Gradients Descent (GD) optimization.
-type Optimizer[T mat.DType] struct {
-	model       nn.Model  // model to optimize
-	method      Method[T] // optimization method (SGD, AdaGrad, Adam, ...)
-	gradClipper clipper.GradClipper[T]
+type Optimizer struct {
+	model       nn.Model // model to optimize
+	method      Method   // optimization method (SGD, AdaGrad, Adam, ...)
+	gradClipper clipper.GradClipper
 }
 
 // Option allows to configure a new Optimizer with your specific needs.
-type Option[T mat.DType] func(*Optimizer[T])
+type Option func(*Optimizer)
 
 // WithClipGradByValue is an option to clip the gradients during the training between
 // -value and +value.
-func WithClipGradByValue[T mat.DType](value float64) Option[T] {
-	return func(f *Optimizer[T]) {
-		f.gradClipper = &clipper.ClipValue[T]{Value: value}
+func WithClipGradByValue(value float64) Option {
+	return func(f *Optimizer) {
+		f.gradClipper = &clipper.ClipValue{Value: value}
 	}
 }
 
 // WithClipGradByNorm is an option to clip the gradients during the training by norm.
-func WithClipGradByNorm[T mat.DType](max, normType float64) Option[T] {
-	return func(f *Optimizer[T]) {
-		f.gradClipper = &clipper.ClipNorm[T]{
+func WithClipGradByNorm(max, normType float64) Option {
+	return func(f *Optimizer) {
+		f.gradClipper = &clipper.ClipNorm{
 			MaxNorm:  max,
 			NormType: normType,
 		}
@@ -41,8 +41,8 @@ func WithClipGradByNorm[T mat.DType](max, normType float64) Option[T] {
 }
 
 // NewOptimizer returns a new Optimizer.
-func NewOptimizer[T mat.DType](model nn.Model, method Method[T], opts ...Option[T]) *Optimizer[T] {
-	optimizer := &Optimizer[T]{
+func NewOptimizer(model nn.Model, method Method, opts ...Option) *Optimizer {
+	optimizer := &Optimizer{
 		model:  model,
 		method: method,
 	}
@@ -54,16 +54,16 @@ func NewOptimizer[T mat.DType](model nn.Model, method Method[T], opts ...Option[
 
 // Optimize optimizes the model parameters, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
-func (o *Optimizer[T]) Optimize() {
+func (o *Optimizer) Optimize() {
 	params := o.collectParams()
 	o.clipGradsInPlace(params)
 	o.updateParams(params)
 }
 
-func (o *Optimizer[T]) collectParams() []nn.Param[T] {
-	visited := map[nn.Param[T]]struct{}{}
-	params := make([]nn.Param[T], 0)
-	nn.ForEachParam(o.model, func(param nn.Param[T], _ string, _ nn.ParamsType) {
+func (o *Optimizer) collectParams() []nn.Param {
+	visited := map[nn.Param]struct{}{}
+	params := make([]nn.Param, 0)
+	nn.ForEachParam(o.model, func(param nn.Param, _ string, _ nn.ParamsType) {
 		if !param.HasGrad() {
 			return // don't consider params with grad at zero
 		}
@@ -76,11 +76,11 @@ func (o *Optimizer[T]) collectParams() []nn.Param[T] {
 }
 
 // updateParams applies the optimization method to all the observed parameters.
-func (o *Optimizer[T]) updateParams(params []nn.Param[T]) {
+func (o *Optimizer) updateParams(params []nn.Param) {
 	ch := make(chan struct{}, runtime.NumCPU())
 	for _, param := range params {
 		ch <- struct{}{}
-		go func(p nn.Param[T]) {
+		go func(p nn.Param) {
 			delta := o.method.Delta(p)
 			p.ApplyDelta(delta)
 			p.ZeroGrad()
@@ -94,7 +94,7 @@ func (o *Optimizer[T]) updateParams(params []nn.Param[T]) {
 }
 
 // clipGrad applies the gradient clipping to all the observed parameters.
-func (o *Optimizer[T]) clipGradsInPlace(params []nn.Param[T]) {
+func (o *Optimizer) clipGradsInPlace(params []nn.Param) {
 	if o.gradClipper == nil {
 		return
 	}
@@ -106,21 +106,21 @@ func (o *Optimizer[T]) clipGradsInPlace(params []nn.Param[T]) {
 }
 
 // IncExample beats the occurrence of a new example.
-func (o *Optimizer[_]) IncExample() {
+func (o *Optimizer) IncExample() {
 	if method, ok := o.method.(ExampleScheduler); ok {
 		method.IncExample()
 	}
 }
 
 // IncBatch beats the occurrence of a new batch.
-func (o *Optimizer[_]) IncBatch() {
+func (o *Optimizer) IncBatch() {
 	if method, ok := o.method.(BatchScheduler); ok {
 		method.IncBatch()
 	}
 }
 
 // IncEpoch beats the occurrence of a new epoch.
-func (o *Optimizer[_]) IncEpoch() {
+func (o *Optimizer) IncEpoch() {
 	if method, ok := o.method.(EpochScheduler); ok {
 		method.IncEpoch()
 	}

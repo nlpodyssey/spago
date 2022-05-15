@@ -12,23 +12,23 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	WInS  nn.Param[T] `spago:"type:weights"`
-	WInR  nn.Param[T] `spago:"type:weights"`
-	WRecS nn.Param[T] `spago:"type:weights"`
-	WRecR nn.Param[T] `spago:"type:weights"`
-	BS    nn.Param[T] `spago:"type:biases"`
-	BR    nn.Param[T] `spago:"type:biases"`
-	S     nn.Param[T] `spago:"type:weights"`
-	R     nn.Param[T] `spago:"type:weights"`
+	WInS  nn.Param `spago:"type:weights"`
+	WInR  nn.Param `spago:"type:weights"`
+	WRecS nn.Param `spago:"type:weights"`
+	WRecR nn.Param `spago:"type:weights"`
+	BS    nn.Param `spago:"type:biases"`
+	BR    nn.Param `spago:"type:biases"`
+	S     nn.Param `spago:"type:weights"`
+	R     nn.Param `spago:"type:weights"`
 }
 
 // State represent a state of the TPR recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	AR ag.Node
 	AS ag.Node
 	S  ag.Node
@@ -37,28 +37,27 @@ type State[T mat.DType] struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model[T] {
-	return &Model[T]{
-		WInS:  nn.NewParam[T](mat.NewEmptyDense[T](nSymbols, in)),
-		WInR:  nn.NewParam[T](mat.NewEmptyDense[T](nRoles, in)),
-		WRecS: nn.NewParam[T](mat.NewEmptyDense[T](nSymbols, dRoles*dSymbols)),
-		WRecR: nn.NewParam[T](mat.NewEmptyDense[T](nRoles, dRoles*dSymbols)),
-		BS:    nn.NewParam[T](mat.NewEmptyVecDense[T](nSymbols)),
-		BR:    nn.NewParam[T](mat.NewEmptyVecDense[T](nRoles)),
-		S:     nn.NewParam[T](mat.NewEmptyDense[T](dSymbols, nSymbols)),
-		R:     nn.NewParam[T](mat.NewEmptyDense[T](dRoles, nRoles)),
+func New[T mat.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model {
+	return &Model{
+		WInS:  nn.NewParam(mat.NewEmptyDense[T](nSymbols, in)),
+		WInR:  nn.NewParam(mat.NewEmptyDense[T](nRoles, in)),
+		WRecS: nn.NewParam(mat.NewEmptyDense[T](nSymbols, dRoles*dSymbols)),
+		WRecR: nn.NewParam(mat.NewEmptyDense[T](nRoles, dRoles*dSymbols)),
+		BS:    nn.NewParam(mat.NewEmptyVecDense[T](nSymbols)),
+		BR:    nn.NewParam(mat.NewEmptyVecDense[T](nRoles)),
+		S:     nn.NewParam(mat.NewEmptyDense[T](dSymbols, nSymbols)),
+		R:     nn.NewParam(mat.NewEmptyDense[T](dRoles, nRoles)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	var s *State[T] = nil
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
 		ys[i] = s.Y
@@ -74,8 +73,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 // s = embS (dot) aS
 // b = s (dot) rT
 // y = vec(b)
-func (m *Model[T]) Next(state *State[T], x ag.Node) (st *State[T]) {
-	st = new(State[T])
+func (m *Model) Next(state *State, x ag.Node) (st *State) {
+	st = new(State)
 
 	var yPrev ag.Node = nil
 	if state != nil {

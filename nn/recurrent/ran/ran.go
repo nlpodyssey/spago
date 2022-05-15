@@ -12,23 +12,23 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	WIn     nn.Param[T] `spago:"type:weights"`
-	WInRec  nn.Param[T] `spago:"type:weights"`
-	BIn     nn.Param[T] `spago:"type:biases"`
-	WFor    nn.Param[T] `spago:"type:weights"`
-	WForRec nn.Param[T] `spago:"type:weights"`
-	BFor    nn.Param[T] `spago:"type:biases"`
-	WCand   nn.Param[T] `spago:"type:weights"`
-	BCand   nn.Param[T] `spago:"type:biases"`
+	WIn     nn.Param `spago:"type:weights"`
+	WInRec  nn.Param `spago:"type:weights"`
+	BIn     nn.Param `spago:"type:biases"`
+	WFor    nn.Param `spago:"type:weights"`
+	WForRec nn.Param `spago:"type:weights"`
+	BFor    nn.Param `spago:"type:biases"`
+	WCand   nn.Param `spago:"type:weights"`
+	BCand   nn.Param `spago:"type:biases"`
 }
 
 // State represent a state of the RAN recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	InG  ag.Node
 	ForG ag.Node
 	Cand ag.Node
@@ -37,30 +37,29 @@ type State[T mat.DType] struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int) *Model[T] {
-	m := &Model[T]{}
+func New[T mat.DType](in, out int) *Model {
+	m := &Model{}
 	m.WIn, m.WInRec, m.BIn = newGateParams[T](in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams[T](in, out)
-	m.WCand = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
-	m.BCand = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
+	m.WCand = nn.NewParam(mat.NewEmptyDense[T](out, in))
+	m.BCand = nn.NewParam(mat.NewEmptyVecDense[T](out))
 	return m
 }
 
-func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param[T]) {
-	w = nn.NewParam[T](mat.NewEmptyDense[T](out, in))
-	wRec = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
-	b = nn.NewParam[T](mat.NewEmptyVecDense[T](out))
+func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param) {
+	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
+	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
+	b = nn.NewParam(mat.NewEmptyVecDense[T](out))
 	return
 }
 
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	var s *State[T] = nil
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
 		ys[i] = s.Y
@@ -75,8 +74,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 // cand = wc (dot) x + bc
 // c = inG * c + forG * cPrev
 // y = f(c)
-func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(state *State, x ag.Node) (s *State) {
+	s = new(State)
 
 	var yPrev, cPrev ag.Node = nil, nil
 	if state != nil {
@@ -95,8 +94,8 @@ func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
 }
 
 // Importance returns the "importance" score for each element of the processed sequence.
-func (m *Model[T]) Importance(states []*State[T]) [][]T {
-	importance := make([][]T, len(states))
+func (m *Model) Importance(states []*State) [][]float64 {
+	importance := make([][]float64, len(states))
 	for i := range importance {
 		importance[i] = m.scores(states, i)
 	}
@@ -105,13 +104,13 @@ func (m *Model[T]) Importance(states []*State[T]) [][]T {
 
 // importance computes the importance score of the previous states respect to the i-state.
 // The output contains the importance score for each k-previous states.
-func (m *Model[T]) scores(states []*State[T], i int) []T {
-	scores := make([]T, len(states))
+func (m *Model) scores(states []*State, i int) []float64 {
+	scores := make([]float64, len(states))
 	incForgetProd := states[i].ForG.Value().Clone()
 	for k := i; k >= 0; k-- {
 		inG := states[k].InG.Value()
 		forG := states[k].ForG.Value()
-		scores[k] = mat.DTFloat[T](inG.Prod(incForgetProd).Max().Scalar())
+		scores[k] = inG.Prod(incForgetProd).Max().Scalar().Float64()
 		if k > 0 {
 			incForgetProd.ProdInPlace(forG)
 		}

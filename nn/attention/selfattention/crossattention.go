@@ -8,23 +8,21 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &CrossAttention[float32]{}
+var _ nn.Model = &CrossAttention{}
 
 // CrossAttention wraps Model to perform self-attention, where query, key and values belong to different sequences.
-type CrossAttention[T mat.DType] struct {
-	*Model[T]
+type CrossAttention struct {
+	*Model
 }
 
 func init() {
-	gob.Register(&CrossAttention[float32]{})
-	gob.Register(&CrossAttention[float64]{})
+	gob.Register(&CrossAttention{})
 }
 
 // Forward performs the forward step.
-func (m CrossAttention[T]) Forward(cache Cache[T], seq1 []ag.Node, seq2 []ag.Node) ([]ag.Node, []ag.Node, Cache[T]) {
+func (m CrossAttention) Forward(cache Cache, seq1 []ag.Node, seq2 []ag.Node) ([]ag.Node, []ag.Node, Cache) {
 	return m.Model.Forward(cache, seq1, seq2, seq2)
 }

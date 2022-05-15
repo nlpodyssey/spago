@@ -50,7 +50,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.Method[float32] = &RAdam[float32]{}
+var _ gd.Method = &RAdam[float32]{}
 
 // RAdam implements the RAdam gradient descent optimization method.
 type RAdam[T mat.DType] struct {
@@ -83,14 +83,14 @@ const (
 )
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *RAdam[T]) NewSupport(r, c int) *nn.Payload[T] {
+func (o *RAdam[T]) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.Payload[T]{
+	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
 	}
@@ -102,8 +102,8 @@ func (o *RAdam[_]) IncBatch() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *RAdam[T]) Delta(param nn.Param[T]) mat.Matrix {
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
+func (o *RAdam[T]) Delta(param nn.Param) mat.Matrix {
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 func (o *RAdam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

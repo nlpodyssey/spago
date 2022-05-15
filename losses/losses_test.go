@@ -72,7 +72,7 @@ func TestWeightedCrossEntropyLoss(t *testing.T) {
 func testWeightedCrossEntropyLoss[T mat.DType](t *testing.T) {
 	x := ag.NewVariable(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}), true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
-	lossFn := WeightedCrossEntropy(w)
+	lossFn := WeightedCrossEntropy(mat.NewVecDense(w))
 	loss := lossFn(x, 2)
 
 	assertScalarEqualApprox(t, 0.804719, loss.Value())
@@ -106,7 +106,7 @@ func TestWeightedFocalLoss(t *testing.T) {
 func testWeightedFocalLoss[T mat.DType](t *testing.T) {
 	x := ag.NewVariable(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}), true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
-	lossFn := WeightedFocalLoss(w)
+	lossFn := WeightedFocalLoss(mat.NewVecDense(w))
 	loss := lossFn(x, 2, 2.0)
 
 	assertScalarEqualApprox(t, 0.36641273, loss.Value())

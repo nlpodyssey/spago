@@ -4,24 +4,22 @@
 
 package exponential
 
-import (
-	"github.com/nlpodyssey/spago/mat"
-)
+import "math"
 
 // Exponential defines an exponential decay depending on the time step:
 //     lr = exp((times - t) * log(lr) + log(final))
-type Exponential[T mat.DType] struct {
-	init  T
-	final T
+type Exponential struct {
+	init  float64
+	final float64
 	times int
 }
 
 // New returns a new Exponential decay optimizer.
-func New[T mat.DType](init, final T, iter int) *Exponential[T] {
+func New(init, final float64, iter int) *Exponential {
 	if init < final {
 		panic("decay: the initial learning rate must be >= than the final one")
 	}
-	return &Exponential[T]{
+	return &Exponential{
 		init:  init,
 		final: final,
 		times: iter,
@@ -29,9 +27,9 @@ func New[T mat.DType](init, final T, iter int) *Exponential[T] {
 }
 
 // Decay calculates the decay of the learning rate lr at time t.
-func (d *Exponential[T]) Decay(lr T, t int) T {
+func (d *Exponential) Decay(lr float64, t int) float64 {
 	if t > 1 && lr > d.final {
-		return mat.Exp((T(d.times-t)*mat.Log(lr) + mat.Log(d.final)) / T(d.times-t+1))
+		return math.Exp((float64(d.times-t)*math.Log(lr) + math.Log(d.final)) / float64(d.times-t+1))
 	}
 	return lr
 }

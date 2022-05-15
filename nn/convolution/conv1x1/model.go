@@ -15,14 +15,14 @@ import (
 
 // Model is a superficial depth-wise 1-dimensional convolution model.
 // The following values are fixed: kernel size = 1; stride = 1; padding = 0,
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Config Config
-	W      nn.Param[T] `spago:"type:weights"`
-	B      nn.Param[T] `spago:"type:biases"`
+	W      nn.Param `spago:"type:weights"`
+	B      nn.Param `spago:"type:biases"`
 }
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Config provides configuration parameters for Model.
 type Config struct {
@@ -31,21 +31,20 @@ type Config struct {
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new Model.
-func New[T mat.DType](config Config) *Model[T] {
-	return &Model[T]{
+func New[T mat.DType](config Config) *Model {
+	return &Model{
 		Config: config,
-		W:      nn.NewParam[T](mat.NewEmptyDense[T](config.OutputChannels, config.InputChannels)),
-		B:      nn.NewParam[T](mat.NewEmptyVecDense[T](config.OutputChannels)),
+		W:      nn.NewParam(mat.NewEmptyDense[T](config.OutputChannels, config.InputChannels)),
+		B:      nn.NewParam(mat.NewEmptyVecDense[T](config.OutputChannels)),
 	}
 }
 
 // Forward performs the forward step. Each "x" is a channel.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	xm := ag.Stack(xs...)
 	mm := ag.Mul(m.W, xm)
 

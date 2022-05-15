@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ nn.Param[float32] = &embeddings.Embedding[float32, string]{}
+var _ nn.Param = &embeddings.Embedding[string]{}
 
 func TestEmbedding_Value(t *testing.T) {
 	type T = float32
@@ -81,7 +81,7 @@ func TestEmbedding_ReplaceValue(t *testing.T) {
 
 	e, _ := m.Embedding("e")
 
-	payload := &nn.Payload[T]{
+	payload := &nn.Payload{
 		Label: 123,
 		Data: []mat.Matrix{
 			mat.NewVecDense([]T{11, 22, 33}),
@@ -299,7 +299,7 @@ func TestEmbedding_Payload(t *testing.T) {
 
 	// Set a payload for the first time
 
-	payload := &nn.Payload[T]{
+	payload := &nn.Payload{
 		Label: 123,
 		Data: []mat.Matrix{
 			mat.NewVecDense([]T{1, 2, 3}),
@@ -319,7 +319,7 @@ func TestEmbedding_Payload(t *testing.T) {
 	assert.Nil(t, e2.Payload())
 }
 
-func assertPayloadEqual(t *testing.T, expected, actual *nn.Payload[float32]) {
+func assertPayloadEqual(t *testing.T, expected, actual *nn.Payload) {
 	t.Helper()
 
 	assert.NotNil(t, actual)

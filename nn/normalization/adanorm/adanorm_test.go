@@ -18,7 +18,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func testModelForward[T mat.DType](t *testing.T) {
-	m := New[T](0.8)
+	m := New(0.8)
 
 	// == Forward
 	x1 := ag.NewVariable(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}), true)

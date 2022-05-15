@@ -34,14 +34,14 @@ type Config struct {
 }
 
 // A Model for handling embeddings.
-type Model[T mat.DType, K Key] struct {
+type Model[K Key] struct {
 	nn.Module
 	Config
 	// ZeroEmbedding is used as a fallback value for missing embeddings.
 	//
 	// If Config.UseZeroEmbedding is true, ZeroEmbedding is initialized
 	// as a zero-vector of size Config.Size, otherwise it is set to nil.
-	ZeroEmbedding nn.Param[T] `spago:"type:weights"`
+	ZeroEmbedding nn.Param `spago:"type:weights"`
 	// Database where embeddings are stored.
 	Store store.Store
 	// EmbeddingsWithGrad is filled with all those embedding-parameters that
@@ -67,7 +67,7 @@ type Model[T mat.DType, K Key] struct {
 	//
 	// The type of this field, ParamsMap, is defined in order to be traversable,
 	// but to produce no data when serialized.
-	EmbeddingsWithGrad ParamsMap[T]
+	EmbeddingsWithGrad ParamsMap
 	// This map is maintained in parallel with EmbeddingsWithGrad.
 	// An Embedding parameter doesn't keep any internal value; everything is
 	// rather delegated to the model, or the model's store.
@@ -79,26 +79,24 @@ type Model[T mat.DType, K Key] struct {
 }
 
 func init() {
-	gob.Register(&Model[float32, string]{})
-	gob.Register(&Model[float32, []byte]{})
-	gob.Register(&Model[float64, string]{})
-	gob.Register(&Model[float64, []byte]{})
+	gob.Register(&Model[string]{})
+	gob.Register(&Model[[]byte]{})
 }
 
 // New returns a new embeddings Model.
 //
 // It panics in case of errors getting the Store from the Repository.
-func New[T mat.DType, K Key](conf Config, repo store.Repository) *Model[T, K] {
+func New[T mat.DType, K Key](conf Config, repo store.Repository) *Model[K] {
 	st, err := repo.Store(conf.StoreName)
 	if err != nil {
 		panic(fmt.Errorf("embeddings: error getting Store %#v: %w", conf.StoreName, err))
 	}
 
-	var zeroEmb nn.Param[T] = nil
+	var zeroEmb nn.Param = nil
 	if conf.UseZeroEmbedding {
-		zeroEmb = nn.NewParam[T](mat.NewEmptyVecDense[T](conf.Size), nn.RequiresGrad[T](false))
+		zeroEmb = nn.NewParam(mat.NewEmptyVecDense[T](conf.Size), nn.RequiresGrad(false))
 	}
-	return &Model[T, K]{
+	return &Model[K]{
 		Config:        conf,
 		ZeroEmbedding: zeroEmb,
 		Store:         &store.PreventStoreMarshaling{Store: st},
@@ -107,7 +105,7 @@ func New[T mat.DType, K Key](conf Config, repo store.Repository) *Model[T, K] {
 
 // Count counts how many embedding key/value pairs are currently stored.
 // It panics in case of reading errors.
-func (m *Model[_, _]) Count() int {
+func (m *Model[_]) Count() int {
 	n, err := m.Store.KeysCount()
 	if err != nil {
 		panic(fmt.Errorf("embeddings: error counting keys in store: %w", err))
@@ -123,7 +121,7 @@ func (m *Model[_, _]) Count() int {
 // to trigger its creation on the store.
 //
 // It panics in case of errors reading from the underlying store.
-func (m *Model[T, K]) Embedding(key K) (nn.Param[T], bool) {
+func (m *Model[K]) Embedding(key K) (nn.Param, bool) {
 	if e, ok := m.EmbeddingsWithGrad[stringifyKey(key)]; ok {
 		return e, true
 	}
@@ -132,7 +130,7 @@ func (m *Model[T, K]) Embedding(key K) (nn.Param[T], bool) {
 	if err != nil {
 		panic(err)
 	}
-	e := &Embedding[T, K]{
+	e := &Embedding[K]{
 		model: m,
 		key:   key,
 	}
@@ -145,7 +143,7 @@ func (m *Model[T, K]) Embedding(key K) (nn.Param[T], bool) {
 //
 // Missing embedding values can be either nil or ZeroEmbedding, according
 // to the Model's Config.
-func (m *Model[T, K]) Encode(keys []K) []ag.Node {
+func (m *Model[K]) Encode(keys []K) []ag.Node {
 	nodes := make([]ag.Node, len(keys))
 
 	// reuse the same node for the same key
@@ -174,7 +172,7 @@ func (m *Model[T, K]) Encode(keys []K) []ag.Node {
 
 // ClearEmbeddingsWithGrad empties the memory of visited embeddings with
 // non-null gradient value.
-func (m *Model[_, _]) ClearEmbeddingsWithGrad() {
+func (m *Model[_]) ClearEmbeddingsWithGrad() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -187,7 +185,7 @@ func (m *Model[_, _]) ClearEmbeddingsWithGrad() {
 // It only works if a store is not yet present. This can only happen in
 // special situations, for example upon an Embedding model being deserialized,
 // or when manually instantiating and handling a Model (i.e. bypassing New).
-func (m *Model[_, _]) UseRepository(repo store.Repository) error {
+func (m *Model[_]) UseRepository(repo store.Repository) error {
 	st, err := repo.Store(m.StoreName)
 	if err != nil {
 		return err
@@ -199,7 +197,7 @@ func (m *Model[_, _]) UseRepository(repo store.Repository) error {
 	return nil
 }
 
-func (m *Model[_, _]) storeExists() bool {
+func (m *Model[_]) storeExists() bool {
 	switch s := m.Store.(type) {
 	case nil:
 		return false
@@ -212,7 +210,7 @@ func (m *Model[_, _]) storeExists() bool {
 	}
 }
 
-func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix, exists bool) {
+func (m *Model[K]) getGrad(key K) (grad mat.Matrix, exists bool) {
 	if !m.Trainable {
 		return nil, false
 	}
@@ -223,7 +221,7 @@ func (m *Model[T, K]) getGrad(key K) (grad mat.Matrix, exists bool) {
 	return
 }
 
-func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix) {
+func (m *Model[K]) accGrad(e *Embedding[K], gx mat.Matrix) {
 	if !m.Trainable {
 		return
 	}
@@ -240,13 +238,13 @@ func (m *Model[T, K]) accGrad(e *Embedding[T, K], gx mat.Matrix) {
 
 	if m.grads == nil {
 		m.grads = make(map[string]mat.Matrix)
-		m.EmbeddingsWithGrad = make(ParamsMap[T])
+		m.EmbeddingsWithGrad = make(ParamsMap)
 	}
 	m.grads[key] = gx.Clone()
 	m.EmbeddingsWithGrad[key] = e
 }
 
-func (m *Model[T, K]) zeroGrad(k K) {
+func (m *Model[K]) zeroGrad(k K) {
 	if !m.Trainable {
 		return
 	}

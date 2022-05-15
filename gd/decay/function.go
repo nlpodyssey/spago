@@ -4,10 +4,8 @@
 
 package decay
 
-import "github.com/nlpodyssey/spago/mat"
-
 // Function is implemented by any value that has the Decay method.
-type Function[T mat.DType] interface {
+type Function interface {
 	// Decay calculates the decay of the learning rate lr at time t.
-	Decay(lr T, t int) T
+	Decay(lr float64, t int) float64
 }

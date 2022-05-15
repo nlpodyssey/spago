@@ -93,7 +93,7 @@ func testModelLoss[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{2.37258}, loss.Value().Data(), 0.00001)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4)
 	mat.SetData[T](model.TransitionScores.Value(), []T{
 		0.0, 0.6, 0.8, 1.2, 1.6,

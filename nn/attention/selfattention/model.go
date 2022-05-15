@@ -17,38 +17,37 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
-type Cache[T mat.DType] [2]ag.Node
+type Cache [2]ag.Node
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Config[T]
-	Query *linear.Model[T]
-	Key   *linear.Model[T]
-	Value *linear.Model[T]
+	Config
+	Query *linear.Model
+	Key   *linear.Model
+	Value *linear.Model
 }
 
 // Config provides configuration settings for a Self-Attention Model.
-type Config[T mat.DType] struct {
+type Config struct {
 	InputSize     int
 	QuerySize     int
 	KeySize       int
 	ValueSize     int
-	ScaleFactor   T
+	ScaleFactor   float64
 	UseCausalMask bool
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config[T]) *Model[T] {
-	return &Model[T]{
+func New[T mat.DType](config Config) *Model {
+	return &Model{
 		Config: config,
 		Query:  linear.New[T](config.InputSize, config.QuerySize),
 		Key:    linear.New[T](config.InputSize, config.KeySize),
@@ -57,15 +56,15 @@ func New[T mat.DType](config Config[T]) *Model[T] {
 }
 
 // Init initializes the query, key and value linear layers with uniform Xavier random distribution.
-func (m *Model[T]) Init(rng *rand.LockedRand) {
-	gain := initializers.Gain[T](activation.Identity)
+func (m *Model) Init(rng *rand.LockedRand) {
+	gain := initializers.Gain(activation.Identity)
 	initializers.XavierUniform(m.Query.W.Value(), gain, rng)
 	initializers.XavierUniform(m.Key.W.Value(), gain, rng)
 	initializers.XavierUniform(m.Value.W.Value(), gain, rng)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache[T]) {
+func (m *Model) Forward(cache Cache, q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache) {
 	pq := m.Query.Forward(q...)
 
 	fwKeys := m.Key.Forward(k...)
@@ -82,5 +81,5 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, []ag.N
 
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
-	return result, weights, Cache[T]{pk, pv}
+	return result, weights, Cache{pk, pv}
 }

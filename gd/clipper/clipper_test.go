@@ -19,7 +19,7 @@ func TestClipValue(t *testing.T) {
 
 func testClipValue[T mat.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
-	(&ClipValue[T]{Value: 0.7}).Clip(gs)
+	(&ClipValue{Value: 0.7}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
 		0.5, 0.6, -0.7, -0.6,
 		0.7, -0.4, 0.1, -0.7,
@@ -37,7 +37,7 @@ func TestClip2Norm(t *testing.T) {
 
 func testClip2Norm[T mat.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
-	(&ClipNorm[T]{MaxNorm: 2.0, NormType: 2.0}).Clip(gs)
+	(&ClipNorm{MaxNorm: 2.0, NormType: 2.0}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
 		0.314814, 0.377777, -0.503702, -0.377777,
 		0.440739, -0.251851, 0.062962, -0.503702,
@@ -55,7 +55,7 @@ func TestClipNormInf(t *testing.T) {
 
 func testClipNormInf[T mat.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
-	(&ClipNorm[T]{MaxNorm: 0.5, NormType: math.Inf(1)}).Clip(gs)
+	(&ClipNorm{MaxNorm: 0.5, NormType: math.Inf(1)}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
 		0.25, 0.3, -0.4, -0.3,
 		0.35, -0.2, 0.05, -0.4,

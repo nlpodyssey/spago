@@ -15,12 +15,12 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model = &Block[float32]{}
+var _ nn.Model = &Block{}
 
 // Block is the core model of the gMLP.
-type Block[T mat.DType] struct {
+type Block struct {
 	nn.Module
-	*stack.Model[T]
+	*stack.Model
 }
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.
@@ -32,17 +32,16 @@ type BlockConfig struct {
 }
 
 func init() {
-	gob.Register(&Block[float32]{})
-	gob.Register(&Block[float64]{})
+	gob.Register(&Block{})
 }
 
 // NewBlock returns a new Block.
-func NewBlock[T mat.DType](config BlockConfig) *Block[T] {
-	return &Block[T]{
-		Model: stack.New[T](
+func NewBlock[T mat.DType](config BlockConfig) *Block {
+	return &Block{
+		Model: stack.New(
 			linear.New[T](config.Dim, config.DimFF),
-			activation.New[T](activation.GELU),
-			sgu.New(sgu.Config[T]{
+			activation.New(activation.GELU),
+			sgu.New[T](sgu.Config{
 				Dim:        config.DimFF,
 				DimSeq:     config.SeqLen,
 				InitEps:    1e-3,

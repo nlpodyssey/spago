@@ -13,41 +13,40 @@ import (
 	"github.com/nlpodyssey/spago/nn/activation"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	W          nn.Param[T]     `spago:"type:weights"`
-	WRec       nn.Param[T]     `spago:"type:weights"`
-	B          nn.Param[T]     `spago:"type:biases"`
+	W          nn.Param        `spago:"type:weights"`
+	WRec       nn.Param        `spago:"type:weights"`
+	B          nn.Param        `spago:"type:biases"`
 	Activation activation.Name // output activation
 }
 
 // State represent a state of the IndRNN recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	Y ag.Node
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int, activation activation.Name) *Model[T] {
-	return &Model[T]{
-		W:          nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
-		WRec:       nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
-		B:          nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+func New[T mat.DType](in, out int, activation activation.Name) *Model {
+	return &Model{
+		W:          nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		WRec:       nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		B:          nn.NewParam(mat.NewEmptyVecDense[T](out)),
 		Activation: activation,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	var s *State[T] = nil
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
 		ys[i] = s.Y
@@ -58,8 +57,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 // Next performs a single forward step, producing a new state.
 //
 // y = f(w (dot) x + wRec * yPrev + b)
-func (m *Model[T]) Next(state *State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(state *State, x ag.Node) (s *State) {
+	s = new(State)
 
 	var yPrev ag.Node = nil
 	if state != nil {

@@ -15,7 +15,7 @@ import (
 	"github.com/nlpodyssey/spago/nn/convolution"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Config provides configuration settings for a convolution Model.
 type Config struct {
@@ -31,20 +31,19 @@ type Config struct {
 }
 
 // Model contains the serializable parameters for a convolutional neural network model.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Config Config
-	K      []nn.Param[T] `spago:"type:weights"`
-	B      []nn.Param[T] `spago:"type:biases"`
+	K      []nn.Param `spago:"type:weights"`
+	B      []nn.Param `spago:"type:biases"`
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New[T mat.DType](config Config) *Model[T] {
+func New[T mat.DType](config Config) *Model {
 	if config.Mask != nil && config.InputChannels != len(config.Mask) {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
 	}
@@ -58,14 +57,14 @@ func New[T mat.DType](config Config) *Model[T] {
 		paramsSize = config.InputChannels * config.OutputChannels
 	}
 
-	kernels := make([]nn.Param[T], paramsSize)
-	biases := make([]nn.Param[T], paramsSize)
+	kernels := make([]nn.Param, paramsSize)
+	biases := make([]nn.Param, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
-		kernels[i] = nn.NewParam[T](mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad[T](requireGrad))
-		biases[i] = nn.NewParam[T](mat.NewEmptyVecDense[T](1), nn.RequiresGrad[T](requireGrad))
+		kernels[i] = nn.NewParam(mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY), nn.RequiresGrad(requireGrad))
+		biases[i] = nn.NewParam(mat.NewEmptyVecDense[T](1), nn.RequiresGrad(requireGrad))
 	}
-	return &Model[T]{
+	return &Model{
 		Config: config,
 		K:      kernels,
 		B:      biases,
@@ -73,7 +72,7 @@ func New[T mat.DType](config Config) *Model[T] {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = m.forward(xs, i)
@@ -81,7 +80,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 	return ys
 }
 
-func (m *Model[T]) forward(xs []ag.Node, outputChannel int) ag.Node {
+func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
 	offset := outputChannel * m.Config.InputChannels
 	var out ag.Node
 	if m.Config.DepthWise {

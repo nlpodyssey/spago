@@ -40,7 +40,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	}, model.B.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](3, 5)
 	mat.SetData[T](model.B.Value(), []T{
 		0.4, 0.6, -0.5,

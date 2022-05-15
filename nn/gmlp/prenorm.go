@@ -13,30 +13,29 @@ import (
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
 
-var _ nn.Model = &PreNorm[float32]{}
+var _ nn.Model = &PreNorm{}
 
 // PreNorm is a helper model to perform pre-normalization.
-type PreNorm[T mat.DType] struct {
+type PreNorm struct {
 	nn.Module
-	Block *Block[T]
-	Norm  *layernorm.Model[T]
+	Block *Block
+	Norm  *layernorm.Model
 }
 
 func init() {
-	gob.Register(&PreNorm[float32]{})
-	gob.Register(&PreNorm[float64]{})
+	gob.Register(&PreNorm{})
 }
 
 // NewPreNorm returns a new PreNorm.
-func NewPreNorm[T mat.DType](dim int, block *Block[T]) *PreNorm[T] {
-	return &PreNorm[T]{
+func NewPreNorm[T mat.DType](dim int, block *Block) *PreNorm {
+	return &PreNorm{
 		Block: block,
 		Norm:  layernorm.New[T](dim, 1e-12),
 	}
 }
 
 // Forward performs the forward step.
-func (m *PreNorm[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *PreNorm) Forward(xs ...ag.Node) []ag.Node {
 	ns := m.Norm.Forward(xs...)
 	return m.Block.Forward(ns...)
 }

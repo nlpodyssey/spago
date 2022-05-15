@@ -79,7 +79,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	s0 := &State[T]{
+	s0 := &State{
 		C: ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
 		Y: ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}), true),
 	}
@@ -144,7 +144,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	}, model.WFor.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4, 5)
 	mat.SetData[T](model.WIn.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,

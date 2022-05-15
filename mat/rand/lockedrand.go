@@ -5,10 +5,8 @@
 package rand
 
 import (
-	"fmt"
 	"sync"
 
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/internal/rand"
 )
 
@@ -24,19 +22,6 @@ type LockedRand struct {
 func NewLockedRand(seed uint64) *LockedRand {
 	return &LockedRand{
 		r: rand.New(rand.NewSource(seed)),
-	}
-}
-
-// LockedRandFloat generates a pseudo-random number in [0.0,1.0) using
-// the given LockedRand and returning the desired type.
-func LockedRandFloat[T mat.DType](lr *LockedRand) T {
-	switch any(T(0)).(type) {
-	case float32:
-		return T(lr.Float32())
-	case float64:
-		return T(lr.Float64())
-	default:
-		panic(fmt.Sprintf("rand: unexpected type %T", T(0)))
 	}
 }
 

@@ -13,16 +13,16 @@ import (
 )
 
 // FeedForward is the model for feed-forward operations of a MixerBlock.
-type FeedForward[T mat.DType] struct {
+type FeedForward struct {
 	nn.Module
-	*stack.Model[T]
+	*stack.Model
 }
 
-func newFeedForward[T mat.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward[T] {
-	return &FeedForward[T]{
-		Model: stack.New[T](
+func newFeedForward[T mat.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {
+	return &FeedForward{
+		Model: stack.New(
 			linear.New[T](dim, hiddenDim),
-			activation.New[T](act),
+			activation.New(act),
 			// dropout.New(dropout),
 			linear.New[T](hiddenDim, dim),
 			// dropout.New(dropout),

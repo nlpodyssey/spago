@@ -71,7 +71,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	s0 := &State[T]{Y: ag.NewVariable(mat.NewVecDense([]T{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)}
+	s0 := &State{Y: ag.NewVariable(mat.NewVecDense([]T{-0.197375, 0.197375, -0.291313, -0.716298, -0.664037}), true)}
 	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
 	s1 := model.Next(s0, x)
 	y := s1.Y
@@ -109,7 +109,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.1111, -0.003156, -0.002889, -0.017586, -0.020393}, model.Alpha.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](4, 5)
 	mat.SetData[T](model.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
@@ -142,7 +142,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	model := newTestModel2[T]()
 
 	// == Forward
-	s0 := &State[T]{Y: ag.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true)}
+	s0 := &State{Y: ag.NewVariable(mat.NewVecDense([]T{0.0, 0.0}), true)}
 	x := ag.NewVariable(mat.NewVecDense([]T{3.5, 4.0, -0.1}), true)
 	s1 := model.Next(s0, x)
 
@@ -183,7 +183,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel2[T mat.DType]() *Model[T] {
+func newTestModel2[T mat.DType]() *Model {
 	model := New[T](3, 2)
 	mat.SetData[T](model.W.Value(), []T{
 		-0.2, -0.3, 0.5,

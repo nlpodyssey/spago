@@ -51,7 +51,7 @@ func testModelConcatForward[T mat.DType](t *testing.T) {
 	ag.BackwardMany(y...)
 
 	// Important! average params by sequence length
-	nn.ForEachParam[T](model, func(param nn.Param[T], _ string, _ nn.ParamsType) {
+	nn.ForEachParam(model, func(param nn.Param, _ string, _ nn.ParamsType) {
 		param.Grad().ProdScalarInPlace(1.0 / 3.0)
 	})
 
@@ -63,33 +63,33 @@ func testModelConcatForward[T mat.DType](t *testing.T) {
 		0.001234, -0.107987,
 		0.175039, 0.015738,
 		0.213397, -0.046717,
-	}, model.Positive.(*srn.Model[T]).W.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model).W.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []T{
 		0.041817, -0.059241, 0.013592,
 		0.042229, -0.086071, 0.019157,
 		0.035331, -0.11595, 0.02512,
-	}, model.Positive.(*srn.Model[T]).WRec.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []T{
 		-0.071016, 0.268027, 0.345019,
-	}, model.Positive.(*srn.Model[T]).B.Grad().Data(), 1.0e-06)
+	}, model.Positive.(*srn.Model).B.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []T{
 		0.145713, 0.234548,
 		0.050135, 0.070768,
 		-0.06125, -0.017281,
-	}, model.Negative.(*srn.Model[T]).W.Grad().Data(), 1.0e-05)
+	}, model.Negative.(*srn.Model).W.Grad().Data(), 1.0e-05)
 
 	assert.InDeltaSlice(t, []T{
 		-0.029278, -0.112568, -0.089725,
 		-0.074426, 0.003116, -0.070784,
 		0.022664, 0.040583, 0.044139,
-	}, model.Negative.(*srn.Model[T]).WRec.Grad().Data(), 1.0e-06)
+	}, model.Negative.(*srn.Model).WRec.Grad().Data(), 1.0e-06)
 
 	assert.InDeltaSlice(t, []T{
 		-0.03906, 0.237598, -0.137858,
-	}, model.Negative.(*srn.Model[T]).B.Grad().Data(), 1.0e-06)
+	}, model.Negative.(*srn.Model).B.Grad().Data(), 1.0e-06)
 }
 
 func TestModelSum_Forward(t *testing.T) {
@@ -155,18 +155,18 @@ func testModelProdForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.033161, -0.519478, -0.206044}, y[2].Value().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType](mergeType MergeType) *Model[T] {
-	model := New[T](
+func newTestModel[T mat.DType](mergeType MergeType) *Model {
+	model := New(
 		srn.New[T](2, 3),
 		srn.New[T](2, 3),
 		mergeType,
 	)
-	initPos(model.Positive.(*srn.Model[T]))
-	initNeg(model.Negative.(*srn.Model[T]))
+	initPos[T](model.Positive.(*srn.Model))
+	initNeg[T](model.Negative.(*srn.Model))
 	return model
 }
 
-func initPos[T mat.DType](m *srn.Model[T]) {
+func initPos[T mat.DType](m *srn.Model) {
 	mat.SetData[T](m.W.Value(), []T{
 		-0.9, 0.4,
 		0.7, -1.0,
@@ -180,7 +180,7 @@ func initPos[T mat.DType](m *srn.Model[T]) {
 	mat.SetData[T](m.B.Value(), []T{0.4, -0.3, 0.8})
 }
 
-func initNeg[T mat.DType](m *srn.Model[T]) {
+func initNeg[T mat.DType](m *srn.Model) {
 	mat.SetData[T](m.W.Value(), []T{
 		0.3, 0.1,
 		0.6, 0.0,

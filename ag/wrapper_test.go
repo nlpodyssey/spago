@@ -18,7 +18,7 @@ func TestStopGrad(t *testing.T) {
 }
 
 func testStopGrad[T mat.DType](t *testing.T) {
-	dn := &dummyNode[T]{id: 1}
+	dn := &dummyNode{id: 1}
 
 	sg := StopGrad(dn)
 	require.IsType(t, &Wrapper{}, sg)
@@ -34,7 +34,7 @@ func TestWrapper_Gradients(t *testing.T) {
 
 func testWrapperGradients[T mat.DType](t *testing.T) {
 	grad := mat.NewScalar[T](42)
-	dn := &dummyNode[T]{
+	dn := &dummyNode{
 		grad:         grad,
 		requiresGrad: true,
 	}

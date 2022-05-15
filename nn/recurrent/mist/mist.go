@@ -11,60 +11,60 @@ package mist
 
 import (
 	"encoding/gob"
+	"math"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Wx          nn.Param[T] `spago:"type:weights"`
-	Wh          nn.Param[T] `spago:"type:weights"`
-	B           nn.Param[T] `spago:"type:biases"`
-	Wax         nn.Param[T] `spago:"type:weights"`
-	Wah         nn.Param[T] `spago:"type:weights"`
-	Ba          nn.Param[T] `spago:"type:biases"`
-	Wrx         nn.Param[T] `spago:"type:weights"`
-	Wrh         nn.Param[T] `spago:"type:weights"`
-	Br          nn.Param[T] `spago:"type:biases"`
+	Wx          nn.Param `spago:"type:weights"`
+	Wh          nn.Param `spago:"type:weights"`
+	B           nn.Param `spago:"type:biases"`
+	Wax         nn.Param `spago:"type:weights"`
+	Wah         nn.Param `spago:"type:weights"`
+	Ba          nn.Param `spago:"type:biases"`
+	Wrx         nn.Param `spago:"type:weights"`
+	Wrh         nn.Param `spago:"type:weights"`
+	Br          nn.Param `spago:"type:biases"`
 	NumOfDelays int
 }
 
 // State represent a state of the MIST recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	Y ag.Node
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out, numOfDelays int) *Model[T] {
-	return &Model[T]{
-		Wx:          nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
-		Wh:          nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
-		B:           nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
-		Wax:         nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
-		Wah:         nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
-		Ba:          nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
-		Wrx:         nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
-		Wrh:         nn.NewParam[T](mat.NewEmptyDense[T](out, out)),
-		Br:          nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+func New[T mat.DType](in, out, numOfDelays int) *Model {
+	return &Model{
+		Wx:          nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		Wh:          nn.NewParam(mat.NewEmptyDense[T](out, out)),
+		B:           nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		Wax:         nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		Wah:         nn.NewParam(mat.NewEmptyDense[T](out, out)),
+		Ba:          nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		Wrx:         nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		Wrh:         nn.NewParam(mat.NewEmptyDense[T](out, out)),
+		Br:          nn.NewParam(mat.NewEmptyVecDense[T](out)),
 		NumOfDelays: numOfDelays,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	states := make([]*State[T], 0)
-	var s *State[T] = nil
+	states := make([]*State, 0)
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(states, x)
 		states = append(states, s)
@@ -74,8 +74,8 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(states []*State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(states []*State, x ag.Node) (s *State) {
+	s = new(State)
 
 	var yPrev ag.Node = nil
 	if states != nil {
@@ -84,15 +84,15 @@ func (m *Model[T]) Next(states []*State[T], x ag.Node) (s *State[T]) {
 
 	a := ag.Softmax(ag.Affine(m.Ba, m.Wax, x, m.Wah, yPrev))
 	r := ag.Sigmoid(ag.Affine(m.Br, m.Wrx, x, m.Wrh, yPrev))
-	s.Y = ag.Tanh(ag.Affine(m.B, m.Wx, x, m.Wh, tryProd[T](r, m.weightHistory(states, a))))
+	s.Y = ag.Tanh(ag.Affine(m.B, m.Wx, x, m.Wh, tryProd(r, m.weightHistory(states, a))))
 	return
 }
 
-func (m *Model[T]) weightHistory(states []*State[T], a ag.Node) ag.Node {
+func (m *Model) weightHistory(states []*State, a ag.Node) ag.Node {
 	var sum ag.Node
 	n := len(states)
 	for i := 0; i < m.NumOfDelays; i++ {
-		k := int(mat.Pow(2.0, T(i))) // base-2 exponential delay
+		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
 		if k <= n {
 			sum = ag.Add(sum, ag.ProdScalar(states[n-k].Y, ag.AtVec(a, i)))
 		}
@@ -101,7 +101,7 @@ func (m *Model[T]) weightHistory(states []*State[T], a ag.Node) ag.Node {
 }
 
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
-func tryProd[T mat.DType](a, b ag.Node) ag.Node {
+func tryProd(a, b ag.Node) ag.Node {
 	if a != nil && b != nil {
 		return ag.Prod(a, b)
 	}

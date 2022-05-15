@@ -18,7 +18,7 @@ import (
 // NewMethod returns a new gd.Method, chosen and initialized according to
 // the given config.
 // It panics if the config type is unknown or unsupported.
-func NewMethod[T mat.DType](config gd.MethodConfig) gd.Method[T] {
+func NewMethod[T mat.DType](config gd.MethodConfig) gd.Method {
 	switch config := config.(type) {
 	case adagrad.Config:
 		return adagrad.New[T](config)

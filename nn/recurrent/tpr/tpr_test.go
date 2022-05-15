@@ -61,7 +61,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	yPrev := ag.NewVariable(mat.NewVecDense([]T{0.211, -0.451, 0.499, -1.333, -0.11645, 0.366}), true)
 
 	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, 0.9, 0.1}), true)
-	st := model.Next(&State[T]{Y: yPrev}, x)
+	st := model.Next(&State{Y: yPrev}, x)
 
 	assert.InDeltaSlice(t, []T{
 		0.05472795, 0.0308627,
@@ -100,7 +100,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	s0 := &State[T]{
+	s0 := &State{
 		Y: ag.NewVariable(mat.NewVecDense([]T{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}), true),
 	}
 	x := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, 0.9, 0.1}), true)
@@ -145,7 +145,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	}, x2.Grad().Data(), 0.000001)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	params := New[T](
 		4, // in
 		4, // nSymbols

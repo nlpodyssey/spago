@@ -68,7 +68,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ gd.Method[float32] = &Adam[float32]{}
+var _ gd.Method = &Adam[float32]{}
 
 // Adam implements the Adam gradient descent optimization method.
 type Adam[T mat.DType] struct {
@@ -103,14 +103,14 @@ const (
 )
 
 // NewSupport returns a new support structure with the given dimensions.
-func (o *Adam[T]) NewSupport(r, c int) *nn.Payload[T] {
+func (o *Adam[T]) NewSupport(r, c int) *nn.Payload {
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.Payload[T]{
+	return &nn.Payload{
 		Label: o.Label(),
 		Data:  supp,
 	}
@@ -128,11 +128,11 @@ func (o *Adam[T]) updateAlpha() {
 }
 
 // Delta returns the difference between the current params and where the method wants it to be.
-func (o *Adam[T]) Delta(param nn.Param[T]) mat.Matrix {
+func (o *Adam[T]) Delta(param nn.Param) mat.Matrix {
 	if o.adamw {
-		return o.calcDeltaW(param.Grad(), gd.GetOrSetPayload[T](param, o).Data, param.Value())
+		return o.calcDeltaW(param.Grad(), gd.GetOrSetPayload(param, o).Data, param.Value())
 	}
-	return o.calcDelta(param.Grad(), gd.GetOrSetPayload[T](param, o).Data)
+	return o.calcDelta(param.Grad(), gd.GetOrSetPayload(param, o).Data)
 }
 
 // v = v*beta1 + grads*(1.0-beta1)

@@ -5,6 +5,7 @@
 package attention
 
 import (
+	"math"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -34,7 +35,7 @@ func testScaledDotProductAttention[T mat.DType](t *testing.T) {
 		2.3, 6.5, 3.5,
 	}), true)
 
-	results, _ := ScaledDotProductAttention(queries, keys, values, 1.0/mat.Sqrt[T](3), false)
+	results, _ := ScaledDotProductAttention(queries, keys, values, 1.0/math.Sqrt(3), false)
 
 	if len(results) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -69,7 +70,7 @@ func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
 	}), true)
 
 	// == Forward
-	results, weights := ScaledDotProductAttention(queries, keys, values, 1.0/mat.Sqrt[T](2), false)
+	results, weights := ScaledDotProductAttention(queries, keys, values, 1.0/math.Sqrt(2), false)
 
 	if len(results) != 3 {
 		t.Error("The results doesn't have the expected length")

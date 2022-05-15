@@ -44,7 +44,7 @@ func TestParamsMap(t *testing.T) {
 		baz.ReplaceValue(mat.NewVecDense([]T{7, 8, 9}))
 
 		var visitedParamNames []string
-		nn.ForEachParamStrict[T](m, func(p nn.Param[T], _ string, _ nn.ParamsType) {
+		nn.ForEachParamStrict(m, func(p nn.Param, _ string, _ nn.ParamsType) {
 			visitedParamNames = append(visitedParamNames, p.Name())
 			switch p.Name() {
 			case "foo":
@@ -64,8 +64,8 @@ func TestParamsMap(t *testing.T) {
 func TestParamsMap_MarshalBinary(t *testing.T) {
 	type T = float32
 
-	st := embeddings.ParamsMap[T]{
-		"foo": nn.NewParam[T](mat.NewScalar[T](42)),
+	st := embeddings.ParamsMap{
+		"foo": nn.NewParam(mat.NewScalar[T](42)),
 	}
 
 	data, err := st.MarshalBinary()
@@ -75,19 +75,19 @@ func TestParamsMap_MarshalBinary(t *testing.T) {
 
 func TestParamsMap_UnmarshalBinary(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
-		s := new(embeddings.ParamsMap[float32])
+		s := new(embeddings.ParamsMap)
 		assert.NoError(t, s.UnmarshalBinary(nil))
 		assert.Empty(t, s)
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
-		s := new(embeddings.ParamsMap[float32])
+		s := new(embeddings.ParamsMap)
 		assert.NoError(t, s.UnmarshalBinary([]byte{}))
 		assert.Empty(t, s)
 	})
 
 	t.Run("non empty slice", func(t *testing.T) {
-		s := new(embeddings.ParamsMap[float32])
+		s := new(embeddings.ParamsMap)
 		assert.Error(t, s.UnmarshalBinary([]byte{1}))
 		assert.Empty(t, s)
 	})
@@ -102,18 +102,18 @@ func TestGobEncoding(t *testing.T) {
 	type T = float32
 
 	type MyStruct struct {
-		Foo map[string]nn.Param[T]
-		Bar embeddings.ParamsMap[T]
+		Foo map[string]nn.Param
+		Bar embeddings.ParamsMap
 	}
 
 	var data []byte
 	{
 		ms := MyStruct{
-			Foo: map[string]nn.Param[T]{
-				"foo": nn.NewParam[T](mat.NewScalar[T](11)),
+			Foo: map[string]nn.Param{
+				"foo": nn.NewParam(mat.NewScalar[T](11)),
 			},
-			Bar: embeddings.ParamsMap[T]{
-				"bar": nn.NewParam[T](mat.NewScalar[T](22)),
+			Bar: embeddings.ParamsMap{
+				"bar": nn.NewParam(mat.NewScalar[T](22)),
 			},
 		}
 		var buf bytes.Buffer

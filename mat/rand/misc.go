@@ -12,7 +12,7 @@ import (
 
 // ShuffleInPlace pseudo-randomizes the order of elements, modifying the
 // given slice in-place.
-func ShuffleInPlace[T mat.DType](xs []int, generator *LockedRand) []int {
+func ShuffleInPlace(xs []int, generator *LockedRand) []int {
 	swap := func(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
 	if generator != nil {
 		generator.Shuffle(len(xs), swap)
@@ -65,9 +65,9 @@ func GetUniqueRandomIndices(n int, indices []int, valid func(r int) bool) []int 
 	for i := 0; i < len(a); i++ {
 		// The generic type is irrelevant, since the given generator is nil.
 		// TODO: ugly API of ShuffleInPlace to be refactored
-		r := ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
+		r := ShuffleInPlace(indices, nil)[0] // Warning: use global rand
 		for !valid(r) || contains(a, r) {
-			r = ShuffleInPlace[float32](indices, nil)[0] // Warning: use global rand
+			r = ShuffleInPlace(indices, nil)[0] // Warning: use global rand
 		}
 		a[i] = r
 	}

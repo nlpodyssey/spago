@@ -11,19 +11,19 @@ import (
 )
 
 // GradClipper is implemented by any value that has the Clip method.
-type GradClipper[T mat.DType] interface {
+type GradClipper interface {
 	// Clip clips the values of the matrix in place.
 	Clip(gs []mat.Matrix)
 }
 
 // ClipValue is a GradClipper which clips the values of a matrix between
 // -Value and +Value.
-type ClipValue[T mat.DType] struct {
+type ClipValue struct {
 	Value float64
 }
 
 // Clip clips the values of the matrix in place.
-func (c *ClipValue[T]) Clip(gs []mat.Matrix) {
+func (c *ClipValue) Clip(gs []mat.Matrix) {
 	for _, g := range gs {
 		g.ClipInPlace(-c.Value, c.Value)
 	}
@@ -31,14 +31,14 @@ func (c *ClipValue[T]) Clip(gs []mat.Matrix) {
 
 // ClipNorm is a GradClipper which clips the values of a matrix according to
 // the NormType. See ClipNorm.Clip.
-type ClipNorm[T mat.DType] struct {
+type ClipNorm struct {
 	MaxNorm  float64
 	NormType float64
 }
 
 // Clip clips the gradients, multiplying each parameter by the MaxNorm, divided by n-norm of the overall gradients.
 // NormType is the n-norm. Can be ``Double.POSITIVE_INFINITY`` for infinity norm (default 2.0)
-func (c *ClipNorm[T]) Clip(gs []mat.Matrix) {
+func (c *ClipNorm) Clip(gs []mat.Matrix) {
 	if c.NormType <= 1 {
 		panic("gd: norm type required to be > 1.")
 	}

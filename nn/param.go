@@ -10,7 +10,7 @@ import (
 )
 
 // Param is the interface for a Model parameter.
-type Param[T mat.DType] interface {
+type Param interface {
 	ag.Node
 
 	// Name returns the params name (can be empty string).
@@ -24,10 +24,10 @@ type Param[T mat.DType] interface {
 	// ApplyDelta updates the value applying the delta.
 	ApplyDelta(delta mat.Matrix)
 	// Payload returns the optimizer support structure (can be nil).
-	Payload() *Payload[T]
+	Payload() *Payload
 	// SetPayload is a thread safe operation to set the given Payload on the
 	// receiver Param.
-	SetPayload(payload *Payload[T])
+	SetPayload(payload *Payload)
 	// ClearPayload clears the support structure.
 	ClearPayload()
 }

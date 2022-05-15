@@ -140,7 +140,7 @@ func testRequireMatrixInDelta[T mat.DType](t *testing.T) {
 	}
 }
 
-type matrixEqualsTestCase[T mat.DType] struct {
+type matrixEqualsTestCase struct {
 	name     string
 	expected mat.Matrix
 	actual   mat.Matrix
@@ -149,8 +149,8 @@ type matrixEqualsTestCase[T mat.DType] struct {
 	errorMsg string
 }
 
-func matrixEqualsTestCases[T mat.DType]() []matrixEqualsTestCase[T] {
-	return []matrixEqualsTestCase[T]{
+func matrixEqualsTestCases[T mat.DType]() []matrixEqualsTestCase {
+	return []matrixEqualsTestCase{
 		{
 			name:     "no errors",
 			expected: mat.NewScalar[T](42),
@@ -230,7 +230,7 @@ func matrixEqualsTestCases[T mat.DType]() []matrixEqualsTestCase[T] {
 	}
 }
 
-type matrixInDeltaTestCase[T mat.DType] struct {
+type matrixInDeltaTestCase struct {
 	name     string
 	expected mat.Matrix
 	actual   mat.Matrix
@@ -240,8 +240,8 @@ type matrixInDeltaTestCase[T mat.DType] struct {
 	errorMsg string
 }
 
-func matrixInDeltaTestCases[T mat.DType]() []matrixInDeltaTestCase[T] {
-	return []matrixInDeltaTestCase[T]{
+func matrixInDeltaTestCases[T mat.DType]() []matrixInDeltaTestCase {
+	return []matrixInDeltaTestCase{
 		{
 			name:     "no errors",
 			expected: mat.NewScalar[T](42),

@@ -18,15 +18,15 @@ import (
 	"github.com/nlpodyssey/spago/nn/stack"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
 	Config Config
-	FC     *stack.Model[T]
-	FC2    *linear.Model[T]
-	FC3    *linear.Model[T]
+	FC     *stack.Model
+	FC2    *linear.Model
+	FC3    *linear.Model
 }
 
 // Config provides configuration settings for a SRNN Model.
@@ -40,41 +40,41 @@ type Config struct {
 }
 
 // State represent a state of the SRNN recurrent network.
-type State[T mat.DType] struct {
+// TODO: is this used?
+type State struct {
 	Y ag.Node
 	H ag.Node
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config) *Model[T] {
-	layers := []nn.StandardModel[T]{
+func New[T mat.DType](config Config) *Model {
+	layers := []nn.StandardModel{
 		linear.New[T](config.InputSize, config.HyperSize),
 		layernorm.New[T](config.HyperSize, 1e-5),
-		activation.New[T](activation.ReLU),
+		activation.New(activation.ReLU),
 	}
 	for i := 1; i < config.NumLayers; i++ {
 		layers = append(layers,
 			linear.New[T](config.HyperSize, config.HyperSize),
 			layernorm.New[T](config.HyperSize, 1e-5),
-			activation.New[T](activation.ReLU),
+			activation.New(activation.ReLU),
 		)
 	}
 	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
-	return &Model[T]{
+	return &Model{
 		Config: config,
-		FC:     stack.New[T](layers...),
+		FC:     stack.New(layers...),
 		FC2:    linear.New[T](config.InputSize, config.HiddenSize),
 		FC3:    linear.New[T](config.HiddenSize, config.OutputSize),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	b := m.transformInput(xs)
 	var h ag.Node = nil
@@ -85,7 +85,7 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
+func (m *Model) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	if hPrev != nil {
 		h = ag.ReLU(ag.Add(b, ag.RotateR(hPrev, 1)))
 	} else {
@@ -95,7 +95,7 @@ func (m *Model[T]) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	return
 }
 
-func (m *Model[T]) transformInput(xs []ag.Node) []ag.Node {
+func (m *Model) transformInput(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		b := m.FC.Forward(x)[0]

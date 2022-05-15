@@ -44,9 +44,9 @@ func CrossEntropy(x ag.Node, c int) ag.Node {
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 // This function is scaled by a weighting factor weights[class] ∈ [0,1]
-func WeightedCrossEntropy[T mat.DType](weights []T) func(x ag.Node, c int) ag.Node {
+func WeightedCrossEntropy(weights mat.Matrix) func(x ag.Node, c int) ag.Node {
 	return func(x ag.Node, c int) ag.Node {
-		return ag.ProdScalar(CrossEntropy(x, c), ag.NewScalar(x.Value().NewScalar(mat.Float(weights[c]))))
+		return ag.ProdScalar(CrossEntropy(x, c), ag.NewScalar(weights.AtVec(c)))
 	}
 }
 
@@ -71,14 +71,14 @@ func FocalLoss(x ag.Node, c int, gamma float64) ag.Node {
 // c is the index of the gold class.
 // gamma is the focusing parameter (gamma ≥ 0).
 // This function is scaled by a weighting factor weights[class] ∈ [0,1].
-func WeightedFocalLoss[T mat.DType](weights []T) func(x ag.Node, c int, gamma float64) ag.Node {
+func WeightedFocalLoss(weights mat.Matrix) func(x ag.Node, c int, gamma float64) ag.Node {
 	return func(x ag.Node, c int, gamma float64) ag.Node {
 		ce := CrossEntropy(x, c)
 		p := ag.Exp(ag.Neg(ce))
 		sub := ag.ReverseSub(p, ag.NewScalar(x.Value().NewScalar(mat.Float(1.0))))
 		b := ag.Pow(sub, gamma)
 		fl := ag.Prod(b, ce)
-		return ag.ProdScalar(fl, ag.NewScalar(x.Value().NewScalar(mat.Float(weights[c]))))
+		return ag.ProdScalar(fl, ag.NewScalar(weights.AtVec(c)))
 	}
 }
 

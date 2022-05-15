@@ -6,6 +6,7 @@ package multiheadattention
 
 import (
 	"encoding/gob"
+	"math"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
@@ -17,43 +18,42 @@ import (
 	"github.com/nlpodyssey/spago/nn/linear"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Heads       []*selfattention.Model[T]
-	OutputMerge *linear.Model[T]
+	Heads       []*selfattention.Model
+	OutputMerge *linear.Model
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model[T] {
-	return &Model[T]{
+func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model {
+	return &Model{
 		Heads:       makeAttentionHeads[T](size, numOfHeads, useCausalMask),
 		OutputMerge: linear.New[T](size, size),
 	}
 }
 
 // Init initializes the self-attention heads and the merge layer with uniform Xavier random distribution.
-func (m *Model[T]) Init(rng *rand.LockedRand) {
-	gain := initializers.Gain[T](activation.Identity)
+func (m *Model) Init(rng *rand.LockedRand) {
+	gain := initializers.Gain(activation.Identity)
 	initializers.XavierUniform(m.OutputMerge.W.Value(), gain, rng)
 	for _, h := range m.Heads {
 		h.Init(rng)
 	}
 }
 
-func makeAttentionHeads[T mat.DType](dm, n int, useCausalMask bool) []*selfattention.Model[T] {
-	heads := make([]*selfattention.Model[T], n)
+func makeAttentionHeads[T mat.DType](dm, n int, useCausalMask bool) []*selfattention.Model {
+	heads := make([]*selfattention.Model, n)
 	dk := dm / n
-	scaleFactor := 1.0 / mat.Sqrt(T(dk))
+	scaleFactor := 1.0 / math.Sqrt(float64(dk))
 	for i := 0; i < n; i++ {
-		heads[i] = selfattention.New(selfattention.Config[T]{
+		heads[i] = selfattention.New[T](selfattention.Config{
 			InputSize:     dm,
 			QuerySize:     dk,
 			KeySize:       dk,
@@ -66,21 +66,21 @@ func makeAttentionHeads[T mat.DType](dm, n int, useCausalMask bool) []*selfatten
 }
 
 // Cache contains the self-attention cache for each head.
-type Cache[T mat.DType] []selfattention.Cache[T]
+type Cache []selfattention.Cache
 
-func (r Cache[T]) At(i int) selfattention.Cache[T] {
+func (r Cache) At(i int) selfattention.Cache {
 	if len(r) == 0 {
-		return selfattention.Cache[T]{}
+		return selfattention.Cache{}
 	}
 	return r[i]
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, [][]ag.Node, Cache[T]) {
+func (m *Model) Forward(cache Cache, q, k, v []ag.Node) ([]ag.Node, [][]ag.Node, Cache) {
 	n := len(m.Heads)
 	attentions := make([][]ag.Node, n)
 	weights := make([][]ag.Node, n)
-	nextCache := make(Cache[T], n)
+	nextCache := make(Cache, n)
 
 	for i, h := range m.Heads {
 		attentions[i], weights[i], nextCache[i] = h.Forward(cache.At(i), q, k, v)
@@ -91,7 +91,7 @@ func (m *Model[T]) Forward(cache Cache[T], q, k, v []ag.Node) ([]ag.Node, [][]ag
 	return projected, weights, nextCache
 }
 
-func (m *Model[T]) project(heads [][]ag.Node, seqLen int) []ag.Node {
+func (m *Model) project(heads [][]ag.Node, seqLen int) []ag.Node {
 	n := len(heads)
 	concat := make([]ag.Node, seqLen)
 	buf := make([]ag.Node, n*seqLen)

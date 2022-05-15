@@ -4,22 +4,19 @@
 
 package normal
 
-import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/rand"
-)
+import "github.com/nlpodyssey/spago/mat/rand"
 
 // Normal is a source of normally distributed random numbers.
-type Normal[T mat.DType] struct {
-	Std       T
-	Mean      T
+type Normal struct {
+	Std       float64
+	Mean      float64
 	generator *rand.LockedRand
 }
 
 // New returns a new Normal, initialized with the given standard deviation and
 // mean parameters.
-func New[T mat.DType](std, mean T, generator *rand.LockedRand) *Normal[T] {
-	return &Normal[T]{
+func New(std, mean float64, generator *rand.LockedRand) *Normal {
+	return &Normal{
 		Std:       std,
 		Mean:      mean,
 		generator: generator,
@@ -27,6 +24,6 @@ func New[T mat.DType](std, mean T, generator *rand.LockedRand) *Normal[T] {
 }
 
 // Next returns a random sample drawn from the distribution.
-func (n Normal[T]) Next() T {
-	return T(n.generator.NormFloat64())*n.Std + n.Mean
+func (n Normal) Next() float64 {
+	return n.generator.NormFloat64()*n.Std + n.Mean
 }

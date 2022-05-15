@@ -12,28 +12,27 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	Gain nn.Param[T] `spago:"type:weights"`
+	Gain nn.Param `spago:"type:weights"`
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](size int) *Model[T] {
-	return &Model[T]{
-		Gain: nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+func New[T mat.DType](size int) *Model {
+	return &Model{
+		Gain: nn.NewParam(mat.NewEmptyVecDense[T](size)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(1e-10)))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {

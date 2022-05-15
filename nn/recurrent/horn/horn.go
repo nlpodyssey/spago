@@ -14,44 +14,43 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	W    nn.Param[T]   `spago:"type:weights"`
-	WRec []nn.Param[T] `spago:"type:weights"`
-	B    nn.Param[T]   `spago:"type:biases"`
+	W    nn.Param   `spago:"type:weights"`
+	WRec []nn.Param `spago:"type:weights"`
+	B    nn.Param   `spago:"type:biases"`
 }
 
 // State represent a state of the Horn recurrent network.
-type State[T mat.DType] struct {
+type State struct {
 	Y ag.Node
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out, order int) *Model[T] {
-	wRec := make([]nn.Param[T], order)
+func New[T mat.DType](in, out, order int) *Model {
+	wRec := make([]nn.Param, order)
 	for i := 0; i < order; i++ {
-		wRec[i] = nn.NewParam[T](mat.NewEmptyDense[T](out, out))
+		wRec[i] = nn.NewParam(mat.NewEmptyDense[T](out, out))
 	}
-	return &Model[T]{
-		W:    nn.NewParam[T](mat.NewEmptyDense[T](out, in)),
+	return &Model{
+		W:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
 		WRec: wRec,
-		B:    nn.NewParam[T](mat.NewEmptyVecDense[T](out)),
+		B:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	states := make([]*State[T], 0)
-	var s *State[T] = nil
+	states := make([]*State, 0)
+	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(states, x)
 		states = append(states, s)
@@ -61,14 +60,14 @@ func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model[T]) Next(states []*State[T], x ag.Node) (s *State[T]) {
-	s = new(State[T])
+func (m *Model) Next(states []*State, x ag.Node) (s *State) {
+	s = new(State)
 	h := ag.Affine(append([]ag.Node{m.B, m.W, x}, m.feedback(states)...)...)
 	s.Y = ag.Tanh(h)
 	return
 }
 
-func (m *Model[T]) feedback(states []*State[T]) []ag.Node {
+func (m *Model) feedback(states []*State) []ag.Node {
 	var ys []ag.Node
 	n := len(states)
 	for i := 0; i < min(len(m.WRec), n); i++ {

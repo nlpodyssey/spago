@@ -41,7 +41,8 @@ func (r *Dropout[O]) Operands() []O {
 func (r *Dropout[O]) Forward() mat.Matrix {
 	xv := r.x.Value()
 	if r.q > 0.0 {
-		r.mask = bernulli.Distribution(xv.Rows(), xv.Columns(), r.prob, r.randGen)
+		// FIXME: avoid casting to specific type
+		r.mask = bernulli.Distribution[float64](xv.Rows(), xv.Columns(), r.prob, r.randGen)
 		r.mask.ProdScalarInPlace(1.0 / r.q)
 	} else {
 		r.mask = xv.ZerosLike()

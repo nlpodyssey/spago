@@ -32,7 +32,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.5996537, -0.545537, -0.63689751, 0.453609420}, s2.Y.Value().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model[T] {
+func newTestModel[T mat.DType]() *Model {
 	model := New[T](Config{
 		InputSize: 4,
 	})

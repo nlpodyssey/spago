@@ -16,33 +16,32 @@ import (
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &Model[float32]{}
+var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
-type Model[T mat.DType] struct {
+type Model struct {
 	nn.Module
-	W   nn.Param[T] `spago:"type:weights"`
-	B   nn.Param[T] `spago:"type:biases"`
-	Eps T
+	W   nn.Param `spago:"type:weights"`
+	B   nn.Param `spago:"type:biases"`
+	Eps float64
 }
 
 func init() {
-	gob.Register(&Model[float32]{})
-	gob.Register(&Model[float64]{})
+	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](size int, eps T) *Model[T] {
-	return &Model[T]{
-		W:   nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
-		B:   nn.NewParam[T](mat.NewEmptyVecDense[T](size)),
+func New[T mat.DType](size int, eps float64) *Model {
+	return &Model{
+		W:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
+		B:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
 		Eps: eps,
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model[T]) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}

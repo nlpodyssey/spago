@@ -8,23 +8,21 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
-var _ nn.Model = &SelfAttention[float32]{}
+var _ nn.Model = &SelfAttention{}
 
 // SelfAttention wraps Model to perform self-attention, where query, key and values belong to the same sequence.
-type SelfAttention[T mat.DType] struct {
-	*Model[T]
+type SelfAttention struct {
+	*Model
 }
 
 func init() {
-	gob.Register(&SelfAttention[float32]{})
-	gob.Register(&SelfAttention[float64]{})
+	gob.Register(&SelfAttention{})
 }
 
 // Forward performs the forward step.
-func (m SelfAttention[T]) Forward(cache Cache[T], xs []ag.Node) ([]ag.Node, []ag.Node, Cache[T]) {
+func (m SelfAttention) Forward(cache Cache, xs []ag.Node) ([]ag.Node, []ag.Node, Cache) {
 	return m.Model.Forward(cache, xs, xs, xs)
 }
