@@ -49,8 +49,9 @@ type Operator struct {
 func NewOperator(f fn.Function[Node]) Node {
 	requiresGrad := false
 	for _, n := range f.Operands() {
-		if !requiresGrad && n.RequiresGrad() {
+		if n.RequiresGrad() {
 			requiresGrad = true
+			break
 		}
 	}
 
