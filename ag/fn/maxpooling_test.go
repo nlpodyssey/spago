@@ -16,7 +16,7 @@ func TestMaxPool_Forward(t *testing.T) {
 }
 
 func testMaxPoolForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value: mat.NewDense(4, 4, []T{
 			0.4, 0.1, -0.9, -0.5,
 			-0.4, 0.3, 0.7, -0.3,
@@ -27,7 +27,7 @@ func testMaxPoolForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewMaxPooling(x, 2, 2)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

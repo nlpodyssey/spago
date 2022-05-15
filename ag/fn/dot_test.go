@@ -17,7 +17,7 @@ func TestDot_Forward(t *testing.T) {
 
 func testDotForward[T mat.DType](t *testing.T) {
 
-	x1 := &variable[T]{
+	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -27,7 +27,7 @@ func testDotForward[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable[T]{
+	x2 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.8, 0.3, 0.1,
 			0.1, -0.5, -0.9, 0.2,
@@ -38,7 +38,7 @@ func testDotForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewDot(x1, x2)
-	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+	assert.Equal(t, []*variable{x1, x2}, f.Operands())
 
 	y := f.Forward()
 

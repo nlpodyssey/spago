@@ -16,13 +16,13 @@ func TestSoftmax_Forward(t *testing.T) {
 }
 
 func testSoftmaxForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{-0.41, -1.08, 0, 0.87, -0.19, -0.75}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	f := NewSoftmax(x)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

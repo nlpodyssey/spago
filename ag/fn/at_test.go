@@ -16,7 +16,7 @@ func TestAt_Forward(t *testing.T) {
 }
 
 func testAtForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -27,7 +27,7 @@ func testAtForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewAt(x, 2, 3)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

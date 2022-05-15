@@ -16,7 +16,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 }
 
 func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
-	x1 := &variable[T]{
+	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -26,7 +26,7 @@ func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable[T]{
+	x2 := &variable{
 		value: mat.NewDense(4, 3, []T{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
@@ -38,7 +38,7 @@ func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
 	}
 
 	f := NewMul(x1, x2)
-	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+	assert.Equal(t, []*variable{x1, x2}, f.Operands())
 
 	y := f.Forward()
 
@@ -74,7 +74,7 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 }
 
 func testMulForwardMatrixVector[T mat.DType](t *testing.T) {
-	x1 := &variable[T]{
+	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
@@ -84,7 +84,7 @@ func testMulForwardMatrixVector[T mat.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 
-	x2 := &variable[T]{
+	x2 := &variable{
 		value:        mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}),
 		grad:         nil,
 		requiresGrad: true,

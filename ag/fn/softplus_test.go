@@ -16,24 +16,24 @@ func TestSoftPlusForward(t *testing.T) {
 }
 
 func testSoftPlusForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 20.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	beta := &variable[T]{
+	beta := &variable{
 		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	threshold := &variable[T]{
+	threshold := &variable{
 		value:        mat.NewScalar[T](20.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
 	f := NewSoftPlus(x, beta, threshold)
-	assert.Equal(t, []*variable[T]{x, beta, threshold}, f.Operands())
+	assert.Equal(t, []*variable{x, beta, threshold}, f.Operands())
 
 	y := f.Forward()
 

@@ -7,17 +7,17 @@ package fn
 import "github.com/nlpodyssey/spago/mat"
 
 // variable is a simple implementation satisfying the Operand interface.
-type variable[T mat.DType] struct {
+type variable struct {
 	value        mat.Matrix
 	grad         mat.Matrix
 	requiresGrad bool
 }
 
-func (v *variable[T]) Value() mat.Matrix {
+func (v *variable) Value() mat.Matrix {
 	return v.value
 }
 
-func (v *variable[T]) AccGrad(gx mat.Matrix) {
+func (v *variable) AccGrad(gx mat.Matrix) {
 	if v.grad == nil {
 		v.grad = gx.Clone()
 		return
@@ -25,6 +25,6 @@ func (v *variable[T]) AccGrad(gx mat.Matrix) {
 	v.grad.AddInPlace(gx)
 }
 
-func (v *variable[_]) RequiresGrad() bool {
+func (v *variable) RequiresGrad() bool {
 	return v.requiresGrad
 }

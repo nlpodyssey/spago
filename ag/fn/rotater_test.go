@@ -16,13 +16,13 @@ func TestRotateR_Forward(t *testing.T) {
 }
 
 func testRotateRForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	f := NewRotateR(x, 1)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

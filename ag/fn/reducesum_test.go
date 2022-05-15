@@ -16,14 +16,14 @@ func TestReduceSum_Forward(t *testing.T) {
 }
 
 func testReduceSumForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
 	f := NewReduceSum(x)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

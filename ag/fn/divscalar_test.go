@@ -16,18 +16,18 @@ func TestScalarDiv_Forward(t *testing.T) {
 }
 
 func testScalarDivForward[T mat.DType](t *testing.T) {
-	x1 := &variable[T]{
+	x1 := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable[T]{
+	x2 := &variable{
 		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 	f := NewDivScalar(x1, x2)
-	assert.Equal(t, []*variable[T]{x1, x2}, f.Operands())
+	assert.Equal(t, []*variable{x1, x2}, f.Operands())
 
 	y := f.Forward()
 

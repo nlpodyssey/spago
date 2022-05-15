@@ -18,7 +18,7 @@ func TestAppendRowsForward(t *testing.T) {
 }
 
 func testAppendRowsForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value: mat.NewDense(2, 3, []T{
 			11, 12, 13,
 			21, 22, 23,
@@ -26,7 +26,7 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 		grad:         nil,
 		requiresGrad: true,
 	}
-	vs := []*variable[T]{
+	vs := []*variable{
 		{
 			value:        mat.NewDense(1, 3, []T{31, 32, 33}),
 			grad:         nil,
@@ -40,7 +40,7 @@ func testAppendRowsForward[T mat.DType](t *testing.T) {
 	}
 	f := NewAppendRows(x, vs...)
 
-	assert.Equal(t, []*variable[T]{x, vs[0], vs[1]}, f.Operands())
+	assert.Equal(t, []*variable{x, vs[0], vs[1]}, f.Operands())
 
 	y := f.Forward()
 

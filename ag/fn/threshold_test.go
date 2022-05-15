@@ -16,24 +16,24 @@ func TestThresholdForward(t *testing.T) {
 }
 
 func testThresholdForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 3.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	ts := &variable[T]{
+	ts := &variable{
 		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
-	k := &variable[T]{
+	k := &variable{
 		value:        mat.NewScalar[T](1.6),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
 	f := NewThreshold(x, ts, k)
-	assert.Equal(t, []*variable[T]{x, ts, k}, f.Operands())
+	assert.Equal(t, []*variable{x, ts, k}, f.Operands())
 
 	y := f.Forward()
 

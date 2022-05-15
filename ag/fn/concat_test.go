@@ -16,24 +16,24 @@ func TestConcat_Forward(t *testing.T) {
 }
 
 func testConcatForward[T mat.DType](t *testing.T) {
-	x1 := &variable[T]{
+	x1 := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x2 := &variable[T]{
+	x2 := &variable{
 		value:        mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.7}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	x3 := &variable[T]{
+	x3 := &variable{
 		value:        mat.NewVecDense([]T{0.8, 0.9}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
-	f := NewConcat([]*variable[T]{x1, x2, x3})
-	assert.Equal(t, []*variable[T]{x1, x2, x3}, f.Operands())
+	f := NewConcat([]*variable{x1, x2, x3})
+	assert.Equal(t, []*variable{x1, x2, x3}, f.Operands())
 
 	y := f.Forward()
 

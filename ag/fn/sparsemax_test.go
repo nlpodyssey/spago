@@ -15,14 +15,14 @@ func TestSparseMax_Forward(t *testing.T) {
 }
 
 func testSparseMaxForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.8053, 0.4594, -0.6136, -0.9460, 1.0722}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
 	f := NewSparseMax(x)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 
@@ -39,7 +39,7 @@ func TestSparseMaxLoss_Forward(t *testing.T) {
 }
 
 func testSparseMaxLossForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{-0.3218, 0.7395, -0.2319, 0.2312, 0.7185}),
 		grad:         nil,
 		requiresGrad: true,

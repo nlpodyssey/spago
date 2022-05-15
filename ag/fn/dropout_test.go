@@ -17,13 +17,13 @@ func TestDropout_Forward(t *testing.T) {
 }
 
 func testDropoutForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	f := NewDropout(x, 0.25, rand.NewLockedRand(1))
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 
@@ -44,13 +44,13 @@ func TestZeroDropout_Forward(t *testing.T) {
 }
 
 func testZeroDropoutForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	f := NewDropout(x, 0.0, rand.NewLockedRand(1))
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 
@@ -71,7 +71,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 }
 
 func testTotalDropoutForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
 		requiresGrad: true,

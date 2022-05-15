@@ -16,7 +16,7 @@ func TestScalarMax_Forward(t *testing.T) {
 }
 
 func testScalarMaxForward[T mat.DType](t *testing.T) {
-	xs := []*variable[T]{
+	xs := []*variable{
 		{mat.NewScalar[T](2.0), nil, true},
 		{mat.NewScalar[T](5.0), nil, true},
 		{mat.NewScalar[T](0.0), nil, true},

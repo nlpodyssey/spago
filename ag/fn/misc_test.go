@@ -16,13 +16,13 @@ func TestAbs_Forward(t *testing.T) {
 }
 
 func testAbsForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	f := NewAbs(x)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 
@@ -39,7 +39,7 @@ func TestSafeLog_Forward(t *testing.T) {
 }
 
 func testSafeLogForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -60,7 +60,7 @@ func TestTan_Forward(t *testing.T) {
 }
 
 func testTanForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -81,7 +81,7 @@ func TestTanh_Forward(t *testing.T) {
 }
 
 func testTanhForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -102,7 +102,7 @@ func TestSigmoid_Forward(t *testing.T) {
 }
 
 func testSigmoidForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -123,7 +123,7 @@ func TestHardSigmoid_Forward(t *testing.T) {
 }
 
 func testHardSigmoidForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -144,7 +144,7 @@ func TestHardTanh_Forward(t *testing.T) {
 }
 
 func testHardTanhForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -165,7 +165,7 @@ func TestRelu_Forward(t *testing.T) {
 }
 
 func testReluForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -186,7 +186,7 @@ func TestNewSoftsignForward(t *testing.T) {
 }
 
 func testNewSoftsignForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -207,7 +207,7 @@ func TestNewCosForward(t *testing.T) {
 }
 
 func testNewCosForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -228,7 +228,7 @@ func TestNewSinForward(t *testing.T) {
 }
 
 func testNewSinForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -249,7 +249,7 @@ func TestNewExpForward(t *testing.T) {
 }
 
 func testNewExpForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -270,7 +270,7 @@ func TestNewNegForward(t *testing.T) {
 }
 
 func testNewNegForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
@@ -291,7 +291,7 @@ func TestNewReciprocalForward(t *testing.T) {
 }
 
 func testNewReciprocalForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
 		requiresGrad: true,
@@ -312,7 +312,7 @@ func TestNewMishForward(t *testing.T) {
 }
 
 func testNewMishForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
 		requiresGrad: true,
@@ -333,7 +333,7 @@ func TestNewGELUForward(t *testing.T) {
 }
 
 func testNewGELUForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.0, 0.1, 0.01, -0.1, -0.01, 1.0, 10.0, -1.0, -10.0}),
 		grad:         nil,
 		requiresGrad: true,

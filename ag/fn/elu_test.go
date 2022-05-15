@@ -16,18 +16,18 @@ func TestELUForward(t *testing.T) {
 }
 
 func testELUForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	alpha := &variable[T]{
+	alpha := &variable{
 		value:        mat.NewScalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 	f := NewELU(x, alpha)
-	assert.Equal(t, []*variable[T]{x, alpha}, f.Operands())
+	assert.Equal(t, []*variable{x, alpha}, f.Operands())
 
 	y := f.Forward()
 

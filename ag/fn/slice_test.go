@@ -18,7 +18,7 @@ func TestSliceForward(t *testing.T) {
 }
 
 func testSliceForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value: mat.NewDense(3, 4, []T{
 			11, 12, 13, 14,
 			21, 22, 23, 24,
@@ -29,7 +29,7 @@ func testSliceForward[T mat.DType](t *testing.T) {
 	}
 
 	f := NewSlice(x, 1, 1, 3, 3)
-	assert.Equal(t, []*variable[T]{x}, f.Operands())
+	assert.Equal(t, []*variable{x}, f.Operands())
 
 	y := f.Forward()
 

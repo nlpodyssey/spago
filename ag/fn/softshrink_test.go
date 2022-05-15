@@ -16,19 +16,19 @@ func TestSoftShrink_Forward(t *testing.T) {
 }
 
 func testSoftShrinkForward[T mat.DType](t *testing.T) {
-	x := &variable[T]{
+	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0, 0.6, -0.6}),
 		grad:         nil,
 		requiresGrad: true,
 	}
-	lambda := &variable[T]{
+	lambda := &variable{
 		value:        mat.NewScalar[T](0.2),
 		grad:         nil,
 		requiresGrad: false,
 	}
 
 	f := NewSoftShrink(x, lambda)
-	assert.Equal(t, []*variable[T]{x, lambda}, f.Operands())
+	assert.Equal(t, []*variable{x, lambda}, f.Operands())
 
 	y := f.Forward()
 
