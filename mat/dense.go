@@ -998,11 +998,15 @@ func (d *Dense[T]) Sqrt() Matrix {
 
 // Sum returns the sum of all values of the matrix as a scalar Matrix.
 func (d *Dense[T]) Sum() Matrix {
+	return NewScalar(d.sum())
+}
+
+func (d *Dense[T]) sum() T {
 	switch any(T(0)).(type) {
 	case float32:
-		return NewScalar(T(asm32.Sum(any(d.data).([]float32))))
+		return T(asm32.Sum(any(d.data).([]float32)))
 	case float64:
-		return NewScalar(T(asm64.Sum(any(d.data).([]float64))))
+		return T(asm64.Sum(any(d.data).([]float64)))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -1010,8 +1014,12 @@ func (d *Dense[T]) Sum() Matrix {
 
 // Max returns the maximum value of the matrix as a scalar Matrix.
 func (d *Dense[T]) Max() Matrix {
+	return NewScalar(d.max())
+}
+
+func (d *Dense[T]) max() T {
 	if len(d.data) == 0 {
-		panic("mat: cannot find the maximum value in an empty matrix")
+		panic("mat: cannot find the maximum value from an empty matrix")
 	}
 	max := d.data[0]
 	for _, v := range d.data[1:] {
@@ -1019,7 +1027,7 @@ func (d *Dense[T]) Max() Matrix {
 			max = v
 		}
 	}
-	return NewScalar(max)
+	return max
 }
 
 // Min returns the minimum value of the matrix as a scalar Matrix.
@@ -1069,25 +1077,16 @@ func (d *Dense[T]) Softmax() Matrix {
 		return out
 	}
 
-	maxValue := dData[0]
-	for _, v := range dData[1:] {
-		if v > maxValue {
-			maxValue = v
-		}
-	}
+	max := d.max()
 
 	outData := out.data
 	_ = outData[len(dData)-1]
-
-	var sum T = 0
 	for i, v := range dData {
-		e := Exp(v - maxValue)
-		outData[i] = e
-		sum += e
+		outData[i] = Exp(v - max)
 	}
-	for i := range outData {
-		outData[i] /= sum
-	}
+
+	sum := out.sum()
+	out.ProdScalarInPlace(float64(1 / sum))
 
 	return out
 }
