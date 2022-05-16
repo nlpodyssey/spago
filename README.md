@@ -88,34 +88,34 @@ Here is an example of how to calculate the sum of two variables:
 package main
 
 import (
-	"fmt"
-
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/ag"
+  "fmt"
+  "github.com/nlpodyssey/spago/ag"
+  "github.com/nlpodyssey/spago/mat"
 )
 
 type T = float32
 
 func main() {
-	// create a new node of type variable with a scalar
-	a := ag.NewVariable[T](mat.NewScalar[T](2.0), true)
-	// create another node of type variable with a scalar
-	b := ag.NewVariable[T](mat.NewScalar[T](5.0), true)
-	// create an addition operator (the calculation is actually performed here)
-	c := ag.Add(a, b)
-	// print the result
-	fmt.Printf("c = %v\n", c.Value())
+  // create a new node of type variable with a scalar
+  a := ag.Var(mat.NewScalar(T(2.0))).WithGrad(true)
+  // create another node of type variable with a scalar
+  b := ag.Var(mat.NewScalar(T(5.0))).WithGrad(true)
+  // create an addition operator (the calculation is actually performed here)
+  c := ag.Add(a, b)
 
-	ag.Backward[T](c, mat.NewScalar[T](0.5))
-	fmt.Printf("ga = %v\n", a.Grad())
-	fmt.Printf("gb = %v\n", b.Grad())
+  // print the result
+  fmt.Printf("c = %v (float%d)\n", c.Value(), c.Value().Scalar().BitSize())
+
+  ag.Backward(c, mat.NewScalar(T(0.5)))
+  fmt.Printf("ga = %v\n", a.Grad())
+  fmt.Printf("gb = %v\n", b.Grad())
 }
 ```
 
 Output:
 
 ```console
-c = [7]
+c = [7] (float32)
 ga = [0.5]
 gb = [0.5]
 ```
@@ -136,13 +136,13 @@ import (
 )
 
 func main() {
-  x := NewVariableWithName[float32](mat.NewVecDense([]float32{-0.8}), true, "x")
-  w := NewVariableWithName[float32](mat.NewVecDense([]float32{0.4}), true, "w")
-  b := NewVariableWithName[float32](mat.NewVecDense([]float32{-0.2}), true, "b")
+  x := Var(mat.NewVecDense([]float32{-0.8})).WithName("x")
+  w := Var(mat.NewVecDense([]float32{0.4})).WithGrad(true).WithName("w")
+  b := Var(mat.NewVecDense([]float32{-0.2})).WithGrad(true).WithName("b")
 
   y := Sigmoid(Add(Mul(w, x), b))
 
-  err := dot.Encode[float32](encoding.NewGraph(y), os.Stdout)
+  err := dot.Encode(encoding.NewGraph(y), os.Stdout)
   if err != nil {
     log.Fatal(err)
   }
