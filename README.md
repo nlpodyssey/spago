@@ -149,7 +149,11 @@ func main() {
 }
 ```
 
-In this case, we are interested in rendering the graph instead of displaying the result of the calculation:
+In this case, we are interested in rendering the graph with [Graphviz](https://www.graphviz.org/) instead of displaying the result of the calculation:
+
+```console
+go run main.go | dot -Tpng -o g.png
+```
 
 <p align="center">
     <br>
