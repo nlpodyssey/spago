@@ -20,8 +20,7 @@ func Add(x1 Node, x2 Node) Node {
 	if x1 != nil {
 		return NewOperator(fn.NewAdd(x1, x2))
 	}
-	placeholder := NewVariable(nil, false)
-	return NewOperator(fn.NewAdd(placeholder, x2))
+	return NewOperator(fn.NewAdd(Node(Var(nil)), x2))
 }
 
 // AddScalar returns a new operator node as a result of the fn.AddScalar function.

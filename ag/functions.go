@@ -110,7 +110,7 @@ func Mean(xs []Node) Node {
 		sumVector = Add(sumVector, xs[i])
 	}
 	ln := sumVector.Value().NewScalar(mat.Float(float64(len(xs))))
-	return DivScalar(sumVector, Constant(ln))
+	return DivScalar(sumVector, Var(ln))
 }
 
 // Maximum returns the value that describes the maximum of the sample.
@@ -168,7 +168,7 @@ func BiAffine(w, u, v, b, x1, x2 Node) Node {
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func PositiveELU(x Node) Node {
-	one := Constant(x.Value().NewScalar(mat.Float(1.0)))
+	one := Var(x.Value().NewScalar(mat.Float(1.0)))
 	return AddScalar(ELU(x, one), one)
 }
 

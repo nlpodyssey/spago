@@ -31,59 +31,41 @@ type Variable struct {
 	createdAt uint64
 }
 
-// NewVariable creates a new Variable Node.
-func NewVariable(value mat.Matrix, requiresGrad bool) Node {
+// Var creates a new Variable Node.
+// Use WithGrad() to set whether the variable requires gradients (default false).
+func Var(value mat.Matrix) *Variable {
 	return &Variable{
 		value:        value,
 		grad:         nil,
-		requiresGrad: requiresGrad,
+		requiresGrad: false,
 		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 }
 
-// NewVariableWithName creates a new Variable Node with a given name.
-func NewVariableWithName(value mat.Matrix, requiresGrad bool, name string) Node {
-	return &Variable{
-		name:         name,
-		value:        value,
-		grad:         nil,
-		requiresGrad: requiresGrad,
-		createdAt:    atomic.LoadUint64(&tsCounter),
-	}
+// WithGrad sets whether the variable requires gradients.
+func (r *Variable) WithGrad(value bool) *Variable {
+	r.requiresGrad = value
+	return r
 }
 
-// NewScalar creates a new scalar Variable Node that doesn't require gradients.
-// TODO: Why shouldn't gradient be required by default?
-func NewScalar(value mat.Matrix) Node {
-	if !mat.IsScalar(value) {
-		panic("ag: NewScalar parameter must be a 1×1 matrix")
-	}
-	return NewVariable(value, false)
-}
-
-// NewScalarWithName creates a new scalar Variable Node that doesn't require
-// gradients, with a given name
-// TODO: Why shouldn't gradient be required by default?
-func NewScalarWithName(value mat.Matrix, name string) Node {
-	if !mat.IsScalar(value) {
-		panic("ag: NewScalar parameter must be a 1×1 matrix")
-	}
-	return NewVariableWithName(value, false, name)
-}
-
-// Constant returns a scalar Node that that doesn't require gradients.
-func Constant(value mat.Matrix) Node {
-	if !mat.IsScalar(value) {
-		panic("ag: a Constant value must be a 1×1 matrix")
-	}
-	return NewVariableWithName(value, false, fmt.Sprint(value.Scalar()))
+// WithName sets the variable's name.
+func (r *Variable) WithName(value string) *Variable {
+	r.name = value
+	return r
 }
 
 // Name returns the Name of the variable (it can be empty).
+// If a variable has no name, and the value is a scalar, then it returns its value.
 //
 // Identifying a Variable solely upon its name is highly discourages.
 // The name should be used solely for debugging or testing purposes.
 func (r *Variable) Name() string {
+	if r.name != "" {
+		return r.name
+	}
+	if mat.IsScalar(r.value) {
+		return fmt.Sprint(r.Value().Scalar())
+	}
 	return r.name
 }
 

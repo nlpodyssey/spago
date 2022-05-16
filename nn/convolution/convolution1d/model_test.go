@@ -24,20 +24,20 @@ func testModelForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x1 := ag.Var(mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
-	}), true)
+	})).WithGrad(true)
 
-	x2 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x2 := ag.Var(mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
-	}), true)
+	})).WithGrad(true)
 
-	x3 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x3 := ag.Var(mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
-	}), true)
+	})).WithGrad(true)
 
 	y := model.Forward(x1, x2, x3)
 
@@ -139,20 +139,20 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x1 := ag.Var(mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
-	}), true)
+	})).WithGrad(true)
 
-	x2 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x2 := ag.Var(mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
-	}), true)
+	})).WithGrad(true)
 
-	x3 := ag.NewVariable(mat.NewDense(2, 4, []T{
+	x3 := ag.Var(mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
-	}), true)
+	})).WithGrad(true)
 
 	y := model.Forward(x1, x2, x3)
 

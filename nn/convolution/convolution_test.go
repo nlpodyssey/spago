@@ -17,17 +17,17 @@ func TestConv1D(t *testing.T) {
 }
 
 func testConv1D[T mat.DType](t *testing.T) {
-	x := ag.NewVariable(mat.NewDense(3, 4, []T{
+	x := ag.Var(mat.NewDense(3, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
-	}), true)
+	})).WithGrad(true)
 
-	w := ag.NewVariable(mat.NewDense(3, 2, []T{
+	w := ag.Var(mat.NewDense(3, 2, []T{
 		0.5, -0.4,
 		0.3, 0.3,
 		0.4, -0.3,
-	}), true)
+	})).WithGrad(true)
 
 	out := Conv1D(w, x, 1)
 
@@ -56,17 +56,17 @@ func TestConv2D(t *testing.T) {
 }
 
 func testConv2D[T mat.DType](t *testing.T) {
-	x := ag.NewVariable(mat.NewDense(4, 4, []T{
+	x := ag.Var(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
-	}), true)
+	})).WithGrad(true)
 
-	w := ag.NewVariable(mat.NewDense(2, 2, []T{
+	w := ag.Var(mat.NewDense(2, 2, []T{
 		0.5, -0.4,
 		0.3, 0.3,
-	}), true)
+	})).WithGrad(true)
 
 	out := Conv2D(w, x, 1, 1)
 
@@ -101,17 +101,17 @@ func TestConv2DStride2(t *testing.T) {
 }
 
 func testConv2DStride2[T mat.DType](t *testing.T) {
-	x := ag.NewVariable(mat.NewDense(4, 4, []T{
+	x := ag.Var(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
-	}), true)
+	})).WithGrad(true)
 
-	w := ag.NewVariable(mat.NewDense(2, 2, []T{
+	w := ag.Var(mat.NewDense(2, 2, []T{
 		0.5, -0.4,
 		0.3, 0.3,
-	}), true)
+	})).WithGrad(true)
 
 	out := Conv2D(w, x, 2, 2)
 

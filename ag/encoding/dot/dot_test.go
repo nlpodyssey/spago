@@ -23,8 +23,8 @@ func TestEncode(t *testing.T) {
 
 func testEncode[T mat.DType](t *testing.T) {
 	t.Run("without time steps", func(t *testing.T) {
-		a := ag.NewVariableWithName(mat.NewScalar[T](1), false, "a")
-		b := ag.NewVariableWithName(mat.NewScalar[T](3), false, "b")
+		a := ag.Var(mat.NewScalar[T](1)).WithGrad(false).WithName("a")
+		b := ag.Var(mat.NewScalar[T](3)).WithGrad(false).WithName("b")
 		y := ag.Sum(a, b)
 
 		g := encoding.NewGraph(y)
@@ -54,10 +54,10 @@ func testEncode[T mat.DType](t *testing.T) {
 	t.Run("with time steps", func(t *testing.T) {
 		tsh := ag.NewTimeStepHandler()
 
-		a := ag.NewVariableWithName(mat.NewScalar[T](1), false, "a")
-		b := ag.NewVariableWithName(mat.NewScalar[T](3), false, "b")
-		c := ag.NewVariableWithName(mat.NewScalar[T](5), false, "c")
-		d := ag.NewVariableWithName(mat.NewScalar[T](7), false, "d")
+		a := ag.Var(mat.NewScalar[T](1)).WithGrad(false).WithName("a")
+		b := ag.Var(mat.NewScalar[T](3)).WithGrad(false).WithName("b")
+		c := ag.Var(mat.NewScalar[T](5)).WithGrad(false).WithName("c")
+		d := ag.Var(mat.NewScalar[T](7)).WithGrad(false).WithName("d")
 
 		x := ag.Sum(a, b)
 		tsh.IncTimeStep()

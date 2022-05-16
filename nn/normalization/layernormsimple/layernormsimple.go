@@ -35,7 +35,7 @@ func New() *Model {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(1e-10)))
+	eps := ag.Var(xs[0].Value().NewScalar(mat.Float(1e-10)))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)

@@ -21,9 +21,9 @@ func TestModel_SelfAttention(t *testing.T) {
 func testModelSelfAttention[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	x1 := ag.NewVariable(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}), true)
-	x2 := ag.NewVariable(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}), true)
-	x3 := ag.NewVariable(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}), true)
+	x1 := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
+	x2 := ag.Var(mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3})).WithGrad(true)
+	x3 := ag.Var(mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4})).WithGrad(true)
 
 	output, _, _ := model.Forward(Cache{}, []ag.Node{x1, x2, x3})
 

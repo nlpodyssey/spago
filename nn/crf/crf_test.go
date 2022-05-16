@@ -20,11 +20,11 @@ func TestModel_Decode(t *testing.T) {
 func testModelDecode[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	w1 := ag.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := ag.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := ag.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := ag.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
+	w2 := ag.Var(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0})).WithGrad(true)
+	w3 := ag.Var(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3})).WithGrad(true)
+	w4 := ag.Var(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7})).WithGrad(true)
+	w5 := ag.Var(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4})).WithGrad(true)
 
 	y := model.Decode([]ag.Node{w1, w2, w3, w4, w5})
 
@@ -41,11 +41,11 @@ func TestModel_GoldScore(t *testing.T) {
 func testModelGoldScore[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	w1 := ag.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := ag.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := ag.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := ag.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
+	w2 := ag.Var(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0})).WithGrad(true)
+	w3 := ag.Var(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3})).WithGrad(true)
+	w4 := ag.Var(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7})).WithGrad(true)
+	w5 := ag.Var(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4})).WithGrad(true)
 
 	gold := []int{0, 0, 1, 0, 3}
 	y := model.goldScore([]ag.Node{w1, w2, w3, w4, w5}, gold)
@@ -61,11 +61,11 @@ func TestModel_TotalScore(t *testing.T) {
 func testModelTotalScore[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	w1 := ag.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := ag.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := ag.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := ag.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
+	w2 := ag.Var(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0})).WithGrad(true)
+	w3 := ag.Var(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3})).WithGrad(true)
+	w4 := ag.Var(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7})).WithGrad(true)
+	w5 := ag.Var(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4})).WithGrad(true)
 
 	y := model.totalScore([]ag.Node{w1, w2, w3, w4, w5})
 
@@ -80,11 +80,11 @@ func TestModel_Loss(t *testing.T) {
 func testModelLoss[T mat.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	w1 := ag.NewVariable(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5}), true)
-	w2 := ag.NewVariable(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0}), true)
-	w3 := ag.NewVariable(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}), true)
-	w4 := ag.NewVariable(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}), true)
-	w5 := ag.NewVariable(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}), true)
+	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
+	w2 := ag.Var(mat.NewVecDense([]T{2.0, -3.5, 0.1, 2.0})).WithGrad(true)
+	w3 := ag.Var(mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3})).WithGrad(true)
+	w4 := ag.Var(mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7})).WithGrad(true)
+	w5 := ag.Var(mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4})).WithGrad(true)
 
 	gold := []int{0, 0, 1, 0, 3}
 	loss := model.NegativeLogLoss([]ag.Node{w1, w2, w3, w4, w5}, gold)

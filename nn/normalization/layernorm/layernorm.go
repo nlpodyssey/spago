@@ -45,7 +45,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := ag.Constant(xs[0].Value().NewScalar(mat.Float(m.Eps)))
+	eps := ag.Var(xs[0].Value().NewScalar(mat.Float(m.Eps)))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)

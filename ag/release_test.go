@@ -19,8 +19,8 @@ func TestReleaseGraph(t *testing.T) {
 func testReleaseGraph[T mat.DType](t *testing.T) {
 	t.Run("values and grads are released", func(t *testing.T) {
 		op := Add(
-			NewVariable(mat.NewScalar[T](1), true),
-			NewVariable(mat.NewScalar[T](2), true),
+			Var(mat.NewScalar[T](1)).WithGrad(true),
+			Var(mat.NewScalar[T](2)).WithGrad(true),
 		)
 
 		op.Value() // wait for the value
@@ -37,8 +37,8 @@ func testReleaseGraph[T mat.DType](t *testing.T) {
 
 	t.Run("multiple occurrences of the same operator in a graph", func(t *testing.T) {
 		op1 := Add(
-			NewVariable(mat.NewScalar[T](1), true),
-			NewVariable(mat.NewScalar[T](2), true),
+			Var(mat.NewScalar[T](1)).WithGrad(true),
+			Var(mat.NewScalar[T](2)).WithGrad(true),
 		)
 		op2 := Add(op1, op1)
 		op2.Value() // wait for the value

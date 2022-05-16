@@ -96,7 +96,7 @@ func testRowViews[T mat.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
-			x := NewVariable(tc.x, true)
+			x := Var(tc.x).WithGrad(true)
 			ys := RowViews(x)
 			assert.Len(t, ys, len(tc.ys))
 			for i, yn := range ys {
@@ -154,7 +154,7 @@ func testColViews[T mat.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Columns()), func(t *testing.T) {
-			x := NewVariable(tc.x, true)
+			x := Var(tc.x).WithGrad(true)
 			ys := ColViews(x)
 			assert.Len(t, ys, len(tc.ys))
 			for i, yn := range ys {
@@ -170,5 +170,5 @@ func testColViews[T mat.DType](t *testing.T) {
 }
 
 func newScalar[T mat.DType](v T) Node {
-	return NewScalar(mat.NewScalar(v))
+	return Var(mat.NewScalar(v))
 }

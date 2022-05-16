@@ -86,7 +86,7 @@ func (m *Model) Next(state *State, x ag.Node) (s *State) {
 	s.C = ag.Tanh(ag.Affine(m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
 	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		one := ag.Constant(x.Value().NewScalar(mat.Float(1.0)))
+		one := ag.Var(x.Value().NewScalar(mat.Float(1.0)))
 		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, one), yPrev))
 	}
 	return

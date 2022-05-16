@@ -68,7 +68,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		return nil
 	}
 	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.Node {
-		return ag.NewVariable(xs[0].Value().NewEmptyVec(m.Config.Dim), false)
+		return ag.Var(xs[0].Value().NewEmptyVec(m.Config.Dim))
 	})
 	return m.Model.Forward(padded...)
 }

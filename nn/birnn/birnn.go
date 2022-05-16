@@ -93,7 +93,7 @@ func (m *Model) merge(a, b ag.Node) ag.Node {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), ag.Constant(a.Value().NewScalar(mat.Float(0.5))))
+		return ag.ProdScalar(ag.Add(a, b), ag.Var(a.Value().NewScalar(mat.Float(0.5))))
 	default:
 		panic("birnn: invalid merge mode")
 	}
