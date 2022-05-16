@@ -136,9 +136,9 @@ import (
 )
 
 func main() {
-  x := Var(mat.NewVecDense([]float32{-0.8})).WithName("x")
-  w := Var(mat.NewVecDense([]float32{0.4})).WithGrad(true).WithName("w")
-  b := Var(mat.NewVecDense([]float32{-0.2})).WithGrad(true).WithName("b")
+  x := Var(mat.NewScalar(-0.8)).WithName("x")
+  w := Var(mat.NewScalar(0.4)).WithName("w")
+  b := Var(mat.NewScalar(-0.2)).WithName("b")
 
   y := Sigmoid(Add(Mul(w, x), b))
 
@@ -147,9 +147,10 @@ func main() {
     log.Fatal(err)
   }
 }
+
 ```
 
-In this case, we are interested in rendering the graph with [Graphviz](https://www.graphviz.org/) instead of displaying the result of the calculation:
+In this case, we are interested in rendering the resulting graph with [Graphviz](https://www.graphviz.org/):
 
 ```console
 go run main.go | dot -Tpng -o g.png
