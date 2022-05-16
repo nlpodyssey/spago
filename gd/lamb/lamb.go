@@ -161,5 +161,5 @@ func norm(grads mat.Matrix) float64 {
 	defer mat.ReleaseMatrix(prod)
 	sum := prod.Sum()
 	defer mat.ReleaseMatrix(sum)
-	return math.Sqrt(sum.Scalar().Float64())
+	return math.Sqrt(sum.Scalar().F64())
 }

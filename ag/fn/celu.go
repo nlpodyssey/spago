@@ -32,7 +32,7 @@ func (r *CELU[O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *CELU[O]) Forward() mat.Matrix {
-	return r.x.Value().ApplyWithAlpha(celu, r.alpha.Value().Scalar().Float64())
+	return r.x.Value().ApplyWithAlpha(celu, r.alpha.Value().Scalar().F64())
 }
 
 // Backward computes the backward pass.
@@ -41,7 +41,7 @@ func (r *CELU[O]) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(celuDeriv, r.alpha.Value().Scalar().Float64())
+		gx := r.x.Value().ApplyWithAlpha(celuDeriv, r.alpha.Value().Scalar().F64())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)

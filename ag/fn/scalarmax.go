@@ -34,7 +34,7 @@ func (r *ScalarMax[O]) Forward() mat.Matrix {
 	var argmax int
 	for i, x := range r.xs {
 		// FIXME: avoid casting to specific type
-		val := x.Value().Scalar().Float64()
+		val := x.Value().Scalar().F64()
 		if val > max {
 			max = val
 			argmax = i

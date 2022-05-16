@@ -87,7 +87,7 @@ func (m *Model) Next(prevState *State, x ag.Node) (s *State) {
 		s.Z = attKey
 	}
 
-	e := ag.Var(s.Z.Value().NewScalar(float.Float(1e-12)))
+	e := ag.Var(s.Z.Value().NewScalar(float.Interface(1e-12)))
 	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), e))
 	return
 }

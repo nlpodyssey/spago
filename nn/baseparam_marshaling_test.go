@@ -39,13 +39,13 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
 		require.NotNil(t, decodedParam.Value())
-		assert.Equal(t, float.Float(T(12)), decodedParam.Value().Scalar())
+		assert.Equal(t, float.Interface(T(12)), decodedParam.Value().Scalar())
 
 		payload := decodedParam.Payload()
 		assert.NotNil(t, payload)
 		assert.Equal(t, 42, payload.Label)
 		assert.NotEmpty(t, payload.Data)
-		assert.Equal(t, float.Float(T(34)), payload.Data[0].Scalar())
+		assert.Equal(t, float.Interface(T(34)), payload.Data[0].Scalar())
 	})
 
 	t.Run("nil value and payload", func(t *testing.T) {
@@ -81,7 +81,7 @@ func testParamInterfaceBinaryMarshaling[T float.DType](t *testing.T) {
 		decodedParam, err := UnmarshalBinaryParam(buf)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
-		assert.Equal(t, float.Float(T(42)), decodedParam.Value().Scalar())
+		assert.Equal(t, float.Interface(T(42)), decodedParam.Value().Scalar())
 	})
 
 	t.Run("nil", func(t *testing.T) {

@@ -37,7 +37,7 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, float.Float(dist.Next()))
+			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
 }
@@ -48,14 +48,14 @@ func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
-			m.SetScalar(i, j, float.Float(dist.Next()))
+			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
 }
 
 // Constant fills the input matrix with the value n.
 func Constant(m mat.Matrix, n float64) {
-	c := m.NewScalar(float.Float(n))
+	c := m.NewScalar(float.Interface(n))
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(i, j, c)
@@ -81,7 +81,7 @@ func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, float.Float(dist.Next()))
+			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
 }
@@ -96,7 +96,7 @@ func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, float.Float(dist.Next()))
+			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
 }
@@ -111,9 +111,9 @@ func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	upper := 1.0 - lower
 
 	sqrt3 := math.Sqrt(3)
-	a := m.NewScalar(float.Float(sqrt3))
-	negA := m.NewScalar(float.Float(-sqrt3))
-	zero := m.NewScalar(float.Float(0.0))
+	a := m.NewScalar(float.Interface(sqrt3))
+	negA := m.NewScalar(float.Interface(-sqrt3))
+	zero := m.NewScalar(float.Interface(0.0))
 
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {

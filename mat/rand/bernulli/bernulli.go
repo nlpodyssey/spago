@@ -22,9 +22,9 @@ func Distribution[T float.DType](r, c int, prob T, generator *rand.LockedRand) m
 			val := T(dist.Next())
 			fl := math.Floor(float64(val))
 			if val < prob {
-				out.SetScalar(i, j, float.Float(fl))
+				out.SetScalar(i, j, float.Interface(fl))
 			} else {
-				out.SetScalar(i, j, float.Float(fl+1))
+				out.SetScalar(i, j, float.Interface(fl+1))
 			}
 		}
 	}

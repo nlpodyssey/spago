@@ -40,10 +40,10 @@ func (r *SparseMaxLoss[O]) Forward() mat.Matrix {
 	defer mat.ReleaseMatrix(cumSumInput)
 
 	tauSquared := tau * tau
-	cumSumInputData := cumSumInput.Data().Float64()
+	cumSumInputData := cumSumInput.Data().F64()
 
 	var regTerm float64
-	for i, zsv := range zs.Data().Float64() {
+	for i, zsv := range zs.Data().F64() {
 		if bounds[i] > cumSumInputData[i] {
 			regTerm += zsv*zsv - tauSquared
 		}
@@ -61,7 +61,7 @@ func (r *SparseMaxLoss[O]) Forward() mat.Matrix {
 func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		tau := r.tau
-		gySum := gy.Sum().Scalar().Float64()
+		gySum := gy.Sum().Scalar().F64()
 
 		sparseMax := r.x.Value().Apply(func(_, _ int, v float64) float64 {
 			return math.Max(0, v-tau) * gySum

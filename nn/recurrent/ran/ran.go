@@ -111,7 +111,7 @@ func (m *Model) scores(states []*State, i int) []float64 {
 	for k := i; k >= 0; k-- {
 		inG := states[k].InG.Value()
 		forG := states[k].ForG.Value()
-		scores[k] = inG.Prod(incForgetProd).Max().Scalar().Float64()
+		scores[k] = inG.Prod(incForgetProd).Max().Scalar().F64()
 		if k > 0 {
 			incForgetProd.ProdInPlace(forG)
 		}

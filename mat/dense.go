@@ -177,13 +177,13 @@ func (d *Dense[_]) Size() int {
 //
 // The data slice IS NOT a copy: any changes applied to the returned slice are
 // reflected in the Dense matrix too.
-func (d *Dense[T]) Data() float.SliceInterface {
-	return float.Slice(d.data)
+func (d *Dense[T]) Data() float.Slice {
+	return float.SliceInterface(d.data)
 }
 
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
-func (d *Dense[T]) SetData(data float.SliceInterface) {
+func (d *Dense[T]) SetData(data float.Slice) {
 	v := float.SliceValueOf[T](data)
 	if len(v) != len(d.data) {
 		panic(fmt.Sprintf("mat: incompatible data size, expected %d, actual %d", len(d.data), len(v)))
@@ -210,11 +210,11 @@ func (d *Dense[T]) OnesLike() Matrix {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (d *Dense[T]) Scalar() float.Interface {
+func (d *Dense[T]) Scalar() float.Float {
 	if !IsScalar(d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
-	return float.Float(d.data[0])
+	return float.Interface(d.data[0])
 }
 
 // Zeros sets all the values of the matrix to zero.
@@ -239,14 +239,14 @@ func (d *Dense[T]) At(r int, c int) Matrix {
 
 // SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) SetScalar(r int, c int, v float.Interface) {
+func (d *Dense[T]) SetScalar(r int, c int, v float.Float) {
 	d.set(r, c, float.ValueOf[T](v))
 }
 
 // ScalarAt returns the value at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) ScalarAt(r int, c int) float.Interface {
-	return float.Float(d.at(r, c))
+func (d *Dense[T]) ScalarAt(r int, c int) float.Float {
+	return float.Interface(d.at(r, c))
 }
 
 func (d *Dense[T]) set(r int, c int, v T) {
@@ -284,14 +284,14 @@ func (d *Dense[T]) AtVec(i int) Matrix {
 
 // SetVecScalar sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) SetVecScalar(i int, v float.Interface) {
+func (d *Dense[T]) SetVecScalar(i int, v float.Float) {
 	d.setVec(i, float.ValueOf[T](v))
 }
 
 // ScalarAtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) ScalarAtVec(i int) float.Interface {
-	return float.Float(d.atVec(i))
+func (d *Dense[T]) ScalarAtVec(i int) float.Float {
+	return float.Interface(d.atVec(i))
 }
 
 func (d *Dense[T]) setVec(i int, v T) {
@@ -545,9 +545,9 @@ func (d *Dense[T]) Add(other Matrix) Matrix {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitaryTo(any(out.data).([]float32), 1, other.Data().Float32(), any(d.data).([]float32))
+		asm32.AxpyUnitaryTo(any(out.data).([]float32), 1, other.Data().F32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitaryTo(any(out.data).([]float64), 1, other.Data().Float64(), any(d.data).([]float64))
+		asm64.AxpyUnitaryTo(any(out.data).([]float64), 1, other.Data().F64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -561,9 +561,9 @@ func (d *Dense[T]) AddInPlace(other Matrix) Matrix {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitary(1, other.Data().Float32(), any(d.data).([]float32))
+		asm32.AxpyUnitary(1, other.Data().F32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitary(1, other.Data().Float64(), any(d.data).([]float64))
+		asm64.AxpyUnitary(1, other.Data().F64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -605,9 +605,9 @@ func (d *Dense[T]) Sub(other Matrix) Matrix {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitaryTo(any(out.data).([]float32), -1, other.Data().Float32(), any(d.data).([]float32))
+		asm32.AxpyUnitaryTo(any(out.data).([]float32), -1, other.Data().F32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitaryTo(any(out.data).([]float64), -1, other.Data().Float64(), any(d.data).([]float64))
+		asm64.AxpyUnitaryTo(any(out.data).([]float64), -1, other.Data().F64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -621,9 +621,9 @@ func (d *Dense[T]) SubInPlace(other Matrix) Matrix {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.AxpyUnitary(-1, other.Data().Float32(), any(d.data).([]float32))
+		asm32.AxpyUnitary(-1, other.Data().F32(), any(d.data).([]float32))
 	case float64:
-		asm64.AxpyUnitary(-1, other.Data().Float64(), any(d.data).([]float64))
+		asm64.AxpyUnitary(-1, other.Data().F64(), any(d.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -730,9 +730,9 @@ func (d *Dense[T]) ProdMatrixScalarInPlace(m Matrix, n float64) Matrix {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.ScalUnitaryTo(any(d.data).([]float32), float32(n), m.Data().Float32())
+		asm32.ScalUnitaryTo(any(d.data).([]float32), float32(n), m.Data().F32())
 	case float64:
-		asm64.ScalUnitaryTo(any(d.data).([]float64), n, m.Data().Float64())
+		asm64.ScalUnitaryTo(any(d.data).([]float64), n, m.Data().F64())
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -747,9 +747,9 @@ func (d *Dense[T]) Div(other Matrix) Matrix {
 	out := NewEmptyDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
-		f32.DivTo(any(out.data).([]float32), any(d.data).([]float32), other.Data().Float32())
+		f32.DivTo(any(out.data).([]float32), any(d.data).([]float32), other.Data().F32())
 	case float64:
-		asm64.DivTo(any(out.data).([]float64), any(d.data).([]float64), other.Data().Float64())
+		asm64.DivTo(any(out.data).([]float64), any(d.data).([]float64), other.Data().F64())
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -784,7 +784,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 				d.cols,                    // aCols
 				other.Columns(),           // bCols
 				any(d.data).([]float32),   // a
-				other.Data().Float32(),    // b
+				other.Data().F32(),        // b
 				any(out.data).([]float32), // c
 			)
 			return out
@@ -796,7 +796,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			1,                         // alpha
 			any(d.data).([]float32),   // a
 			uintptr(d.cols),           // lda
-			other.Data().Float32(),    // x
+			other.Data().F32(),        // x
 			1,                         // incX
 			0,                         // beta
 			any(out.data).([]float32), // y
@@ -809,7 +809,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 				d.cols,                    // aCols
 				other.Columns(),           // bCols
 				any(d.data).([]float64),   // a
-				other.Data().Float64(),    // b
+				other.Data().F64(),        // b
 				any(out.data).([]float64), // c
 			)
 			return out
@@ -821,7 +821,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			1,                         // alpha
 			any(d.data).([]float64),   // a
 			uintptr(d.cols),           // lda
-			other.Data().Float64(),    // x
+			other.Data().F64(),        // x
 			1,                         // incX
 			0,                         // beta
 			any(out.data).([]float64), // y
@@ -855,7 +855,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 			1,                         // alpha
 			any(d.data).([]float32),   // a
 			uintptr(d.cols),           // lda
-			other.Data().Float32(),    // x
+			other.Data().F32(),        // x
 			1,                         // incX
 			0,                         // beta
 			any(out.data).([]float32), // y
@@ -868,7 +868,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 			1,                         // alpha
 			any(d.data).([]float64),   // a
 			uintptr(d.cols),           // lda
-			other.Data().Float64(),    // x
+			other.Data().F64(),        // x
 			1,                         // incX
 			0,                         // beta
 			any(out.data).([]float64), // y
@@ -887,9 +887,9 @@ func (d *Dense[T]) DotUnitary(other Matrix) Matrix {
 	}
 	switch any(T(0)).(type) {
 	case float32:
-		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), other.Data().Float32())))
+		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), other.Data().F32())))
 	case float64:
-		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), other.Data().Float64())))
+		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), other.Data().F64())))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -1477,7 +1477,7 @@ func (d *Dense[T]) ApplyWithAlphaInPlace(fn func(r, c int, v float64, alpha ...f
 	// TODO: rewrite for better performance
 	for r := 0; r < d.rows; r++ {
 		for c := 0; c < d.cols; c++ {
-			d.data[r*d.cols+c] = T(fn(r, c, a.ScalarAt(r, c).Float64(), alpha...))
+			d.data[r*d.cols+c] = T(fn(r, c, a.ScalarAt(r, c).F64(), alpha...))
 		}
 	}
 	return d
@@ -1537,19 +1537,19 @@ func (d *Dense[T]) String() string {
 //
 // Rows and columns MUST not be negative, and the length of data MUST be
 // equal to rows*cols, otherwise the method panics.
-func (d *Dense[T]) NewMatrix(rows, cols int, data float.SliceInterface) Matrix {
+func (d *Dense[T]) NewMatrix(rows, cols int, data float.Slice) Matrix {
 	return NewDense[T](rows, cols, float.SliceValueOf[T](data))
 }
 
 // NewVec creates a new column vector (len(data)×1), of the same type of
 // the receiver, initialized with a copy of raw data.
-func (d *Dense[T]) NewVec(data float.SliceInterface) Matrix {
+func (d *Dense[T]) NewVec(data float.Slice) Matrix {
 	return NewVecDense[T](float.SliceValueOf[T](data))
 }
 
 // NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 // containing the given value.
-func (d *Dense[T]) NewScalar(v float.Interface) Matrix {
+func (d *Dense[T]) NewScalar(v float.Float) Matrix {
 	return NewScalar[T](float.ValueOf[T](v))
 }
 
@@ -1567,14 +1567,14 @@ func (d *Dense[T]) NewEmptyMatrix(rows, cols int) Matrix {
 
 // NewInitMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitMatrix(rows, cols int, v float.Interface) Matrix {
+func (d *Dense[T]) NewInitMatrix(rows, cols int, v float.Float) Matrix {
 	return NewInitDense[T](rows, cols, float.ValueOf[T](v))
 }
 
 // NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with the values returned from the
 // callback function.
-func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Interface) Matrix {
+func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Float) Matrix {
 	return NewInitFuncDense[T](rows, cols, func(r, c int) T {
 		return float.ValueOf[T](fn(r, c))
 	})
@@ -1582,7 +1582,7 @@ func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Int
 
 // NewInitVec creates a new column vector (size×1), of the same type of
 // the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitVec(size int, v float.Interface) Matrix {
+func (d *Dense[T]) NewInitVec(size int, v float.Float) Matrix {
 	return NewInitVecDense[T](size, float.ValueOf[T](v))
 }
 

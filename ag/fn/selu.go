@@ -35,8 +35,8 @@ func (r *SELU[O]) Operands() []O {
 func (r *SELU[O]) Forward() mat.Matrix {
 	return r.x.Value().ApplyWithAlpha(
 		selu,
-		r.alpha.Value().Scalar().Float64(),
-		r.scale.Value().Scalar().Float64(),
+		r.alpha.Value().Scalar().F64(),
+		r.scale.Value().Scalar().F64(),
 	)
 }
 
@@ -48,8 +48,8 @@ func (r *SELU[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(
 			seluDeriv,
-			r.alpha.Value().Scalar().Float64(),
-			r.scale.Value().Scalar().Float64(),
+			r.alpha.Value().Scalar().F64(),
+			r.scale.Value().Scalar().F64(),
 		)
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)

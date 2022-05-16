@@ -64,7 +64,7 @@ func (m *Model) ForwardT(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(float.Float(epsilon)))))
+	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(float.Interface(epsilon)))))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add(ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
@@ -73,7 +73,7 @@ func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []a
 }
 
 func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
-	momentum := m.Momentum.Value().Scalar().Float64()
+	momentum := m.Momentum.Value().Scalar().F64()
 
 	m.Mean.ReplaceValue(
 		m.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))
@@ -89,7 +89,7 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(float.Float(float64(len(xs))+epsilon))))
+	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(float.Interface(float64(len(xs))+epsilon))))
 }
 
 // StdDev computes the standard deviation of the input.
@@ -99,6 +99,6 @@ func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 		diffVector := ag.Square(ag.Sub(meanVector, x))
 		devVector = ag.Add(devVector, diffVector)
 	}
-	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(float.Float(float64(len(xs))+epsilon)))))
+	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(float.Interface(float64(len(xs))+epsilon)))))
 	return devVector
 }

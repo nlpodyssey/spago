@@ -61,7 +61,7 @@ func (r *MaxPooling[O]) Forward() mat.Matrix {
 				maxCols := (col * r.cols) + r.rows
 				for j := col * r.cols; j < maxCols; j++ {
 					// FIXME: avoid casting to specific type
-					val := xv.ScalarAt(i, j).Float64()
+					val := xv.ScalarAt(i, j).F64()
 					if val > maximum {
 						maximum = val
 						r.argmaxI[row][col] = i
@@ -69,7 +69,7 @@ func (r *MaxPooling[O]) Forward() mat.Matrix {
 					}
 				}
 			}
-			r.y.SetScalar(row, col, float.Float(maximum))
+			r.y.SetScalar(row, col, float.Interface(maximum))
 		}
 	}
 

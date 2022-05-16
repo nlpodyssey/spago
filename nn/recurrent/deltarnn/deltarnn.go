@@ -92,7 +92,7 @@ func (m *Model) Next(state *State, x ag.Node) (s *State) {
 	s.D2 = ag.Prod(ag.Prod(m.Alpha, wx), wyRec)
 	s.C = ag.Tanh(ag.Add(ag.Add(s.D1, s.D2), m.B))
 	s.P = ag.Sigmoid(ag.Add(wx, m.BPart))
-	one := ag.Var(s.P.Value().NewScalar(float.Float(1.0)))
+	one := ag.Var(s.P.Value().NewScalar(float.Interface(1.0)))
 	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, one), yPrev)))
 	return
 }

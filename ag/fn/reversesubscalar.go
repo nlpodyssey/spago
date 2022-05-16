@@ -31,7 +31,7 @@ func (r *ReverseSubScalar[O]) Operands() []O {
 func (r *ReverseSubScalar[O]) Forward() mat.Matrix {
 	x1 := r.x1.Value()
 	x2 := r.x2.Value()
-	return x1.ProdScalar(-1).AddScalarInPlace(x2.Scalar().Float64())
+	return x1.ProdScalar(-1).AddScalarInPlace(x2.Scalar().F64())
 }
 
 // Backward computes the backward pass.

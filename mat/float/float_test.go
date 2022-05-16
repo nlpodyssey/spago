@@ -17,9 +17,9 @@ func TestFloat(t *testing.T) {
 }
 
 func testFloat[T float.DType](t *testing.T) {
-	v := float.Float[T](T(42))
-	assert.Equal(t, float32(42), v.Float32())
-	assert.Equal(t, float64(42), v.Float64())
+	v := float.Interface[T](T(42))
+	assert.Equal(t, float32(42), v.F32())
+	assert.Equal(t, float64(42), v.F64())
 }
 
 func TestDTFloat(t *testing.T) {
@@ -40,5 +40,5 @@ type fakeFloat struct {
 	f64 float64
 }
 
-func (f fakeFloat) Float32() float32 { return f.f32 }
-func (f fakeFloat) Float64() float64 { return f.f64 }
+func (f fakeFloat) F32() float32 { return f.f32 }
+func (f fakeFloat) F64() float64 { return f.f64 }

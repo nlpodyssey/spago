@@ -58,7 +58,7 @@ func (r *Max[O]) Backward(gy mat.Matrix) {
 				gxData[i] = gyData[i]
 			}
 		}
-		gx := x1v.NewVec(float.Slice(gxData))
+		gx := x1v.NewVec(float.SliceInterface(gxData))
 		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
@@ -69,7 +69,7 @@ func (r *Max[O]) Backward(gy mat.Matrix) {
 				gxData[i] = gyData[i]
 			}
 		}
-		gx := x1v.NewVec(float.Slice(gxData))
+		gx := x1v.NewVec(float.SliceInterface(gxData))
 		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}

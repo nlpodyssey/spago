@@ -48,12 +48,12 @@ func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
 func viterbiStepStart(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		mv := maxVec.ScalarAt(i, 0).Float64()
-		tv := transitionMatrix.ScalarAt(0, i+1).Float64()
-		yv := y.scores.ScalarAt(i, 0).Float64()
+		mv := maxVec.ScalarAt(i, 0).F64()
+		tv := transitionMatrix.ScalarAt(0, i+1).F64()
+		yv := y.scores.ScalarAt(i, 0).F64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, float.Float(score))
+			y.scores.SetVecScalar(i, float.Interface(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -63,12 +63,12 @@ func viterbiStepStart(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		mv := maxVec.ScalarAt(i, 0).Float64()
-		tv := transitionMatrix.ScalarAt(i+1, 0).Float64()
-		yv := y.scores.ScalarAt(i, 0).Float64()
+		mv := maxVec.ScalarAt(i, 0).F64()
+		tv := transitionMatrix.ScalarAt(i+1, 0).F64()
+		yv := y.scores.ScalarAt(i, 0).F64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, float.Float(score))
+			y.scores.SetVecScalar(i, float.Interface(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -79,13 +79,13 @@ func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
 		for j := 0; j < transitionMatrix.Columns()-1; j++ {
-			mv := maxVec.ScalarAt(i, 0).Float64()
-			sv := stepVec.ScalarAt(j, 0).Float64()
-			tv := transitionMatrix.ScalarAt(i+1, j+1).Float64()
-			yv := y.scores.ScalarAt(j, 0).Float64()
+			mv := maxVec.ScalarAt(i, 0).F64()
+			sv := stepVec.ScalarAt(j, 0).F64()
+			tv := transitionMatrix.ScalarAt(i+1, j+1).F64()
+			yv := y.scores.ScalarAt(j, 0).F64()
 			score := mv + sv + tv
 			if score > yv {
-				y.scores.SetVecScalar(j, float.Float(score))
+				y.scores.SetVecScalar(j, float.Interface(score))
 				y.backpointers[j] = i
 			}
 		}

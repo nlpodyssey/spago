@@ -21,10 +21,10 @@ type Matrix interface {
 	Size() int
 	// Data returns the underlying data of the matrix, as a raw one-dimensional
 	// slice of values in row-major order.
-	Data() float.SliceInterface
+	Data() float.Slice
 	// SetData sets the content of the matrix, copying the given raw
 	// data representation as one-dimensional slice.
-	SetData(data float.SliceInterface)
+	SetData(data float.Slice)
 	// ZerosLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with zeroes.
 	ZerosLike() Matrix
@@ -33,7 +33,7 @@ type Matrix interface {
 	OnesLike() Matrix
 	// Scalar returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
-	Scalar() float.Interface
+	Scalar() float.Float
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
 	// Set sets the scalar value from a 1×1 matrix at row r and column c.
@@ -44,10 +44,10 @@ type Matrix interface {
 	At(r int, c int) Matrix
 	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
-	SetScalar(r int, c int, v float.Interface)
+	SetScalar(r int, c int, v float.Float)
 	// ScalarAt returns the value at row r and column c.
 	// It panics if the given indices are out of range.
-	ScalarAt(r int, c int) float.Interface
+	ScalarAt(r int, c int) float.Float
 	// SetVec sets the scalar value from a 1×1 matrix at position i of a
 	// vector. It panics if the receiver is not a vector, or the given matrix is
 	// not 1×1, or the position is out of range.
@@ -57,10 +57,10 @@ type Matrix interface {
 	AtVec(i int) Matrix
 	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	SetVecScalar(i int, v float.Interface)
+	SetVecScalar(i int, v float.Float)
 	// ScalarAtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	ScalarAtVec(i int) float.Interface
+	ScalarAtVec(i int) float.Float
 	// ExtractRow returns a copy of the i-th row of the matrix,
 	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix
@@ -234,13 +234,13 @@ type Matrix interface {
 	//
 	// Rows and columns MUST not be negative, and the length of data MUST be
 	// equal to rows*cols, otherwise the method panics.
-	NewMatrix(rows, cols int, data float.SliceInterface) Matrix
+	NewMatrix(rows, cols int, data float.Slice) Matrix
 	// NewVec creates a new column vector (len(data)×1), of the same type of
 	// the receiver, initialized with a copy of raw data.
-	NewVec(data float.SliceInterface) Matrix
+	NewVec(data float.Slice) Matrix
 	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 	// containing the given value.
-	NewScalar(v float.Interface) Matrix
+	NewScalar(v float.Float) Matrix
 	// NewEmptyVec creates a new vector, of the same type of the receiver,
 	// with dimensions size×1, initialized with zeros.
 	NewEmptyVec(size int) Matrix
@@ -249,14 +249,14 @@ type Matrix interface {
 	NewEmptyMatrix(rows, cols int) Matrix
 	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with a constant value.
-	NewInitMatrix(rows, cols int, v float.Interface) Matrix
+	NewInitMatrix(rows, cols int, v float.Float) Matrix
 	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with the values returned from the
 	// callback function.
-	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Interface) Matrix
+	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Float) Matrix
 	// NewInitVec creates a new column vector (size×1), of the same type of
 	// the receiver, initialized with a constant value.
-	NewInitVec(size int, v float.Interface) Matrix
+	NewInitVec(size int, v float.Float) Matrix
 	// NewIdentityMatrix creates a new square identity matrix (size×size), of
 	// the same type of the receiver, that is, with ones on the diagonal
 	// and zeros elsewhere.
@@ -286,7 +286,7 @@ func Data[T float.DType](m Matrix) []T {
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
 func SetData[T float.DType](m Matrix, data []T) {
-	m.SetData(float.Slice(data))
+	m.SetData(float.SliceInterface(data))
 }
 
 // IsVector returns whether the matrix is either a row or column vector

@@ -34,7 +34,7 @@ func (r *SwishB[O]) Operands() []O {
 
 // Forward computes the output of the function.
 func (r *SwishB[O]) Forward() mat.Matrix {
-	y := r.x.Value().ApplyWithAlpha(swishB, r.beta.Value().Scalar().Float64())
+	y := r.x.Value().ApplyWithAlpha(swishB, r.beta.Value().Scalar().F64())
 	return y
 }
 
@@ -44,7 +44,7 @@ func (r *SwishB[O]) Backward(gy mat.Matrix) {
 		panic("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, r.beta.Value().Scalar().Float64())
+		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, r.beta.Value().Scalar().F64())
 		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
@@ -53,9 +53,9 @@ func (r *SwishB[O]) Backward(gy mat.Matrix) {
 		gb := r.beta.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gb)
 		// FIXME: avoid casting to specific type
-		for i, x := range r.x.Value().Data().Float64() {
-			deriv := swishBBetaDeriv(x, r.beta.Value().Scalar().Float64())
-			gyi := gy.ScalarAtVec(i).Float64()
+		for i, x := range r.x.Value().Data().F64() {
+			deriv := swishBBetaDeriv(x, r.beta.Value().Scalar().F64())
+			gyi := gy.ScalarAtVec(i).F64()
 			gb.AddScalarInPlace(deriv * gyi)
 		}
 		r.beta.AccGrad(gb)

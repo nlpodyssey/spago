@@ -34,7 +34,7 @@ func (r *SparseMax[O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *SparseMax[O]) Forward() mat.Matrix {
 	x := r.x.Value()
-	xMax := x.Max().Scalar().Float64()
+	xMax := x.Max().Scalar().F64()
 
 	// translate the input by max for numerical stability
 	v := x.SubScalar(xMax)
@@ -55,7 +55,7 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) {
 		var nzSum float64
 		var nzCount float64
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			nzSum += gy.ScalarAtVec(i).Float64()
+			nzSum += gy.ScalarAtVec(i).F64()
 			nzCount++
 		})
 		nzSum = nzSum / nzCount
@@ -63,8 +63,8 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			gyi := gy.ScalarAtVec(i).Float64()
-			gx.SetVecScalar(i, float.Float(gyi-nzSum))
+			gyi := gy.ScalarAtVec(i).F64()
+			gx.SetVecScalar(i, float.Interface(gyi-nzSum))
 		})
 
 		r.x.AccGrad(gx)
@@ -74,7 +74,7 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) {
 func sparseMaxCommon(v mat.Matrix) (zs, cumSumInput mat.Matrix, bounds []float64, tau float64) {
 	// FIXME: avoid casting to specific type
 	zsData := make([]float64, v.Size())
-	copy(zsData, v.Data().Float64())
+	copy(zsData, v.Data().F64())
 
 	// Sort zs in descending order.
 	sort.Slice(zsData, func(i, j int) bool {
@@ -89,7 +89,7 @@ func sparseMaxCommon(v mat.Matrix) (zs, cumSumInput mat.Matrix, bounds []float64
 	}
 
 	cumSumInput = zs.CumSum()
-	cumSumInputData := cumSumInput.Data().Float64()
+	cumSumInputData := cumSumInput.Data().F64()
 
 	k := -1
 	tau = 0.0

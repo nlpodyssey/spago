@@ -127,7 +127,7 @@ func TestGobEncoding(t *testing.T) {
 
 	require.NotNil(t, ms.Foo)
 	require.Contains(t, ms.Foo, "foo")
-	assert.Equal(t, float.Float(T(11)), ms.Foo["foo"].Value().Scalar())
+	assert.Equal(t, float.Interface(T(11)), ms.Foo["foo"].Value().Scalar())
 
 	require.Nil(t, ms.Bar)
 }

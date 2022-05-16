@@ -100,7 +100,7 @@ func (p *BaseParam) ReplaceValue(value mat.Matrix) {
 // ScalarValue returns the scalar value of the node.
 // It panics if the value is not a scalar.
 // Note that it is not possible to start the backward step from a scalar value.
-func (p *BaseParam) ScalarValue() float.Interface {
+func (p *BaseParam) ScalarValue() float.Float {
 	p.valueMu.RLock()
 	defer p.valueMu.RUnlock()
 	return p.value.Scalar()

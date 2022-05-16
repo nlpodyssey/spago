@@ -32,7 +32,7 @@ func (e *Embedding[_]) Value() mat.Matrix {
 }
 
 // ScalarValue satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[_]) ScalarValue() float.Interface {
+func (e *Embedding[_]) ScalarValue() float.Float {
 	v := e.Value()
 	if v == nil {
 		panic("embeddings: cannot get scalar value from nil Matrix")

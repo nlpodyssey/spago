@@ -43,14 +43,14 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		y := r.y
 		n := y.Size()
-		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float.Interface {
+		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float.Float {
 			// FIXME: avoid casting to specific type
-			vRow := y.ScalarAtVec(row).Float64()
+			vRow := y.ScalarAtVec(row).F64()
 			if row == col {
-				return float.Float(vRow * (1 - vRow))
+				return float.Interface(vRow * (1 - vRow))
 			}
-			vCol := y.ScalarAtVec(col).Float64()
-			return float.Float(-(vRow * vCol))
+			vCol := y.ScalarAtVec(col).F64()
+			return float.Interface(-(vRow * vCol))
 		})
 		defer mat.ReleaseMatrix(jb)
 		gx := jb.Mul(gy)

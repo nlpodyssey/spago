@@ -25,9 +25,9 @@ func testUtils[T float.DType](t *testing.T) {
 			[]Node{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, float.Float(T(5)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Float(T(7)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Float(T(9)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Interface(T(5)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Interface(T(7)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Interface(T(9)), ys[2].Value().Scalar())
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
@@ -36,11 +36,11 @@ func testUtils[T float.DType](t *testing.T) {
 		}
 		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
-		assert.Equal(t, float.Float(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Float(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Float(T(3)), ys[2].Value().Scalar())
-		assert.Equal(t, float.Float(T(0)), ys[3].Value().Scalar())
-		assert.Equal(t, float.Float(T(0)), ys[4].Value().Scalar())
+		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Interface(T(0)), ys[3].Value().Scalar())
+		assert.Equal(t, float.Interface(T(0)), ys[4].Value().Scalar())
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
@@ -49,9 +49,9 @@ func testUtils[T float.DType](t *testing.T) {
 		}
 		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, float.Float(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Float(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Float(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Scalar())
 	})
 }
 

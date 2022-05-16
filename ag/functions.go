@@ -109,7 +109,7 @@ func Mean(xs []Node) Node {
 	for i := 1; i < len(xs); i++ {
 		sumVector = Add(sumVector, xs[i])
 	}
-	ln := sumVector.Value().NewScalar(float.Float(float64(len(xs))))
+	ln := sumVector.Value().NewScalar(float.Interface(float64(len(xs))))
 	return DivScalar(sumVector, Var(ln))
 }
 
@@ -168,7 +168,7 @@ func BiAffine(w, u, v, b, x1, x2 Node) Node {
 
 // PositiveELU returns a new operator node as a result of ELU(x) + 1.
 func PositiveELU(x Node) Node {
-	one := Var(x.Value().NewScalar(float.Float(1.0)))
+	one := Var(x.Value().NewScalar(float.Interface(1.0)))
 	return AddScalar(ELU(x, one), one)
 }
 

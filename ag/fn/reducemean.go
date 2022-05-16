@@ -42,8 +42,8 @@ func (r *ReduceMean[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
 		size := x.Size()
-		v := gy.Scalar().Float64() / float64(size)
-		gx := x.NewInitVec(size, float.Float(v))
+		v := gy.Scalar().F64() / float64(size)
+		gx := x.NewInitVec(size, float.Interface(v))
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
