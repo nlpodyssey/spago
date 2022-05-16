@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func Test_IncExample(t *testing.T) {
 	t.Run("float64", testIncExample[float64])
 }
 
-func testIncExample[T mat.DType](t *testing.T) {
+func testIncExample[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
@@ -32,7 +33,7 @@ func Test_Update(t *testing.T) {
 	t.Run("float64", testUpdate[float64])
 }
 
-func testUpdate[T mat.DType](t *testing.T) {
+func testUpdate[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
@@ -58,7 +59,7 @@ func Test_Update2(t *testing.T) {
 	t.Run("float64", testUpdate2[float64])
 }
 
-func testUpdate2[T mat.DType](t *testing.T) {
+func testUpdate2[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1

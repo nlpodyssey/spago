@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -71,7 +72,7 @@ func NewDefaultConfig() Config {
 var _ gd.Method = &Adam[float32]{}
 
 // Adam implements the Adam gradient descent optimization method.
-type Adam[T mat.DType] struct {
+type Adam[T float.DType] struct {
 	Config
 	Alpha    float64
 	TimeStep int
@@ -79,7 +80,7 @@ type Adam[T mat.DType] struct {
 }
 
 // New returns a new Adam optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *Adam[T] {
+func New[T float.DType](c Config) *Adam[T] {
 	adam := &Adam[T]{
 		Config: c,
 		Alpha:  c.StepSize,

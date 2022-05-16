@@ -7,6 +7,7 @@ package sgd
 import (
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -32,13 +33,13 @@ func NewConfig(lr, momentum float64, nesterov bool) Config {
 var _ gd.Method = &SGD[float32]{}
 
 // SGD implements the SGD gradient descent optimization method.
-type SGD[T mat.DType] struct {
+type SGD[T float.DType] struct {
 	Config
 	Alpha float64
 }
 
 // New returns a new SGD optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *SGD[T] {
+func New[T float.DType](c Config) *SGD[T] {
 	return &SGD[T]{Config: c, Alpha: c.LR}
 }
 

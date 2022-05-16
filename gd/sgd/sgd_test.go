@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func TestSGD_Update(t *testing.T) {
 	t.Run("float64", testSGDUpdate[float64])
 }
 
-func testSGDUpdate[T mat.DType](t *testing.T) {
+func testSGDUpdate[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.0,   // momentum
@@ -37,7 +38,7 @@ func TestSGDMomentum_Update(t *testing.T) {
 	t.Run("float64", testSGDMomentumUpdate[float64])
 }
 
-func testSGDMomentumUpdate[T mat.DType](t *testing.T) {
+func testSGDMomentumUpdate[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
@@ -60,7 +61,7 @@ func TestSGDMomentum_Update2(t *testing.T) {
 	t.Run("float64", testSGDMomentumUpdate2[float64])
 }
 
-func testSGDMomentumUpdate2[T mat.DType](t *testing.T) {
+func testSGDMomentumUpdate2[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
@@ -125,7 +126,7 @@ func TestSGDNesterovMomentum_Update(t *testing.T) {
 	t.Run("float64", testSGDNesterovMomentumUpdate[float64])
 }
 
-func testSGDNesterovMomentumUpdate[T mat.DType](t *testing.T) {
+func testSGDNesterovMomentumUpdate[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum
@@ -148,7 +149,7 @@ func TestSGDNesterovMomentum_Update2(t *testing.T) {
 	t.Run("float64", testSGDNesterovMomentumUpdate2[float64])
 }
 
-func testSGDNesterovMomentumUpdate2[T mat.DType](t *testing.T) {
+func testSGDNesterovMomentumUpdate2[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001, // learning rate
 		0.9,   // momentum

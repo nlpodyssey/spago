@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func TestNewOperator(t *testing.T) {
 	t.Run("float64", testNewOperator[float64])
 }
 
-func testNewOperator[T mat.DType](t *testing.T) {
+func testNewOperator[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node]{
@@ -44,7 +45,7 @@ func TestOperator_Name(t *testing.T) {
 	t.Run("with generics - float64", testOperatorName[float64])
 }
 
-func testOperatorName[T mat.DType](t *testing.T) {
+func testOperatorName[T float.DType](t *testing.T) {
 	op := NewOperator(&dummyFunction[T, Node]{})
 	assert.Equal(t, "dummyFunction", op.Name())
 }
@@ -54,7 +55,7 @@ func TestOperator_Operands(t *testing.T) {
 	t.Run("with generics - float64", testOperatorOperands[float64])
 }
 
-func testOperatorOperands[T mat.DType](t *testing.T) {
+func testOperatorOperands[T float.DType](t *testing.T) {
 	operands := []Node{&dummyNode{id: 1}}
 	f := &dummyFunction[T, Node]{
 		operands: func() []Node { return operands },
@@ -69,7 +70,7 @@ func TestOperator_Value(t *testing.T) {
 	t.Run("with generics - float64", testOperatorValue[float64])
 }
 
-func testOperatorValue[T mat.DType](t *testing.T) {
+func testOperatorValue[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node]{
@@ -77,7 +78,7 @@ func testOperatorValue[T mat.DType](t *testing.T) {
 	}
 	op := NewOperator(f)
 
-	// The first call to Value() waits for the forward and returns the result
+	// The first call to ValueOf() waits for the forward and returns the result
 	assert.Same(t, forwardResult, op.Value())
 
 	// The second call returns the same cached result
@@ -92,7 +93,7 @@ func TestOperator_RequiresGrad(t *testing.T) {
 	t.Run("with generics - float64", testOperatorRequiresGrad[float64])
 }
 
-func testOperatorRequiresGrad[T mat.DType](t *testing.T) {
+func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	t.Run("false without operands", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{})
 		assert.False(t, op.RequiresGrad())
@@ -128,7 +129,7 @@ func TestOperator_Gradients(t *testing.T) {
 	t.Run("float64", testOperatorGradients[float64])
 }
 
-func testOperatorGradients[T mat.DType](t *testing.T) {
+func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{
 			forward: func() mat.Matrix {
@@ -173,7 +174,7 @@ func testOperatorGradients[T mat.DType](t *testing.T) {
 	})
 }
 
-type dummyFunction[T mat.DType, O fn.Operand] struct {
+type dummyFunction[T float.DType, O fn.Operand] struct {
 	forward       func() mat.Matrix
 	backward      func(gy mat.Matrix)
 	operands      func() []O

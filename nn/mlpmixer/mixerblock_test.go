@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testMixerBlockForwardWithGeLU[float64])
 }
 
-func testMixerBlockForward[T mat.DType](t *testing.T) {
+func testMixerBlockForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	x1 := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9})).WithGrad(true)
@@ -38,7 +39,7 @@ func testMixerBlockForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.53910204, 0.24096750, 0.9499668}, output[4].Value().Data(), 1.0e-05)
 }
 
-func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
+func testMixerBlockForwardWithGeLU[T float.DType](t *testing.T) {
 	model := newTestModelGelu[T]()
 
 	x1 := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5})).WithGrad(true)
@@ -51,7 +52,7 @@ func testMixerBlockForwardWithGeLU[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.7089, -0.6511, -1.3840, -0.5825}, output[2].Value().Data(), 1.0e-03)
 }
 
-func newTestModel[T mat.DType]() *MixerBlock {
+func newTestModel[T float.DType]() *MixerBlock {
 	model := New[T](Config{
 		InputSize:               3,
 		HiddenSizeTokenMixer:    4,
@@ -99,7 +100,7 @@ func newTestModel[T mat.DType]() *MixerBlock {
 	return model
 }
 
-func newTestModelGelu[T mat.DType]() *MixerBlock {
+func newTestModelGelu[T float.DType]() *MixerBlock {
 	model := New[T](Config{
 		InputSize:               4,
 		HiddenSizeTokenMixer:    4,

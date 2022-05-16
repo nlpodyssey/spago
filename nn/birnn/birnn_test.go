@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/recurrent/srn"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ func TestModelConcat_Forward(t *testing.T) {
 	t.Run("float64", testModelConcatForward[float64])
 }
 
-func testModelConcatForward[T mat.DType](t *testing.T) {
+func testModelConcatForward[T float.DType](t *testing.T) {
 	model := newTestModel[T](Concat)
 
 	// == Forward
@@ -97,7 +98,7 @@ func TestModelSum_Forward(t *testing.T) {
 	t.Run("float64", testModelSumForward[float64])
 }
 
-func testModelSumForward[T mat.DType](t *testing.T) {
+func testModelSumForward[T float.DType](t *testing.T) {
 	model := newTestModel[T](Sum)
 
 	// == Forward
@@ -118,7 +119,7 @@ func TestModelAvg_Forward(t *testing.T) {
 	t.Run("float64", testModelAvgForward[float64])
 }
 
-func testModelAvgForward[T mat.DType](t *testing.T) {
+func testModelAvgForward[T float.DType](t *testing.T) {
 	model := newTestModel[T](Avg)
 
 	// == Forward
@@ -139,7 +140,7 @@ func TestModelProd_Forward(t *testing.T) {
 	t.Run("float64", testModelProdForward[float64])
 }
 
-func testModelProdForward[T mat.DType](t *testing.T) {
+func testModelProdForward[T float.DType](t *testing.T) {
 	model := newTestModel[T](Prod)
 
 	// == Forward
@@ -155,7 +156,7 @@ func testModelProdForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.033161, -0.519478, -0.206044}, y[2].Value().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType](mergeType MergeType) *Model {
+func newTestModel[T float.DType](mergeType MergeType) *Model {
 	model := New(
 		srn.New[T](2, 3),
 		srn.New[T](2, 3),
@@ -166,7 +167,7 @@ func newTestModel[T mat.DType](mergeType MergeType) *Model {
 	return model
 }
 
-func initPos[T mat.DType](m *srn.Model) {
+func initPos[T float.DType](m *srn.Model) {
 	mat.SetData[T](m.W.Value(), []T{
 		-0.9, 0.4,
 		0.7, -1.0,
@@ -180,7 +181,7 @@ func initPos[T mat.DType](m *srn.Model) {
 	mat.SetData[T](m.B.Value(), []T{0.4, -0.3, 0.8})
 }
 
-func initNeg[T mat.DType](m *srn.Model) {
+func initNeg[T float.DType](m *srn.Model) {
 	mat.SetData[T](m.W.Value(), []T{
 		0.3, 0.1,
 		0.6, 0.0,

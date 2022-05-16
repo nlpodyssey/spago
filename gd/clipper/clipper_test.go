@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestClipValue(t *testing.T) {
 	t.Run("float64", testClipValue[float64])
 }
 
-func testClipValue[T mat.DType](t *testing.T) {
+func testClipValue[T float.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
 	(&ClipValue{Value: 0.7}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
@@ -35,7 +36,7 @@ func TestClip2Norm(t *testing.T) {
 	t.Run("float64", testClip2Norm[float64])
 }
 
-func testClip2Norm[T mat.DType](t *testing.T) {
+func testClip2Norm[T float.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
 	(&ClipNorm{MaxNorm: 2.0, NormType: 2.0}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
@@ -53,7 +54,7 @@ func TestClipNormInf(t *testing.T) {
 	t.Run("float64", testClipNormInf[float64])
 }
 
-func testClipNormInf[T mat.DType](t *testing.T) {
+func testClipNormInf[T float.DType](t *testing.T) {
 	gs := buildTestGrads[T]()
 	(&ClipNorm{MaxNorm: 0.5, NormType: math.Inf(1)}).Clip(gs)
 	assert.InDeltaSlice(t, []T{
@@ -66,7 +67,7 @@ func testClipNormInf[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.45, 0.35, 0.2, 0.4, 0.05}, gs[1].Data(), 1.0e-06)
 }
 
-func buildTestGrads[T mat.DType]() []mat.Matrix {
+func buildTestGrads[T float.DType]() []mat.Matrix {
 	return []mat.Matrix{
 		mat.NewDense(4, 5, []T{
 			0.5, 0.6, -0.8, -0.6,

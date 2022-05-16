@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestModel_Forward_Params(t *testing.T) {
 	t.Run("float64", testModelForwardParams[float64])
 }
 
-func testModelForwardParams[T mat.DType](t *testing.T) {
+func testModelForwardParams[T float.DType](t *testing.T) {
 	const numDataInstances = 10000
 	const dataSize = 100
 
@@ -130,7 +131,7 @@ func TestModel_Inference(t *testing.T) {
 	t.Run("float64", testModelInference[float64])
 }
 
-func testModelInference[T mat.DType](t *testing.T) {
+func testModelInference[T float.DType](t *testing.T) {
 
 	model := New[T](3)
 	model.Mean = nn.NewParam(mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
@@ -149,7 +150,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -186,7 +187,7 @@ func rectify(xs []ag.Node) []ag.Node {
 	return ys
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](4)
 	mat.SetData[T](model.W.Value(), []T{0.4, 0.0, -0.3, 0.8})
 	mat.SetData[T](model.B.Value(), []T{0.9, 0.2, -0.9, 0.2})

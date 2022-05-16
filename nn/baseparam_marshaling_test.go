@@ -7,10 +7,12 @@ package nn
 import (
 	"bytes"
 	"encoding/gob"
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestParam_Gob(t *testing.T) {
@@ -18,7 +20,7 @@ func TestParam_Gob(t *testing.T) {
 	t.Run("float64", testParamGob[float64])
 }
 
-func testParamGob[T mat.DType](t *testing.T) {
+func testParamGob[T float.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		var buf bytes.Buffer
 
@@ -37,13 +39,13 @@ func testParamGob[T mat.DType](t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
 		require.NotNil(t, decodedParam.Value())
-		assert.Equal(t, mat.Float(T(12)), decodedParam.Value().Scalar())
+		assert.Equal(t, float.Float(T(12)), decodedParam.Value().Scalar())
 
 		payload := decodedParam.Payload()
 		assert.NotNil(t, payload)
 		assert.Equal(t, 42, payload.Label)
 		assert.NotEmpty(t, payload.Data)
-		assert.Equal(t, mat.Float(T(34)), payload.Data[0].Scalar())
+		assert.Equal(t, float.Float(T(34)), payload.Data[0].Scalar())
 	})
 
 	t.Run("nil value and payload", func(t *testing.T) {
@@ -68,7 +70,7 @@ func TestParamInterfaceBinaryMarshaling(t *testing.T) {
 	t.Run("float64", testParamInterfaceBinaryMarshaling[float64])
 }
 
-func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
+func testParamInterfaceBinaryMarshaling[T float.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
@@ -79,7 +81,7 @@ func testParamInterfaceBinaryMarshaling[T mat.DType](t *testing.T) {
 		decodedParam, err := UnmarshalBinaryParam(buf)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
-		assert.Equal(t, mat.Float(T(42)), decodedParam.Value().Scalar())
+		assert.Equal(t, float.Float(T(42)), decodedParam.Value().Scalar())
 	})
 
 	t.Run("nil", func(t *testing.T) {

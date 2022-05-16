@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestMSELoss(t *testing.T) {
 	t.Run("float64", testMSELoss[float64])
 }
 
-func testMSELoss[T mat.DType](t *testing.T) {
+func testMSELoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
 	y := ag.Var(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}))
 	loss := MSE(x, y, false)
@@ -35,7 +36,7 @@ func TestNLLLoss(t *testing.T) {
 	t.Run("float64", testNLLLoss[float64])
 }
 
-func testNLLLoss[T mat.DType](t *testing.T) {
+func testNLLLoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591})).WithGrad(true)
 	y := ag.Var(mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0}))
 	loss := NLL(ag.Softmax(x), y)
@@ -53,7 +54,7 @@ func TestCrossEntropyLoss(t *testing.T) {
 	t.Run("float64", testCrossEntropyLoss[float64])
 }
 
-func testCrossEntropyLoss[T mat.DType](t *testing.T) {
+func testCrossEntropyLoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591})).WithGrad(true)
 	loss := CrossEntropy(x, 2)
 
@@ -69,7 +70,7 @@ func TestWeightedCrossEntropyLoss(t *testing.T) {
 	t.Run("float64", testWeightedCrossEntropyLoss[float64])
 }
 
-func testWeightedCrossEntropyLoss[T mat.DType](t *testing.T) {
+func testWeightedCrossEntropyLoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591})).WithGrad(true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedCrossEntropy(mat.NewVecDense(w))
@@ -87,7 +88,7 @@ func TestFocalLoss(t *testing.T) {
 	t.Run("float64", testFocalLoss[float64])
 }
 
-func testFocalLoss[T mat.DType](t *testing.T) {
+func testFocalLoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4})).WithGrad(true)
 	loss := FocalLoss(x, 2, 2.0)
 
@@ -103,7 +104,7 @@ func TestWeightedFocalLoss(t *testing.T) {
 	t.Run("float64", testWeightedFocalLoss[float64])
 }
 
-func testWeightedFocalLoss[T mat.DType](t *testing.T) {
+func testWeightedFocalLoss[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4})).WithGrad(true)
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedFocalLoss(mat.NewVecDense(w))
@@ -121,7 +122,7 @@ func TestZeroOneQuantization(t *testing.T) {
 	t.Run("float64", testZeroOneQuantization[float64])
 }
 
-func testZeroOneQuantization[T mat.DType](t *testing.T) {
+func testZeroOneQuantization[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
 	loss := ZeroOneQuantization(x)
 
@@ -137,7 +138,7 @@ func TestNorm2Quantization(t *testing.T) {
 	t.Run("float64", testNorm2Quantization[float64])
 }
 
-func testNorm2Quantization[T mat.DType](t *testing.T) {
+func testNorm2Quantization[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
 	loss := Norm2Quantization(x)
 
@@ -153,7 +154,7 @@ func TestOneHotQuantization(t *testing.T) {
 	t.Run("float64", testOneHotQuantization[float64])
 }
 
-func testOneHotQuantization[T mat.DType](t *testing.T) {
+func testOneHotQuantization[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
 	loss := OneHotQuantization(x, 0.1)
 
@@ -169,7 +170,7 @@ func TestMSESeqLoss(t *testing.T) {
 	t.Run("float64", testMSESeqLoss[float64])
 }
 
-func testMSESeqLoss[T mat.DType](t *testing.T) {
+func testMSESeqLoss[T float.DType](t *testing.T) {
 	x1 := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
 	y1 := ag.Var(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}))
 	x2 := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
@@ -184,8 +185,8 @@ func testMSESeqLoss[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.15, -0.05, 0.05, 0.15}, x2.Grad().Data(), 1.0e-6)
 }
 
-func assertScalarEqualApprox[T mat.DType](t *testing.T, expected T, actual mat.Matrix) {
+func assertScalarEqualApprox[T float.DType](t *testing.T, expected T, actual mat.Matrix) {
 	t.Helper()
-	v := mat.DTFloat[T](actual.Scalar())
+	v := float.ValueOf[T](actual.Scalar())
 	assert.InDelta(t, expected, v, 1.0e-06)
 }

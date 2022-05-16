@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/convolution"
@@ -42,7 +43,7 @@ func init() {
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	if config.Mask != nil && config.InputChannels != len(config.Mask) {
 		panic(fmt.Sprintf("convolution: wrong mask size; found %d, expected %d", config.InputChannels, len(config.Mask)))
 	}

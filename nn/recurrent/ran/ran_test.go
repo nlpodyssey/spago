@@ -10,6 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 	// == Forward
 
@@ -74,7 +75,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	t.Run("float64", testModelForwardWithPrev[float64])
 }
 
-func testModelForwardWithPrev[T mat.DType](t *testing.T) {
+func testModelForwardWithPrev[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -144,7 +145,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	}, model.WFor.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](4, 5)
 	mat.SetData[T](model.WIn.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,

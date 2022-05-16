@@ -11,6 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -34,7 +35,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out, order int) *Model {
+func New[T float.DType](in, out, order int) *Model {
 	wRec := make([]nn.Param, order)
 	for i := 0; i < order; i++ {
 		wRec[i] = nn.NewParam(mat.NewEmptyDense[T](out, out))
@@ -71,7 +72,7 @@ func (m *Model) feedback(states []*State) []ag.Node {
 	var ys []ag.Node
 	n := len(states)
 	for i := 0; i < min(len(m.WRec), n); i++ {
-		alpha := ag.Var(m.WRec[i].Value().NewScalar(mat.Float(math.Pow(0.6, float64(i+1)))))
+		alpha := ag.Var(m.WRec[i].Value().NewScalar(float.Float(math.Pow(0.6, float64(i+1)))))
 		ys = append(ys, m.WRec[i], ag.ProdScalar(states[n-1-i].Y, alpha))
 	}
 	return ys

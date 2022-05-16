@@ -6,10 +6,12 @@ package mat
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"runtime"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDensePool(t *testing.T) {
@@ -29,7 +31,7 @@ func TestDensePool_GetDense(t *testing.T) {
 	t.Run("float64", testDensePoolGetDense[float64])
 }
 
-func testDensePoolGetDense[T DType](t *testing.T) {
+func testDensePoolGetDense[T float.DType](t *testing.T) {
 	densePool := densePool[T]()
 
 	t.Run("negative rows", func(t *testing.T) {
@@ -74,7 +76,7 @@ func testDensePoolGetDense[T DType](t *testing.T) {
 	}
 }
 
-func assertDenseFromPoolDims[T DType](t *testing.T, expectedRows, expectedCols, expectedCap int, d *Dense[T]) {
+func assertDenseFromPoolDims[T float.DType](t *testing.T, expectedRows, expectedCols, expectedCap int, d *Dense[T]) {
 	t.Helper()
 	expectedSize := expectedRows * expectedCols
 	assert.Equal(t, expectedRows, d.rows)
@@ -88,7 +90,7 @@ func TestDensePool_GetAndRelease(t *testing.T) {
 	t.Run("float64", testGetAndRelease[float64])
 }
 
-func testGetAndRelease[T DType](t *testing.T) {
+func testGetAndRelease[T float.DType](t *testing.T) {
 	runtime.GC()
 	a1 := densePool[T]().Get(5, 1)
 	b1 := densePool[T]().Get(10, 1)
@@ -143,7 +145,7 @@ func TestDensePool_Get(t *testing.T) {
 	t.Run("float64", testDensePoolGet[float64])
 }
 
-func testDensePoolGet[T DType](t *testing.T) {
+func testDensePoolGet[T float.DType](t *testing.T) {
 	runtime.GC()
 	d := densePool[T]().Get(2, 3)
 
@@ -164,7 +166,7 @@ func TestDensePool_GetEmpty(t *testing.T) {
 	t.Run("float64", testDensePoolGetEmpty[float64])
 }
 
-func testDensePoolGetEmpty[T DType](t *testing.T) {
+func testDensePoolGetEmpty[T float.DType](t *testing.T) {
 	d := densePool[T]().GetEmpty(2, 3)
 
 	assert.Equal(t, 2, d.Rows())
@@ -183,7 +185,7 @@ func TestDensePool_Put(t *testing.T) {
 	t.Run("float64", testDensePoolPut[float64])
 }
 
-func testDensePoolPut[T DType](t *testing.T) {
+func testDensePoolPut[T float.DType](t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
 		view := d.View(4, 3)
@@ -197,7 +199,7 @@ func TestReleaseDense(t *testing.T) {
 	t.Run("float64", testReleaseDense[float64])
 }
 
-func testReleaseDense[T DType](t *testing.T) {
+func testReleaseDense[T float.DType](t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
 		view := d.View(4, 3)
@@ -211,7 +213,7 @@ func TestReleaseMatrix(t *testing.T) {
 	t.Run("float64", testReleaseMatrix[float64])
 }
 
-func testReleaseMatrix[T DType](t *testing.T) {
+func testReleaseMatrix[T float.DType](t *testing.T) {
 	t.Run("it panics if the matrix does not come from the workspace", func(t *testing.T) {
 		d := NewEmptyDense[T](3, 4)
 		view := d.View(4, 3)
@@ -225,6 +227,6 @@ func testReleaseMatrix[T DType](t *testing.T) {
 	})
 }
 
-type foreignMatrixImplementation[T DType] struct {
+type foreignMatrixImplementation[T float.DType] struct {
 	*Dense[T]
 }

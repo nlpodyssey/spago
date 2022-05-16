@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAbs_Forward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestAbs_Forward(t *testing.T) {
 	t.Run("float64", testAbsForward[float64])
 }
 
-func testAbsForward[T mat.DType](t *testing.T) {
+func testAbsForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -38,7 +40,7 @@ func TestSafeLog_Forward(t *testing.T) {
 	t.Run("float64", testSafeLogForward[float64])
 }
 
-func testSafeLogForward[T mat.DType](t *testing.T) {
+func testSafeLogForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -59,7 +61,7 @@ func TestTan_Forward(t *testing.T) {
 	t.Run("float64", testTanForward[float64])
 }
 
-func testTanForward[T mat.DType](t *testing.T) {
+func testTanForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -80,7 +82,7 @@ func TestTanh_Forward(t *testing.T) {
 	t.Run("float64", testTanhForward[float64])
 }
 
-func testTanhForward[T mat.DType](t *testing.T) {
+func testTanhForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -101,7 +103,7 @@ func TestSigmoid_Forward(t *testing.T) {
 	t.Run("float64", testSigmoidForward[float64])
 }
 
-func testSigmoidForward[T mat.DType](t *testing.T) {
+func testSigmoidForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -122,7 +124,7 @@ func TestHardSigmoid_Forward(t *testing.T) {
 	t.Run("float64", testHardSigmoidForward[float64])
 }
 
-func testHardSigmoidForward[T mat.DType](t *testing.T) {
+func testHardSigmoidForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -143,7 +145,7 @@ func TestHardTanh_Forward(t *testing.T) {
 	t.Run("float64", testHardTanhForward[float64])
 }
 
-func testHardTanhForward[T mat.DType](t *testing.T) {
+func testHardTanhForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -164,7 +166,7 @@ func TestRelu_Forward(t *testing.T) {
 	t.Run("float64", testReluForward[float64])
 }
 
-func testReluForward[T mat.DType](t *testing.T) {
+func testReluForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -185,7 +187,7 @@ func TestNewSoftsignForward(t *testing.T) {
 	t.Run("float64", testNewSoftsignForward[float64])
 }
 
-func testNewSoftsignForward[T mat.DType](t *testing.T) {
+func testNewSoftsignForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -206,7 +208,7 @@ func TestNewCosForward(t *testing.T) {
 	t.Run("float64", testNewCosForward[float64])
 }
 
-func testNewCosForward[T mat.DType](t *testing.T) {
+func testNewCosForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -227,7 +229,7 @@ func TestNewSinForward(t *testing.T) {
 	t.Run("float64", testNewSinForward[float64])
 }
 
-func testNewSinForward[T mat.DType](t *testing.T) {
+func testNewSinForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -248,7 +250,7 @@ func TestNewExpForward(t *testing.T) {
 	t.Run("float64", testNewExpForward[float64])
 }
 
-func testNewExpForward[T mat.DType](t *testing.T) {
+func testNewExpForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -269,7 +271,7 @@ func TestNewNegForward(t *testing.T) {
 	t.Run("float64", testNewNegForward[float64])
 }
 
-func testNewNegForward[T mat.DType](t *testing.T) {
+func testNewNegForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -290,7 +292,7 @@ func TestNewReciprocalForward(t *testing.T) {
 	t.Run("float64", testNewReciprocalForward[float64])
 }
 
-func testNewReciprocalForward[T mat.DType](t *testing.T) {
+func testNewReciprocalForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
@@ -311,7 +313,7 @@ func TestNewMishForward(t *testing.T) {
 	t.Run("float64", testNewMishForward[float64])
 }
 
-func testNewMishForward[T mat.DType](t *testing.T) {
+func testNewMishForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, -0.1}),
 		grad:         nil,
@@ -332,7 +334,7 @@ func TestNewGELUForward(t *testing.T) {
 	t.Run("float64", testNewGELUForward[float64])
 }
 
-func testNewGELUForward[T mat.DType](t *testing.T) {
+func testNewGELUForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.0, 0.1, 0.01, -0.1, -0.01, 1.0, 10.0, -1.0, -10.0}),
 		grad:         nil,

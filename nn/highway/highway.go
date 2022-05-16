@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 )
@@ -30,7 +31,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in int, activation activation.Name) *Model {
+func New[T float.DType](in int, activation activation.Name) *Model {
 	return &Model{
 		WIn:        nn.NewParam(mat.NewEmptyDense[T](in, in)),
 		BIn:        nn.NewParam(mat.NewEmptyVecDense[T](in)),
@@ -55,6 +56,6 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 func (m *Model) forward(x ag.Node) ag.Node {
 	t := ag.Sigmoid(ag.Affine(m.BT, m.WT, x))
 	h := activation.Do(m.Activation, ag.Affine(m.BIn, m.WIn, x))
-	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, ag.Var(x.Value().NewScalar(mat.Float(1.0)))), x))
+	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, ag.Var(x.Value().NewScalar(float.Float(1.0)))), x))
 	return y
 }

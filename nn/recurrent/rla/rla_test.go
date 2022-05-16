@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	t.Run("float64", testModelForwardWithPrev[float64])
 }
 
-func testModelForwardWithPrev[T mat.DType](t *testing.T) {
+func testModelForwardWithPrev[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -32,7 +33,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.5996537, -0.545537, -0.63689751, 0.453609420}, s2.Y.Value().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](Config{
 		InputSize: 4,
 	})

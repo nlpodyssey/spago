@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestModel_Decode(t *testing.T) {
 	t.Run("float64", testModelDecode[float64])
 }
 
-func testModelDecode[T mat.DType](t *testing.T) {
+func testModelDecode[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
@@ -38,7 +39,7 @@ func TestModel_GoldScore(t *testing.T) {
 	t.Run("float64", testModelGoldScore[float64])
 }
 
-func testModelGoldScore[T mat.DType](t *testing.T) {
+func testModelGoldScore[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
@@ -58,7 +59,7 @@ func TestModel_TotalScore(t *testing.T) {
 	t.Run("float64", testModelTotalScore[float64])
 }
 
-func testModelTotalScore[T mat.DType](t *testing.T) {
+func testModelTotalScore[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
@@ -77,7 +78,7 @@ func TestModel_Loss(t *testing.T) {
 	t.Run("float64", testModelLoss[float64])
 }
 
-func testModelLoss[T mat.DType](t *testing.T) {
+func testModelLoss[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	w1 := ag.Var(mat.NewVecDense([]T{1.7, 0.2, -0.3, 0.5})).WithGrad(true)
@@ -93,7 +94,7 @@ func testModelLoss[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{2.37258}, loss.Value().Data(), 0.00001)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](4)
 	mat.SetData[T](model.TransitionScores.Value(), []T{
 		0.0, 0.6, 0.8, 1.2, 1.6,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 	t.Run("float64", testScaledDotProductAttention[float64])
 }
 
-func testScaledDotProductAttention[T mat.DType](t *testing.T) {
+func testScaledDotProductAttention[T float.DType](t *testing.T) {
 	queries := []ag.Node{
 		ag.Var(mat.NewVecDense([]T{1.1, 0.0, 2.3})).WithGrad(true),
 		ag.Var(mat.NewVecDense([]T{2.2, -0.5, 0.3})).WithGrad(true),
@@ -51,7 +52,7 @@ func TestScaledDotProductAttention2(t *testing.T) {
 	t.Run("float64", testScaledDotProductAttention2[float64])
 }
 
-func testScaledDotProductAttention2[T mat.DType](t *testing.T) {
+func testScaledDotProductAttention2[T float.DType](t *testing.T) {
 	queries := []ag.Node{
 		ag.Var(mat.NewVecDense([]T{0.22, 0.3})).WithGrad(true),
 		ag.Var(mat.NewVecDense([]T{-0.17, 0.24})).WithGrad(true),
@@ -113,7 +114,7 @@ func TestLinearAttention(t *testing.T) {
 	t.Run("float64", testLinearAttention[float64])
 }
 
-func testLinearAttention[T mat.DType](t *testing.T) {
+func testLinearAttention[T float.DType](t *testing.T) {
 	queries := []ag.Node{
 		ag.Var(mat.NewVecDense([]T{1.8, 1.35, -1.89})).WithGrad(true),
 		ag.Var(mat.NewVecDense([]T{0.08, 1.27, -1.06})).WithGrad(true),

@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -31,7 +32,7 @@ func (e *Embedding[_]) Value() mat.Matrix {
 }
 
 // ScalarValue satisfies the interfaces nn.Param and ag.Node.
-func (e *Embedding[_]) ScalarValue() mat.FloatInterface {
+func (e *Embedding[_]) ScalarValue() float.Interface {
 	v := e.Value()
 	if v == nil {
 		panic("embeddings: cannot get scalar value from nil Matrix")

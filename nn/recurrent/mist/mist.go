@@ -15,6 +15,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -45,7 +46,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out, numOfDelays int) *Model {
+func New[T float.DType](in, out, numOfDelays int) *Model {
 	return &Model{
 		Wx:          nn.NewParam(mat.NewEmptyDense[T](out, in)),
 		Wh:          nn.NewParam(mat.NewEmptyDense[T](out, out)),

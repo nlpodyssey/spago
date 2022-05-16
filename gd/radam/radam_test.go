@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func TestRAdam_DeltaTimeStep1(t *testing.T) {
 	t.Run("float64", testRAdamDeltaTimeStep1[float64])
 }
 
-func testRAdamDeltaTimeStep1[T mat.DType](t *testing.T) {
+func testRAdamDeltaTimeStep1[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1
@@ -41,7 +42,7 @@ func TestRAdam_DeltaTimeStep6(t *testing.T) {
 	t.Run("float64", testRAdaDeltaTimeStep6[float64])
 }
 
-func testRAdaDeltaTimeStep6[T mat.DType](t *testing.T) {
+func testRAdaDeltaTimeStep6[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		0.9,    // beta1

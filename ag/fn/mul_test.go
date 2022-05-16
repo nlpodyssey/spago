@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMul_ForwardMatrixMatrix(t *testing.T) {
@@ -15,7 +17,7 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 	t.Run("float64", testMulForwardMatrixMatrix[float64])
 }
 
-func testMulForwardMatrixMatrix[T mat.DType](t *testing.T) {
+func testMulForwardMatrixMatrix[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,
@@ -73,7 +75,7 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 	t.Run("float64", testMulForwardMatrixVector[float64])
 }
 
-func testMulForwardMatrixVector[T mat.DType](t *testing.T) {
+func testMulForwardMatrixVector[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,

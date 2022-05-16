@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +18,7 @@ func TestTimeStepHandler(t *testing.T) {
 	t.Run("float64", testTimeStepHandler[float64])
 }
 
-func testTimeStepHandler[T mat.DType](t *testing.T) {
+func testTimeStepHandler[T float.DType](t *testing.T) {
 	tsh := NewTimeStepHandler()
 	require.Equal(t, 0, tsh.CurrentTimeStep())
 

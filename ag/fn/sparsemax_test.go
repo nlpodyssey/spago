@@ -4,9 +4,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSparseMax_Forward(t *testing.T) {
@@ -14,7 +16,7 @@ func TestSparseMax_Forward(t *testing.T) {
 	t.Run("float64", testSparseMaxForward[float64])
 }
 
-func testSparseMaxForward[T mat.DType](t *testing.T) {
+func testSparseMaxForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.8053, 0.4594, -0.6136, -0.9460, 1.0722}),
 		grad:         nil,
@@ -38,7 +40,7 @@ func TestSparseMaxLoss_Forward(t *testing.T) {
 	t.Run("float64", testSparseMaxLossForward[float64])
 }
 
-func testSparseMaxLossForward[T mat.DType](t *testing.T) {
+func testSparseMaxLossForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{-0.3218, 0.7395, -0.2319, 0.2312, 0.7185}),
 		grad:         nil,

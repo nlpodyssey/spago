@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestThresholdForward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestThresholdForward(t *testing.T) {
 	t.Run("float64", testThresholdForward[float64])
 }
 
-func testThresholdForward[T mat.DType](t *testing.T) {
+func testThresholdForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.1, -0.2, 3.3, 0.0}),
 		grad:         nil,

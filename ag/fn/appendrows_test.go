@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestAppendRowsForward(t *testing.T) {
 	t.Run("float64", testAppendRowsForward[float64])
 }
 
-func testAppendRowsForward[T mat.DType](t *testing.T) {
+func testAppendRowsForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value: mat.NewDense(2, 3, []T{
 			11, 12, 13,

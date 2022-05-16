@@ -7,9 +7,11 @@ package mat
 import (
 	"bytes"
 	"fmt"
+	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestMatrixMarshaling(t *testing.T) {
@@ -28,7 +30,7 @@ func TestMatrixMarshaling(t *testing.T) {
 	})
 }
 
-func testMatrixMarshalingDense[T DType](t *testing.T) {
+func testMatrixMarshalingDense[T float.DType](t *testing.T) {
 	testCases := []Matrix{
 		NewEmptyDense[T](0, 0),
 		NewEmptyDense[T](0, 1),

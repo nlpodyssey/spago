@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // Format implements custom formatting for representing a Dense matrix.
@@ -140,7 +142,7 @@ func (d *Dense[_]) formattingMaxColumnsWidth(
 	return widths, maxWidth
 }
 
-func formatValue[T DType](buf []byte, val T, c rune, precision int) []byte {
+func formatValue[T float.DType](buf []byte, val T, c rune, precision int) []byte {
 	return strconv.AppendFloat(buf[:0], float64(val), byte(c), precision, 32)
 }
 

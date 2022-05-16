@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDot_Forward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestDot_Forward(t *testing.T) {
 	t.Run("float64", testDotForward[float64])
 }
 
-func testDotForward[T mat.DType](t *testing.T) {
+func testDotForward[T float.DType](t *testing.T) {
 
 	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{

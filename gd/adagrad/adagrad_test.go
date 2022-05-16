@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func Test_Update(t *testing.T) {
 	t.Run("float64", testUpdate[float64])
 }
 
-func testUpdate[T mat.DType](t *testing.T) {
+func testUpdate[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(0.001, 1.0e-8))
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
@@ -33,7 +34,7 @@ func Test_Update2(t *testing.T) {
 	t.Run("float64", testUpdate2[float64])
 }
 
-func testUpdate2[T mat.DType](t *testing.T) {
+func testUpdate2[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
 		0.001,  // step size
 		1.0e-8, // epsilon

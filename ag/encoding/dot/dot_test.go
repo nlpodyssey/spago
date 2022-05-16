@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/ag/encoding"
 	"github.com/nlpodyssey/spago/ag/encoding/dot"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +22,7 @@ func TestEncode(t *testing.T) {
 	t.Run("float64", testEncode[float64])
 }
 
-func testEncode[T mat.DType](t *testing.T) {
+func testEncode[T float.DType](t *testing.T) {
 	t.Run("without time steps", func(t *testing.T) {
 		a := ag.Var(mat.NewScalar[T](1)).WithGrad(false).WithName("a")
 		b := ag.Var(mat.NewScalar[T](3)).WithGrad(false).WithName("b")

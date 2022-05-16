@@ -5,8 +5,10 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"sort"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
@@ -62,7 +64,7 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.y.DoVecNonZero(func(i int, _ float64) {
 			gyi := gy.ScalarAtVec(i).Float64()
-			gx.SetVecScalar(i, mat.Float(gyi-nzSum))
+			gx.SetVecScalar(i, float.Float(gyi-nzSum))
 		})
 
 		r.x.AccGrad(gx)

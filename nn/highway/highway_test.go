@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -57,7 +58,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	}, model.BT.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](4, activation.Tanh)
 
 	mat.SetData[T](model.WIn.Value(), []T{

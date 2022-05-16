@@ -6,7 +6,8 @@ package rand
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat"
+
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/internal/rand"
 )
 
@@ -24,7 +25,7 @@ func ShuffleInPlace(xs []int, generator *LockedRand) []int {
 
 // WeightedChoice performs a random generation of the indices based of the probability distribution itself.
 // Please note that it uses the global random.
-func WeightedChoice[T mat.DType](dist []T) int {
+func WeightedChoice[T float.DType](dist []T) int {
 	var rnd T
 	switch any(T(0)).(type) {
 	case float32:

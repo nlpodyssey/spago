@@ -18,11 +18,13 @@ import (
 	"math"
 	"math/bits"
 	"sync"
+
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // densePoolType provides pools for slice lengths from 0 to 64 bits
 // (0 to MaxUint64).
-type densePoolType[T DType] [65]sync.Pool
+type densePoolType[T float.DType] [65]sync.Pool
 
 var (
 	densePoolFloat32 = newDensePool[float32]()
@@ -30,7 +32,7 @@ var (
 )
 
 // newDensePool creates a new pool for handling matrices of a specific DType.
-func newDensePool[T DType]() *densePoolType[T] {
+func newDensePool[T float.DType]() *densePoolType[T] {
 	dp := new(densePoolType[T])
 	for i := range dp {
 		dp[i].New = dp.makeNewFunc(i)
@@ -40,7 +42,7 @@ func newDensePool[T DType]() *densePoolType[T] {
 
 // densePool returns the global (sort-of singleton) pre-instantiated pool
 // for a specific DType.
-func densePool[T DType]() *densePoolType[T] {
+func densePool[T float.DType]() *densePoolType[T] {
 	// TODO: review this code once stable go 1.18 is released
 	switch any(T(0)).(type) {
 	case float32:
@@ -135,6 +137,6 @@ func ReleaseMatrix(m Matrix) {
 }
 
 // ReleaseDense puts the given matrix in the appropriate global pool.
-func ReleaseDense[T DType](m *Dense[T]) {
+func ReleaseDense[T float.DType](m *Dense[T]) {
 	densePool[T]().Put(m)
 }

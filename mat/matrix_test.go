@@ -6,9 +6,11 @@ package mat
 
 import (
 	"fmt"
+	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestIsVector(t *testing.T) {
@@ -16,7 +18,7 @@ func TestIsVector(t *testing.T) {
 	t.Run("float64", testIsVector[float64])
 }
 
-func testIsVector[T DType](t *testing.T) {
+func testIsVector[T float.DType](t *testing.T) {
 	testCases := []struct {
 		r int
 		c int
@@ -46,7 +48,7 @@ func TestIsScalar(t *testing.T) {
 	t.Run("float64", testIsScalar[float64])
 }
 
-func testIsScalar[T DType](t *testing.T) {
+func testIsScalar[T float.DType](t *testing.T) {
 	testCases := []struct {
 		r int
 		c int
@@ -74,7 +76,7 @@ func TestSameDims(t *testing.T) {
 	t.Run("float64", testSameDims[float64])
 }
 
-func testSameDims[T DType](t *testing.T) {
+func testSameDims[T float.DType](t *testing.T) {
 	t.Run("different dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](3, 2)
@@ -95,7 +97,7 @@ func TestVectorsOfSameSize(t *testing.T) {
 	t.Run("float64", testVectorsOfSameSize[float64])
 }
 
-func testVectorsOfSameSize[T DType](t *testing.T) {
+func testVectorsOfSameSize[T float.DType](t *testing.T) {
 	testCases := []struct {
 		a Matrix
 		b Matrix
@@ -125,7 +127,7 @@ func TestConcatV(t *testing.T) {
 	t.Run("float64", testConcatV[float64])
 }
 
-func testConcatV[T DType](t *testing.T) {
+func testConcatV[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		var d Matrix = NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -185,7 +187,7 @@ func TestStack(t *testing.T) {
 	t.Run("float64", testStack[float64])
 }
 
-func testStack[T DType](t *testing.T) {
+func testStack[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		var d Matrix = NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -265,7 +267,7 @@ func TestEqual(t *testing.T) {
 	t.Run("float64", testEqual[float64])
 }
 
-func testEqual[T DType](t *testing.T) {
+func testEqual[T float.DType](t *testing.T) {
 	testCases := []struct {
 		a, b     Matrix
 		expected bool
@@ -317,7 +319,7 @@ func TestInDelta(t *testing.T) {
 	t.Run("float64", testInDelta[float64])
 }
 
-func testInDelta[T DType](t *testing.T) {
+func testInDelta[T float.DType](t *testing.T) {
 	testCases := []struct {
 		a, b     Matrix
 		delta    float64

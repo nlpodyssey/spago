@@ -14,7 +14,7 @@ import (
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -39,7 +39,7 @@ func init() {
 }
 
 // NewBidirectional returns a new model with parameters initialized to zeros.
-func NewBidirectional[T mat.DType](config Config) *BiModel {
+func NewBidirectional[T float.DType](config Config) *BiModel {
 	layers := []nn.StandardModel{
 		linear.New[T](config.InputSize, config.HyperSize),
 		activation.New(activation.ReLU),

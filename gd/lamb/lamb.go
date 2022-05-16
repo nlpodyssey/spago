@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -55,14 +56,14 @@ func NewDefaultConfig() Config {
 var _ gd.Method = &Lamb[float32]{}
 
 // Lamb implements the Lamb gradient descent optimization method.
-type Lamb[T mat.DType] struct {
+type Lamb[T float.DType] struct {
 	Config
 	Alpha    float64
 	TimeStep int
 }
 
 // New returns a new Lamb optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *Lamb[T] {
+func New[T float.DType](c Config) *Lamb[T] {
 	lamb := &Lamb[T]{
 		Config: c,
 		Alpha:  c.StepSize,

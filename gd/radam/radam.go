@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -53,14 +54,14 @@ func NewDefaultConfig() Config {
 var _ gd.Method = &RAdam[float32]{}
 
 // RAdam implements the RAdam gradient descent optimization method.
-type RAdam[T mat.DType] struct {
+type RAdam[T float.DType] struct {
 	Config
 	RoMax    float64 // The maximum length of the approximated SMA.
 	TimeStep int
 }
 
 // New returns a new RAdam optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *RAdam[T] {
+func New[T float.DType](c Config) *RAdam[T] {
 	adam := &RAdam[T]{
 		Config:   c,
 		RoMax:    2.0/(1.0-c.Beta2) - 1.0,

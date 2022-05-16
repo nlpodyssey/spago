@@ -5,7 +5,7 @@
 package birnn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/recurrent/cfn"
 	"github.com/nlpodyssey/spago/nn/recurrent/gru"
 	"github.com/nlpodyssey/spago/nn/recurrent/lstm"
@@ -16,7 +16,7 @@ import (
 )
 
 // NewBiLSTM returns a new Bidirectional LSTM Model.
-func NewBiLSTM[T mat.DType](input, hidden int, merge MergeType) *Model {
+func NewBiLSTM[T float.DType](input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  lstm.New[T](input, hidden),
 		Negative:  lstm.New[T](input, hidden),
@@ -25,7 +25,7 @@ func NewBiLSTM[T mat.DType](input, hidden int, merge MergeType) *Model {
 }
 
 // NewBiGRU returns a new Bidirectional GRU Model.
-func NewBiGRU[T mat.DType](input, hidden int, merge MergeType) *Model {
+func NewBiGRU[T float.DType](input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  gru.New[T](input, hidden),
 		Negative:  gru.New[T](input, hidden),
@@ -34,7 +34,7 @@ func NewBiGRU[T mat.DType](input, hidden int, merge MergeType) *Model {
 }
 
 // NewBiRAN returns a new Bidirectional RAN Model.
-func NewBiRAN[T mat.DType](input, hidden int, merge MergeType) *Model {
+func NewBiRAN[T float.DType](input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  ran.New[T](input, hidden),
 		Negative:  ran.New[T](input, hidden),
@@ -43,7 +43,7 @@ func NewBiRAN[T mat.DType](input, hidden int, merge MergeType) *Model {
 }
 
 // NewBiCFN returns a new Bidirectional CFN Model.
-func NewBiCFN[T mat.DType](input, hidden int, merge MergeType) *Model {
+func NewBiCFN[T float.DType](input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  cfn.New[T](input, hidden),
 		Negative:  cfn.New[T](input, hidden),
@@ -52,7 +52,7 @@ func NewBiCFN[T mat.DType](input, hidden int, merge MergeType) *Model {
 }
 
 // NewBiLTM returns a new Bidirectional LTM Model.
-func NewBiLTM[T mat.DType](input int, merge MergeType) *Model {
+func NewBiLTM[T float.DType](input int, merge MergeType) *Model {
 	return &Model{
 		Positive:  ltm.New[T](input),
 		Negative:  ltm.New[T](input),
@@ -61,7 +61,7 @@ func NewBiLTM[T mat.DType](input int, merge MergeType) *Model {
 }
 
 // NewBiMIST returns a new Bidirectional MIST Model.
-func NewBiMIST[T mat.DType](input, hidden, numberOfDelays int, merge MergeType) *Model {
+func NewBiMIST[T float.DType](input, hidden, numberOfDelays int, merge MergeType) *Model {
 	return &Model{
 		Positive:  mist.New[T](input, hidden, numberOfDelays),
 		Negative:  mist.New[T](input, hidden, numberOfDelays),
@@ -70,7 +70,7 @@ func NewBiMIST[T mat.DType](input, hidden, numberOfDelays int, merge MergeType) 
 }
 
 // NewBiBiLSTM returns a new Bidirectional BiLSTM Model.
-func NewBiBiLSTM[T mat.DType](input, hidden int, merge MergeType) *stack.Model {
+func NewBiBiLSTM[T float.DType](input, hidden int, merge MergeType) *stack.Model {
 	return stack.New(
 		NewBiLSTM[T](input, hidden, Concat),
 		NewBiLSTM[T](hidden*2, hidden, merge),

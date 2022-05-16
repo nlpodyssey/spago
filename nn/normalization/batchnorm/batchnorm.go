@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -32,7 +33,7 @@ func init() {
 }
 
 // NewWithMomentum returns a new model with supplied size and momentum.
-func NewWithMomentum[T mat.DType](size int, momentum T) *Model {
+func NewWithMomentum[T float.DType](size int, momentum T) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense[T](size, epsilon)),
 		B:        nn.NewParam(mat.NewEmptyVecDense[T](size)),
@@ -43,7 +44,7 @@ func NewWithMomentum[T mat.DType](size int, momentum T) *Model {
 }
 
 // New returns a new model with the supplied size and default momentum
-func New[T mat.DType](size int) *Model {
+func New[T float.DType](size int) *Model {
 	return NewWithMomentum[T](size, defaultMomentum)
 }
 
@@ -63,7 +64,7 @@ func (m *Model) ForwardT(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(mat.Float(epsilon)))))
+	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(float.Float(epsilon)))))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add(ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
@@ -88,7 +89,7 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(mat.Float(float64(len(xs))+epsilon))))
+	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(float.Float(float64(len(xs))+epsilon))))
 }
 
 // StdDev computes the standard deviation of the input.
@@ -98,6 +99,6 @@ func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 		diffVector := ag.Square(ag.Sub(meanVector, x))
 		devVector = ag.Add(devVector, diffVector)
 	}
-	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(mat.Float(float64(len(xs))+epsilon)))))
+	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(float.Float(float64(len(xs))+epsilon)))))
 	return devVector
 }

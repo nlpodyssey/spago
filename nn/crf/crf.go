@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -26,7 +27,7 @@ func init() {
 }
 
 // New returns a new convolution Model, initialized according to the given configuration.
-func New[T mat.DType](size int) *Model {
+func New[T float.DType](size int) *Model {
 	return &Model{
 		Size:             size,
 		TransitionScores: nn.NewParam(mat.NewEmptyDense[T](size+1, size+1)), // +1 for start and end transitions

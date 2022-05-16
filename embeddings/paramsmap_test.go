@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/embeddings"
 	"github.com/nlpodyssey/spago/embeddings/store/memstore"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -126,7 +127,7 @@ func TestGobEncoding(t *testing.T) {
 
 	require.NotNil(t, ms.Foo)
 	require.Contains(t, ms.Foo, "foo")
-	assert.Equal(t, mat.Float(T(11)), ms.Foo["foo"].Value().Scalar())
+	assert.Equal(t, float.Float(T(11)), ms.Foo["foo"].Value().Scalar())
 
 	require.Nil(t, ms.Bar)
 }

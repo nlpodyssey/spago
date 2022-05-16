@@ -13,6 +13,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -90,7 +91,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	in, out := config.InputSize, config.OutputSize
 	return &Model{
 		Config:                 config,
@@ -110,7 +111,7 @@ func New[T mat.DType](config Config) *Model {
 	}
 }
 
-func newGate4[T mat.DType](in, out int) *HyperLinear4 {
+func newGate4[T float.DType](in, out int) *HyperLinear4 {
 	return &HyperLinear4{
 		W: nn.NewParam(mat.NewEmptyDense[T](out, out*windowSize)),
 		U: nn.NewParam(mat.NewEmptyDense[T](out, in)),
@@ -119,7 +120,7 @@ func newGate4[T mat.DType](in, out int) *HyperLinear4 {
 	}
 }
 
-func newGate3[T mat.DType](size int) *HyperLinear3 {
+func newGate3[T float.DType](size int) *HyperLinear3 {
 	return &HyperLinear3{
 		W: nn.NewParam(mat.NewEmptyDense[T](size, size)),
 		U: nn.NewParam(mat.NewEmptyDense[T](size, size)),

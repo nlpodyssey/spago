@@ -11,7 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -43,7 +43,7 @@ func init() {
 }
 
 // New returns a new Model initialized to zeros.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	dimOut := config.Dim / 2
 
 	m := &Model{

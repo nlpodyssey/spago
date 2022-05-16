@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMax_Forward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestMax_Forward(t *testing.T) {
 	t.Run("float64", testMaxForward[float64])
 }
 
-func testMaxForward[T mat.DType](t *testing.T) {
+func testMaxForward[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.5, 0.0}),
 		grad:         nil,

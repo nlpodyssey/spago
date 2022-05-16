@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ func TestNewVariable(t *testing.T) {
 	t.Run("float64", testNewVariable[float64])
 }
 
-func testNewVariable[T mat.DType](t *testing.T) {
+func testNewVariable[T float.DType](t *testing.T) {
 	testCases := []struct {
 		value        mat.Matrix
 		requiresGrad bool
@@ -43,7 +44,7 @@ func TestNewVariableWithName(t *testing.T) {
 	t.Run("float64", testNewVariableWithName[float64])
 }
 
-func testNewVariableWithName[T mat.DType](t *testing.T) {
+func testNewVariableWithName[T float.DType](t *testing.T) {
 	testCases := []struct {
 		value        mat.Matrix
 		requiresGrad bool
@@ -72,7 +73,7 @@ func TestNewScalar(t *testing.T) {
 	t.Run("float64", testNewScalar[float64])
 }
 
-func testNewScalar[T mat.DType](t *testing.T) {
+func testNewScalar[T float.DType](t *testing.T) {
 	v := Var(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
 	assert.Equal(t, "42", v.Name())
@@ -87,7 +88,7 @@ func TestNewScalarWithName(t *testing.T) {
 	t.Run("float64", testNewScalarWithName[float64])
 }
 
-func testNewScalarWithName[T mat.DType](t *testing.T) {
+func testNewScalarWithName[T float.DType](t *testing.T) {
 	v := Var(mat.NewScalar(T(42))).WithName("foo")
 	require.NotNil(t, v)
 	assert.Equal(t, "foo", v.Name())
@@ -102,7 +103,7 @@ func TestConstant(t *testing.T) {
 	t.Run("float64", testConstant[float64])
 }
 
-func testConstant[T mat.DType](t *testing.T) {
+func testConstant[T float.DType](t *testing.T) {
 	v := Var(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
 	assert.Equal(t, "42", v.Name())
@@ -117,7 +118,7 @@ func TestVariable_Gradients(t *testing.T) {
 	t.Run("float64", testVariableGradients[float64])
 }
 
-func testVariableGradients[T mat.DType](t *testing.T) {
+func testVariableGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
 		v := Var(mat.NewScalar[T](42)).WithGrad(true)
 		require.Nil(t, v.Grad())

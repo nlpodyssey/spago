@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 type ParamsTraversalTester struct {
@@ -126,7 +127,7 @@ type ptModel10 struct {
 	MS *sync.Map
 }
 
-func testParamsTraversal[T mat.DType](t *testing.T) {
+func testParamsTraversal[T float.DType](t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty model", func(t *testing.T) {

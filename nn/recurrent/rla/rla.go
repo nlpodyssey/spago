@@ -11,6 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -45,7 +46,7 @@ func init() {
 }
 
 // New returns a new RLA Model, initialized according to the given configuration.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	return &Model{
 		Config: config,
 		Wk:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
@@ -86,7 +87,7 @@ func (m *Model) Next(prevState *State, x ag.Node) (s *State) {
 		s.Z = attKey
 	}
 
-	e := ag.Var(s.Z.Value().NewScalar(mat.Float(1e-12)))
+	e := ag.Var(s.Z.Value().NewScalar(float.Float(1e-12)))
 	s.Y = ag.DivScalar(ag.T(ag.Mul(ag.T(attQuery), s.S)), ag.AddScalar(ag.Dot(attQuery, s.Z), e))
 	return
 }

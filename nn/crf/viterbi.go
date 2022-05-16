@@ -5,9 +5,11 @@
 package crf
 
 import (
+	"math"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"math"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // FIXME: ViterbiStructure currently works with float64 only
@@ -51,7 +53,7 @@ func viterbiStepStart(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 		yv := y.scores.ScalarAt(i, 0).Float64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, mat.Float(score))
+			y.scores.SetVecScalar(i, float.Float(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -66,7 +68,7 @@ func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 		yv := y.scores.ScalarAt(i, 0).Float64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, mat.Float(score))
+			y.scores.SetVecScalar(i, float.Float(score))
 			y.backpointers[i] = i
 		}
 	}
@@ -83,7 +85,7 @@ func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure
 			yv := y.scores.ScalarAt(j, 0).Float64()
 			score := mv + sv + tv
 			if score > yv {
-				y.scores.SetVecScalar(j, mat.Float(score))
+				y.scores.SetVecScalar(j, float.Float(score))
 				y.backpointers[j] = i
 			}
 		}

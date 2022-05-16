@@ -11,6 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/embeddings/store/diskstore"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
@@ -122,7 +123,7 @@ func TestEmbeddingWithDiskStore_ScalarValue(t *testing.T) {
 
 	// Set a value for the first time
 	e.ReplaceValue(mat.NewScalar[T](42))
-	assert.Equal(t, mat.Float(T(42)), e.Value().Scalar())
+	assert.Equal(t, float.Float(T(42)), e.Value().Scalar())
 }
 
 func TestEmbeddingWithDiskStore_Grad(t *testing.T) {

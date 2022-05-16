@@ -8,7 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
 )
@@ -27,7 +27,7 @@ func init() {
 }
 
 // NewPreNorm returns a new PreNorm.
-func NewPreNorm[T mat.DType](dim int, block *Block) *PreNorm {
+func NewPreNorm[T float.DType](dim int, block *Block) *PreNorm {
 	return &PreNorm{
 		Block: block,
 		Norm:  layernorm.New[T](dim, 1e-12),

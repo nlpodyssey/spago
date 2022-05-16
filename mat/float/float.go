@@ -2,36 +2,38 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package float
 
-import "fmt"
+import (
+	"fmt"
+)
 
-// FloatInterface is implemented by any value that can be resolved
+// Interface is implemented by any value that can be resolved
 // to the types constrained by DType.
-type FloatInterface interface {
+type Interface interface {
 	Float32() float32
 	Float64() float64
 }
 
 // Float converts a concrete DType value to an internal representation
-// compatible with FloatInterface.
-func Float[T DType](v T) FloatInterface {
+// compatible with Interface.
+func Float[T DType](v T) Interface {
 	return float[T]{v: v}
 }
 
-// DTFloat converts a FloatInterface value to a concrete DType.
-func DTFloat[T DType](v FloatInterface) T {
+// ValueOf converts a Interface value to a concrete DType.
+func ValueOf[T DType](i Interface) T {
 	switch any(T(0)).(type) {
 	case float32:
-		return T(v.Float32())
+		return T(i.Float32())
 	case float64:
-		return T(v.Float64())
+		return T(i.Float64())
 	default:
-		panic(fmt.Errorf("mat: unexpected scalar type %T", T(0)))
+		panic(fmt.Errorf("mat: unexpected value type %T", T(0)))
 	}
 }
 
-// float is the built-in implementation of a FloatInterface.
+// float is the built-in implementation of a Interface.
 type float[T DType] struct {
 	v T
 }

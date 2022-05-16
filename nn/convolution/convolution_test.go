@@ -5,10 +5,12 @@
 package convolution
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestConv1D(t *testing.T) {
@@ -16,7 +18,7 @@ func TestConv1D(t *testing.T) {
 	t.Run("float64", testConv1D[float64])
 }
 
-func testConv1D[T mat.DType](t *testing.T) {
+func testConv1D[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewDense(3, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
@@ -55,7 +57,7 @@ func TestConv2D(t *testing.T) {
 	t.Run("float64", testConv2D[float64])
 }
 
-func testConv2D[T mat.DType](t *testing.T) {
+func testConv2D[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
@@ -100,7 +102,7 @@ func TestConv2DStride2(t *testing.T) {
 	t.Run("float64", testConv2DStride2[float64])
 }
 
-func testConv2DStride2[T mat.DType](t *testing.T) {
+func testConv2DStride2[T float.DType](t *testing.T) {
 	x := ag.Var(mat.NewDense(4, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,

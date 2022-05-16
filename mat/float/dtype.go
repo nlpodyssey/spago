@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package float
 
 // DType is the primary type constraint for matrices defined in this package.
 type DType interface {

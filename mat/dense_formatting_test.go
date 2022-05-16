@@ -6,8 +6,10 @@ package mat
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/require"
 )
 
 var _ fmt.Formatter = &Dense[float32]{}
@@ -18,7 +20,7 @@ func TestDense_Format(t *testing.T) {
 	t.Run("float64", testDenseFormat[float64])
 }
 
-func testDenseFormat[T DType](t *testing.T) {
+func testDenseFormat[T float.DType](t *testing.T) {
 	var dtypeName string
 	switch any(T(0)).(type) {
 	case float32:

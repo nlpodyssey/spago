@@ -2,32 +2,32 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat
+package float
 
 import (
 	"fmt"
 	"math"
 )
 
-// FloatSliceInterface is implemented by any value that can be resolved
+// SliceInterface is implemented by any value that can be resolved
 // to a slice of a type constrained by DType.
-type FloatSliceInterface interface {
+type SliceInterface interface {
 	Float32() []float32
 	Float64() []float64
 	Len() int
-	Equals(other FloatSliceInterface) bool
-	InDelta(other FloatSliceInterface, delta float64) bool
+	Equals(other SliceInterface) bool
+	InDelta(other SliceInterface, delta float64) bool
 }
 
-// FloatSlice converts a concrete slice of DType values to an internal
-// representation compatible with FloatSliceInterface.
-func FloatSlice[T DType](v []T) FloatSliceInterface {
+// Slice converts a concrete slice of DType values to an internal
+// representation compatible with SliceInterface.
+func Slice[T DType](v []T) SliceInterface {
 	return floatSlice[T](v)
 }
 
-// DTFloatSlice converts a FloatSliceInterface value to a concrete slice
+// SliceValueOf converts a SliceInterface value to a concrete slice
 // of DType values.
-func DTFloatSlice[T DType](v FloatSliceInterface) []T {
+func SliceValueOf[T DType](v SliceInterface) []T {
 	switch any(T(0)).(type) {
 	case float32:
 		return any(v.Float32()).([]T)
@@ -38,7 +38,7 @@ func DTFloatSlice[T DType](v FloatSliceInterface) []T {
 	}
 }
 
-// floatSlice is the built-in implementation of a FloatSliceInterface.
+// floatSlice is the built-in implementation of a SliceInterface.
 type floatSlice[T DType] []T
 
 // Float32 returns the value as []float32, converting it if necessary.
@@ -60,7 +60,7 @@ func (fs floatSlice[_]) Len() int {
 // content of the other slice.
 // The data type of the other slice is converted to the same type of
 // the receiver, if necessary.
-func (fs floatSlice[T]) Equals(other FloatSliceInterface) bool {
+func (fs floatSlice[T]) Equals(other SliceInterface) bool {
 	l := other.Len()
 	if len(fs) != l {
 		return false
@@ -68,7 +68,7 @@ func (fs floatSlice[T]) Equals(other FloatSliceInterface) bool {
 	if l == 0 {
 		return true
 	}
-	o := DTFloatSlice[T](other)
+	o := SliceValueOf[T](other)
 	_ = o[len(fs)-1]
 	for i, v := range fs {
 		if v != o[i] {
@@ -82,7 +82,7 @@ func (fs floatSlice[T]) Equals(other FloatSliceInterface) bool {
 // length and all their values at the same positions are within delta.
 // The data type of the other slice is converted to the same type of
 // the receiver, if necessary.
-func (fs floatSlice[T]) InDelta(other FloatSliceInterface, delta float64) bool {
+func (fs floatSlice[T]) InDelta(other SliceInterface, delta float64) bool {
 	l := other.Len()
 	if len(fs) != l {
 		return false
@@ -90,7 +90,7 @@ func (fs floatSlice[T]) InDelta(other FloatSliceInterface, delta float64) bool {
 	if l == 0 {
 		return true
 	}
-	o := DTFloatSlice[T](other)
+	o := SliceValueOf[T](other)
 	_ = o[len(fs)-1]
 	for i, v := range fs {
 		if math.Abs(float64(v-o[i])) > delta {

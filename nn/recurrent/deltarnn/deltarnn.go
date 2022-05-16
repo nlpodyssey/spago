@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -40,7 +41,7 @@ type State struct {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int) *Model {
+func New[T float.DType](in, out int) *Model {
 	return &Model{
 		W:     nn.NewParam(mat.NewEmptyDense[T](out, in)),
 		WRec:  nn.NewParam(mat.NewEmptyDense[T](out, out)),
@@ -91,7 +92,7 @@ func (m *Model) Next(state *State, x ag.Node) (s *State) {
 	s.D2 = ag.Prod(ag.Prod(m.Alpha, wx), wyRec)
 	s.C = ag.Tanh(ag.Add(ag.Add(s.D1, s.D2), m.B))
 	s.P = ag.Sigmoid(ag.Add(wx, m.BPart))
-	one := ag.Var(s.P.Value().NewScalar(mat.Float(1.0)))
+	one := ag.Var(s.P.Value().NewScalar(float.Float(1.0)))
 	s.Y = ag.Tanh(ag.Add(ag.Prod(s.P, s.C), ag.Prod(ag.ReverseSub(s.P, one), yPrev)))
 	return
 }

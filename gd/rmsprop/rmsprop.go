@@ -7,6 +7,7 @@ package rmsprop
 import (
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -44,12 +45,12 @@ var _ gd.Method = &RMSProp[float32]{}
 // References:
 //     RMSProp: Divide the gradient by a running average of its recent magnitude
 //     http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
-type RMSProp[T mat.DType] struct {
+type RMSProp[T float.DType] struct {
 	Config
 }
 
 // New returns a new RMSProp optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *RMSProp[T] {
+func New[T float.DType](c Config) *RMSProp[T] {
 	return &RMSProp[T]{Config: c}
 }
 

@@ -8,9 +8,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDense_Marshaling(t *testing.T) {
@@ -56,7 +58,7 @@ func TestDense_Marshaling(t *testing.T) {
 	})
 }
 
-func testDenseMarshaling[T DType](t *testing.T) {
+func testDenseMarshaling[T float.DType](t *testing.T) {
 	testCases := []*Dense[T]{
 		NewEmptyDense[T](0, 0),
 		NewEmptyDense[T](0, 1),
@@ -84,7 +86,7 @@ func testDenseMarshaling[T DType](t *testing.T) {
 	}
 }
 
-func testDenseMarshalingWrongType[T1, T2 DType](t *testing.T) {
+func testDenseMarshalingWrongType[T1, T2 float.DType](t *testing.T) {
 	d := NewScalar[T1](42)
 	data, err := d.MarshalBinary()
 	require.NoError(t, err)

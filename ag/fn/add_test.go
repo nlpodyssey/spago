@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func TestAdd_Forward(t *testing.T) {
 	t.Run("float64", testAddForward[float64])
 }
 
-func testAddForward[T mat.DType](t *testing.T) {
+func testAddForward[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,

@@ -7,6 +7,7 @@ package adagrad
 import (
 	"github.com/nlpodyssey/spago/gd"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -41,12 +42,12 @@ var _ gd.Method = &AdaGrad[float32]{}
 // References
 //     Adaptive Subgradient Methods for Online Learning and Stochastic Optimization
 //     http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
-type AdaGrad[T mat.DType] struct {
+type AdaGrad[T float.DType] struct {
 	Config
 }
 
 // New returns a new AdaGrad optimizer, initialized according to the given configuration.
-func New[T mat.DType](c Config) *AdaGrad[T] {
+func New[T float.DType](c Config) *AdaGrad[T] {
 	return &AdaGrad[T]{Config: c}
 }
 

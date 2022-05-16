@@ -10,7 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -32,7 +32,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](size, numOfHeads int, useCausalMask bool) *Model {
+func New[T float.DType](size, numOfHeads int, useCausalMask bool) *Model {
 	return &Model{
 		Heads:       makeAttentionHeads[T](size, numOfHeads, useCausalMask),
 		OutputMerge: linear.New[T](size, size),
@@ -48,7 +48,7 @@ func (m *Model) Init(rng *rand.LockedRand) {
 	}
 }
 
-func makeAttentionHeads[T mat.DType](dm, n int, useCausalMask bool) []*selfattention.Model {
+func makeAttentionHeads[T float.DType](dm, n int, useCausalMask bool) []*selfattention.Model {
 	heads := make([]*selfattention.Model, n)
 	dk := dm / n
 	scaleFactor := 1.0 / math.Sqrt(float64(dk))

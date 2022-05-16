@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestSliceForward(t *testing.T) {
 	t.Run("float64", testSliceForward[float64])
 }
 
-func testSliceForward[T mat.DType](t *testing.T) {
+func testSliceForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value: mat.NewDense(3, 4, []T{
 			11, 12, 13, 14,

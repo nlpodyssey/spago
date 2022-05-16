@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,7 @@ func TestModelReLU_Forward(t *testing.T) {
 	t.Run("float64", testModelReLUForward[float64])
 }
 
-func testModelReLUForward[T mat.DType](t *testing.T) {
+func testModelReLUForward[T float.DType](t *testing.T) {
 	m := New(ReLU)
 
 	x := ag.Var(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0})).WithGrad(true)
@@ -37,7 +38,7 @@ func TestModelSwish_Forward(t *testing.T) {
 	t.Run("float64", testModelSwishForward[float64])
 }
 
-func testModelSwishForward[T mat.DType](t *testing.T) {
+func testModelSwishForward[T float.DType](t *testing.T) {
 	beta := nn.NewParam(mat.NewScalar(T(2)))
 	m := New(SwishB, beta)
 

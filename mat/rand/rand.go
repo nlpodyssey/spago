@@ -7,13 +7,13 @@ package rand
 import (
 	"fmt"
 
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/internal/rand"
 )
 
 // Float returns, as a T, a pseudo-random number in [0.0,1.0)
 // from the default Source.
-func Float[T mat.DType]() T {
+func Float[T float.DType]() T {
 	switch any(T(0)).(type) {
 	case float32:
 		return T(rand.Float32())

@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -56,7 +57,7 @@ func TestModel_ForwardWithPrev(t *testing.T) {
 	t.Run("float64", testModelForwardWithPrev[float64])
 }
 
-func testModelForwardWithPrev[T mat.DType](t *testing.T) {
+func testModelForwardWithPrev[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -89,7 +90,7 @@ func testModelForwardWithPrev[T mat.DType](t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	params := New[T](4, 5, activation.Tanh)
 	mat.SetData[T](params.W.Value(), []T{
 		0.5, 0.6, -0.8, -0.6,
@@ -108,7 +109,7 @@ func TestModel_ForwardSeq(t *testing.T) {
 	t.Run("float64", testModelForwardSeq[float64])
 }
 
-func testModelForwardSeq[T mat.DType](t *testing.T) {
+func testModelForwardSeq[T float.DType](t *testing.T) {
 	model := newTestModel2[T]()
 
 	// == Forward
@@ -149,7 +150,7 @@ func testModelForwardSeq[T mat.DType](t *testing.T) {
 	}, model.WRec.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel2[T mat.DType]() *Model {
+func newTestModel2[T float.DType]() *Model {
 	model := New[T](3, 2, activation.Tanh)
 	mat.SetData[T](model.W.Value(), []T{
 		-0.2, -0.3, 0.5,

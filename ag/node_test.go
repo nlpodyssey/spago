@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ func TestToNodes(t *testing.T) {
 	t.Run("float64", testToNodes[float64])
 }
 
-func testToNodes[T mat.DType](t *testing.T) {
+func testToNodes[T float.DType](t *testing.T) {
 	n1 := &dummyNode{id: 1}
 	n2 := &dummyNode{id: 2}
 
@@ -35,7 +36,7 @@ func TestCopyValue(t *testing.T) {
 	t.Run("float64", testCopyValue[float64])
 }
 
-func testCopyValue[T mat.DType](t *testing.T) {
+func testCopyValue[T float.DType](t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {
 		n := &dummyNode{value: nil}
 		v := CopyValue(n)
@@ -55,7 +56,7 @@ func TestCopyValues(t *testing.T) {
 	t.Run("float64", testCopyValues[float64])
 }
 
-func testCopyValues[T mat.DType](t *testing.T) {
+func testCopyValues[T float.DType](t *testing.T) {
 	nodes := []Node{
 		&dummyNode{value: mat.NewScalar[T](1)},
 		&dummyNode{value: nil},
@@ -78,7 +79,7 @@ func TestCopyGrad(t *testing.T) {
 	t.Run("float64", testCopyGrad[float64])
 }
 
-func testCopyGrad[T mat.DType](t *testing.T) {
+func testCopyGrad[T float.DType](t *testing.T) {
 	t.Run("nil grad", func(t *testing.T) {
 		n := &dummyNode{
 			grad:         nil,

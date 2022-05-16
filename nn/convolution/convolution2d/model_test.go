@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +20,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
@@ -154,7 +155,7 @@ func TestDepthwise_Forward(t *testing.T) {
 	t.Run("float64", testDepthwiseForward[float64])
 }
 
-func testDepthwiseForward[T mat.DType](t *testing.T) {
+func testDepthwiseForward[T float.DType](t *testing.T) {
 	model := newTestModel2[T]()
 
 	// == Forward
@@ -201,7 +202,7 @@ func testDepthwiseForward[T mat.DType](t *testing.T) {
 	}, y[2].Value().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,
@@ -246,7 +247,7 @@ func newTestModel[T mat.DType]() *Model {
 	return model
 }
 
-func newTestModel2[T mat.DType]() *Model {
+func newTestModel2[T float.DType]() *Model {
 	model := New[T](Config{
 		KernelSizeX:    2,
 		KernelSizeY:    2,

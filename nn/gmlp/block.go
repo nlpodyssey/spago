@@ -7,7 +7,7 @@ package gmlp
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -36,7 +36,7 @@ func init() {
 }
 
 // NewBlock returns a new Block.
-func NewBlock[T mat.DType](config BlockConfig) *Block {
+func NewBlock[T float.DType](config BlockConfig) *Block {
 	return &Block{
 		Model: stack.New(
 			linear.New[T](config.Dim, config.DimFF),

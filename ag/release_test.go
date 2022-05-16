@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func TestReleaseGraph(t *testing.T) {
 	t.Run("float64", testReleaseGraph[float64])
 }
 
-func testReleaseGraph[T mat.DType](t *testing.T) {
+func testReleaseGraph[T float.DType](t *testing.T) {
 	t.Run("values and grads are released", func(t *testing.T) {
 		op := Add(
 			Var(mat.NewScalar[T](1)).WithGrad(true),

@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ func TestModel_Forward(t *testing.T) {
 	t.Run("float64", testModelForward[float64])
 }
 
-func testModelForward[T mat.DType](t *testing.T) {
+func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 	// == Forward
 	x := ag.Var(mat.NewVecDense([]T{0.4, 0.8, -0.7, -0.5})).WithGrad(true)
@@ -33,7 +34,7 @@ func testModelForward[T mat.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-1.0, -0.2, 0.4, 0.6}, model.B.Grad().Data(), 1.0e-06)
 }
 
-func newTestModel[T mat.DType]() *Model {
+func newTestModel[T float.DType]() *Model {
 	model := New[T](4, 1e-12)
 	mat.SetData[T](model.W.Value(), []T{0.4, 0.0, -0.3, 0.8})
 	mat.SetData[T](model.B.Value(), []T{0.9, 0.2, -0.9, 0.2})

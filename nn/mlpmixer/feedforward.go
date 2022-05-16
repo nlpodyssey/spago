@@ -5,7 +5,7 @@
 package mlpmixer
 
 import (
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -18,7 +18,7 @@ type FeedForward struct {
 	*stack.Model
 }
 
-func newFeedForward[T mat.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {
+func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {
 	return &FeedForward{
 		Model: stack.New(
 			linear.New[T](dim, hiddenDim),

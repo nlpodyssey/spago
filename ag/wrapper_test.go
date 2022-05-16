@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +18,7 @@ func TestStopGrad(t *testing.T) {
 	t.Run("float64", testStopGrad[float64])
 }
 
-func testStopGrad[T mat.DType](t *testing.T) {
+func testStopGrad[T float.DType](t *testing.T) {
 	dn := &dummyNode{id: 1}
 
 	sg := StopGrad(dn)
@@ -32,7 +33,7 @@ func TestWrapper_Gradients(t *testing.T) {
 	t.Run("float64", testWrapperGradients[float64])
 }
 
-func testWrapperGradients[T mat.DType](t *testing.T) {
+func testWrapperGradients[T float.DType](t *testing.T) {
 	grad := mat.NewScalar[T](42)
 	dn := &dummyNode{
 		grad:         grad,

@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestScalarMax_Forward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestScalarMax_Forward(t *testing.T) {
 	t.Run("float64", testScalarMaxForward[float64])
 }
 
-func testScalarMaxForward[T mat.DType](t *testing.T) {
+func testScalarMaxForward[T float.DType](t *testing.T) {
 	xs := []*variable{
 		{mat.NewScalar[T](2.0), nil, true},
 		{mat.NewScalar[T](5.0), nil, true},

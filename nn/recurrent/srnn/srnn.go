@@ -10,7 +10,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
@@ -51,7 +51,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	layers := []nn.StandardModel{
 		linear.New[T](config.InputSize, config.HyperSize),
 		layernorm.New[T](config.HyperSize, 1e-5),

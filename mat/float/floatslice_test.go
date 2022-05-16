@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mat_test
+package float_test
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFloatSlice(t *testing.T) {
@@ -17,7 +17,7 @@ func TestFloatSlice(t *testing.T) {
 	t.Run("float64", testFloatSlice[float64])
 }
 
-func testFloatSlice[T mat.DType](t *testing.T) {
+func testFloatSlice[T float.DType](t *testing.T) {
 	testCases := []struct {
 		v   []T
 		f32 []float32
@@ -30,7 +30,7 @@ func testFloatSlice[T mat.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v", tc.v), func(t *testing.T) {
-			v := mat.FloatSlice[T](tc.v)
+			v := float.Slice[T](tc.v)
 			assert.Equal(t, tc.f32, v.Float32())
 			assert.Equal(t, tc.f64, v.Float64())
 		})
@@ -47,15 +47,15 @@ func TestDTFloatSlice(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(fmt.Sprintf("%+v", tc), func(t *testing.T) {
-				assert.Equal(t, tc.f32, mat.DTFloatSlice[float32](tc))
-				assert.Equal(t, tc.f64, mat.DTFloatSlice[float64](tc))
+				assert.Equal(t, tc.f32, float.SliceValueOf[float32](tc))
+				assert.Equal(t, tc.f64, float.SliceValueOf[float64](tc))
 			})
 		}
 	})
 
 	t.Run("it panics with nil", func(t *testing.T) {
-		assert.Panics(t, func() { mat.DTFloatSlice[float32](nil) })
-		assert.Panics(t, func() { mat.DTFloatSlice[float64](nil) })
+		assert.Panics(t, func() { float.SliceValueOf[float32](nil) })
+		assert.Panics(t, func() { float.SliceValueOf[float64](nil) })
 	})
 }
 
@@ -64,7 +64,7 @@ func TestFloatSliceImplementation_Len(t *testing.T) {
 	t.Run("float64", testFloatSliceImplLen[float64])
 }
 
-func testFloatSliceImplLen[T mat.DType](t *testing.T) {
+func testFloatSliceImplLen[T float.DType](t *testing.T) {
 	testCases := []struct {
 		v []T
 		l int
@@ -76,7 +76,7 @@ func testFloatSliceImplLen[T mat.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v", tc.v), func(t *testing.T) {
-			fs := mat.FloatSlice[T](tc.v)
+			fs := float.Slice[T](tc.v)
 			assert.Equal(t, tc.l, fs.Len())
 		})
 	}
@@ -89,7 +89,7 @@ func TestFloatSliceImplementation_Equals(t *testing.T) {
 	t.Run("float64-float64", testFloatSliceImplEquals[float64, float64])
 }
 
-func testFloatSliceImplEquals[A, B mat.DType](t *testing.T) {
+func testFloatSliceImplEquals[A, B float.DType](t *testing.T) {
 	testCases := []struct {
 		a []A
 		b []B
@@ -107,8 +107,8 @@ func testFloatSliceImplEquals[A, B mat.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v equals %#v", tc.a, tc.b), func(t *testing.T) {
-			a := mat.FloatSlice[A](tc.a)
-			b := mat.FloatSlice[B](tc.b)
+			a := float.Slice[A](tc.a)
+			b := float.Slice[B](tc.b)
 			assert.Equal(t, tc.e, a.Equals(b))
 			assert.Equal(t, tc.e, b.Equals(a))
 		})
@@ -122,7 +122,7 @@ func TestFloatSliceImplementation_InDelta(t *testing.T) {
 	t.Run("float64-float64", testFloatSliceImplInDelta[float64, float64])
 }
 
-func testFloatSliceImplInDelta[A, B mat.DType](t *testing.T) {
+func testFloatSliceImplInDelta[A, B float.DType](t *testing.T) {
 	testCases := []struct {
 		a []A
 		b []B
@@ -156,8 +156,8 @@ func testFloatSliceImplInDelta[A, B mat.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v equals %#v", tc.a, tc.b), func(t *testing.T) {
-			a := mat.FloatSlice[A](tc.a)
-			b := mat.FloatSlice[B](tc.b)
+			a := float.Slice[A](tc.a)
+			b := float.Slice[B](tc.b)
 			assert.Equal(t, tc.e, a.InDelta(b, tc.d))
 			assert.Equal(t, tc.e, b.InDelta(a, tc.d))
 		})
@@ -170,8 +170,8 @@ type fakeFloatSlice struct {
 	ln  int
 }
 
-func (f fakeFloatSlice) Float32() []float32                            { return f.f32 }
-func (f fakeFloatSlice) Float64() []float64                            { return f.f64 }
-func (f fakeFloatSlice) Len() int                                      { return f.ln }
-func (f fakeFloatSlice) Equals(mat.FloatSliceInterface) bool           { panic("not implemented") }
-func (f fakeFloatSlice) InDelta(mat.FloatSliceInterface, float64) bool { panic("not implemented") }
+func (f fakeFloatSlice) Float32() []float32                         { return f.f32 }
+func (f fakeFloatSlice) Float64() []float64                         { return f.f64 }
+func (f fakeFloatSlice) Len() int                                   { return f.ln }
+func (f fakeFloatSlice) Equals(float.SliceInterface) bool           { panic("not implemented") }
+func (f fakeFloatSlice) InDelta(float.SliceInterface, float64) bool { panic("not implemented") }

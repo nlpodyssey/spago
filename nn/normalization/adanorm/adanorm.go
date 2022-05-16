@@ -13,7 +13,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -41,10 +41,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := ag.Var(xs[0].Value().NewScalar(mat.Float(1e-10)))
-	one := ag.Var(xs[0].Value().NewScalar(mat.Float(1.0)))
-	k := ag.Var(xs[0].Value().NewScalar(mat.Float(0.1)))
-	c := ag.Var(xs[0].Value().NewScalar(mat.Float(m.Scale)))
+	eps := ag.Var(xs[0].Value().NewScalar(float.Float(1e-10)))
+	one := ag.Var(xs[0].Value().NewScalar(float.Float(1.0)))
+	k := ag.Var(xs[0].Value().NewScalar(float.Float(0.1)))
+	c := ag.Var(xs[0].Value().NewScalar(float.Float(m.Scale)))
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))

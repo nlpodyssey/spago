@@ -6,9 +6,11 @@ package mat
 
 import (
 	"fmt"
+	"testing"
+
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var _ Matrix = &Dense[float32]{}
@@ -19,7 +21,7 @@ func TestNewDense(t *testing.T) {
 	t.Run("float64", testNewDense[float64])
 }
 
-func testNewDense[T DType](t *testing.T) {
+func testNewDense[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewDense(-1, 1, []T{})
@@ -81,7 +83,7 @@ func TestNewVecDense(t *testing.T) {
 	t.Run("float64", testNewVecDense[float64])
 }
 
-func testNewVecDense[T DType](t *testing.T) {
+func testNewVecDense[T float.DType](t *testing.T) {
 	testCases := [][]T{
 		nil,
 		{},
@@ -113,7 +115,7 @@ func TestNewScalar(t *testing.T) {
 	t.Run("float64", testNewScalar[float64])
 }
 
-func testNewScalar[T DType](t *testing.T) {
+func testNewScalar[T float.DType](t *testing.T) {
 	d := NewScalar(T(42))
 	assertDenseDims(t, 1, 1, d)
 	assert.Equal(t, []T{42}, Data[T](d))
@@ -124,7 +126,7 @@ func TestNewEmptyVecDense(t *testing.T) {
 	t.Run("float64", testNewEmptyVecDense[float64])
 }
 
-func testNewEmptyVecDense[T DType](t *testing.T) {
+func testNewEmptyVecDense[T float.DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewEmptyVecDense[T](-1)
@@ -147,7 +149,7 @@ func TestNewEmptyDense(t *testing.T) {
 	t.Run("float64", testNewEmptyDense[float64])
 }
 
-func testNewEmptyDense[T DType](t *testing.T) {
+func testNewEmptyDense[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewEmptyDense[T](-1, 1)
@@ -178,7 +180,7 @@ func TestNewOneHotVecDense(t *testing.T) {
 	t.Run("float64", testNewOneHotVecDense[float64])
 }
 
-func testNewOneHotVecDense[T DType](t *testing.T) {
+func testNewOneHotVecDense[T float.DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewOneHotVecDense[T](-1, 0)
@@ -229,7 +231,7 @@ func TestNewInitDense(t *testing.T) {
 	t.Run("float64", testNewInitDense[float64])
 }
 
-func testNewInitDense[T DType](t *testing.T) {
+func testNewInitDense[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewInitDense(-1, 1, T(42))
@@ -260,7 +262,7 @@ func TestNewInitFuncDense(t *testing.T) {
 	t.Run("float64", testNewInitFuncDense[float64])
 }
 
-func testNewInitFuncDense[T DType](t *testing.T) {
+func testNewInitFuncDense[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewInitFuncDense[T](-1, 1, func(r int, c int) T {
@@ -322,7 +324,7 @@ func TestNewInitVecDense(t *testing.T) {
 	t.Run("float64", testNewInitVecDense[float64])
 }
 
-func testNewInitVecDense[T DType](t *testing.T) {
+func testNewInitVecDense[T float.DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewInitVecDense(-1, T(42))
@@ -345,7 +347,7 @@ func TestNewIdentityDense(t *testing.T) {
 	t.Run("float64", testNewIdentityDense[float64])
 }
 
-func testNewIdentityDense[T DType](t *testing.T) {
+func testNewIdentityDense[T float.DType](t *testing.T) {
 	t.Run("negative size", func(t *testing.T) {
 		require.Panics(t, func() {
 			NewIdentityDense[T](-1)
@@ -388,7 +390,7 @@ func TestDense_SetData(t *testing.T) {
 	t.Run("float64", testDenseSetData[float64])
 }
 
-func testDenseSetData[T DType](t *testing.T) {
+func testDenseSetData[T float.DType](t *testing.T) {
 	t.Run("incompatible data size", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -429,7 +431,7 @@ func TestDense_ZerosLike(t *testing.T) {
 	t.Run("float64", testDenseZerosLike[float64])
 }
 
-func testDenseZerosLike[T DType](t *testing.T) {
+func testDenseZerosLike[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
@@ -449,7 +451,7 @@ func TestDense_OnesLike(t *testing.T) {
 	t.Run("float64", testDenseOnesLike[float64])
 }
 
-func testDenseOnesLike[T DType](t *testing.T) {
+func testDenseOnesLike[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
@@ -469,7 +471,7 @@ func TestDense_Scalar(t *testing.T) {
 	t.Run("float64", testDenseScalar[float64])
 }
 
-func testDenseScalar[T DType](t *testing.T) {
+func testDenseScalar[T float.DType](t *testing.T) {
 	t.Run("non-scalar matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 2)
 		require.Panics(t, func() {
@@ -479,7 +481,7 @@ func testDenseScalar[T DType](t *testing.T) {
 
 	t.Run("scalar matrix", func(t *testing.T) {
 		d := NewScalar(T(42))
-		require.Equal(t, Float(T(42)), d.Scalar())
+		require.Equal(t, float.Float(T(42)), d.Scalar())
 	})
 }
 
@@ -488,7 +490,7 @@ func TestDense_Zeros(t *testing.T) {
 	t.Run("float64", testDenseZeros[float64])
 }
 
-func testDenseZeros[T DType](t *testing.T) {
+func testDenseZeros[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
@@ -508,7 +510,7 @@ func TestDense_Set(t *testing.T) {
 	t.Run("float64", testDenseSet[float64])
 }
 
-func testDenseSet[T DType](t *testing.T) {
+func testDenseSet[T float.DType](t *testing.T) {
 	t.Run("given matrix not 1×1", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 2)
 		require.Panics(t, func() {
@@ -591,7 +593,7 @@ func TestDense_At(t *testing.T) {
 	t.Run("float64", testDenseAt[float64])
 }
 
-func testDenseAt[T DType](t *testing.T) {
+func testDenseAt[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -648,7 +650,7 @@ func testDenseAt[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			v := d.At(tc.atR, tc.atC)
-			assert.Equal(t, Float(tc.v), v.Scalar())
+			assert.Equal(t, float.Float(tc.v), v.Scalar())
 		})
 	}
 }
@@ -658,32 +660,32 @@ func TestDense_SetScalar(t *testing.T) {
 	t.Run("float64", testDenseSetScalar[float64])
 }
 
-func testDenseSetScalar[T DType](t *testing.T) {
+func testDenseSetScalar[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(-1, 1, Float(T(42)))
+			d.SetScalar(-1, 1, float.Float(T(42)))
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(1, -1, Float(T(42)))
+			d.SetScalar(1, -1, float.Float(T(42)))
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(2, 1, Float(T(42)))
+			d.SetScalar(2, 1, float.Float(T(42)))
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetScalar(1, 3, Float(T(42)))
+			d.SetScalar(1, 3, float.Float(T(42)))
 		})
 	})
 
@@ -723,7 +725,7 @@ func testDenseSetScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			d.SetScalar(tc.setR, tc.setC, Float(T(42)))
+			d.SetScalar(tc.setR, tc.setC, float.Float(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
@@ -734,7 +736,7 @@ func TestDense_ScalarAt(t *testing.T) {
 	t.Run("float64", testDenseScalarAt[float64])
 }
 
-func testDenseScalarAt[T DType](t *testing.T) {
+func testDenseScalarAt[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -791,7 +793,7 @@ func testDenseScalarAt[T DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})
 			v := d.ScalarAt(tc.atR, tc.atC)
-			assert.Equal(t, Float(tc.v), v)
+			assert.Equal(t, float.Float(tc.v), v)
 		})
 	}
 }
@@ -801,7 +803,7 @@ func TestDense_SetVec(t *testing.T) {
 	t.Run("float64", testDenseSetVec[float64])
 }
 
-func testDenseSetVec[T DType](t *testing.T) {
+func testDenseSetVec[T float.DType](t *testing.T) {
 	t.Run("given matrix not 1×1", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
@@ -864,7 +866,7 @@ func TestDense_AtVec(t *testing.T) {
 	t.Run("float64", testDenseAtVec[float64])
 }
 
-func testDenseAtVec[T DType](t *testing.T) {
+func testDenseAtVec[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -906,7 +908,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 				return T(r + 1)
 			})
 			v := d.AtVec(tc.i)
-			assert.Equal(t, Float(tc.v), v.Scalar())
+			assert.Equal(t, float.Float(tc.v), v.Scalar())
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
@@ -914,7 +916,7 @@ func testDenseAtVec[T DType](t *testing.T) {
 				return T(c + 1)
 			})
 			v := d.AtVec(tc.i)
-			assert.Equal(t, Float(tc.v), v.Scalar())
+			assert.Equal(t, float.Float(tc.v), v.Scalar())
 		})
 	}
 }
@@ -924,25 +926,25 @@ func TestDense_SetVecScalar(t *testing.T) {
 	t.Run("float64", testDenseSetVecScalar[float64])
 }
 
-func testDenseSetVecScalar[T DType](t *testing.T) {
+func testDenseSetVecScalar[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetVecScalar(1, Float(T(42)))
+			d.SetVecScalar(1, float.Float(T(42)))
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVecScalar(-1, Float(T(42)))
+			d.SetVecScalar(-1, float.Float(T(42)))
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVecScalar(2, Float(T(42)))
+			d.SetVecScalar(2, float.Float(T(42)))
 		})
 	})
 
@@ -963,13 +965,13 @@ func testDenseSetVecScalar[T DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
-			d.SetVecScalar(tc.i, Float(T(42)))
+			d.SetVecScalar(tc.i, float.Float(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
-			d.SetVecScalar(tc.i, Float(T(42)))
+			d.SetVecScalar(tc.i, float.Float(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
@@ -980,7 +982,7 @@ func TestDense_ScalarAtVec(t *testing.T) {
 	t.Run("float64", testDenseScalarAtVec[float64])
 }
 
-func testDenseScalarAtVec[T DType](t *testing.T) {
+func testDenseScalarAtVec[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1022,7 +1024,7 @@ func testDenseScalarAtVec[T DType](t *testing.T) {
 				return T(r + 1)
 			})
 			v := d.ScalarAtVec(tc.i)
-			assert.Equal(t, Float(tc.v), v)
+			assert.Equal(t, float.Float(tc.v), v)
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
@@ -1030,7 +1032,7 @@ func testDenseScalarAtVec[T DType](t *testing.T) {
 				return T(c + 1)
 			})
 			v := d.ScalarAtVec(tc.i)
-			assert.Equal(t, Float(tc.v), v)
+			assert.Equal(t, float.Float(tc.v), v)
 		})
 	}
 }
@@ -1040,7 +1042,7 @@ func TestDense_ExtractRow(t *testing.T) {
 	t.Run("float64", testDenseExtractRow[float64])
 }
 
-func testDenseExtractRow[T DType](t *testing.T) {
+func testDenseExtractRow[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1090,7 +1092,7 @@ func TestDense_ExtractColumn(t *testing.T) {
 	t.Run("float64", testDenseExtractColumn[float64])
 }
 
-func testDenseExtractColumn[T DType](t *testing.T) {
+func testDenseExtractColumn[T float.DType](t *testing.T) {
 	t.Run("negative col", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1140,7 +1142,7 @@ func TestDense_View(t *testing.T) {
 	t.Run("float64", testDenseView[float64])
 }
 
-func testDenseView[T DType](t *testing.T) {
+func testDenseView[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1206,10 +1208,10 @@ func testDenseView[T DType](t *testing.T) {
 	t.Run("data is not copied", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		v := d.View(1, 1)
-		d.SetScalar(0, 0, Float(T(42))) // modifying d must modify v too
-		assert.Equal(t, Float(T(42)), v.ScalarAt(0, 0))
-		v.SetScalar(0, 0, Float(T(2))) // modifying v must modify d too
-		assert.Equal(t, Float(T(2)), d.ScalarAt(0, 0))
+		d.SetScalar(0, 0, float.Float(T(42))) // modifying d must modify v too
+		assert.Equal(t, float.Float(T(42)), v.ScalarAt(0, 0))
+		v.SetScalar(0, 0, float.Float(T(2))) // modifying v must modify d too
+		assert.Equal(t, float.Float(T(2)), d.ScalarAt(0, 0))
 	})
 }
 
@@ -1218,7 +1220,7 @@ func TestDense_Slice(t *testing.T) {
 	t.Run("float64", testDenseSlice[float64])
 }
 
-func testDenseSlice[T DType](t *testing.T) {
+func testDenseSlice[T float.DType](t *testing.T) {
 	invalidTestCases := []struct {
 		name                           string
 		d                              *Dense[T]
@@ -1352,7 +1354,7 @@ func TestDense_Reshape(t *testing.T) {
 	t.Run("float64", testDenseReshape[float64])
 }
 
-func testDenseReshape[T DType](t *testing.T) {
+func testDenseReshape[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1418,8 +1420,8 @@ func testDenseReshape[T DType](t *testing.T) {
 	t.Run("data is copied", func(t *testing.T) {
 		d := NewEmptyDense[T](1, 1)
 		r := d.Reshape(1, 1)
-		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
-		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, float.Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, float.Float(T(0)), r.ScalarAt(0, 0))
 	})
 }
 
@@ -1428,7 +1430,7 @@ func TestDense_ReshapeInPlace(t *testing.T) {
 	t.Run("float64", testDenseReshapeInPlace[float64])
 }
 
-func testDenseReshapeInPlace[T DType](t *testing.T) {
+func testDenseReshapeInPlace[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1492,12 +1494,12 @@ func testDenseReshapeInPlace[T DType](t *testing.T) {
 	}
 }
 
-type flattenTestCase[T DType] struct {
+type flattenTestCase[T float.DType] struct {
 	x *Dense[T]
 	y []T
 }
 
-func flattenTestCases[T DType]() []flattenTestCase[T] {
+func flattenTestCases[T float.DType]() []flattenTestCase[T] {
 	return []flattenTestCase[T]{
 		{NewEmptyDense[T](0, 0), []T{}},
 		{NewEmptyDense[T](0, 1), []T{}},
@@ -1528,7 +1530,7 @@ func TestDense_Flatten(t *testing.T) {
 	t.Run("float64", testDenseFlatten[float64])
 }
 
-func testDenseFlatten[T DType](t *testing.T) {
+func testDenseFlatten[T float.DType](t *testing.T) {
 	for _, tc := range flattenTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
 			y := tc.x.Flatten()
@@ -1543,7 +1545,7 @@ func TestDense_FlattenInPlace(t *testing.T) {
 	t.Run("float64", testDenseFlattenInPlace[float64])
 }
 
-func testDenseFlattenInPlace[T DType](t *testing.T) {
+func testDenseFlattenInPlace[T float.DType](t *testing.T) {
 	for _, tc := range flattenTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
 			x2 := tc.x.FlattenInPlace()
@@ -1559,7 +1561,7 @@ func TestDense_ResizeVector(t *testing.T) {
 	t.Run("float64", testDenseResizeVector[float64])
 }
 
-func testDenseResizeVector[T DType](t *testing.T) {
+func testDenseResizeVector[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -1614,15 +1616,15 @@ func testDenseResizeVector[T DType](t *testing.T) {
 	t.Run("data is copied - smaller size", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(1)
-		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
-		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, float.Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, float.Float(T(0)), r.ScalarAt(0, 0))
 	})
 
 	t.Run("data is copied - bigger size", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		r := d.ResizeVector(3)
-		d.SetScalar(0, 0, Float(T(42))) // modifying d must not modify r
-		assert.Equal(t, Float(T(0)), r.ScalarAt(0, 0))
+		d.SetScalar(0, 0, float.Float(T(42))) // modifying d must not modify r
+		assert.Equal(t, float.Float(T(0)), r.ScalarAt(0, 0))
 	})
 }
 
@@ -1631,7 +1633,7 @@ func TestDense_T(t *testing.T) {
 	t.Run("float64", testDenseT[float64])
 }
 
-func testDenseT[T DType](t *testing.T) {
+func testDenseT[T float.DType](t *testing.T) {
 	testCases := []struct {
 		r int
 		c int
@@ -1672,7 +1674,7 @@ func TestDense_TransposeInPlace(t *testing.T) {
 	t.Run("float64", testDenseTransposeInPlace[float64])
 }
 
-func testDenseTransposeInPlace[T DType](t *testing.T) {
+func testDenseTransposeInPlace[T float.DType](t *testing.T) {
 	testCases := []struct {
 		r int
 		c int
@@ -1739,13 +1741,13 @@ func testDenseTransposeInPlace[T DType](t *testing.T) {
 	}
 }
 
-type addTestCase[T DType] struct {
+type addTestCase[T float.DType] struct {
 	a *Dense[T]
 	b *Dense[T]
 	y []T
 }
 
-func addTestCases[T DType]() []addTestCase[T] {
+func addTestCases[T float.DType]() []addTestCase[T] {
 	return []addTestCase[T]{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
 		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
@@ -1783,7 +1785,7 @@ func TestDense_Add(t *testing.T) {
 	t.Run("float64", testDenseAdd[float64])
 }
 
-func testDenseAdd[T DType](t *testing.T) {
+func testDenseAdd[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -1806,7 +1808,7 @@ func TestDense_AddInPlace(t *testing.T) {
 	t.Run("float64", testDenseAddInPlace[float64])
 }
 
-func testDenseAddInPlace[T DType](t *testing.T) {
+func testDenseAddInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -1824,13 +1826,13 @@ func testDenseAddInPlace[T DType](t *testing.T) {
 	}
 }
 
-type addScalarTestCase[T DType] struct {
+type addScalarTestCase[T float.DType] struct {
 	a *Dense[T]
 	n float64
 	y []T
 }
 
-func addScalarTestCases[T DType]() []addScalarTestCase[T] {
+func addScalarTestCases[T float.DType]() []addScalarTestCase[T] {
 	return []addScalarTestCase[T]{
 		{NewEmptyDense[T](0, 0), 10, []T{}},
 		{NewEmptyDense[T](0, 1), 10, []T{}},
@@ -1856,7 +1858,7 @@ func TestDense_AddScalar(t *testing.T) {
 	t.Run("float64", testDenseAddScalar[float64])
 }
 
-func testDenseAddScalar[T DType](t *testing.T) {
+func testDenseAddScalar[T float.DType](t *testing.T) {
 	for _, tc := range addScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.AddScalar(tc.n)
@@ -1871,7 +1873,7 @@ func TestDense_AddScalarInPlace(t *testing.T) {
 	t.Run("float64", testDenseAddScalarInPlace[float64])
 }
 
-func testDenseAddScalarInPlace[T DType](t *testing.T) {
+func testDenseAddScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range addScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.AddScalarInPlace(tc.n)
@@ -1881,13 +1883,13 @@ func testDenseAddScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-type subTestCase[T DType] struct {
+type subTestCase[T float.DType] struct {
 	a *Dense[T]
 	b *Dense[T]
 	y []T
 }
 
-func subTestCases[T DType]() []subTestCase[T] {
+func subTestCases[T float.DType]() []subTestCase[T] {
 	return []subTestCase[T]{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
 		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
@@ -1925,7 +1927,7 @@ func TestDense_Sub(t *testing.T) {
 	t.Run("float64", testDenseSub[float64])
 }
 
-func testDenseSub[T DType](t *testing.T) {
+func testDenseSub[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -1948,7 +1950,7 @@ func TestDense_SubInPlace(t *testing.T) {
 	t.Run("float64", testDenseSubInPlace[float64])
 }
 
-func testDenseSubInPlace[T DType](t *testing.T) {
+func testDenseSubInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -1966,13 +1968,13 @@ func testDenseSubInPlace[T DType](t *testing.T) {
 	}
 }
 
-type subScalarTestCase[T DType] struct {
+type subScalarTestCase[T float.DType] struct {
 	a *Dense[T]
 	n float64
 	y []T
 }
 
-func subScalarTestCases[T DType]() []subScalarTestCase[T] {
+func subScalarTestCases[T float.DType]() []subScalarTestCase[T] {
 	return []subScalarTestCase[T]{
 		{NewEmptyDense[T](0, 0), 10, []T{}},
 		{NewEmptyDense[T](0, 1), 10, []T{}},
@@ -1998,7 +2000,7 @@ func TestDense_SubScalar(t *testing.T) {
 	t.Run("float64", testDenseSubScalar[float64])
 }
 
-func testDenseSubScalar[T DType](t *testing.T) {
+func testDenseSubScalar[T float.DType](t *testing.T) {
 	for _, tc := range subScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.SubScalar(tc.n)
@@ -2013,7 +2015,7 @@ func TestDense_SubScalarInPlace(t *testing.T) {
 	t.Run("float64", testDenseSubScalarInPlace[float64])
 }
 
-func testDenseSubScalarInPlace[T DType](t *testing.T) {
+func testDenseSubScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range subScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.SubScalarInPlace(tc.n)
@@ -2023,13 +2025,13 @@ func testDenseSubScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-type prodTestCase[T DType] struct {
+type prodTestCase[T float.DType] struct {
 	a *Dense[T]
 	b *Dense[T]
 	y []T
 }
 
-func prodTestCases[T DType]() []prodTestCase[T] {
+func prodTestCases[T float.DType]() []prodTestCase[T] {
 	return []prodTestCase[T]{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
 		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
@@ -2067,7 +2069,7 @@ func TestDense_Prod(t *testing.T) {
 	t.Run("float64", testDenseProd[float64])
 }
 
-func testDenseProd[T DType](t *testing.T) {
+func testDenseProd[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -2090,7 +2092,7 @@ func TestDense_ProdInPlace(t *testing.T) {
 	t.Run("float64", testDenseProdInPlace[float64])
 }
 
-func testDenseProdInPlace[T DType](t *testing.T) {
+func testDenseProdInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -2108,13 +2110,13 @@ func testDenseProdInPlace[T DType](t *testing.T) {
 	}
 }
 
-type prodScalarTestCase[T DType] struct {
+type prodScalarTestCase[T float.DType] struct {
 	a *Dense[T]
 	n float64
 	y []T
 }
 
-func prodScalarTestCases[T DType]() []prodScalarTestCase[T] {
+func prodScalarTestCases[T float.DType]() []prodScalarTestCase[T] {
 	return []prodScalarTestCase[T]{
 		{NewEmptyDense[T](0, 0), 10, []T{}},
 		{NewEmptyDense[T](0, 1), 10, []T{}},
@@ -2144,7 +2146,7 @@ func TestDense_ProdScalar(t *testing.T) {
 	t.Run("float64", testDenseProdScalar[float64])
 }
 
-func testDenseProdScalar[T DType](t *testing.T) {
+func testDenseProdScalar[T float.DType](t *testing.T) {
 	for _, tc := range prodScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			y := tc.a.ProdScalar(tc.n)
@@ -2159,7 +2161,7 @@ func TestDense_ProdScalarInPlace(t *testing.T) {
 	t.Run("float64", testDenseProdScalarInPlace[float64])
 }
 
-func testDenseProdScalarInPlace[T DType](t *testing.T) {
+func testDenseProdScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range prodScalarTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
 			a2 := tc.a.ProdScalarInPlace(tc.n)
@@ -2174,7 +2176,7 @@ func TestDense_ProdMatrixScalarInPlace(t *testing.T) {
 	t.Run("float64", testDenseProdMatrixScalarInPlace[float64])
 }
 
-func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
+func testDenseProdMatrixScalarInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -2195,13 +2197,13 @@ func testDenseProdMatrixScalarInPlace[T DType](t *testing.T) {
 	}
 }
 
-type divTestCase[T DType] struct {
+type divTestCase[T float.DType] struct {
 	a *Dense[T]
 	b *Dense[T]
 	y []T
 }
 
-func divTestCases[T DType]() []divTestCase[T] {
+func divTestCases[T float.DType]() []divTestCase[T] {
 	return []divTestCase[T]{
 		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
 		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
@@ -2239,7 +2241,7 @@ func TestDense_Div(t *testing.T) {
 	t.Run("float64", testDenseDiv[float64])
 }
 
-func testDenseDiv[T DType](t *testing.T) {
+func testDenseDiv[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -2262,7 +2264,7 @@ func TestDense_DivInPlace(t *testing.T) {
 	t.Run("float64", testDenseDivInPlace[float64])
 }
 
-func testDenseDivInPlace[T DType](t *testing.T) {
+func testDenseDivInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 4)
@@ -2285,7 +2287,7 @@ func TestDense_Mul(t *testing.T) {
 	t.Run("float64", testDenseMul[float64])
 }
 
-func testDenseMul[T DType](t *testing.T) {
+func testDenseMul[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 3)
@@ -2364,7 +2366,7 @@ func TestDense_MulT(t *testing.T) {
 	t.Run("float64", testDenseMulT[float64])
 }
 
-func testDenseMulT[T DType](t *testing.T) {
+func testDenseMulT[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](3, 1)
@@ -2450,7 +2452,7 @@ func TestDense_DotUnitary(t *testing.T) {
 	t.Run("float64", testDenseDotUnitary[float64])
 }
 
-func testDenseDotUnitary[T DType](t *testing.T) {
+func testDenseDotUnitary[T float.DType](t *testing.T) {
 	t.Run("receiver matrix is non-vector", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 2)
 		b := NewEmptyVecDense[T](4)
@@ -2511,7 +2513,7 @@ func TestDense_ClipInPlace(t *testing.T) {
 	t.Run("float64", testDenseClipInPlace[float64])
 }
 
-func testDenseClipInPlace[T DType](t *testing.T) {
+func testDenseClipInPlace[T float.DType](t *testing.T) {
 	t.Run("max < min", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 2)
 		require.Panics(t, func() {
@@ -2559,7 +2561,7 @@ func TestDense_Maximum(t *testing.T) {
 	t.Run("float64", testDenseMaximum[float64])
 }
 
-func testDenseMaximum[T DType](t *testing.T) {
+func testDenseMaximum[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
@@ -2612,7 +2614,7 @@ func TestDense_Minimum(t *testing.T) {
 	t.Run("float64", testDenseMinimum[float64])
 }
 
-func testDenseMinimum[T DType](t *testing.T) {
+func testDenseMinimum[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
@@ -2665,7 +2667,7 @@ func TestDense_Abs(t *testing.T) {
 	t.Run("float64", testDenseAbs[float64])
 }
 
-func testDenseAbs[T DType](t *testing.T) {
+func testDenseAbs[T float.DType](t *testing.T) {
 	testCases := []struct {
 		d *Dense[T]
 		y []T
@@ -2704,7 +2706,7 @@ func TestDense_Pow(t *testing.T) {
 	t.Run("float64", testDensePow[float64])
 }
 
-func testDensePow[T DType](t *testing.T) {
+func testDensePow[T float.DType](t *testing.T) {
 	testCases := []struct {
 		d   *Dense[T]
 		pow float64
@@ -2743,7 +2745,7 @@ func TestDense_Sqrt(t *testing.T) {
 	t.Run("float64", testDenseSqrt[float64])
 }
 
-func testDenseSqrt[T DType](t *testing.T) {
+func testDenseSqrt[T float.DType](t *testing.T) {
 	testCases := []struct {
 		d *Dense[T]
 		y []T
@@ -2782,7 +2784,7 @@ func TestDense_Sum(t *testing.T) {
 	t.Run("float64", testDenseSum[float64])
 }
 
-func testDenseSum[T DType](t *testing.T) {
+func testDenseSum[T float.DType](t *testing.T) {
 	testCases := []struct {
 		d *Dense[T]
 		y T
@@ -2815,7 +2817,7 @@ func TestDense_Max(t *testing.T) {
 	t.Run("float64", testDenseMax[float64])
 }
 
-func testDenseMax[T DType](t *testing.T) {
+func testDenseMax[T float.DType](t *testing.T) {
 	t.Run("empty data", func(t *testing.T) {
 		d := NewEmptyDense[T](0, 1)
 		require.Panics(t, func() {
@@ -2852,7 +2854,7 @@ func TestDense_Min(t *testing.T) {
 	t.Run("float64", testDenseMin[float64])
 }
 
-func testDenseMin[T DType](t *testing.T) {
+func testDenseMin[T float.DType](t *testing.T) {
 	t.Run("empty data", func(t *testing.T) {
 		d := NewEmptyDense[T](0, 1)
 		require.Panics(t, func() {
@@ -2889,7 +2891,7 @@ func TestDense_ArgMax(t *testing.T) {
 	t.Run("float64", testDenseArgMax[float64])
 }
 
-func testDenseArgMax[T DType](t *testing.T) {
+func testDenseArgMax[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -2936,7 +2938,7 @@ func TestDense_Softmax(t *testing.T) {
 	t.Run("float64", testDenseSoftmax[float64])
 }
 
-func testDenseSoftmax[T DType](t *testing.T) {
+func testDenseSoftmax[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -2978,7 +2980,7 @@ func TestDense_CumSum(t *testing.T) {
 	t.Run("float64", testDenseCumSum[float64])
 }
 
-func testDenseCumSum[T DType](t *testing.T) {
+func testDenseCumSum[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3023,7 +3025,7 @@ func TestDense_Range(t *testing.T) {
 	t.Run("float64", testDenseRange[float64])
 }
 
-func testDenseRange[T DType](t *testing.T) {
+func testDenseRange[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3100,7 +3102,7 @@ func TestDense_SplitV(t *testing.T) {
 	t.Run("float64", testDenseSplitV[float64])
 }
 
-func testDenseSplitV[T DType](t *testing.T) {
+func testDenseSplitV[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3182,7 +3184,7 @@ func TestDense_Augment(t *testing.T) {
 	t.Run("float64", testDenseAugment[float64])
 }
 
-func testDenseAugment[T DType](t *testing.T) {
+func testDenseAugment[T float.DType](t *testing.T) {
 	t.Run("non square matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3234,7 +3236,7 @@ func TestDense_SwapInPlace(t *testing.T) {
 	t.Run("float64", testDenseSwapInPlace[float64])
 }
 
-func testDenseSwapInPlace[T DType](t *testing.T) {
+func testDenseSwapInPlace[T float.DType](t *testing.T) {
 	t.Run("negative r1", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3334,7 +3336,7 @@ func TestDense_PadRows(t *testing.T) {
 	t.Run("float64", testDensePadRows[float64])
 }
 
-func testDensePadRows[T DType](t *testing.T) {
+func testDensePadRows[T float.DType](t *testing.T) {
 	t.Run("negative n", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3446,7 +3448,7 @@ func TestDense_PadColumns(t *testing.T) {
 	t.Run("float64", testDensePadColumns[float64])
 }
 
-func testDensePadColumns[T DType](t *testing.T) {
+func testDensePadColumns[T float.DType](t *testing.T) {
 	t.Run("negative n", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3564,7 +3566,7 @@ func TestDense_AppendRows(t *testing.T) {
 	t.Run("float64", testDenseAppendRows[float64])
 }
 
-func testDenseAppendRows[T DType](t *testing.T) {
+func testDenseAppendRows[T float.DType](t *testing.T) {
 	t.Run("non vector value", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		m := NewEmptyDense[T](2, 2)
@@ -3674,7 +3676,7 @@ func TestDense_Norm(t *testing.T) {
 	t.Run("float64", testDenseNorm[float64])
 }
 
-func testDenseNorm[T DType](t *testing.T) {
+func testDenseNorm[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3716,7 +3718,7 @@ func TestDense_Normalize2(t *testing.T) {
 	t.Run("float64", testDenseNormalize2[float64])
 }
 
-func testDenseNormalize2[T DType](t *testing.T) {
+func testDenseNormalize2[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3754,7 +3756,7 @@ func TestDense_Pivoting(t *testing.T) {
 	t.Run("float64", testDensePivoting[float64])
 }
 
-func testDensePivoting[T DType](t *testing.T) {
+func testDensePivoting[T float.DType](t *testing.T) {
 	t.Run("non square matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3844,7 +3846,7 @@ func TestDense_LU(t *testing.T) {
 	t.Run("float64", testDenseLU[float64])
 }
 
-func testDenseLU[T DType](t *testing.T) {
+func testDenseLU[T float.DType](t *testing.T) {
 	t.Run("non square matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3930,7 +3932,7 @@ func TestDense_Inverse(t *testing.T) {
 	t.Run("float64", testDenseInverse[float64])
 }
 
-func testDenseInverse[T DType](t *testing.T) {
+func testDenseInverse[T float.DType](t *testing.T) {
 	t.Run("non square matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -3981,12 +3983,12 @@ func testDenseInverse[T DType](t *testing.T) {
 	}
 }
 
-type applyTestCase[T DType] struct {
+type applyTestCase[T float.DType] struct {
 	d *Dense[T]
 	y []T
 }
 
-func applyTestCases[T DType]() []applyTestCase[T] {
+func applyTestCases[T float.DType]() []applyTestCase[T] {
 	return []applyTestCase[T]{
 		// Each transoformed value is a 3-digit number having the
 		// format "<n><row><col>"
@@ -4014,7 +4016,7 @@ func TestDense_Apply(t *testing.T) {
 	t.Run("float64", testDenseApply[float64])
 }
 
-func testDenseApply[T DType](t *testing.T) {
+func testDenseApply[T float.DType](t *testing.T) {
 	for _, tc := range applyTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
 			y := tc.d.Apply(func(r, c int, v float64) float64 {
@@ -4031,7 +4033,7 @@ func TestDense_ApplyInPlace(t *testing.T) {
 	t.Run("float64", testDenseApplyInPlace[float64])
 }
 
-func testDenseApplyInPlace[T DType](t *testing.T) {
+func testDenseApplyInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
@@ -4059,7 +4061,7 @@ func TestDense_ApplyWithAlpha(t *testing.T) {
 	t.Run("float64", testDenseApplyWithAlpha[float64])
 }
 
-func testDenseApplyWithAlpha[T DType](t *testing.T) {
+func testDenseApplyWithAlpha[T float.DType](t *testing.T) {
 	inAlpha := []float64{1, 2, 3}
 	for _, tc := range applyTestCases[T]() {
 		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
@@ -4078,7 +4080,7 @@ func TestDense_ApplyWithAlphaInPlace(t *testing.T) {
 	t.Run("float64", testDenseApplyWithAlphaInPlace[float64])
 }
 
-func testDenseApplyWithAlphaInPlace[T DType](t *testing.T) {
+func testDenseApplyWithAlphaInPlace[T float.DType](t *testing.T) {
 	inAlpha := []float64{1, 2, 3}
 
 	t.Run("incompatible dimensions", func(t *testing.T) {
@@ -4118,7 +4120,7 @@ type doNonZeroVisit struct {
 	v float64
 }
 
-func testDenseDoNonZero[T DType](t *testing.T) {
+func testDenseDoNonZero[T float.DType](t *testing.T) {
 	testCases := []struct {
 		d      *Dense[T]
 		visits []doNonZeroVisit
@@ -4191,7 +4193,7 @@ type doVecNonZeroVisit struct {
 	v float64
 }
 
-func testDenseDoVecNonZero[T DType](t *testing.T) {
+func testDenseDoVecNonZero[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
@@ -4262,7 +4264,7 @@ func TestDense_Clone(t *testing.T) {
 	t.Run("float64", testDenseClone[float64])
 }
 
-func testDenseClone[T DType](t *testing.T) {
+func testDenseClone[T float.DType](t *testing.T) {
 	testCases := []*Dense[T]{
 		NewEmptyDense[T](0, 0),
 		NewEmptyDense[T](0, 1),
@@ -4284,8 +4286,8 @@ func testDenseClone[T DType](t *testing.T) {
 	t.Run("data is copied", func(t *testing.T) {
 		d := NewDense(1, 1, []T{1})
 		y := d.Clone()
-		d.SetScalar(0, 0, Float(T(42)))
-		assert.Equal(t, Float(T(1)), y.ScalarAt(0, 0))
+		d.SetScalar(0, 0, float.Float(T(42)))
+		assert.Equal(t, float.Float(T(1)), y.ScalarAt(0, 0))
 	})
 }
 
@@ -4294,7 +4296,7 @@ func TestDense_Copy(t *testing.T) {
 	t.Run("float64", testDenseCopy[float64])
 }
 
-func testDenseCopy[T DType](t *testing.T) {
+func testDenseCopy[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
 		a := NewEmptyDense[T](2, 3)
 		b := NewEmptyDense[T](2, 2)
@@ -4329,7 +4331,7 @@ func TestDense_String(t *testing.T) {
 	t.Run("float64", testDenseString[float64])
 }
 
-func testDenseString[T DType](t *testing.T) {
+func testDenseString[T float.DType](t *testing.T) {
 	prefix := "Matrix|Dense"
 	switch any(T(0)).(type) {
 	case float32:
@@ -4366,7 +4368,7 @@ func testDenseString[T DType](t *testing.T) {
 	}
 }
 
-func assertDenseDims[T DType](t *testing.T, expectedRows, expectedCols int, d *Dense[T]) {
+func assertDenseDims[T float.DType](t *testing.T, expectedRows, expectedCols int, d *Dense[T]) {
 	t.Helper()
 
 	expectedSize := expectedRows * expectedCols

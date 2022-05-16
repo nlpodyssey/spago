@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -41,7 +42,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T mat.DType](in, out int) *Model {
+func New[T float.DType](in, out int) *Model {
 	m := &Model{}
 	m.WPart, m.WPartRec, m.BPart = newGateParams[T](in, out)
 	m.WRes, m.WResRec, m.BRes = newGateParams[T](in, out)
@@ -49,7 +50,7 @@ func New[T mat.DType](in, out int) *Model {
 	return m
 }
 
-func newGateParams[T mat.DType](in, out int) (w, wRec, b nn.Param) {
+func newGateParams[T float.DType](in, out int) (w, wRec, b nn.Param) {
 	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
 	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
 	b = nn.NewParam(mat.NewEmptyVecDense[T](out))
@@ -86,7 +87,7 @@ func (m *Model) Next(state *State, x ag.Node) (s *State) {
 	s.C = ag.Tanh(ag.Affine(m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
 	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		one := ag.Var(x.Value().NewScalar(mat.Float(1.0)))
+		one := ag.Var(x.Value().NewScalar(float.Float(1.0)))
 		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, one), yPrev))
 	}
 	return

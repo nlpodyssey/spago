@@ -10,6 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/ag/encoding"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +20,7 @@ func TestNewGraph(t *testing.T) {
 	t.Run("float64", testNewGraph[float64])
 }
 
-func testNewGraph[T mat.DType](t *testing.T) {
+func testNewGraph[T float.DType](t *testing.T) {
 	a := ag.Var(mat.NewScalar[T](1))
 	b := ag.Var(mat.NewScalar[T](3))
 	c := ag.Var(mat.NewScalar[T](5))
@@ -56,7 +57,7 @@ func TestGraph_WithTimeSteps(t *testing.T) {
 	t.Run("float64", testGraphWithTimeSteps[float64])
 }
 
-func testGraphWithTimeSteps[T mat.DType](t *testing.T) {
+func testGraphWithTimeSteps[T float.DType](t *testing.T) {
 	a := ag.Var(mat.NewScalar[T](1))
 	tsh := ag.NewTimeStepHandler()
 
@@ -73,7 +74,7 @@ func TestGraph_NodesByTimeStep(t *testing.T) {
 	t.Run("float64", testGraphNodesByTimeStep[float64])
 }
 
-func testGraphNodesByTimeStep[T mat.DType](t *testing.T) {
+func testGraphNodesByTimeStep[T float.DType](t *testing.T) {
 	t.Run("without time step handler", func(t *testing.T) {
 		a := ag.Var(mat.NewScalar[T](1))
 		b := ag.Var(mat.NewScalar[T](3))

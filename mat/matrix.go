@@ -4,6 +4,8 @@
 
 package mat
 
+import "github.com/nlpodyssey/spago/mat/float"
+
 // The Matrix interface defines set and get methods to access its elements,
 // plus a few variants to perform linear algebra operations with other matrices,
 // such as element-wise addition, subtraction, product and matrix-matrix
@@ -19,10 +21,10 @@ type Matrix interface {
 	Size() int
 	// Data returns the underlying data of the matrix, as a raw one-dimensional
 	// slice of values in row-major order.
-	Data() FloatSliceInterface
+	Data() float.SliceInterface
 	// SetData sets the content of the matrix, copying the given raw
 	// data representation as one-dimensional slice.
-	SetData(data FloatSliceInterface)
+	SetData(data float.SliceInterface)
 	// ZerosLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with zeroes.
 	ZerosLike() Matrix
@@ -31,7 +33,7 @@ type Matrix interface {
 	OnesLike() Matrix
 	// Scalar returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
-	Scalar() FloatInterface
+	Scalar() float.Interface
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
 	// Set sets the scalar value from a 1×1 matrix at row r and column c.
@@ -42,10 +44,10 @@ type Matrix interface {
 	At(r int, c int) Matrix
 	// SetScalar sets the value v at row r and column c.
 	// It panics if the given indices are out of range.
-	SetScalar(r int, c int, v FloatInterface)
+	SetScalar(r int, c int, v float.Interface)
 	// ScalarAt returns the value at row r and column c.
 	// It panics if the given indices are out of range.
-	ScalarAt(r int, c int) FloatInterface
+	ScalarAt(r int, c int) float.Interface
 	// SetVec sets the scalar value from a 1×1 matrix at position i of a
 	// vector. It panics if the receiver is not a vector, or the given matrix is
 	// not 1×1, or the position is out of range.
@@ -55,10 +57,10 @@ type Matrix interface {
 	AtVec(i int) Matrix
 	// SetVecScalar sets the value v at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	SetVecScalar(i int, v FloatInterface)
+	SetVecScalar(i int, v float.Interface)
 	// ScalarAtVec returns the value at position i of a vector.
 	// It panics if the receiver is not a vector or the position is out of range.
-	ScalarAtVec(i int) FloatInterface
+	ScalarAtVec(i int) float.Interface
 	// ExtractRow returns a copy of the i-th row of the matrix,
 	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix
@@ -232,13 +234,13 @@ type Matrix interface {
 	//
 	// Rows and columns MUST not be negative, and the length of data MUST be
 	// equal to rows*cols, otherwise the method panics.
-	NewMatrix(rows, cols int, data FloatSliceInterface) Matrix
+	NewMatrix(rows, cols int, data float.SliceInterface) Matrix
 	// NewVec creates a new column vector (len(data)×1), of the same type of
 	// the receiver, initialized with a copy of raw data.
-	NewVec(data FloatSliceInterface) Matrix
+	NewVec(data float.SliceInterface) Matrix
 	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 	// containing the given value.
-	NewScalar(v FloatInterface) Matrix
+	NewScalar(v float.Interface) Matrix
 	// NewEmptyVec creates a new vector, of the same type of the receiver,
 	// with dimensions size×1, initialized with zeros.
 	NewEmptyVec(size int) Matrix
@@ -247,14 +249,14 @@ type Matrix interface {
 	NewEmptyMatrix(rows, cols int) Matrix
 	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with a constant value.
-	NewInitMatrix(rows, cols int, v FloatInterface) Matrix
+	NewInitMatrix(rows, cols int, v float.Interface) Matrix
 	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with the values returned from the
 	// callback function.
-	NewInitFuncMatrix(rows, cols int, fn func(r, c int) FloatInterface) Matrix
+	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Interface) Matrix
 	// NewInitVec creates a new column vector (size×1), of the same type of
 	// the receiver, initialized with a constant value.
-	NewInitVec(size int, v FloatInterface) Matrix
+	NewInitVec(size int, v float.Interface) Matrix
 	// NewIdentityMatrix creates a new square identity matrix (size×size), of
 	// the same type of the receiver, that is, with ones on the diagonal
 	// and zeros elsewhere.
@@ -277,14 +279,14 @@ type Matrix interface {
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional
 // slice of values in row-major order.
-func Data[T DType](m Matrix) []T {
-	return DTFloatSlice[T](m.Data())
+func Data[T float.DType](m Matrix) []T {
+	return float.SliceValueOf[T](m.Data())
 }
 
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
-func SetData[T DType](m Matrix, data []T) {
-	m.SetData(FloatSlice(data))
+func SetData[T float.DType](m Matrix, data []T) {
+	m.SetData(float.Slice(data))
 }
 
 // IsVector returns whether the matrix is either a row or column vector
@@ -313,7 +315,7 @@ func VectorsOfSameSize(a, b Matrix) bool {
 // ConcatV concatenates two or more vectors "vertically", creating a new Dense
 // column vector. It accepts row or column vectors indifferently, virtually
 // treating all of them as column vectors.
-func ConcatV[T DType](vs ...Matrix) *Dense[T] {
+func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 	size := 0
 	for _, v := range vs {
 		if !IsVector(v) {
@@ -335,7 +337,7 @@ func ConcatV[T DType](vs ...Matrix) *Dense[T] {
 // input vector.
 // It accepts row or column vectors indifferently, virtually treating all of
 // them as row vectors.
-func Stack[T DType](vs ...Matrix) *Dense[T] {
+func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 	if len(vs) == 0 {
 		return densePool[T]().Get(0, 0)
 	}

@@ -5,9 +5,11 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAddScalar_Forward(t *testing.T) {
@@ -15,7 +17,7 @@ func TestAddScalar_Forward(t *testing.T) {
 	t.Run("float64", testAddScalarForward[float64])
 }
 
-func testAddScalarForward[T mat.DType](t *testing.T) {
+func testAddScalarForward[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
 		grad:         nil,
@@ -44,7 +46,7 @@ func TestAddScalar_Forward2(t *testing.T) {
 	t.Run("float64", testAddScalarForward2[float64])
 }
 
-func testAddScalarForward2[T mat.DType](t *testing.T) {
+func testAddScalarForward2[T float.DType](t *testing.T) {
 	x1 := &variable{
 		value: mat.NewDense(3, 4, []T{
 			0.1, 0.2, 0.3, 0.0,

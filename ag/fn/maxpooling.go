@@ -5,8 +5,10 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"math"
+
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // MaxPooling is an operator to perform max pooling.
@@ -67,7 +69,7 @@ func (r *MaxPooling[O]) Forward() mat.Matrix {
 					}
 				}
 			}
-			r.y.SetScalar(row, col, mat.Float(maximum))
+			r.y.SetScalar(row, col, float.Float(maximum))
 		}
 	}
 

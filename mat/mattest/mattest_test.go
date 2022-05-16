@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,7 +20,7 @@ func TestAssertMatrixEquals(t *testing.T) {
 	t.Run("float64", testAssertMatrixEquals[float64])
 }
 
-func testAssertMatrixEquals[T mat.DType](t *testing.T) {
+func testAssertMatrixEquals[T float.DType](t *testing.T) {
 	for _, tc := range matrixEqualsTestCases[T]() {
 		t.Run(tc.name, func(t *testing.T) {
 			dt := new(dummyT)
@@ -50,7 +51,7 @@ func TestRequireMatrixEquals(t *testing.T) {
 	t.Run("float64", testRequireMatrixEquals[float64])
 }
 
-func testRequireMatrixEquals[T mat.DType](t *testing.T) {
+func testRequireMatrixEquals[T float.DType](t *testing.T) {
 	for _, tc := range matrixEqualsTestCases[T]() {
 		t.Run(tc.name, func(t *testing.T) {
 			dt := new(dummyT)
@@ -82,7 +83,7 @@ func TestAssertMatrixInDelta(t *testing.T) {
 	t.Run("float64", testAssertMatrixInDelta[float64])
 }
 
-func testAssertMatrixInDelta[T mat.DType](t *testing.T) {
+func testAssertMatrixInDelta[T float.DType](t *testing.T) {
 	for _, tc := range matrixInDeltaTestCases[T]() {
 		t.Run(tc.name, func(t *testing.T) {
 			dt := new(dummyT)
@@ -113,7 +114,7 @@ func TestRequireMatrixInDelta(t *testing.T) {
 	t.Run("float64", testRequireMatrixInDelta[float64])
 }
 
-func testRequireMatrixInDelta[T mat.DType](t *testing.T) {
+func testRequireMatrixInDelta[T float.DType](t *testing.T) {
 	for _, tc := range matrixInDeltaTestCases[T]() {
 		t.Run(tc.name, func(t *testing.T) {
 			dt := new(dummyT)
@@ -149,7 +150,7 @@ type matrixEqualsTestCase struct {
 	errorMsg string
 }
 
-func matrixEqualsTestCases[T mat.DType]() []matrixEqualsTestCase {
+func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 	return []matrixEqualsTestCase{
 		{
 			name:     "no errors",
@@ -240,7 +241,7 @@ type matrixInDeltaTestCase struct {
 	errorMsg string
 }
 
-func matrixInDeltaTestCases[T mat.DType]() []matrixInDeltaTestCase {
+func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 	return []matrixInDeltaTestCase{
 		{
 			name:     "no errors",

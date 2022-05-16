@@ -5,10 +5,12 @@
 package fn
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestDropout_Forward(t *testing.T) {
@@ -16,7 +18,7 @@ func TestDropout_Forward(t *testing.T) {
 	t.Run("float64", testDropoutForward[float64])
 }
 
-func testDropoutForward[T mat.DType](t *testing.T) {
+func testDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
@@ -43,7 +45,7 @@ func TestZeroDropout_Forward(t *testing.T) {
 	t.Run("float64", testZeroDropoutForward[float64])
 }
 
-func testZeroDropoutForward[T mat.DType](t *testing.T) {
+func testZeroDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,
@@ -70,7 +72,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 	t.Run("float64", testTotalDropoutForward[float64])
 }
 
-func testTotalDropoutForward[T mat.DType](t *testing.T) {
+func testTotalDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
 		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
 		grad:         nil,

@@ -12,13 +12,13 @@ import (
 	"github.com/nlpodyssey/spago/gd/radam"
 	"github.com/nlpodyssey/spago/gd/rmsprop"
 	"github.com/nlpodyssey/spago/gd/sgd"
-	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // NewMethod returns a new gd.Method, chosen and initialized according to
 // the given config.
 // It panics if the config type is unknown or unsupported.
-func NewMethod[T mat.DType](config gd.MethodConfig) gd.Method {
+func NewMethod[T float.DType](config gd.MethodConfig) gd.Method {
 	switch config := config.(type) {
 	case adagrad.Config:
 		return adagrad.New[T](config)

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,16 +18,16 @@ func TestUtils(t *testing.T) {
 	t.Run("float64", testUtils[float64])
 }
 
-func testUtils[T mat.DType](t *testing.T) {
+func testUtils[T float.DType](t *testing.T) {
 	t.Run("test `Map2`", func(t *testing.T) {
 		ys := Map2(Add,
 			[]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)},
 			[]Node{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, mat.Float(T(5)), ys[0].Value().Scalar())
-		assert.Equal(t, mat.Float(T(7)), ys[1].Value().Scalar())
-		assert.Equal(t, mat.Float(T(9)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Float(T(5)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Float(T(7)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Float(T(9)), ys[2].Value().Scalar())
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
@@ -35,11 +36,11 @@ func testUtils[T mat.DType](t *testing.T) {
 		}
 		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
-		assert.Equal(t, mat.Float(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, mat.Float(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, mat.Float(T(3)), ys[2].Value().Scalar())
-		assert.Equal(t, mat.Float(T(0)), ys[3].Value().Scalar())
-		assert.Equal(t, mat.Float(T(0)), ys[4].Value().Scalar())
+		assert.Equal(t, float.Float(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Float(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Float(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Float(T(0)), ys[3].Value().Scalar())
+		assert.Equal(t, float.Float(T(0)), ys[4].Value().Scalar())
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
@@ -48,9 +49,9 @@ func testUtils[T mat.DType](t *testing.T) {
 		}
 		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, mat.Float(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, mat.Float(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, mat.Float(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Float(T(1)), ys[0].Value().Scalar())
+		assert.Equal(t, float.Float(T(2)), ys[1].Value().Scalar())
+		assert.Equal(t, float.Float(T(3)), ys[2].Value().Scalar())
 	})
 }
 
@@ -59,7 +60,7 @@ func TestRowViews(t *testing.T) {
 	t.Run("float64", testRowViews[float64])
 }
 
-func testRowViews[T mat.DType](t *testing.T) {
+func testRowViews[T float.DType](t *testing.T) {
 	testCases := []struct {
 		x  *mat.Dense[T]
 		ys [][]T
@@ -116,7 +117,7 @@ func TestColViews(t *testing.T) {
 	t.Run("float64", testColViews[float64])
 }
 
-func testColViews[T mat.DType](t *testing.T) {
+func testColViews[T float.DType](t *testing.T) {
 	testCases := []struct {
 		x  *mat.Dense[T]
 		ys [][]T
@@ -169,6 +170,6 @@ func testColViews[T mat.DType](t *testing.T) {
 	}
 }
 
-func newScalar[T mat.DType](v T) Node {
+func newScalar[T float.DType](v T) Node {
 	return Var(mat.NewScalar(v))
 }

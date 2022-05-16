@@ -12,6 +12,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/embeddings/store"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -86,7 +87,7 @@ func init() {
 // New returns a new embeddings Model.
 //
 // It panics in case of errors getting the Store from the Repository.
-func New[T mat.DType, K Key](conf Config, repo store.Repository) *Model[K] {
+func New[T float.DType, K Key](conf Config, repo store.Repository) *Model[K] {
 	st, err := repo.Store(conf.StoreName)
 	if err != nil {
 		panic(fmt.Errorf("embeddings: error getting Store %#v: %w", conf.StoreName, err))

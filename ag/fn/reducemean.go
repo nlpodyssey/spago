@@ -6,6 +6,7 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // ReduceMean is an operator to perform reduce-mean function.
@@ -42,7 +43,7 @@ func (r *ReduceMean[O]) Backward(gy mat.Matrix) {
 		x := r.x.Value()
 		size := x.Size()
 		v := gy.Scalar().Float64() / float64(size)
-		gx := x.NewInitVec(size, mat.Float(v))
+		gx := x.NewInitVec(size, float.Float(v))
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}

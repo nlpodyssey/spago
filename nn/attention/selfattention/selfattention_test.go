@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,7 @@ func TestModel_SelfAttention(t *testing.T) {
 	t.Run("float64", testModelSelfAttention[float64])
 }
 
-func testModelSelfAttention[T mat.DType](t *testing.T) {
+func testModelSelfAttention[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	x1 := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
@@ -67,7 +68,7 @@ func testModelSelfAttention[T mat.DType](t *testing.T) {
 	}, model.Query.B.Grad().Data(), 1.0e-05)
 }
 
-func newTestModel[T mat.DType]() *SelfAttention {
+func newTestModel[T float.DType]() *SelfAttention {
 	model := &SelfAttention{New[T](Config{
 		InputSize:   4,
 		QuerySize:   3,

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/internal/f32"
 	"github.com/nlpodyssey/spago/mat/internal/f32/asm32"
 	"github.com/nlpodyssey/spago/mat/internal/f64"
@@ -15,7 +16,7 @@ import (
 )
 
 // A Dense matrix implementation.
-type Dense[T DType] struct {
+type Dense[T float.DType] struct {
 	rows  int
 	cols  int
 	flags denseFlag
@@ -27,7 +28,7 @@ type Dense[T DType] struct {
 //
 // Rows and columns MUST not be negative, and the length of data MUST be
 // equal to rows*cols, otherwise the method panics.
-func NewDense[T DType](rows, cols int, data []T) *Dense[T] {
+func NewDense[T float.DType](rows, cols int, data []T) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -41,14 +42,14 @@ func NewDense[T DType](rows, cols int, data []T) *Dense[T] {
 
 // NewVecDense returns a new column vector (len(data)×1) initialized with
 // a copy of raw data.
-func NewVecDense[T DType](data []T) *Dense[T] {
+func NewVecDense[T float.DType](data []T) *Dense[T] {
 	d := densePool[T]().Get(len(data), 1)
 	copy(d.data, data)
 	return d
 }
 
 // NewScalar returns a new 1×1 matrix containing the given value.
-func NewScalar[T DType](v T) *Dense[T] {
+func NewScalar[T float.DType](v T) *Dense[T] {
 	d := densePool[T]().Get(1, 1)
 	d.data[0] = v
 	return d
@@ -56,7 +57,7 @@ func NewScalar[T DType](v T) *Dense[T] {
 
 // NewEmptyVecDense returns a new vector with dimensions size×1, initialized
 // with zeros.
-func NewEmptyVecDense[T DType](size int) *Dense[T] {
+func NewEmptyVecDense[T float.DType](size int) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
@@ -64,7 +65,7 @@ func NewEmptyVecDense[T DType](size int) *Dense[T] {
 }
 
 // NewEmptyDense returns a new rows×cols matrix, initialized with zeros.
-func NewEmptyDense[T DType](rows, cols int) *Dense[T] {
+func NewEmptyDense[T float.DType](rows, cols int) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -72,7 +73,7 @@ func NewEmptyDense[T DType](rows, cols int) *Dense[T] {
 }
 
 // NewOneHotVecDense returns a new one-hot column vector (size×1).
-func NewOneHotVecDense[T DType](size int, oneAt int) *Dense[T] {
+func NewOneHotVecDense[T float.DType](size int, oneAt int) *Dense[T] {
 	if size <= 0 {
 		panic("mat: the vector size must be a positive number")
 	}
@@ -86,7 +87,7 @@ func NewOneHotVecDense[T DType](size int, oneAt int) *Dense[T] {
 
 // NewInitDense returns a new rows×cols dense matrix initialized with a
 // constant value.
-func NewInitDense[T DType](rows, cols int, v T) *Dense[T] {
+func NewInitDense[T float.DType](rows, cols int, v T) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -100,7 +101,7 @@ func NewInitDense[T DType](rows, cols int, v T) *Dense[T] {
 
 // NewInitFuncDense returns a new rows×cols dense matrix initialized with the
 // values returned from the callback function.
-func NewInitFuncDense[T DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
+func NewInitFuncDense[T float.DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -124,7 +125,7 @@ func NewInitFuncDense[T DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
 
 // NewInitVecDense returns a new column vector (size×1) initialized with a
 // constant value.
-func NewInitVecDense[T DType](size int, v T) *Dense[T] {
+func NewInitVecDense[T float.DType](size int, v T) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
@@ -138,7 +139,7 @@ func NewInitVecDense[T DType](size int, v T) *Dense[T] {
 
 // NewIdentityDense returns a square identity matrix (size×size), that is,
 // with ones on the diagonal and zeros elsewhere.
-func NewIdentityDense[T DType](size int) *Dense[T] {
+func NewIdentityDense[T float.DType](size int) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
@@ -176,14 +177,14 @@ func (d *Dense[_]) Size() int {
 //
 // The data slice IS NOT a copy: any changes applied to the returned slice are
 // reflected in the Dense matrix too.
-func (d *Dense[T]) Data() FloatSliceInterface {
-	return FloatSlice(d.data)
+func (d *Dense[T]) Data() float.SliceInterface {
+	return float.Slice(d.data)
 }
 
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
-func (d *Dense[T]) SetData(data FloatSliceInterface) {
-	v := DTFloatSlice[T](data)
+func (d *Dense[T]) SetData(data float.SliceInterface) {
+	v := float.SliceValueOf[T](data)
 	if len(v) != len(d.data) {
 		panic(fmt.Sprintf("mat: incompatible data size, expected %d, actual %d", len(d.data), len(v)))
 	}
@@ -209,11 +210,11 @@ func (d *Dense[T]) OnesLike() Matrix {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (d *Dense[T]) Scalar() FloatInterface {
+func (d *Dense[T]) Scalar() float.Interface {
 	if !IsScalar(d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
-	return Float(d.data[0])
+	return float.Float(d.data[0])
 }
 
 // Zeros sets all the values of the matrix to zero.
@@ -227,7 +228,7 @@ func (d *Dense[T]) Zeros() {
 // Set sets the scalar value from a 1×1 matrix at row r and column c.
 // It panics if the given matrix is not 1×1, or if indices are out of range.
 func (d *Dense[T]) Set(r int, c int, m Matrix) {
-	d.set(r, c, DTFloat[T](m.Scalar()))
+	d.set(r, c, float.ValueOf[T](m.Scalar()))
 }
 
 // At returns the value at row r and column c as a 1×1 matrix.
@@ -238,14 +239,14 @@ func (d *Dense[T]) At(r int, c int) Matrix {
 
 // SetScalar sets the value v at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) SetScalar(r int, c int, v FloatInterface) {
-	d.set(r, c, DTFloat[T](v))
+func (d *Dense[T]) SetScalar(r int, c int, v float.Interface) {
+	d.set(r, c, float.ValueOf[T](v))
 }
 
 // ScalarAt returns the value at row r and column c.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) ScalarAt(r int, c int) FloatInterface {
-	return Float(d.at(r, c))
+func (d *Dense[T]) ScalarAt(r int, c int) float.Interface {
+	return float.Float(d.at(r, c))
 }
 
 func (d *Dense[T]) set(r int, c int, v T) {
@@ -272,7 +273,7 @@ func (d *Dense[T]) at(r int, c int) T {
 // vector. It panics if the receiver is not a vector, or the given matrix is
 // not 1×1, or the position is out of range.
 func (d *Dense[T]) SetVec(i int, m Matrix) {
-	d.setVec(i, DTFloat[T](m.Scalar()))
+	d.setVec(i, float.ValueOf[T](m.Scalar()))
 }
 
 // AtVec returns the value at position i of a vector as a 1×1 matrix.
@@ -283,14 +284,14 @@ func (d *Dense[T]) AtVec(i int) Matrix {
 
 // SetVecScalar sets the value v at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) SetVecScalar(i int, v FloatInterface) {
-	d.setVec(i, DTFloat[T](v))
+func (d *Dense[T]) SetVecScalar(i int, v float.Interface) {
+	d.setVec(i, float.ValueOf[T](v))
 }
 
 // ScalarAtVec returns the value at position i of a vector.
 // It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) ScalarAtVec(i int) FloatInterface {
-	return Float(d.atVec(i))
+func (d *Dense[T]) ScalarAtVec(i int) float.Interface {
+	return float.Float(d.atVec(i))
 }
 
 func (d *Dense[T]) setVec(i int, v T) {
@@ -1536,20 +1537,20 @@ func (d *Dense[T]) String() string {
 //
 // Rows and columns MUST not be negative, and the length of data MUST be
 // equal to rows*cols, otherwise the method panics.
-func (d *Dense[T]) NewMatrix(rows, cols int, data FloatSliceInterface) Matrix {
-	return NewDense[T](rows, cols, DTFloatSlice[T](data))
+func (d *Dense[T]) NewMatrix(rows, cols int, data float.SliceInterface) Matrix {
+	return NewDense[T](rows, cols, float.SliceValueOf[T](data))
 }
 
 // NewVec creates a new column vector (len(data)×1), of the same type of
 // the receiver, initialized with a copy of raw data.
-func (d *Dense[T]) NewVec(data FloatSliceInterface) Matrix {
-	return NewVecDense[T](DTFloatSlice[T](data))
+func (d *Dense[T]) NewVec(data float.SliceInterface) Matrix {
+	return NewVecDense[T](float.SliceValueOf[T](data))
 }
 
 // NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 // containing the given value.
-func (d *Dense[T]) NewScalar(v FloatInterface) Matrix {
-	return NewScalar[T](DTFloat[T](v))
+func (d *Dense[T]) NewScalar(v float.Interface) Matrix {
+	return NewScalar[T](float.ValueOf[T](v))
 }
 
 // NewEmptyVec creates a new vector, of the same type of the receiver,
@@ -1566,23 +1567,23 @@ func (d *Dense[T]) NewEmptyMatrix(rows, cols int) Matrix {
 
 // NewInitMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitMatrix(rows, cols int, v FloatInterface) Matrix {
-	return NewInitDense[T](rows, cols, DTFloat[T](v))
+func (d *Dense[T]) NewInitMatrix(rows, cols int, v float.Interface) Matrix {
+	return NewInitDense[T](rows, cols, float.ValueOf[T](v))
 }
 
 // NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with the values returned from the
 // callback function.
-func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) FloatInterface) Matrix {
+func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Interface) Matrix {
 	return NewInitFuncDense[T](rows, cols, func(r, c int) T {
-		return DTFloat[T](fn(r, c))
+		return float.ValueOf[T](fn(r, c))
 	})
 }
 
 // NewInitVec creates a new column vector (size×1), of the same type of
 // the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitVec(size int, v FloatInterface) Matrix {
-	return NewInitVecDense[T](size, DTFloat[T](v))
+func (d *Dense[T]) NewInitVec(size int, v float.Interface) Matrix {
+	return NewInitVecDense[T](size, float.ValueOf[T](v))
 }
 
 // NewIdentityMatrix creates a new square identity matrix (size×size), of

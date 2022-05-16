@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -35,7 +36,7 @@ func init() {
 }
 
 // New returns a new Model.
-func New[T mat.DType](config Config) *Model {
+func New[T float.DType](config Config) *Model {
 	return &Model{
 		Config: config,
 		W:      nn.NewParam(mat.NewEmptyDense[T](config.OutputChannels, config.InputChannels)),
