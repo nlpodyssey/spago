@@ -47,7 +47,7 @@ func TestIntrospect(t *testing.T) {
 	assert.Equal(t, "", m.Other.Qux.Name())
 	assert.Equal(t, Undefined, m.Other.Qux.Type())
 
-	m2 := Introspect(m)
+	m2 := Init(m)
 	assert.Same(t, m, m2)
 
 	assert.Equal(t, "Foo", m.Foo.Name())

@@ -28,8 +28,8 @@ func ClearSupport(m Model) {
 	})
 }
 
-// Introspect set the name property of each model's param (including sub-models).
-func Introspect[M Model](m M) M {
+// Init set the name property of each model's param (including sub-models).
+func Init[M Model](m M) M {
 	ForEachParam(Model(m), func(param Param, name string, pType ParamsType) {
 		if p, ok := param.(ParamNameSetter); ok && param.Name() == "" {
 			p.SetName(name)
