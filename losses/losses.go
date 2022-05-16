@@ -7,7 +7,6 @@ package losses
 import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // MAE measures the mean absolute error (a.k.a. L1 Loss) between each element in the input x and target y.
@@ -21,7 +20,7 @@ func MAE(x ag.Node, y ag.Node, reduceMean bool) ag.Node {
 
 // MSE measures the mean squared error (squared L2 norm) between each element in the input x and target y.
 func MSE(x ag.Node, y ag.Node, reduceMean bool) ag.Node {
-	loss := ag.ProdScalar(ag.Square(ag.Sub(x, y)), ag.Var(x.Value().NewScalar(float.Interface(0.5))))
+	loss := ag.ProdScalar(ag.Square(ag.Sub(x, y)), ag.Var(x.Value().NewScalar(0.5)))
 	if reduceMean {
 		return ag.ReduceMean(loss)
 	}
@@ -60,7 +59,7 @@ func WeightedCrossEntropy(weights mat.Matrix) func(x ag.Node, c int) ag.Node {
 func FocalLoss(x ag.Node, c int, gamma float64) ag.Node {
 	ce := CrossEntropy(x, c)
 	p := ag.Exp(ag.Neg(ce))
-	sub := ag.ReverseSub(p, ag.Var(x.Value().NewScalar(float.Interface(1.0))))
+	sub := ag.ReverseSub(p, ag.Var(x.Value().NewScalar(1)))
 	a := ag.Pow(sub, gamma)
 	return ag.Prod(a, ce)
 }
@@ -76,7 +75,7 @@ func WeightedFocalLoss(weights mat.Matrix) func(x ag.Node, c int, gamma float64)
 	return func(x ag.Node, c int, gamma float64) ag.Node {
 		ce := CrossEntropy(x, c)
 		p := ag.Exp(ag.Neg(ce))
-		sub := ag.ReverseSub(p, ag.Var(x.Value().NewScalar(float.Interface(1.0))))
+		sub := ag.ReverseSub(p, ag.Var(x.Value().NewScalar(1.0)))
 		b := ag.Pow(sub, gamma)
 		fl := ag.Prod(b, ce)
 		return ag.ProdScalar(fl, ag.Var(weights.AtVec(c)))
@@ -91,23 +90,23 @@ func Perplexity(x ag.Node, c int) ag.Node {
 // ZeroOneQuantization is a loss function that is minimized when each component
 // of x satisfies x(i) ≡ [x]i ∈ {0, 1}.
 func ZeroOneQuantization(x ag.Node) ag.Node {
-	return ag.ReduceSum(ag.Prod(ag.Square(x), ag.Square(ag.ReverseSub(x, ag.Var(x.Value().NewScalar(float.Interface(1.0)))))))
+	return ag.ReduceSum(ag.Prod(ag.Square(x), ag.Square(ag.ReverseSub(x, ag.Var(x.Value().NewScalar(1.0))))))
 }
 
 // Norm2Quantization is a loss function that is minimized when norm2(x) = 1.
 func Norm2Quantization(x ag.Node) ag.Node {
-	return ag.Square(ag.SubScalar(ag.ReduceSum(ag.Square(x)), ag.Var(x.Value().NewScalar(float.Interface(1.0)))))
+	return ag.Square(ag.SubScalar(ag.ReduceSum(ag.Square(x)), ag.Var(x.Value().NewScalar(1.0))))
 }
 
 // OneHotQuantization is a loss function that pushes towards the x vector to be 1-hot.
 // q is the quantization regularizer weight (suggested  0.00001).
-func OneHotQuantization[T float.DType](x ag.Node, q T) ag.Node {
-	return ag.ProdScalar(ag.Add(ZeroOneQuantization(x), Norm2Quantization(x)), ag.Var(x.Value().NewScalar(float.Interface(q))))
+func OneHotQuantization(x ag.Node, q float64) ag.Node {
+	return ag.ProdScalar(ag.Add(ZeroOneQuantization(x), Norm2Quantization(x)), ag.Var(x.Value().NewScalar(q)))
 }
 
 // Distance is a loss function that calculates the distance between target and x.
-func Distance[T float.DType](x ag.Node, target T) ag.Node {
-	return ag.Abs(ag.Sub(ag.Var(x.Value().NewScalar(float.Interface(target))), x))
+func Distance(x ag.Node, target float64) ag.Node {
+	return ag.Abs(ag.Sub(ag.Var(x.Value().NewScalar(target)), x))
 }
 
 // MSESeq calculates the MSE loss on the given sequence.
@@ -117,7 +116,7 @@ func MSESeq(predicted []ag.Node, target []ag.Node, reduceMean bool) ag.Node {
 		loss = ag.Add(loss, MSE(predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float.Interface(float64(len(predicted))))))
+		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float64(len(predicted)))))
 	}
 	return loss
 }
@@ -129,7 +128,7 @@ func MAESeq(predicted []ag.Node, target []ag.Node, reduceMean bool) ag.Node {
 		loss = ag.Add(loss, MAE(predicted[i], target[i], false))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float.Interface(float64(len(predicted))))))
+		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float64(len(predicted)))))
 	}
 	return loss
 }
@@ -141,7 +140,7 @@ func CrossEntropySeq(predicted []ag.Node, target []int, reduceMean bool) ag.Node
 		loss = ag.Add(loss, CrossEntropy(predicted[i], target[i]))
 	}
 	if reduceMean {
-		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float.Interface(float64(len(predicted))))))
+		return ag.DivScalar(loss, ag.Var(loss.Value().NewScalar(float64(len(predicted)))))
 	}
 	return loss
 }

@@ -19,7 +19,7 @@ import (
 func ScaledDotProductAttention(q []ag.Node, k, v ag.Node, scaleFactor float64, useCausalMask bool) ([]ag.Node, []ag.Node) {
 	attention := make([]ag.Node, len(q))
 	weights := make([]ag.Node, len(q))
-	factor := ag.Var(k.Value().NewScalar(float.Interface(scaleFactor)))
+	factor := ag.Var(k.Value().NewScalar(scaleFactor))
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
@@ -79,7 +79,7 @@ func LinearAttention(q, k, v []ag.Node, mappingFunction MappingFunc, eps float64
 	attKeysT := ag.T(ag.Stack(attKeys...))
 	kv := ag.Mul(attKeysT, ag.Stack(v...))
 
-	epsn := ag.Var(q[0].Value().NewScalar(float.Interface(eps)))
+	epsn := ag.Var(q[0].Value().NewScalar(eps))
 	for i, qi := range q {
 		attQuery := mappingFunction(qi)
 		n := ag.T(ag.Mul(ag.T(attQuery), kv))

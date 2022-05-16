@@ -1549,8 +1549,8 @@ func (d *Dense[T]) NewVec(data float.Slice) Matrix {
 
 // NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 // containing the given value.
-func (d *Dense[T]) NewScalar(v float.Float) Matrix {
-	return NewScalar[T](float.ValueOf[T](v))
+func (d *Dense[T]) NewScalar(v float64) Matrix {
+	return NewScalar(T(v))
 }
 
 // NewEmptyVec creates a new vector, of the same type of the receiver,
@@ -1567,23 +1567,23 @@ func (d *Dense[T]) NewEmptyMatrix(rows, cols int) Matrix {
 
 // NewInitMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitMatrix(rows, cols int, v float.Float) Matrix {
-	return NewInitDense[T](rows, cols, float.ValueOf[T](v))
+func (d *Dense[T]) NewInitMatrix(rows, cols int, v float64) Matrix {
+	return NewInitDense(rows, cols, T(v))
 }
 
 // NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with the values returned from the
 // callback function.
-func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Float) Matrix {
-	return NewInitFuncDense[T](rows, cols, func(r, c int) T {
-		return float.ValueOf[T](fn(r, c))
+func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64) Matrix {
+	return NewInitFuncDense(rows, cols, func(r, c int) T {
+		return T(fn(r, c))
 	})
 }
 
 // NewInitVec creates a new column vector (size×1), of the same type of
 // the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitVec(size int, v float.Float) Matrix {
-	return NewInitVecDense[T](size, float.ValueOf[T](v))
+func (d *Dense[T]) NewInitVec(size int, v float64) Matrix {
+	return NewInitVecDense(size, T(v))
 }
 
 // NewIdentityMatrix creates a new square identity matrix (size×size), of

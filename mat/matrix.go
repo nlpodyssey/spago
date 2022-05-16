@@ -240,7 +240,7 @@ type Matrix interface {
 	NewVec(data float.Slice) Matrix
 	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 	// containing the given value.
-	NewScalar(v float.Float) Matrix
+	NewScalar(v float64) Matrix
 	// NewEmptyVec creates a new vector, of the same type of the receiver,
 	// with dimensions size×1, initialized with zeros.
 	NewEmptyVec(size int) Matrix
@@ -249,14 +249,14 @@ type Matrix interface {
 	NewEmptyMatrix(rows, cols int) Matrix
 	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with a constant value.
-	NewInitMatrix(rows, cols int, v float.Float) Matrix
+	NewInitMatrix(rows, cols int, v float64) Matrix
 	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with the values returned from the
 	// callback function.
-	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float.Float) Matrix
+	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64) Matrix
 	// NewInitVec creates a new column vector (size×1), of the same type of
 	// the receiver, initialized with a constant value.
-	NewInitVec(size int, v float.Float) Matrix
+	NewInitVec(size int, v float64) Matrix
 	// NewIdentityMatrix creates a new square identity matrix (size×size), of
 	// the same type of the receiver, that is, with ones on the diagonal
 	// and zeros elsewhere.

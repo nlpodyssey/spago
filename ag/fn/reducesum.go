@@ -39,7 +39,7 @@ func (r *ReduceSum[O]) Backward(gy mat.Matrix) {
 	}
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
-		gx := x.NewInitVec(x.Size(), gy.Scalar())
+		gx := x.NewInitVec(x.Size(), gy.Scalar().F64())
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}

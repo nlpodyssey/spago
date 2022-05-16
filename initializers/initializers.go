@@ -55,7 +55,7 @@ func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
 
 // Constant fills the input matrix with the value n.
 func Constant(m mat.Matrix, n float64) {
-	c := m.NewScalar(float.Interface(n))
+	c := m.NewScalar(n)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(i, j, c)
@@ -111,20 +111,20 @@ func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 	upper := 1.0 - lower
 
 	sqrt3 := math.Sqrt(3)
-	a := m.NewScalar(float.Interface(sqrt3))
-	negA := m.NewScalar(float.Interface(-sqrt3))
-	zero := m.NewScalar(float.Interface(0.0))
+	a := float.Interface(sqrt3)
+	negA := float.Interface(-sqrt3)
+	zero := float.Interface(0.0)
 
 	rows, cols := m.Dims()
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			r := dist.Next()
 			if r < lower {
-				m.Set(i, j, negA)
+				m.SetScalar(i, j, negA)
 			} else if r > upper {
-				m.Set(i, j, a)
+				m.SetScalar(i, j, a)
 			} else {
-				m.Set(i, j, zero)
+				m.SetScalar(i, j, zero)
 			}
 		}
 	}

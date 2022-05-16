@@ -6,7 +6,6 @@ package fn
 
 import (
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // Softmax is a single-input softmax function.
@@ -43,14 +42,13 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) {
 	if r.x.RequiresGrad() {
 		y := r.y
 		n := y.Size()
-		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float.Float {
-			// FIXME: avoid casting to specific type
+		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float64 {
 			vRow := y.ScalarAtVec(row).F64()
 			if row == col {
-				return float.Interface(vRow * (1 - vRow))
+				return vRow * (1 - vRow)
 			}
 			vCol := y.ScalarAtVec(col).F64()
-			return float.Interface(-(vRow * vCol))
+			return -(vRow * vCol)
 		})
 		defer mat.ReleaseMatrix(jb)
 		gx := jb.Mul(gy)

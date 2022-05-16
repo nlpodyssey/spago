@@ -64,7 +64,7 @@ func (m *Model) ForwardT(xs ...ag.Node) []ag.Node {
 }
 
 func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
-	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(float.Interface(epsilon)))))
+	devVector = ag.Div(m.W, ag.AddScalar(devVector, ag.Var(m.W.Value().NewScalar(epsilon))))
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add(ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
@@ -89,7 +89,7 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 		sumVector = ag.Add(sumVector, xs[i])
 	}
 
-	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(float.Interface(float64(len(xs))+epsilon))))
+	return ag.DivScalar(sumVector, ag.Var(xs[0].Value().NewScalar(float64(len(xs))+epsilon)))
 }
 
 // StdDev computes the standard deviation of the input.
@@ -99,6 +99,6 @@ func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
 		diffVector := ag.Square(ag.Sub(meanVector, x))
 		devVector = ag.Add(devVector, diffVector)
 	}
-	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(float.Interface(float64(len(xs))+epsilon)))))
+	devVector = ag.Sqrt(ag.DivScalar(devVector, ag.Var(xs[0].Value().NewScalar(float64(len(xs))+epsilon))))
 	return devVector
 }
