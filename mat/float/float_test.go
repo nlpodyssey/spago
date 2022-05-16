@@ -42,3 +42,4 @@ type fakeFloat struct {
 
 func (f fakeFloat) F32() float32 { return f.f32 }
 func (f fakeFloat) F64() float64 { return f.f64 }
+func (f fakeFloat) BitSize() int { return -1 }

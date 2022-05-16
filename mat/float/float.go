@@ -11,8 +11,12 @@ import (
 // Float is implemented by any value that can be resolved
 // to the types constrained by DType.
 type Float interface {
+	// F32 returns the value as float32, converting it if necessary.
 	F32() float32
+	// F64 returns the value as float64, converting it if necessary.
 	F64() float64
+	// BitSize returns the size in bits of the internal float value type.
+	BitSize() int
 }
 
 // Interface converts a concrete DType value to an internal representation
@@ -46,6 +50,18 @@ func (f float[_]) F32() float32 {
 // F64 returns the value as float64, converting it if necessary.
 func (f float[_]) F64() float64 {
 	return float64(f.v)
+}
+
+// BitSize returns the size in bits of the internal float value type.
+func (f float[T]) BitSize() int {
+	switch any(T(0)).(type) {
+	case float32:
+		return 32
+	case float64:
+		return 64
+	default:
+		panic(fmt.Errorf("mat: unexpected value type %T", T(0)))
+	}
 }
 
 // String returns the value as a string.

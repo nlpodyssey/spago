@@ -41,12 +41,12 @@ func SliceValueOf[T DType](v Slice) []T {
 // floatSlice is the built-in implementation of a Slice.
 type floatSlice[T DType] []T
 
-// Float32 returns the value as []float32, converting it if necessary.
+// F32 returns the value as []float32, converting it if necessary.
 func (fs floatSlice[T]) F32() []float32 {
 	return convertFloatSlice[T, float32](fs)
 }
 
-// Float64 returns the value as []float64, converting it if necessary.
+// F64 returns the value as []float64, converting it if necessary.
 func (fs floatSlice[T]) F64() []float64 {
 	return convertFloatSlice[T, float64](fs)
 }
