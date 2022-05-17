@@ -36,6 +36,10 @@ func ReleaseGraph(nodes ...Node) {
 		}
 		visited[op] = struct{}{}
 
+		if op.cond.L == nil {
+			continue
+		}
+
 		for _, operand := range op.function.Operands() {
 			if oo, ok := operand.(*Operator); ok {
 				toVisit = append(toVisit, oo)

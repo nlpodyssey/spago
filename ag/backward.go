@@ -42,6 +42,9 @@ const (
 	ongoing
 )
 
+// ReleaseGraphFunc is returned by the Backward function.
+type ReleaseGraphFunc func()
+
 // Backward starts the back-propagation from the node.
 //
 // It follows these mutually exclusive rules:
@@ -54,15 +57,28 @@ const (
 // Unless that's what you want, make sure all nodes have zero gradients.
 //
 // It panics if gradients are passed but the node already has them assigned.
-func Backward(x Node, grad ...mat.Matrix) {
+//
+// It returns ReleaseGraph as ReleaseGraphFunc.
+func Backward(x Node, grad ...mat.Matrix) ReleaseGraphFunc {
 	BackwardT(nil, -1, x, grad...)
+
+	return func() {
+		ReleaseGraph(x)
+	}
 }
 
 // BackwardMany performs the backpropagation from a list of nodes.
+//
 // This is particularly useful when there are previously assigned
 // gradients on root nodes or when there are multiple distinct losses.
-func BackwardMany(xs ...Node) {
+//
+// It returns ReleaseGraph as ReleaseGraphFunc.
+func BackwardMany(xs ...Node) ReleaseGraphFunc {
 	BackwardManyT(nil, -1, xs...)
+
+	return func() {
+		ReleaseGraph(xs...)
+	}
 }
 
 // BackwardT starts a truncated backpropagation from the node.
