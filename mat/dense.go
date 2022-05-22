@@ -687,7 +687,11 @@ func (d *Dense[T]) ProdInPlace(other Matrix) Matrix {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	dData := d.data
+	if len(dData) == 0 {
+		return d
+	}
 	oData := Data[T](other)
+	_ = dData[len(oData)-1]
 	for i, val := range oData {
 		dData[i] *= val
 	}
@@ -761,8 +765,14 @@ func (d *Dense[T]) DivInPlace(other Matrix) Matrix {
 	if !(SameDims(d, other) || VectorsOfSameSize(d, other)) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	for i, val := range Data[T](other) {
-		d.data[i] *= 1.0 / val
+	dData := d.data
+	if len(dData) == 0 {
+		return d
+	}
+	oData := Data[T](other)
+	_ = dData[len(oData)-1]
+	for i, val := range oData {
+		dData[i] *= 1.0 / val
 	}
 	return d
 }
@@ -925,8 +935,13 @@ func (d *Dense[T]) Maximum(other Matrix) Matrix {
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
+	if len(dData) == 0 {
+		return out
+	}
 	otherData := Data[T](other)
 	outData := out.data
+	_ = dData[len(outData)-1]
+	_ = otherData[len(outData)-1]
 	for i := range outData {
 		dV := dData[i]
 		otherV := otherData[i]
@@ -946,8 +961,13 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 	}
 	out := densePool[T]().Get(d.rows, d.cols)
 	dData := d.data
+	if len(dData) == 0 {
+		return out
+	}
 	otherData := Data[T](other)
 	outData := out.data
+	_ = dData[len(outData)-1]
+	_ = otherData[len(outData)-1]
 	for i := range outData {
 		dV := dData[i]
 		otherV := otherData[i]
@@ -963,8 +983,13 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (d *Dense[T]) Abs() Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
+	dData := d.data
+	if len(dData) == 0 {
+		return out
+	}
 	outData := out.data
-	for i, val := range d.data {
+	_ = outData[len(dData)-1]
+	for i, val := range dData {
 		outData[i] = Abs(val)
 	}
 	return out
@@ -974,8 +999,13 @@ func (d *Dense[T]) Abs() Matrix {
 // to all elements of the matrix.
 func (d *Dense[T]) Pow(power float64) Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
+	dData := d.data
+	if len(dData) == 0 {
+		return out
+	}
 	outData := out.data
-	for i, val := range d.data {
+	_ = outData[len(dData)-1]
+	for i, val := range dData {
 		outData[i] = T(math.Pow(float64(val), power))
 	}
 	return out

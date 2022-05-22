@@ -78,8 +78,9 @@ func (d *Dense[T]) unmarshalBinaryFloat32(data []byte) error {
 	d.data = make([]T, size)
 
 	data = data[17:]
-	for i := range d.data {
-		d.data[i] = T(math.Float32frombits(binary.LittleEndian.Uint32(data)))
+	dData := d.data
+	for i := range dData {
+		dData[i] = T(math.Float32frombits(binary.LittleEndian.Uint32(data)))
 		data = data[4:]
 	}
 
@@ -119,8 +120,9 @@ func (d *Dense[T]) unmarshalBinaryFloat64(data []byte) error {
 	d.data = make([]T, size)
 
 	data = data[17:]
-	for i := range d.data {
-		d.data[i] = T(math.Float64frombits(binary.LittleEndian.Uint64(data)))
+	dData := d.data
+	for i := range dData {
+		dData[i] = T(math.Float64frombits(binary.LittleEndian.Uint64(data)))
 		data = data[8:]
 	}
 
