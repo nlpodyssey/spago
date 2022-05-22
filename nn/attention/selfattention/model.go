@@ -6,6 +6,7 @@ package selfattention
 
 import (
 	"encoding/gob"
+	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
@@ -65,20 +66,38 @@ func (m *Model) Init(rng *rand.LockedRand) {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(cache Cache, q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache) {
-	pq := m.Query.Forward(q...)
-
-	fwKeys := m.Key.Forward(k...)
-	fwValues := m.Value.Forward(v...)
-
+	var pq []ag.Node
 	var pk, pv ag.Node
-	if cache[0] == nil {
-		pk = ag.Stack(fwKeys...)
-		pv = ag.Stack(fwValues...)
-	} else {
-		pk = ag.AppendRows(cache[0], fwKeys...)
-		pv = ag.AppendRows(cache[1], fwValues...)
-	}
 
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		pq = m.Query.Forward(q...)
+		wg.Done()
+	}()
+
+	go func() {
+		fwKeys := m.Key.Forward(k...)
+		if cache[0] == nil {
+			pk = ag.Stack(fwKeys...)
+		} else {
+			pk = ag.AppendRows(cache[0], fwKeys...)
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		fwValues := m.Value.Forward(v...)
+		if cache[0] == nil {
+			pv = ag.Stack(fwValues...)
+		} else {
+			pv = ag.AppendRows(cache[1], fwValues...)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
 	return result, weights, Cache{pk, pv}
