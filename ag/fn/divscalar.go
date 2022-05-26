@@ -36,8 +36,8 @@ func (r *DivScalar[O]) Forward() mat.Matrix {
 
 // Backward computes the backward pass.
 func (r *DivScalar[O]) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(r.x1.Value(), gy) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
 		r.x1.AccGrad(gy.ProdScalar(1.0 / r.x2.Value().Scalar().F64()))

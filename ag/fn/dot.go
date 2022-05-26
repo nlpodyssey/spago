@@ -32,8 +32,8 @@ func (r *Dot[O]) Operands() []O {
 func (r *Dot[O]) Forward() mat.Matrix {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, x2v) || mat.VectorsOfSameSize(x1v, x2v)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(x1v, x2v) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	if mat.IsVector(r.x1.Value()) && mat.IsVector(r.x2.Value()) {
 		return r.x1.Value().DotUnitary(r.x2.Value())

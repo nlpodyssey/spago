@@ -70,13 +70,12 @@ func (m *MixerBlock) tokenMix(xs []ag.Node) []ag.Node {
 	normalized := m.TokenLayerNorm.Forward(xs...)
 	cols := ag.ColViews(ag.Stack(normalized...))
 	ys := m.TokenMixerFF.Forward(cols...)
-	return ag.RowViews(ag.T(ag.Stack(ys...)))
+	return ag.Map(ag.T, ag.RowViews(ag.T(ag.Stack(ys...))))
 }
 
 func (m *MixerBlock) channelMix(xs []ag.Node) []ag.Node {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
-	transposed := ag.Map(ag.T, normalized)
-	return m.ChannelMixerFF.Forward(transposed...)
+	return m.ChannelMixerFF.Forward(normalized...)
 }
 
 func (m *MixerBlock) residual(xs []ag.Node, residual []ag.Node) []ag.Node {

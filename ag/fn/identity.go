@@ -33,8 +33,8 @@ func (r *Identity[O]) Forward() mat.Matrix {
 
 // Backward computes the backward pass.
 func (r *Identity[O]) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(r.x.Value(), gy) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	r.x.AccGrad(gy)
 }

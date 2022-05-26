@@ -36,8 +36,8 @@ func (r *SubScalar[O]) Forward() mat.Matrix {
 
 // Backward computes the backward pass.
 func (r *SubScalar[O]) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x1.Value(), gy) || mat.VectorsOfSameSize(r.x1.Value(), gy)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(r.x1.Value(), gy) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
 		r.x1.AccGrad(gy) // equals to gy.ProdScalar(1.0)

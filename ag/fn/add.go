@@ -43,15 +43,15 @@ func (r *Add[O]) Forward() mat.Matrix {
 func (r *Add[O]) Backward(gy mat.Matrix) {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
-		if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) {
-			panic("fn: matrices with not compatible size")
+		if !mat.SameDims(x1v, gy) {
+			panic("fn: matrices have incompatible dimensions")
 		}
 		r.x1.AccGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
 		x2v := r.x2.Value()
-		if !(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
-			panic("fn: matrices with not compatible size")
+		if !mat.SameDims(x2v, gy) {
+			panic("fn: matrices have incompatible dimensions")
 		}
 		r.x2.AccGrad(gy)
 	}

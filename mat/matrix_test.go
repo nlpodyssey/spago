@@ -92,36 +92,6 @@ func testSameDims[T float.DType](t *testing.T) {
 	})
 }
 
-func TestVectorsOfSameSize(t *testing.T) {
-	t.Run("float32", testVectorsOfSameSize[float32])
-	t.Run("float64", testVectorsOfSameSize[float64])
-}
-
-func testVectorsOfSameSize[T float.DType](t *testing.T) {
-	testCases := []struct {
-		a Matrix
-		b Matrix
-		y bool
-	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), false},
-		{NewEmptyDense[T](0, 0), NewEmptyVecDense[T](0), false},
-		{NewEmptyVecDense[T](0), NewEmptyDense[T](0, 0), false},
-		{NewEmptyDense[T](2, 3), NewEmptyDense[T](2, 3), false},
-		{NewEmptyDense[T](1, 2), NewEmptyDense[T](1, 3), false},
-		{NewEmptyDense[T](1, 3), NewEmptyDense[T](1, 2), false},
-		{NewEmptyDense[T](1, 2), NewEmptyDense[T](1, 2), true},
-		{NewEmptyDense[T](1, 2), NewEmptyDense[T](2, 1), true},
-		{NewEmptyDense[T](2, 1), NewEmptyDense[T](1, 2), true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d and %d x %d", tc.a.Rows(), tc.a.Columns(), tc.b.Rows(), tc.b.Columns()), func(t *testing.T) {
-			y := VectorsOfSameSize(tc.a, tc.b)
-			assert.Equal(t, tc.y, y)
-		})
-	}
-}
-
 func TestConcatV(t *testing.T) {
 	t.Run("float32", testConcatV[float32])
 	t.Run("float64", testConcatV[float64])

@@ -37,8 +37,8 @@ func (r *CELU[O]) Forward() mat.Matrix {
 
 // Backward computes the backward pass.
 func (r *CELU[O]) Backward(gy mat.Matrix) {
-	if !(mat.SameDims(r.x.Value(), gy) || mat.VectorsOfSameSize(r.x.Value(), gy)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(r.x.Value(), gy) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(celuDeriv, r.alpha.Value().Scalar().F64())

@@ -38,9 +38,8 @@ func (r *Prod[O]) Forward() mat.Matrix {
 func (r *Prod[O]) Backward(gy mat.Matrix) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if !(mat.SameDims(x1v, gy) || mat.VectorsOfSameSize(x1v, gy)) &&
-		!(mat.SameDims(x2v, gy) || mat.VectorsOfSameSize(x2v, gy)) {
-		panic("fn: matrices with not compatible size")
+	if !mat.SameDims(x1v, gy) || !mat.SameDims(x2v, gy) {
+		panic("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().Prod(gy)

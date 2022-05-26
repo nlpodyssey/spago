@@ -1390,11 +1390,6 @@ func addTestCases[T float.DType]() []addTestCase[T] {
 			[]T{12, 23},
 		},
 		{
-			NewDense[T](1, 2, []T{2, 3}),   // row vec
-			NewDense[T](2, 1, []T{10, 20}), // col vec
-			[]T{12, 23},
-		},
-		{
 			NewDense[T](2, 3, []T{
 				2, 3, 4,
 				5, 6, 7,
@@ -1532,11 +1527,6 @@ func subTestCases[T float.DType]() []subTestCase[T] {
 			[]T{8, 17},
 		},
 		{
-			NewDense[T](1, 2, []T{10, 20}), // row vec
-			NewDense[T](2, 1, []T{2, 3}),   // col vec
-			[]T{8, 17},
-		},
-		{
 			NewDense[T](2, 3, []T{
 				10, 20, 30,
 				40, 50, 60,
@@ -1671,11 +1661,6 @@ func prodTestCases[T float.DType]() []prodTestCase[T] {
 		{
 			NewDense[T](1, 2, []T{2, 3}),
 			NewDense[T](1, 2, []T{10, 20}),
-			[]T{20, 60},
-		},
-		{
-			NewDense[T](1, 2, []T{2, 3}),   // row vec
-			NewDense[T](2, 1, []T{10, 20}), // col vec
 			[]T{20, 60},
 		},
 		{
@@ -1843,11 +1828,6 @@ func divTestCases[T float.DType]() []divTestCase[T] {
 		{
 			NewDense[T](1, 2, []T{10, 20}),
 			NewDense[T](1, 2, []T{2, 5}),
-			[]T{5, 4},
-		},
-		{
-			NewDense[T](1, 2, []T{10, 20}), // row vec
-			NewDense[T](2, 1, []T{2, 5}),   // col vec
 			[]T{5, 4},
 		},
 		{
@@ -2114,18 +2094,11 @@ func testDenseDotUnitary[T float.DType](t *testing.T) {
 		v T
 	}{
 		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), 0},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](1, 0), 0},
 		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), 0},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](0, 1), 0},
 		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), 20},
 		{
 			NewDense[T](1, 2, []T{2, 3}),
 			NewDense[T](1, 2, []T{10, 20}),
-			80,
-		},
-		{
-			NewDense[T](1, 2, []T{2, 3}),   // row vec
-			NewDense[T](2, 1, []T{10, 20}), // col vec
 			80,
 		},
 	}

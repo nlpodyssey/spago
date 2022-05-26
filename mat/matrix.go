@@ -306,12 +306,6 @@ func SameDims(a, b Matrix) bool {
 	return a.Rows() == b.Rows() && a.Columns() == b.Columns()
 }
 
-// VectorsOfSameSize reports whether both matrices are vectors (indifferently
-// row or column vectors) and have the same size.
-func VectorsOfSameSize(a, b Matrix) bool {
-	return a.Size() == b.Size() && IsVector(a) && IsVector(b)
-}
-
 // ConcatV concatenates two or more vectors "vertically", creating a new Dense
 // column vector. It accepts row or column vectors indifferently, virtually
 // treating all of them as column vectors.
