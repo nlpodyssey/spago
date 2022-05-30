@@ -33,49 +33,65 @@ func Gain(f activation.Name) float64 {
 }
 
 // Uniform fills the input matrix m with a uniform distribution where a is the lower bound and b is the upper bound.
-func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) {
+//
+// The matrix is returned for convenience.
+func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) mat.Matrix {
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
+	return m
 }
 
 // Normal fills the input matrix with random samples from a normal (Gaussian)
 // distribution.
-func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) {
+//
+// The matrix is returned for convenience.
+func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) mat.Matrix {
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
+	return m
 }
 
 // Constant fills the input matrix with the value n.
-func Constant(m mat.Matrix, n float64) {
+//
+// The matrix is returned for convenience.
+func Constant(m mat.Matrix, n float64) mat.Matrix {
 	c := m.NewScalar(n)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Columns(); j++ {
 			m.Set(i, j, c)
 		}
 	}
+	return m
 }
 
 // Ones fills the input matrix with the scalar value `1`.
-func Ones(m mat.Matrix) {
-	Constant(m, 1)
+//
+// The matrix is returned for convenience.
+func Ones(m mat.Matrix) mat.Matrix {
+	return Constant(m, 1)
 }
 
 // Zeros fills the input matrix with the scalar value `0`.
-func Zeros(m mat.Matrix) {
+//
+// The matrix is returned for convenience.
+func Zeros(m mat.Matrix) mat.Matrix {
 	m.Zeros()
+	return m
 }
 
 // XavierUniform fills the input `m` with values according to the method described in `Understanding the difficulty of training deep
 // feedforward  neural networks` - Glorot, X. & Bengio, Y. (2010), using a uniform distribution.
-func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
+//
+// The matrix is returned for convenience.
+func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) mat.Matrix {
 	rows, cols := m.Dims()
 	a := gain * math.Sqrt(6.0/float64(rows+cols))
 	dist := uniform.New(-a, a, generator)
@@ -84,13 +100,16 @@ func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
+	return m
 }
 
 // XavierNormal fills the input matrix with values according to the method
 // described in "Understanding the difficulty of training deep feedforward
 // neural networks" - Glorot, X. & Bengio, Y. (2010), using a normal
 // distribution.
-func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
+//
+// The matrix is returned for convenience.
+func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) mat.Matrix {
 	rows, cols := m.Dims()
 	std := gain * math.Sqrt(2.0/float64(rows+cols))
 	dist := normal.New(std, 0, generator)
@@ -99,13 +118,16 @@ func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) {
 			m.SetScalar(i, j, float.Interface(dist.Next()))
 		}
 	}
+	return m
 }
 
 // Achlioptas fills the input matrix with values according to the mthod
 // described on "Database-friendly random projections: Johnson-Lindenstrauss
 // with binary coins", by Dimitris Achlioptas 2001
 // (https://core.ac.uk/download/pdf/82724427.pdf)
-func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
+//
+// The matrix is returned for convenience.
+func Achlioptas(m mat.Matrix, generator *rand.LockedRand) mat.Matrix {
 	dist := uniform.New(0.0, 1.0, generator)
 	lower := 1.0 / 6.0
 	upper := 1.0 - lower
@@ -128,4 +150,6 @@ func Achlioptas(m mat.Matrix, generator *rand.LockedRand) {
 			}
 		}
 	}
+
+	return m
 }
