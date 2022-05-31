@@ -79,12 +79,15 @@ func Dot(x1, x2 Node) Node {
 }
 
 // Dropout returns a new operator node as a result of the fn.Dropout function.
-// It does not apply the dropout during inference regardless the probability.
-func Dropout(x Node, p float64) Node {
-	if p == 0.0 {
-		return x
+// If the dropout probability is zero, the operator will not be created,
+// so the input itself is returned directly.
+func Dropout(p float64) func(x Node) Node {
+	return func(x Node) Node {
+		if p == 0.0 {
+			return x
+		}
+		return NewOperator(fn.NewDropout(x, p, globalGenerator))
 	}
-	return NewOperator(fn.NewDropout(x, p, globalGenerator))
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
