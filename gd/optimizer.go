@@ -19,40 +19,32 @@ type Optimizer struct {
 	gradClipper clipper.GradClipper
 }
 
-// Option allows to configure a new Optimizer with your specific needs.
-type Option func(*Optimizer)
-
-// WithClipGradByValue is an option to clip the gradients during the training between
-// -value and +value.
-func WithClipGradByValue(value float64) Option {
-	return func(f *Optimizer) {
-		f.gradClipper = &clipper.ClipValue{Value: value}
-	}
-}
-
-// WithClipGradByNorm is an option to clip the gradients during the training by norm.
-func WithClipGradByNorm(max, normType float64) Option {
-	return func(f *Optimizer) {
-		f.gradClipper = &clipper.ClipNorm{
-			MaxNorm:  max,
-			NormType: normType,
-		}
-	}
-}
-
 // NewOptimizer returns a new Optimizer.
-func NewOptimizer(model nn.Model, method Method, opts ...Option) *Optimizer {
+func NewOptimizer(model nn.Model, method Method) *Optimizer {
 	optimizer := &Optimizer{
 		model:  model,
 		method: method,
 	}
-	for _, opt := range opts {
-		opt(optimizer)
-	}
 	return optimizer
 }
 
-// Optimize optimizes the model parameters, applying the optional gradient clipping.
+// WithClipGradByValue is an option to clip the gradients during the training between
+// -value and +value.
+func (o *Optimizer) WithClipGradByValue(value float64) *Optimizer {
+	o.gradClipper = &clipper.ClipValue{Value: value}
+	return o
+}
+
+// WithClipGradByNorm is an option to clip the gradients during the training by norm.
+func (o *Optimizer) WithClipGradByNorm(max, normType float64) *Optimizer {
+	o.gradClipper = &clipper.ClipNorm{
+		MaxNorm:  max,
+		NormType: normType,
+	}
+	return o
+}
+
+// Do optimizes the model parameters, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
 func (o *Optimizer) Optimize() {
 	params := o.collectParams()
