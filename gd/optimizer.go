@@ -46,7 +46,7 @@ func (o *Optimizer) WithClipGradByNorm(max, normType float64) *Optimizer {
 
 // Do optimizes the model parameters, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
-func (o *Optimizer) Optimize() {
+func (o *Optimizer) Do() {
 	params := o.collectParams()
 	o.clipGradsInPlace(params)
 	o.updateParams(params)
