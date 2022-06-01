@@ -35,5 +35,5 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.P == 0 {
 		return xs
 	}
-	return ag.Map(ag.Dropout(m.P), xs)
+	return ag.Map(ag.DropoutFunc(m.P), xs)
 }

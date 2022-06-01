@@ -78,16 +78,24 @@ func Dot(x1, x2 Node) Node {
 	return NewOperator(fn.NewDot(x1, x2))
 }
 
-// Dropout returns a new operator node as a result of the fn.Dropout function.
-// If the dropout probability is zero, the operator will not be created,
-// so the input itself is returned directly.
-func Dropout(p float64) func(x Node) Node {
+// DropoutFunc returns a function to create a Dropout operator working with the given dropout probability.
+func DropoutFunc(p float64) func(x Node) Node {
 	return func(x Node) Node {
 		if p == 0.0 {
 			return x
 		}
 		return NewOperator(fn.NewDropout(x, p, globalGenerator))
 	}
+}
+
+// Dropout returns a new operator node as a result of the fn.Dropout function.
+// If the dropout probability is zero, the operator will not be created,
+// so the input itself is returned directly.
+func Dropout(x Node, p float64) Node {
+	if p == 0.0 {
+		return x
+	}
+	return NewOperator(fn.NewDropout(x, p, globalGenerator))
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
