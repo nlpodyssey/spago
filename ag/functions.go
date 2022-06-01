@@ -7,6 +7,7 @@ package ag
 import (
 	"fmt"
 	"math"
+	"sync"
 )
 
 // Map returns a transformed version of xs with all its components modified according to the mapping function.
@@ -20,6 +21,22 @@ func Map(mapping func(Node) Node, xs []Node) []Node {
 	return ys
 }
 
+// MapConcurrent is the concurrent version of Map.
+func MapConcurrent(mapping func(Node) Node, xs []Node) []Node {
+	var wg sync.WaitGroup
+	wg.Add(len(xs))
+	ys := make([]Node, len(xs))
+	for i, x := range xs {
+		i, x := i, x
+		go func() {
+			ys[i] = mapping(x)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	return ys
+}
+
 // Map2 takes two arguments and applies a mapping function (that must take two arguments) to the items from the two node-slices in parallel.
 // It panics if one slice is shorter than the other.
 func Map2(mapping func(a Node, b Node) Node, xs1 []Node, xs2 []Node) []Node {
@@ -30,6 +47,25 @@ func Map2(mapping func(a Node, b Node) Node, xs1 []Node, xs2 []Node) []Node {
 	for i, x1 := range xs1 {
 		ys[i] = mapping(x1, xs2[i])
 	}
+	return ys
+}
+
+// Map2Concurrent is the concurrent version of Map2.
+func Map2Concurrent(mapping func(a Node, b Node) Node, xs1 []Node, xs2 []Node) []Node {
+	if len(xs1) != len(xs2) {
+		panic(fmt.Sprintf("ag: arguments must have the same size (%d != %d)", len(xs1), len(xs2)))
+	}
+	var wg sync.WaitGroup
+	wg.Add(len(xs1))
+	ys := make([]Node, len(xs1))
+	for i, x1 := range xs1 {
+		i, x1 := i, x1
+		go func() {
+			ys[i] = mapping(x1, xs2[i])
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 	return ys
 }
 
