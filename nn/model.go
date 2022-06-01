@@ -32,7 +32,5 @@ type StandardModel interface {
 	Model
 
 	// Forward executes the forward step for each input and returns the result.
-	// Recurrent networks, treats the input nodes as a sequence. Differently, feed-forward
-	// networks are stateless so every computation is independent and possibly concurrent.
 	Forward(xs ...ag.Node) []ag.Node
 }
