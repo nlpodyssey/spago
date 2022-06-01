@@ -47,12 +47,11 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		return nil
 	}
 	eps := ag.Var(xs[0].Value().NewScalar(m.Eps))
-	ys := make([]ag.Node, len(xs))
-	for i, x := range xs {
+	fn := func(x ag.Node) ag.Node {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)
 		stdDev := ag.Sqrt(ag.Add(ag.ReduceMean(ag.Square(dev)), eps))
-		ys[i] = ag.Add(ag.Prod(ag.DivScalar(dev, stdDev), m.W), m.B)
+		return ag.Add(ag.Prod(ag.DivScalar(dev, stdDev), m.W), m.B)
 	}
-	return ys
+	return ag.MapConcurrent(fn, xs)
 }
