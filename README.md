@@ -162,6 +162,15 @@ go run main.go | dot -Tpng -o g.png
     <br>
 <p>
 
+## Performance
+
+Goroutines play a very important role in making Spago efficient; in fact Forward operations are executed concurrently (up to `GOMAXPROCS`). As soon as an Operator is created (usually by calling one of the functions in the `ag` package, such as `Add`, `Prod`, etc.), the related Function's Forward procedure is performed on a new goroutine.
+Nevertheless, it's always safe to ask for the Operator's `Value()` without worries: if it's called too soon, the function will lock until the result is computed, and then return the value.
+
+### Known Limits
+
+Sadly, at the moment, Spago is not GPU friendly by design.
+ 
 ## Projects using Spago
 
 Below is a list of projects that use Spago:
@@ -175,10 +184,6 @@ Below is a list of projects that use Spago:
 * [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
 * [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
   news from multiple sources.
-
-## Known Limits
-
-Sadly, at the moment, Spago is not GPU friendly by design.
 
 ## Contributing
 
