@@ -219,6 +219,7 @@ func (m *Linear) Forward(x ag.Node) ag.Node {
 
 func main() {
 	m := NewLinear[float64](1, 1).InitWithRandomWeights(42)
+	
 	optimizer := gd.NewOptimizer(m, sgd.New[float64](sgd.NewConfig(0.001, 0.9, true)))
 
 	normalize := func(x float64) float64 { return x / float64(examples) }
@@ -246,6 +247,7 @@ func main() {
 
 	fmt.Printf("\nW: %.2f | B: %.2f\n\n", m.W.Value().Scalar().F64(), m.B.Value().Scalar().F64())
 }
+```
 
 Output:
 
@@ -253,7 +255,6 @@ Output:
 W: 3.00 | B: 1.00
 ```
 
-```
 ## Performance
 
 Goroutines play a very important role in making Spago efficient; in fact Forward operations are executed concurrently (up to `GOMAXPROCS`). As soon as an Operator is created (usually by calling one of the functions in the `ag` package, such as `Add`, `Prod`, etc.), the related Function's Forward procedure is performed on a new goroutine.
