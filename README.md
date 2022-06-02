@@ -167,11 +167,11 @@ go run main.go | dot -Tpng -o g.png
 
 ### Example 3
 
-As a next step, let's take a look at how to create a linear regression model ($\y = wx + b$) and how it will be trained.
+As a next step, let's take a look at how to create a linear regression model ($y = wx + b$) and how it will be trained.
 
 The following algorithm will try to learn the correct values for weight and bias.  
 
-By the end of our training, our equation will approximate the line of best fit the objective function $\y = 3x + 1$.
+By the end of our training, our equation will approximate the line of best fit the objective function $y = 3x + 1$.
 
 ```go
 package main
