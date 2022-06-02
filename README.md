@@ -82,6 +82,7 @@ Mathematical expressions must be defined using the auto-grad `ag` package in ord
 
 In this sense, we can say the computational graph is at the center of the Spago machine learning framework.
 
+### Example 1
 Here is an example of how to calculate the sum of two variables:
 
 ```go
@@ -119,6 +120,8 @@ c = [7] (float32)
 ga = [0.5]
 gb = [0.5]
 ```
+
+### Example 2
 
 Here is a simple implementation of the perceptron formula:
 
@@ -162,6 +165,95 @@ go run main.go | dot -Tpng -o g.png
     <br>
 <p>
 
+### Example 3
+
+As a next step, let's take a look at how to create a linear regression model ($\y = wx + b$) and how it will be trained.
+
+The following algorithm will try to learn the correct values for weight and bias.  
+
+By the end of our training, our equation will approximate the line of best fit the objective function $\y = 3x + 1$.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/gd"
+	"github.com/nlpodyssey/spago/gd/sgd"
+	"github.com/nlpodyssey/spago/initializers"
+	"github.com/nlpodyssey/spago/losses"
+	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/mat/rand"
+	"github.com/nlpodyssey/spago/nn"
+)
+
+const (
+	epochs   = 100  // number of epochs
+	examples = 1000 // number of examples
+)
+
+type Linear struct {
+	nn.Module
+	W nn.Param `spago:"type:weights"`
+	B nn.Param `spago:"type:biases"`
+}
+
+func NewLinear[T float.DType](in, out int) *Linear {
+	return &Linear{
+		W: nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		B: nn.NewParam(mat.NewEmptyVecDense[T](out)),
+	}
+}
+
+func (m *Linear) InitWithRandomWeights(seed uint64) *Linear {
+	initializers.XavierUniform(m.W.Value(), 1.0, rand.NewLockedRand(seed))
+	return m
+}
+
+func (m *Linear) Forward(x ag.Node) ag.Node {
+	return ag.Add(ag.Mul(m.W, x), m.B)
+}
+
+func main() {
+	m := NewLinear[float64](1, 1).InitWithRandomWeights(42)
+	optimizer := gd.NewOptimizer(m, sgd.New[float64](sgd.NewConfig(0.001, 0.9, true)))
+
+	normalize := func(x float64) float64 { return x / float64(examples) }
+	objective := func(x float64) float64 { return 3*x + 1 }
+	criterion := losses.MSE
+
+	learn := func(input, expected float64) float64 {
+		x, target := ag.Scalar(input), ag.Scalar(expected)
+		y := m.Forward(x)
+		loss := criterion(y, target, true)
+		defer ag.Backward(loss) //  free the memory of the graph before return
+		return loss.Value().Scalar().F64()
+	}
+
+	for epoch := 0; epoch < epochs; epoch++ {
+		for i := 0; i < examples; i++ {
+			x := normalize(float64(i))
+			loss := learn(x, objective(x))
+			if i%100 == 0 {
+				fmt.Println(loss)
+			}
+		}
+		optimizer.Do()
+	}
+
+	fmt.Printf("\nW: %.2f | B: %.2f\n\n", m.W.Value().Scalar().F64(), m.B.Value().Scalar().F64())
+}
+
+Output:
+
+```console
+W: 3.00 | B: 1.00
+```
+
+```
 ## Performance
 
 Goroutines play a very important role in making Spago efficient; in fact Forward operations are executed concurrently (up to `GOMAXPROCS`). As soon as an Operator is created (usually by calling one of the functions in the `ag` package, such as `Add`, `Prod`, etc.), the related Function's Forward procedure is performed on a new goroutine.
