@@ -11,6 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 var (
@@ -36,6 +37,17 @@ type Variable struct {
 func Var(value mat.Matrix) *Variable {
 	return &Variable{
 		value:        value,
+		grad:         nil,
+		requiresGrad: false,
+		createdAt:    atomic.LoadUint64(&tsCounter),
+	}
+}
+
+// Scalar creates a new Variable from a scalar value.
+// Use WithGrad() to set whether the variable requires gradients (default false).
+func Scalar[T float.DType](value T) *Variable {
+	return &Variable{
+		value:        mat.NewScalar(value),
 		grad:         nil,
 		requiresGrad: false,
 		createdAt:    atomic.LoadUint64(&tsCounter),

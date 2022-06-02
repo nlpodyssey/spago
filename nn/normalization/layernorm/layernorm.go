@@ -46,7 +46,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := ag.Var(xs[0].Value().NewScalar(m.Eps))
+	eps := ag.Scalar(m.Eps)
 	fn := func(x ag.Node) ag.Node {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)
