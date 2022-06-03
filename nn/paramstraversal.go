@@ -64,10 +64,10 @@ func (pt paramsTraversal) walk(m any) {
 	})
 }
 
-func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleFieldTag) bool {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
-		return
+		return false
 	}
 	switch itemT := item.(type) {
 	case Param:
@@ -81,8 +81,9 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleField
 	case *sync.Map:
 		pt.walkSyncMap(itemT, name, tag)
 	default:
-		return
+		return false
 	}
+	return true
 }
 
 func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
@@ -99,7 +100,9 @@ func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldT
 		name := fmt.Sprintf("%s.%s", name, key)
 		switch reflect.ValueOf(value).Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			pt.walkStructOrPtr(value, name, tag)
+			if !pt.walkStructOrPtr(value, name, tag) {
+				return false
+			}
 		default:
 			return false // skip
 		}
@@ -113,7 +116,9 @@ func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFiel
 		p := v.Index(i)
 		switch p.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			pt.walkStructOrPtr(p.Interface(), name, tag)
+			if !pt.walkStructOrPtr(p.Interface(), name, tag) {
+				return
+			}
 		default:
 			return // skip
 		}
@@ -136,7 +141,9 @@ func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldT
 		name := fmt.Sprintf("%s.%s", name, key)
 		switch mapRange.Value().Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			pt.walkStructOrPtr(mapRange.Value().Interface(), name, tag)
+			if !pt.walkStructOrPtr(mapRange.Value().Interface(), name, tag) {
+				return
+			}
 		default:
 			return // skip
 		}
