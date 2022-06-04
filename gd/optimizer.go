@@ -99,21 +99,21 @@ func (o *Optimizer) clipGradsInPlace(params []nn.Param) {
 
 // IncExample beats the occurrence of a new example.
 func (o *Optimizer) IncExample() {
-	if method, ok := o.method.(ExampleScheduler); ok {
+	if method, ok := o.method.(interface{ IncExample() }); ok {
 		method.IncExample()
 	}
 }
 
 // IncBatch beats the occurrence of a new batch.
 func (o *Optimizer) IncBatch() {
-	if method, ok := o.method.(BatchScheduler); ok {
+	if method, ok := o.method.(interface{ IncBatch() }); ok {
 		method.IncBatch()
 	}
 }
 
 // IncEpoch beats the occurrence of a new epoch.
 func (o *Optimizer) IncEpoch() {
-	if method, ok := o.method.(EpochScheduler); ok {
+	if method, ok := o.method.(interface{ IncEpoch() }); ok {
 		method.IncEpoch()
 	}
 }
