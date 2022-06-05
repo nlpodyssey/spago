@@ -3665,6 +3665,57 @@ func testDenseInverse[T float.DType](t *testing.T) {
 	}
 }
 
+func TestDense_VecForEach(t *testing.T) {
+	t.Run("float32", testDenseVecForEach[float32])
+	t.Run("float64", testDenseVecForEach[float64])
+}
+
+func testDenseVecForEach[T float.DType](t *testing.T) {
+	t.Run("non vector matrix", func(t *testing.T) {
+		d := NewEmptyDense[T](2, 3)
+		require.Panics(t, func() {
+			d.VecForEach(func(i int, v float64) {})
+		})
+	})
+
+	testCases := []struct {
+		x  []T
+		is []int
+		vs []float64
+	}{
+		{[]T{}, []int{}, []float64{}},
+		{[]T{42}, []int{0}, []float64{42}},
+		{[]T{9, 8}, []int{0, 1}, []float64{9, 8}},
+		{[]T{7, 8, 9}, []int{0, 1, 2}, []float64{7, 8, 9}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](len(tc.x), 1, tc.x)
+			is := make([]int, 0)
+			vs := make([]float64, 0)
+			d.VecForEach(func(i int, v float64) {
+				is = append(is, i)
+				vs = append(vs, v)
+			})
+			assert.Equal(t, tc.is, is)
+			assert.Equal(t, tc.vs, vs)
+		})
+
+		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
+			d := NewDense[T](1, len(tc.x), tc.x)
+			is := make([]int, 0)
+			vs := make([]float64, 0)
+			d.VecForEach(func(i int, v float64) {
+				is = append(is, i)
+				vs = append(vs, v)
+			})
+			assert.Equal(t, tc.is, is)
+			assert.Equal(t, tc.vs, vs)
+		})
+	}
+}
+
 type applyTestCase[T float.DType] struct {
 	d *Dense[T]
 	y []T

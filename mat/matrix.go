@@ -208,6 +208,9 @@ type Matrix interface {
 	LU() (l, u, p Matrix)
 	// Inverse returns the inverse of the Matrix.
 	Inverse() Matrix
+	// VecForEach calls fn for each element of the vector.
+	// It panics if the receiver is not a vector.
+	VecForEach(fn func(i int, v float64))
 	// Apply creates a new matrix executing the unary function fn.
 	Apply(fn func(r, c int, v float64) float64) Matrix
 	// ApplyInPlace executes the unary function fn over the matrix a,

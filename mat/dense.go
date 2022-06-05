@@ -1321,6 +1321,17 @@ func (d *Dense[T]) Inverse() Matrix {
 	return out
 }
 
+// VecForEach calls fn for each element of the vector.
+// It panics if the receiver is not a vector.
+func (d *Dense[T]) VecForEach(fn func(i int, v float64)) {
+	if !IsVector(d) {
+		panic("mat: expected vector")
+	}
+	for i, v := range d.data {
+		fn(i, float64(v))
+	}
+}
+
 // Apply creates a new matrix executing the unary function fn.
 func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix {
 	out := densePool[T]().Get(d.rows, d.cols)
