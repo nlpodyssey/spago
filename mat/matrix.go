@@ -155,6 +155,8 @@ type Matrix interface {
 	Pow(power float64) Matrix
 	// Sqrt returns a new matrix applying the square root function to all elements.
 	Sqrt() Matrix
+	// Log returns a new matrix applying the natural logarithm function to each element.
+	Log() Matrix
 	// Sum returns the sum of all values of the matrix as a scalar Matrix.
 	Sum() Matrix
 	// Max returns the maximum value of the matrix as a scalar Matrix.

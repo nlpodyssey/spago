@@ -898,6 +898,21 @@ func (d *Dense[T]) Sqrt() Matrix {
 	return out
 }
 
+// Log returns a new matrix applying the natural logarithm function to each element.
+func (d *Dense[T]) Log() Matrix {
+	out := densePool[T]().Get(d.rows, d.cols)
+	outData := out.data
+	if len(outData) == 0 {
+		return out
+	}
+	inData := d.data
+	_ = outData[len(inData)-1]
+	for i, val := range inData {
+		outData[i] = T(math.Log(float64(val)))
+	}
+	return out
+}
+
 // Sum returns the sum of all values of the matrix as a scalar Matrix.
 func (d *Dense[T]) Sum() Matrix {
 	return NewScalar(d.sum())

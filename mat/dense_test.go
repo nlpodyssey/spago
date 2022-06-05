@@ -2383,6 +2383,45 @@ func testDenseSqrt[T float.DType](t *testing.T) {
 	}
 }
 
+func TestDense_Log(t *testing.T) {
+	t.Run("float32", testDenseLog[float32])
+	t.Run("float64", testDenseLog[float64])
+}
+
+func testDenseLog[T float.DType](t *testing.T) {
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{2}), []T{0.69314718}},
+		{
+			NewDense[T](1, 2, []T{1, 2}),
+			[]T{0, 0.69314718},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				1, 2, 3,
+				4, 5, 6,
+			}),
+			[]T{
+				0, 0.69314718, 1.09861229,
+				1.38629436, 1.60943791, 1.79175947,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Log()
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.y, Data[T](y), 1e-7)
+		})
+	}
+}
+
 func TestDense_Sum(t *testing.T) {
 	t.Run("float32", testDenseSum[float32])
 	t.Run("float64", testDenseSum[float64])
