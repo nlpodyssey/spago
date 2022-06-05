@@ -178,23 +178,6 @@ func NewExp[O Operand](x O) *Exp[O] {
 	}
 }
 
-// Log is an operator to perform element-wise natural logarithm.
-type Log[O Operand] struct {
-	*UnaryElementwise[O]
-}
-
-// NewLog returns a new UnaryElementwise natural logarithm function.
-func NewLog[O Operand](x O) *Log[O] {
-	return &Log[O]{
-		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        safeLog,
-			df:       safeLogDeriv,
-			operands: []O{x},
-		},
-	}
-}
-
 // Neg is an operator to perform element-wise f(x) = -x
 type Neg[O Operand] struct {
 	*UnaryElementwise[O]
@@ -334,27 +317,6 @@ func absDeriv(_, _ int, v float64) float64 {
 		return 1
 	}
 	return 0 // undefined
-}
-
-// safeLog is a simple work-around that make the math.Log() safe for zero or negative values
-func safeLog(_, _ int, v float64) float64 {
-	if v > 0.0 {
-		return math.Log(v)
-	}
-	if v == 0.0 {
-		return math.Inf(-1)
-	}
-	panic("ag: invalid log for negative values")
-}
-
-func safeLogDeriv(_, _ int, v float64) float64 {
-	if v > 0.0 {
-		return 1.0 / v
-	}
-	if v == 0.0 {
-		return 1.0 / 1.0e-08
-	}
-	panic("ag: invalid log for negative values")
 }
 
 func tan(_, _ int, v float64) float64 {
