@@ -161,23 +161,6 @@ func NewSin[O Operand](x O) *Sin[O] {
 	}
 }
 
-// Exp is an operator to perform element-wise base-e exponential.
-type Exp[O Operand] struct {
-	*UnaryElementwise[O]
-}
-
-// NewExp returns a new UnaryElementwise base-e exponential function.
-func NewExp[O Operand](x O) *Exp[O] {
-	return &Exp[O]{
-		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return math.Exp(v) },
-			df:       func(i, j int, v float64) float64 { return math.Exp(v) },
-			operands: []O{x},
-		},
-	}
-}
-
 // Neg is an operator to perform element-wise f(x) = -x
 type Neg[O Operand] struct {
 	*UnaryElementwise[O]
