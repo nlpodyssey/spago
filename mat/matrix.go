@@ -157,6 +157,8 @@ type Matrix interface {
 	Sqrt() Matrix
 	// Log returns a new matrix applying the natural logarithm function to each element.
 	Log() Matrix
+	// Exp returns a new matrix applying the base-e exponential function to each element.
+	Exp() Matrix
 	// Sum returns the sum of all values of the matrix as a scalar Matrix.
 	Sum() Matrix
 	// Max returns the maximum value of the matrix as a scalar Matrix.
