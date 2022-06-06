@@ -269,23 +269,6 @@ func NewSqrt[O Operand](x O) *Sqrt[O] {
 	}
 }
 
-// Swish is an operator to perform element-wise x * sigmoid(x).
-type Swish[O Operand] struct {
-	*UnaryElementwise[O]
-}
-
-// NewSwish returns a new function of the form f(x) = x * sigmoid(x).
-func NewSwish[O Operand](x O) *Swish[O] {
-	return &Swish[O]{
-		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        swish,
-			df:       swishDeriv,
-			operands: []O{x},
-		},
-	}
-}
-
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
 // The function in an alias of NewSwish.
 func NewSiLU[O Operand](x O) *Swish[O] {
@@ -535,14 +518,6 @@ func thresholdDeriv(_, _ int, v float64, alpha ...float64) float64 {
 		return 1
 	}
 	return 0
-}
-
-func swish(_, _ int, v float64) float64 {
-	return v / (1 + math.Exp(-v))
-}
-
-func swishDeriv(i, j int, v float64) float64 {
-	return swishBDeriv(i, j, v, 1.0)
 }
 
 func swishB(_, _ int, v float64, beta ...float64) float64 {
