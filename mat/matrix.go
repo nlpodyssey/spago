@@ -159,6 +159,8 @@ type Matrix interface {
 	Log() Matrix
 	// Exp returns a new matrix applying the base-e exponential function to each element.
 	Exp() Matrix
+	// Sigmoid returns a new matrix applying the sigmoid function to each element.
+	Sigmoid() Matrix
 	// Sum returns the sum of all values of the matrix as a scalar Matrix.
 	Sum() Matrix
 	// Max returns the maximum value of the matrix as a scalar Matrix.

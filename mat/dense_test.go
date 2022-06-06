@@ -2461,6 +2461,45 @@ func testDenseExp[T float.DType](t *testing.T) {
 	}
 }
 
+func TestDense_Sigmoid(t *testing.T) {
+	t.Run("float32", testDenseSigmoid[float32])
+	t.Run("float64", testDenseSigmoid[float64])
+}
+
+func testDenseSigmoid[T float.DType](t *testing.T) {
+	testCases := []struct {
+		d *Dense[T]
+		y []T
+	}{
+		{NewEmptyDense[T](0, 0), []T{}},
+		{NewEmptyDense[T](0, 1), []T{}},
+		{NewEmptyDense[T](1, 0), []T{}},
+		{NewDense[T](1, 1, []T{0}), []T{.5}},
+		{
+			NewDense[T](1, 2, []T{0, 1}),
+			[]T{.5, .73105858},
+		},
+		{
+			NewDense[T](2, 3, []T{
+				0, 1, 2,
+				3, 4, 5,
+			}),
+			[]T{
+				.5, .73105858, .88079708,
+				.95257413, .98201379, .993307149,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+			y := tc.d.Sigmoid()
+			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assert.InDeltaSlice(t, tc.y, Data[T](y), 1e-7)
+		})
+	}
+}
+
 func TestDense_Sum(t *testing.T) {
 	t.Run("float32", testDenseSum[float32])
 	t.Run("float64", testDenseSum[float64])

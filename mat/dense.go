@@ -928,6 +928,21 @@ func (d *Dense[T]) Exp() Matrix {
 	return out
 }
 
+// Sigmoid returns a new matrix applying the sigmoid function to each element.
+func (d *Dense[T]) Sigmoid() Matrix {
+	out := densePool[T]().Get(d.rows, d.cols)
+	outData := out.data
+	if len(outData) == 0 {
+		return out
+	}
+	inData := d.data
+	_ = outData[len(inData)-1]
+	for i, val := range inData {
+		outData[i] = 1 / (1 + T(math.Exp(-float64(val))))
+	}
+	return out
+}
+
 // Sum returns the sum of all values of the matrix as a scalar Matrix.
 func (d *Dense[T]) Sum() Matrix {
 	return NewScalar(d.sum())
