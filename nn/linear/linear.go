@@ -23,30 +23,22 @@ type Model struct {
 	B nn.Param `spago:"type:biases"`
 }
 
-// Option allows to configure a new Model with your specific needs.
-type Option func(*Model)
-
-// BiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).
-func BiasGrad(enable bool) Option {
-	return func(m *Model) {
-		m.B.SetRequiresGrad(enable)
-	}
-}
-
 func init() {
 	gob.Register(&Model{})
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T float.DType](in, out int, options ...Option) *Model {
-	model := &Model{
+func New[T float.DType](in, out int) *Model {
+	return &Model{
 		W: nn.NewParam(mat.NewEmptyDense[T](out, in)),
 		B: nn.NewParam(mat.NewEmptyVecDense[T](out)),
 	}
-	for _, option := range options {
-		option(model)
-	}
-	return model
+}
+
+// WithBiasGrad allows you to enable or disable gradient propagation on bias (enabled by default).
+func (m *Model) WithBiasGrad(value bool) *Model {
+	m.B.SetRequiresGrad(value)
+	return m
 }
 
 // Forward performs the forward step for each input node and returns the result.

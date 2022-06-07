@@ -11,11 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
-var (
-	_ Param           = &BaseParam{}
-	_ ParamNameSetter = &BaseParam{}
-	_ ParamTypeSetter = &BaseParam{}
-)
+var _ Param = &BaseParam{}
 
 // BaseParam is the default implementation satisfying the Param interface.
 type BaseParam struct {
@@ -33,29 +29,22 @@ type BaseParam struct {
 	payloadMu sync.RWMutex
 }
 
-// ParamOption allows to configure a new Param with your specific needs.
-type ParamOption func(*BaseParam)
-
-// RequiresGrad is an option to specify whether a Param should be trained or not.
-func RequiresGrad(value bool) ParamOption {
-	return func(p *BaseParam) {
-		p.requiresGrad = value
+// NewParam returns a new param.
+func NewParam(value mat.Matrix) *BaseParam {
+	return &BaseParam{
+		name:         "",
+		pType:        Undefined,
+		value:        value,
+		grad:         nil,
+		requiresGrad: true,
+		payload:      nil,
 	}
 }
 
-// NewParam returns a new param.
-func NewParam(value mat.Matrix, opts ...ParamOption) Param {
-	p := &BaseParam{
-		name:         "",        // lazy initialization
-		pType:        Undefined, // lazy initialization
-		value:        value,
-		grad:         nil,  // lazy initialization
-		requiresGrad: true, // true by default, can be modified with the options
-		payload:      nil,  // lazy initialization
-	}
-	for _, opt := range opts {
-		opt(p)
-	}
+// WithGrad sets whether the param requires gradients.
+// It is used to specify whether a Param should be trained or not.
+func (p *BaseParam) WithGrad(value bool) *BaseParam {
+	p.requiresGrad = value
 	return p
 }
 

@@ -37,9 +37,9 @@ func NewWithMomentum[T float.DType](size int, momentum T) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense[T](size, epsilon)),
 		B:        nn.NewParam(mat.NewEmptyVecDense[T](size)),
-		Mean:     nn.NewParam(mat.NewEmptyVecDense[T](size), nn.RequiresGrad(false)),
-		StdDev:   nn.NewParam(mat.NewEmptyVecDense[T](size), nn.RequiresGrad(false)),
-		Momentum: nn.NewParam(mat.NewScalar[T](momentum), nn.RequiresGrad(false)),
+		Mean:     nn.NewParam(mat.NewEmptyVecDense[T](size)).WithGrad(false),
+		StdDev:   nn.NewParam(mat.NewEmptyVecDense[T](size)).WithGrad(false),
+		Momentum: nn.NewParam(mat.NewScalar[T](momentum)).WithGrad(false),
 	}
 }
 

@@ -30,10 +30,10 @@ func testParamGob[T float.DType](t *testing.T) {
 			Data:  []mat.Matrix{mat.NewScalar(T(34))},
 		})
 
-		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
+		err := gob.NewEncoder(&buf).Encode(paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param
+		var decodedParam *BaseParam
 
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
@@ -53,10 +53,10 @@ func testParamGob[T float.DType](t *testing.T) {
 
 		paramToEncode := NewParam(nil)
 
-		err := gob.NewEncoder(&buf).Encode(&paramToEncode)
+		err := gob.NewEncoder(&buf).Encode(paramToEncode)
 		require.Nil(t, err)
 
-		var decodedParam Param
+		var decodedParam *BaseParam
 		err = gob.NewDecoder(&buf).Decode(&decodedParam)
 		require.Nil(t, err)
 		require.NotNil(t, decodedParam)
@@ -74,7 +74,7 @@ func testParamInterfaceBinaryMarshaling[T float.DType](t *testing.T) {
 	t.Run("simple case", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 
-		paramToEncode := NewParam(mat.NewScalar[T](42)).(*BaseParam)
+		paramToEncode := NewParam(mat.NewScalar[T](42))
 		err := MarshalBinaryParam(paramToEncode, buf)
 		require.Nil(t, err)
 
