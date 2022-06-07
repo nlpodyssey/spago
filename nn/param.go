@@ -13,9 +13,9 @@ import (
 type Param interface {
 	ag.Node
 
-	// Name returns the params name (can be empty string).
+	// Name returns the name of the parameter (can be empty string).
 	Name() string
-	// Type returns the params type (weights, biases, undefined).
+	// Type returns the type of the parameter (weights, biases, undefined).
 	Type() ParamsType
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
@@ -30,18 +30,4 @@ type Param interface {
 	SetPayload(payload *Payload)
 	// ClearPayload clears the support structure.
 	ClearPayload()
-}
-
-// ParamNameSetter is implemented by any parameter value that allows the
-// assignment of its name.
-type ParamNameSetter interface {
-	// SetName sets the parameter's name (it can be an empty string).
-	SetName(string)
-}
-
-// ParamTypeSetter is implemented by any parameter value that allows the
-// assignment of its type.
-type ParamTypeSetter interface {
-	// SetType sets the parameter's type (Weights, Biases, or Undefined).
-	SetType(ParamsType)
 }

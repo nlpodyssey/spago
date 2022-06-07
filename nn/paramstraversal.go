@@ -37,16 +37,22 @@ type paramsTraversal struct {
 	exploreSubModels bool
 }
 
-// newParamsTraversal returns a new paramsTraversal.
-func newParamsTraversal(fn ParamsTraversalFunc, exploreSubModels bool) paramsTraversal {
-	return paramsTraversal{
-		callback:         fn,
-		exploreSubModels: exploreSubModels,
-	}
+// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
+func ForEachParam(m Model, fn ParamsTraversalFunc) {
+	paramsTraversal{callback: fn, exploreSubModels: true}.walk(m)
+}
+
+// ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
+func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
+	paramsTraversal{callback: fn, exploreSubModels: false}.walk(m)
 }
 
 // walk iterates through all the parameters of m.
 func (pt paramsTraversal) walk(m any) {
+	if m, ok := m.(ParamsTraverser); ok {
+		m.TraverseParams(pt.callback)
+		return
+	}
 	forEachField(m, func(field any, name string, rTag reflect.StructTag) {
 		tag, err := parseModuleFieldTag(rTag.Get("spago"))
 		if err != nil {

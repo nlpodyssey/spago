@@ -136,7 +136,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		m := &ParamsTraversalBaseModel{}
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		assertEqual(t, tt.CollectedParams, []Param{})
@@ -155,7 +155,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		}
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		assertEqual(t, tt.CollectedParams, []Param{})
@@ -170,7 +170,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		}
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		expected := []Param{m.A, m.B}
@@ -192,7 +192,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		}
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		expected := []Param{m.A[0], m.A[1], m.B[0], m.B[1]}
@@ -215,7 +215,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels false", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, false)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 			pt.walk(m)
 
 			expected := []Param{m.P}
@@ -225,7 +225,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels true", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, true)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: true}
 			pt.walk(m)
 
 			expected := []Param{m.P, nestedModel.P}
@@ -247,7 +247,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels false", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, false)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 			pt.walk(m)
 
 			expected := []Param{m.P}
@@ -257,7 +257,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels true", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, true)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: true}
 			pt.walk(m)
 
 			expected := []Param{m.P, mA.P, mB.P}
@@ -279,7 +279,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels false", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, false)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 			pt.walk(m)
 
 			expected := []Param{m.P}
@@ -289,7 +289,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 		t.Run("with exploreSubModels true", func(t *testing.T) {
 			tt := NewParamsTraversalTester()
 
-			pt := newParamsTraversal(tt.collect, true)
+			pt := paramsTraversal{callback: tt.collect, exploreSubModels: true}
 			pt.walk(m)
 
 			expected := []Param{m.P, mA.P, mB.P}
@@ -316,7 +316,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		expected := []Param{m.S[0].P, m.S[1].P}
@@ -337,7 +337,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		expected := []Param{m.MI[0], m.MS["a"]}
@@ -354,7 +354,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		expected := []Param{m.MS.P, m.MP.P}
@@ -371,7 +371,7 @@ func testParamsTraversal[T float.DType](t *testing.T) {
 
 		tt := NewParamsTraversalTester()
 
-		pt := newParamsTraversal(tt.collect, false)
+		pt := paramsTraversal{callback: tt.collect, exploreSubModels: false}
 		pt.walk(m)
 
 		p, _ := m.MS.Load("a")
