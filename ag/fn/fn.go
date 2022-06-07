@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"reflect"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Operand is implemented by any value that implements automatic differentiation features.
 type Operand interface {
@@ -24,4 +28,12 @@ type Function[O Operand] interface {
 	Backward(gy mat.Matrix)
 	// Operands returns the list of operands.
 	Operands() []O
+}
+
+func operandIsNil[O Operand](o O) bool {
+	if any(o) == nil {
+		return true
+	}
+	v := reflect.ValueOf(o)
+	return v.Kind() == reflect.Pointer && v.IsNil()
 }
