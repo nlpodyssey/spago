@@ -5,27 +5,31 @@
 package mlpmixer
 
 import (
+	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 // FeedForward is the model for feed-forward operations of a MixerBlock.
 type FeedForward struct {
 	nn.Module
-	*stack.Model
+	Layers []nn.StandardModel
 }
 
 func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {
 	return &FeedForward{
-		Model: stack.New(
+		Layers: []nn.StandardModel{
 			linear.New[T](dim, hiddenDim),
 			activation.New(act),
 			// dropout.New(dropout),
 			linear.New[T](hiddenDim, dim),
 			// dropout.New(dropout),
-		),
+		},
 	}
+}
+
+func (m *FeedForward) Forward(xs ...ag.Node) []ag.Node {
+	return nn.Forward(m.Layers)(xs...)
 }

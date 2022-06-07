@@ -19,7 +19,6 @@ import (
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 var _ nn.Model = &BiModel{}
@@ -28,7 +27,7 @@ var _ nn.Model = &BiModel{}
 type BiModel struct {
 	nn.Module
 	Config    Config
-	FC        *stack.Model
+	FC        []nn.StandardModel
 	FC2       *linear.Model
 	FC3       *linear.Model
 	LayerNorm *layernorm.Model
@@ -53,7 +52,7 @@ func NewBidirectional[T float.DType](config Config) *BiModel {
 	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
 	return &BiModel{
 		Config:    config,
-		FC:        stack.New(layers...),
+		FC:        layers,
 		FC2:       linear.New[T](config.InputSize, config.HiddenSize),
 		FC3:       linear.New[T](config.HiddenSize*2, config.OutputSize),
 		LayerNorm: layernorm.New[T](config.OutputSize, 1e-5),
@@ -99,7 +98,7 @@ func (m *BiModel) forwardHidden(b []ag.Node) []ag.Node {
 }
 
 func (m *BiModel) transformInput(x ag.Node) ag.Node {
-	b := m.FC.Forward(x)[0]
+	b := nn.Forward(m.FC)(x)[0]
 	if m.Config.MultiHead {
 		sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
 		b = ag.Prod(b, sigAlphas)

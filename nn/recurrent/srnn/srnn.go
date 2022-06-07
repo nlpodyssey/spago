@@ -15,7 +15,6 @@ import (
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 var _ nn.Model = &Model{}
@@ -24,7 +23,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Config Config
-	FC     *stack.Model
+	FC     []nn.StandardModel
 	FC2    *linear.Model
 	FC3    *linear.Model
 }
@@ -67,7 +66,7 @@ func New[T float.DType](config Config) *Model {
 	layers = append(layers, linear.New[T](config.HyperSize, config.HiddenSize))
 	return &Model{
 		Config: config,
-		FC:     stack.New(layers...),
+		FC:     layers,
 		FC2:    linear.New[T](config.InputSize, config.HiddenSize),
 		FC3:    linear.New[T](config.HiddenSize, config.OutputSize),
 	}
@@ -98,7 +97,7 @@ func (m *Model) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 func (m *Model) transformInput(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		b := m.FC.Forward(x)[0]
+		b := nn.Forward(m.FC)(x)[0]
 		if m.Config.MultiHead {
 			sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
 			b = ag.Prod(b, sigAlphas)

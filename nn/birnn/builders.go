@@ -12,7 +12,6 @@ import (
 	"github.com/nlpodyssey/spago/nn/recurrent/ltm"
 	"github.com/nlpodyssey/spago/nn/recurrent/mist"
 	"github.com/nlpodyssey/spago/nn/recurrent/ran"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 // NewBiLSTM returns a new Bidirectional LSTM Model.
@@ -70,9 +69,9 @@ func NewBiMIST[T float.DType](input, hidden, numberOfDelays int, merge MergeType
 }
 
 // NewBiBiLSTM returns a new Bidirectional BiLSTM Model.
-func NewBiBiLSTM[T float.DType](input, hidden int, merge MergeType) *stack.Model {
-	return stack.New(
+func NewBiBiLSTM[T float.DType](input, hidden int, merge MergeType) []*Model {
+	return []*Model{
 		NewBiLSTM[T](input, hidden, Concat),
 		NewBiLSTM[T](hidden*2, hidden, merge),
-	)
+	}
 }

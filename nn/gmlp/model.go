@@ -13,15 +13,15 @@ import (
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 var _ nn.Model = &Model{}
 
 // Model contains the serializable parameters.
 type Model struct {
+	nn.Module
 	Config Config
-	*stack.Model
+	Layers []nn.StandardModel
 }
 
 // Config provides configuration parameters for a the gMLP Model.
@@ -40,8 +40,9 @@ func init() {
 
 // New returns a new Model.
 func New[T float.DType](config Config) *Model {
-	layer := func(_ int) nn.StandardModel {
-		return NewResidual(
+	layers := make([]nn.StandardModel, config.Depth)
+	for i := 0; i < config.Depth; i++ {
+		layers[i] = NewResidual(
 			NewPreNorm[T](
 				config.Dim,
 				NewBlock[T](BlockConfig{
@@ -55,7 +56,7 @@ func New[T float.DType](config Config) *Model {
 	}
 	return &Model{
 		Config: config,
-		Model:  stack.Make(config.Depth, layer), // TODO: add "prob to survive" in the `stack` pkg
+		Layers: layers,
 	}
 }
 
@@ -70,5 +71,5 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.Node {
 		return ag.Var(xs[0].Value().NewEmptyVec(m.Config.Dim))
 	})
-	return m.Model.Forward(padded...)
+	return nn.Forward(m.Layers)(padded...)
 }

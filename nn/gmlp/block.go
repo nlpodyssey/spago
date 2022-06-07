@@ -6,13 +6,13 @@ package gmlp
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/ag"
 
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
 	"github.com/nlpodyssey/spago/nn/linear"
 	"github.com/nlpodyssey/spago/nn/sgu"
-	"github.com/nlpodyssey/spago/nn/stack"
 )
 
 var _ nn.Model = &Block{}
@@ -20,7 +20,7 @@ var _ nn.Model = &Block{}
 // Block is the core model of the gMLP.
 type Block struct {
 	nn.Module
-	*stack.Model
+	Layers []nn.StandardModel
 }
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.
@@ -38,7 +38,7 @@ func init() {
 // NewBlock returns a new Block.
 func NewBlock[T float.DType](config BlockConfig) *Block {
 	return &Block{
-		Model: stack.New(
+		Layers: []nn.StandardModel{
 			linear.New[T](config.Dim, config.DimFF),
 			activation.New(activation.GELU),
 			sgu.New[T](sgu.Config{
@@ -48,6 +48,10 @@ func NewBlock[T float.DType](config BlockConfig) *Block {
 				Activation: config.Activation,
 			}),
 			linear.New[T](config.DimFF/2, config.Dim),
-		),
+		},
 	}
+}
+
+func (m *Block) Forward(xs ...ag.Node) []ag.Node {
+	return nn.Forward(m.Layers)(xs...)
 }

@@ -5,32 +5,30 @@
 package nn
 
 import (
-	"encoding/gob"
-
 	"github.com/nlpodyssey/spago/ag"
 )
-
-var _ Model = &Module{}
-
-func init() {
-	gob.Register(&Module{})
-}
 
 // Model is implemented by all neural network architectures.
 type Model interface {
 	mustEmbedModule()
 }
 
-// Module must be embedded into all neural models.
-type Module struct{}
-
-func (m Module) mustEmbedModule() {}
-
 // StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
 // It is called StandardModel since this is the most frequent forward method among all implemented neural models.
 type StandardModel interface {
 	Model
 
-	// Forward executes the forward step for each input and returns the result.
-	Forward(xs ...ag.Node) []ag.Node
+	// Forward executes the forward step of the model.
+	Forward(...ag.Node) []ag.Node
+}
+
+// Forward operates on a slice of StandardModel connecting outputs to inputs sequentially for each module following,
+// finally returning its output.
+func Forward[M StandardModel](ms []M) func(...ag.Node) []ag.Node {
+	return func(xs ...ag.Node) []ag.Node {
+		for _, m := range ms {
+			xs = m.Forward(xs...)
+		}
+		return xs
+	}
 }
