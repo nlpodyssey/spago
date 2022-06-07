@@ -423,7 +423,7 @@ func TestModel(t *testing.T) {
 
 		require.NotNil(t, m.ZeroEmbedding)
 		require.NotNil(t, m.Store)
-		require.Len(t, m.EmbeddingsWithGrad, 1)
+		require.Equal(t, m.CountEmbeddingsWithGrad(), 1)
 
 		var buf bytes.Buffer
 		require.NoError(t, gob.NewEncoder(&buf).Encode(m))
@@ -440,7 +440,46 @@ func TestModel(t *testing.T) {
 		require.NotNil(t, decoded.Store)
 		assert.Nil(t, decoded.Store.(store.PreventStoreMarshaling).Store)
 
-		require.Nil(t, decoded.EmbeddingsWithGrad)
+		require.Equal(t, decoded.CountEmbeddingsWithGrad(), 0)
+	})
+}
+
+func TestModel_TraverseParams(t *testing.T) {
+	t.Run("traverse params", func(t *testing.T) {
+		type T = float32
+
+		repo := memstore.NewRepository()
+		conf := embeddings.Config{
+			Size:             3,
+			UseZeroEmbedding: true,
+			StoreName:        "test-store",
+			Trainable:        true,
+		}
+		m := embeddings.New[T, string](conf, repo)
+
+		e, _ := m.Embedding("e")
+		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
+		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
+		e.SetPayload(&nn.Payload{
+			Label: 123,
+			Data: []mat.Matrix{
+				mat.NewScalar[T](11),
+				mat.NewScalar[T](22),
+			},
+		})
+
+		require.NotNil(t, m.ZeroEmbedding)
+		require.NotNil(t, m.Store)
+		require.Equal(t, m.CountEmbeddingsWithGrad(), 1)
+
+		e.ZeroGrad()
+		require.Equal(t, m.CountEmbeddingsWithGrad(), 0)
+		embeddingsWithGrad := make([]nn.Param, 0)
+
+		nn.ForEachParam(m, func(p nn.Param, _ string, _ nn.ParamsType) {
+			embeddingsWithGrad = append(embeddingsWithGrad, p)
+		})
+		require.Len(t, embeddingsWithGrad, 1)
 	})
 }
 

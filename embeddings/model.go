@@ -34,6 +34,8 @@ type Config struct {
 	Trainable bool
 }
 
+var _ nn.ParamsTraverser = &Model[string]{}
+
 // A Model for handling embeddings.
 type Model[K Key] struct {
 	nn.Module
@@ -45,13 +47,8 @@ type Model[K Key] struct {
 	ZeroEmbedding nn.Param `spago:"type:weights"`
 	// Database where embeddings are stored.
 	Store store.Store
-	// EmbeddingsWithGrad is filled with all those embedding-parameters that
-	// have a gradient value attached.
-	//
-	// This map is public, so that all parameters with a gradient can be
-	// easily traversed, which is useful in contexts such as optimizers.
-	// This value is managed by the Model and its derived Embedding parameters
-	// and should be considered read-only for external access.
+	// embeddingsWithGrad is a private map filled with all those
+	// embedding-parameters that have a gradient value attached.
 	//
 	// Parameters whose gradient is "zeroed" (see ag.Node.ZeroGrad) are
 	// automatically removed from this map, thus freeing resources that would
@@ -63,16 +60,12 @@ type Model[K Key] struct {
 	//
 	// For other special or peculiar usages, for example if gradients are not
 	// cleared regularly or at all, you might need to clear this map explicitly,
-	// by calling the dedicated method ClearEmbeddingsWithGrad (again: never
-	// modify this value directly).
-	//
-	// The type of this field, ParamsMap, is defined in order to be traversable,
-	// but to produce no data when serialized.
-	EmbeddingsWithGrad ParamsMap
-	// This map is maintained in parallel with EmbeddingsWithGrad.
+	// by calling the dedicated method ClearEmbeddingsWithGrad.
+	embeddingsWithGrad map[string]nn.Param
+	// This map is maintained in parallel with embeddingsWithGrad.
 	// An Embedding parameter doesn't keep any internal value; everything is
 	// rather delegated to the model, or the model's store.
-	// The Embedding values stored in EmbeddingsWithGrad don't contain any
+	// The Embedding values stored in embeddingsWithGrad don't contain any
 	// gradient value; instead the Model provides private methods allowing
 	// reading and writing gradients by key, which are stored here.
 	grads map[string]mat.Matrix
@@ -95,13 +88,27 @@ func New[T float.DType, K Key](conf Config, repo store.Repository) *Model[K] {
 
 	var zeroEmb nn.Param = nil
 	if conf.UseZeroEmbedding {
-		zeroEmb = nn.NewParam(mat.NewEmptyVecDense[T](conf.Size), nn.RequiresGrad(false))
+		zeroEmb = nn.NewParam(mat.NewEmptyVecDense[T](conf.Size)).WithGrad(false)
 	}
 	return &Model[K]{
 		Config:        conf,
 		ZeroEmbedding: zeroEmb,
 		Store:         &store.PreventStoreMarshaling{Store: st},
 	}
+}
+
+// TraverseParams allows embeddings with gradients to be traversed for optimization.
+func (m *Model[K]) TraverseParams(callback nn.ParamsTraversalFunc) {
+	if m.ZeroEmbedding != nil {
+		callback(paramNameType(m.ZeroEmbedding))
+	}
+	for _, emb := range m.embeddingsWithGrad {
+		callback(paramNameType(emb))
+	}
+}
+
+func paramNameType(p nn.Param) (nn.Param, string, nn.ParamsType) {
+	return p, p.Name(), p.Type()
 }
 
 // Count counts how many embedding key/value pairs are currently stored.
@@ -114,6 +121,12 @@ func (m *Model[_]) Count() int {
 	return n
 }
 
+// CountEmbeddingsWithGrad counts how many embedding key/value pairs are currently active.
+// It panics in case of reading errors.
+func (m *Model[_]) CountEmbeddingsWithGrad() int {
+	return len(m.embeddingsWithGrad)
+}
+
 // Embedding returns the Embedding parameter associated with the given key,
 // also reporting whether the key was found in the store.
 //
@@ -122,9 +135,9 @@ func (m *Model[_]) Count() int {
 // to trigger its creation on the store.
 //
 // It panics in case of errors reading from the underlying store.
-func (m *Model[K]) Embedding(key K) (nn.Param, bool) {
-	if e, ok := m.EmbeddingsWithGrad[stringifyKey(key)]; ok {
-		return e, true
+func (m *Model[K]) Embedding(key K) (*Embedding[K], bool) {
+	if e, ok := m.embeddingsWithGrad[stringifyKey(key)]; ok {
+		return e.(*Embedding[K]), true
 	}
 
 	exists, err := m.Store.Contains(encodeKey(key))
@@ -178,7 +191,7 @@ func (m *Model[_]) ClearEmbeddingsWithGrad() {
 	defer m.mu.Unlock()
 
 	m.grads = nil
-	m.EmbeddingsWithGrad = nil
+	m.embeddingsWithGrad = nil
 }
 
 // UseRepository allows the Model to use a Store from the given Repository.
@@ -239,10 +252,11 @@ func (m *Model[K]) accGrad(e *Embedding[K], gx mat.Matrix) {
 
 	if m.grads == nil {
 		m.grads = make(map[string]mat.Matrix)
-		m.EmbeddingsWithGrad = make(ParamsMap)
+		m.embeddingsWithGrad = make(map[string]nn.Param)
 	}
+
 	m.grads[key] = gx.Clone()
-	m.EmbeddingsWithGrad[key] = e
+	m.embeddingsWithGrad[key] = e
 }
 
 func (m *Model[K]) zeroGrad(k K) {
@@ -261,5 +275,5 @@ func (m *Model[K]) zeroGrad(k K) {
 
 	mat.ReleaseMatrix(grad)
 	delete(m.grads, key)
-	delete(m.EmbeddingsWithGrad, key)
+	delete(m.embeddingsWithGrad, key)
 }
