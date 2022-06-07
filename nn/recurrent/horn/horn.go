@@ -63,7 +63,15 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // Next performs a single forward step, producing a new state.
 func (m *Model) Next(states []*State, x ag.Node) (s *State) {
 	s = new(State)
-	h := ag.Affine(append([]ag.Node{m.B, m.W, x}, m.feedback(states)...)...)
+
+	fb := m.feedback(states)
+
+	wxs := make([]ag.Node, len(fb)+2)
+	wxs[0] = m.W
+	wxs[1] = x
+	copy(wxs[2:], fb)
+
+	h := ag.Affine(m.B, wxs...)
 	s.Y = ag.Tanh(h)
 	return
 }

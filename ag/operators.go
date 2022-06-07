@@ -28,6 +28,11 @@ func AddScalar(x1, x2 Node) Node {
 	return NewOperator(fn.NewAddScalar(x1, x2))
 }
 
+// Affine returns a new operator node as a result of the fn.Affine function.
+func Affine(b Node, wxs ...Node) Node {
+	return NewOperator(fn.NewAffine(b, wxs...))
+}
+
 // AppendRows returns a new operator node as a result of the fn.AppendRows function.
 func AppendRows(x Node, vs ...Node) Node {
 	return NewOperator(fn.NewAppendRows(x, vs...))
