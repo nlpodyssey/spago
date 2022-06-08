@@ -41,7 +41,8 @@ func NewAffine[O Operand](b O, wxs ...O) *Affine[O] {
 		if operandIsNil(x) {
 			continue
 		}
-		operands = append(operands, wxs[i:i+2]...)
+		operands = append(operands, wxs[i])
+		operands = append(operands, x)
 	}
 	return &Affine[O]{
 		operands: operands,
