@@ -6,7 +6,6 @@ package linear
 
 import (
 	"encoding/gob"
-	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
@@ -44,19 +43,8 @@ func (m *Model) WithBiasGrad(value bool) *Model {
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
-	if len(xs) == 1 {
-		ys[0] = ag.Affine(m.B, m.W, xs[0])
-		return ys
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(len(xs))
 	for i, x := range xs {
-		go func(i int, x ag.Node) {
-			ys[i] = ag.Affine(m.B, m.W, x)
-			wg.Done()
-		}(i, x)
+		ys[i] = ag.Affine(m.B, m.W, x)
 	}
-	wg.Wait()
 	return ys
 }
