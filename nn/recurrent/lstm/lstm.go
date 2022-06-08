@@ -58,19 +58,9 @@ func init() {
 	gob.Register(&Model{})
 }
 
-// SetRefinedGates sets whether to use refined gates.
-// Refined Gate: A Simple and Effective Gating Mechanism for Recurrent Units
-// (https://arxiv.org/pdf/2002.11338.pdf)
-// TODO: panic input size and output size are different
-func SetRefinedGates(value bool) Option {
-	return func(m *Model) {
-		m.UseRefinedGates = value
-	}
-}
-
 // New returns a new model with parameters initialized to zeros.
-func New[T float.DType](in, out int, options ...Option) *Model {
-	m := &Model{
+func New[T float.DType](in, out int) *Model {
+	return &Model{
 		UseRefinedGates: false,
 
 		// Input gate
@@ -93,10 +83,15 @@ func New[T float.DType](in, out int, options ...Option) *Model {
 		WCandRec: nn.NewParam(mat.NewEmptyDense[T](out, out)),
 		BCand:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
 	}
+}
 
-	for _, option := range options {
-		option(m)
-	}
+// WithRefinedGates sets whether to use refined gates.
+// Refined Gate: A Simple and Effective Gating Mechanism for Recurrent Units
+// (https://arxiv.org/pdf/2002.11338.pdf)
+//
+// Refined gates setting requires input size and output size be the same.
+func (m *Model) WithRefinedGates(value bool) *Model {
+	m.UseRefinedGates = value
 	return m
 }
 
