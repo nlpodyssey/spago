@@ -252,23 +252,6 @@ func NewGELU[O Operand](x O) *GELU[O] {
 	}
 }
 
-// Sqrt is an operator to perform element-wise square root.
-type Sqrt[O Operand] struct {
-	*UnaryElementwise[O]
-}
-
-// NewSqrt returns a new UnaryElementwise square root function.
-func NewSqrt[O Operand](x O) *Sqrt[O] {
-	return &Sqrt[O]{
-		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return math.Sqrt(v) },
-			df:       func(i, j int, v float64) float64 { return 0.5 * math.Pow(v, -0.5) },
-			operands: []O{x},
-		},
-	}
-}
-
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
 // The function in an alias of NewSwish.
 func NewSiLU[O Operand](x O) *Swish[O] {
