@@ -1024,12 +1024,12 @@ func (d *Dense[T]) Softmax() Matrix {
 		return out
 	}
 
-	max := d.max()
+	max := float64(d.max())
 
 	outData := out.data
 	_ = outData[len(dData)-1]
 	for i, v := range dData {
-		outData[i] = Exp(v - max)
+		outData[i] = T(math.Exp(float64(v) - max))
 	}
 
 	sum := out.sum()
