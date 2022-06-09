@@ -172,6 +172,7 @@ type fakeFloatSlice struct {
 
 func (f fakeFloatSlice) F32() []float32                    { return f.f32 }
 func (f fakeFloatSlice) F64() []float64                    { return f.f64 }
+func (f fakeFloatSlice) BitSize() int                      { return -1 }
 func (f fakeFloatSlice) Len() int                          { return f.ln }
 func (f fakeFloatSlice) Equals(float.Slice) bool           { panic("not implemented") }
 func (f fakeFloatSlice) InDelta(float.Slice, float64) bool { panic("not implemented") }
