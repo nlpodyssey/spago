@@ -42,10 +42,6 @@ type Operator struct {
 }
 
 // NewOperator creates a new operator along with its forward pass.
-// Please note that operations on nodes belonging to different graphs
-// result in unpredictable outcomes.
-// If you are working with two or more graphs simultaneously, you may
-// consider wrapping the nodes you need with NewWrap().
 func NewOperator(f fn.Function[Node]) Node {
 	op := &Operator{
 		requiresGrad:  -1, // lazy evaluation
