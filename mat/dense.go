@@ -655,11 +655,13 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 	if d.cols != other.Rows() {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := densePool[T]().GetEmpty(d.rows, other.Columns())
+	outRows := d.rows
+	outCols := other.Columns()
 
 	switch any(T(0)).(type) {
 	case float32:
-		if out.cols != 1 {
+		if outCols != 1 {
+			out := densePoolFloat32.GetEmpty(outRows, outCols)
 			f32.MatrixMul(
 				d.rows,                    // aRows
 				d.cols,                    // aCols
@@ -671,20 +673,22 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			return out
 		}
 
-		asm32.GemvN(
-			uintptr(d.rows),           // m
-			uintptr(d.cols),           // n
-			1,                         // alpha
-			any(d.data).([]float32),   // a
-			uintptr(d.cols),           // lda
-			other.Data().F32(),        // x
-			1,                         // incX
-			0,                         // beta
-			any(out.data).([]float32), // y
-			1,                         // incY
-		)
+		out := densePoolFloat32.Get(outRows, outCols)
+		dData := any(d.data).([]float32)
+		otherData := other.Data().F32()
+		outData := any(out.data).([]float32)
+
+		dCols := d.cols
+		from := 0
+		for i := range outData {
+			to := from + dCols
+			outData[i] = asm32.DotUnitary(dData[from:to], otherData)
+			from = to
+		}
+		return out
 	case float64:
-		if out.cols != 1 {
+		out := densePoolFloat64.GetEmpty(outRows, outCols)
+		if outCols != 1 {
 			f64.MatrixMul(
 				d.rows,                    // aRows
 				d.cols,                    // aCols
@@ -712,7 +716,6 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
-	return out
 }
 
 // MulT performs the matrix multiplication row by column.
