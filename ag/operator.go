@@ -21,7 +21,7 @@ var (
 
 // Operator is a type of node.
 type Operator struct {
-	requiresGrad  bool
+	requiresGrad  int8 // -1 = undefined, 0 = false, 1 = true
 	backwardState backwardState
 	function      fn.Function[Node]
 	// value is the results of a forward evaluation, as mat.Matrix.
@@ -47,16 +47,8 @@ type Operator struct {
 // If you are working with two or more graphs simultaneously, you may
 // consider wrapping the nodes you need with NewWrap().
 func NewOperator(f fn.Function[Node]) Node {
-	requiresGrad := false
-	for _, n := range f.Operands() {
-		if n.RequiresGrad() {
-			requiresGrad = true
-			break
-		}
-	}
-
 	op := &Operator{
-		requiresGrad:  requiresGrad,
+		requiresGrad:  -1, // lazy evaluation
 		backwardState: idle,
 		function:      f,
 		pendingGrads:  0,
@@ -104,7 +96,7 @@ func (o *Operator) Value() mat.Matrix {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (o *Operator) Grad() mat.Matrix {
-	if !o.requiresGrad {
+	if !o.RequiresGrad() {
 		return nil
 	}
 
@@ -129,7 +121,16 @@ func (o *Operator) HasGrad() bool {
 
 // RequiresGrad returns true if the node requires gradients.
 func (o *Operator) RequiresGrad() bool {
-	return o.requiresGrad
+	if o.requiresGrad == -1 {
+		o.requiresGrad = 0
+		for _, op := range o.function.Operands() {
+			if op.RequiresGrad() {
+				o.requiresGrad = 1
+				return true
+			}
+		}
+	}
+	return o.requiresGrad != 0
 }
 
 // ZeroGrad clears the gradients.
@@ -146,7 +147,7 @@ func (o *Operator) ZeroGrad() {
 
 // AccGrad accumulates the gradients to the node itself.
 func (o *Operator) AccGrad(grad mat.Matrix) {
-	if !o.requiresGrad {
+	if !o.RequiresGrad() {
 		return
 	}
 	o.cond.L.Lock()
@@ -198,7 +199,7 @@ func (o *Operator) forward() {
 
 // backward executes the backward
 func (o *Operator) backward() {
-	if !o.requiresGrad {
+	if !o.RequiresGrad() {
 		return
 	}
 

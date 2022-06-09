@@ -148,7 +148,7 @@ func BackwardManyT(tsh *TimeStepHandler, backSteps int, xs ...Node) {
 }
 
 func setupOperatorForBackward(tsh *TimeStepHandler, op *Operator, stopAtTimeStep int) {
-	if !op.requiresGrad || timeStepTruncation(tsh, op, stopAtTimeStep) {
+	if !op.RequiresGrad() || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
 
@@ -167,7 +167,7 @@ func setupOperatorForBackward(tsh *TimeStepHandler, op *Operator, stopAtTimeStep
 }
 
 func backward(tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operator, stopAtTimeStep int) {
-	if !op.requiresGrad || op.backwardState != pending || timeStepTruncation(tsh, op, stopAtTimeStep) {
+	if !op.RequiresGrad() || op.backwardState != pending || timeStepTruncation(tsh, op, stopAtTimeStep) {
 		return
 	}
 	op.backwardState = ongoing
