@@ -729,39 +729,41 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 	if other.Columns() != 1 {
 		panic("mat: the other matrix must have exactly 1 column")
 	}
-	out := densePool[T]().GetEmpty(d.cols, other.Columns())
 
 	switch any(T(0)).(type) {
 	case float32:
-		asm32.GemvT(
-			uintptr(d.rows),           // m
-			uintptr(d.cols),           // n
-			1,                         // alpha
-			any(d.data).([]float32),   // a
-			uintptr(d.cols),           // lda
-			other.Data().F32(),        // x
-			1,                         // incX
-			0,                         // beta
-			any(out.data).([]float32), // y
-			1,                         // incY
-		)
+		out := densePoolFloat32.GetEmpty(d.cols, other.Columns())
+
+		dCols := d.cols
+		dData := any(d.data).([]float32)
+		otherData := other.Data().F32()
+		outData := any(out.data).([]float32)
+
+		from := 0
+		for _, otherVal := range otherData {
+			to := from + dCols
+			asm32.AxpyUnitaryTo(outData, otherVal, dData[from:to], outData)
+			from = to
+		}
+		return out
 	case float64:
-		asm64.GemvT(
-			uintptr(d.rows),           // m
-			uintptr(d.cols),           // n
-			1,                         // alpha
-			any(d.data).([]float64),   // a
-			uintptr(d.cols),           // lda
-			other.Data().F64(),        // x
-			1,                         // incX
-			0,                         // beta
-			any(out.data).([]float64), // y
-			1,                         // incY
-		)
+		out := densePoolFloat64.GetEmpty(d.cols, other.Columns())
+
+		dCols := d.cols
+		dData := any(d.data).([]float64)
+		otherData := other.Data().F64()
+		outData := any(out.data).([]float64)
+
+		from := 0
+		for _, otherVal := range otherData {
+			to := from + dCols
+			asm64.AxpyUnitaryTo(outData, otherVal, dData[from:to], outData)
+			from = to
+		}
+		return out
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
-	return out
 }
 
 // DotUnitary returns the dot product of two vectors as a scalar Matrix.
