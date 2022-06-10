@@ -11,8 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
-// TODO: review this code once stable go 1.18 is released
-
 // SmallestNonzero returns the smallest positive, non-zero value representable by the type.
 func SmallestNonzero[T float.DType]() T {
 	switch any(T(0)).(type) {

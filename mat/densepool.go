@@ -43,7 +43,6 @@ func newDensePool[T float.DType]() *densePoolType[T] {
 // densePool returns the global (sort-of singleton) pre-instantiated pool
 // for a specific DType.
 func densePool[T float.DType]() *densePoolType[T] {
-	// TODO: review this code once stable go 1.18 is released
 	switch any(T(0)).(type) {
 	case float32:
 		return any(densePoolFloat32).(*densePoolType[T])
