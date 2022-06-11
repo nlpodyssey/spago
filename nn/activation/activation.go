@@ -6,6 +6,7 @@ package activation
 
 import (
 	"encoding/gob"
+	"reflect"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/nn"
@@ -37,8 +38,19 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if m.Activation == Identity {
 		return xs
 	}
-	transformed := func(x ag.Node) ag.Node {
-		return Do(m.Activation, append([]ag.Node{x}, ag.ToNodes(m.Params)...)...)
+
+	operator := activationsMap[m.Activation].operator
+
+	args := make([]reflect.Value, len(m.Params)+1)
+	for i, p := range m.Params {
+		args[i+1] = reflect.ValueOf(p)
 	}
-	return ag.Map(transformed, xs)
+
+	ys := make([]ag.Node, len(xs))
+	for i, x := range xs {
+		args[0] = reflect.ValueOf(x)
+		v := operator.Call(args)
+		ys[i] = v[0].Interface().(ag.Node)
+	}
+	return ys
 }
