@@ -13,6 +13,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -21,7 +22,7 @@ var _ nn.Model = &Model{}
 // Model contains the scaling factor.
 type Model struct {
 	nn.Module
-	Scale float64
+	Scale *ag.Constant
 }
 
 func init() {
@@ -29,9 +30,9 @@ func init() {
 }
 
 // New returns a new model.
-func New(scale float64) *Model {
+func New[T float.DType](scale float64) *Model {
 	return &Model{
-		Scale: scale,
+		Scale: ag.ScalarConst(T(scale)),
 	}
 }
 
@@ -43,14 +44,13 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	eps := ag.Var(xs[0].Value().NewScalar(1e-10))
 	one := ag.Var(xs[0].Value().NewScalar(1.0))
 	k := ag.Var(xs[0].Value().NewScalar(0.1))
-	c := ag.Var(xs[0].Value().NewScalar(m.Scale))
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))
 
 	for i, x := range xs {
 		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add(devVectors[i], eps))
-		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), c)
+		fi := ag.ProdScalar(ag.ReverseSub(ag.ProdScalar(y, k), one), m.Scale)
 		zs[i] = ag.Prod(y, ag.StopGrad(fi)) // detach the gradient of fi and only treat it as a changeable constant in implementation
 	}
 	return zs

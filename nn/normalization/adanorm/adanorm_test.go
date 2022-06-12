@@ -19,7 +19,7 @@ func TestModel_Forward(t *testing.T) {
 }
 
 func testModelForward[T float.DType](t *testing.T) {
-	m := New(0.8)
+	m := New[T](0.8)
 
 	// == Forward
 	x1 := ag.Var(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0})).WithGrad(true)
