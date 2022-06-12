@@ -12,61 +12,73 @@ import (
 
 // Affine is an operator to apply the affine function y = b + W1x1 + W2x2 + ... + WnXn.
 type Affine[O Operand] struct {
-	operands []O
+	b         O
+	w1        O
+	x1        O
+	wxPairs   []O
+	operators []O // lazily computed
 }
 
 // NewAffine returns a new Affine Function.
 //
 // The affine transformation is in the form y = b + W1x1 + W2x2 + ... + WnXn.
-// The function accepts the bias "b" and an arbitrary list of (w, x) pairs:
-// (b, w1, x1, w2, x2, ..., wn, xn).
+// The function accepts the bias "b", the first mandatory pair of "w1" and "x1",
+// and then an optional arbitrary list of (w, x) pairs, that is
+// "w2", "x2", "w3", "x3", ..., "wN", "xN".
 //
-// For each given pair (w, x), x is allowed to be nil. In this case, the pair
-// is completely ignored.
+// For each additional pair (w, x), x is allowed to be nil. In this case, the
+// pair is completely ignored.
 // For example, given the arguments (b, w1, x1, w2, x2, w3, x3), if only x2
 // is nil, the actual operation performed will be y = b + w1x1 + w3x3.
 //
-// If no (w, x) pair is given, or all x values are nil, the actual function
-// is just y = b
+// If no additional (w, x) pair is given, or all x values of wxPairs are nil,
+// the actual function is just y = b + W1x1.
 //
 // It panics if the length of wxs is not even.
-func NewAffine[O Operand](b O, wxs ...O) *Affine[O] {
-	if len(wxs)%2 != 0 {
-		panic("mat: affine function: invalid list of (w, x) pairs")
-	}
-	operands := make([]O, 1, len(wxs)+1)
-	operands[0] = b
-	for i := 0; i < len(wxs); i += 2 {
-		x := wxs[i+1]
-		if operandIsNil(x) {
-			continue
+func NewAffine[O Operand](b, w1, x1 O, wxPairs ...O) *Affine[O] {
+	var filteredPairs []O
+	if len(wxPairs) > 0 {
+		if len(wxPairs)%2 != 0 {
+			panic("mat: affine function: invalid list of additional (w, x) pairs")
 		}
-		operands = append(operands, wxs[i], x)
+		filteredPairs = make([]O, 0, len(wxPairs))
+		for i := 0; i < len(wxPairs); i += 2 {
+			x := wxPairs[i+1]
+			if operandIsNil(x) {
+				continue
+			}
+			filteredPairs = append(filteredPairs, wxPairs[i], x)
+		}
 	}
 	return &Affine[O]{
-		operands: operands,
+		b:       b,
+		w1:      w1,
+		x1:      x1,
+		wxPairs: filteredPairs,
 	}
 }
 
 // Operands returns the list of operands.
 func (a *Affine[O]) Operands() []O {
-	return a.operands
+	if a.operators == nil {
+		ops := make([]O, len(a.wxPairs)+3)
+		ops[0] = a.b
+		ops[1] = a.w1
+		ops[2] = a.x1
+		copy(ops[3:], a.wxPairs)
+		a.operators = ops
+	}
+	return a.operators
 }
 
 // Forward computes the output of the function.
 func (a *Affine[O]) Forward() mat.Matrix {
-	operands := a.operands
-	if len(operands) == 1 {
-		return operands[0].Value()
-	}
-	var y mat.Matrix
-	for i := 1; i < len(operands); i += 2 {
-		wx := operands[i].Value().Mul(operands[i+1].Value())
-		if y == nil {
-			y = operands[0].Value().Add(wx)
-		} else {
-			y.AddInPlace(wx)
-		}
+	y := a.w1.Value().Mul(a.x1.Value()).AddInPlace(a.b.Value())
+
+	wxPairs := a.wxPairs
+	for i := 0; i < len(wxPairs); i += 2 {
+		wx := wxPairs[i].Value().Mul(wxPairs[i+1].Value())
+		y.AddInPlace(wx)
 		mat.ReleaseMatrix(wx)
 	}
 	return y
@@ -74,21 +86,16 @@ func (a *Affine[O]) Forward() mat.Matrix {
 
 // Backward computes the backward pass.
 func (a *Affine[O]) Backward(gy mat.Matrix) {
-	operands := a.operands
-
-	if b := operands[0]; b.RequiresGrad() {
-		if !mat.SameDims(b.Value(), gy) {
+	if a.b.RequiresGrad() {
+		if !mat.SameDims(a.b.Value(), gy) {
 			panic("fn: matrices have incompatible dimensions")
 		}
-		b.AccGrad(gy)
+		a.b.AccGrad(gy)
 	}
 
 	var wg sync.WaitGroup
 
-	for i := 1; i < len(operands); i += 2 {
-		w := operands[i]
-		x := operands[i+1]
-
+	backwardWX := func(w, x O) {
 		wv := w.Value()
 		xv := x.Value()
 
@@ -125,6 +132,12 @@ func (a *Affine[O]) Backward(gy mat.Matrix) {
 				wg.Done()
 			}()
 		}
+	}
+
+	backwardWX(a.w1, a.x1)
+
+	for i := 0; i < len(a.wxPairs); i += 2 {
+		backwardWX(a.wxPairs[i], a.wxPairs[i+1])
 	}
 
 	wg.Wait()

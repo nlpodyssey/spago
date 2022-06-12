@@ -66,12 +66,7 @@ func (m *Model) Next(states []*State, x ag.Node) (s *State) {
 
 	fb := m.feedback(states)
 
-	wxs := make([]ag.Node, len(fb)+2)
-	wxs[0] = m.W
-	wxs[1] = x
-	copy(wxs[2:], fb)
-
-	h := ag.Affine(m.B, wxs...)
+	h := ag.Affine(m.B, m.W, x, fb...)
 	s.Y = ag.Tanh(h)
 	return
 }

@@ -29,8 +29,8 @@ func AddScalar(x1, x2 Node) Node {
 }
 
 // Affine returns a new operator node as a result of the fn.Affine function.
-func Affine(b Node, wxs ...Node) Node {
-	return NewOperator(fn.NewAffine(b, wxs...))
+func Affine(b, w1, x1 Node, wxPairs ...Node) Node {
+	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...))
 }
 
 // AppendRows returns a new operator node as a result of the fn.AppendRows function.
