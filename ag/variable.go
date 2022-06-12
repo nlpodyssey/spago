@@ -69,7 +69,7 @@ func (r *Variable) WithName(value string) *Variable {
 // Name returns the Name of the variable (it can be empty).
 // If a variable has no name, and the value is a scalar, then it returns its value.
 //
-// Identifying a Variable solely upon its name is highly discourages.
+// Identifying a Variable solely upon its name is highly discouraged.
 // The name should be used solely for debugging or testing purposes.
 func (r *Variable) Name() string {
 	if r.name != "" {
