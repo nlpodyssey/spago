@@ -92,10 +92,6 @@ func (o *Operator) Value() mat.Matrix {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (o *Operator) Grad() mat.Matrix {
-	if !o.RequiresGrad() {
-		return nil
-	}
-
 	if atomic.LoadInt64(&o.pendingGrads) == 0 {
 		return o.grad
 	}
