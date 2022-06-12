@@ -56,12 +56,17 @@ func (a *Affine[O]) Operands() []O {
 // Forward computes the output of the function.
 func (a *Affine[O]) Forward() mat.Matrix {
 	operands := a.operands
-	y := operands[0].Value().Clone()
+	if len(operands) == 1 {
+		return operands[0].Value()
+	}
+	var y mat.Matrix
 	for i := 1; i < len(operands); i += 2 {
-		w := operands[i].Value()
-		x := operands[i+1].Value()
-		wx := w.Mul(x)
-		y.AddInPlace(wx)
+		wx := operands[i].Value().Mul(operands[i+1].Value())
+		if y == nil {
+			y = operands[0].Value().Add(wx)
+		} else {
+			y.AddInPlace(wx)
+		}
 		mat.ReleaseMatrix(wx)
 	}
 	return y
