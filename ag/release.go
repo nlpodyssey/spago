@@ -16,33 +16,13 @@ package ag
 // Freed resources include, but are not limited to, the value and the gradients.
 // Any freed operator MUST not be used after this operation is performed.
 func ReleaseGraph(nodes ...Node) {
-	toVisit := make([]*Operator, 0, len(nodes))
-
 	for _, node := range nodes {
-		if op, ok := node.(*Operator); ok {
-			toVisit = append(toVisit, op)
+		if op, ok := node.(*Operator); ok && op.function != nil {
+			ReleaseGraph(op.function.Operands()...)
+			op.releaseValue()
+			op.ZeroGrad()
+			op.function = nil
+			op.cond.L = nil
 		}
-	}
-
-	for len(toVisit) > 0 {
-		lastIndex := len(toVisit) - 1
-		op := toVisit[lastIndex]
-		toVisit[lastIndex] = nil
-		toVisit = toVisit[:lastIndex]
-
-		if op.function == nil {
-			continue // already visited
-		}
-
-		for _, operand := range op.function.Operands() {
-			if oo, ok := operand.(*Operator); ok {
-				toVisit = append(toVisit, oo)
-			}
-		}
-
-		op.releaseValue()
-		op.ZeroGrad()
-		op.function = nil
-		op.cond.L = nil
 	}
 }
