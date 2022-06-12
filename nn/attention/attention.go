@@ -17,8 +17,9 @@ import (
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
 func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausalMask bool) ([]ag.Node, []ag.Node) {
-	attention := make([]ag.Node, len(q))
-	weights := make([]ag.Node, len(q))
+	nodes := make([]ag.Node, len(q)*2)
+	attention := nodes[:len(q)]
+	weights := nodes[len(q):]
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
