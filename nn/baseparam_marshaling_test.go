@@ -11,6 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,78 +22,55 @@ func TestParam_Gob(t *testing.T) {
 }
 
 func testParamGob[T float.DType](t *testing.T) {
-	t.Run("simple case", func(t *testing.T) {
+	t.Run("with all serializable values set", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam(mat.NewScalar(T(12)))
-		paramToEncode.SetPayload(&Payload{
+		p1 := NewParam(mat.NewScalar(T(12)))
+		p1.SetName("foo")
+		p1.SetType(Biases)
+		p1.SetRequiresGrad(false)
+		p1.SetPayload(&Payload{
 			Label: 42,
 			Data:  []mat.Matrix{mat.NewScalar(T(34))},
 		})
 
-		err := gob.NewEncoder(&buf).Encode(paramToEncode)
+		err := gob.NewEncoder(&buf).Encode(p1)
 		require.Nil(t, err)
 
-		var decodedParam *BaseParam
+		var p2 *BaseParam
 
-		err = gob.NewDecoder(&buf).Decode(&decodedParam)
+		err = gob.NewDecoder(&buf).Decode(&p2)
 		require.Nil(t, err)
-		require.NotNil(t, decodedParam)
-		require.NotNil(t, decodedParam.Value())
-		assert.Equal(t, float.Interface(T(12)), decodedParam.Value().Scalar())
+		require.NotNil(t, p2)
+		require.NotNil(t, p2.Value())
+		mattest.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
+		assert.Equal(t, "foo", p2.Name())
+		assert.Equal(t, Biases, p2.Type())
+		assert.False(t, p2.RequiresGrad())
 
-		payload := decodedParam.Payload()
+		payload := p2.Payload()
 		assert.NotNil(t, payload)
 		assert.Equal(t, 42, payload.Label)
 		assert.NotEmpty(t, payload.Data)
-		assert.Equal(t, float.Interface(T(34)), payload.Data[0].Scalar())
+		mattest.AssertMatrixEquals(t, mat.NewScalar(T(34)), payload.Data[0])
 	})
 
-	t.Run("nil value and payload", func(t *testing.T) {
+	t.Run("with default properties and nil value", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		paramToEncode := NewParam(nil)
+		p1 := NewParam(nil)
 
-		err := gob.NewEncoder(&buf).Encode(paramToEncode)
+		err := gob.NewEncoder(&buf).Encode(p1)
 		require.Nil(t, err)
 
-		var decodedParam *BaseParam
-		err = gob.NewDecoder(&buf).Decode(&decodedParam)
+		var p2 *BaseParam
+		err = gob.NewDecoder(&buf).Decode(&p2)
 		require.Nil(t, err)
-		require.NotNil(t, decodedParam)
-		assert.Nil(t, decodedParam.Value())
-		assert.Nil(t, decodedParam.Payload())
-	})
-}
-
-func TestParamInterfaceBinaryMarshaling(t *testing.T) {
-	t.Run("float32", testParamInterfaceBinaryMarshaling[float32])
-	t.Run("float64", testParamInterfaceBinaryMarshaling[float64])
-}
-
-func testParamInterfaceBinaryMarshaling[T float.DType](t *testing.T) {
-	t.Run("simple case", func(t *testing.T) {
-		buf := new(bytes.Buffer)
-
-		paramToEncode := NewParam(mat.NewScalar[T](42))
-		err := MarshalBinaryParam(paramToEncode, buf)
-		require.Nil(t, err)
-
-		decodedParam, err := UnmarshalBinaryParam(buf)
-		require.Nil(t, err)
-		require.NotNil(t, decodedParam)
-		assert.Equal(t, float.Interface(T(42)), decodedParam.Value().Scalar())
-	})
-
-	t.Run("nil", func(t *testing.T) {
-		buf := new(bytes.Buffer)
-
-		var paramToEncode *BaseParam = nil
-		err := MarshalBinaryParam(paramToEncode, buf)
-		require.Nil(t, err)
-
-		decodedParam, err := UnmarshalBinaryParam(buf)
-		require.Nil(t, err)
-		assert.Nil(t, decodedParam)
+		require.NotNil(t, p2)
+		assert.Nil(t, p2.Value())
+		assert.Empty(t, p2.Name())
+		assert.Equal(t, Undefined, p2.Type())
+		assert.True(t, p2.RequiresGrad())
+		assert.Nil(t, p2.Payload())
 	})
 }

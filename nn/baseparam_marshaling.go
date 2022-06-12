@@ -6,9 +6,8 @@ package nn
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/gob"
-	"io"
+	"fmt"
 
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -19,144 +18,45 @@ func init() {
 	gob.Register(&BaseParam{})
 }
 
+type baseParamForMarshaling struct {
+	Name         string
+	PType        ParamsType
+	Value        mat.Matrix
+	Payload      *Payload
+	RequiresGrad bool
+}
+
 // MarshalBinary marshals a param into binary form.
 func (p *BaseParam) MarshalBinary() ([]byte, error) {
-	buf := new(bytes.Buffer)
-
-	err := mat.MarshalBinaryMatrix(p.value, buf)
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	v := baseParamForMarshaling{
+		Name:         p.name,
+		PType:        p.pType,
+		Value:        p.value,
+		Payload:      p.payload,
+		RequiresGrad: p.requiresGrad,
+	}
+	err := enc.Encode(v)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot encode BaseParam: %w", err)
 	}
-
-	if p.payload == nil {
-		buf.WriteByte(0)
-	} else {
-		buf.WriteByte(1)
-		pBin, err := p.payload.MarshalBinary()
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(pBin)
-	}
-
 	return buf.Bytes(), nil
 }
 
 // UnmarshalBinary unmarshals a param from binary form.
 func (p *BaseParam) UnmarshalBinary(data []byte) error {
-	var err error
-	buf := bytes.NewReader(data)
-
-	p.value, err = mat.UnmarshalBinaryMatrix(buf)
+	r := bytes.NewReader(data)
+	dec := gob.NewDecoder(r)
+	var v baseParamForMarshaling
+	err := dec.Decode(&v)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot decode BaseParam: %w", err)
 	}
-
-	hasPayload, err := buf.ReadByte()
-	if err != nil {
-		return err
-	}
-	if hasPayload == 0 {
-		p.payload = nil
-		return nil
-	}
-
-	p.payload = new(Payload)
-
-	pBin, err := io.ReadAll(buf)
-	if err != nil {
-		return err
-	}
-
-	return p.payload.UnmarshalBinary(pBin)
-}
-
-// MarshalBinaryParam encodes a Param into binary form.
-func MarshalBinaryParam(p *BaseParam, w io.Writer) error {
-	if p == nil {
-		_, err := w.Write([]byte{0})
-		return err
-	}
-
-	_, err := w.Write([]byte{1})
-	if err != nil {
-		return err
-	}
-
-	bin, err := p.MarshalBinary()
-	if err != nil {
-		return err
-	}
-
-	binLen := make([]byte, 4)
-	binary.LittleEndian.PutUint32(binLen, uint32(len(bin)))
-	_, err = w.Write(binLen)
-	if err != nil {
-		return err
-	}
-
-	_, err = w.Write(bin)
-	return err
-}
-
-// UnmarshalBinaryParam decodes a Param from binary form.
-// TODO: add a "withBacking" optional argument to remove the need of UnmarshalBinaryParamWithReceiver().
-func UnmarshalBinaryParam(r io.Reader) (*BaseParam, error) {
-	isPresent := make([]byte, 1)
-	_, err := r.Read(isPresent)
-	if err != nil {
-		return nil, err
-	}
-	if isPresent[0] == 0 {
-		return nil, nil
-	}
-
-	binLenBytes := make([]byte, 4)
-	_, err = r.Read(binLenBytes)
-	if err != nil {
-		return nil, err
-	}
-	binLen := int(binary.LittleEndian.Uint32(binLenBytes))
-	bin := make([]byte, binLen)
-	_, err = r.Read(bin)
-	if err != nil {
-		return nil, err
-	}
-
-	p := new(BaseParam)
-	err = p.UnmarshalBinary(bin)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
-}
-
-// UnmarshalBinaryParamWithReceiver decodes a Param from binary form into the receiver.
-func UnmarshalBinaryParamWithReceiver(r io.Reader, dest *BaseParam) error {
-	isPresent := make([]byte, 1)
-	_, err := r.Read(isPresent)
-	if err != nil {
-		return err
-	}
-	if isPresent[0] == 0 {
-		return nil
-	}
-
-	binLenBytes := make([]byte, 4)
-	_, err = r.Read(binLenBytes)
-	if err != nil {
-		return err
-	}
-	binLen := int(binary.LittleEndian.Uint32(binLenBytes))
-	bin := make([]byte, binLen)
-	_, err = r.Read(bin)
-	if err != nil {
-		return err
-	}
-
-	err = dest.UnmarshalBinary(bin)
-	if err != nil {
-		return err
-	}
+	p.name = v.Name
+	p.pType = v.PType
+	p.value = v.Value
+	p.payload = v.Payload
+	p.requiresGrad = v.RequiresGrad
 	return nil
 }
