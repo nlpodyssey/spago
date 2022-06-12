@@ -289,6 +289,9 @@ type Matrix interface {
 // Data returns the underlying data of the matrix, as a raw one-dimensional
 // slice of values in row-major order.
 func Data[T float.DType](m Matrix) []T {
+	if d, ok := m.(*Dense[T]); ok {
+		return d.data
+	}
 	return float.SliceValueOf[T](m.Data())
 }
 
@@ -373,4 +376,18 @@ func InDelta(a, b Matrix, delta float64) bool {
 	return a.Rows() == b.Rows() &&
 		a.Columns() == b.Columns() &&
 		a.Data().InDelta(b.Data(), delta)
+}
+
+func float32Data(m Matrix) []float32 {
+	if d, ok := m.(*Dense[float32]); ok {
+		return d.data
+	}
+	return m.Data().F32()
+}
+
+func float64Data(m Matrix) []float64 {
+	if d, ok := m.(*Dense[float64]); ok {
+		return d.data
+	}
+	return m.Data().F64()
 }
