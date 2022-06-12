@@ -36,7 +36,8 @@ func testScaledDotProductAttention[T float.DType](t *testing.T) {
 		2.3, 6.5, 3.5,
 	})).WithGrad(true)
 
-	results, _ := ScaledDotProductAttention(queries, keys, values, 1.0/math.Sqrt(3), false)
+	scaleFactor := ag.ScalarConst(T(1.0 / math.Sqrt(3)))
+	results, _ := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)
 
 	if len(results) != 3 {
 		t.Error("The attention doesn't have the expected length")
@@ -70,8 +71,10 @@ func testScaledDotProductAttention2[T float.DType](t *testing.T) {
 		-0.07, 0.0, 0.29, 0.5,
 	})).WithGrad(true)
 
+	scaleFactor := ag.ScalarConst(T(1.0 / math.Sqrt(2)))
+
 	// == Forward
-	results, weights := ScaledDotProductAttention(queries, keys, values, 1.0/math.Sqrt(2), false)
+	results, weights := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)
 
 	if len(results) != 3 {
 		t.Error("The results doesn't have the expected length")

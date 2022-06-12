@@ -27,9 +27,10 @@ type Cache [2]ag.Node
 type Model struct {
 	nn.Module
 	Config
-	Query *linear.Model
-	Key   *linear.Model
-	Value *linear.Model
+	Query       *linear.Model
+	Key         *linear.Model
+	Value       *linear.Model
+	ScaleFactor *ag.Constant
 }
 
 // Config provides configuration settings for a Self-Attention Model.
@@ -49,10 +50,11 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](config Config) *Model {
 	return &Model{
-		Config: config,
-		Query:  linear.New[T](config.InputSize, config.QuerySize),
-		Key:    linear.New[T](config.InputSize, config.KeySize),
-		Value:  linear.New[T](config.InputSize, config.ValueSize),
+		Config:      config,
+		Query:       linear.New[T](config.InputSize, config.QuerySize),
+		Key:         linear.New[T](config.InputSize, config.KeySize),
+		Value:       linear.New[T](config.InputSize, config.ValueSize),
+		ScaleFactor: ag.ScalarConst(T(config.ScaleFactor)),
 	}
 }
 

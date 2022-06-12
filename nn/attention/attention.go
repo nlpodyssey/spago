@@ -16,10 +16,9 @@ import (
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(q []ag.Node, k, v ag.Node, scaleFactor float64, useCausalMask bool) ([]ag.Node, []ag.Node) {
+func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausalMask bool) ([]ag.Node, []ag.Node) {
 	attention := make([]ag.Node, len(q))
 	weights := make([]ag.Node, len(q))
-	factor := ag.Var(k.Value().NewScalar(scaleFactor))
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
@@ -29,7 +28,7 @@ func ScaledDotProductAttention(q []ag.Node, k, v ag.Node, scaleFactor float64, u
 
 	for i, qi := range q {
 		go func(i int, qi ag.Node) {
-			scores := ag.ProdScalar(ag.Mul(k, qi), factor)
+			scores := ag.ProdScalar(ag.Mul(k, qi), scaleFactor)
 
 			if causalMaskEnabled {
 				causalMask := k.Value().NewVec(float.SliceInterface(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
