@@ -10,21 +10,19 @@ import (
 
 // Transpose is a Function to calculate the transpose of the matrix-operand.
 type Transpose[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewTranspose returns a new Transpose Function.
 func NewTranspose[O Operand](x O) *Transpose[O] {
 	return &Transpose[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Transpose[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the node.

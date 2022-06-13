@@ -5,29 +5,28 @@
 package fn
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"sync"
+
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Mul is an operator to perform matrix-vector multiplication.
 type Mul[O Operand] struct {
-	x1       O // matrix
-	x2       O // vector
-	operands []O
+	x1 O // matrix
+	x2 O // vector
 }
 
 // NewMul returns a new Mul Function.
 func NewMul[O Operand](x1 O, x2 O) *Mul[O] {
 	return &Mul[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Mul[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.

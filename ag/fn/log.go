@@ -8,21 +8,19 @@ import "github.com/nlpodyssey/spago/mat"
 
 // Log is an operator to perform element-wise natural logarithm function.
 type Log[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewLog returns a new Log Function.
 func NewLog[O Operand](x O) *Log[O] {
 	return &Log[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (l *Log[O]) Operands() []O {
-	return l.operands
+	return []O{l.x}
 }
 
 // Forward computes the output of the function.

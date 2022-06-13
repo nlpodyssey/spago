@@ -12,29 +12,27 @@ import (
 
 // Dropout is an operator to perform elements dropout with a probability.
 type Dropout[O Operand] struct {
-	x        O
-	prob     float64
-	q        float64 // 1 - p
-	randGen  *rand.LockedRand
-	mask     mat.Matrix // filled during the forward
-	operands []O
+	x       O
+	prob    float64
+	q       float64 // 1 - p
+	randGen *rand.LockedRand
+	mask    mat.Matrix // filled during the forward
 }
 
 // NewDropout returns a new Dropout Function.
 func NewDropout[O Operand](x O, p float64, randGen *rand.LockedRand) *Dropout[O] {
 	return &Dropout[O]{
-		x:        x,
-		prob:     p,
-		q:        1.0 - float64(p),
-		randGen:  randGen,
-		mask:     nil,
-		operands: []O{x},
+		x:       x,
+		prob:    p,
+		q:       1.0 - float64(p),
+		randGen: randGen,
+		mask:    nil,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Dropout[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

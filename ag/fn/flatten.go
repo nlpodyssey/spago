@@ -10,21 +10,19 @@ import (
 
 // Flatten is a Function to reshape a matrix-operand into a "flattened" row vector.
 type Flatten[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewFlatten returns a new Flatten Function.
 func NewFlatten[O Operand](x O) *Flatten[O] {
 	return &Flatten[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Flatten[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the node.

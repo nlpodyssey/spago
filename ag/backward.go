@@ -159,7 +159,7 @@ func setupOperatorForBackward(tsh *TimeStepHandler, op *Operator, stopAtTimeStep
 	}
 	op.backwardState = pending
 
-	for _, operand := range op.function.Operands() {
+	for _, operand := range op.Operands() {
 		if oo, ok := operand.(*Operator); ok {
 			setupOperatorForBackward(tsh, oo, stopAtTimeStep)
 		}
@@ -179,7 +179,7 @@ func backward(tsh *TimeStepHandler, wg *sync.WaitGroup, op *Operator, stopAtTime
 		wg.Done()
 	}()
 
-	for _, operand := range op.function.Operands() {
+	for _, operand := range op.Operands() {
 		if oo, ok := operand.(*Operator); ok {
 			backward(tsh, wg, oo, stopAtTimeStep)
 		}

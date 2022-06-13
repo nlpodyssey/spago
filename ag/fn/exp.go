@@ -8,21 +8,19 @@ import "github.com/nlpodyssey/spago/mat"
 
 // Exp is an operator to perform element-wise base-e exponential function.
 type Exp[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewExp returns a new Exp Function.
 func NewExp[O Operand](x O) *Exp[O] {
 	return &Exp[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (e *Exp[O]) Operands() []O {
-	return e.operands
+	return []O{e.x}
 }
 
 // Forward computes the output of the function.

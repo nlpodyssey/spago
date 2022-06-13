@@ -8,9 +8,8 @@ import "github.com/nlpodyssey/spago/mat"
 
 // RowView is a function to extract the i-th row from the input matrix.
 type RowView[O Operand] struct {
-	x        O
-	i        int
-	operands []O
+	x O
+	i int
 }
 
 // NewRowView returns a new RowView Function.
@@ -19,15 +18,14 @@ func NewRowView[O Operand](x O, i int) *RowView[O] {
 		panic("fn: invalid row index")
 	}
 	return &RowView[O]{
-		x:        x,
-		i:        i,
-		operands: []O{x},
+		x: x,
+		i: i,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *RowView[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

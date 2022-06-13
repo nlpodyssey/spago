@@ -10,23 +10,21 @@ import (
 
 // Sub is an element-wise subtraction function over two values.
 type Sub[O Operand] struct {
-	x1       O
-	x2       O
-	operands []O
+	x1 O
+	x2 O
 }
 
 // NewSub returns a new Sub Function.
 func NewSub[O Operand](x1 O, x2 O) *Sub[O] {
 	return &Sub[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Sub[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.

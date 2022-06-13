@@ -11,23 +11,21 @@ import (
 // ELU is an operator to perform the ELU activation function.
 // ELU(x) = max(0,x) + min(0,α ∗ (exp(x) − 1))
 type ELU[O Operand] struct {
-	x        O
-	alpha    O // scalar
-	operands []O
+	x     O
+	alpha O // scalar
 }
 
 // NewELU returns a new ELU Function.
 func NewELU[O Operand](x O, alpha O) *ELU[O] {
 	return &ELU[O]{
-		x:        x,
-		alpha:    alpha,
-		operands: []O{x, alpha},
+		x:     x,
+		alpha: alpha,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *ELU[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.alpha}
 }
 
 // Forward computes the output of the function.

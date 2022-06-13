@@ -8,21 +8,19 @@ import "github.com/nlpodyssey/spago/mat"
 
 // ReduceMean is an operator to perform reduce-mean function.
 type ReduceMean[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewReduceMean returns a new ReduceMean Function.
 func NewReduceMean[O Operand](x O) *ReduceMean[O] {
 	return &ReduceMean[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *ReduceMean[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of this node.

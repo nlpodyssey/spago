@@ -13,7 +13,6 @@ type Threshold[O Operand] struct {
 	x         O
 	threshold O // scalar
 	k         O // scalar
-	operands  []O
 }
 
 // NewThreshold returns a new Threshold Function.
@@ -22,13 +21,12 @@ func NewThreshold[O Operand](x O, threshold, k O) *Threshold[O] {
 		x:         x,
 		threshold: threshold,
 		k:         k,
-		operands:  []O{x, threshold, k},
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Threshold[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.threshold, r.k}
 }
 
 // Forward computes the output of the function.

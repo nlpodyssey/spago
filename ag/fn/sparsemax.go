@@ -13,22 +13,20 @@ import (
 
 // SparseMax function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMax[O Operand] struct {
-	x        O
-	y        mat.Matrix // initialized during the forward pass, required by the backward pass
-	operands []O
+	x O
+	y mat.Matrix // initialized during the forward pass, required by the backward pass
 }
 
 // NewSparseMax returns a new SparseMax Function.
 func NewSparseMax[O Operand](x O) *SparseMax[O] {
 	return &SparseMax[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *SparseMax[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

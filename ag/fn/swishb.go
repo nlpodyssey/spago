@@ -13,23 +13,21 @@ import (
 // Reference: "Searching for Activation Functions" by Ramachandran et al, 2017.
 // (https://arxiv.org/pdf/1710.05941.pdf)
 type SwishB[O Operand] struct {
-	x        O
-	beta     O // scalar
-	operands []O
+	x    O
+	beta O // scalar
 }
 
 // NewSwishB returns a new SwishB Function.
 func NewSwishB[O Operand](x O, beta O) *SwishB[O] {
 	return &SwishB[O]{
-		x:        x,
-		beta:     beta,
-		operands: []O{x, beta},
+		x:    x,
+		beta: beta,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *SwishB[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.beta}
 }
 
 // Forward computes the output of the function.

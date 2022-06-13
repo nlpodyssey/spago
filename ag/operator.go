@@ -39,6 +39,8 @@ type Operator struct {
 	// It's primarily useful for later associating a correct time-step
 	// to this operator, if needed for truncated backpropagation.
 	createdAt uint64
+	// Function's operands are memoized here after the first request.
+	operands []Node
 }
 
 // NewOperator creates a new operator along with its forward pass.
@@ -71,7 +73,10 @@ func (o *Operator) Name() string {
 
 // Operands returns the operands of the operator.
 func (o *Operator) Operands() []Node {
-	return o.function.Operands()
+	if o.operands == nil {
+		o.operands = o.function.Operands()
+	}
+	return o.operands
 }
 
 // Value returns the result of the function.
@@ -115,7 +120,7 @@ func (o *Operator) HasGrad() bool {
 func (o *Operator) RequiresGrad() bool {
 	if o.requiresGrad == -1 {
 		o.requiresGrad = 0
-		for _, op := range o.function.Operands() {
+		for _, op := range o.Operands() {
 			if op.RequiresGrad() {
 				o.requiresGrad = 1
 				return true

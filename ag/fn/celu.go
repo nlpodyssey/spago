@@ -11,23 +11,21 @@ import (
 // CELU is an operator to perform the CELU activation.
 // CELU(x) = max(0,x) + min(0,α ∗ (exp(x/α) − 1))
 type CELU[O Operand] struct {
-	x        O
-	alpha    O // scalar
-	operands []O
+	x     O
+	alpha O // scalar
 }
 
 // NewCELU returns a new CELU Function.
 func NewCELU[O Operand](x O, alpha O) *CELU[O] {
 	return &CELU[O]{
-		x:        x,
-		alpha:    alpha,
-		operands: []O{x, alpha},
+		x:     x,
+		alpha: alpha,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *CELU[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.alpha}
 }
 
 // Forward computes the output of the function.

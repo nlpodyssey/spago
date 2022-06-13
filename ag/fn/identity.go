@@ -9,21 +9,19 @@ import "github.com/nlpodyssey/spago/mat"
 // Identity is an operator to perform identity function.
 // y = x
 type Identity[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewIdentity returns a new Identity Function.
 func NewIdentity[O Operand](x O) *Identity[O] {
 	return &Identity[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Identity[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

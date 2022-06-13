@@ -10,23 +10,21 @@ import (
 
 // DivScalar is an operator to perform element-wise division with a scalar value.
 type DivScalar[O Operand] struct {
-	x1       O
-	x2       O // scalar
-	operands []O
+	x1 O
+	x2 O // scalar
 }
 
 // NewDivScalar returns a new DivScalar Function.
 func NewDivScalar[O Operand](x1 O, x2 O) *DivScalar[O] {
 	return &DivScalar[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *DivScalar[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.

@@ -17,10 +17,9 @@ type Tan[O Operand] struct {
 func NewTan[O Operand](x O) *Tan[O] {
 	return &Tan[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        tan,
-			df:       tanDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  tan,
+			df: tanDeriv,
 		},
 	}
 }
@@ -34,10 +33,9 @@ type Tanh[O Operand] struct {
 func NewTanh[O Operand](x O) *Tanh[O] {
 	return &Tanh[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        tanh,
-			df:       tanhDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  tanh,
+			df: tanhDeriv,
 		},
 	}
 }
@@ -51,10 +49,9 @@ type Sigmoid[O Operand] struct {
 func NewSigmoid[O Operand](x O) *Sigmoid[O] {
 	return &Sigmoid[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        sigmoid,
-			df:       sigmoidDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  sigmoid,
+			df: sigmoidDeriv,
 		},
 	}
 }
@@ -68,10 +65,9 @@ type HardSigmoid[O Operand] struct {
 func NewHardSigmoid[O Operand](x O) *HardSigmoid[O] {
 	return &HardSigmoid[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        hardSigmoid,
-			df:       hardSigmoidDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  hardSigmoid,
+			df: hardSigmoidDeriv,
 		},
 	}
 }
@@ -85,10 +81,9 @@ type HardTanh[O Operand] struct {
 func NewHardTanh[O Operand](x O) *HardTanh[O] {
 	return &HardTanh[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        hardTanh,
-			df:       hardTanhDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  hardTanh,
+			df: hardTanhDeriv,
 		},
 	}
 }
@@ -102,10 +97,9 @@ type ReLU[O Operand] struct {
 func NewReLU[O Operand](x O) *ReLU[O] {
 	return &ReLU[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        relu,
-			df:       reluDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  relu,
+			df: reluDeriv,
 		},
 	}
 }
@@ -119,10 +113,9 @@ type Softsign[O Operand] struct {
 func NewSoftsign[O Operand](x O) *Softsign[O] {
 	return &Softsign[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        softsign,
-			df:       softsignDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  softsign,
+			df: softsignDeriv,
 		},
 	}
 }
@@ -136,10 +129,9 @@ type Cos[O Operand] struct {
 func NewCos[O Operand](x O) *Cos[O] {
 	return &Cos[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(_, _ int, v float64) float64 { return math.Cos(v) },
-			df:       func(_, _ int, v float64) float64 { return -math.Sin(v) },
-			operands: []O{x},
+			x:  x,
+			f:  func(_, _ int, v float64) float64 { return math.Cos(v) },
+			df: func(_, _ int, v float64) float64 { return -math.Sin(v) },
 		},
 	}
 }
@@ -153,10 +145,9 @@ type Sin[O Operand] struct {
 func NewSin[O Operand](x O) *Sin[O] {
 	return &Sin[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return math.Sin(v) },
-			df:       func(i, j int, v float64) float64 { return math.Cos(v) },
-			operands: []O{x},
+			x:  x,
+			f:  func(i, j int, v float64) float64 { return math.Sin(v) },
+			df: func(i, j int, v float64) float64 { return math.Cos(v) },
 		},
 	}
 }
@@ -170,10 +161,9 @@ type Neg[O Operand] struct {
 func NewNeg[O Operand](x O) *Neg[O] {
 	return &Neg[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return -v },
-			df:       func(i, j int, v float64) float64 { return -1.0 },
-			operands: []O{x},
+			x:  x,
+			f:  func(i, j int, v float64) float64 { return -v },
+			df: func(i, j int, v float64) float64 { return -1.0 },
 		},
 	}
 }
@@ -187,10 +177,9 @@ type Reciprocal[O Operand] struct {
 func NewReciprocal[O Operand](x O) *Reciprocal[O] {
 	return &Reciprocal[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return 1.0 / v },
-			df:       func(i, j int, v float64) float64 { return -1.0 / (v * v) },
-			operands: []O{x},
+			x:  x,
+			f:  func(i, j int, v float64) float64 { return 1.0 / v },
+			df: func(i, j int, v float64) float64 { return -1.0 / (v * v) },
 		},
 	}
 }
@@ -204,10 +193,9 @@ type Abs[O Operand] struct {
 func NewAbs[O Operand](x O) *Abs[O] {
 	return &Abs[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        func(i, j int, v float64) float64 { return math.Abs(v) },
-			df:       absDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  func(i, j int, v float64) float64 { return math.Abs(v) },
+			df: absDeriv,
 		},
 	}
 }
@@ -227,10 +215,9 @@ type Mish[O Operand] struct {
 func NewMish[O Operand](x O) *Mish[O] {
 	return &Mish[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        mish,
-			df:       mishDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  mish,
+			df: mishDeriv,
 		},
 	}
 }
@@ -244,10 +231,9 @@ type GELU[O Operand] struct {
 func NewGELU[O Operand](x O) *GELU[O] {
 	return &GELU[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
-			x:        x,
-			f:        gelu,
-			df:       geluDeriv,
-			operands: []O{x},
+			x:  x,
+			f:  gelu,
+			df: geluDeriv,
 		},
 	}
 }

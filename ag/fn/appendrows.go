@@ -8,27 +8,24 @@ import "github.com/nlpodyssey/spago/mat"
 
 // AppendRows is a Function which appends new tail rows to a matrix.
 type AppendRows[O Operand] struct {
-	x        O
-	vs       []O
-	operands []O
+	x  O
+	vs []O
 }
 
 // NewAppendRows returns a new AppendRows Function.
 func NewAppendRows[O Operand](x O, vs ...O) *AppendRows[O] {
-	operands := make([]O, len(vs)+1)
-	operands[0] = x
-	copy(operands[1:], vs)
-
 	return &AppendRows[O]{
-		x:        x,
-		vs:       vs,
-		operands: operands,
+		x:  x,
+		vs: vs,
 	}
 }
 
 // Operands returns the list of operands.
 func (a *AppendRows[O]) Operands() []O {
-	return a.operands
+	ops := make([]O, 0, len(a.vs)+1)
+	ops = append(ops, a.x)
+	ops = append(ops, a.vs...)
+	return ops
 }
 
 // Forward computes the output of the function.

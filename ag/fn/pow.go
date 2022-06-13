@@ -10,23 +10,21 @@ import (
 
 // Pow is an operator to perform element-wise pow function.
 type Pow[O Operand] struct {
-	x        O
-	power    float64
-	operands []O
+	x     O
+	power float64
 }
 
 // NewPow returns a new Pow Function.
 func NewPow[O Operand](x O, power float64) *Pow[O] {
 	return &Pow[O]{
-		x:        x,
-		power:    power,
-		operands: []O{x},
+		x:     x,
+		power: power,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Pow[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

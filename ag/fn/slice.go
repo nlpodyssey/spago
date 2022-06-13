@@ -8,29 +8,27 @@ import "github.com/nlpodyssey/spago/mat"
 
 // Slice is a function to extract a portion of a matrix.
 type Slice[O Operand] struct {
-	x        O
-	fromRow  int
-	fromCol  int
-	toRow    int
-	toCol    int
-	operands []O
+	x       O
+	fromRow int
+	fromCol int
+	toRow   int
+	toCol   int
 }
 
 // NewSlice returns a new Slice Function.
 func NewSlice[O Operand](x O, fromRow, fromCol, toRow, toCol int) *Slice[O] {
 	return &Slice[O]{
-		x:        x,
-		fromRow:  fromRow,
-		fromCol:  fromCol,
-		toRow:    toRow,
-		toCol:    toCol,
-		operands: []O{x},
+		x:       x,
+		fromRow: fromRow,
+		fromCol: fromCol,
+		toRow:   toRow,
+		toCol:   toCol,
 	}
 }
 
 // Operands returns the list of operands.
 func (s *Slice[O]) Operands() []O {
-	return s.operands
+	return []O{s.x}
 }
 
 // Forward computes the output of the function.

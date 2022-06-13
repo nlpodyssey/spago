@@ -8,24 +8,22 @@ import "github.com/nlpodyssey/spago/mat"
 
 // RotateR is a function to perform a right circular shift of a vector.
 type RotateR[O Operand] struct {
-	x        O
-	i        int
-	operands []O
+	x O
+	i int
 }
 
 // NewRotateR returns a new RotateR Function. `i` is the number of places by
 // which the elements are shifted.
 func NewRotateR[O Operand](x O, i int) *RotateR[O] {
 	return &RotateR[O]{
-		x:        x,
-		i:        i,
-		operands: []O{x},
+		x: x,
+		i: i,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *RotateR[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

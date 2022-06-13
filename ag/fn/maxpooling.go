@@ -17,28 +17,26 @@ type MaxPooling[O Operand] struct {
 	rows int
 	cols int
 	// initialized during the forward pass
-	y        mat.Matrix
-	argmaxI  [][]int
-	argmaxJ  [][]int
-	operands []O
+	y       mat.Matrix
+	argmaxI [][]int
+	argmaxJ [][]int
 }
 
 // NewMaxPooling returns a new MaxPooling Function.
 func NewMaxPooling[O Operand](x O, r, c int) *MaxPooling[O] {
 	return &MaxPooling[O]{
-		x:        x,
-		rows:     r,
-		cols:     c,
-		y:        nil,
-		argmaxI:  nil,
-		argmaxJ:  nil,
-		operands: []O{x},
+		x:       x,
+		rows:    r,
+		cols:    c,
+		y:       nil,
+		argmaxI: nil,
+		argmaxJ: nil,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *MaxPooling[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

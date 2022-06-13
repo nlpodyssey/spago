@@ -13,7 +13,6 @@ type SoftPlus[O Operand] struct {
 	x         O
 	beta      O
 	threshold O
-	operands  []O
 }
 
 // NewSoftPlus returns a new SoftPlus Function.
@@ -22,13 +21,12 @@ func NewSoftPlus[O Operand](x O, beta, threshold O) *SoftPlus[O] {
 		x:         x,
 		beta:      beta,
 		threshold: threshold,
-		operands:  []O{x, beta, threshold},
 	}
 }
 
 // Operands returns the list of operands.
 func (r *SoftPlus[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.beta, r.threshold}
 }
 
 // Forward computes the output of the function.

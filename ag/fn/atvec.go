@@ -10,23 +10,21 @@ import (
 
 // AtVec is an operator to obtain the i-th value of a vector.
 type AtVec[O Operand] struct {
-	x        O
-	i        int
-	operands []O
+	x O
+	i int
 }
 
 // NewAtVec returns a new AtVec Function.
 func NewAtVec[O Operand](x O, i int) *AtVec[O] {
 	return &AtVec[O]{
-		x:        x,
-		i:        i,
-		operands: []O{x},
+		x: x,
+		i: i,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *AtVec[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

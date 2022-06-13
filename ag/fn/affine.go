@@ -12,11 +12,10 @@ import (
 
 // Affine is an operator to apply the affine function y = b + W1x1 + W2x2 + ... + WnXn.
 type Affine[O Operand] struct {
-	b         O
-	w1        O
-	x1        O
-	wxPairs   []O
-	operators []O // lazily computed
+	b       O
+	w1      O
+	x1      O
+	wxPairs []O
 }
 
 // NewAffine returns a new Affine Function.
@@ -60,15 +59,10 @@ func NewAffine[O Operand](b, w1, x1 O, wxPairs ...O) *Affine[O] {
 
 // Operands returns the list of operands.
 func (a *Affine[O]) Operands() []O {
-	if a.operators == nil {
-		ops := make([]O, len(a.wxPairs)+3)
-		ops[0] = a.b
-		ops[1] = a.w1
-		ops[2] = a.x1
-		copy(ops[3:], a.wxPairs)
-		a.operators = ops
-	}
-	return a.operators
+	ops := make([]O, 0, len(a.wxPairs)+3)
+	ops = append(ops, a.b, a.w1, a.x1)
+	ops = append(ops, a.wxPairs...)
+	return ops
 }
 
 // Forward computes the output of the function.

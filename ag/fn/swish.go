@@ -12,21 +12,19 @@ import (
 
 // Swish is an operator to perform element-wise swish function: y = x * sigmoid(x).
 type Swish[O Operand] struct {
-	x        O
-	operands []O
+	x O
 }
 
 // NewSwish returns a new Swish Function.
 func NewSwish[O Operand](x O) *Swish[O] {
 	return &Swish[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (l *Swish[O]) Operands() []O {
-	return l.operands
+	return []O{l.x}
 }
 
 // Forward computes the output of the function.

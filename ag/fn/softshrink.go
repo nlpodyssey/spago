@@ -10,23 +10,21 @@ import (
 
 // SoftShrink function: f(x) = x − λ if x > λ; x + λ if x < −λ; 0 otherwise.
 type SoftShrink[O Operand] struct {
-	x        O
-	lambda   O // scalar
-	operands []O
+	x      O
+	lambda O // scalar
 }
 
 // NewSoftShrink returns a new SoftShrink Function.
 func NewSoftShrink[O Operand](x O, lambda O) *SoftShrink[O] {
 	return &SoftShrink[O]{
-		x:        x,
-		lambda:   lambda,
-		operands: []O{x, lambda},
+		x:      x,
+		lambda: lambda,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *SoftShrink[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.lambda}
 }
 
 // Forward computes the output of the function.

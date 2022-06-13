@@ -12,23 +12,21 @@ import (
 
 // SparseMaxLoss function implementation, based on https://github.com/gokceneraslan/SparseMax.torch
 type SparseMaxLoss[O Operand] struct {
-	x        O
-	tau      float64    // computed during the forward pass
-	y        mat.Matrix // computed during forward pass
-	operands []O
+	x   O
+	tau float64    // computed during the forward pass
+	y   mat.Matrix // computed during forward pass
 }
 
 // NewSparseMaxLoss returns a new SparseMaxLoss Function.
 func NewSparseMaxLoss[O Operand](x O) *SparseMaxLoss[O] {
 	return &SparseMaxLoss[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *SparseMaxLoss[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

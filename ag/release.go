@@ -18,7 +18,7 @@ package ag
 func ReleaseGraph(nodes ...Node) {
 	for _, node := range nodes {
 		if op, ok := node.(*Operator); ok && op.function != nil {
-			ReleaseGraph(op.function.Operands()...)
+			ReleaseGraph(op.Operands()...)
 			op.releaseValue()
 			op.ZeroGrad()
 			op.function = nil

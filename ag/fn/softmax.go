@@ -10,22 +10,20 @@ import (
 
 // Softmax is a single-input softmax function.
 type Softmax[O Operand] struct {
-	x        O
-	y        mat.Matrix // initialized during the forward pass (required by the backward pass)
-	operands []O
+	x O
+	y mat.Matrix // initialized during the forward pass (required by the backward pass)
 }
 
 // NewSoftmax returns a new Softmax Function.
 func NewSoftmax[O Operand](x O) *Softmax[O] {
 	return &Softmax[O]{
-		x:        x,
-		operands: []O{x},
+		x: x,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Softmax[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of this function.

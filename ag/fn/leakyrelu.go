@@ -11,29 +11,26 @@ import (
 // LeakyReLU is an operator to perform the LeakyReLU activation function.
 // LeakyReLU(x) = max(0,x) + slope ° min(0,x)
 type LeakyReLU[O Operand] struct {
-	x        O
-	alpha    O // scalar
-	operands []O
+	x     O
+	alpha O // scalar
 }
 
 // NewLeakyReLU returns a new LeakyReLU Function.
 func NewLeakyReLU[O Operand](x, alpha O) *LeakyReLU[O] {
 	return &LeakyReLU[O]{
-		x:        x,
-		alpha:    alpha,
-		operands: []O{x, alpha},
+		x:     x,
+		alpha: alpha,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *LeakyReLU[O]) Operands() []O {
-	return r.operands
+	return []O{r.x, r.alpha}
 }
 
 // Forward computes the output of the function.
 func (r *LeakyReLU[O]) Forward() mat.Matrix {
-	y := r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().F64())
-	return y
+	return r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().F64())
 }
 
 // Backward computes the backward pass.

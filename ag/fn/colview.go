@@ -8,9 +8,8 @@ import "github.com/nlpodyssey/spago/mat"
 
 // ColView is an operator to extract the i-th column from a matrix.
 type ColView[O Operand] struct {
-	x        O
-	i        int
-	operands []O
+	x O
+	i int
 }
 
 // NewColView extracts the i-th column from the input matrix.
@@ -19,15 +18,14 @@ func NewColView[O Operand](x O, i int) *ColView[O] {
 		panic("fn: invalid column index")
 	}
 	return &ColView[O]{
-		x:        x,
-		i:        i,
-		operands: []O{x},
+		x: x,
+		i: i,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *ColView[O]) Operands() []O {
-	return r.operands
+	return []O{r.x}
 }
 
 // Forward computes the output of the function.

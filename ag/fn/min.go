@@ -12,23 +12,21 @@ import (
 // Min is an operator to perform element-wise min.
 // y = min(x1, x2)
 type Min[O Operand] struct {
-	x1       O
-	x2       O
-	operands []O
+	x1 O
+	x2 O
 }
 
 // NewMin returns a new Min Function.
 func NewMin[O Operand](x1 O, x2 O) *Min[O] {
 	return &Min[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Min[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.

@@ -10,23 +10,21 @@ import (
 
 // Prod is an operator to perform element-wise product over two values.
 type Prod[O Operand] struct {
-	x1       O
-	x2       O
-	operands []O
+	x1 O
+	x2 O
 }
 
 // NewProd returns a new Prod Function.
 func NewProd[O Operand](x1 O, x2 O) *Prod[O] {
 	return &Prod[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Prod[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.

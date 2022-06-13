@@ -7,18 +7,11 @@ package fn
 // Square is an operator to perform element-wise square.
 type Square[O Operand] struct {
 	*Prod[O]
-	operands []O
 }
 
 // NewSquare returns a new Square Function.
 func NewSquare[O Operand](x O) *Square[O] {
 	return &Square[O]{
-		Prod:     &Prod[O]{x1: x, x2: x},
-		operands: []O{x, x},
+		Prod: &Prod[O]{x1: x, x2: x},
 	}
-}
-
-// Operands returns the list of operands.
-func (r *Square[O]) Operands() []O {
-	return r.operands
 }

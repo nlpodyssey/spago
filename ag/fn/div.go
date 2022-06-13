@@ -10,23 +10,21 @@ import (
 
 // Div is an operator to perform element-wise division over two values.
 type Div[O Operand] struct {
-	x1       O
-	x2       O
-	operands []O
+	x1 O
+	x2 O
 }
 
 // NewDiv returns a new Div Function.
 func NewDiv[O Operand](x1 O, x2 O) *Div[O] {
 	return &Div[O]{
-		x1:       x1,
-		x2:       x2,
-		operands: []O{x1, x2},
+		x1: x1,
+		x2: x2,
 	}
 }
 
 // Operands returns the list of operands.
 func (r *Div[O]) Operands() []O {
-	return r.operands
+	return []O{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
