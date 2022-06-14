@@ -104,6 +104,8 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleField
 		return false
 	}
 	switch itemT := item.(type) {
+	case Module, *Module:
+		// skip
 	case Param:
 		if pt.paramsFunc != nil {
 			pt.paramsFunc(itemT, name, tag.paramType())
