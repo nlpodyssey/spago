@@ -21,15 +21,6 @@ import (
 //     a `spago:"type:..."` tag from a struct's field
 type ParamsTraversalFunc func(param Param, name string, pType ParamsType)
 
-// ModelsTraversalFunc is the function called for each visited Model from
-// traversal routines (see for example ForEachModels).
-//
-// The arguments are:
-//   - model: the value of the visited model
-//   - name: a suggested meaningful name for the model, if available,
-//     usually corresponding to the name of a struct's field
-type ModelsTraversalFunc func(model Model, name string)
-
 // ParamsTraverser allows you to define a custom procedure to traverse the parameters of a model.
 // If a model implements this procedure, it will take precedence over the regular parameters visit.
 type ParamsTraverser interface {
@@ -43,36 +34,8 @@ type ParamsTraverser interface {
 // also visited.
 type paramsTraversal struct {
 	paramsFunc       ParamsTraversalFunc
-	modelsFunc       ModelsTraversalFunc
+	modelsFunc       func(model Model, name string)
 	exploreSubModels bool
-}
-
-// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-func ForEachParam(m Model, fn ParamsTraversalFunc) {
-	paramsTraversal{
-		paramsFunc:       fn,
-		modelsFunc:       nil,
-		exploreSubModels: true,
-	}.walk(m)
-}
-
-// ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
-func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
-	paramsTraversal{
-		paramsFunc:       fn,
-		modelsFunc:       nil,
-		exploreSubModels: false,
-	}.walk(m)
-}
-
-// ForEachModel iterate all the sub-models of a model.
-func ForEachModel(m Model, fn ModelsTraversalFunc) {
-	fn(m, "")
-	paramsTraversal{
-		paramsFunc:       nil,
-		modelsFunc:       fn,
-		exploreSubModels: true,
-	}.walk(m)
 }
 
 // walk iterates through all the parameters of m.

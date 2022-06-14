@@ -6,10 +6,8 @@ package nn
 
 import (
 	"sync"
-	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/stretchr/testify/assert"
 )
 
 type collectedParam struct {
@@ -404,40 +402,4 @@ var traversalTests = []traversalTest{
 			expectedModels:       []collectedModel{{m, ""}},
 		}
 	}(),
-}
-
-func TestForEachParam(t *testing.T) {
-	for _, tt := range traversalTests {
-		t.Run(tt.name, func(t *testing.T) {
-			var actual []collectedParam
-			ForEachParam(tt.model, func(p Param, n string, pt ParamsType) {
-				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
-			})
-			assert.Equal(t, tt.expectedParams, actual)
-		})
-	}
-}
-
-func TestForEachParamStrict(t *testing.T) {
-	for _, tt := range traversalTests {
-		t.Run(tt.name, func(t *testing.T) {
-			var actual []collectedParam
-			ForEachParamStrict(tt.model, func(p Param, n string, pt ParamsType) {
-				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
-			})
-			assert.Equal(t, tt.expectedParamsStrict, actual)
-		})
-	}
-}
-
-func TestForEachModel(t *testing.T) {
-	for _, tt := range traversalTests {
-		t.Run(tt.name, func(t *testing.T) {
-			var actual []collectedModel
-			ForEachModel(tt.model, func(m Model, n string) {
-				actual = append(actual, collectedModel{model: m, name: n})
-			})
-			assert.Equal(t, tt.expectedModels, actual)
-		})
-	}
 }

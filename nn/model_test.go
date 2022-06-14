@@ -5,9 +5,10 @@
 package nn
 
 import (
+	"testing"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestIntrospect(t *testing.T) {
@@ -47,7 +48,7 @@ func TestIntrospect(t *testing.T) {
 	assert.Equal(t, "", m.Other.Qux.Name())
 	assert.Equal(t, Undefined, m.Other.Qux.Type())
 
-	m2 := Init(m)
+	m2 := Introspect(m)
 	assert.Same(t, m, m2)
 
 	assert.Equal(t, "Foo", m.Foo.Name())
@@ -61,4 +62,40 @@ func TestIntrospect(t *testing.T) {
 
 	assert.Equal(t, "Qux", m.Other.Qux.Name())
 	assert.Equal(t, Undefined, m.Other.Qux.Type())
+}
+
+func TestApply(t *testing.T) {
+	for _, tt := range traversalTests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual []collectedModel
+			Apply(tt.model, func(m Model, n string) {
+				actual = append(actual, collectedModel{model: m, name: n})
+			})
+			assert.Equal(t, tt.expectedModels, actual)
+		})
+	}
+}
+
+func TestForEachParam(t *testing.T) {
+	for _, tt := range traversalTests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual []collectedParam
+			ForEachParam(tt.model, func(p Param, n string, pt ParamsType) {
+				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
+			})
+			assert.Equal(t, tt.expectedParams, actual)
+		})
+	}
+}
+
+func TestForEachParamStrict(t *testing.T) {
+	for _, tt := range traversalTests {
+		t.Run(tt.name, func(t *testing.T) {
+			var actual []collectedParam
+			ForEachParamStrict(tt.model, func(p Param, n string, pt ParamsType) {
+				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
+			})
+			assert.Equal(t, tt.expectedParamsStrict, actual)
+		})
+	}
 }

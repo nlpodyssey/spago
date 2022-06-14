@@ -4,13 +4,67 @@
 
 package nn
 
-import (
-	"github.com/nlpodyssey/spago/ag"
-)
+import "github.com/nlpodyssey/spago/ag"
 
 // Model is implemented by all neural network architectures.
 type Model interface {
 	mustEmbedModule()
+}
+
+// Apply fn recursively to every sub-models as well as self.
+// Typical use includes initializing the parameters of a model.
+func Apply(m Model, fn func(model Model, name string)) {
+	fn(m, "")
+	paramsTraversal{
+		paramsFunc:       nil,
+		modelsFunc:       fn,
+		exploreSubModels: true,
+	}.walk(m)
+}
+
+// ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
+func ForEachParam(m Model, fn ParamsTraversalFunc) {
+	paramsTraversal{
+		paramsFunc:       fn,
+		modelsFunc:       nil,
+		exploreSubModels: true,
+	}.walk(m)
+}
+
+// ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
+func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
+	paramsTraversal{
+		paramsFunc:       fn,
+		modelsFunc:       nil,
+		exploreSubModels: false,
+	}.walk(m)
+}
+
+// ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
+func ZeroGrad(m Model) {
+	ForEachParam(m, func(param Param, _ string, _ ParamsType) {
+		param.ZeroGrad()
+	})
+}
+
+// ClearSupport clears the support structure of all model's parameters (including sub-params).
+func ClearSupport(m Model) {
+	ForEachParam(m, func(param Param, _ string, _ ParamsType) {
+		param.ClearPayload()
+	})
+}
+
+// Introspect set the name property of each model's param (including sub-models).
+func Introspect[M Model](m M) M {
+	ForEachParam(Model(m), func(param Param, name string, pType ParamsType) {
+		if p, ok := param.(interface{ SetName(string) }); ok && param.Name() == "" {
+			p.SetName(name)
+		}
+		if p, ok := param.(interface{ SetType(ParamsType) }); ok {
+			p.SetType(pType)
+		}
+	})
+	return m
 }
 
 // StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
