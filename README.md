@@ -70,7 +70,7 @@ go get -u github.com/nlpodyssey/spago
 The core [module](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.mod) of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
 In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
 
-SpaGO uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features (e.g. persistent embeddings) are used.
+Spago uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features (e.g. persistent embeddings) are used.
 
 ### Getting Started
 
@@ -264,11 +264,11 @@ Nevertheless, it's always safe to ask for the Operator's `Value()` without worri
 
 Sadly, at the moment, Spago is not GPU friendly by design.
  
-## Projects using Spago
+## Projects using SpaGo
 
 Below is a list of projects that use Spago:
 
-* [GoTransformers](https://github.com/nlpodyssey/gotransformers) - State-of-the-art Natural Language Processing in Go.
+* [Cybertron](https://github.com/nlpodyssey/cybertron) - State-of-the-art Natural Language Processing in Go.
 * [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
 * [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
   of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
