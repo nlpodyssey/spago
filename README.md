@@ -37,6 +37,7 @@
 <p>
 
 > Currently, the main branch contains version v1.0.0-alpha.0, which differs substantially from version v0.7.0. For NLP-related features, check out the [v0.7.0](https://github.com/nlpodyssey/spago/tree/v0.7.0) release branch.
+> The [CHANGELOG](https://github.com/nlpodyssey/spago/blob/main/CHANGELOG.md) details the major changes.
 
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
