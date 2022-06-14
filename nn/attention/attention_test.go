@@ -11,6 +11,7 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,7 +37,7 @@ func testScaledDotProductAttention[T float.DType](t *testing.T) {
 		2.3, 6.5, 3.5,
 	})).WithGrad(true)
 
-	scaleFactor := ag.ScalarConst(T(1.0 / math.Sqrt(3)))
+	scaleFactor := nn.Const(T(1.0 / math.Sqrt(3)))
 	results, _ := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)
 
 	if len(results) != 3 {
@@ -71,7 +72,7 @@ func testScaledDotProductAttention2[T float.DType](t *testing.T) {
 		-0.07, 0.0, 0.29, 0.5,
 	})).WithGrad(true)
 
-	scaleFactor := ag.ScalarConst(T(1.0 / math.Sqrt(2)))
+	scaleFactor := nn.Const(T(1.0 / math.Sqrt(2)))
 
 	// == Forward
 	results, weights := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)

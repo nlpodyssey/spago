@@ -134,8 +134,8 @@ func TestModel_Inference(t *testing.T) {
 func testModelInference[T float.DType](t *testing.T) {
 
 	model := New[T](3)
-	model.Mean = nn.NewParam(mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
-	model.StdDev = nn.NewParam(mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
+	model.Mean = nn.Buf(mat.NewVecDense[T]([]T{0.0, 0.0, 1.0}))
+	model.StdDev = nn.Buf(mat.NewVecDense[T]([]T{1.0, 0.5, 1.0}))
 	model.W = nn.NewParam(mat.NewInitVecDense[T](3, 1.0))
 
 	data := []T{1.0, 2.0, 3.0}

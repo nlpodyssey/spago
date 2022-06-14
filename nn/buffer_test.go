@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package ag
+package nn
 
 import (
 	"bytes"
 	"encoding/gob"
 	"testing"
 
+	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -18,18 +19,18 @@ import (
 )
 
 var (
-	_ fn.Operand = &Constant{}
-	_ Node       = &Constant{}
+	_ fn.Operand = &Buffer{}
+	_ ag.Node    = &Buffer{}
 )
 
-func TestConst(t *testing.T) {
-	t.Run("float32", testConst[float32])
-	t.Run("float64", testConst[float64])
+func TestBuf(t *testing.T) {
+	t.Run("float32", testBuf[float32])
+	t.Run("float64", testBuf[float64])
 }
 
-func testConst[T float.DType](t *testing.T) {
+func testBuf[T float.DType](t *testing.T) {
 	v := mat.NewVecDense([]T{1, 2, 3})
-	c := Const(v)
+	c := Buf(v)
 	require.NotNil(t, c)
 	assert.Empty(t, c.Name())
 	assert.Same(t, v, c.Value())
@@ -45,7 +46,7 @@ func TestConst_WithName(t *testing.T) {
 
 func testConstWithName[T float.DType](t *testing.T) {
 	v := mat.NewVecDense([]T{1, 2, 3})
-	c := Const(v).WithName("foo")
+	c := Buf(v).WithName("foo")
 	require.NotNil(t, c)
 	assert.Equal(t, "foo", c.Name())
 	assert.Same(t, v, c.Value())
@@ -60,7 +61,7 @@ func TestNewConstant(t *testing.T) {
 }
 
 func testScalarConst[T float.DType](t *testing.T) {
-	c := ScalarConst(T(42))
+	c := Const(T(42))
 	require.NotNil(t, c)
 	assert.Equal(t, "42", c.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
@@ -75,7 +76,7 @@ func TestScalarConst_WithName(t *testing.T) {
 }
 
 func testScalarConstWithName[T float.DType](t *testing.T) {
-	c := ScalarConst(T(42)).WithName("foo")
+	c := Const(T(42)).WithName("foo")
 	require.NotNil(t, c)
 	assert.Equal(t, "foo", c.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
@@ -90,7 +91,7 @@ func TestSConstant_AccGrad(t *testing.T) {
 }
 
 func testScalarConstantAccGrad[T float.DType](t *testing.T) {
-	c := ScalarConst(T(42))
+	c := Const(T(42))
 	c.AccGrad(mat.NewScalar(T(100)))
 	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
@@ -104,7 +105,7 @@ func TestSConstant_ZeroGrad(t *testing.T) {
 }
 
 func testScalarConstantZeroGrad[T float.DType](t *testing.T) {
-	c := ScalarConst(T(42))
+	c := Const(T(42))
 	c.ZeroGrad()
 	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
@@ -118,14 +119,14 @@ func TestSConstant_Marshaling(t *testing.T) {
 }
 
 func testScalarConstantMarshaling[T float.DType](t *testing.T) {
-	c1 := ScalarConst(T(42)).WithName("foo")
+	c1 := Const(T(42)).WithName("foo")
 
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(c1)
 	require.Nil(t, err)
 
-	var c2 *Constant
+	var c2 *Buffer
 
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&c2)

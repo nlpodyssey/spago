@@ -30,7 +30,7 @@ type Model struct {
 	Query       *linear.Model
 	Key         *linear.Model
 	Value       *linear.Model
-	ScaleFactor *ag.Constant
+	ScaleFactor *nn.Buffer
 }
 
 // Config provides configuration settings for a Self-Attention Model.
@@ -54,7 +54,7 @@ func New[T float.DType](config Config) *Model {
 		Query:       linear.New[T](config.InputSize, config.QuerySize),
 		Key:         linear.New[T](config.InputSize, config.KeySize),
 		Value:       linear.New[T](config.InputSize, config.ValueSize),
-		ScaleFactor: ag.ScalarConst(T(config.ScaleFactor)),
+		ScaleFactor: nn.Const(T(config.ScaleFactor)),
 	}
 }
 

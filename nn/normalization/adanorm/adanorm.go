@@ -22,7 +22,7 @@ var _ nn.Model = &Model{}
 // Model contains the scaling factor.
 type Model struct {
 	nn.Module
-	Scale *ag.Constant
+	Scale *nn.Buffer
 }
 
 func init() {
@@ -32,7 +32,7 @@ func init() {
 // New returns a new model.
 func New[T float.DType](scale float64) *Model {
 	return &Model{
-		Scale: ag.ScalarConst(T(scale)),
+		Scale: nn.Const(T(scale)),
 	}
 }
 

@@ -24,7 +24,7 @@ type Model struct {
 	nn.Module
 	W   nn.Param `spago:"type:weights"`
 	B   nn.Param `spago:"type:biases"`
-	Eps *ag.Constant
+	Eps *nn.Buffer
 }
 
 func init() {
@@ -36,7 +36,7 @@ func New[T float.DType](size int, eps float64) *Model {
 	return &Model{
 		W:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
 		B:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
-		Eps: ag.ScalarConst(T(eps)),
+		Eps: nn.Const(T(eps)),
 	}
 }
 

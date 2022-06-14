@@ -20,9 +20,9 @@ type Model struct {
 	nn.Module
 	W        nn.Param `spago:"type:weights"`
 	B        nn.Param `spago:"type:biases"`
-	Mean     nn.Param `spago:"type:undefined"`
-	StdDev   nn.Param `spago:"type:undefined"`
-	Momentum nn.Param `spago:"type:undefined"`
+	Mean     *nn.Buffer
+	StdDev   *nn.Buffer
+	Momentum *nn.Buffer
 }
 
 const epsilon = 1e-5
@@ -37,9 +37,9 @@ func NewWithMomentum[T float.DType](size int, momentum T) *Model {
 	return &Model{
 		W:        nn.NewParam(mat.NewInitVecDense[T](size, epsilon)),
 		B:        nn.NewParam(mat.NewEmptyVecDense[T](size)),
-		Mean:     nn.NewParam(mat.NewEmptyVecDense[T](size)).WithGrad(false),
-		StdDev:   nn.NewParam(mat.NewEmptyVecDense[T](size)).WithGrad(false),
-		Momentum: nn.NewParam(mat.NewScalar[T](momentum)).WithGrad(false),
+		Mean:     nn.Buf(mat.NewEmptyVecDense[T](size)),
+		StdDev:   nn.Buf(mat.NewEmptyVecDense[T](size)),
+		Momentum: nn.Const(momentum),
 	}
 }
 
@@ -73,13 +73,9 @@ func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []a
 }
 
 func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
-	momentum := m.Momentum.Value().Scalar().F64()
-
-	m.Mean.ReplaceValue(
-		m.Mean.Value().ProdScalar(momentum).Add(meanVector.ProdScalar(1.0 - momentum)))
-
-	m.StdDev.ReplaceValue(
-		m.StdDev.Value().ProdScalar(momentum).Add(devVector.ProdScalar(1.0 - momentum)))
+	momentum := m.Momentum.Scalar().F64()
+	m.Mean.ProdScalarInPlace(momentum).AddInPlace(meanVector.ProdScalar(1.0 - momentum))
+	m.StdDev.ProdScalarInPlace(momentum).AddInPlace(devVector.ProdScalar(1.0 - momentum))
 }
 
 // Mean computes the mean of the input.
