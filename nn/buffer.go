@@ -13,7 +13,8 @@ import (
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
-// Buffer is a type of Node that do not require gradients but that can be serialized as parameters.
+// Buffer is a type of Node that do not require gradients but that can be serialized similarly
+// to any other parameters.
 // This is useful e.g. to store constants, to track the mean and std in batch norm layers etc.
 type Buffer struct {
 	mat.Matrix
