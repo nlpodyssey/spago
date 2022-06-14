@@ -6,11 +6,9 @@ module github.com/nlpodyssey/spago/embeddings/store/diskstore
 
 go 1.18
 
-replace github.com/nlpodyssey/spago => ../../..
-
 require (
 	github.com/dgraph-io/badger/v3 v3.2103.2
-	github.com/nlpodyssey/spago v1.0.0
+	github.com/nlpodyssey/spago v0.7.1-0.20220614214112-25235e7a270e
 	github.com/stretchr/testify v1.7.1
 )
 
@@ -27,12 +25,12 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v2.0.6+incompatible // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/klauspost/compress v1.15.5 // indirect
+	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/net v0.0.0-20220526153639-5463443f8c37 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/net v0.0.0-20220614195744-fb05da6f9022 // indirect
+	golang.org/x/sys v0.0.0-20220614162138-6c1b26c55098 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
