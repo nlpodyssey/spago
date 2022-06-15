@@ -77,6 +77,9 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleField
 		if pt.paramsFunc != nil {
 			itemT.TraverseParams(pt.paramsFunc)
 		}
+		if m, ok := item.(Model); ok && pt.modelsFunc != nil {
+			pt.modelsFunc(m, name)
+		}
 	case Model:
 		if pt.exploreSubModels {
 			if pt.modelsFunc != nil {

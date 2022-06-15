@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix bug preventing the embeddings model from being traversed on `nn.Apply`.
+
 ## [1.0.0-alpha] - 2022-06-14
 
 With this release we introduce breaking changes that bring significant
