@@ -44,25 +44,17 @@ func DumpToFile[T any](obj T, filename string) error {
 }
 
 // Load uses Gob to deserialize objects to memory.
-func Load[T any](r io.Reader, args ...any) (T, error) {
-	if len(args) == 0 {
-		args = []any{nil}
-	}
+func Load[T any](r io.Reader) (T, error) {
 	var obj T
 	if err := gob.NewDecoder(bufio.NewReader(r)).Decode(&obj); err != nil {
 		return obj, err
-	}
-	if v, ok := any(obj).(interface{ AfterLoad(any) error }); ok {
-		if err := v.AfterLoad(args[0]); err != nil {
-			return obj, err
-		}
 	}
 	return obj, nil
 }
 
 // LoadFromFile uses Gob to deserialize objects files to memory.
 // See Load for further details.
-func LoadFromFile[T any](filename string, args ...any) (T, error) {
+func LoadFromFile[T any](filename string) (T, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		var obj T
@@ -73,8 +65,5 @@ func LoadFromFile[T any](filename string, args ...any) (T, error) {
 			err = e
 		}
 	}()
-	if len(args) > 0 {
-		return Load[T](f, args[0])
-	}
 	return Load[T](f)
 }
