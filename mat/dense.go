@@ -13,6 +13,7 @@ import (
 	"github.com/nlpodyssey/spago/mat/internal/f32/asm32"
 	"github.com/nlpodyssey/spago/mat/internal/f64"
 	"github.com/nlpodyssey/spago/mat/internal/f64/asm64"
+	"github.com/nlpodyssey/spago/mat/internal/matfuncs"
 )
 
 // A Dense matrix implementation.
@@ -417,10 +418,10 @@ func (d *Dense[T]) Add(other Matrix) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		otherData := float32Data(other)
-		asm32.AxpyUnitaryTo(any(out.data).([]float32), 1, otherData, any(d.data).([]float32))
+		matfuncs.Add32(any(d.data).([]float32), otherData, any(out.data).([]float32))
 	case float64:
 		otherData := float64Data(other)
-		asm64.AxpyUnitaryTo(any(out.data).([]float64), 1, otherData, any(d.data).([]float64))
+		matfuncs.Add64(any(d.data).([]float64), otherData, any(out.data).([]float64))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -694,7 +695,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 		from := 0
 		for i := range outData {
 			to := from + dCols
-			outData[i] = asm32.DotUnitary(dData[from:to], otherData)
+			outData[i] = matfuncs.DotProd32(dData[from:to], otherData)
 			from = to
 		}
 		return out
@@ -787,10 +788,10 @@ func (d *Dense[T]) DotUnitary(other Matrix) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		otherData := float32Data(other)
-		return NewScalar[T](T(asm32.DotUnitary(any(d.data).([]float32), otherData)))
+		return NewScalar(matfuncs.DotProd32(any(d.data).([]float32), otherData))
 	case float64:
 		otherData := float64Data(other)
-		return NewScalar[T](T(asm64.DotUnitary(any(d.data).([]float64), otherData)))
+		return NewScalar(matfuncs.DotProd64(any(d.data).([]float64), otherData))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
