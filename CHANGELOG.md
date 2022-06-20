@@ -8,8 +8,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Fixed
-
 - Fix bug preventing the embeddings model from being traversed on `nn.Apply`.
+
+### Changed
+- Optimize implementation of some Dense matrix functions, especially on
+  amd64 with AVX.
 
 ## [1.0.0-alpha] - 2022-06-14
 
