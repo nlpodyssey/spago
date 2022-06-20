@@ -41,7 +41,7 @@ jobs:
         run: go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
       - uses: actions/checkout@v2
       - name: gocyclo
-        run: gocyclo -over 15 .
+        run: gocyclo -over 15 -ignore "matfuncs/cpu" .
 
   staticcheck:
     name: staticcheck
