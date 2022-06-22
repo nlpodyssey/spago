@@ -942,24 +942,37 @@ func (d *Dense[T]) Exp() Matrix {
 		return out
 	}
 	inData := d.data
-	_ = outData[len(inData)-1]
-	for i, val := range inData {
-		outData[i] = T(math.Exp(float64(val)))
+	switch any(T(0)).(type) {
+	case float32:
+		matfuncs.Exp32(any(inData).([]float32), any(outData).([]float32))
+	case float64:
+		matfuncs.Exp64(any(inData).([]float64), any(outData).([]float64))
+	default:
+		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
 	return out
 }
 
 // Sigmoid returns a new matrix applying the sigmoid function to each element.
 func (d *Dense[T]) Sigmoid() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
-	outData := out.data
-	if len(outData) == 0 {
-		return out
+	if d.Size() == 0 {
+		return d.Clone()
 	}
-	inData := d.data
-	_ = outData[len(inData)-1]
-	for i, val := range inData {
-		outData[i] = 1 / (1 + T(math.Exp(-float64(val))))
+
+	out := d.ProdScalar(-1).(*Dense[T])
+
+	switch any(T(0)).(type) {
+	case float32:
+		matfuncs.Exp32(any(out.data).([]float32), any(out.data).([]float32))
+	case float64:
+		matfuncs.Exp64(any(out.data).([]float64), any(out.data).([]float64))
+	default:
+		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
+	}
+
+	outData := out.data
+	for i, val := range outData {
+		outData[i] = 1 / (1 + val)
 	}
 	return out
 }
@@ -1039,18 +1052,26 @@ func (d *Dense[T]) Softmax() Matrix {
 		panic("mat: expected vector")
 	}
 
-	dData := d.data
-	out := densePool[T]().Get(len(dData), 1)
-	if len(dData) == 0 {
-		return out
+	if d.Size() == 0 {
+		return d.NewEmptyVec(0)
 	}
 
 	max := float64(d.max())
 
-	outData := out.data
-	_ = outData[len(dData)-1]
-	for i, v := range dData {
-		outData[i] = T(math.Exp(float64(v) - max))
+	out := d.SubScalar(max).(*Dense[T])
+	if out.cols != 1 {
+		out.TransposeInPlace()
+	}
+
+	switch any(T(0)).(type) {
+	case float32:
+		outData := any(out.data).([]float32)
+		matfuncs.Exp32(outData, outData)
+	case float64:
+		outData := any(out.data).([]float64)
+		matfuncs.Exp64(outData, outData)
+	default:
+		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
 
 	sum := out.sum()
