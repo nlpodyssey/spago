@@ -2,13 +2,16 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build amd64 && gc && !purego
-
 package matfuncs
 
-import "github.com/nlpodyssey/spago/mat/internal/matfuncs/cpu"
+import "math"
 
-var (
-	hasAVX  = cpu.X86.HasAVX
-	hasAVX2 = cpu.X86.HasAVX2
-)
+func exp[F float32 | float64](x, y []F) {
+	if len(x) == 0 {
+		return
+	}
+	_ = y[len(x)-1]
+	for i, xv := range x {
+		y[i] = F(math.Exp(float64(xv)))
+	}
+}
