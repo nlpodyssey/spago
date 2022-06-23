@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 - Fix bug preventing the embeddings model from being traversed on `nn.Apply`.
+- Fix incorrect use of self-attention cache when used for cross-attention.
 
 ### Changed
 - Optimize implementation of some Dense matrix functions, especially on

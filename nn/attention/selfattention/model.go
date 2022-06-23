@@ -6,7 +6,6 @@ package selfattention
 
 import (
 	"encoding/gob"
-	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
@@ -23,6 +22,11 @@ var _ nn.Model = &Model{}
 // Cache contains the projected keys and values at index 0, 1 respectively.
 type Cache [2]ag.Node
 
+// HasValues reports whether both values in Cache are not nil.
+func (c Cache) HasValues() bool {
+	return c[0] != nil && c[1] != nil
+}
+
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
@@ -35,12 +39,13 @@ type Model struct {
 
 // Config provides configuration settings for a Self-Attention Model.
 type Config struct {
-	InputSize     int
-	QuerySize     int
-	KeySize       int
-	ValueSize     int
-	ScaleFactor   float64
-	UseCausalMask bool
+	InputSize        int
+	QuerySize        int
+	KeySize          int
+	ValueSize        int
+	ScaleFactor      float64
+	UseCausalMask    bool
+	IsCrossAttention bool
 }
 
 func init() {
@@ -68,38 +73,26 @@ func (m *Model) Init(rng *rand.LockedRand) {
 
 // Forward performs the forward step for each input node and returns the result.
 func (m *Model) Forward(cache Cache, q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache) {
-	var pq []ag.Node
 	var pk, pv ag.Node
 
-	var wg sync.WaitGroup
-	wg.Add(3)
+	pq := m.Query.Forward(q...)
 
-	go func() {
-		pq = m.Query.Forward(q...)
-		wg.Done()
-	}()
-
-	go func() {
+	if hasCache := cache.HasValues(); hasCache && m.IsCrossAttention {
+		pk = cache[0]
+		pv = cache[1]
+	} else {
 		fwKeys := m.Key.Forward(k...)
-		if cache[0] == nil {
-			pk = ag.Stack(fwKeys...)
-		} else {
-			pk = ag.AppendRows(cache[0], fwKeys...)
-		}
-		wg.Done()
-	}()
-
-	go func() {
 		fwValues := m.Value.Forward(v...)
-		if cache[0] == nil {
-			pv = ag.Stack(fwValues...)
-		} else {
-			pv = ag.AppendRows(cache[1], fwValues...)
-		}
-		wg.Done()
-	}()
 
-	wg.Wait()
+		if hasCache {
+			pk = ag.AppendRows(cache[0], fwKeys...)
+			pv = ag.AppendRows(cache[1], fwValues...)
+		} else {
+			pk = ag.Stack(fwKeys...)
+			pv = ag.Stack(fwValues...)
+		}
+	}
+
 	result, weights := attention.ScaledDotProductAttention(pq, pk, pv, m.ScaleFactor, m.UseCausalMask)
 
 	return result, weights, Cache{pk, pv}

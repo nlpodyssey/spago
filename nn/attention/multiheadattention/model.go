@@ -32,9 +32,9 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T float.DType](size, numOfHeads int, useCausalMask bool) *Model {
+func New[T float.DType](size, numOfHeads int, useCausalMask, isCrossAttention bool) *Model {
 	return &Model{
-		Heads:       makeAttentionHeads[T](size, numOfHeads, useCausalMask),
+		Heads:       makeAttentionHeads[T](size, numOfHeads, useCausalMask, isCrossAttention),
 		OutputMerge: linear.New[T](size, size),
 	}
 }
@@ -48,18 +48,19 @@ func (m *Model) Init(rng *rand.LockedRand) {
 	}
 }
 
-func makeAttentionHeads[T float.DType](dm, n int, useCausalMask bool) []*selfattention.Model {
+func makeAttentionHeads[T float.DType](dm, n int, useCausalMask, isCrossAttention bool) []*selfattention.Model {
 	heads := make([]*selfattention.Model, n)
 	dk := dm / n
 	scaleFactor := 1.0 / math.Sqrt(float64(dk))
 	for i := 0; i < n; i++ {
 		heads[i] = selfattention.New[T](selfattention.Config{
-			InputSize:     dm,
-			QuerySize:     dk,
-			KeySize:       dk,
-			ValueSize:     dk,
-			ScaleFactor:   scaleFactor,
-			UseCausalMask: useCausalMask,
+			InputSize:        dm,
+			QuerySize:        dk,
+			KeySize:          dk,
+			ValueSize:        dk,
+			ScaleFactor:      scaleFactor,
+			UseCausalMask:    useCausalMask,
+			IsCrossAttention: isCrossAttention,
 		})
 	}
 	return heads
