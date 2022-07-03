@@ -16,10 +16,14 @@ type Float interface {
 	float32 | float64
 }
 
+func RandFloat[F Float]() F {
+	return F(rand.NormFloat64() * 0.5)
+}
+
 // RandVec fills the given vector with random values.
 func RandVec[F Float](v []F) {
 	for i := range v {
-		v[i] = F(rand.NormFloat64() * 0.5)
+		v[i] = RandFloat[F]()
 	}
 }
 
@@ -31,6 +35,7 @@ func NewRandVec[F Float](size int) []F {
 }
 
 func RequireSlicesInDelta[F Float](t *testing.T, expected, actual []F, eps float64) {
+	t.Helper()
 	if len(expected) != len(actual) {
 		t.Fatalf("expected len %d, actual %d", len(expected), len(actual))
 	}
@@ -53,6 +58,7 @@ func RequireSlicesInDelta[F Float](t *testing.T, expected, actual []F, eps float
 }
 
 func RequireValueInDelta[F Float](t *testing.T, expected, actual F, eps float64, msg ...any) {
+	t.Helper()
 	if d := math.Abs(float64(expected - actual)); d > eps {
 		t.Fatalf("expected %G ± %G, actual %G\n%s", expected, eps, actual, fmt.Sprint(msg...))
 	}

@@ -6,18 +6,24 @@
 
 package matfuncs
 
+var (
+	dotProd32 = DotProdSSE32
+	dotProd64 = DotProdSSE64
+)
+
+func init() {
+	if hasAVX {
+		dotProd32 = DotProdAVX32
+		dotProd64 = DotProdAVX64
+	}
+}
+
 // DotProd32 returns the dot product between x1 and x2 (32 bits).
 func DotProd32(x1, x2 []float32) float32 {
-	if hasAVX {
-		return DotProdAVX32(x1, x2)
-	}
-	return DotProdSSE32(x1, x2)
+	return dotProd32(x1, x2)
 }
 
 // DotProd64 returns the dot product between x1 and x2 (64 bits).
 func DotProd64(x1, x2 []float64) float64 {
-	if hasAVX {
-		return DotProdAVX64(x1, x2)
-	}
-	return DotProdSSE64(x1, x2)
+	return dotProd64(x1, x2)
 }
