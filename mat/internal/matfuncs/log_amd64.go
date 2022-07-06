@@ -6,6 +6,8 @@
 
 package matfuncs
 
+import "math"
+
 // Log32 computes the natural logarithm of each element of x, storing the result in y (32 bits).
 func Log32(x, y []float32) {
 	if len(x) == 0 {
@@ -17,6 +19,12 @@ func Log32(x, y []float32) {
 		max := len(x) - 8
 		for i := 0; i <= max; i += 8 {
 			LogAVX32(x[i:], y[i:])
+		}
+
+		for i, v := range x[:max+1] {
+			if v == 0.0 {
+				y[i] = float32(math.Inf(-1))
+			}
 		}
 
 		mod := len(x) % 8
@@ -31,6 +39,12 @@ func Log32(x, y []float32) {
 	max := len(x) - 4
 	for i := 0; i <= max; i += 4 {
 		LogSSE32(x[i:], y[i:])
+	}
+
+	for i, v := range x[:max+1] {
+		if v == 0.0 {
+			y[i] = float32(math.Inf(-1))
+		}
 	}
 
 	mod := len(x) % 4
