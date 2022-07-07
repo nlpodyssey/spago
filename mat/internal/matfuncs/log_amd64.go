@@ -21,9 +21,11 @@ func Log32(x, y []float32) {
 			LogAVX32(x[i:], y[i:])
 		}
 
-		for i, v := range x[:max+1] {
-			if v == 0.0 {
-				y[i] = float32(math.Inf(-1))
+		if max > 0 {
+			for i, v := range x[:max+1] {
+				if v == 0.0 {
+					y[i] = float32(math.Inf(-1))
+				}
 			}
 		}
 
@@ -41,9 +43,11 @@ func Log32(x, y []float32) {
 		LogSSE32(x[i:], y[i:])
 	}
 
-	for i, v := range x[:max+1] {
-		if v == 0.0 {
-			y[i] = float32(math.Inf(-1))
+	if max > 0 {
+		for i, v := range x[:max+1] {
+			if v == 0.0 {
+				y[i] = float32(math.Inf(-1))
+			}
 		}
 	}
 
