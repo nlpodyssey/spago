@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	if hasAVX {
+	if hasAVX && hasFMA {
 		dotProd32 = DotProdAVX32
 		dotProd64 = DotProdAVX64
 	}

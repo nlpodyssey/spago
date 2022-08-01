@@ -11,4 +11,5 @@ import "github.com/nlpodyssey/spago/mat/internal/matfuncs/cpu"
 var (
 	hasAVX  = cpu.X86.HasAVX
 	hasAVX2 = cpu.X86.HasAVX2
+	hasFMA  = cpu.X86.HasFMA
 )

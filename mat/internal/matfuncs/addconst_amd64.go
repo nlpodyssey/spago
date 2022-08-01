@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	if hasAVX {
+	if hasAVX2 {
 		addConst32 = AddConstAVX32
 		addConst64 = AddConstAVX64
 	}

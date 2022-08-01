@@ -12,7 +12,7 @@ var (
 )
 
 func init() {
-	if hasAVX {
+	if hasAVX2 {
 		mulConst32 = MulConstAVX32
 		mulConst64 = MulConstAVX64
 	}
