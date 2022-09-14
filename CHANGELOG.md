@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2022-09-14
+
+First stable release!
+
 ### Fixed
 - Fix bug preventing the embeddings model from being traversed on `nn.Apply`.
 - Fix incorrect use of self-attention cache when used for cross-attention.
@@ -582,7 +586,8 @@ from your own code.
 ## [0.1.0] - 2020-12-09
 First tagged release!
 
-[Unreleased]: https://github.com/nlpodyssey/spago/compare/v1.0.0-alpha...HEAD
+[Unreleased]: https://github.com/nlpodyssey/spago/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/nlpodyssey/spago/compare/v1.0.0-alpha...v1.0.0
 [1.0.0-alpha]: https://github.com/nlpodyssey/spago/compare/v0.7.0...v1.0.0-alpha
 [0.7.0]: https://github.com/nlpodyssey/spago/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/nlpodyssey/spago/compare/v0.5.2...v0.6.0
