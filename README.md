@@ -36,7 +36,7 @@
 <br>
 <p>
 
-> Currently, the main branch contains version v1.0.0-alpha.0, which differs substantially from version v0.7.0. For NLP-related features, check out the [v0.7.0](https://github.com/nlpodyssey/spago/tree/v0.7.0) release branch.
+> Currently, the main branch contains version v1, which differs substantially from version [v0.7](https://github.com/nlpodyssey/spago/tree/v0.7.0). For NLP-related features, check out the [Cybertron](https://github.com/nlpodyssey/cybertron) package!
 > The [CHANGELOG](https://github.com/nlpodyssey/spago/blob/main/CHANGELOG.md) details the major changes.
 
 A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
@@ -58,7 +58,7 @@ It provides:
 
 Requirements:
 
-* [Go 1.18](https://golang.org/dl/)
+* [Go 1.19](https://golang.org/dl/)
 
 Clone this repo or get the library:
 
@@ -270,7 +270,6 @@ Sadly, at the moment, Spago is not GPU friendly by design.
 Below is a list of projects that use Spago:
 
 * [Cybertron](https://github.com/nlpodyssey/cybertron) - State-of-the-art Natural Language Processing in Go.
-* [GoFlair](https://github.com/nlpodyssey/goflair) - Named Entities Recognition via CLMs+BiLSTM+CRF
 * [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
   of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
 * [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
@@ -297,8 +296,7 @@ questions or comments.
 ## Acknowledgments
 
 Spago is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative
-initiated by members of the EXOP team (now part of Crisis24). I would therefore like to thank [EXOP GmbH](https://www.exop-group.com/en/) here,
-which is providing full support for development by promoting the project and giving it increasing importance.
+initiated by members of the EXOP team (now part of Crisis24).
 
 ## Sponsors
 
