@@ -151,6 +151,19 @@ func (m *Model[K]) Embedding(key K) (*Embedding[K], bool) {
 	return e, exists
 }
 
+// EmbeddingFast is like Embedding, but skips the existence checks.
+// Depending on the store implementation, this might save a considerable
+// amount of time.
+func (m *Model[K]) EmbeddingFast(key K) *Embedding[K] {
+	if e, ok := m.embeddingsWithGrad[stringifyKey(key)]; ok {
+		return e.(*Embedding[K])
+	}
+	return &Embedding[K]{
+		model: m,
+		key:   key,
+	}
+}
+
 // Encode returns the embedding values associated with the input keys.
 //
 // The value are returned as Node(s) already inserted in the graph.

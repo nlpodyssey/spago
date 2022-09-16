@@ -442,6 +442,36 @@ func TestModel(t *testing.T) {
 
 		require.Equal(t, decoded.CountEmbeddingsWithGrad(), 0)
 	})
+
+	t.Run("Embedding and EmbeddingFast return the same result", func(t *testing.T) {
+		type T = float32
+
+		repo := memstore.NewRepository()
+		conf := embeddings.Config{
+			Size:      1,
+			StoreName: "test-store",
+			Trainable: true,
+		}
+		m := embeddings.New[T, string](conf, repo)
+
+		e1, exists := m.Embedding("foo")
+		assert.False(t, exists)
+
+		e2 := m.EmbeddingFast("foo")
+
+		assert.Nil(t, e1.Value())
+		assert.Nil(t, e2.Value())
+
+		v := mat.NewScalar[T](1)
+		e1.ReplaceValue(v)
+		mattest.AssertMatrixEquals(t, v, e1.Value())
+		mattest.AssertMatrixEquals(t, v, e2.Value())
+
+		v = mat.NewScalar[T](2)
+		e2.ReplaceValue(v)
+		mattest.AssertMatrixEquals(t, v, e1.Value())
+		mattest.AssertMatrixEquals(t, v, e2.Value())
+	})
 }
 
 func TestModel_TraverseParams(t *testing.T) {

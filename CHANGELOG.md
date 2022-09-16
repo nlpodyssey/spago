@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Method `embeddings.Model.EmbeddingFast`.
+
 ## [1.0.0] - 2022-09-14
 
 First stable release!
