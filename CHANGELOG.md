@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2022-09-16
+
 ### Added
 - Method `embeddings.Model.EmbeddingFast`.
 
@@ -589,7 +591,8 @@ from your own code.
 ## [0.1.0] - 2020-12-09
 First tagged release!
 
-[Unreleased]: https://github.com/nlpodyssey/spago/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/nlpodyssey/spago/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/nlpodyssey/spago/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/nlpodyssey/spago/compare/v1.0.0-alpha...v1.0.0
 [1.0.0-alpha]: https://github.com/nlpodyssey/spago/compare/v0.7.0...v1.0.0-alpha
 [0.7.0]: https://github.com/nlpodyssey/spago/compare/v0.6.0...v0.7.0
