@@ -6,6 +6,9 @@ package lstm
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/initializers"
+	"github.com/nlpodyssey/spago/mat/rand"
+	"strings"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
@@ -92,6 +95,19 @@ func New[T float.DType](in, out int) *Model {
 // Refined gates setting requires input size and output size be the same.
 func (m *Model) WithRefinedGates(value bool) *Model {
 	m.UseRefinedGates = value
+	return m
+}
+
+// Init initializes the weights using Xavier uniform randomization leaving the biases at zero.
+// It follows the LSTM bias hack setting the Forget gate to 1 (http://proceedings.mlr.press/v37/jozefowicz15.pdf).
+func (m *Model) Init(rndGen *rand.LockedRand) *Model {
+	nn.ForEachParam(m, func(param nn.Param, pName string, pType nn.ParamsType) {
+		if pType == nn.Weights {
+			initializers.XavierUniform(param.Value(), 1, rndGen)
+		} else if pType == nn.Biases && strings.ToLower(pName) == "bfor" {
+			initializers.Constant(param.Value(), 1.0)
+		}
+	})
 	return m
 }
 

@@ -5,6 +5,7 @@
 package lstm
 
 import (
+	"github.com/nlpodyssey/spago/mat/rand"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -407,4 +408,20 @@ func newTestModel2[T float.DType]() *Model {
 	})
 	mat.SetData[T](model.BCand.Value(), []T{0.4, 0.3})
 	return model
+}
+
+func testModelInit[T float.DType](t *testing.T) {
+	model := New[T](3, 2).Init(rand.NewLockedRand(42))
+
+	assert.InDeltaSlice(t, []T{
+		1.0, 1.0,
+	}, model.BFor.Value().Data(), 1.0e-05)
+
+	// TODO: add tests for the other weights and biases
+}
+
+//gocyclo:ignore
+func TestModel_Init(t *testing.T) {
+	t.Run("float32", testModelInit[float32])
+	t.Run("float64", testModelInit[float64])
 }
