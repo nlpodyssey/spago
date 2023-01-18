@@ -263,6 +263,41 @@ var traversalTests = []traversalTest{
 		}
 	}(),
 	func() traversalTest {
+		name := "nested Model items in array fields"
+
+		type modelType struct {
+			Module
+			P Param
+			M [2]any
+		}
+
+		mA := &modelType{P: NewParam(mat.NewScalar(100.))}
+		mB := &modelType{P: NewParam(mat.NewScalar(200.))}
+		m := &modelType{
+			P: NewParam(mat.NewScalar(1.)),
+			M: [2]any{mA, mB},
+		}
+
+		return traversalTest{
+			name:   name,
+			model:  m,
+			subMod: true,
+			expectedParams: []collectedParam{
+				{m.P, "P", Undefined},
+				{mA.P, "P", Undefined},
+				{mB.P, "P", Undefined},
+			},
+			expectedParamsStrict: []collectedParam{
+				{m.P, "P", Undefined},
+			},
+			expectedModels: []collectedModel{
+				{m, ""},
+				{mA, "M"},
+				{mB, "M"},
+			},
+		}
+	}(),
+	func() traversalTest {
 		name := "fields with type implementing ParamsTraverser"
 
 		type simpleStruct struct {

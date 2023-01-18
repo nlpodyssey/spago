@@ -53,7 +53,7 @@ func (pt paramsTraversal) walk(m any) {
 		switch v.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
 			pt.walkStructOrPtr(field, name, tag)
-		case reflect.Slice:
+		case reflect.Slice, reflect.Array:
 			pt.walkSlice(v, name, tag)
 		case reflect.Map:
 			pt.walkMap(v, name, tag)
