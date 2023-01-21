@@ -57,6 +57,9 @@ func NewOperator(f fn.Function[Node]) Node {
 
 	go op.forward()
 
+	if debug {
+		op.Value() // wait for the forward goroutine to finish
+	}
 	return op
 }
 
