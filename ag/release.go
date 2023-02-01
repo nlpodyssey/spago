@@ -26,3 +26,26 @@ func ReleaseGraph(nodes ...Node) {
 		}
 	}
 }
+
+// NodesTracker is a helper struct that can be used to track nodes and release them
+type NodesTracker struct {
+	nodes []Node
+}
+
+// TrackNode adds the given node to the list of nodes to be released
+func (nt *NodesTracker) TrackNode(node Node) Node {
+	nt.nodes = append(nt.nodes, node)
+	return node
+}
+
+// TrackNodes adds the given nodes to the list of nodes to be released
+func (nt *NodesTracker) TrackNodes(nodes ...Node) []Node {
+	nt.nodes = append(nt.nodes, nodes...)
+	return nodes
+}
+
+// ReleaseNodes releases all the nodes tracked by this tracker
+func (nt *NodesTracker) ReleaseNodes() {
+	ReleaseGraph(nt.nodes...)
+	nt.nodes = nil
+}
