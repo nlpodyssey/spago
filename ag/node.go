@@ -72,3 +72,10 @@ func CopyGrad(node Node) mat.Matrix {
 	}
 	return node.Grad().Clone()
 }
+
+// WaitForValue waits for the value to be available.
+// This is useful when you want to wait for the value to be available before proceeding with the execution.
+func WaitForValue(x Node) Node {
+	x.Value()
+	return x
+}
