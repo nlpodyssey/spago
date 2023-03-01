@@ -4,11 +4,11 @@
     <br>
 <p>
 <p align="center">
-    <a href="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=main">
-        <img alt="Build" src="https://github.com/nlpodyssey/spago/workflows/Go/badge.svg?branch=master">
+    <a href="https://github.com/nlpodyssey/spago/actions/workflows/go.yml?query=branch%3Amain">
+        <img alt="Build" src="https://github.com/nlpodyssey/spago/actions/workflows/go.yml/badge.svg?branch=main">
     </a>
     <a href="https://codecov.io/gh/nlpodyssey/spago">
-        <img alt="Coverage" src="https://codecov.io/gh/nlpodyssey/spago/branch/main/graph/badge.svg">
+        <img alt="Coverage" src="https://codecov.io/gh/nlpodyssey/spago/branch/main/badge.svg">
     </a>
     <a href="https://goreportcard.com/report/github.com/nlpodyssey/spago">
         <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/nlpodyssey/spago">
