@@ -98,27 +98,6 @@ func testTanhForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.99006629, 0.4805214, 0.73210956, 0.0}, x.grad.Data(), 1.0e-6)
 }
 
-func TestSigmoid_Forward(t *testing.T) {
-	t.Run("float32", testSigmoidForward[float32])
-	t.Run("float64", testSigmoidForward[float64])
-}
-
-func testSigmoidForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	f := NewSigmoid(x)
-	y := f.Forward()
-
-	assert.InDeltaSlice(t, []T{0.5249791, 0.54983399, 0.574442516, 0.5}, y.Data(), 1.0e-6)
-
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
-
-	assert.InDeltaSlice(t, []T{-0.24937604, 0.12375828, 0.195566649, 0.0}, x.grad.Data(), 1.0e-6)
-}
-
 func TestHardSigmoid_Forward(t *testing.T) {
 	t.Run("float32", testHardSigmoidForward[float32])
 	t.Run("float64", testHardSigmoidForward[float64])

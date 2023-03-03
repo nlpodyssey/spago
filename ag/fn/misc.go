@@ -40,22 +40,6 @@ func NewTanh[O Operand](x O) *Tanh[O] {
 	}
 }
 
-// Sigmoid is an operator to perform element-wise sigmoid.
-type Sigmoid[O Operand] struct {
-	*UnaryElementwise[O]
-}
-
-// NewSigmoid returns a new UnaryElementwise sigmoid function.
-func NewSigmoid[O Operand](x O) *Sigmoid[O] {
-	return &Sigmoid[O]{
-		UnaryElementwise: &UnaryElementwise[O]{
-			x:  x,
-			f:  sigmoid,
-			df: sigmoidDeriv,
-		},
-	}
-}
-
 // HardSigmoid is an operator to perform element-wise hard sigmoid.
 type HardSigmoid[O Operand] struct {
 	*UnaryElementwise[O]
@@ -269,15 +253,6 @@ func tanh(_, _ int, v float64) float64 {
 
 func tanhDeriv(_, _ int, v float64) float64 {
 	return 1.0 - math.Pow(math.Tanh(v), 2.0)
-}
-
-func sigmoid(_, _ int, v float64) float64 {
-	return 1.0 / (1 + math.Exp(-v))
-}
-
-func sigmoidDeriv(i, j int, v float64) float64 {
-	fx := sigmoid(i, j, v)
-	return fx * (1.0 - fx)
 }
 
 func hardSigmoid(_, _ int, v float64) float64 {
