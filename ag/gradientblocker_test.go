@@ -22,8 +22,8 @@ func testStopGrad[T float.DType](t *testing.T) {
 	dn := &dummyNode{id: 1}
 
 	sg := StopGrad(dn)
-	require.IsType(t, &Wrapper{}, sg)
-	w := sg.(*Wrapper)
+	require.IsType(t, &GradientBlocker{}, sg)
+	w := sg.(*GradientBlocker)
 
 	assert.Same(t, dn, w.Node)
 }
