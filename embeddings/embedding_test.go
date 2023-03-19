@@ -251,18 +251,6 @@ func TestEmbedding_Name(t *testing.T) {
 	})
 }
 
-func TestEmbedding_Type(t *testing.T) {
-	repo := memstore.NewRepository()
-	conf := embeddings.Config{
-		Size:      3,
-		StoreName: "test-store",
-	}
-	m := embeddings.New[float32, string](conf, repo)
-
-	e, _ := m.Embedding("e")
-	assert.Equal(t, nn.Weights, e.Type())
-}
-
 func TestEmbedding_SetRequiresGrad(t *testing.T) {
 	repo := memstore.NewRepository()
 	conf := embeddings.Config{

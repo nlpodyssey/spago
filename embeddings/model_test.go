@@ -506,7 +506,7 @@ func TestModel_TraverseParams(t *testing.T) {
 		require.Equal(t, m.CountEmbeddingsWithGrad(), 0)
 		embeddingsWithGrad := make([]nn.Param, 0)
 
-		nn.ForEachParam(m, func(p nn.Param, _ string, _ nn.ParamsType) {
+		nn.ForEachParam(m, func(p nn.Param, _ string) {
 			embeddingsWithGrad = append(embeddingsWithGrad, p)
 		})
 		require.Len(t, embeddingsWithGrad, 1)

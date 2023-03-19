@@ -44,7 +44,7 @@ type Model[K Key] struct {
 	//
 	// If Config.UseZeroEmbedding is true, ZeroEmbedding is initialized
 	// as a zero-vector of size Config.Size, otherwise it is set to nil.
-	ZeroEmbedding nn.Param `spago:"type:weights"`
+	ZeroEmbedding nn.Param
 	// Database where embeddings are stored.
 	Store store.Store
 	// embeddingsWithGrad is a private map filled with all those
@@ -100,15 +100,15 @@ func New[T float.DType, K Key](conf Config, repo store.Repository) *Model[K] {
 // TraverseParams allows embeddings with gradients to be traversed for optimization.
 func (m *Model[K]) TraverseParams(callback nn.ParamsTraversalFunc) {
 	if m.ZeroEmbedding != nil {
-		callback(paramNameType(m.ZeroEmbedding))
+		callback(paramName(m.ZeroEmbedding))
 	}
 	for _, emb := range m.embeddingsWithGrad {
-		callback(paramNameType(emb))
+		callback(paramName(emb))
 	}
 }
 
-func paramNameType(p nn.Param) (nn.Param, string, nn.ParamsType) {
-	return p, p.Name(), p.Type()
+func paramName(p nn.Param) (nn.Param, string) {
+	return p, p.Name()
 }
 
 // Count counts how many embedding key/value pairs are currently stored.

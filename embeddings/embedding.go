@@ -89,12 +89,6 @@ func (e *Embedding[_]) Name() string {
 	}
 }
 
-// Type satisfies the interface nn.Param.
-// Embedding params are always considered nn.Weights.
-func (e *Embedding[_]) Type() nn.ParamsType {
-	return nn.Weights
-}
-
 // SetRequiresGrad satisfies the interface nn.Param.
 // It always panics: it's not possible to assign a custom grad requirement
 // to an Embedding parameter.
