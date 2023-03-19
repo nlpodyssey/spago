@@ -23,12 +23,6 @@ type Node interface {
 	AccGrad(gx mat.Matrix)
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
-	// Name returns a human-readable label to identify or describe the Node.
-	// It's optional and can be an empty string.
-	//
-	// This method is intended for introspection, debugging, and testing.
-	// Identifying a Node solely upon its name is highly discouraged.
-	Name() string
 }
 
 // ToNodes casts a slice []N into a slice []ag.Node.
