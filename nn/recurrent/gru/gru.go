@@ -18,15 +18,15 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WPart    nn.Param `spago:"type:weights"`
-	WPartRec nn.Param `spago:"type:weights"`
-	BPart    nn.Param `spago:"type:biases"`
-	WRes     nn.Param `spago:"type:weights"`
-	WResRec  nn.Param `spago:"type:weights"`
-	BRes     nn.Param `spago:"type:biases"`
-	WCand    nn.Param `spago:"type:weights"`
-	WCandRec nn.Param `spago:"type:weights"`
-	BCand    nn.Param `spago:"type:biases"`
+	WPart    nn.Param
+	WPartRec nn.Param
+	BPart    nn.Param
+	WRes     nn.Param
+	WResRec  nn.Param
+	BRes     nn.Param
+	WCand    nn.Param
+	WCandRec nn.Param
+	BCand    nn.Param
 }
 
 // State represent a state of the GRU recurrent network.

@@ -18,9 +18,9 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W    nn.Param `spago:"type:weights"`
-	WRec nn.Param `spago:"type:weights"`
-	B    nn.Param `spago:"type:biases"`
+	W    nn.Param
+	WRec nn.Param
+	B    nn.Param
 }
 
 // State represent a state of the SRN recurrent network.

@@ -24,24 +24,24 @@ type Model struct {
 	UseRefinedGates bool
 
 	// Input gate
-	WIn    nn.Param `spago:"type:weights"`
-	WInRec nn.Param `spago:"type:weights"`
-	BIn    nn.Param `spago:"type:biases"`
+	WIn    nn.Param
+	WInRec nn.Param
+	BIn    nn.Param
 
 	// Output gate
-	WOut    nn.Param `spago:"type:weights"`
-	WOutRec nn.Param `spago:"type:weights"`
-	BOut    nn.Param `spago:"type:biases"`
+	WOut    nn.Param
+	WOutRec nn.Param
+	BOut    nn.Param
 
 	// Forget gate
-	WFor    nn.Param `spago:"type:weights"`
-	WForRec nn.Param `spago:"type:weights"`
-	BFor    nn.Param `spago:"type:biases"`
+	WFor    nn.Param
+	WForRec nn.Param
+	BFor    nn.Param
 
 	// Candiate gate
-	WCand    nn.Param `spago:"type:weights"`
-	WCandRec nn.Param `spago:"type:weights"`
-	BCand    nn.Param `spago:"type:biases"`
+	WCand    nn.Param
+	WCandRec nn.Param
+	BCand    nn.Param
 }
 
 // State represent a state of the LSTM recurrent network.
@@ -101,12 +101,12 @@ func (m *Model) WithRefinedGates(value bool) *Model {
 // Init initializes the weights using Xavier uniform randomization leaving the biases at zero.
 // It follows the LSTM bias hack setting the Forget gate to 1 (http://proceedings.mlr.press/v37/jozefowicz15.pdf).
 func (m *Model) Init(rndGen *rand.LockedRand) *Model {
-	nn.ForEachParam(m, func(param nn.Param, pName string, pType nn.ParamsType) {
-		if pType == nn.Weights {
-			initializers.XavierUniform(param.Value(), 1, rndGen)
-		} else if pType == nn.Biases && strings.ToLower(pName) == "bfor" {
+	nn.ForEachParam(m, func(param nn.Param, pName string) {
+		if strings.ToLower(pName) == "bfor" {
 			initializers.Constant(param.Value(), 1.0)
+			return
 		}
+		initializers.XavierUniform(param.Value(), 1, rndGen)
 	})
 	return m
 }

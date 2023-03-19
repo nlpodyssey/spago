@@ -23,7 +23,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Config Config
-	FC     []nn.StandardModel
+	FC     nn.ModuleList
 	FC2    *linear.Model
 	FC3    *linear.Model
 }
@@ -97,7 +97,7 @@ func (m *Model) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 func (m *Model) transformInput(xs []ag.Node) []ag.Node {
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
-		b := nn.Forward(m.FC)(x)[0]
+		b := m.FC.Forward(x)[0]
 		if m.Config.MultiHead {
 			sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
 			b = ag.Prod(b, sigAlphas)

@@ -19,10 +19,10 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WIn        nn.Param `spago:"type:weights"`
-	BIn        nn.Param `spago:"type:biases"`
-	WT         nn.Param `spago:"type:weights"`
-	BT         nn.Param `spago:"type:biases"`
+	WIn        nn.Param
+	BIn        nn.Param
+	WT         nn.Param
+	BT         nn.Param
 	Activation activation.Name
 }
 

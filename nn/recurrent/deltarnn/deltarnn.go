@@ -18,13 +18,13 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W     nn.Param `spago:"type:weights"`
-	WRec  nn.Param `spago:"type:weights"`
-	B     nn.Param `spago:"type:biases"`
-	BPart nn.Param `spago:"type:biases"`
-	Alpha nn.Param `spago:"type:weights"`
-	Beta1 nn.Param `spago:"type:weights"`
-	Beta2 nn.Param `spago:"type:weights"`
+	W     nn.Param
+	WRec  nn.Param
+	B     nn.Param
+	BPart nn.Param
+	Alpha nn.Param
+	Beta1 nn.Param
+	Beta2 nn.Param
 }
 
 func init() {

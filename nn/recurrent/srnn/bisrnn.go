@@ -27,7 +27,7 @@ var _ nn.Model = &BiModel{}
 type BiModel struct {
 	nn.Module
 	Config    Config
-	FC        []nn.StandardModel
+	FC        nn.ModuleList
 	FC2       *linear.Model
 	FC3       *linear.Model
 	LayerNorm *layernorm.Model
@@ -98,7 +98,7 @@ func (m *BiModel) forwardHidden(b []ag.Node) []ag.Node {
 }
 
 func (m *BiModel) transformInput(x ag.Node) ag.Node {
-	b := nn.Forward(m.FC)(x)[0]
+	b := m.FC.Forward(x)[0]
 	if m.Config.MultiHead {
 		sigAlphas := ag.Sigmoid(m.FC2.Forward(x)[0])
 		b = ag.Prod(b, sigAlphas)

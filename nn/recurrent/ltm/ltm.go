@@ -18,10 +18,10 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W1    nn.Param `spago:"type:weights"`
-	W2    nn.Param `spago:"type:weights"`
-	W3    nn.Param `spago:"type:weights"`
-	WCell nn.Param `spago:"type:weights"`
+	W1    nn.Param
+	W2    nn.Param
+	W3    nn.Param
+	WCell nn.Param
 }
 
 // State represent a state of the LTM recurrent network.

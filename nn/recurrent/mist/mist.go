@@ -24,15 +24,15 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	Wx          nn.Param `spago:"type:weights"`
-	Wh          nn.Param `spago:"type:weights"`
-	B           nn.Param `spago:"type:biases"`
-	Wax         nn.Param `spago:"type:weights"`
-	Wah         nn.Param `spago:"type:weights"`
-	Ba          nn.Param `spago:"type:biases"`
-	Wrx         nn.Param `spago:"type:weights"`
-	Wrh         nn.Param `spago:"type:weights"`
-	Br          nn.Param `spago:"type:biases"`
+	Wx          nn.Param
+	Wh          nn.Param
+	B           nn.Param
+	Wax         nn.Param
+	Wah         nn.Param
+	Ba          nn.Param
+	Wrx         nn.Param
+	Wrh         nn.Param
+	Br          nn.Param
 	NumOfDelays int
 }
 

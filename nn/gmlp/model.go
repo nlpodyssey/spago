@@ -21,7 +21,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Config Config
-	Layers []nn.StandardModel
+	Layers nn.ModuleList
 }
 
 // Config provides configuration parameters for a the gMLP Model.
@@ -71,5 +71,5 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.Node {
 		return ag.Var(xs[0].Value().NewEmptyVec(m.Config.Dim))
 	})
-	return nn.Forward(m.Layers)(padded...)
+	return m.Layers.Forward(padded...)
 }

@@ -27,7 +27,6 @@ func testParamGob[T float.DType](t *testing.T) {
 
 		p1 := NewParam(mat.NewScalar(T(12)))
 		p1.SetName("foo")
-		p1.SetType(Biases)
 		p1.SetRequiresGrad(false)
 		p1.SetPayload(&Payload{
 			Label: 42,
@@ -45,7 +44,6 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.NotNil(t, p2.Value())
 		mattest.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
 		assert.Equal(t, "foo", p2.Name())
-		assert.Equal(t, Biases, p2.Type())
 		assert.False(t, p2.RequiresGrad())
 
 		payload := p2.Payload()
@@ -69,7 +67,6 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.NotNil(t, p2)
 		assert.Nil(t, p2.Value())
 		assert.Empty(t, p2.Name())
-		assert.Equal(t, Undefined, p2.Type())
 		assert.True(t, p2.RequiresGrad())
 		assert.Nil(t, p2.Payload())
 	})

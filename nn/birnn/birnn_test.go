@@ -52,7 +52,7 @@ func testModelConcatForward[T float.DType](t *testing.T) {
 	ag.BackwardMany(y...)
 
 	// Important! average params by sequence length
-	nn.ForEachParam(model, func(param nn.Param, _ string, _ nn.ParamsType) {
+	nn.ForEachParam(model, func(param nn.Param, _ string) {
 		param.Grad().ProdScalarInPlace(1.0 / 3.0)
 	})
 

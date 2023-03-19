@@ -26,12 +26,12 @@ type Config struct {
 type Model struct {
 	nn.Module
 	Config
-	Wk nn.Param `spago:"type:weights"`
-	Bk nn.Param `spago:"type:biases"`
-	Wv nn.Param `spago:"type:weights"`
-	Bv nn.Param `spago:"type:biases"`
-	Wq nn.Param `spago:"type:weights"`
-	Bq nn.Param `spago:"type:biases"`
+	Wk nn.Param
+	Bk nn.Param
+	Wv nn.Param
+	Bv nn.Param
+	Wq nn.Param
+	Bq nn.Param
 }
 
 // State represent a state of the RLA recurrent network.

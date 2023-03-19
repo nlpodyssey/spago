@@ -34,8 +34,8 @@ type Config struct {
 type Model struct {
 	nn.Module
 	Config Config
-	K      []nn.Param `spago:"type:weights"`
-	B      []nn.Param `spago:"type:biases"`
+	K      []nn.Param
+	B      []nn.Param
 }
 
 func init() {

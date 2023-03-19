@@ -20,7 +20,6 @@ func init() {
 
 type baseParamForMarshaling struct {
 	Name         string
-	PType        ParamsType
 	Value        mat.Matrix
 	Payload      *Payload
 	RequiresGrad bool
@@ -32,7 +31,6 @@ func (p *BaseParam) MarshalBinary() ([]byte, error) {
 	enc := gob.NewEncoder(&buf)
 	v := baseParamForMarshaling{
 		Name:         p.name,
-		PType:        p.pType,
 		Value:        p.value,
 		Payload:      p.payload,
 		RequiresGrad: p.requiresGrad,
@@ -54,7 +52,6 @@ func (p *BaseParam) UnmarshalBinary(data []byte) error {
 		return fmt.Errorf("cannot decode BaseParam: %w", err)
 	}
 	p.name = v.Name
-	p.pType = v.PType
 	p.value = v.Value
 	p.payload = v.Payload
 	p.requiresGrad = v.RequiresGrad

@@ -42,26 +42,23 @@ func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
 func ZeroGrad(m Model) {
-	ForEachParam(m, func(param Param, _ string, _ ParamsType) {
+	ForEachParam(m, func(param Param, _ string) {
 		param.ZeroGrad()
 	})
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 func ClearSupport(m Model) {
-	ForEachParam(m, func(param Param, _ string, _ ParamsType) {
+	ForEachParam(m, func(param Param, _ string) {
 		param.ClearPayload()
 	})
 }
 
 // Introspect set the name property of each model's param (including sub-models).
 func Introspect[M Model](m M) M {
-	ForEachParam(Model(m), func(param Param, name string, pType ParamsType) {
+	ForEachParam(Model(m), func(param Param, name string) {
 		if p, ok := param.(interface{ SetName(string) }); ok && param.Name() == "" {
 			p.SetName(name)
-		}
-		if p, ok := param.(interface{ SetType(ParamsType) }); ok {
-			p.SetType(pType)
 		}
 	})
 	return m
@@ -76,13 +73,13 @@ type StandardModel interface {
 	Forward(...ag.Node) []ag.Node
 }
 
+type ModuleList []StandardModel
+
 // Forward operates on a slice of StandardModel connecting outputs to inputs sequentially for each module following,
 // finally returning its output.
-func Forward[M StandardModel](ms []M) func(...ag.Node) []ag.Node {
-	return func(xs ...ag.Node) []ag.Node {
-		for _, m := range ms {
-			xs = m.Forward(xs...)
-		}
-		return xs
+func (ml ModuleList) Forward(xs ...ag.Node) []ag.Node {
+	for _, m := range ml {
+		xs = m.Forward(xs...)
 	}
+	return xs
 }

@@ -15,8 +15,6 @@ type Param interface {
 
 	// Name returns the name of the parameter (can be empty string).
 	Name() string
-	// Type returns the type of the parameter (weights, biases, undefined).
-	Type() ParamsType
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.

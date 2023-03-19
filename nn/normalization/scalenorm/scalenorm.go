@@ -18,7 +18,7 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	Gain nn.Param `spago:"type:weights"`
+	Gain nn.Param
 }
 
 func init() {

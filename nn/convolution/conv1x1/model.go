@@ -19,8 +19,8 @@ import (
 type Model struct {
 	nn.Module
 	Config Config
-	W      nn.Param `spago:"type:weights"`
-	B      nn.Param `spago:"type:biases"`
+	W      nn.Param
+	B      nn.Param
 }
 
 var _ nn.Model = &Model{}

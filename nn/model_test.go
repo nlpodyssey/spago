@@ -16,13 +16,13 @@ func TestIntrospect(t *testing.T) {
 
 	type OtherModel struct {
 		Module
-		Baz Param `spago:"type:weights"`
+		Baz Param
 		Qux Param
 	}
 
 	type Model struct {
 		Module
-		Foo   Param `spago:"type:biases"`
+		Foo   Param
 		Bar   Param
 		Other *OtherModel
 	}
@@ -37,31 +37,16 @@ func TestIntrospect(t *testing.T) {
 	}
 
 	assert.Equal(t, "", m.Foo.Name())
-	assert.Equal(t, Undefined, m.Foo.Type())
-
 	assert.Equal(t, "", m.Bar.Name())
-	assert.Equal(t, Undefined, m.Bar.Type())
-
 	assert.Equal(t, "", m.Other.Baz.Name())
-	assert.Equal(t, Undefined, m.Other.Baz.Type())
-
 	assert.Equal(t, "", m.Other.Qux.Name())
-	assert.Equal(t, Undefined, m.Other.Qux.Type())
-
 	m2 := Introspect(m)
 	assert.Same(t, m, m2)
 
 	assert.Equal(t, "Foo", m.Foo.Name())
-	assert.Equal(t, Biases, m.Foo.Type())
-
 	assert.Equal(t, "Bar", m.Bar.Name())
-	assert.Equal(t, Undefined, m.Bar.Type())
-
 	assert.Equal(t, "Baz", m.Other.Baz.Name())
-	assert.Equal(t, Weights, m.Other.Baz.Type())
-
 	assert.Equal(t, "Qux", m.Other.Qux.Name())
-	assert.Equal(t, Undefined, m.Other.Qux.Type())
 }
 
 func TestApply(t *testing.T) {
@@ -80,8 +65,8 @@ func TestForEachParam(t *testing.T) {
 	for _, tt := range traversalTests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual []collectedParam
-			ForEachParam(tt.model, func(p Param, n string, pt ParamsType) {
-				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
+			ForEachParam(tt.model, func(p Param, n string) {
+				actual = append(actual, collectedParam{param: p, name: n})
 			})
 			assert.Equal(t, tt.expectedParams, actual)
 		})
@@ -92,8 +77,8 @@ func TestForEachParamStrict(t *testing.T) {
 	for _, tt := range traversalTests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual []collectedParam
-			ForEachParamStrict(tt.model, func(p Param, n string, pt ParamsType) {
-				actual = append(actual, collectedParam{param: p, name: n, pType: pt})
+			ForEachParamStrict(tt.model, func(p Param, n string) {
+				actual = append(actual, collectedParam{param: p, name: n})
 			})
 			assert.Equal(t, tt.expectedParamsStrict, actual)
 		})

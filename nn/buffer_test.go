@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/ag/fn"
+	"github.com/nlpodyssey/spago/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/mattest"
@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	_ fn.Operand = &Buffer{}
-	_ ag.Node    = &Buffer{}
+	_ fn.DualValue = &Buffer{}
+	_ ag.Node      = &Buffer{}
 )
 
 func TestBuf(t *testing.T) {

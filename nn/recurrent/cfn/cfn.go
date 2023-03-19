@@ -18,13 +18,13 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WIn     nn.Param `spago:"type:weights"`
-	WInRec  nn.Param `spago:"type:weights"`
-	BIn     nn.Param `spago:"type:biases"`
-	WFor    nn.Param `spago:"type:weights"`
-	WForRec nn.Param `spago:"type:weights"`
-	BFor    nn.Param `spago:"type:biases"`
-	WCand   nn.Param `spago:"type:weights"`
+	WIn     nn.Param
+	WInRec  nn.Param
+	BIn     nn.Param
+	WFor    nn.Param
+	WForRec nn.Param
+	BFor    nn.Param
+	WCand   nn.Param
 }
 
 // State represent a state of the CFN recurrent network.

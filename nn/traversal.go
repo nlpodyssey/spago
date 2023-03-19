@@ -17,9 +17,7 @@ import (
 //   - param: the value of the visited parameter
 //   - name: a suggested meaningful name for the parameter, if available,
 //     usually corresponding to the name of a struct's field
-//   - pType: type of the parameter, if available, usually derived from
-//     a `spago:"type:..."` tag from a struct's field
-type ParamsTraversalFunc func(param Param, name string, pType ParamsType)
+type ParamsTraversalFunc func(param Param, name string)
 
 // ParamsTraverser allows you to define a custom procedure to traverse the parameters of a model.
 // If a model implements this procedure, it will take precedence over the regular parameters visit.
@@ -44,24 +42,20 @@ func (pt paramsTraversal) walk(m any) {
 		m.TraverseParams(pt.paramsFunc)
 		return
 	}
-	forEachField(m, func(field any, name string, rTag reflect.StructTag) {
-		tag, err := parseModuleFieldTag(rTag.Get("spago"))
-		if err != nil {
-			panic(err)
-		}
+	forEachField(m, func(field any, name string) {
 		v := reflect.ValueOf(field)
 		switch v.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			pt.walkStructOrPtr(field, name, tag)
+			pt.walkStructOrPtr(field, name)
 		case reflect.Slice, reflect.Array:
-			pt.walkSlice(v, name, tag)
+			pt.walkSlice(v, name)
 		case reflect.Map:
-			pt.walkMap(v, name, tag)
+			pt.walkMap(v, name)
 		}
 	})
 }
 
-func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleFieldTag) bool {
+func (pt paramsTraversal) walkStructOrPtr(item any, name string) bool {
 	v := reflect.ValueOf(item)
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() != reflect.Struct {
 		return false
@@ -71,7 +65,7 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleField
 		// skip
 	case Param:
 		if pt.paramsFunc != nil {
-			pt.paramsFunc(itemT, name, tag.paramType())
+			pt.paramsFunc(itemT, name)
 		}
 	case ParamsTraverser:
 		if pt.paramsFunc != nil {
@@ -88,14 +82,14 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string, tag moduleField
 			pt.walk(item)
 		}
 	case *sync.Map:
-		pt.walkSyncMap(itemT, name, tag)
+		pt.walkSyncMap(itemT, name)
 	default:
 		return false
 	}
 	return true
 }
 
-func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string) {
 	i.Range(func(key, value any) bool {
 		switch k := key.(type) {
 		case string:
@@ -109,7 +103,7 @@ func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldT
 		name := fmt.Sprintf("%s.%s", name, key)
 		switch reflect.ValueOf(value).Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			if !pt.walkStructOrPtr(value, name, tag) {
+			if !pt.walkStructOrPtr(value, name) {
 				return false
 			}
 		default:
@@ -119,13 +113,13 @@ func (pt paramsTraversal) walkSyncMap(i *sync.Map, name string, tag moduleFieldT
 	})
 }
 
-func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkSlice(v reflect.Value, name string) {
 	length := v.Len()
 	for i := 0; i < length; i++ {
 		p := v.Index(i)
 		switch p.Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			if !pt.walkStructOrPtr(p.Interface(), name, tag) {
+			if !pt.walkStructOrPtr(p.Interface(), name) {
 				return
 			}
 		default:
@@ -134,7 +128,7 @@ func (pt paramsTraversal) walkSlice(v reflect.Value, name string, tag moduleFiel
 	}
 }
 
-func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldTag) {
+func (pt paramsTraversal) walkMap(v reflect.Value, name string) {
 	mapRange := v.MapRange()
 	for mapRange.Next() {
 		key := ""
@@ -150,7 +144,7 @@ func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldT
 		name := fmt.Sprintf("%s.%s", name, key)
 		switch mapRange.Value().Kind() {
 		case reflect.Struct, reflect.Ptr, reflect.Interface:
-			if !pt.walkStructOrPtr(mapRange.Value().Interface(), name, tag) {
+			if !pt.walkStructOrPtr(mapRange.Value().Interface(), name) {
 				return
 			}
 		default:
@@ -160,7 +154,7 @@ func (pt paramsTraversal) walkMap(v reflect.Value, name string, tag moduleFieldT
 }
 
 // forEachField calls the paramsFunc for each field of the struct i.
-func forEachField(i any, callback func(field any, name string, tag reflect.StructTag)) {
+func forEachField(i any, callback func(field any, name string)) {
 	v := reflect.ValueOf(i)
 	t := reflect.TypeOf(i)
 
@@ -177,7 +171,7 @@ func forEachField(i any, callback func(field any, name string, tag reflect.Struc
 			if vField.Kind() == reflect.Ptr && vField.IsNil() {
 				continue
 			}
-			callback(vField.Interface(), tField.Name, tField.Tag)
+			callback(vField.Interface(), tField.Name)
 		}
 	}
 }

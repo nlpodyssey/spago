@@ -16,7 +16,6 @@ var _ Param = &BaseParam{}
 // BaseParam is the default implementation satisfying the Param interface.
 type BaseParam struct {
 	name         string
-	pType        ParamsType // lazy initialization
 	value        mat.Matrix // store the results of a forward evaluation.
 	grad         mat.Matrix
 	payload      *Payload // additional data used for example by gradient-descend optimization methods
@@ -33,7 +32,6 @@ type BaseParam struct {
 func NewParam(value mat.Matrix) *BaseParam {
 	return &BaseParam{
 		name:         "",
-		pType:        Undefined,
 		value:        value,
 		grad:         nil,
 		requiresGrad: true,
@@ -53,19 +51,9 @@ func (p *BaseParam) SetName(name string) {
 	p.name = name
 }
 
-// SetType set the params type (weights, biases, undefined).
-func (p *BaseParam) SetType(pType ParamsType) {
-	p.pType = pType
-}
-
 // Name returns the params name (can be empty string).
 func (p *BaseParam) Name() string {
 	return p.name
-}
-
-// Type returns the params type (weights, biases, undefined).
-func (p *BaseParam) Type() ParamsType {
-	return p.pType
 }
 
 // Value returns the value of the delegate itself.

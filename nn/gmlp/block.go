@@ -20,7 +20,7 @@ var _ nn.Model = &Block{}
 // Block is the core model of the gMLP.
 type Block struct {
 	nn.Module
-	Layers []nn.StandardModel
+	Layers nn.ModuleList
 }
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.
@@ -53,5 +53,5 @@ func NewBlock[T float.DType](config BlockConfig) *Block {
 }
 
 func (m *Block) Forward(xs ...ag.Node) []ag.Node {
-	return nn.Forward(m.Layers)(xs...)
+	return m.Layers.Forward(xs...)
 }
