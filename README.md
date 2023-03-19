@@ -198,8 +198,8 @@ const (
 
 type Linear struct {
 	nn.Module
-	W nn.Param `spago:"type:weights"`
-	B nn.Param `spago:"type:biases"`
+	W nn.Param
+	B nn.Param
 }
 
 func NewLinear[T float.DType](in, out int) *Linear {
