@@ -243,7 +243,7 @@ func main() {
 				fmt.Println(loss)
 			}
 		}
-		optimizer.Do()
+		optimizer.Optimize()
 	}
 
 	fmt.Printf("\nW: %.2f | B: %.2f\n\n", m.W.Value().Scalar().F64(), m.B.Value().Scalar().F64())

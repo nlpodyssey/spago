@@ -44,9 +44,9 @@ func (o *Optimizer) WithClipGradByNorm(max, normType float64) *Optimizer {
 	return o
 }
 
-// Do optimizes the model parameters, applying the optional gradient clipping.
+// Optimize optimizes the model parameters, applying the optional gradient clipping.
 // After the optimization the params have zero gradients.
-func (o *Optimizer) Do() {
+func (o *Optimizer) Optimize() {
 	params := o.collectParams()
 	o.clipGradsInPlace(params)
 	o.updateParams(params)
@@ -55,7 +55,7 @@ func (o *Optimizer) Do() {
 func (o *Optimizer) collectParams() []nn.Param {
 	visited := map[nn.Param]struct{}{}
 	params := make([]nn.Param, 0)
-	nn.ForEachParam(o.model, func(param nn.Param, _ string, _ nn.ParamsType) {
+	nn.ForEachParam(o.model, func(param nn.Param, _ string) {
 		if !param.HasGrad() {
 			return // don't consider params with grad at zero
 		}
