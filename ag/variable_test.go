@@ -1,3 +1,7 @@
+// Copyright 2019 spaGO Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package ag
 
 import (
@@ -30,7 +34,6 @@ func testNewVariable[T float.DType](t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			v := Var(tc.value).WithGrad(tc.requiresGrad)
 			require.NotNil(t, v)
-			assert.Equal(t, "42", v.Name())
 			assert.Same(t, tc.value, v.Value())
 			assert.Nil(t, v.Grad())
 			assert.False(t, v.HasGrad())
@@ -57,9 +60,8 @@ func testNewVariableWithName[T float.DType](t *testing.T) {
 	for _, tc := range testCases {
 		name := fmt.Sprintf("NewVariableWithName(%g, %v, %#v)", tc.value, tc.requiresGrad, tc.name)
 		t.Run(name, func(t *testing.T) {
-			v := Var(tc.value).WithGrad(tc.requiresGrad).WithName(tc.name)
+			v := Var(tc.value).WithGrad(tc.requiresGrad)
 			require.NotNil(t, v)
-			assert.Equal(t, tc.name, v.Name())
 			assert.Same(t, tc.value, v.Value())
 			assert.Nil(t, v.Grad())
 			assert.False(t, v.HasGrad())
@@ -76,7 +78,6 @@ func TestNewScalar(t *testing.T) {
 func testNewScalar[T float.DType](t *testing.T) {
 	v := Var(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
-	assert.Equal(t, "42", v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
@@ -89,9 +90,8 @@ func TestNewScalarWithName(t *testing.T) {
 }
 
 func testNewScalarWithName[T float.DType](t *testing.T) {
-	v := Var(mat.NewScalar(T(42))).WithName("foo")
+	v := Var(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
-	assert.Equal(t, "foo", v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
@@ -106,7 +106,6 @@ func TestConstant(t *testing.T) {
 func testConstant[T float.DType](t *testing.T) {
 	v := Var(mat.NewScalar(T(42)))
 	require.NotNil(t, v)
-	assert.Equal(t, "42", v.Name())
 	mattest.AssertMatrixEquals(t, mat.NewScalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())

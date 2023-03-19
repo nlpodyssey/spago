@@ -5,8 +5,9 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/mat/rand"
 	"time"
+
+	"github.com/nlpodyssey/spago/mat/rand"
 )
 
 var globalGenerator = rand.NewLockedRand(12345)

@@ -6,25 +6,77 @@ package ag
 
 import (
 	"reflect"
-	"strings"
 	"sync"
 	"sync/atomic"
 
-	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var (
-	_ fn.Operand = &Operator{}
-	_ Node       = &Operator{}
+// backwardState is an enumeration type associated to an Operator, to keep
+// track of its visited status among different backpropagation phases.
+type backwardState byte
+
+const (
+	// idle reports that gradient propagation is not pending for an
+	// operator node.
+	//
+	// It's the default zero-value state of an operator, and it's also the
+	// final value set from the backward step once gradients have been
+	// propagated.
+	//
+	// As soon as a backward operation is performed, the status will change to
+	// pending.
+	idle backwardState = iota
+	// pending is set on an operator node from the preparatory phase
+	// of the backward step.
+	// It reports that the node has been marked as a candidate for gradients
+	// propagation and the number of pendingGrads has been computed.
+	//
+	// The next logical state is ongoing.
+	pending
+	// ongoing is set on an operator node from the core phase of the
+	// backward step. It reports that the node has been visited once for
+	// performing its Operator.backward method.
+	//
+	// This status remains set until the gradients of all dependents have been
+	// resolved, and the node's own gradients have been propagated too.
+	// After that, the status is set back to idle.
+	ongoing
 )
 
+var _ Node = &Operator{}
+
+// AutoGradFunction represents a function with automatic differentiation features.
+// It's used to define a new operator.
+type AutoGradFunction[T Node] interface {
+	// Forward computes the output of the function.
+	Forward() mat.Matrix
+	// Backward computes the backward pass given the gradient of the output.
+	Backward(gy mat.Matrix)
+	// Operands returns the list of operands.
+	Operands() []T
+}
+
+// ForwardFunc is the type of the forward function.
+type ForwardFunc func() mat.Matrix
+
+// BackwardFunc is the type of the backward function.
+type BackwardFunc func(gy mat.Matrix)
+
 // Operator is a type of node.
+// It's used to represent a function with automatic differentiation features.
 type Operator struct {
-	requiresGrad  int8 // -1 = undefined, 0 = false, 1 = true
+	// requiresGrad is a flag that indicates whether the operator requires gradients.
+	// It's set to -1 (undefined) by default, and it's lazily evaluated.
+	// Use the RequiresGrad() method to get the actual value.
+	requiresGrad int8 // -1 = undefined, 0 = false, 1 = true
+	// backwardState is the state of the backward pass.
 	backwardState backwardState
-	function      fn.Function[Node]
+	// backwardPass is the backward function to be executed.
+	backwardPass BackwardFunc
 	// value is the results of a forward evaluation, as mat.Matrix.
+	// It's set by execute() goroutine.
+	// Use the Value() method to get the actual value.
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
 	// goroutines involved in both forward and backward operations.
@@ -33,53 +85,43 @@ type Operator struct {
 	// mx is the mutex used by cond.
 	// It's defined here in order to avoid an extra memory allocation
 	// (from NewOperator), but it's never be used directly.
-	mx           sync.Mutex
-	grad         mat.Matrix
+	mx sync.Mutex
+	// grad is the accumulated gradients.
+	grad mat.Matrix
+	// pendingGrads is the number of pending gradients to be accumulated.
 	pendingGrads int64
-	// It's primarily useful for later associating a correct time-step
-	// to this operator, if needed for truncated backpropagation.
-	createdAt uint64
-	// Function's operands are memoized here after the first request.
+	// operandsFunc is the function that returns the operands of the function.
+	operandsFunc func() []Node
+	// AutoGradFunction's operands are memoized here after the first request.
 	operands []Node
 }
 
-// NewOperator creates a new operator along with its forward pass.
-func NewOperator(f fn.Function[Node]) Node {
+// NewOperator creates a new operator performing the given function in a separate goroutine.
+func NewOperator(f AutoGradFunction[Node]) Node {
 	op := &Operator{
-		requiresGrad:  -1, // lazy evaluation
+		requiresGrad:  -1,
 		backwardState: idle,
-		function:      f,
+		backwardPass:  f.Backward,
+		operandsFunc:  f.Operands,
 		pendingGrads:  0,
-		createdAt:     atomic.LoadUint64(&tsCounter),
 	}
-
 	op.cond.L = &op.mx
 
-	go op.forward()
+	go op.execute(f.Forward)
 
-	if debug {
-		op.Value() // wait for the forward goroutine to finish
-	}
 	return op
 }
 
-// Name returns the Name of the operator.
-// The name is taken from the name of r.function via reflection.
-func (o *Operator) Name() string {
-	name := reflect.ValueOf(o.function).Elem().Type().Name()
-	// Strip trailing generics, if any: "foo[bar]" becomes "foo".
-	if i := strings.IndexByte(name, '['); i != -1 {
-		return name[:i]
-	}
-	return name
-}
+// forward executes the function and inform all goroutines that have been waiting for the result.
+func (o *Operator) execute(f ForwardFunc) {
+	o.value.Store(f())
+	o.cond.L.Lock()
+	o.cond.Broadcast()
+	o.cond.L.Unlock()
 
-// Operands returns the operands of the operator.
-func (o *Operator) Operands() []Node {
-	if o.operands == nil {
-		o.operands = o.function.Operands()
+	if debug {
+		o.Value() // wait for the forward goroutine to finish
 	}
-	return o.operands
 }
 
 // Value returns the result of the function.
@@ -133,6 +175,14 @@ func (o *Operator) RequiresGrad() bool {
 	return o.requiresGrad != 0
 }
 
+// Operands returns the operands of the operator.
+func (o *Operator) Operands() []Node {
+	if o.operands == nil {
+		o.operands = o.operandsFunc()
+	}
+	return o.operands
+}
+
 // ZeroGrad clears the gradients.
 func (o *Operator) ZeroGrad() {
 	o.Grad() // safety wait for the backward goroutine to finish
@@ -150,20 +200,35 @@ func (o *Operator) AccGrad(grad mat.Matrix) {
 	if !o.RequiresGrad() {
 		return
 	}
-	o.cond.L.Lock()
 	defer o.cond.L.Unlock()
+	o.cond.L.Lock()
+	o.accGrad(grad)
+	o.signalWaitingGrads()
+}
 
-	// It is possible to observe `o.grad != nil` and at the same time `reflect.ValueOf(o.grad).IsNil() == true`.
-	// That means somewhere a nil pointer is being cast to `mat.Matrix` and stored in `o.grad`.
-	// Since `mat.Matrix` is an interface, the "nil test" will return false but any method call will panic as
-	// `mat.Dense` does not consider the possibility of a nil pointer value.
-	// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
-	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
+func (o *Operator) accGrad(grad mat.Matrix) {
+	if isGradNil(o) {
 		o.grad = grad.Clone()
 	} else {
 		o.grad.AddInPlace(grad)
 	}
+}
 
+// isGradNil returns true if the gradients are nil.
+// It is possible to observe `o.grad != nil` and at the same time `reflect.ValueOf(o.grad).IsNil() == true`.
+// That means somewhere a nil pointer is being cast to `mat.Matrix` and stored in `o.grad`.
+// Since `mat.Matrix` is an interface, the "nil test" will return false but any method call will panic as
+// `mat.Dense` does not consider the possibility of a nil pointer value.
+// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
+func isGradNil(o *Operator) bool {
+	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
+		return true
+	}
+	return false
+}
+
+// signalWaitingGrads signals all waiting goroutines if there are no pending gradients and the backward state is not idle.
+func (o *Operator) signalWaitingGrads() {
 	if o.backwardState != idle && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
 		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
 	}
@@ -175,39 +240,75 @@ func (o *Operator) initOutputGrad(outputGrad mat.Matrix) {
 	}
 
 	if o.grad != nil {
+		// If the node already has gradients, we can use them directly.
 		o.pendingGrads--
 		return
 	}
 
 	if outputGrad != nil {
+		// If the output gradient is provided, we can use it directly.
 		o.AccGrad(outputGrad)
 		return
 	}
 
+	// If neither the node nor the output gradient is provided, we need to create a new one.
 	gx := o.Value().OnesLike()
 	o.AccGrad(gx)
 	mat.ReleaseMatrix(gx)
 }
 
-// forward executes the function and inform all goroutines that have been waiting for the result.
-func (o *Operator) forward() {
-	o.value.Store(o.function.Forward())
-	o.cond.L.Lock()
-	o.cond.Broadcast()
-	o.cond.L.Unlock()
-}
-
-// backward executes the backward
-func (o *Operator) backward() {
+func (o *Operator) prepareBackwardPass() {
 	if !o.RequiresGrad() {
 		return
 	}
+	o.pendingGrads++
+	if o.updateBackwardState() {
+		o.traverseOperandsForPreparation()
+	}
+}
 
-	grad := o.Grad()
-	if grad == nil {
+func (o *Operator) updateBackwardState() bool {
+	if o.backwardState != idle {
+		return false // already in progress
+	}
+	o.backwardState = pending
+	return true
+}
+
+func (o *Operator) traverseOperandsForPreparation() {
+	for _, operand := range o.Operands() {
+		if oo, ok := operand.(*Operator); ok {
+			oo.prepareBackwardPass()
+		}
+	}
+}
+
+func (o *Operator) executeBackwardPass(wg *sync.WaitGroup) {
+	if !o.RequiresGrad() || o.backwardState != pending {
 		return
 	}
-	o.function.Backward(grad)
+	o.backwardState = ongoing
+
+	wg.Add(1) // decrement when the backward pass is done
+	go o.processBackward(wg)
+
+	o.traverseOperandsForBackward(wg)
+}
+
+func (o *Operator) processBackward(wg *sync.WaitGroup) {
+	if grad := o.Grad(); grad != nil {
+		o.backwardPass(grad)
+	}
+	o.backwardState = idle
+	wg.Done()
+}
+
+func (o *Operator) traverseOperandsForBackward(wg *sync.WaitGroup) {
+	for _, operand := range o.Operands() {
+		if oo, ok := operand.(*Operator); ok {
+			oo.executeBackwardPass(wg)
+		}
+	}
 }
 
 // releaseValue sets the operator's value to nil releases the memory.

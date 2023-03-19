@@ -4,6 +4,9 @@
 
 package ag
 
+// ReleaseGraphFunc is returned by the Backward function.
+type ReleaseGraphFunc func()
+
 // ReleaseGraph traverses the (sub-)graphs consisting of operators and
 // nested operands, starting from the given nodes, and frees the resources
 // of each operator.
@@ -17,11 +20,11 @@ package ag
 // Any freed operator MUST not be used after this operation is performed.
 func ReleaseGraph(nodes ...Node) {
 	for _, node := range nodes {
-		if op, ok := node.(*Operator); ok && op.function != nil {
+		if op, ok := node.(*Operator); ok && op.backwardPass != nil {
 			ReleaseGraph(op.Operands()...)
 			op.releaseValue()
 			op.ZeroGrad()
-			op.function = nil
+			op.backwardPass = nil
 			op.cond.L = nil
 		}
 	}

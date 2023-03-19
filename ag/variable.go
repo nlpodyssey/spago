@@ -5,19 +5,13 @@
 package ag
 
 import (
-	"fmt"
 	"sync"
-	"sync/atomic"
 
-	"github.com/nlpodyssey/spago/ag/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
-var (
-	_ fn.Operand = &Variable{}
-	_ Node       = &Variable{}
-)
+var _ Node = &Variable{}
 
 // Variable is a simple type of Node, primarily consisting of a value and
 // optional gradients.
@@ -26,10 +20,6 @@ type Variable struct {
 	grad         mat.Matrix
 	gradMu       sync.RWMutex
 	requiresGrad bool
-	name         string
-	// It's primarily useful for later associating a correct time-step
-	// to this variable, if needed for truncated backpropagation.
-	createdAt uint64
 }
 
 // Var creates a new Variable Node.
@@ -39,7 +29,6 @@ func Var(value mat.Matrix) *Variable {
 		value:        value,
 		grad:         nil,
 		requiresGrad: false,
-		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 }
 
@@ -50,7 +39,6 @@ func Scalar[T float.DType](value T) *Variable {
 		value:        mat.NewScalar(value),
 		grad:         nil,
 		requiresGrad: false,
-		createdAt:    atomic.LoadUint64(&tsCounter),
 	}
 }
 
@@ -58,27 +46,6 @@ func Scalar[T float.DType](value T) *Variable {
 func (r *Variable) WithGrad(value bool) *Variable {
 	r.requiresGrad = value
 	return r
-}
-
-// WithName sets the variable's name.
-func (r *Variable) WithName(value string) *Variable {
-	r.name = value
-	return r
-}
-
-// Name returns the Name of the variable (it can be empty).
-// If a variable has no name, and the value is a scalar, then it returns its value.
-//
-// Identifying a Variable solely upon its name is highly discouraged.
-// The name should be used solely for debugging or testing purposes.
-func (r *Variable) Name() string {
-	if r.name != "" {
-		return r.name
-	}
-	if mat.IsScalar(r.value) {
-		return fmt.Sprint(r.Value().Scalar())
-	}
-	return r.name
 }
 
 // Value returns the value of the variable itself.

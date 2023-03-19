@@ -5,7 +5,7 @@
 package ag
 
 import (
-	"github.com/nlpodyssey/spago/ag/fn"
+	"github.com/nlpodyssey/spago/fn"
 )
 
 // Abs returns a new operator node as a result of the `Abs` function.
