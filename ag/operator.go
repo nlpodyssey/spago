@@ -198,13 +198,14 @@ func (o *Operator) ZeroGrad() {
 
 // AccGrad accumulates the gradients to the node itself.
 func (o *Operator) AccGrad(grad mat.Matrix) {
-	if !o.RequiresGrad() {
-		return
-	}
 	defer o.cond.L.Unlock()
 	o.cond.L.Lock()
 	o.Value().AccGrad(grad)
-	o.signalWaitingGrads()
+
+	// Don't decrement the counter if the backward pass is not running.
+	if o.backwardState != idle && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
+		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
+	}
 }
 
 // isNil returns true if the gradients are nil.
@@ -213,13 +214,6 @@ func isNil(grad mat.Matrix) bool {
 		return true
 	}
 	return false
-}
-
-// signalWaitingGrads signals all waiting goroutines if there are no pending gradients and the backward state is not idle.
-func (o *Operator) signalWaitingGrads() {
-	if o.backwardState != idle && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
-		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
-	}
 }
 
 func (o *Operator) initOutputGrad(outputGrad mat.Matrix) {

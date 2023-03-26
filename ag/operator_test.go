@@ -165,8 +165,8 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 		assert.False(t, op.HasGrad())
 
 		op.AccGrad(mat.NewScalar[T](5))
-		require.Nil(t, op.Grad())
-		assert.False(t, op.HasGrad())
+		require.NotNil(t, op.Grad())
+		assert.True(t, op.HasGrad())
 
 		op.ZeroGrad()
 		require.Nil(t, op.Grad())
