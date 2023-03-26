@@ -9,7 +9,6 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -145,11 +144,11 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 		assert.False(t, op.HasGrad())
 
 		op.AccGrad(mat.NewScalar[T](5))
-		mattest.RequireMatrixEquals(t, mat.NewScalar[T](5), op.Grad())
+		mat.RequireMatrixEquals(t, mat.NewScalar[T](5), op.Grad())
 		assert.True(t, op.HasGrad())
 
 		op.AccGrad(mat.NewScalar[T](10))
-		mattest.RequireMatrixEquals(t, mat.NewScalar[T](15), op.Grad())
+		mat.RequireMatrixEquals(t, mat.NewScalar[T](15), op.Grad())
 		assert.True(t, op.HasGrad())
 
 		op.ZeroGrad()

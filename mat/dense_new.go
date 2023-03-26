@@ -15,7 +15,7 @@ import (
 //
 // Rows and columns MUST not be negative, and the length of data MUST be
 // equal to rows*cols, otherwise the method panics.
-func NewDense[T float.DType](rows, cols int, data []T) *Dense[T] {
+func NewDense[T float.DType](rows, cols int, data []T, opts ...MatrixOption) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -24,43 +24,64 @@ func NewDense[T float.DType](rows, cols int, data []T) *Dense[T] {
 	}
 	d := densePool[T]().Get(rows, cols)
 	copy(d.data, data)
+
+	for _, opt := range opts {
+		opt(d)
+	}
 	return d
 }
 
 // NewVecDense returns a new column vector (len(data)×1) initialized with
 // a copy of raw data.
-func NewVecDense[T float.DType](data []T) *Dense[T] {
+func NewVecDense[T float.DType](data []T, opts ...MatrixOption) *Dense[T] {
 	d := densePool[T]().Get(len(data), 1)
 	copy(d.data, data)
+
+	for _, opt := range opts {
+		opt(d)
+	}
 	return d
 }
 
 // NewScalar returns a new 1×1 matrix containing the given value.
-func NewScalar[T float.DType](v T) *Dense[T] {
+func NewScalar[T float.DType](v T, opts ...MatrixOption) *Dense[T] {
 	d := densePool[T]().Get(1, 1)
 	d.data[0] = v
+
+	for _, opt := range opts {
+		opt(d)
+	}
 	return d
 }
 
 // NewEmptyVecDense returns a new vector with dimensions size×1, initialized
 // with zeros.
-func NewEmptyVecDense[T float.DType](size int) *Dense[T] {
+func NewEmptyVecDense[T float.DType](size int, opts ...MatrixOption) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	return densePool[T]().GetEmpty(size, 1)
+	d := densePool[T]().GetEmpty(size, 1)
+	for _, opt := range opts {
+		opt(d)
+	}
+	return d
 }
 
 // NewEmptyDense returns a new rows×cols matrix, initialized with zeros.
-func NewEmptyDense[T float.DType](rows, cols int) *Dense[T] {
+func NewEmptyDense[T float.DType](rows, cols int, opts ...MatrixOption) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	return densePool[T]().GetEmpty(rows, cols)
+	d := densePool[T]().GetEmpty(rows, cols)
+
+	for _, opt := range opts {
+		opt(d)
+	}
+	return d
 }
 
 // NewOneHotVecDense returns a new one-hot column vector (size×1).
-func NewOneHotVecDense[T float.DType](size int, oneAt int) *Dense[T] {
+func NewOneHotVecDense[T float.DType](size int, oneAt int, opts ...MatrixOption) *Dense[T] {
 	if size <= 0 {
 		panic("mat: the vector size must be a positive number")
 	}
@@ -69,12 +90,16 @@ func NewOneHotVecDense[T float.DType](size int, oneAt int) *Dense[T] {
 	}
 	vec := densePool[T]().GetEmpty(size, 1)
 	vec.data[oneAt] = 1
+
+	for _, opt := range opts {
+		opt(vec)
+	}
 	return vec
 }
 
 // NewInitDense returns a new rows×cols dense matrix initialized with a
 // constant value.
-func NewInitDense[T float.DType](rows, cols int, v T) *Dense[T] {
+func NewInitDense[T float.DType](rows, cols int, v T, opts ...MatrixOption) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -83,12 +108,15 @@ func NewInitDense[T float.DType](rows, cols int, v T) *Dense[T] {
 	for i := range data {
 		data[i] = v
 	}
+	for _, opt := range opts {
+		opt(out)
+	}
 	return out
 }
 
 // NewInitFuncDense returns a new rows×cols dense matrix initialized with the
 // values returned from the callback function.
-func NewInitFuncDense[T float.DType](rows, cols int, fn func(r, c int) T) *Dense[T] {
+func NewInitFuncDense[T float.DType](rows, cols int, fn func(r, c int) T, opts ...MatrixOption) *Dense[T] {
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -107,12 +135,15 @@ func NewInitFuncDense[T float.DType](rows, cols int, fn func(r, c int) T) *Dense
 		}
 	}
 
+	for _, opt := range opts {
+		opt(out)
+	}
 	return out
 }
 
 // NewInitVecDense returns a new column vector (size×1) initialized with a
 // constant value.
-func NewInitVecDense[T float.DType](size int, v T) *Dense[T] {
+func NewInitVecDense[T float.DType](size int, v T, opts ...MatrixOption) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
@@ -121,12 +152,16 @@ func NewInitVecDense[T float.DType](size int, v T) *Dense[T] {
 	for i := range data {
 		data[i] = v
 	}
+
+	for _, opt := range opts {
+		opt(out)
+	}
 	return out
 }
 
 // NewIdentityDense returns a square identity matrix (size×size), that is,
 // with ones on the diagonal and zeros elsewhere.
-func NewIdentityDense[T float.DType](size int) *Dense[T] {
+func NewIdentityDense[T float.DType](size int, opts ...MatrixOption) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
@@ -135,6 +170,10 @@ func NewIdentityDense[T float.DType](size int) *Dense[T] {
 	ln := len(data)
 	for i := 0; i < ln; i += size + 1 {
 		data[i] = 1
+	}
+
+	for _, opt := range opts {
+		opt(out)
 	}
 	return out
 }

@@ -11,7 +11,6 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +41,7 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, p2)
 		require.NotNil(t, p2.Value())
-		mattest.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
+		mat.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
 		assert.Equal(t, "foo", p2.Name())
 		assert.False(t, p2.RequiresGrad())
 
@@ -50,7 +49,7 @@ func testParamGob[T float.DType](t *testing.T) {
 		assert.NotNil(t, payload)
 		assert.Equal(t, 42, payload.Label)
 		assert.NotEmpty(t, payload.Data)
-		mattest.AssertMatrixEquals(t, mat.NewScalar(T(34)), payload.Data[0])
+		mat.AssertMatrixEquals(t, mat.NewScalar(T(34)), payload.Data[0])
 	})
 
 	t.Run("with default properties and nil value", func(t *testing.T) {

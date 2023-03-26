@@ -22,10 +22,9 @@ func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x1 := ag.Var(mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0})).WithGrad(true)
-	x2 := ag.Var(mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0})).WithGrad(true)
-	x3 := ag.Var(mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0})).WithGrad(true)
-
+	x1 := mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}, mat.WithGrad(true))
+	x2 := mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0}, mat.WithGrad(true))
+	x3 := mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0}, mat.WithGrad(true))
 	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{0.6182178902, 0.1254256878, 0.2, 1.4965944974}, y[0].Value().Data(), 1.0e-06)

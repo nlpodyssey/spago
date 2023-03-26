@@ -20,8 +20,8 @@ func TestMSELoss(t *testing.T) {
 }
 
 func testMSELoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
-	y := ag.Var(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}))
+	x := mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}, mat.WithGrad(true))
+	y := mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0})
 	loss := MSE(x, y, false)
 
 	assertScalarEqualApprox(t, 0.1, loss.Value())
@@ -37,8 +37,8 @@ func TestNLLLoss(t *testing.T) {
 }
 
 func testNLLLoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591})).WithGrad(true)
-	y := ag.Var(mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0}))
+	x := mat.NewVecDense([]T{-0.8, 0.1, 0.693147, 1.94591}, mat.WithGrad(true))
+	y := mat.NewVecDense([]T{0.0, 0.0, 1.0, 0.0})
 	loss := NLL(ag.Softmax(x), y)
 
 	fmt.Println(loss.Value().Scalar())
@@ -55,7 +55,7 @@ func TestCrossEntropyLoss(t *testing.T) {
 }
 
 func testCrossEntropyLoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591})).WithGrad(true)
+	x := mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}, mat.WithGrad(true))
 	loss := CrossEntropy(x, 2)
 
 	assertScalarEqualApprox(t, 1.609438, loss.Value())
@@ -71,7 +71,7 @@ func TestWeightedCrossEntropyLoss(t *testing.T) {
 }
 
 func testWeightedCrossEntropyLoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591})).WithGrad(true)
+	x := mat.NewVecDense([]T{-500, 0, 0.693147, 1.94591}, mat.WithGrad(true))
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedCrossEntropy(mat.NewVecDense(w))
 	loss := lossFn(x, 2)
@@ -89,7 +89,7 @@ func TestFocalLoss(t *testing.T) {
 }
 
 func testFocalLoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}, mat.WithGrad(true))
 	loss := FocalLoss(x, 2, 2.0)
 
 	assertScalarEqualApprox(t, 0.73282546, loss.Value())
@@ -105,7 +105,7 @@ func TestWeightedFocalLoss(t *testing.T) {
 }
 
 func testWeightedFocalLoss[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.4}, mat.WithGrad(true))
 	w := []T{0.5, 0.5, 0.5, 0.9}
 	lossFn := WeightedFocalLoss(mat.NewVecDense(w))
 	loss := lossFn(x, 2, 2.0)
@@ -123,7 +123,7 @@ func TestZeroOneQuantization(t *testing.T) {
 }
 
 func testZeroOneQuantization[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}, mat.WithGrad(true))
 	loss := ZeroOneQuantization(x)
 
 	assertScalarEqualApprox(t, 2.209, loss.Value())
@@ -139,7 +139,7 @@ func TestNorm2Quantization(t *testing.T) {
 }
 
 func testNorm2Quantization[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}, mat.WithGrad(true))
 	loss := Norm2Quantization(x)
 
 	assertScalarEqualApprox(t, 0.8836, loss.Value())
@@ -155,7 +155,7 @@ func TestOneHotQuantization(t *testing.T) {
 }
 
 func testOneHotQuantization[T float.DType](t *testing.T) {
-	x := ag.Var(mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, 0.2, 1.0, 0.4, -0.8, 0.3}, mat.WithGrad(true))
 	loss := OneHotQuantization(x, 0.1)
 
 	assertScalarEqualApprox(t, 0.30926, loss.Value())
@@ -171,10 +171,10 @@ func TestMSESeqLoss(t *testing.T) {
 }
 
 func testMSESeqLoss[T float.DType](t *testing.T) {
-	x1 := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
-	y1 := ag.Var(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}))
-	x2 := ag.Var(mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3})).WithGrad(true)
-	y2 := ag.Var(mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}))
+	x1 := mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}, mat.WithGrad(true))
+	y1 := mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0})
+	x2 := mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}, mat.WithGrad(true))
+	y2 := mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}, mat.WithGrad(true))
 	loss := MSESeq([]ag.Node{x1, x2}, []ag.Node{y1, y2}, true)
 
 	assertScalarEqualApprox(t, 0.1, loss.Value())

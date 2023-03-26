@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mattest_test
+package mat_test
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/mat"
 	"strings"
 	"testing"
 
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +32,7 @@ func testAssertMatrixEquals[T float.DType](t *testing.T) {
 				}
 			}
 
-			mattest.AssertMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
+			mat.AssertMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			assert.Equal(t, 0, dt.failNowCalls)
@@ -64,7 +63,7 @@ func testRequireMatrixEquals[T float.DType](t *testing.T) {
 				}
 			}
 
-			mattest.RequireMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
+			mat.RequireMatrixEquals(dt, tc.expected, tc.actual, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			if tc.success {
@@ -96,7 +95,7 @@ func testAssertMatrixInDelta[T float.DType](t *testing.T) {
 				}
 			}
 
-			mattest.AssertMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
+			mat.AssertMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			assert.Equal(t, 0, dt.failNowCalls)
@@ -127,7 +126,7 @@ func testRequireMatrixInDelta[T float.DType](t *testing.T) {
 				}
 			}
 
-			mattest.RequireMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
+			mat.RequireMatrixInDelta(dt, tc.expected, tc.actual, tc.delta, tc.args...)
 
 			assert.Positive(t, dt.helperCalls)
 			if tc.success {

@@ -3,12 +3,10 @@
 // license that can be found in the LICENSE file.
 
 // Package mattest provides utilities for testing code involving spaGO matrices.
-package mattest
+package mat
 
 import (
 	"fmt"
-
-	"github.com/nlpodyssey/spago/mat"
 )
 
 // T requires a subset of methods from testing.TB.
@@ -28,7 +26,7 @@ type T interface {
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error.
-func AssertMatrixEquals(t T, expected, actual mat.Matrix, args ...any) bool {
+func AssertMatrixEquals(t T, expected, actual Matrix, args ...any) bool {
 	t.Helper()
 	if expected == nil {
 		t.Error("the expected matrix must not be nil")
@@ -39,7 +37,7 @@ func AssertMatrixEquals(t T, expected, actual mat.Matrix, args ...any) bool {
 			expected, fmt.Sprint(args...))
 		return false
 	}
-	if !mat.Equal(expected, actual) {
+	if !Equal(expected, actual) {
 		t.Errorf("Matrices are not equal:\nexpected:\n%g\nactual:\n%g\n%s",
 			expected, actual, fmt.Sprint(args...))
 		return false
@@ -53,7 +51,7 @@ func AssertMatrixEquals(t T, expected, actual mat.Matrix, args ...any) bool {
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error and fails.
-func RequireMatrixEquals(t T, expected, actual mat.Matrix, args ...any) {
+func RequireMatrixEquals(t T, expected, actual Matrix, args ...any) {
 	t.Helper()
 	if !AssertMatrixEquals(t, expected, actual, args...) {
 		t.FailNow()
@@ -68,7 +66,7 @@ func RequireMatrixEquals(t T, expected, actual mat.Matrix, args ...any) {
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error.
-func AssertMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args ...any) bool {
+func AssertMatrixInDelta(t T, expected, actual Matrix, delta float64, args ...any) bool {
 	t.Helper()
 	if expected == nil {
 		t.Error("the expected matrix must not be nil")
@@ -79,7 +77,7 @@ func AssertMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args .
 			delta, expected, fmt.Sprint(args...))
 		return false
 	}
-	if !mat.InDelta(expected, actual, delta) {
+	if !InDelta(expected, actual, delta) {
 		t.Errorf("Matrices values are not within delta %g:\nexpected:\n%g\nactual:\n%g\n%s",
 			delta, expected, actual, fmt.Sprint(args...))
 		return false
@@ -93,7 +91,7 @@ func AssertMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args .
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error and fails.
-func RequireMatrixInDelta(t T, expected, actual mat.Matrix, delta float64, args ...any) {
+func RequireMatrixInDelta(t T, expected, actual Matrix, delta float64, args ...any) {
 	t.Helper()
 	if !AssertMatrixInDelta(t, expected, actual, delta, args...) {
 		t.FailNow()

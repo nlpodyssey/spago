@@ -22,8 +22,8 @@ func ReleaseGraph(nodes ...Node) {
 	for _, node := range nodes {
 		if op, ok := node.(*Operator); ok && op.backwardPass != nil {
 			ReleaseGraph(op.Operands()...)
-			op.releaseValue()
 			op.ZeroGrad()
+			op.releaseValue()
 			op.backwardPass = nil
 			op.cond.L = nil
 		}

@@ -20,8 +20,8 @@ func TestReleaseGraph(t *testing.T) {
 func testReleaseGraph[T float.DType](t *testing.T) {
 	t.Run("values and grads are released", func(t *testing.T) {
 		op := Add(
-			Var(mat.NewScalar[T](1)).WithGrad(true),
-			Var(mat.NewScalar[T](2)).WithGrad(true),
+			mat.NewScalar[T](1, mat.WithGrad(true)),
+			mat.NewScalar[T](2, mat.WithGrad(true)),
 		)
 
 		op.Value() // wait for the value
@@ -33,13 +33,13 @@ func testReleaseGraph[T float.DType](t *testing.T) {
 		ReleaseGraph(op)
 
 		assert.Panics(t, func() { op.Value() })
-		assert.Nil(t, op.Grad())
+		assert.Panics(t, func() { op.Grad() })
 	})
 
 	t.Run("multiple occurrences of the same operator in a graph", func(t *testing.T) {
 		op1 := Add(
-			Var(mat.NewScalar[T](1)).WithGrad(true),
-			Var(mat.NewScalar[T](2)).WithGrad(true),
+			mat.NewScalar[T](1, mat.WithGrad(true)),
+			mat.NewScalar[T](2, mat.WithGrad(true)),
 		)
 		op2 := Add(op1, op1)
 		op2.Value() // wait for the value
@@ -56,7 +56,7 @@ func testReleaseGraph[T float.DType](t *testing.T) {
 		assert.Panics(t, func() { op1.Value() })
 		assert.Panics(t, func() { op2.Value() })
 
-		assert.Nil(t, op1.Grad())
-		assert.Nil(t, op2.Grad())
+		assert.Panics(t, func() { op1.Grad() })
+		assert.Panics(t, func() { op2.Grad() })
 	})
 }

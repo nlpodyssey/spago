@@ -17,10 +17,10 @@ func Abs(x Node) Node {
 // As special case, the first node may be null.
 // This help to keep the code as concise as possible e.g. during accumulation.
 func Add(x1 Node, x2 Node) Node {
-	if x1 != nil {
-		return NewOperator(fn.NewAdd(x1, x2))
+	if x1 == nil {
+		return Identity(x2) // return a copy of `x2` as is
 	}
-	return NewOperator(fn.NewAdd(Node(Var(nil)), x2))
+	return NewOperator(fn.NewAdd(x1, x2))
 }
 
 // AddScalar returns a new operator node as a result of the fn.AddScalar function.

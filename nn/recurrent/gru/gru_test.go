@@ -24,14 +24,14 @@ func testModelForward[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	y := model.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.74, -0.23, 0.11, 0.49, -0.05}, y.Value().Data(), 0.005)
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(y, gold, false)
 	ag.Backward(loss)
 
@@ -88,15 +88,15 @@ func testModelForwardWithPrev[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	s0 := &State{Y: ag.Var(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8})).WithGrad(true)}
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
+	s0 := &State{Y: mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}, mat.WithGrad(true))}
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{0.86, 0.18, -0.24, 0.36, -0.36}, s1.Y.Value().Data(), 0.005)
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(s1.Y, gold, false)
 	ag.Backward(loss)
 
@@ -227,13 +227,13 @@ func testModelForwardSeq[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	s0 := &State{Y: ag.Var(mat.NewVecDense([]T{0.0, 0.0})).WithGrad(true)}
-	x := ag.Var(mat.NewVecDense([]T{3.5, 4.0, -0.1})).WithGrad(true)
+	s0 := &State{Y: mat.NewVecDense([]T{0.0, 0.0}, mat.WithGrad(true))}
+	x := mat.NewVecDense([]T{3.5, 4.0, -0.1}, mat.WithGrad(true))
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{-0.634733134450701, 0.896135841414256}, s1.Y.Value().Data(), 1.0e-05)
 
-	x2 := ag.Var(mat.NewVecDense([]T{3.3, -2.0, 0.1})).WithGrad(true)
+	x2 := mat.NewVecDense([]T{3.3, -2.0, 0.1}, mat.WithGrad(true))
 	s2 := model.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{0.646126994447876, 0.537141024639326}, s2.Y.Value().Data(), 1.0e-05)

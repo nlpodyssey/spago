@@ -22,7 +22,7 @@ func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.Var(mat.NewVecDense([]T{0.3, 0.5, -0.4})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.3, 0.5, -0.4}, mat.WithGrad(true))
 	y := model.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.5928}, y.Value().Data(), 1.0e-05)

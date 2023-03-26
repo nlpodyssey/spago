@@ -23,15 +23,14 @@ func testModelForward[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
-
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	y := model.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{-0.39693, -0.79688, 0.0, 0.70137, -0.18775}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(y, gold, false)
 	ag.Backward(loss)
 
@@ -63,8 +62,8 @@ func testModelForwardWithPrev[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
 	// == Forward
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
-	yPrev := ag.Tanh(ag.Var(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8})).WithGrad(true))
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
+	yPrev := ag.Tanh(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}, mat.WithGrad(true)))
 
 	s1 := model.Next(&State{Y: yPrev}, x)
 
@@ -72,7 +71,7 @@ func testModelForwardWithPrev[T float.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(s1.Y, gold, false)
 	ag.Backward(loss)
 
@@ -130,14 +129,14 @@ func testModelForwardSeq[T float.DType](t *testing.T) {
 	// == Forward
 
 	s0 := &State{
-		Y: ag.Var(mat.NewVecDense([]T{0.0, 0.0})).WithGrad(true),
+		Y: mat.NewVecDense([]T{0.0, 0.0}, mat.WithGrad(true)),
 	}
-	x := ag.Var(mat.NewVecDense([]T{3.5, 4.0, -0.1})).WithGrad(true)
+	x := mat.NewVecDense([]T{3.5, 4.0, -0.1}, mat.WithGrad(true))
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{-0.9732261643, 0.9987757968}, s1.Y.Value().Data(), 1.0e-05)
 
-	x2 := ag.Var(mat.NewVecDense([]T{3.3, -2.0, 0.1})).WithGrad(true)
+	x2 := mat.NewVecDense([]T{3.3, -2.0, 0.1}, mat.WithGrad(true))
 	s2 := model.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{-0.3773622668, 0.9671682519}, s2.Y.Value().Data(), 1.0e-05)

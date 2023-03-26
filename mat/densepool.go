@@ -88,9 +88,7 @@ func (dp *densePoolType[T]) Get(rows, cols int) *Dense[T] {
 func (dp *densePoolType[T]) GetEmpty(rows, cols int) *Dense[T] {
 	d := dp.get(rows, cols)
 	if d.flags&denseIsNew == 0 {
-		for i := range d.data {
-			d.data[i] = 0
-		}
+		zeros(d.data)
 	}
 	d.flags &= ^denseIsNew
 	return d
@@ -106,7 +104,22 @@ func (dp *densePoolType[T]) get(rows, cols int) *Dense[T] {
 	d.data = d.data[:length]
 	d.rows = rows
 	d.cols = cols
+
+	if d.grad != nil {
+		d.grad.rows = rows
+		d.grad.cols = cols
+		d.grad.data = d.grad.data[:length]
+		zeros(d.data) // TODO: check if this is necessary
+	}
+
 	return d
+}
+
+// zeros sets all elements of a slice to zero.
+func zeros[T float.DType](s []T) {
+	for i := range s {
+		s[i] = 0
+	}
 }
 
 // Put adds a used Dense matrix to pool.

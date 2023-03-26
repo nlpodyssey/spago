@@ -22,7 +22,7 @@ func TestModelReLU_Forward(t *testing.T) {
 func testModelReLUForward[T float.DType](t *testing.T) {
 	m := New(ReLU)
 
-	x := ag.Var(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}, mat.WithGrad(true))
 	y := m.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Value().Data(), 1.0e-05)
@@ -43,7 +43,7 @@ func testModelSwishForward[T float.DType](t *testing.T) {
 	m := New(SwishB, beta)
 
 	// == Forward
-	x := ag.Var(mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0})).WithGrad(true)
+	x := mat.NewVecDense([]T{0.1, -0.2, 0.3, 0.0}, mat.WithGrad(true))
 	y := m.Forward(x)[0]
 
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Value().Data(), 1.0e-6)

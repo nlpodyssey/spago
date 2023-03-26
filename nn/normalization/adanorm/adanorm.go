@@ -41,9 +41,9 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := ag.Var(xs[0].Value().NewScalar(1e-10))
-	one := ag.Var(xs[0].Value().NewScalar(1.0))
-	k := ag.Var(xs[0].Value().NewScalar(0.1))
+	eps := xs[0].Value().NewScalar(1e-10)
+	one := xs[0].Value().NewScalar(1.0)
+	k := xs[0].Value().NewScalar(0.1)
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
 	zs := make([]ag.Node, len(xs))

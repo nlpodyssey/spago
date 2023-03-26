@@ -13,7 +13,6 @@ import (
 	"github.com/nlpodyssey/spago/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -64,7 +63,7 @@ func testScalarConst[T float.DType](t *testing.T) {
 	c := Const(T(42))
 	require.NotNil(t, c)
 	assert.Equal(t, "42", c.Name())
-	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -79,7 +78,7 @@ func testScalarConstWithName[T float.DType](t *testing.T) {
 	c := Const(T(42)).WithName("foo")
 	require.NotNil(t, c)
 	assert.Equal(t, "foo", c.Name())
-	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -93,7 +92,7 @@ func TestSConstant_AccGrad(t *testing.T) {
 func testScalarConstantAccGrad[T float.DType](t *testing.T) {
 	c := Const(T(42))
 	c.AccGrad(mat.NewScalar(T(100)))
-	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -107,7 +106,7 @@ func TestSConstant_ZeroGrad(t *testing.T) {
 func testScalarConstantZeroGrad[T float.DType](t *testing.T) {
 	c := Const(T(42))
 	c.ZeroGrad()
-	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -133,5 +132,5 @@ func testScalarConstantMarshaling[T float.DType](t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Equal(t, "foo", c2.Name())
-	mattest.AssertMatrixEquals(t, mat.NewScalar(T(42)), c2.Value())
+	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c2.Value())
 }

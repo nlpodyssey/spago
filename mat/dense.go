@@ -23,10 +23,13 @@ const ParallelMulThreshold = 10000
 
 // A Dense matrix implementation.
 type Dense[T float.DType] struct {
-	rows  int
-	cols  int
-	flags denseFlag
-	data  []T
+	rows         int
+	cols         int
+	requiresGrad bool
+	flags        denseFlag
+	data         []T
+	grad         *Dense[T]
+	gradMu       sync.RWMutex
 }
 
 // Rows returns the number of rows of the matrix.
@@ -1575,66 +1578,66 @@ func (d *Dense[T]) String() string {
 //
 // Rows and columns MUST not be negative, and the length of data MUST be
 // equal to rows*cols, otherwise the method panics.
-func (d *Dense[T]) NewMatrix(rows, cols int, data float.Slice) Matrix {
-	return NewDense[T](rows, cols, float.SliceValueOf[T](data))
+func (d *Dense[T]) NewMatrix(rows, cols int, data float.Slice, opts ...MatrixOption) Matrix {
+	return NewDense[T](rows, cols, float.SliceValueOf[T](data), opts...)
 }
 
 // NewVec creates a new column vector (len(data)×1), of the same type of
 // the receiver, initialized with a copy of raw data.
-func (d *Dense[T]) NewVec(data float.Slice) Matrix {
-	return NewVecDense[T](float.SliceValueOf[T](data))
+func (d *Dense[T]) NewVec(data float.Slice, opts ...MatrixOption) Matrix {
+	return NewVecDense[T](float.SliceValueOf[T](data), opts...)
 }
 
 // NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 // containing the given value.
-func (d *Dense[T]) NewScalar(v float64) Matrix {
-	return NewScalar(T(v))
+func (d *Dense[T]) NewScalar(v float64, opts ...MatrixOption) Matrix {
+	return NewScalar(T(v), opts...)
 }
 
 // NewEmptyVec creates a new vector, of the same type of the receiver,
 // with dimensions size×1, initialized with zeros.
-func (d *Dense[T]) NewEmptyVec(size int) Matrix {
-	return NewEmptyVecDense[T](size)
+func (d *Dense[T]) NewEmptyVec(size int, opts ...MatrixOption) Matrix {
+	return NewEmptyVecDense[T](size, opts...)
 }
 
 // NewEmptyMatrix creates a new rows×cols matrix, of the same type of the
 // receiver, initialized with zeros.
-func (d *Dense[T]) NewEmptyMatrix(rows, cols int) Matrix {
-	return NewEmptyDense[T](rows, cols)
+func (d *Dense[T]) NewEmptyMatrix(rows, cols int, opts ...MatrixOption) Matrix {
+	return NewEmptyDense[T](rows, cols, opts...)
 }
 
 // NewInitMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitMatrix(rows, cols int, v float64) Matrix {
-	return NewInitDense(rows, cols, T(v))
+func (d *Dense[T]) NewInitMatrix(rows, cols int, v float64, opts ...MatrixOption) Matrix {
+	return NewInitDense(rows, cols, T(v), opts...)
 }
 
 // NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 // of the receiver, initialized with the values returned from the
 // callback function.
-func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64) Matrix {
+func (d *Dense[T]) NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64, opts ...MatrixOption) Matrix {
 	return NewInitFuncDense(rows, cols, func(r, c int) T {
 		return T(fn(r, c))
-	})
+	}, opts...)
 }
 
 // NewInitVec creates a new column vector (size×1), of the same type of
 // the receiver, initialized with a constant value.
-func (d *Dense[T]) NewInitVec(size int, v float64) Matrix {
-	return NewInitVecDense(size, T(v))
+func (d *Dense[T]) NewInitVec(size int, v float64, opts ...MatrixOption) Matrix {
+	return NewInitVecDense(size, T(v), opts...)
 }
 
 // NewIdentityMatrix creates a new square identity matrix (size×size), of
 // the same type of the receiver, that is, with ones on the diagonal
 // and zeros elsewhere.
-func (d *Dense[T]) NewIdentityMatrix(size int) Matrix {
-	return NewIdentityDense[T](size)
+func (d *Dense[T]) NewIdentityMatrix(size int, opts ...MatrixOption) Matrix {
+	return NewIdentityDense[T](size, opts...)
 }
 
 // NewOneHotVec creates a new one-hot column vector (size×1), of the same
 // type of the receiver.
-func (d *Dense[T]) NewOneHotVec(size int, oneAt int) Matrix {
-	return NewOneHotVecDense[T](size, oneAt)
+func (d *Dense[T]) NewOneHotVec(size int, oneAt int, opts ...MatrixOption) Matrix {
+	return NewOneHotVecDense[T](size, oneAt, opts...)
 }
 
 // NewConcatV creates a new column vector, of the same type of the receiver,

@@ -26,7 +26,7 @@ func testModelForward[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	st := model.Next(nil, x)
 
 	assert.InDeltaSlice(t, []T{-0.15, -0.114, -0.459, 0.691, -0.401}, st.Cell.Value().Data(), 0.005)
@@ -35,7 +35,7 @@ func testModelForward[T float.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(st.Y, gold, false)
 	ag.Backward(loss)
 
@@ -113,10 +113,10 @@ func testModelForwardWithPrev[T float.DType](t *testing.T) {
 
 	// == Forward
 	s0 := &State{
-		Cell: ag.Var(mat.NewVecDense([]T{0.8, -0.6, 1.0, 0.1, 0.1})).WithGrad(true),
-		Y:    ag.Var(mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8})).WithGrad(true),
+		Cell: mat.NewVecDense([]T{0.8, -0.6, 1.0, 0.1, 0.1}, mat.WithGrad(true)),
+		Y:    mat.NewVecDense([]T{-0.2, 0.2, -0.3, -0.9, -0.8}, mat.WithGrad(true)),
 	}
-	x := ag.Var(mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0})).WithGrad(true)
+	x := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{0.5649, -0.2888, 0.3185, 0.9031, -0.4346}, s1.Cell.Value().Data(), 0.005)
@@ -124,7 +124,7 @@ func testModelForwardWithPrev[T float.DType](t *testing.T) {
 
 	// == Backward
 
-	gold := ag.Var(mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45}))
+	gold := mat.NewVecDense([]T{0.57, 0.75, -0.15, 1.64, 0.45})
 	loss := losses.MSE(s1.Y, gold, false)
 	ag.Backward(loss)
 
@@ -287,16 +287,16 @@ func testModelForwardSeq[T float.DType](t *testing.T) {
 
 	// == Forward
 	s0 := &State{
-		Cell: ag.Var(mat.NewVecDense([]T{0.0, 0.0})).WithGrad(true),
-		Y:    ag.Var(mat.NewVecDense([]T{0.0, 0.0})).WithGrad(true),
+		Cell: mat.NewVecDense([]T{0.0, 0.0}, mat.WithGrad(true)),
+		Y:    mat.NewVecDense([]T{0.0, 0.0}, mat.WithGrad(true)),
 	}
-	x := ag.Var(mat.NewVecDense([]T{3.5, 4.0, -0.1})).WithGrad(true)
+	x := mat.NewVecDense([]T{3.5, 4.0, -0.1}, mat.WithGrad(true))
 	s1 := model.Next(s0, x)
 
 	assert.InDeltaSlice(t, []T{-0.07229, 0.97534}, s1.Cell.Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{-0.00568, 0.64450}, s1.Y.Value().Data(), 1.0e-05)
 
-	x2 := ag.Var(mat.NewVecDense([]T{3.3, -2.0, 0.1})).WithGrad(true)
+	x2 := mat.NewVecDense([]T{3.3, -2.0, 0.1}, mat.WithGrad(true))
 	s2 := model.Next(s1, x2)
 
 	assert.InDeltaSlice(t, []T{0.39238, 0.99174}, s2.Cell.Value().Data(), 1.0e-05)

@@ -10,7 +10,6 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -237,12 +236,12 @@ func testAffine[T float.DType](t *testing.T) {
 
 			f := NewAffine(b, w1, x1, wxPairs...)
 			y := f.Forward()
-			mattest.RequireMatrixEquals(t, tt.wantFwd, y)
+			mat.RequireMatrixEquals(t, tt.wantFwd, y)
 
 			f.Backward(tt.gy)
-			mattest.AssertMatrixEquals(t, tt.wantBGrad, b.grad, "bias grad")
-			mattest.AssertMatrixEquals(t, tt.wantW1Grad, w1.grad, "w1 grad")
-			mattest.AssertMatrixEquals(t, tt.wantX1Grad, x1.grad, "x1 grad")
+			mat.AssertMatrixEquals(t, tt.wantBGrad, b.grad, "bias grad")
+			mat.AssertMatrixEquals(t, tt.wantW1Grad, w1.grad, "w1 grad")
+			mat.AssertMatrixEquals(t, tt.wantX1Grad, x1.grad, "x1 grad")
 			for i, want := range tt.wantWXPairsGrads {
 				if want == nil {
 					if wxPairs[i] != nil {
@@ -250,7 +249,7 @@ func testAffine[T float.DType](t *testing.T) {
 					}
 					continue
 				}
-				mattest.AssertMatrixEquals(t, want, wxPairs[i].grad, "wxPairs[", i, "] grad")
+				mat.AssertMatrixEquals(t, want, wxPairs[i].grad, "wxPairs[", i, "] grad")
 			}
 		})
 	}

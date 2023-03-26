@@ -36,7 +36,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := ag.Var(xs[0].Value().NewScalar(1e-10))
+	eps := xs[0].Value().NewScalar(1e-10)
 	ys := make([]ag.Node, len(xs))
 	for i, x := range xs {
 		norm := ag.Sqrt(ag.ReduceSum(ag.Square(x)))

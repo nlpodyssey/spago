@@ -25,21 +25,18 @@ func testModelForward[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.Var(mat.NewDense(2, 4, []T{
+	x1 := mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
-	})).WithGrad(true)
-
-	x2 := ag.Var(mat.NewDense(2, 4, []T{
+	}, mat.WithGrad(true))
+	x2 := mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
-	})).WithGrad(true)
-
-	x3 := ag.Var(mat.NewDense(2, 4, []T{
+	}, mat.WithGrad(true))
+	x3 := mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
-	})).WithGrad(true)
-
+	}, mat.WithGrad(true))
 	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{
@@ -136,21 +133,18 @@ func testDepthwiseForward[T float.DType](t *testing.T) {
 
 	// == Forward
 
-	x1 := ag.Var(mat.NewDense(2, 4, []T{
+	x1 := mat.NewDense(2, 4, []T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
-	})).WithGrad(true)
-
-	x2 := ag.Var(mat.NewDense(2, 4, []T{
+	}, mat.WithGrad(true))
+	x2 := mat.NewDense(2, 4, []T{
 		-0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.9,
-	})).WithGrad(true)
-
-	x3 := ag.Var(mat.NewDense(2, 4, []T{
+	}, mat.WithGrad(true))
+	x3 := mat.NewDense(2, 4, []T{
 		0.2, 0.5, 0.9, 0.8,
 		0.4, -0.5, -0.3, -0.2,
-	})).WithGrad(true)
-
+	}, mat.WithGrad(true))
 	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{

@@ -9,7 +9,6 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/mattest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +45,7 @@ func testCopyValue[T float.DType](t *testing.T) {
 	t.Run("matrix value", func(t *testing.T) {
 		n := &dummyNode{value: mat.NewScalar[T](42)}
 		v := CopyValue(n)
-		mattest.RequireMatrixEquals(t, n.value, v)
+		mat.RequireMatrixEquals(t, n.value, v)
 		assert.NotSame(t, n.value, v)
 	})
 }
@@ -65,12 +64,12 @@ func testCopyValues[T float.DType](t *testing.T) {
 	vs := CopyValues(nodes)
 	require.Len(t, vs, 3)
 
-	mattest.RequireMatrixEquals(t, nodes[0].Value(), vs[0])
+	mat.RequireMatrixEquals(t, nodes[0].Value(), vs[0])
 	assert.NotSame(t, nodes[0].Value(), vs[0])
 
 	assert.Nil(t, vs[1])
 
-	mattest.RequireMatrixEquals(t, nodes[2].Value(), vs[2])
+	mat.RequireMatrixEquals(t, nodes[2].Value(), vs[2])
 	assert.NotSame(t, nodes[2].Value(), vs[2])
 }
 
@@ -95,7 +94,7 @@ func testCopyGrad[T float.DType](t *testing.T) {
 			requiresGrad: true,
 		}
 		v := CopyGrad(n)
-		mattest.RequireMatrixEquals(t, n.grad, v)
+		mat.RequireMatrixEquals(t, n.grad, v)
 		assert.NotSame(t, n.grad, v)
 	})
 }

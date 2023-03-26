@@ -243,36 +243,36 @@ type Matrix interface {
 	//
 	// Rows and columns MUST not be negative, and the length of data MUST be
 	// equal to rows*cols, otherwise the method panics.
-	NewMatrix(rows, cols int, data float.Slice) Matrix
+	NewMatrix(rows, cols int, data float.Slice, opts ...MatrixOption) Matrix
 	// NewVec creates a new column vector (len(data)×1), of the same type of
 	// the receiver, initialized with a copy of raw data.
-	NewVec(data float.Slice) Matrix
+	NewVec(data float.Slice, opts ...MatrixOption) Matrix
 	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 	// containing the given value.
-	NewScalar(v float64) Matrix
+	NewScalar(v float64, opts ...MatrixOption) Matrix
 	// NewEmptyVec creates a new vector, of the same type of the receiver,
 	// with dimensions size×1, initialized with zeros.
-	NewEmptyVec(size int) Matrix
+	NewEmptyVec(size int, opts ...MatrixOption) Matrix
 	// NewEmptyMatrix creates a new rows×cols matrix, of the same type of the
 	// receiver, initialized with zeros.
-	NewEmptyMatrix(rows, cols int) Matrix
+	NewEmptyMatrix(rows, cols int, opts ...MatrixOption) Matrix
 	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with a constant value.
-	NewInitMatrix(rows, cols int, v float64) Matrix
+	NewInitMatrix(rows, cols int, v float64, opts ...MatrixOption) Matrix
 	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
 	// of the receiver, initialized with the values returned from the
 	// callback function.
-	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64) Matrix
+	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64, opts ...MatrixOption) Matrix
 	// NewInitVec creates a new column vector (size×1), of the same type of
 	// the receiver, initialized with a constant value.
-	NewInitVec(size int, v float64) Matrix
+	NewInitVec(size int, v float64, opts ...MatrixOption) Matrix
 	// NewIdentityMatrix creates a new square identity matrix (size×size), of
 	// the same type of the receiver, that is, with ones on the diagonal
 	// and zeros elsewhere.
-	NewIdentityMatrix(size int) Matrix
+	NewIdentityMatrix(size int, opts ...MatrixOption) Matrix
 	// NewOneHotVec creates a new one-hot column vector (size×1), of the same
 	// type of the receiver.
-	NewOneHotVec(size int, oneAt int) Matrix
+	NewOneHotVec(size int, oneAt int, opts ...MatrixOption) Matrix
 	// NewConcatV creates a new column vector, of the same type of the receiver,
 	// concatenating two or more vectors "vertically"
 	// It accepts row or column vectors indifferently, virtually
@@ -284,6 +284,31 @@ type Matrix interface {
 	// It accepts row or column vectors indifferently, virtually treating all of
 	// them as row vectors.
 	NewStack(vs ...Matrix) Matrix
+
+	// Value returns the Matrix itself.
+	Value() Matrix
+	// Grad returns the accumulated gradients with the AccGrad method.
+	// A matrix full of zeros and the nil value are considered equivalent.
+	Grad() Matrix
+	// HasGrad reports whether there are accumulated gradients.
+	HasGrad() bool
+	// RequiresGrad reports whether the Matrix requires gradients.
+	// It is set by the SetRequiresGrad method or the functional option WithGrad.
+	RequiresGrad() bool
+	// SetRequiresGrad sets whether the Matrix requires gradients.
+	SetRequiresGrad(bool)
+	// AccGrad accumulates the gradients.
+	AccGrad(gx Matrix)
+	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
+	ZeroGrad()
+}
+
+type MatrixOption func(matrix Matrix)
+
+func WithGrad(value bool) MatrixOption {
+	return func(matrix Matrix) {
+		matrix.SetRequiresGrad(value)
+	}
 }
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional
