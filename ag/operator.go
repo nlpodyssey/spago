@@ -77,6 +77,7 @@ type Operator struct {
 	// value is the results of a forward evaluation, as mat.Matrix.
 	// It's set by execute() goroutine.
 	// Use the Value() method to get the actual value.
+	// It also contains the accumulated gradients. Use the Grad() method to get them.
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
 	// goroutines involved in both forward and backward operations.
@@ -86,9 +87,7 @@ type Operator struct {
 	// It's defined here in order to avoid an extra memory allocation
 	// (from NewOperator), but it's never be used directly.
 	mx sync.Mutex
-	// grad is the accumulated gradients.
-	grad mat.Matrix
-	// pendingGrads is the number of pending gradients to be accumulated.
+	// pendingGrads is the number of pending gradients to be accumulated. (default: 0)
 	pendingGrads int64
 	// operandsFunc is the function that returns the operands of the function.
 	operandsFunc func() []Node
@@ -103,7 +102,6 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 		backwardState: idle,
 		backwardPass:  f.Backward,
 		operandsFunc:  f.Operands,
-		pendingGrads:  0,
 	}
 	op.cond.L = &op.mx
 
@@ -114,7 +112,7 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 
 // forward executes the function and inform all goroutines that have been waiting for the result.
 func (o *Operator) execute(f ForwardFunc) {
-	o.value.Store(f())
+	o.value.Store(f()) // execute the function and store the result
 	o.cond.L.Lock()
 	o.cond.Broadcast()
 	o.cond.L.Unlock()
@@ -142,15 +140,15 @@ func (o *Operator) Value() mat.Matrix {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (o *Operator) Grad() mat.Matrix {
-	if atomic.LoadInt64(&o.pendingGrads) == 0 {
-		return o.grad
+	if o.backwardState == idle || atomic.LoadInt64(&o.pendingGrads) == 0 {
+		return o.Value().Grad()
 	}
 
 	o.cond.L.Lock()
 	defer o.cond.L.Unlock()
 	for {
 		if atomic.LoadInt64(&o.pendingGrads) == 0 {
-			return o.grad
+			return o.Value().Grad()
 		}
 		o.cond.Wait()
 	}
@@ -158,12 +156,17 @@ func (o *Operator) Grad() mat.Matrix {
 
 // HasGrad returns true if there are accumulated gradients.
 func (o *Operator) HasGrad() bool {
-	return o.Grad() != nil
+	return !isNil(o.Grad())
 }
 
 // RequiresGrad returns true if the node requires gradients.
 func (o *Operator) RequiresGrad() bool {
 	if o.requiresGrad == -1 {
+		defer func() {
+			// set the result in the underlying value
+			o.Value().SetRequiresGrad(o.requiresGrad == 1)
+		}()
+
 		o.requiresGrad = 0
 		for _, op := range o.Operands() {
 			if op.RequiresGrad() {
@@ -185,12 +188,10 @@ func (o *Operator) Operands() []Node {
 
 // ZeroGrad clears the gradients.
 func (o *Operator) ZeroGrad() {
-	o.Grad() // safety wait for the backward goroutine to finish
-	if o.grad == nil {
+	if o.Grad() == nil { // safety wait for the backward goroutine to finish
 		return
 	}
-	mat.ReleaseMatrix(o.grad)
-	o.grad = nil
+	o.Value().ZeroGrad()
 	o.pendingGrads = 0
 	o.backwardState = idle
 }
@@ -202,26 +203,13 @@ func (o *Operator) AccGrad(grad mat.Matrix) {
 	}
 	defer o.cond.L.Unlock()
 	o.cond.L.Lock()
-	o.accGrad(grad)
+	o.Value().AccGrad(grad)
 	o.signalWaitingGrads()
 }
 
-func (o *Operator) accGrad(grad mat.Matrix) {
-	if isGradNil(o) {
-		o.grad = grad.Clone()
-	} else {
-		o.grad.AddInPlace(grad)
-	}
-}
-
-// isGradNil returns true if the gradients are nil.
-// It is possible to observe `o.grad != nil` and at the same time `reflect.ValueOf(o.grad).IsNil() == true`.
-// That means somewhere a nil pointer is being cast to `mat.Matrix` and stored in `o.grad`.
-// Since `mat.Matrix` is an interface, the "nil test" will return false but any method call will panic as
-// `mat.Dense` does not consider the possibility of a nil pointer value.
-// A bit of reflection seems to be an acceptable quick-fix solution but an in-depth investigation is needed here.
-func isGradNil(o *Operator) bool {
-	if o.grad == nil || reflect.ValueOf(o.grad).IsNil() {
+// isNil returns true if the gradients are nil.
+func isNil(grad mat.Matrix) bool {
+	if grad == nil || reflect.ValueOf(grad).IsNil() {
 		return true
 	}
 	return false
@@ -235,11 +223,11 @@ func (o *Operator) signalWaitingGrads() {
 }
 
 func (o *Operator) initOutputGrad(outputGrad mat.Matrix) {
-	if outputGrad != nil && o.grad != nil {
+	if outputGrad != nil && !isNil(o.Value().Grad()) {
 		panic("ag: attempt to set output gradients on a node that already has gradients")
 	}
 
-	if o.grad != nil {
+	if !isNil(o.Value().Grad()) {
 		// If the node already has gradients, we can use them directly.
 		o.pendingGrads--
 		return
