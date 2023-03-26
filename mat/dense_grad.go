@@ -16,11 +16,9 @@ func (d *Dense[T]) Grad() Matrix {
 	return d.grad
 }
 
-// AccGrad accumulates the gradients into the Variable.
+// AccGrad accumulates the gradients.
+// It accumulates the gradients even if the requiresGrad flag is false.
 func (d *Dense[T]) AccGrad(grad Matrix) {
-	if !d.requiresGrad {
-		return
-	}
 	d.gradMu.Lock()
 	defer d.gradMu.Unlock()
 	if d.grad == nil {

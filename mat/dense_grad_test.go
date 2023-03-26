@@ -84,8 +84,8 @@ func testDenseGradients[T float.DType](t *testing.T) {
 		assert.False(t, v.HasGrad())
 
 		v.AccGrad(NewScalar[T](5))
-		require.Nil(t, v.Grad())
-		assert.False(t, v.HasGrad())
+		require.NotNil(t, v.Grad())
+		assert.True(t, v.HasGrad())
 
 		v.ZeroGrad()
 		require.Nil(t, v.Grad())
