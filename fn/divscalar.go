@@ -28,12 +28,12 @@ func (r *DivScalar[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *DivScalar[O]) Forward() mat.Matrix {
-	return r.x1.Value().ProdScalar(1.0 / r.x2.Value().Scalar().F64())
+func (r *DivScalar[O]) Forward() (mat.Matrix, error) {
+	return r.x1.Value().ProdScalar(1.0 / r.x2.Value().Scalar().F64()), nil
 }
 
 // Backward computes the backward pass.
-func (r *DivScalar[O]) Backward(gy mat.Matrix) {
+func (r *DivScalar[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x1.Value(), gy) {
 		panic("fn: matrices have incompatible dimensions")
 	}
@@ -54,4 +54,5 @@ func (r *DivScalar[O]) Backward(gy mat.Matrix) {
 
 		r.x2.AccGrad(gx)
 	}
+	return nil
 }

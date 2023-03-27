@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Identity is an operator to perform identity function.
 // y = x
@@ -25,14 +29,15 @@ func (r *Identity[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Identity[O]) Forward() mat.Matrix {
-	return r.x.Value().Clone()
+func (r *Identity[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().Clone(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Identity[O]) Backward(gy mat.Matrix) {
+func (r *Identity[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	r.x.AccGrad(gy)
+	return nil
 }

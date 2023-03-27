@@ -40,7 +40,7 @@ func (r *MaxPooling[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *MaxPooling[O]) Forward() mat.Matrix {
+func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
 	if !(xv.Rows()%r.rows == 0 && xv.Columns()%r.cols == 0) {
 		panic("fn: size mismatch")
@@ -71,7 +71,7 @@ func (r *MaxPooling[O]) Forward() mat.Matrix {
 		}
 	}
 
-	return r.y
+	return r.y, nil
 }
 
 // makeIntMatrix returns a new 2-dimensional slice of int.
@@ -84,7 +84,7 @@ func makeIntMatrix(rows, cols int) [][]int {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling[O]) Backward(gy mat.Matrix) {
+func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(gx)
@@ -97,4 +97,5 @@ func (r *MaxPooling[O]) Backward(gy mat.Matrix) {
 		}
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

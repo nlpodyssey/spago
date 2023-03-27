@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Add is an operator to perform element-wise sum over two values.
 // y = x1 + x2
@@ -27,30 +31,31 @@ func (r *Add[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Add[O]) Forward() mat.Matrix {
+func (r *Add[O]) Forward() (mat.Matrix, error) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if x1v == nil {
 		x1v = x2v.ZerosLike()
 		defer mat.ReleaseMatrix(x1v)
 	}
-	return x1v.Add(x2v)
+	return x1v.Add(x2v), nil
 }
 
 // Backward computes the backward pass.
-func (r *Add[O]) Backward(gy mat.Matrix) {
+func (r *Add[O]) Backward(gy mat.Matrix) error {
 	if r.x1.RequiresGrad() {
 		x1v := r.x1.Value()
 		if !mat.SameDims(x1v, gy) {
-			panic("fn: matrices have incompatible dimensions")
+			return fmt.Errorf("fn: matrices have incompatible dimensions")
 		}
 		r.x1.AccGrad(gy)
 	}
 	if r.x2.RequiresGrad() {
 		x2v := r.x2.Value()
 		if !mat.SameDims(x2v, gy) {
-			panic("fn: matrices have incompatible dimensions")
+			return fmt.Errorf("fn: matrices have incompatible dimensions")
 		}
 		r.x2.AccGrad(gy)
 	}
+	return nil
 }

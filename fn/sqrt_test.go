@@ -24,9 +24,11 @@ func testSqrtForward[T float.DType](t *testing.T) {
 	f := NewSqrt(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	mat.RequireMatrixInDelta(t, mat.NewVecDense([]T{2, 3, 0}), y, 1e-06)
 
-	f.Backward(mat.NewVecDense([]T{10, 20, 30}))
+	err = f.Backward(mat.NewVecDense([]T{10, 20, 30}))
+	assert.Nil(t, err)
 	mat.RequireMatrixInDelta(t, mat.NewVecDense([]T{2.5, 3.3333333, T(math.Inf(1))}), x.grad, 1e-06)
 }

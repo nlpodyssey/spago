@@ -29,17 +29,17 @@ func (a *AppendRows[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (a *AppendRows[O]) Forward() mat.Matrix {
+func (a *AppendRows[O]) Forward() (mat.Matrix, error) {
 	nodes := a.vs
 	vs := make([]mat.Matrix, len(nodes))
 	for i, n := range nodes {
 		vs[i] = n.Value()
 	}
-	return a.x.Value().AppendRows(vs...)
+	return a.x.Value().AppendRows(vs...), nil
 }
 
 // Backward computes the backward pass.
-func (a *AppendRows[O]) Backward(gy mat.Matrix) {
+func (a *AppendRows[O]) Backward(gy mat.Matrix) error {
 	xVal := a.x.Value()
 	if gy.Rows() != xVal.Rows()+len(a.vs) {
 		panic("fn: matrices have incompatible dimensions")
@@ -60,4 +60,5 @@ func (a *AppendRows[O]) Backward(gy mat.Matrix) {
 		v.AccGrad(vGrads)
 		mat.ReleaseMatrix(vGrads)
 	}
+	return nil
 }

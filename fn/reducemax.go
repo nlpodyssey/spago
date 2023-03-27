@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -28,16 +30,16 @@ func (r *ReduceMax[O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ReduceMax[O]) Forward() mat.Matrix {
+func (r *ReduceMax[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
 	r.argmax = xv.ArgMax()
-	return xv.AtVec(r.argmax)
+	return xv.AtVec(r.argmax), nil
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMax[O]) Backward(gy mat.Matrix) {
+func (r *ReduceMax[O]) Backward(gy mat.Matrix) error {
 	if !mat.IsScalar(gy) {
-		panic("fn: the gradient had to be a scalar")
+		return fmt.Errorf("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
@@ -46,4 +48,5 @@ func (r *ReduceMax[O]) Backward(gy mat.Matrix) {
 		gx.SetVec(r.argmax, gy)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

@@ -31,7 +31,8 @@ func testIdentityForward[T float.DType](t *testing.T) {
 	f := NewIdentity(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.1, 0.2, 0.3, 0.0,
@@ -39,11 +40,12 @@ func testIdentityForward[T float.DType](t *testing.T) {
 		-0.5, 0.8, -0.8, -0.1,
 	}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewDense(3, 4, []T{
+	err = f.Backward(mat.NewDense(3, 4, []T{
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.5,
 	}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.0, 0.0,

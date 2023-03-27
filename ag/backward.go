@@ -37,7 +37,7 @@ func Backward(x Node, grad ...mat.Matrix) ReleaseGraphFunc {
 	op.initOutputGrad(getOutputGrad(grad))
 
 	wg := &sync.WaitGroup{}
-	op.executeBackwardPass(wg)
+	op.processBackwardPass(wg)
 	wg.Wait()
 
 	return func() {
@@ -110,7 +110,7 @@ func initOutputGradsForOperators(operators []*Operator) {
 func executeBackwardPass(operators []*Operator) {
 	wg := &sync.WaitGroup{}
 	for _, op := range operators {
-		op.executeBackwardPass(wg)
+		op.processBackwardPass(wg)
 	}
 	wg.Wait()
 }

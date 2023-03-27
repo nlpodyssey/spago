@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -28,9 +30,9 @@ func (r *Concat[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Concat[O]) Forward() mat.Matrix {
+func (r *Concat[O]) Forward() (mat.Matrix, error) {
 	if len(r.xs) == 0 {
-		panic("fn: Concat has no operands")
+		return nil, fmt.Errorf("fn: no vectors to concatenate")
 	}
 	r.ySize = 0 // reset output size
 	ms := make([]mat.Matrix, len(r.xs))
@@ -39,13 +41,13 @@ func (r *Concat[O]) Forward() mat.Matrix {
 		ms[i] = value
 		r.ySize += value.Size()
 	}
-	return ms[0].NewConcatV(ms...)
+	return ms[0].NewConcatV(ms...), nil
 }
 
 // Backward computes the backward pass.
-func (r *Concat[O]) Backward(gy mat.Matrix) {
+func (r *Concat[O]) Backward(gy mat.Matrix) error {
 	if r.ySize != gy.Size() {
-		panic("fn: vectors with not compatible size")
+		return fmt.Errorf("fn: vectors with not compatible size: %d != %d", r.ySize, gy.Size())
 	}
 	sizes := make([]int, len(r.xs))
 	for i, x := range r.xs {
@@ -58,4 +60,5 @@ func (r *Concat[O]) Backward(gy mat.Matrix) {
 		}
 		mat.ReleaseMatrix(gx)
 	}
+	return nil
 }

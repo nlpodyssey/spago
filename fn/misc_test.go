@@ -26,11 +26,13 @@ func testAbsForward[T float.DType](t *testing.T) {
 	f := NewAbs(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.0, -0.5, 0.8, 0}, x.grad.Data(), 1.0e-6)
 }
@@ -47,11 +49,13 @@ func testSafeLogForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewLog(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-2.3025855, -1.6094379, -1.203972, mat.Inf[T](-1)}, y.Data(), 1.0e-5)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-10.0, 2.5, 2.6666666666, 0}, x.grad.Data(), 1.0e-6)
 }
@@ -68,11 +72,13 @@ func testTanForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewTan(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.1003346, 0.20271, 0.3093362, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.01006704, 0.52054567, 0.87655113, 0}, x.grad.Data(), 1.0e-6)
 }
@@ -89,11 +95,13 @@ func testTanhForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewTanh(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.09966799, 0.19737532, 0.29131261, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.99006629, 0.4805214, 0.73210956, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -110,11 +118,13 @@ func testHardSigmoidForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewHardSigmoid(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.52, 0.54, 0.56, 0.5}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.2, 0.1, 0.16, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -131,11 +141,13 @@ func testHardTanhForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewHardTanh(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.0, 0.5, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -152,11 +164,12 @@ func testReluForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewReLU(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 
 	assert.InDeltaSlice(t, []T{-1.0, 0.0, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -173,11 +186,13 @@ func testNewSoftsignForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewSoftsign(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.09090909, 0.16666666, 0.23076923, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.82644628, 0.347222222, 0.473372781, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -194,11 +209,13 @@ func testNewCosForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewCos(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.9950041, 0.9800665, 0.9553364, 1.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.09983341, -0.09933466, -0.23641616, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -215,11 +232,13 @@ func testNewSinForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewSin(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.09983341, 0.19866933, 0.2955202, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.99500416, 0.49003328, 0.7642691, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -236,11 +255,13 @@ func testNewExpForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewExp(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{1.10517091, 1.22140275, 1.3498588, 1.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.1051709, 0.6107013, 1.07988704, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -257,11 +278,12 @@ func testNewNegForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewNeg(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.1, -0.2, -0.3, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
 
 	assert.InDeltaSlice(t, []T{1.0, -0.5, -0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -278,11 +300,13 @@ func testNewReciprocalForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewReciprocal(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{10.0, 5.0, 3.33333333, -10}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{100.0, -12.5, -8.88888888, 0.0}, x.grad.Data(), 1.0e-5)
 }
@@ -299,11 +323,13 @@ func testNewMishForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewMish(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.0631794175, 0.1325990019, 0.2080013723, -0.0567885752}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.6633368208, 0.3623122702, 0.6262618396, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -320,11 +346,13 @@ func testNewGELUForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	f := NewGELU(x)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.0, 0.053983, 0.00504, -0.046017, -0.00496, 0.841192, 10.0, -0.158808, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}))
+	err = f.Backward(mat.NewVecDense([]T{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.5, 0.579522, 0.507979, 0.420478, 0.492021, 1.082964, 1.0, -0.082964, 0.0}, x.grad.Data(), 1.0e-6)
 }

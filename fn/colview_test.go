@@ -31,7 +31,8 @@ func testColForward[T float.DType](t *testing.T) {
 	f := NewColView(x, 2)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.3, -0.6, -0.8,
@@ -41,9 +42,10 @@ func testColForward[T float.DType](t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	f.Backward(mat.NewDense(3, 1, []T{
+	err = f.Backward(mat.NewDense(3, 1, []T{
 		0.1, 0.2, -0.8,
 	}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.1, 0.0,

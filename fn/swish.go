@@ -5,6 +5,7 @@
 package fn
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -28,16 +29,16 @@ func (l *Swish[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (l *Swish[O]) Forward() mat.Matrix {
+func (l *Swish[O]) Forward() (mat.Matrix, error) {
 	x := l.x.Value()
 	s := x.Sigmoid()
-	return s.ProdInPlace(x)
+	return s.ProdInPlace(x), nil
 }
 
 // Backward computes the backward pass.
-func (l *Swish[O]) Backward(gy mat.Matrix) {
+func (l *Swish[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(l.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if l.x.RequiresGrad() {
 		gx := l.x.Value().Apply(swishDeriv)
@@ -45,6 +46,7 @@ func (l *Swish[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}
+	return nil
 }
 
 func swishDeriv(_, _ int, v float64) float64 {

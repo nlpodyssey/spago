@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Sqrt is an operator to perform element-wise square root function.
 type Sqrt[O DualValue] struct {
@@ -24,14 +28,14 @@ func (r *Sqrt[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Sqrt[O]) Forward() mat.Matrix {
-	return r.x.Value().Sqrt()
+func (r *Sqrt[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().Sqrt(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Sqrt[O]) Backward(gy mat.Matrix) {
+func (r *Sqrt[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().Pow(-.5)
@@ -40,4 +44,5 @@ func (r *Sqrt[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

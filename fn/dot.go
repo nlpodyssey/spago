@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Dot is an operator to perform the dot product over two matrices.
 // y = x1 dot x2
@@ -27,25 +31,25 @@ func (r *Dot[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Dot[O]) Forward() mat.Matrix {
+func (r *Dot[O]) Forward() (mat.Matrix, error) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !mat.SameDims(x1v, x2v) {
-		panic("fn: matrices have incompatible dimensions")
+		return nil, fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if mat.IsVector(r.x1.Value()) && mat.IsVector(r.x2.Value()) {
-		return r.x1.Value().DotUnitary(r.x2.Value())
+		return r.x1.Value().DotUnitary(r.x2.Value()), nil
 	}
 
 	prod := r.x1.Value().Prod(r.x2.Value())
 	defer mat.ReleaseMatrix(prod)
-	return prod.Sum()
+	return prod.Sum(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Dot[O]) Backward(gy mat.Matrix) {
+func (r *Dot[O]) Backward(gy mat.Matrix) error {
 	if !mat.IsScalar(gy) {
-		panic("fn: the gradient had to be a scalar")
+		return fmt.Errorf("fn: the gradient had to be a scalar")
 	}
 	gys := gy.Scalar().F64()
 	if r.x1.RequiresGrad() {
@@ -58,4 +62,5 @@ func (r *Dot[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
+	return nil
 }

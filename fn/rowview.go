@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // RowView is a function to extract the i-th row from the input matrix.
 type RowView[O DualValue] struct {
@@ -29,14 +33,14 @@ func (r *RowView[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *RowView[O]) Forward() mat.Matrix {
-	return r.x.Value().ExtractRow(r.i)
+func (r *RowView[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().ExtractRow(r.i), nil
 }
 
 // Backward computes the backward pass.
-func (r *RowView[O]) Backward(gy mat.Matrix) {
+func (r *RowView[O]) Backward(gy mat.Matrix) error {
 	if !(r.x.Value().Columns() == gy.Size()) {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
@@ -46,4 +50,5 @@ func (r *RowView[O]) Backward(gy mat.Matrix) {
 		}
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

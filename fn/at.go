@@ -30,16 +30,17 @@ func (r *At[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *At[O]) Forward() mat.Matrix {
-	return r.x.Value().At(r.i, r.j)
+func (r *At[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().At(r.i, r.j), nil
 }
 
 // Backward computes the backward pass.
-func (r *At[O]) Backward(gy mat.Matrix) {
+func (r *At[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)
 		dx.Set(r.i, r.j, gy)
 		r.x.AccGrad(dx)
 	}
+	return nil
 }

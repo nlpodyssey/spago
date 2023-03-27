@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // ColView is an operator to extract the i-th column from a matrix.
 type ColView[O DualValue] struct {
@@ -29,14 +33,14 @@ func (r *ColView[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *ColView[O]) Forward() mat.Matrix {
-	return r.x.Value().ExtractColumn(r.i)
+func (r *ColView[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().ExtractColumn(r.i), nil
 }
 
 // Backward computes the backward pass.
-func (r *ColView[O]) Backward(gy mat.Matrix) {
+func (r *ColView[O]) Backward(gy mat.Matrix) error {
 	if !(r.x.Value().Rows() == gy.Size()) {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: the number of rows of the input matrix must be equal to the number of rows of the gradient")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
@@ -46,4 +50,5 @@ func (r *ColView[O]) Backward(gy mat.Matrix) {
 		}
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

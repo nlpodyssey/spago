@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/mat/rand/bernulli"
@@ -36,7 +38,7 @@ func (r *Dropout[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Dropout[O]) Forward() mat.Matrix {
+func (r *Dropout[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
 	if r.q > 0.0 {
 		// FIXME: avoid casting to specific type
@@ -45,17 +47,18 @@ func (r *Dropout[O]) Forward() mat.Matrix {
 	} else {
 		r.mask = xv.ZerosLike()
 	}
-	return xv.Prod(r.mask)
+	return xv.Prod(r.mask), nil
 }
 
 // Backward computes the backward pass.
-func (r *Dropout[O]) Backward(gy mat.Matrix) {
+func (r *Dropout[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	defer mat.ReleaseMatrix(r.mask)
 	if r.x.RequiresGrad() {
 		gx := gy.Prod(r.mask)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

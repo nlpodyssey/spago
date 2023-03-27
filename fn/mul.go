@@ -5,6 +5,7 @@
 package fn
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -30,14 +31,14 @@ func (r *Mul[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Mul[O]) Forward() mat.Matrix {
-	return r.x1.Value().Mul(r.x2.Value())
+func (r *Mul[O]) Forward() (mat.Matrix, error) {
+	return r.x1.Value().Mul(r.x2.Value()), nil
 }
 
 // Backward computes the backward pass.
-func (r *Mul[O]) Backward(gy mat.Matrix) {
+func (r *Mul[O]) Backward(gy mat.Matrix) error {
 	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Columns() == gy.Columns()) {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	var wg sync.WaitGroup
 	if r.x1.RequiresGrad() {
@@ -70,4 +71,5 @@ func (r *Mul[O]) Backward(gy mat.Matrix) {
 		}()
 	}
 	wg.Wait()
+	return nil
 }

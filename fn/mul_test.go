@@ -42,7 +42,8 @@ func testMulForwardMatrixMatrix[T float.DType](t *testing.T) {
 	f := NewMul(x1, x2)
 	assert.Equal(t, []*variable{x1, x2}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		-0.22, 0.36, 0.06,
@@ -50,11 +51,12 @@ func testMulForwardMatrixMatrix[T float.DType](t *testing.T) {
 		0.52, -0.59, 0.48,
 	}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewDense(3, 3, []T{
+	err = f.Backward(mat.NewDense(3, 3, []T{
 		0.2, 0.7, 0.5,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 	}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.78, 0.53, 0.18, -0.41,
@@ -93,11 +95,13 @@ func testMulForwardMatrixVector[T float.DType](t *testing.T) {
 	}
 
 	f := NewMul(x1, x2)
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{0.2, -0.6, 0.8}))
+	err = f.Backward(mat.NewVecDense([]T{0.2, -0.6, 0.8}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		-0.16, -0.18, -0.18, 0.2,

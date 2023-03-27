@@ -28,10 +28,12 @@ func testScalarMaxForward[T float.DType](t *testing.T) {
 	max := NewScalarMax(xs)
 	assert.Equal(t, xs, max.Operands())
 
-	y := max.Forward()
+	y, err := max.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{5.0}, y.Data(), 1.0e-6)
 
-	max.Backward(mat.NewScalar[T](1.0))
+	err = max.Backward(mat.NewScalar[T](1.0))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{1.0}, xs[1].grad.Data(), 1.0e-6)
 	assert.Nil(t, xs[0].grad)

@@ -31,17 +31,19 @@ func testSliceForward[T float.DType](t *testing.T) {
 	f := NewSlice(x, 1, 1, 3, 3)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	mat.AssertMatrixEquals(t, mat.NewDense(2, 2, []T{
 		22, 23,
 		32, 33,
 	}), y)
 
-	f.Backward(mat.NewDense(2, 2, []T{
+	err = f.Backward(mat.NewDense(2, 2, []T{
 		1, 2,
 		3, 4,
 	}))
+	assert.Nil(t, err)
 
 	mat.AssertMatrixEquals(t, mat.NewDense(3, 4, []T{
 		0, 0, 0, 0,

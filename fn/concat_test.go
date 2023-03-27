@@ -37,11 +37,13 @@ func testConcatForward[T float.DType](t *testing.T) {
 	f := NewConcat([]*variable{x1, x2, x3})
 	assert.Equal(t, []*variable{x1, x2, x3}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}))
+	err = f.Backward(mat.NewVecDense([]T{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{1.0, 2.0, 3.0}, x1.grad.Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{4.0, 5.0, 6.0, 7.0}, x2.grad.Data(), 1.0e-6)

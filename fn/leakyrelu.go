@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -29,14 +31,14 @@ func (r *LeakyReLU[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *LeakyReLU[O]) Forward() mat.Matrix {
-	return r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().F64())
+func (r *LeakyReLU[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().ApplyWithAlpha(leakyReLU, r.alpha.Value().Scalar().F64()), nil
 }
 
 // Backward computes the backward pass.
-func (r *LeakyReLU[O]) Backward(gy mat.Matrix) {
+func (r *LeakyReLU[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(leakyReLUDeriv, r.alpha.Value().Scalar().F64())
@@ -44,4 +46,5 @@ func (r *LeakyReLU[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

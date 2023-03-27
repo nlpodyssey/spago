@@ -27,11 +27,13 @@ func testAtVecForward[T float.DType](t *testing.T) {
 	f := NewAtVec(x, 1)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.2}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{0.5}))
+	err = f.Backward(mat.NewVecDense([]T{0.5}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.0, 0.5, 0.0, 0.0}, x.grad.Data(), 1.0e-6)
 }

@@ -31,8 +31,8 @@ func testTransposeForward[T float.DType](t *testing.T) {
 	f := NewTranspose(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
-
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{
 		0.1, 0.4, -0.5,
 		0.2, 0.5, 0.8,
@@ -44,13 +44,13 @@ func testTransposeForward[T float.DType](t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not right")
 	}
 
-	f.Backward(mat.NewDense(4, 3, []T{
+	err = f.Backward(mat.NewDense(4, 3, []T{
 		0.1, 0.2, 0.3,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 		0.8, -0.8, -0.1,
 	}))
-
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{
 		0.1, 0.0, -0.6, 0.8,
 		0.2, 0.4, 0.7, -0.8,

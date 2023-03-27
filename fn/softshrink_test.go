@@ -32,11 +32,11 @@ func testSoftShrinkForward[T float.DType](t *testing.T) {
 	f := NewSoftShrink(x, lambda)
 	assert.Equal(t, []*variable{x, lambda}, f.Operands())
 
-	y := f.Forward()
-
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.1, 0, 0.4, -0.4}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0, 1.0, 2.0}))
-
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0, 1.0, 2.0}))
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.8, 0.0, 1.0, 2.0}, x.grad.Data(), 1.0e-6)
 }

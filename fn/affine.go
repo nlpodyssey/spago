@@ -5,6 +5,7 @@
 package fn
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
@@ -66,7 +67,7 @@ func (a *Affine[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (a *Affine[O]) Forward() mat.Matrix {
+func (a *Affine[O]) Forward() (mat.Matrix, error) {
 	y := a.w1.Value().Mul(a.x1.Value()).AddInPlace(a.b.Value())
 
 	wxPairs := a.wxPairs
@@ -75,14 +76,14 @@ func (a *Affine[O]) Forward() mat.Matrix {
 		y.AddInPlace(wx)
 		mat.ReleaseMatrix(wx)
 	}
-	return y
+	return y, nil
 }
 
 // Backward computes the backward pass.
-func (a *Affine[O]) Backward(gy mat.Matrix) {
+func (a *Affine[O]) Backward(gy mat.Matrix) error {
 	if a.b.RequiresGrad() {
 		if !mat.SameDims(a.b.Value(), gy) {
-			panic("fn: matrices have incompatible dimensions")
+			return fmt.Errorf("fn: matrices have incompatible dimensions")
 		}
 		a.b.AccGrad(gy)
 	}
@@ -135,4 +136,5 @@ func (a *Affine[O]) Backward(gy mat.Matrix) {
 	}
 
 	wg.Wait()
+	return nil
 }

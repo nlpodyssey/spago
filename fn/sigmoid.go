@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -26,15 +28,15 @@ func (l *Sigmoid[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (l *Sigmoid[O]) Forward() mat.Matrix {
+func (l *Sigmoid[O]) Forward() (mat.Matrix, error) {
 	// TODO: cache the sigmoid value in the forward pass for the backward pass?
-	return l.x.Value().Sigmoid()
+	return l.x.Value().Sigmoid(), nil
 }
 
 // Backward computes the backward pass.
-func (l *Sigmoid[O]) Backward(gy mat.Matrix) {
+func (l *Sigmoid[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(l.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if l.x.RequiresGrad() {
 		gx := l.x.Value().Sigmoid().Apply(func(_, _ int, v float64) float64 {
@@ -44,4 +46,5 @@ func (l *Sigmoid[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}
+	return nil
 }

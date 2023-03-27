@@ -37,11 +37,13 @@ func testSoftPlusForward[T float.DType](t *testing.T) {
 	f := NewSoftPlus(x, beta, threshold)
 	assert.Equal(t, []*variable{x, beta, threshold}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.399069434, 0.25650762, 20.3, 0.346573590}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-0.5498339, 0.20065616, 0.8, 0}, x.grad.Data(), 1.0e-6)
 }

@@ -30,7 +30,7 @@ func (r *SparseMax[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SparseMax[O]) Forward() mat.Matrix {
+func (r *SparseMax[O]) Forward() (mat.Matrix, error) {
 	x := r.x.Value()
 	xMax := x.Max().Scalar().F64()
 
@@ -44,11 +44,11 @@ func (r *SparseMax[O]) Forward() mat.Matrix {
 	v.SubScalarInPlace(tau).ClipInPlace(0, xMax)
 
 	r.y = v
-	return v
+	return v, nil
 }
 
 // Backward computes the backward pass.
-func (r *SparseMax[O]) Backward(gy mat.Matrix) {
+func (r *SparseMax[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		var nzSum float64
 		var nzCount float64
@@ -67,6 +67,7 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) {
 
 		r.x.AccGrad(gx)
 	}
+	return nil
 }
 
 func sparseMaxCommon(v mat.Matrix) (zs, cumSumInput mat.Matrix, bounds []float64, tau float64) {

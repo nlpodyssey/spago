@@ -22,7 +22,7 @@ func testNewOperator[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node]{
-		forward: func() mat.Matrix { return forwardResult },
+		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f)
 
@@ -74,7 +74,7 @@ func testOperatorValue[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
 	f := &dummyFunction[T, Node]{
-		forward: func() mat.Matrix { return forwardResult },
+		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f)
 
@@ -132,8 +132,8 @@ func TestOperator_Gradients(t *testing.T) {
 func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{
-			forward: func() mat.Matrix {
-				return mat.NewScalar[T](42)
+			forward: func() (mat.Matrix, error) {
+				return mat.NewScalar[T](42), nil
 			},
 			operands: func() []Node {
 				return []Node{&dummyNode{requiresGrad: true}}
@@ -158,7 +158,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 
 	t.Run("with requires gradient false", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, Node]{
-			forward: func() mat.Matrix { return mat.NewScalar[T](42) },
+			forward: func() (mat.Matrix, error) { return mat.NewScalar[T](42), nil },
 		})
 
 		require.Nil(t, op.Grad())
@@ -175,27 +175,28 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 }
 
 type dummyFunction[T float.DType, O Node] struct {
-	forward       func() mat.Matrix
-	backward      func(gy mat.Matrix)
+	forward       func() (mat.Matrix, error)
+	backward      func(gy mat.Matrix) error
 	operands      func() []O
 	forwardCalls  int
 	backwardCalls int
 }
 
-func (f *dummyFunction[T, O]) Forward() mat.Matrix {
+func (f *dummyFunction[T, O]) Forward() (mat.Matrix, error) {
 	f.forwardCalls++
 	if f.forward == nil {
-		return mat.NewEmptyDense[T](0, 0) // since nil values are not allowed
+		return mat.NewEmptyDense[T](0, 0), nil // since nil values are not allowed
 	}
 	return f.forward()
 }
 
-func (f *dummyFunction[T, O]) Backward(gy mat.Matrix) {
+func (f *dummyFunction[T, O]) Backward(gy mat.Matrix) error {
 	f.backwardCalls++
 	if f.backward == nil {
-		return
+		return nil
 	}
 	f.backward(gy)
+	return nil
 }
 
 func (f *dummyFunction[T, O]) Operands() []O {

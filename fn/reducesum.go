@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -26,14 +28,14 @@ func (r *ReduceSum[O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ReduceSum[O]) Forward() mat.Matrix {
-	return r.x.Value().Sum()
+func (r *ReduceSum[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().Sum(), nil
 }
 
 // Backward computes the backward pass.
-func (r *ReduceSum[O]) Backward(gy mat.Matrix) {
+func (r *ReduceSum[O]) Backward(gy mat.Matrix) error {
 	if !mat.IsScalar(gy) {
-		panic("fn: the gradient had to be a scalar")
+		return fmt.Errorf("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
@@ -41,4 +43,5 @@ func (r *ReduceSum[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

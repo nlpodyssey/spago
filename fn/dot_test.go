@@ -42,11 +42,13 @@ func testDotForward[T float.DType](t *testing.T) {
 	f := NewDot(x1, x2)
 	assert.Equal(t, []*variable{x1, x2}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{1.44}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{0.5}))
+	err = f.Backward(mat.NewVecDense([]T{0.5}))
+	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.05, 0.4, 0.15, 0.05,

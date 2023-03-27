@@ -42,7 +42,8 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 
 	assert.Equal(t, []*variable{x, vs[0], vs[1]}, f.Operands())
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 
 	mat.AssertMatrixEquals(t, mat.NewDense(4, 3, []T{
 		11, 12, 13,
@@ -51,7 +52,7 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 		41, 42, 43,
 	}), y)
 
-	f.Backward(mat.NewDense(4, 3, []T{
+	err = f.Backward(mat.NewDense(4, 3, []T{
 		0, 1, 2,
 		3, 4, 5,
 		6, 7, 8,

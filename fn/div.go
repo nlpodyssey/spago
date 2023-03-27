@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -28,16 +30,16 @@ func (r *Div[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *Div[O]) Forward() mat.Matrix {
-	return r.x1.Value().Div(r.x2.Value())
+func (r *Div[O]) Forward() (mat.Matrix, error) {
+	return r.x1.Value().Div(r.x2.Value()), nil
 }
 
 // Backward computes the backward pass.
-func (r *Div[O]) Backward(gy mat.Matrix) {
+func (r *Div[O]) Backward(gy mat.Matrix) error {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
 	if !mat.SameDims(x1v, gy) || !mat.SameDims(x2v, gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.Div(r.x2.Value())
@@ -53,4 +55,5 @@ func (r *Div[O]) Backward(gy mat.Matrix) {
 		gx.DivInPlace(x2sq)
 		r.x2.AccGrad(gx)
 	}
+	return nil
 }

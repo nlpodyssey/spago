@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Slice is a function to extract a portion of a matrix.
 type Slice[O DualValue] struct {
@@ -32,16 +36,16 @@ func (s *Slice[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (s *Slice[O]) Forward() mat.Matrix {
-	return s.x.Value().Slice(s.fromRow, s.fromCol, s.toRow, s.toCol)
+func (s *Slice[O]) Forward() (mat.Matrix, error) {
+	return s.x.Value().Slice(s.fromRow, s.fromCol, s.toRow, s.toCol), nil
 }
 
 // Backward computes the backward pass.
-func (s *Slice[O]) Backward(gy mat.Matrix) {
+func (s *Slice[O]) Backward(gy mat.Matrix) error {
 	lx := s.toRow - s.fromRow
 	ly := s.toCol - s.fromCol
 	if !(gy.Rows() == lx && gy.Columns() == ly) {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if s.x.RequiresGrad() {
 		gx := s.x.Value().ZerosLike()
@@ -53,4 +57,5 @@ func (s *Slice[O]) Backward(gy mat.Matrix) {
 		}
 		s.x.AccGrad(gx)
 	}
+	return nil
 }

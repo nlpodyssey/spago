@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -27,15 +29,15 @@ func (r *Softmax[O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *Softmax[O]) Forward() mat.Matrix {
+func (r *Softmax[O]) Forward() (mat.Matrix, error) {
 	r.y = r.x.Value().Softmax()
-	return r.y
+	return r.y, nil
 }
 
 // Backward computes the backward pass.
-func (r *Softmax[O]) Backward(gy mat.Matrix) {
+func (r *Softmax[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		y := r.y
@@ -53,4 +55,5 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

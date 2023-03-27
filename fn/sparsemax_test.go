@@ -26,12 +26,12 @@ func testSparseMaxForward[T float.DType](t *testing.T) {
 	f := NewSparseMax(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
-
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.3597, 0.0138, 0.0000, 0.0000, 0.6265}, y.Data(), 1.0e-3)
 
-	f.Backward(mat.NewVecDense([]T{1.0, 0.5, 0.5, 0.5, 1.0, 1.0}))
-
+	err = f.Backward(mat.NewVecDense([]T{1.0, 0.5, 0.5, 0.5, 1.0, 1.0}))
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.16, -0.33, 0, 0, 0.16}, x.grad.Data(), 1.0e-2)
 }
 
@@ -49,10 +49,11 @@ func testSparseMaxLossForward[T float.DType](t *testing.T) {
 
 	f := NewSparseMaxLoss(x)
 
-	y := f.Forward()
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{-1.3009, -0.2396, -1.2110, -0.7479, -0.2606}, y.Data(), 1.0e-2)
 
-	f.Backward(mat.NewVecDense([]T{0, 0, -1, 0, 0}))
-
+	err = f.Backward(mat.NewVecDense([]T{0, 0, -1, 0, 0}))
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.0000, 0.5098, -1.0000, 0.0015, 0.4888}, x.grad.Data(), 1.0e-2)
 }

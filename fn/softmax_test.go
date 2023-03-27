@@ -26,11 +26,11 @@ func testSoftmaxForward[T float.DType](t *testing.T) {
 	f := NewSoftmax(x)
 	assert.Equal(t, []*variable{x}, f.Operands())
 
-	y := f.Forward()
-
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.1166451, 0.0596882, 0.1757629, 0.4195304, 0.1453487, 0.083024}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{0.0, 0.0, -5.689482, 0.0, 0.0, 0.0}))
-
+	err = f.Backward(mat.NewVecDense([]T{0.0, 0.0, -5.689482, 0.0, 0.0, 0.0}))
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.1166451, 0.0596882, -0.8242370, 0.4195304, 0.1453487, 0.083024}, x.grad.Data(), 1.0e-6)
 }

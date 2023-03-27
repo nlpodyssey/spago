@@ -235,10 +235,12 @@ func testAffine[T float.DType](t *testing.T) {
 			}
 
 			f := NewAffine(b, w1, x1, wxPairs...)
-			y := f.Forward()
+			y, err := f.Forward()
+			assert.Nil(t, err)
 			mat.RequireMatrixEquals(t, tt.wantFwd, y)
 
-			f.Backward(tt.gy)
+			err = f.Backward(tt.gy)
+			assert.Nil(t, err)
 			mat.AssertMatrixEquals(t, tt.wantBGrad, b.grad, "bias grad")
 			mat.AssertMatrixEquals(t, tt.wantW1Grad, w1.grad, "w1 grad")
 			mat.AssertMatrixEquals(t, tt.wantX1Grad, x1.grad, "x1 grad")

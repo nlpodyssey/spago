@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Log is an operator to perform element-wise natural logarithm function.
 type Log[O DualValue] struct {
@@ -24,14 +28,14 @@ func (l *Log[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (l *Log[O]) Forward() mat.Matrix {
-	return l.x.Value().Log()
+func (l *Log[O]) Forward() (mat.Matrix, error) {
+	return l.x.Value().Log(), nil
 }
 
 // Backward computes the backward pass.
-func (l *Log[O]) Backward(gy mat.Matrix) {
+func (l *Log[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(l.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if l.x.RequiresGrad() {
 		gx := l.x.Value().Apply(safeLogDeriv)
@@ -39,6 +43,7 @@ func (l *Log[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}
+	return nil
 }
 
 func safeLogDeriv(_, _ int, v float64) float64 {

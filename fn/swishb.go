@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -31,15 +33,15 @@ func (r *SwishB[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SwishB[O]) Forward() mat.Matrix {
+func (r *SwishB[O]) Forward() (mat.Matrix, error) {
 	y := r.x.Value().ApplyWithAlpha(swishB, r.beta.Value().Scalar().F64())
-	return y
+	return y, nil
 }
 
 // Backward computes the backward pass.
-func (r *SwishB[O]) Backward(gy mat.Matrix) {
+func (r *SwishB[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, r.beta.Value().Scalar().F64())
@@ -58,4 +60,5 @@ func (r *SwishB[O]) Backward(gy mat.Matrix) {
 		}
 		r.beta.AccGrad(gb)
 	}
+	return nil
 }

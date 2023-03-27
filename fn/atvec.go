@@ -28,16 +28,17 @@ func (r *AtVec[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *AtVec[O]) Forward() mat.Matrix {
-	return r.x.Value().AtVec(r.i)
+func (r *AtVec[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().AtVec(r.i), nil
 }
 
 // Backward computes the backward pass.
-func (r *AtVec[O]) Backward(gy mat.Matrix) {
+func (r *AtVec[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
 		defer mat.ReleaseMatrix(dx)
 		dx.SetVec(r.i, gy)
 		r.x.AccGrad(dx)
 	}
+	return nil
 }

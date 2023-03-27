@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // ReverseSubScalar is the element-wise subtraction function over two values.
 type ReverseSubScalar[O DualValue] struct {
@@ -26,16 +30,16 @@ func (r *ReverseSubScalar[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *ReverseSubScalar[O]) Forward() mat.Matrix {
+func (r *ReverseSubScalar[O]) Forward() (mat.Matrix, error) {
 	x1 := r.x1.Value()
 	x2 := r.x2.Value()
-	return x1.ProdScalar(-1).AddScalarInPlace(x2.Scalar().F64())
+	return x1.ProdScalar(-1).AddScalarInPlace(x2.Scalar().F64()), nil
 }
 
 // Backward computes the backward pass.
-func (r *ReverseSubScalar[O]) Backward(gy mat.Matrix) {
+func (r *ReverseSubScalar[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x1.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.ProdScalar(-1)
@@ -47,4 +51,5 @@ func (r *ReverseSubScalar[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
+	return nil
 }

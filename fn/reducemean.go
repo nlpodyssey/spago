@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // ReduceMean is an operator to perform reduce-mean function.
 type ReduceMean[O DualValue] struct {
@@ -24,15 +28,15 @@ func (r *ReduceMean[O]) Operands() []O {
 }
 
 // Forward computes the output of this node.
-func (r *ReduceMean[O]) Forward() mat.Matrix {
+func (r *ReduceMean[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
-	return xv.Sum().ProdScalarInPlace(1 / float64(xv.Size()))
+	return xv.Sum().ProdScalarInPlace(1 / float64(xv.Size())), nil
 }
 
 // Backward computes the backward pass.
-func (r *ReduceMean[O]) Backward(gy mat.Matrix) {
+func (r *ReduceMean[O]) Backward(gy mat.Matrix) error {
 	if !mat.IsScalar(gy) {
-		panic("fn: the gradient had to be a scalar")
+		return fmt.Errorf("fn: the gradient had to be a scalar")
 	}
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
@@ -42,4 +46,5 @@ func (r *ReduceMean[O]) Backward(gy mat.Matrix) {
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

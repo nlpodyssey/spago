@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -31,18 +33,19 @@ func (r *Reshape[O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Reshape[O]) Forward() mat.Matrix {
-	return r.x.Value().Reshape(r.rows, r.cols)
+func (r *Reshape[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().Reshape(r.rows, r.cols), nil
 }
 
 // Backward computes the backward pass.
-func (r *Reshape[O]) Backward(gy mat.Matrix) {
+func (r *Reshape[O]) Backward(gy mat.Matrix) error {
 	if gy.Columns() != r.cols && gy.Rows() != r.rows {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		gx := gy.Reshape(r.x.Value().Dims())
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

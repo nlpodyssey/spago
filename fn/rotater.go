@@ -27,18 +27,19 @@ func (r *RotateR[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *RotateR[O]) Forward() mat.Matrix {
+func (r *RotateR[O]) Forward() (mat.Matrix, error) {
 	x := r.x.Value()
-	return rotate(x, x.Size()-r.i)
+	return rotate(x, x.Size()-r.i), nil
 }
 
 // Backward computes the backward pass.
-func (r *RotateR[O]) Backward(gy mat.Matrix) {
+func (r *RotateR[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := rotate(gy, r.i)
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }
 
 func rotate(m mat.Matrix, i int) mat.Matrix {

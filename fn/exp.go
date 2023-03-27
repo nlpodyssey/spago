@@ -4,7 +4,11 @@
 
 package fn
 
-import "github.com/nlpodyssey/spago/mat"
+import (
+	"fmt"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Exp is an operator to perform element-wise base-e exponential function.
 type Exp[O DualValue] struct {
@@ -24,14 +28,14 @@ func (e *Exp[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (e *Exp[O]) Forward() mat.Matrix {
-	return e.x.Value().Exp()
+func (e *Exp[O]) Forward() (mat.Matrix, error) {
+	return e.x.Value().Exp(), nil
 }
 
 // Backward computes the backward pass.
-func (e *Exp[O]) Backward(gy mat.Matrix) {
+func (e *Exp[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(e.x.Value(), gy) {
-		panic("fn: matrices have incompatible dimensions")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if e.x.RequiresGrad() {
 		gx := e.x.Value().Exp()
@@ -39,4 +43,5 @@ func (e *Exp[O]) Backward(gy mat.Matrix) {
 		gx.ProdInPlace(gy)
 		e.x.AccGrad(gx)
 	}
+	return nil
 }

@@ -5,6 +5,8 @@
 package fn
 
 import (
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -26,18 +28,19 @@ func (r *Flatten[O]) Operands() []O {
 }
 
 // Forward computes the output of the node.
-func (r *Flatten[O]) Forward() mat.Matrix {
-	return r.x.Value().Flatten()
+func (r *Flatten[O]) Forward() (mat.Matrix, error) {
+	return r.x.Value().Flatten(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Flatten[O]) Backward(gy mat.Matrix) {
+func (r *Flatten[O]) Backward(gy mat.Matrix) error {
 	if !(mat.IsVector(gy) && r.x.Value().Size() == gy.Size()) {
-		panic("fn: matrices with not compatible size")
+		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
 		gx := gy.Reshape(r.x.Value().Dims())
 		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

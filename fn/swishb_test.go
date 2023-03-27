@@ -31,12 +31,12 @@ func testSwishBForward[T float.DType](t *testing.T) {
 	f := NewSwishB(x, beta)
 	assert.Equal(t, []*variable{x, beta}, f.Operands())
 
-	y := f.Forward()
-
+	y, err := f.Forward()
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Data(), 1.0e-6)
 
-	f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
-
+	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{-0.5993373119, 0.1526040208, 0.6263414804, 0.0}, x.grad.Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{0.0188025145}, beta.grad.Data(), 1.0e-6)
 }

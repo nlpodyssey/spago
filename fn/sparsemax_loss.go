@@ -30,7 +30,7 @@ func (r *SparseMaxLoss[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (r *SparseMaxLoss[O]) Forward() mat.Matrix {
+func (r *SparseMaxLoss[O]) Forward() (mat.Matrix, error) {
 	v := r.x.Value().Clone()
 
 	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
@@ -52,11 +52,11 @@ func (r *SparseMaxLoss[O]) Forward() mat.Matrix {
 
 	r.y = v
 	r.tau = tau
-	return v
+	return v, nil
 }
 
 // Backward computes the backward pass.
-func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) {
+func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		tau := r.tau
 		gySum := gy.Sum().Scalar().F64()
@@ -71,4 +71,5 @@ func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) {
 
 		r.x.AccGrad(gx)
 	}
+	return nil
 }

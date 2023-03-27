@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"log"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -50,18 +51,18 @@ var _ Node = &Operator{}
 // It's used to define a new operator.
 type AutoGradFunction[T Node] interface {
 	// Forward computes the output of the function.
-	Forward() mat.Matrix
+	Forward() (mat.Matrix, error)
 	// Backward computes the backward pass given the gradient of the output.
-	Backward(gy mat.Matrix)
+	Backward(gy mat.Matrix) error
 	// Operands returns the list of operands.
 	Operands() []T
 }
 
 // ForwardFunc is the type of the forward function.
-type ForwardFunc func() mat.Matrix
+type ForwardFunc func() (mat.Matrix, error)
 
 // BackwardFunc is the type of the backward function.
-type BackwardFunc func(gy mat.Matrix)
+type BackwardFunc func(gy mat.Matrix) error
 
 // Operator is a type of node.
 // It's used to represent a function with automatic differentiation features.
@@ -112,7 +113,11 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 
 // forward executes the function and inform all goroutines that have been waiting for the result.
 func (o *Operator) execute(f ForwardFunc) {
-	o.value.Store(f()) // execute the function and store the result
+	y, err := f()
+	if err != nil {
+		log.Fatalf("ag: error during forward pass: %v", err) // TODO: handle error
+	}
+	o.value.Store(y) // execute the function and store the result
 	o.cond.L.Lock()
 	o.cond.Broadcast()
 	o.cond.L.Unlock()
@@ -265,21 +270,24 @@ func (o *Operator) traverseOperandsForPreparation() {
 	}
 }
 
-func (o *Operator) executeBackwardPass(wg *sync.WaitGroup) {
+func (o *Operator) processBackwardPass(wg *sync.WaitGroup) {
 	if !o.RequiresGrad() || o.backwardState != pending {
 		return
 	}
 	o.backwardState = ongoing
 
 	wg.Add(1) // decrement when the backward pass is done
-	go o.processBackward(wg)
+	go o.executeBackward(wg)
 
 	o.traverseOperandsForBackward(wg)
 }
 
-func (o *Operator) processBackward(wg *sync.WaitGroup) {
+func (o *Operator) executeBackward(wg *sync.WaitGroup) {
 	if grad := o.Grad(); grad != nil {
-		o.backwardPass(grad)
+		err := o.backwardPass(grad)
+		if err != nil {
+			panic(err) // TODO: handle the error
+		}
 	}
 	o.backwardState = idle
 	wg.Done()
@@ -288,7 +296,7 @@ func (o *Operator) processBackward(wg *sync.WaitGroup) {
 func (o *Operator) traverseOperandsForBackward(wg *sync.WaitGroup) {
 	for _, operand := range o.Operands() {
 		if oo, ok := operand.(*Operator); ok {
-			oo.executeBackwardPass(wg)
+			oo.processBackwardPass(wg)
 		}
 	}
 }
