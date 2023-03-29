@@ -99,10 +99,8 @@ type T = float32
 
 func main() {
   // create a new node of type variable with a scalar
-  a := ag.Var(mat.NewScalar(T(2.0))).WithGrad(true)
-  // create another node of type variable with a scalar
-  b := ag.Var(mat.NewScalar(T(5.0))).WithGrad(true)
-  // create an addition operator (the calculation is actually performed here)
+  a := mat.NewScalar(T(2.0), mat.WithGrad(true))  // create another node of type variable with a scalar
+  b := mat.NewScalar(T(5.0), mat.WithGrad(true))  // create an addition operator (the calculation is actually performed here)
   c := ag.Add(a, b)
 
   // print the result
@@ -140,31 +138,15 @@ import (
 )
 
 func main() {
-  x := Var(mat.NewScalar(-0.8)).WithName("x")
-  w := Var(mat.NewScalar(0.4)).WithName("w")
-  b := Var(mat.NewScalar(-0.2)).WithName("b")
+  x := mat.NewScalar(-0.8)
+  w := mat.NewScalar(0.4)
+  b := mat.NewScalar(-0.2)
 
   y := Sigmoid(Add(Mul(w, x), b))
-
-  err := dot.Encode(encoding.NewGraph(y), os.Stdout)
-  if err != nil {
-    log.Fatal(err)
-  }
+  _ = y
 }
 
 ```
-
-In this case, we are interested in rendering the resulting graph with [Graphviz](https://www.graphviz.org/):
-
-```console
-go run main.go | dot -Tpng -o g.png
-```
-
-<p align="center">
-    <br>
-    <img src="https://github.com/nlpodyssey/spago/blob/main/assets/perceptron.png" width="400"/>
-    <br>
-<p>
 
 ### Example 3
 
