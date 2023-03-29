@@ -13,8 +13,6 @@ import (
 type Param interface {
 	ag.Node
 
-	// Name returns the name of the parameter (can be empty string).
-	Name() string
 	// SetRequiresGrad set whether the param requires gradient, or not.
 	SetRequiresGrad(value bool)
 	// ReplaceValue replaces the value of the parameter and clears the support structure.

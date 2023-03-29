@@ -55,7 +55,7 @@ func (o *Optimizer) Optimize() {
 func (o *Optimizer) collectParams() []nn.Param {
 	visited := map[nn.Param]struct{}{}
 	params := make([]nn.Param, 0)
-	nn.ForEachParam(o.model, func(param nn.Param, _ string) {
+	nn.ForEachParam(o.model, func(param nn.Param) {
 		if !param.HasGrad() {
 			return // don't consider params with grad at zero
 		}

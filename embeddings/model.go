@@ -98,17 +98,13 @@ func New[T float.DType, K Key](conf Config, repo store.Repository) *Model[K] {
 }
 
 // TraverseParams allows embeddings with gradients to be traversed for optimization.
-func (m *Model[K]) TraverseParams(callback nn.ParamsTraversalFunc) {
+func (m *Model[K]) TraverseParams(callback func(param nn.Param)) {
 	if m.ZeroEmbedding != nil {
-		callback(paramName(m.ZeroEmbedding))
+		callback(m.ZeroEmbedding)
 	}
 	for _, emb := range m.embeddingsWithGrad {
-		callback(paramName(emb))
+		callback(emb)
 	}
-}
-
-func paramName(p nn.Param) (nn.Param, string) {
-	return p, p.Name()
 }
 
 // Count counts how many embedding key/value pairs are currently stored.

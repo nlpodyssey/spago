@@ -10,20 +10,11 @@ import (
 	"sync"
 )
 
-// ParamsTraversalFunc is the function called for each visited Param from
-// traversal routines (see for example ForEachParam and ForEachParamStrict).
-//
-// The arguments are:
-//   - param: the value of the visited parameter
-//   - name: a suggested meaningful name for the parameter, if available,
-//     usually corresponding to the name of a struct's field
-type ParamsTraversalFunc func(param Param, name string)
-
 // ParamsTraverser allows you to define a custom procedure to traverse the parameters of a model.
 // If a model implements this procedure, it will take precedence over the regular parameters visit.
 type ParamsTraverser interface {
-	// TraverseParams calls ParamsTraversalFunc for each visited Param.
-	TraverseParams(callback ParamsTraversalFunc)
+	// TraverseParams visit each Param.
+	TraverseParams(callback func(param Param))
 }
 
 // paramsTraversal allows the traversal of Model parameters.
@@ -31,8 +22,8 @@ type ParamsTraverser interface {
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
 type paramsTraversal struct {
-	paramsFunc       ParamsTraversalFunc
-	modelsFunc       func(model Model, name string)
+	paramsFunc       func(param Param)
+	modelsFunc       func(model Model)
 	exploreSubModels bool
 }
 
@@ -65,19 +56,19 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string) bool {
 		// skip
 	case Param:
 		if pt.paramsFunc != nil {
-			pt.paramsFunc(itemT, name)
+			pt.paramsFunc(itemT)
 		}
 	case ParamsTraverser:
 		if pt.paramsFunc != nil {
 			itemT.TraverseParams(pt.paramsFunc)
 		}
 		if m, ok := item.(Model); ok && pt.modelsFunc != nil {
-			pt.modelsFunc(m, name)
+			pt.modelsFunc(m)
 		}
 	case Model:
 		if pt.exploreSubModels {
 			if pt.modelsFunc != nil {
-				pt.modelsFunc(itemT, name)
+				pt.modelsFunc(itemT)
 			}
 			pt.walk(item)
 		}

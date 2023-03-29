@@ -12,12 +12,10 @@ import (
 
 type collectedParam struct {
 	param Param
-	name  string
 }
 
 type collectedModel struct {
 	model Model
-	name  string
 }
 
 type traversalTest struct {
@@ -30,12 +28,12 @@ type traversalTest struct {
 }
 
 type traversableType struct {
-	fn func(ParamsTraversalFunc)
+	fn func(callback func(param Param))
 }
 
 var _ ParamsTraverser = traversableType{}
 
-func (t traversableType) TraverseParams(f ParamsTraversalFunc) {
+func (t traversableType) TraverseParams(f func(param Param)) {
 	t.fn(f)
 }
 
@@ -55,7 +53,7 @@ var traversalTests = []traversalTest{
 			subMod:               false,
 			expectedParams:       nil,
 			expectedParamsStrict: nil,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 	func() traversalTest {
@@ -86,7 +84,7 @@ var traversalTests = []traversalTest{
 			subMod:               false,
 			expectedParams:       nil,
 			expectedParamsStrict: nil,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 	func() traversalTest {
@@ -104,8 +102,8 @@ var traversalTests = []traversalTest{
 		}
 
 		params := []collectedParam{
-			{m.A, "A"},
-			{m.B, "B"},
+			{m.A},
+			{m.B},
 		}
 		return traversalTest{
 			name:                 name,
@@ -113,12 +111,10 @@ var traversalTests = []traversalTest{
 			subMod:               false,
 			expectedParams:       params,
 			expectedParamsStrict: params,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 	func() traversalTest {
-		name := "[]Param fields"
-
 		type modelType struct {
 			Module
 			A []Param
@@ -137,18 +133,17 @@ var traversalTests = []traversalTest{
 		}
 
 		params := []collectedParam{
-			{m.A[0], "A"},
-			{m.A[1], "A"},
-			{m.B[0], "B"},
-			{m.B[1], "B"},
+			{m.A[0]},
+			{m.A[1]},
+			{m.B[0]},
+			{m.B[1]},
 		}
 		return traversalTest{
-			name:                 name,
 			model:                m,
 			subMod:               false,
 			expectedParams:       params,
 			expectedParamsStrict: params,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 	func() traversalTest {
@@ -178,16 +173,16 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.P, "P"},
-				{nested.P, "P"},
+				{m.P},
+				{nested.P},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.P, "P"},
+				{m.P},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{nested, "M"},
-				{nested.M, "M"},
+				{m},
+				{nested},
+				{nested.M},
 			},
 		}
 	}(),
@@ -212,17 +207,17 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.P, "P"},
-				{mA.P, "P"},
-				{mB.P, "P"},
+				{m.P},
+				{mA.P},
+				{mB.P},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.P, "P"},
+				{m.P},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{mA, "M"},
-				{mB, "M"},
+				{m},
+				{mA},
+				{mB},
 			},
 		}
 	}(),
@@ -248,17 +243,17 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.P, "P"},
-				{mA.P, "P"},
-				{mB.P, "P"},
+				{m.P},
+				{mA.P},
+				{mB.P},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.P, "P"},
+				{m.P},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{mA, "M"},
-				{mB, "M"},
+				{m},
+				{mA},
+				{mB},
 			},
 		}
 	}(),
@@ -283,17 +278,17 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.P, "P"},
-				{mA.P, "P"},
-				{mB.P, "P"},
+				{m.P},
+				{mA.P},
+				{mB.P},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.P, "P"},
+				{m.P},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{mA, "M"},
-				{mB, "M"},
+				{m},
+				{mA},
+				{mB},
 			},
 		}
 	}(),
@@ -318,17 +313,17 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.P, "P"},
-				{mA.P, "P"},
-				{mB.P, "P"},
+				{m.P},
+				{mA.P},
+				{mB.P},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.P, "P"},
+				{m.P},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{mA, "M"},
-				{mB, "M"},
+				{m},
+				{mA},
+				{mB},
 			},
 		}
 	}(),
@@ -358,9 +353,9 @@ var traversalTests = []traversalTest{
 			Bar: nil,
 			Baz: nil,
 			Qux: []traversableType{
-				{func(f ParamsTraversalFunc) {
-					f(delta, "Delta")
-					f(echo, "")
+				{func(f func(param Param)) {
+					f(delta)
+					f(echo)
 				}},
 			},
 		}
@@ -369,12 +364,12 @@ var traversalTests = []traversalTest{
 			Bar: []simpleStruct{{P: NewParam(mat.NewScalar(2.))}},
 			Baz: nested,
 			Qux: []traversableType{
-				{func(f ParamsTraversalFunc) {
-					f(alfa, "Alfa")
-					f(bravo, "Bravo")
+				{func(f func(param Param)) {
+					f(alfa)
+					f(bravo)
 				}},
-				{func(f ParamsTraversalFunc) {
-					f(charlie, "Charlie")
+				{func(f func(param Param)) {
+					f(charlie)
 				}},
 			},
 		}
@@ -384,29 +379,27 @@ var traversalTests = []traversalTest{
 			model:  m,
 			subMod: true,
 			expectedParams: []collectedParam{
-				{m.Foo, "Foo"},
-				{nested.Foo, "Foo"},
-				{delta, "Delta"},
-				{echo, ""},
-				{alfa, "Alfa"},
-				{bravo, "Bravo"},
-				{charlie, "Charlie"},
+				{m.Foo},
+				{nested.Foo},
+				{delta},
+				{echo},
+				{alfa},
+				{bravo},
+				{charlie},
 			},
 			expectedParamsStrict: []collectedParam{
-				{m.Foo, "Foo"},
-				{alfa, "Alfa"},
-				{bravo, "Bravo"},
-				{charlie, "Charlie"},
+				{m.Foo},
+				{alfa},
+				{bravo},
+				{charlie},
 			},
 			expectedModels: []collectedModel{
-				{m, ""},
-				{nested, "Baz"},
+				{m},
+				{nested},
 			},
 		}
 	}(),
 	func() traversalTest {
-		name := "map[int] and map[string] fields"
-
 		type modelType struct {
 			Module
 			MI map[int]Param
@@ -423,21 +416,18 @@ var traversalTests = []traversalTest{
 		}
 
 		params := []collectedParam{
-			{m.MI[0], "MI.0"},
-			{m.MS["a"], "MS.a"},
+			{m.MI[0]},
+			{m.MS["a"]},
 		}
 		return traversalTest{
-			name:                 name,
 			model:                m,
 			subMod:               true,
 			expectedParams:       params,
 			expectedParamsStrict: params,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 	func() traversalTest {
-		name := "sync.Map fields"
-
 		type modelType struct {
 			Module
 			StrMap  *sync.Map
@@ -460,16 +450,15 @@ var traversalTests = []traversalTest{
 		m.UintMap.Store(uint(3), baz)
 
 		params := []collectedParam{
-			{foo, "StrMap.Foo"},
-			{bar, "IntMap.42"},
+			{foo},
+			{bar},
 		}
 		return traversalTest{
-			name:                 name,
 			model:                m,
 			subMod:               true,
 			expectedParams:       params,
 			expectedParamsStrict: params,
-			expectedModels:       []collectedModel{{m, ""}},
+			expectedModels:       []collectedModel{{m}},
 		}
 	}(),
 }

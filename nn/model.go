@@ -13,8 +13,8 @@ type Model interface {
 
 // Apply fn recursively to every sub-models as well as self.
 // Typical use includes initializing the parameters of a model.
-func Apply(m Model, fn func(model Model, name string)) {
-	fn(m, "")
+func Apply(m Model, fn func(model Model)) {
+	fn(m)
 	paramsTraversal{
 		paramsFunc:       nil,
 		modelsFunc:       fn,
@@ -23,7 +23,7 @@ func Apply(m Model, fn func(model Model, name string)) {
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-func ForEachParam(m Model, fn ParamsTraversalFunc) {
+func ForEachParam(m Model, fn func(param Param)) {
 	paramsTraversal{
 		paramsFunc:       fn,
 		modelsFunc:       nil,
@@ -32,7 +32,7 @@ func ForEachParam(m Model, fn ParamsTraversalFunc) {
 }
 
 // ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
-func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
+func ForEachParamStrict(m Model, fn func(param Param)) {
 	paramsTraversal{
 		paramsFunc:       fn,
 		modelsFunc:       nil,
@@ -42,26 +42,16 @@ func ForEachParamStrict(m Model, fn ParamsTraversalFunc) {
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
 func ZeroGrad(m Model) {
-	ForEachParam(m, func(param Param, _ string) {
+	ForEachParam(m, func(param Param) {
 		param.ZeroGrad()
 	})
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 func ClearSupport(m Model) {
-	ForEachParam(m, func(param Param, _ string) {
+	ForEachParam(m, func(param Param) {
 		param.ClearPayload()
 	})
-}
-
-// Introspect set the name property of each model's param (including sub-models).
-func Introspect[M Model](m M) M {
-	ForEachParam(Model(m), func(param Param, name string) {
-		if p, ok := param.(interface{ SetName(string) }); ok && param.Name() == "" {
-			p.SetName(name)
-		}
-	})
-	return m
 }
 
 // StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
