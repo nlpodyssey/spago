@@ -6,13 +6,12 @@ package lstm
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/initializers"
-	"github.com/nlpodyssey/spago/mat/rand"
-	"strings"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/initializers"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -98,16 +97,13 @@ func (m *Model) WithRefinedGates(value bool) *Model {
 	return m
 }
 
-// Init initializes the weights using Xavier uniform randomization leaving the biases at zero.
+// Init initializes the parameters using Xavier uniform randomization.
 // It follows the LSTM bias hack setting the Forget gate to 1 (http://proceedings.mlr.press/v37/jozefowicz15.pdf).
 func (m *Model) Init(rndGen *rand.LockedRand) *Model {
-	nn.ForEachParam(m, func(param nn.Param, pName string) {
-		if strings.ToLower(pName) == "bfor" {
-			initializers.Constant(param.Value(), 1.0)
-			return
-		}
+	nn.ForEachParam(m, func(param nn.Param) {
 		initializers.XavierUniform(param.Value(), 1, rndGen)
 	})
+	initializers.Constant(m.BFor.Value(), 1.0)
 	return m
 }
 
