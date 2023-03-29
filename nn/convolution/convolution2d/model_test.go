@@ -69,7 +69,7 @@ func testModelForward[T float.DType](t *testing.T) {
 		0.3, 0.6, 0.0,
 	}))
 
-	ag.BackwardMany(y...)
+	ag.Backward(y...)
 
 	assert.InDeltaSlice(t, []T{
 		0.4361460918, 0.3557904551,

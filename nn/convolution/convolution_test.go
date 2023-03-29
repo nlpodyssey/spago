@@ -35,7 +35,8 @@ func testConv1D[T float.DType](t *testing.T) {
 		0.47, -0.42, -0.56,
 	}, out.Value().Data(), 0.005)
 
-	ag.Backward(out, mat.NewDense(1, 3, []T{1.0, -0.5, -1.0}))
+	out.AccGrad(mat.NewDense(1, 3, []T{1.0, -0.5, -1.0}))
+	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{
 		-0.35, -0.95,
@@ -74,11 +75,12 @@ func testConv2D[T float.DType](t *testing.T) {
 		0.67, 0.28, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	ag.Backward(out, mat.NewDense(3, 3, []T{
+	out.AccGrad(mat.NewDense(3, 3, []T{
 		1.0, -0.5, -1.0,
 		0.5, 0.3, 0.5,
 		0.2, 0.5, -0.5,
 	}))
+	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{
 		-0.34, -1.93,
@@ -116,10 +118,11 @@ func testConv2DStride2[T float.DType](t *testing.T) {
 		0.67, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	ag.Backward(out, mat.NewDense(2, 2, []T{
+	out.AccGrad(mat.NewDense(2, 2, []T{
 		1.0, -0.5,
 		0.5, 0.3,
 	}))
+	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{
 		0.08, -0.42,

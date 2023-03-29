@@ -28,7 +28,8 @@ func testModelReLUForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
-	ag.Backward(y, mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	y.AccGrad(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	ag.Backward(y)
 
 	assert.InDeltaSlice(t, []T{-1.0, 0.0, 0.8, 0.0}, x.Grad().Data(), 1.0e-6)
 }
@@ -49,7 +50,8 @@ func testModelSwishForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.0549833997, -0.080262468, 0.1936968919, 0.0}, y.Value().Data(), 1.0e-6)
 
 	// == Backward
-	ag.Backward(y, mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	y.AccGrad(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	ag.Backward(y)
 
 	assert.InDeltaSlice(t, []T{-0.5993373119, 0.1526040208, 0.6263414804, 0.0}, x.Grad().Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{0.0188025145}, beta.Grad().Data(), 1.0e-6)

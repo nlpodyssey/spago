@@ -221,27 +221,15 @@ func isNil(grad mat.Matrix) bool {
 	return false
 }
 
-func (o *Operator) initOutputGrad(outputGrad mat.Matrix) {
-	if outputGrad != nil && !isNil(o.Value().Grad()) {
-		panic("ag: attempt to set output gradients on a node that already has gradients")
-	}
-
-	if !isNil(o.Value().Grad()) {
-		// If the node already has gradients, we can use them directly.
-		o.pendingGrads--
+func (o *Operator) setOutputGrad() {
+	if isNil(o.Value().Grad()) {
+		gx := o.Value().OnesLike()
+		o.AccGrad(gx)
+		mat.ReleaseMatrix(gx)
 		return
 	}
-
-	if outputGrad != nil {
-		// If the output gradient is provided, we can use it directly.
-		o.AccGrad(outputGrad)
-		return
-	}
-
-	// If neither the node nor the output gradient is provided, we need to create a new one.
-	gx := o.Value().OnesLike()
-	o.AccGrad(gx)
-	mat.ReleaseMatrix(gx)
+	// If the node already has gradients, we can use them directly.
+	o.pendingGrads--
 }
 
 func (o *Operator) prepareBackwardPass() {

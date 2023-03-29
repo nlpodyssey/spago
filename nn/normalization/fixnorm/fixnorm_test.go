@@ -34,7 +34,7 @@ func testModelForward[T float.DType](t *testing.T) {
 	y[0].AccGrad(mat.NewVecDense([]T{-1.0, -0.2, 0.4, 0.6}))
 	y[1].AccGrad(mat.NewVecDense([]T{-0.3, 0.1, 0.7, 0.9}))
 	y[2].AccGrad(mat.NewVecDense([]T{0.3, -0.4, 0.7, -0.8}))
-	ag.BackwardMany(y...)
+	ag.Backward(y...)
 
 	assert.InDeltaSlice(t, []T{-0.2286092183, -0.0644262343, 0.0872871561, 0.0893654217}, x1.Grad().Data(), 1.0e-06)
 	assert.InDeltaSlice(t, []T{-0.0882469263, -0.0164048773, 0.0837214429, 0.0356381818}, x2.Grad().Data(), 1.0e-06)

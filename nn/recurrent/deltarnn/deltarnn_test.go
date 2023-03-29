@@ -159,7 +159,7 @@ func testModelForwardSeq[T float.DType](t *testing.T) {
 	s1.Y.AccGrad(mat.NewVecDense([]T{-0.007, 0.002}))
 	s2.Y.AccGrad(mat.NewVecDense([]T{-0.003, 0.005}))
 
-	ag.BackwardMany(s2.Y)
+	ag.Backward(s2.Y)
 
 	assert.InDeltaSlice(t, []T{0.0002377894, 0.000303171, -0.0004869122}, x.Grad().Data(), 1.0e-05)
 

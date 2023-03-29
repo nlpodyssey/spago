@@ -48,7 +48,7 @@ func testModelConcatForward[T float.DType](t *testing.T) {
 	y[1].AccGrad(mat.NewVecDense([]T{0.6, 0.6, 0.7, 0.7, -0.6, 0.3}))
 	y[2].AccGrad(mat.NewVecDense([]T{-0.1, -0.1, 0.1, -0.8, 0.4, -0.5}))
 
-	ag.BackwardMany(y...)
+	ag.Backward(y...)
 
 	// Important! average params by sequence length
 	nn.ForEachParam(model, func(param nn.Param) {
