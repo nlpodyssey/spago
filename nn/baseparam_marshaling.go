@@ -19,10 +19,8 @@ func init() {
 }
 
 type baseParamForMarshaling struct {
-	Name         string
-	Value        mat.Matrix
-	Payload      *Payload
-	RequiresGrad bool
+	Value   mat.Matrix
+	Payload *Payload
 }
 
 // MarshalBinary marshals a param into binary form.
@@ -30,10 +28,8 @@ func (p *BaseParam) MarshalBinary() ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	v := baseParamForMarshaling{
-		Name:         p.name,
-		Value:        p.value,
-		Payload:      p.payload,
-		RequiresGrad: p.requiresGrad,
+		Value:   p.value,
+		Payload: p.payload,
 	}
 	err := enc.Encode(v)
 	if err != nil {
@@ -51,9 +47,7 @@ func (p *BaseParam) UnmarshalBinary(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("cannot decode BaseParam: %w", err)
 	}
-	p.name = v.Name
 	p.value = v.Value
 	p.payload = v.Payload
-	p.requiresGrad = v.RequiresGrad
 	return nil
 }

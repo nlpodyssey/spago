@@ -25,7 +25,6 @@ func testParamGob[T float.DType](t *testing.T) {
 		var buf bytes.Buffer
 
 		p1 := NewParam(mat.NewScalar(T(12)))
-		p1.SetName("foo")
 		p1.SetRequiresGrad(false)
 		p1.SetPayload(&Payload{
 			Label: 42,
@@ -42,7 +41,6 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.NotNil(t, p2)
 		require.NotNil(t, p2.Value())
 		mat.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
-		assert.Equal(t, "foo", p2.Name())
 		assert.False(t, p2.RequiresGrad())
 
 		payload := p2.Payload()
@@ -53,20 +51,6 @@ func testParamGob[T float.DType](t *testing.T) {
 	})
 
 	t.Run("with default properties and nil value", func(t *testing.T) {
-		var buf bytes.Buffer
-
-		p1 := NewParam(nil)
-
-		err := gob.NewEncoder(&buf).Encode(p1)
-		require.Nil(t, err)
-
-		var p2 *BaseParam
-		err = gob.NewDecoder(&buf).Decode(&p2)
-		require.Nil(t, err)
-		require.NotNil(t, p2)
-		assert.Nil(t, p2.Value())
-		assert.Empty(t, p2.Name())
-		assert.True(t, p2.RequiresGrad())
-		assert.Nil(t, p2.Payload())
+		assert.Panics(t, func() { NewParam(nil) })
 	})
 }

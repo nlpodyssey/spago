@@ -15,45 +15,30 @@ var _ Param = &BaseParam{}
 
 // BaseParam is the default implementation satisfying the Param interface.
 type BaseParam struct {
-	name         string
-	value        mat.Matrix // store the results of a forward evaluation.
-	grad         mat.Matrix
-	payload      *Payload // additional data used for example by gradient-descend optimization methods
-	requiresGrad bool
-	// Allows thread-safe locking for operations on value.
-	valueMu sync.RWMutex
-	// Allows thread-safe locking for operations on grad.
-	gradMu sync.RWMutex
-	// Allows thread-safe locking for operations on payload.
+	value     mat.Matrix
+	valueMu   sync.RWMutex
+	payload   *Payload
 	payloadMu sync.RWMutex
 }
 
 // NewParam returns a new param.
 func NewParam(value mat.Matrix) *BaseParam {
-	return &BaseParam{
-		name:         "",
-		value:        value,
-		grad:         nil,
-		requiresGrad: true,
-		payload:      nil,
+	if value == nil {
+		panic("nn: cannot create a new param with a nil value")
 	}
+	p := &BaseParam{
+		value:   value.Clone(),
+		payload: nil,
+	}
+	p.SetRequiresGrad(true)
+	return p
 }
 
 // WithGrad sets whether the param requires gradients.
 // It is used to specify whether a Param should be trained or not.
 func (p *BaseParam) WithGrad(value bool) *BaseParam {
-	p.requiresGrad = value
+	p.SetRequiresGrad(value)
 	return p
-}
-
-// SetName set the params name (can be empty string).
-func (p *BaseParam) SetName(name string) {
-	p.name = name
-}
-
-// Name returns the params name (can be empty string).
-func (p *BaseParam) Name() string {
-	return p.name
 }
 
 // Value returns the value of the delegate itself.
@@ -85,51 +70,32 @@ func (p *BaseParam) ScalarValue() float.Float {
 
 // Grad returns the gradients accumulated during the backward pass.
 func (p *BaseParam) Grad() mat.Matrix {
-	p.gradMu.RLock()
-	defer p.gradMu.RUnlock()
-	return p.grad
+	return p.value.Grad()
 }
 
 // AccGrad accumulate the gradients
 func (p *BaseParam) AccGrad(grad mat.Matrix) {
-	if !p.requiresGrad {
-		return
-	}
-	p.gradMu.Lock()
-	defer p.gradMu.Unlock()
-	if p.grad == nil {
-		p.grad = grad.Clone()
-		return
-	}
-	p.grad.AddInPlace(grad)
+	p.value.AccGrad(grad)
 }
 
 // HasGrad returns true if there are accumulated gradients.
 func (p *BaseParam) HasGrad() bool {
-	p.gradMu.RLock()
-	defer p.gradMu.RUnlock()
-	return p.grad != nil
+	return p.value.HasGrad()
 }
 
 // RequiresGrad returns true if the param requires gradients.
 func (p *BaseParam) RequiresGrad() bool {
-	return p.requiresGrad
+	return p.value.RequiresGrad()
 }
 
 // SetRequiresGrad is an option to specify whether a Param should be trained or not.
 func (p *BaseParam) SetRequiresGrad(value bool) {
-	p.requiresGrad = value
+	p.value.SetRequiresGrad(value)
 }
 
 // ZeroGrad clears the gradients.
 func (p *BaseParam) ZeroGrad() {
-	if p.grad == nil {
-		return
-	}
-	p.gradMu.Lock()
-	defer p.gradMu.Unlock()
-	mat.ReleaseMatrix(p.grad)
-	p.grad = nil
+	p.value.ZeroGrad()
 }
 
 // ApplyDelta updates the value applying the delta.
