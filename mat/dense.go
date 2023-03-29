@@ -17,10 +17,6 @@ import (
 	"github.com/nlpodyssey/spago/mat/internal/matfuncs"
 )
 
-// ParallelMulThreshold is an arbitrary constant that determines the minimum number of matrix rows required to perform a
-// concurrent matrix-vector multiplication.
-const ParallelMulThreshold = 10000
-
 // A Dense matrix implementation.
 type Dense[T float.DType] struct {
 	rows         int
@@ -709,25 +705,6 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 		out := densePoolFloat32.Get(outRows, outCols)
 		dData := any(d.data).([]float32)
 		outData := any(out.data).([]float32)
-
-		if outRows >= ParallelMulThreshold {
-			//fmt.Println("mat: parallel mul")
-			dCols := d.cols
-			from := 0
-			var wg sync.WaitGroup
-			wg.Add(len(outData))
-
-			for i := range outData {
-				to := from + dCols
-				go func(i int, from, to int) {
-					outData[i] = matfuncs.DotProd32(dData[from:to], otherData)
-					wg.Done()
-				}(i, from, to)
-				from = to
-			}
-			wg.Wait()
-			return out
-		}
 
 		dCols := d.cols
 		from := 0
