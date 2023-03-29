@@ -106,7 +106,8 @@ func main() {
   // print the result
   fmt.Printf("c = %v (float%d)\n", c.Value(), c.Value().Scalar().BitSize())
 
-  ag.Backward(c, mat.NewScalar(T(0.5)))
+  c.AccGrad(mat.NewScalar(T(0.5)))
+  ag.Backward(c)
   fmt.Printf("ga = %v\n", a.Grad())
   fmt.Printf("gb = %v\n", b.Grad())
 }
