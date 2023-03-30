@@ -416,3 +416,29 @@ func float64Data(m Matrix) []float64 {
 	}
 	return m.Data().F64()
 }
+
+// CopyValue returns a copy of item.Value().
+func CopyValue[T interface{ Value() Matrix }](item T) Matrix {
+	if item.Value() == nil {
+		return nil
+	}
+	return item.Value().Clone()
+}
+
+// CopyValues calls CopyValue for each item of the slice.
+func CopyValues[T interface{ Value() Matrix }](items []T) []Matrix {
+	values := make([]Matrix, len(items))
+	for i, item := range items {
+		values[i] = CopyValue(item)
+	}
+	return values
+}
+
+// CopyGrad returns a copy of item.Grad.
+// If item.Grad is nil, CopyGrad returns nil as well.
+func CopyGrad[T interface{ Grad() Matrix }](item T) Matrix {
+	if item.Grad() == nil {
+		return nil
+	}
+	return item.Grad().Clone()
+}
