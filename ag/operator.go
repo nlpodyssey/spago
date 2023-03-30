@@ -79,6 +79,8 @@ type Operator struct {
 	// It's set by execute() goroutine.
 	// Use the Value() method to get the actual value.
 	// It also contains the accumulated gradients. Use the Grad() method to get them.
+	// It is important to remember that value is a weak reference, as the matrix
+	// derived from graph's operations can be freed (see ReleaseGraph).
 	value atomic.Value
 	// cond is the condition variable used as rendezvous points for
 	// goroutines involved in both forward and backward operations.
@@ -108,6 +110,9 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 
 	go op.execute(f.Forward)
 
+	if debug {
+		op.Value() // wait for the forward goroutine to finish
+	}
 	return op
 }
 
@@ -121,10 +126,6 @@ func (o *Operator) execute(f ForwardFunc) {
 	o.cond.L.Lock()
 	o.cond.Broadcast()
 	o.cond.L.Unlock()
-
-	if debug {
-		o.Value() // wait for the forward goroutine to finish
-	}
 }
 
 // Value returns the result of the function.
