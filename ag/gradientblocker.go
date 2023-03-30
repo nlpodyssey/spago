@@ -25,22 +25,16 @@ func StopGrad(node Node) Node {
 }
 
 // Grad always returns nil on a GradientBlocker Node.
-func (r *GradientBlocker) Grad() mat.Matrix {
-	return nil
-}
+func (r *GradientBlocker) Grad() mat.Matrix { return nil }
 
 // AccGrad has no effects on a GradientBlocker Node.
 func (r *GradientBlocker) AccGrad(mat.Matrix) {}
 
 // HasGrad always returns false on a GradientBlocker Node.
-func (r *GradientBlocker) HasGrad() bool {
-	return false
-}
+func (r *GradientBlocker) HasGrad() bool { return false }
 
 // RequiresGrad always returns false on a GradientBlocker Node.
-func (r *GradientBlocker) RequiresGrad() bool {
-	return false
-}
+func (r *GradientBlocker) RequiresGrad() bool { return false }
 
 // ZeroGrad has no effects on a GradientBlocker Node.
 func (r *GradientBlocker) ZeroGrad() {}
