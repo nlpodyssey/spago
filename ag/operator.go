@@ -122,9 +122,9 @@ func (o *Operator) execute(f ForwardFunc) {
 	if err != nil {
 		log.Fatalf("ag: error during forward pass: %v", err) // TODO: handle error
 	}
-	o.value.Store(y) // execute the function and store the result
+	o.value.Store(y)
 	o.cond.L.Lock()
-	o.cond.Broadcast()
+	o.cond.Broadcast() // inform all goroutines that have been waiting for the result
 	o.cond.L.Unlock()
 }
 
@@ -238,17 +238,10 @@ func (o *Operator) prepareBackwardPass() {
 		return
 	}
 	o.pendingGrads++
-	if o.updateBackwardState() {
+	if o.backwardState == idle {
+		o.backwardState = pending
 		o.traverseOperandsForPreparation()
 	}
-}
-
-func (o *Operator) updateBackwardState() bool {
-	if o.backwardState != idle {
-		return false // already in progress
-	}
-	o.backwardState = pending
-	return true
 }
 
 func (o *Operator) traverseOperandsForPreparation() {
