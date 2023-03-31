@@ -20,11 +20,11 @@ type ReleaseGraphFunc func()
 // Any freed operator MUST not be used after this operation is performed.
 func ReleaseGraph(nodes ...Node) {
 	for _, node := range nodes {
-		if op, ok := node.(*Operator); ok && op.backwardPass != nil {
+		if op, ok := node.(*Operator); ok && op.fn != nil {
 			ReleaseGraph(op.Operands()...)
 			op.ZeroGrad()
 			op.releaseValue()
-			op.backwardPass = nil
+			op.fn = nil
 		}
 	}
 }

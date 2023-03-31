@@ -13,6 +13,8 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
+var _ Node = &Operator{}
+
 // backwardState is an enumeration type associated to an Operator, to keep
 // track of its visited status among different backpropagation phases.
 type backwardState byte
@@ -45,8 +47,6 @@ const (
 	ongoing
 )
 
-var _ Node = &Operator{}
-
 // AutoGradFunction represents a function with automatic differentiation features.
 // It's used to define a new operator.
 type AutoGradFunction[T Node] interface {
@@ -58,40 +58,33 @@ type AutoGradFunction[T Node] interface {
 	Operands() []T
 }
 
-// ForwardFunc is the type of the forward function.
-type ForwardFunc func() (mat.Matrix, error)
-
-// BackwardFunc is the type of the backward function.
-type BackwardFunc func(gy mat.Matrix) error
-
 // Operator is a type of node.
 // It's used to represent a function with automatic differentiation features.
 type Operator struct {
-	// Matrix stores the results of a forward evaluation, as mat.Matrix.
+	// value stores the results of a forward evaluation, as mat.Matrix.
 	// It's set by execute() goroutine.
 	// Use the Value() method to get the actual value.
 	// It also contains the accumulated gradients. Use the Grad() method to get them.
 	// It is important to remember that value is a weak reference, as the matrix
 	// derived from graph's operations can be freed (see ReleaseGraph).
 	value mat.Matrix
+	// AutoGradFunction's operands are memoized here after the first request.
+	operands []Node
+	// backwardPass is the backward function to be executed.
+	fn AutoGradFunction[Node]
+	// broadcast is the channel used to broadcast the result of the forward pass.
+	broadcast chan struct{}
+	// broadcastGrad is the channel used to broadcast the result of the backward pass.
+	// It is initialized only when the backward pass is performed.
+	broadcastGrad chan struct{}
+	// pendingGrads is the number of pending gradients to be accumulated. (default: 0)
+	pendingGrads int64
 	// requiresGrad is a flag that indicates whether the operator requires gradients.
 	// It's set to -1 (undefined) by default, and it's lazily evaluated.
 	// Use the RequiresGrad() method to get the actual value.
 	requiresGrad int8 // -1 = undefined, 0 = false, 1 = true
 	// backwardState is the state of the backward pass.
 	backwardState backwardState
-	// backwardPass is the backward function to be executed.
-	backwardPass BackwardFunc
-	// broadcast is the channel used to broadcast the result of the forward pass.
-	broadcast chan struct{}
-	// broadcastGrad is the channel used to broadcast the result of the backward pass.
-	broadcastGrad chan struct{}
-	// pendingGrads is the number of pending gradients to be accumulated. (default: 0)
-	pendingGrads int64
-	// operandsFunc is the function that returns the operands of the function.
-	operandsFunc func() []Node
-	// AutoGradFunction's operands are memoized here after the first request.
-	operands []Node
 }
 
 // NewOperator creates a new operator performing the given function in a separate goroutine.
@@ -99,12 +92,11 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 	op := &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
-		backwardPass:  f.Backward,
-		operandsFunc:  f.Operands,
+		fn:            f,
 		broadcast:     make(chan struct{}, 0),
 	}
 
-	go op.execute(f.Forward)
+	go op.execute()
 
 	if debug {
 		op.Value() // wait for the forward goroutine to finish
@@ -112,10 +104,10 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 	return op
 }
 
-// forward executes the function and inform all goroutines that have been waiting for the result.
-func (o *Operator) execute(f ForwardFunc) {
+// forward executes the forward function and inform all goroutines that have been waiting for the result.
+func (o *Operator) execute() {
 	var err error
-	if o.value, err = f(); err != nil {
+	if o.value, err = o.fn.Forward(); err != nil {
 		log.Fatalf("ag: error during forward pass: %v", err) // TODO: handle error
 	}
 	close(o.broadcast) // inform all goroutines that have been waiting for the result
@@ -164,7 +156,7 @@ func (o *Operator) RequiresGrad() bool {
 // Operands returns the operands of the operator.
 func (o *Operator) Operands() []Node {
 	if o.operands == nil {
-		o.operands = o.operandsFunc()
+		o.operands = o.fn.Operands()
 	}
 	return o.operands
 }
@@ -242,7 +234,7 @@ func (o *Operator) processBackwardPass(wg *sync.WaitGroup) {
 
 func (o *Operator) executeBackward(wg *sync.WaitGroup) {
 	if grad := o.Grad(); grad != nil {
-		err := o.backwardPass(grad)
+		err := o.fn.Backward(grad)
 		if err != nil {
 			panic(err) // TODO: handle the error
 		}
