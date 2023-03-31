@@ -8,14 +8,13 @@ import (
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
 )
 
 var _ Param = &BaseParam{}
 
 // BaseParam is the default implementation satisfying the Param interface.
 type BaseParam struct {
-	value     mat.Matrix
+	mat.Matrix
 	valueMu   sync.RWMutex
 	payload   *Payload
 	payloadMu sync.RWMutex
@@ -27,7 +26,7 @@ func NewParam(value mat.Matrix) *BaseParam {
 		panic("nn: cannot create a new param with a nil value")
 	}
 	p := &BaseParam{
-		value:   value.Clone(),
+		Matrix:  value.Clone(),
 		payload: nil,
 	}
 	p.SetRequiresGrad(true)
@@ -45,64 +44,25 @@ func (p *BaseParam) WithGrad(value bool) *BaseParam {
 func (p *BaseParam) Value() mat.Matrix {
 	p.valueMu.RLock()
 	defer p.valueMu.RUnlock()
-	return p.value
+	return p.Matrix
 }
 
-// ReplaceValue replaces the value of the parameter and clears the gradients and
-// the support structure.
+// ReplaceValue replaces the value of the parameter.
+// It also clears the gradients and the payload.
 func (p *BaseParam) ReplaceValue(value mat.Matrix) {
 	p.ClearPayload()
 	p.ZeroGrad()
 
 	p.valueMu.Lock()
 	defer p.valueMu.Unlock()
-	p.value = value
-}
-
-// ScalarValue returns the scalar value of the node.
-// It panics if the value is not a scalar.
-// Note that it is not possible to start the backward step from a scalar value.
-func (p *BaseParam) ScalarValue() float.Float {
-	p.valueMu.RLock()
-	defer p.valueMu.RUnlock()
-	return p.value.Scalar()
-}
-
-// Grad returns the gradients accumulated during the backward pass.
-func (p *BaseParam) Grad() mat.Matrix {
-	return p.value.Grad()
-}
-
-// AccGrad accumulate the gradients
-func (p *BaseParam) AccGrad(grad mat.Matrix) {
-	p.value.AccGrad(grad)
-}
-
-// HasGrad returns true if there are accumulated gradients.
-func (p *BaseParam) HasGrad() bool {
-	return p.value.HasGrad()
-}
-
-// RequiresGrad returns true if the param requires gradients.
-func (p *BaseParam) RequiresGrad() bool {
-	return p.value.RequiresGrad()
-}
-
-// SetRequiresGrad is an option to specify whether a Param should be trained or not.
-func (p *BaseParam) SetRequiresGrad(value bool) {
-	p.value.SetRequiresGrad(value)
-}
-
-// ZeroGrad clears the gradients.
-func (p *BaseParam) ZeroGrad() {
-	p.value.ZeroGrad()
+	p.Matrix = value
 }
 
 // ApplyDelta updates the value applying the delta.
 func (p *BaseParam) ApplyDelta(delta mat.Matrix) {
 	p.valueMu.Lock()
 	defer p.valueMu.Unlock()
-	p.value.SubInPlace(delta)
+	p.Matrix.SubInPlace(delta)
 }
 
 // Payload returns the optimizer support structure (can be nil).

@@ -28,7 +28,7 @@ func (p *BaseParam) MarshalBinary() ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	v := baseParamForMarshaling{
-		Value:   p.value,
+		Value:   p.Matrix,
 		Payload: p.payload,
 	}
 	err := enc.Encode(v)
@@ -47,7 +47,7 @@ func (p *BaseParam) UnmarshalBinary(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("cannot decode BaseParam: %w", err)
 	}
-	p.value = v.Value
+	p.Matrix = v.Value
 	p.payload = v.Payload
 	return nil
 }
