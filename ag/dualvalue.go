@@ -6,11 +6,14 @@ package ag
 
 import "github.com/nlpodyssey/spago/mat"
 
-// Node is implemented by any value that can represent a node of a graph.
-type Node interface {
+// Node is an alias for DualValue for backward compatibility.
+type Node = DualValue
+
+// DualValue defines the interface for a node in the computational graph.
+type DualValue interface {
 	// Value returns the value of the node.
-	// If the node is a variable it returns its value, otherwise returns the
-	// cached result of the forward pass.
+	// In case of a leaf node, it returns the value of the underlying matrix.
+	// In case of a non-leaf node, it returns the value of the operation performed during the forward pass.
 	Value() mat.Matrix
 	// Grad returns the gradients accumulated during the backward pass.
 	// A matrix full of zeros and the nil value are considered equivalent.

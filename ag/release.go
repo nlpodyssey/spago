@@ -18,7 +18,7 @@ type ReleaseGraphFunc func()
 //
 // Freed resources include, but are not limited to, the value and the gradients.
 // Any freed operator MUST not be used after this operation is performed.
-func ReleaseGraph(nodes ...Node) {
+func ReleaseGraph(nodes ...DualValue) {
 	for _, node := range nodes {
 		if op, ok := node.(*Operator); ok && op.fn != nil {
 			ReleaseGraph(op.Operands()...)

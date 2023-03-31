@@ -21,8 +21,8 @@ func TestUtils(t *testing.T) {
 func testUtils[T float.DType](t *testing.T) {
 	t.Run("test `Map2`", func(t *testing.T) {
 		ys := Map2(Add,
-			[]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)},
-			[]Node{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
+			[]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)},
+			[]DualValue{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
 		assert.Equal(t, float.Interface(T(5)), ys[0].Value().Scalar())
@@ -31,10 +31,10 @@ func testUtils[T float.DType](t *testing.T) {
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
-		newEl := func(_ int) Node {
+		newEl := func(_ int) DualValue {
 			return newScalar[T](0)
 		}
-		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
+		ys := Pad([]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
 		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
 		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())
@@ -44,10 +44,10 @@ func testUtils[T float.DType](t *testing.T) {
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
-		newEl := func(_ int) Node {
+		newEl := func(_ int) DualValue {
 			return newScalar[T](0)
 		}
-		ys := Pad([]Node{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
+		ys := Pad([]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
 		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
 		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())

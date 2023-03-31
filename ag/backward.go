@@ -19,7 +19,7 @@ type operators []*Operator
 // Unless you intend to do so, ensure that all nodes have zero gradients.
 //
 // The function returns ReleaseGraph as ReleaseGraphFunc.
-func Backward(xs ...Node) ReleaseGraphFunc {
+func Backward(xs ...DualValue) ReleaseGraphFunc {
 	ops := filterOperators(xs)
 	if len(ops) == 0 {
 		// There are no operators to process, do nothing.
@@ -36,7 +36,7 @@ func Backward(xs ...Node) ReleaseGraphFunc {
 }
 
 // filterOperators returns a list of operators from a list of nodes.
-func filterOperators(nodes []Node) operators {
+func filterOperators(nodes []DualValue) operators {
 	ops := make([]*Operator, 0, len(nodes))
 	for _, node := range nodes {
 		if op, ok := node.(*Operator); ok {

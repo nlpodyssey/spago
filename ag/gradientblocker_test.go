@@ -25,7 +25,7 @@ func testStopGrad[T float.DType](t *testing.T) {
 	require.IsType(t, &GradientBlocker{}, sg)
 	w := sg.(*GradientBlocker)
 
-	assert.Same(t, dn, w.Node)
+	assert.Same(t, dn, w.DualValue)
 }
 
 func TestWrapper_Gradients(t *testing.T) {

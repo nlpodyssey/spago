@@ -61,7 +61,7 @@ const (
 
 // AutoGradFunction represents a function with automatic differentiation features.
 // It's used to define a new operator.
-type AutoGradFunction[T Node] interface {
+type AutoGradFunction[T DualValue] interface {
 	// Forward computes the output of the function.
 	Forward() (mat.Matrix, error)
 	// Backward computes the backward pass given the gradient of the output.
@@ -69,6 +69,8 @@ type AutoGradFunction[T Node] interface {
 	// Operands returns the list of operands.
 	Operands() []T
 }
+
+var _ Node = &Operator{}
 
 // Operator is a type of node.
 // It's used to represent a function with automatic differentiation features.
@@ -81,9 +83,9 @@ type Operator struct {
 	// derived from graph's operations can be freed (see ReleaseGraph).
 	value mat.Matrix
 	// AutoGradFunction's operands are memoized here after the first request.
-	operands []Node
+	operands []DualValue
 	// backwardPass is the backward function to be executed.
-	fn AutoGradFunction[Node]
+	fn AutoGradFunction[DualValue]
 	// broadcast is the channel used to broadcast the result of the forward pass.
 	broadcast chan struct{}
 	// broadcastGrad is the channel used to broadcast the result of the backward pass.
@@ -100,7 +102,7 @@ type Operator struct {
 }
 
 // NewOperator creates a new operator performing the given function in a separate goroutine.
-func NewOperator(f AutoGradFunction[Node]) Node {
+func NewOperator(f AutoGradFunction[DualValue]) DualValue {
 	op := &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
@@ -110,7 +112,7 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 
 	go op.execute()
 
-	if debug {
+	if waitForward {
 		op.Value() // wait for the forward goroutine to finish
 	}
 	return op
@@ -166,7 +168,7 @@ func (o *Operator) RequiresGrad() bool {
 }
 
 // Operands returns the operands of the operator.
-func (o *Operator) Operands() []Node {
+func (o *Operator) Operands() []DualValue {
 	if o.operands == nil {
 		o.operands = o.fn.Operands()
 	}

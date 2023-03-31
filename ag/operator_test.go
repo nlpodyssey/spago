@@ -21,7 +21,7 @@ func TestNewOperator(t *testing.T) {
 func testNewOperator[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
-	f := &dummyFunction[T, Node]{
+	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f)
@@ -56,9 +56,9 @@ func TestOperator_Operands(t *testing.T) {
 }
 
 func testOperatorOperands[T float.DType](t *testing.T) {
-	operands := []Node{&dummyNode{id: 1}}
-	f := &dummyFunction[T, Node]{
-		operands: func() []Node { return operands },
+	operands := []DualValue{&dummyNode{id: 1}}
+	f := &dummyFunction[T, DualValue]{
+		operands: func() []DualValue { return operands },
 	}
 	op := NewOperator(f).(*Operator)
 	require.Equal(t, operands, op.Operands())
@@ -73,7 +73,7 @@ func TestOperator_Value(t *testing.T) {
 func testOperatorValue[T float.DType](t *testing.T) {
 	forwardResult := mat.NewScalar[T](42)
 
-	f := &dummyFunction[T, Node]{
+	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f)
@@ -95,14 +95,14 @@ func TestOperator_RequiresGrad(t *testing.T) {
 
 func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	t.Run("false without operands", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, Node]{})
+		op := NewOperator(&dummyFunction[T, DualValue]{})
 		assert.False(t, op.RequiresGrad())
 	})
 
 	t.Run("false if no operands require grad", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, Node]{
-			operands: func() []Node {
-				return []Node{
+		op := NewOperator(&dummyFunction[T, DualValue]{
+			operands: func() []DualValue {
+				return []DualValue{
 					&dummyNode{id: 1, requiresGrad: false},
 					&dummyNode{id: 2, requiresGrad: false},
 				}
@@ -112,9 +112,9 @@ func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	})
 
 	t.Run("true if at least one operand requires grad", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, Node]{
-			operands: func() []Node {
-				return []Node{
+		op := NewOperator(&dummyFunction[T, DualValue]{
+			operands: func() []DualValue {
+				return []DualValue{
 					&dummyNode{id: 1, requiresGrad: false},
 					&dummyNode{id: 2, requiresGrad: true},
 				}
@@ -131,12 +131,12 @@ func TestOperator_Gradients(t *testing.T) {
 
 func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, Node]{
+		op := NewOperator(&dummyFunction[T, DualValue]{
 			forward: func() (mat.Matrix, error) {
 				return mat.NewScalar[T](42), nil
 			},
-			operands: func() []Node {
-				return []Node{&dummyNode{requiresGrad: true}}
+			operands: func() []DualValue {
+				return []DualValue{&dummyNode{requiresGrad: true}}
 			},
 		})
 
@@ -157,7 +157,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	})
 
 	t.Run("with requires gradient false", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, Node]{
+		op := NewOperator(&dummyFunction[T, DualValue]{
 			forward: func() (mat.Matrix, error) { return mat.NewScalar[T](42), nil },
 		})
 
@@ -174,7 +174,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	})
 }
 
-type dummyFunction[T float.DType, O Node] struct {
+type dummyFunction[T float.DType, O DualValue] struct {
 	forward       func() (mat.Matrix, error)
 	backward      func(gy mat.Matrix) error
 	operands      func() []O
@@ -195,8 +195,7 @@ func (f *dummyFunction[T, O]) Backward(gy mat.Matrix) error {
 	if f.backward == nil {
 		return nil
 	}
-	f.backward(gy)
-	return nil
+	return f.backward(gy)
 }
 
 func (f *dummyFunction[T, O]) Operands() []O {
@@ -207,5 +206,5 @@ func (f *dummyFunction[T, O]) Operands() []O {
 }
 
 type dummyFunctionFloat32 struct {
-	dummyFunction[float32, Node]
+	dummyFunction[float32, DualValue]
 }

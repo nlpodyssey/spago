@@ -8,19 +8,19 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Node = &GradientBlocker{}
+var _ DualValue = &GradientBlocker{}
 
 // GradientBlocker embeds any Node implementation disabling gradients handling and
 // blocking gradients accumulation.
 type GradientBlocker struct {
-	Node
+	DualValue
 }
 
-// StopGrad creates a new GradientBlocker Node that stops the accumulated gradients from
+// StopGrad creates a new GradientBlocker that stops the accumulated gradients from
 // flowing through the wrapped Node.
-func StopGrad(node Node) Node {
+func StopGrad(node DualValue) Node {
 	return &GradientBlocker{
-		Node: node,
+		DualValue: node,
 	}
 }
 
