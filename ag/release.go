@@ -25,7 +25,6 @@ func ReleaseGraph(nodes ...Node) {
 			op.ZeroGrad()
 			op.releaseValue()
 			op.backwardPass = nil
-			op.cond.L = nil
 		}
 	}
 }

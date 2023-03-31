@@ -67,6 +67,13 @@ type BackwardFunc func(gy mat.Matrix) error
 // Operator is a type of node.
 // It's used to represent a function with automatic differentiation features.
 type Operator struct {
+	// Matrix stores the results of a forward evaluation, as mat.Matrix.
+	// It's set by execute() goroutine.
+	// Use the Value() method to get the actual value.
+	// It also contains the accumulated gradients. Use the Grad() method to get them.
+	// It is important to remember that value is a weak reference, as the matrix
+	// derived from graph's operations can be freed (see ReleaseGraph).
+	value mat.Matrix
 	// requiresGrad is a flag that indicates whether the operator requires gradients.
 	// It's set to -1 (undefined) by default, and it's lazily evaluated.
 	// Use the RequiresGrad() method to get the actual value.
@@ -75,21 +82,10 @@ type Operator struct {
 	backwardState backwardState
 	// backwardPass is the backward function to be executed.
 	backwardPass BackwardFunc
-	// value is the results of a forward evaluation, as mat.Matrix.
-	// It's set by execute() goroutine.
-	// Use the Value() method to get the actual value.
-	// It also contains the accumulated gradients. Use the Grad() method to get them.
-	// It is important to remember that value is a weak reference, as the matrix
-	// derived from graph's operations can be freed (see ReleaseGraph).
-	value atomic.Value
-	// cond is the condition variable used as rendezvous points for
-	// goroutines involved in both forward and backward operations.
-	// NewOperator sets cond.L to &mx.
-	cond sync.Cond
-	// mx is the mutex used by cond.
-	// It's defined here in order to avoid an extra memory allocation
-	// (from NewOperator), but it's never be used directly.
-	mx sync.Mutex
+	// broadcast is the channel used to broadcast the result of the forward pass.
+	broadcast chan struct{}
+	// broadcastGrad is the channel used to broadcast the result of the backward pass.
+	broadcastGrad chan struct{}
 	// pendingGrads is the number of pending gradients to be accumulated. (default: 0)
 	pendingGrads int64
 	// operandsFunc is the function that returns the operands of the function.
@@ -105,8 +101,8 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 		backwardState: idle,
 		backwardPass:  f.Backward,
 		operandsFunc:  f.Operands,
+		broadcast:     make(chan struct{}, 0),
 	}
-	op.cond.L = &op.mx
 
 	go op.execute(f.Forward)
 
@@ -118,30 +114,17 @@ func NewOperator(f AutoGradFunction[Node]) Node {
 
 // forward executes the function and inform all goroutines that have been waiting for the result.
 func (o *Operator) execute(f ForwardFunc) {
-	y, err := f()
-	if err != nil {
+	var err error
+	if o.value, err = f(); err != nil {
 		log.Fatalf("ag: error during forward pass: %v", err) // TODO: handle error
 	}
-	o.value.Store(y)
-	o.cond.L.Lock()
-	o.cond.Broadcast() // inform all goroutines that have been waiting for the result
-	o.cond.L.Unlock()
+	close(o.broadcast) // inform all goroutines that have been waiting for the result
 }
 
 // Value returns the result of the function.
 func (o *Operator) Value() mat.Matrix {
-	if v := o.value.Load(); v != nil {
-		return v.(mat.Matrix)
-	}
-
-	o.cond.L.Lock()
-	defer o.cond.L.Unlock()
-	for {
-		if v := o.value.Load(); v != nil {
-			return v.(mat.Matrix)
-		}
-		o.cond.Wait()
-	}
+	<-o.broadcast // wait for the forward goroutine to finish
+	return o.value
 }
 
 // Grad returns the gradients accumulated during the backward pass.
@@ -150,14 +133,8 @@ func (o *Operator) Grad() mat.Matrix {
 		return o.Value().Grad()
 	}
 
-	o.cond.L.Lock()
-	defer o.cond.L.Unlock()
-	for {
-		if atomic.LoadInt64(&o.pendingGrads) == 0 {
-			return o.Value().Grad()
-		}
-		o.cond.Wait()
-	}
+	<-o.broadcastGrad // wait for the backward goroutine to finish
+	return o.Value().Grad()
 }
 
 // HasGrad returns true if there are accumulated gradients.
@@ -204,13 +181,11 @@ func (o *Operator) ZeroGrad() {
 
 // AccGrad accumulates the gradients to the node itself.
 func (o *Operator) AccGrad(grad mat.Matrix) {
-	defer o.cond.L.Unlock()
-	o.cond.L.Lock()
 	o.Value().AccGrad(grad)
 
 	// Don't decrement the counter if the backward pass is not running.
 	if o.backwardState != idle && atomic.AddInt64(&o.pendingGrads, -1) == 0 {
-		o.cond.Broadcast() // notify all goroutines that have been waiting for the gradients
+		close(o.broadcastGrad) // notify all goroutines that have been waiting for the gradients
 	}
 }
 
@@ -240,6 +215,7 @@ func (o *Operator) prepareBackwardPass() {
 	o.pendingGrads++
 	if o.backwardState == idle {
 		o.backwardState = pending
+		o.broadcastGrad = make(chan struct{}, 0)
 		o.traverseOperandsForPreparation()
 	}
 }
@@ -287,5 +263,5 @@ func (o *Operator) traverseOperandsForBackward(wg *sync.WaitGroup) {
 func (o *Operator) releaseValue() {
 	value := o.Value() // also safely waits for any forward goroutine to finish
 	mat.ReleaseMatrix(value)
-	o.value = atomic.Value{}
+	o.value = nil
 }

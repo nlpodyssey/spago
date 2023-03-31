@@ -32,7 +32,7 @@ func testReleaseGraph[T float.DType](t *testing.T) {
 
 		ReleaseGraph(op)
 
-		assert.Panics(t, func() { op.Value() })
+		assert.Nil(t, op.Value())
 		assert.Panics(t, func() { op.Grad() })
 	})
 
@@ -53,8 +53,8 @@ func testReleaseGraph[T float.DType](t *testing.T) {
 
 		ReleaseGraph(op2)
 
-		assert.Panics(t, func() { op1.Value() })
-		assert.Panics(t, func() { op2.Value() })
+		assert.Nil(t, op1.Value())
+		assert.Nil(t, op2.Value())
 
 		assert.Panics(t, func() { op1.Grad() })
 		assert.Panics(t, func() { op2.Grad() })
