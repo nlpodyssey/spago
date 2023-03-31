@@ -248,9 +248,8 @@ func (o *Operator) processBackwardPass(wg *sync.WaitGroup) {
 
 func (o *Operator) executeBackward(wg *sync.WaitGroup) {
 	if grad := o.Grad(); grad != nil {
-		err := o.fn.Backward(grad)
-		if err != nil {
-			panic(err) // TODO: handle the error
+		if err := o.fn.Backward(grad); err != nil {
+			log.Fatalf("ag: error during backward pass: %v", err) // TODO: handle error
 		}
 	}
 	o.backwardState = idle

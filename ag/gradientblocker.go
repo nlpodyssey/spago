@@ -18,7 +18,7 @@ type GradientBlocker struct {
 
 // StopGrad creates a new GradientBlocker that stops the accumulated gradients from
 // flowing through the wrapped Node.
-func StopGrad(node DualValue) Node {
+func StopGrad(node DualValue) DualValue {
 	return &GradientBlocker{
 		DualValue: node,
 	}
