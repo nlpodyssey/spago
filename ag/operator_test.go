@@ -60,7 +60,7 @@ func testOperatorOperands[T float.DType](t *testing.T) {
 	f := &dummyFunction[T, DualValue]{
 		operands: func() []DualValue { return operands },
 	}
-	op := NewOperator(f).(*Operator)
+	op := NewOperator(f)
 	require.Equal(t, operands, op.Operands())
 	assert.Same(t, operands[0], op.Operands()[0])
 }

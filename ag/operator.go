@@ -102,7 +102,7 @@ type Operator struct {
 }
 
 // NewOperator creates a new operator performing the given function in a separate goroutine.
-func NewOperator(f AutoGradFunction[DualValue]) DualValue {
+func NewOperator(f AutoGradFunction[DualValue]) *Operator {
 	op := &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
