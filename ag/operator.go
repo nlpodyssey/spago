@@ -13,7 +13,19 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-var _ Node = &Operator{}
+var (
+	// waitForward indicates if the program should wait for the forward goroutine to finish before proceeding.
+	// When set to true, the operators will wait for the forward goroutine to complete.
+	// This can be particularly useful for debugging.
+	waitForward = false
+)
+
+// SetWaitForward enables or disables waiting for the forward goroutine to finish before proceeding.
+// When enabled, the operators will wait for the forward goroutine to complete.
+// This setting can be particularly useful for debugging.
+func SetWaitForward(enable bool) {
+	waitForward = enable
+}
 
 // backwardState is an enumeration type associated to an Operator, to keep
 // track of its visited status among different backpropagation phases.
