@@ -14,7 +14,7 @@ import (
 
 // Abs returns a new operator node as a result of the `Abs` function.
 func Abs(x DualValue) DualValue {
-	return NewOperator(fn.NewAbs(x))
+	return NewOperator(fn.NewAbs(x)).Run()
 }
 
 // Add returns a new operator node as a result of the fn.Add function.
@@ -24,67 +24,67 @@ func Add(x1 DualValue, x2 DualValue) DualValue {
 	if x1 == nil {
 		return Identity(x2) // return a copy of `x2` as is
 	}
-	return NewOperator(fn.NewAdd(x1, x2))
+	return NewOperator(fn.NewAdd(x1, x2)).Run()
 }
 
 // AddScalar returns a new operator node as a result of the fn.AddScalar function.
 func AddScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewAddScalar(x1, x2))
+	return NewOperator(fn.NewAddScalar(x1, x2)).Run()
 }
 
 // Affine returns a new operator node as a result of the fn.Affine function.
 func Affine(b, w1, x1 DualValue, wxPairs ...DualValue) DualValue {
-	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...))
+	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...)).Run()
 }
 
 // AppendRows returns a new operator node as a result of the fn.AppendRows function.
 func AppendRows(x DualValue, vs ...DualValue) DualValue {
-	return NewOperator(fn.NewAppendRows(x, vs...))
+	return NewOperator(fn.NewAppendRows(x, vs...)).Run()
 }
 
 // At returns a new operator node as a result of the fn.At function.
 func At(x DualValue, i int, j int) DualValue {
-	return NewOperator(fn.NewAt(x, i, j))
+	return NewOperator(fn.NewAt(x, i, j)).Run()
 }
 
 // AtVec returns a new operator node as a result of the fn.AtVec function.
 func AtVec(x DualValue, i int) DualValue {
-	return NewOperator(fn.NewAtVec(x, i))
+	return NewOperator(fn.NewAtVec(x, i)).Run()
 }
 
 // CELU returns a new operator node as a result of the fn.CELU function.
 func CELU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewCELU(x, alpha))
+	return NewOperator(fn.NewCELU(x, alpha)).Run()
 }
 
 // ColView returns a new operator node as a result of the fn.ColView function.
 func ColView(x DualValue, column int) DualValue {
-	return NewOperator(fn.NewColView(x, column))
+	return NewOperator(fn.NewColView(x, column)).Run()
 }
 
 // Concat returns a new operator node as a result of the fn.Concat function.
 func Concat(xs ...DualValue) DualValue {
-	return NewOperator(fn.NewConcat(xs))
+	return NewOperator(fn.NewConcat(xs)).Run()
 }
 
 // Cos returns a new operator node as a result of the `Cos` function.
 func Cos(x DualValue) DualValue {
-	return NewOperator(fn.NewCos(x))
+	return NewOperator(fn.NewCos(x)).Run()
 }
 
 // Div returns a new operator node as a result of the fn.Div function.
 func Div(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDiv(x1, x2))
+	return NewOperator(fn.NewDiv(x1, x2)).Run()
 }
 
 // DivScalar returns a new operator node as a result of the fn.DivScalar function.
 func DivScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDivScalar(x1, x2))
+	return NewOperator(fn.NewDivScalar(x1, x2)).Run()
 }
 
 // Dot returns a new operator node as a result of the fn.Dot function.
 func Dot(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDot(x1, x2))
+	return NewOperator(fn.NewDot(x1, x2)).Run()
 }
 
 // DropoutFunc returns a function to create a Dropout operator working with the given dropout probability.
@@ -93,7 +93,7 @@ func DropoutFunc(p float64) func(x DualValue) DualValue {
 		if p == 0.0 {
 			return x
 		}
-		return NewOperator(fn.NewDropout(x, p, globalGenerator))
+		return NewOperator(fn.NewDropout(x, p, globalGenerator)).Run()
 	}
 }
 
@@ -104,262 +104,262 @@ func Dropout(x DualValue, p float64) DualValue {
 	if p == 0.0 {
 		return x
 	}
-	return NewOperator(fn.NewDropout(x, p, globalGenerator))
+	return NewOperator(fn.NewDropout(x, p, globalGenerator)).Run()
 }
 
 // ELU returns a new operator node as a result of the fn.ELU function.
 func ELU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewELU(x, alpha))
+	return NewOperator(fn.NewELU(x, alpha)).Run()
 }
 
 // Exp returns a new operator node as a result of the `Exp` function.
 func Exp(x DualValue) DualValue {
-	return NewOperator(fn.NewExp(x))
+	return NewOperator(fn.NewExp(x)).Run()
 }
 
 // Flatten returns a new operator node as a result of the fn.Flatten function.
 func Flatten(x DualValue) DualValue {
-	return NewOperator(fn.NewFlatten(x))
+	return NewOperator(fn.NewFlatten(x)).Run()
 }
 
 // GELU returns a new operator node as a result of the fn.GELU function.
 func GELU(x DualValue) DualValue {
-	return NewOperator(fn.NewGELU(x))
+	return NewOperator(fn.NewGELU(x)).Run()
 }
 
 // HardSigmoid returns a new operator node as a result of the `HardSigmoid` function.
 func HardSigmoid(x DualValue) DualValue {
-	return NewOperator(fn.NewHardSigmoid(x))
+	return NewOperator(fn.NewHardSigmoid(x)).Run()
 }
 
 // HardTanh returns a new operator node as a result of the `HardTanh` function.
 func HardTanh(x DualValue) DualValue {
-	return NewOperator(fn.NewHardTanh(x))
+	return NewOperator(fn.NewHardTanh(x)).Run()
 }
 
 // Identity returns a new operator node as a result of the fn.Identity function.
 func Identity(x DualValue) DualValue {
-	return NewOperator(fn.NewIdentity(x))
+	return NewOperator(fn.NewIdentity(x)).Run()
 }
 
 // LeakyReLU returns a new operator node as a result of the fn.LeakyReLU function.
 func LeakyReLU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewLeakyReLU(x, alpha))
+	return NewOperator(fn.NewLeakyReLU(x, alpha)).Run()
 }
 
 // Log returns a new operator node as a result of the `Log` function.
 func Log(x DualValue) DualValue {
-	return NewOperator(fn.NewLog(x))
+	return NewOperator(fn.NewLog(x)).Run()
 }
 
 // Max returns a new operator node as a result of the fn.Max function.
 func Max(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMax(x1, x2))
+	return NewOperator(fn.NewMax(x1, x2)).Run()
 }
 
 // MaxPooling returns a new operator node as a result of the fn.MaxPooling function.
 func MaxPooling(x DualValue, rows, columns int) DualValue {
-	return NewOperator(fn.NewMaxPooling(x, rows, columns))
+	return NewOperator(fn.NewMaxPooling(x, rows, columns)).Run()
 }
 
 // Min returns a new operator node as a result of the fn.Min function.
 func Min(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMin(x1, x2))
+	return NewOperator(fn.NewMin(x1, x2)).Run()
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.
 func Mish(x DualValue) DualValue {
-	return NewOperator(fn.NewMish(x))
+	return NewOperator(fn.NewMish(x)).Run()
 }
 
 // Mul returns a new operator node as a result of the fn.Mul function.
 func Mul(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMul(x1, x2))
+	return NewOperator(fn.NewMul(x1, x2)).Run()
 }
 
 func MulT(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMulT(x1, x2))
+	return NewOperator(fn.NewMulT(x1, x2)).Run()
 }
 
 // Neg returns a new operator node as a result of the `Neg` function.
 func Neg(x DualValue) DualValue {
-	return NewOperator(fn.NewNeg(x))
+	return NewOperator(fn.NewNeg(x)).Run()
 }
 
 // Pow returns a new operator node as a result of the fn.Pow function.
 func Pow(x DualValue, power float64) DualValue {
-	return NewOperator(fn.NewPow(x, power))
+	return NewOperator(fn.NewPow(x, power)).Run()
 }
 
 // Prod returns a new operator node as a result of the fn.Prod function.
 func Prod(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewProd(x1, x2))
+	return NewOperator(fn.NewProd(x1, x2)).Run()
 }
 
 // ProdScalar returns a new operator node as a result of the fn.ProdScalar function.
 func ProdScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewProdScalar(x1, x2))
+	return NewOperator(fn.NewProdScalar(x1, x2)).Run()
 }
 
 // Reciprocal returns a new operator node as a result of the `Reciprocal` function.
 func Reciprocal(x DualValue) DualValue {
-	return NewOperator(fn.NewReciprocal(x))
+	return NewOperator(fn.NewReciprocal(x)).Run()
 }
 
 // ReduceMax returns a new operator node as a result of the fn.ReduceMax function.
 func ReduceMax(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceMax(x))
+	return NewOperator(fn.NewReduceMax(x)).Run()
 }
 
 // ReduceMean returns a new operator node as a result of the fn.ReduceMean function.
 func ReduceMean(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceMean(x))
+	return NewOperator(fn.NewReduceMean(x)).Run()
 }
 
 // ReduceSum returns a new operator node as a result of the fn.ReduceSum function.
 func ReduceSum(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceSum(x))
+	return NewOperator(fn.NewReduceSum(x)).Run()
 }
 
 // ReLU returns a new operator node as a result of the `ReLU` function.
 func ReLU(x DualValue) DualValue {
-	return NewOperator(fn.NewReLU(x))
+	return NewOperator(fn.NewReLU(x)).Run()
 }
 
 // Reshape returns a new operator node as a result of the fn.Reshape function.
 func Reshape(x DualValue, rows, columns int) DualValue {
-	return NewOperator(fn.NewReshape(x, rows, columns))
+	return NewOperator(fn.NewReshape(x, rows, columns)).Run()
 }
 
 // ReverseSub returns a new operator node as a result of the fn.ReverseSub function.
 func ReverseSub(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewReverseSubScalar(x1, x2))
+	return NewOperator(fn.NewReverseSubScalar(x1, x2)).Run()
 }
 
 // RotateR performs the right circular shift.
 // `i` is the number of places by which the elements are shifted.
 func RotateR(x DualValue, i int) DualValue {
-	return NewOperator(fn.NewRotateR(x, i))
+	return NewOperator(fn.NewRotateR(x, i)).Run()
 }
 
 // RowView returns a new operator node as a result of the fn.RowView function.
 func RowView(x DualValue, row int) DualValue {
-	return NewOperator(fn.NewRowView(x, row))
+	return NewOperator(fn.NewRowView(x, row)).Run()
 }
 
 // ScalarMax returns a new operator node as a result of the fn.ScalarMax function.
 func ScalarMax(xs []DualValue) DualValue {
-	return NewOperator(fn.NewScalarMax(xs))
+	return NewOperator(fn.NewScalarMax(xs)).Run()
 }
 
 // SELU returns a new operator node as a result of the fn.SELU function.
 func SELU(x, alpha DualValue, scale DualValue) DualValue {
-	return NewOperator(fn.NewSELU(x, alpha, scale))
+	return NewOperator(fn.NewSELU(x, alpha, scale)).Run()
 }
 
 // Sigmoid returns a new operator node as a result of the `Sigmoid` function.
 func Sigmoid(x DualValue) DualValue {
-	return NewOperator(fn.NewSigmoid(x))
+	return NewOperator(fn.NewSigmoid(x)).Run()
 }
 
 // SiLU returns a new operator node as a result of the fn.SiLU function.
 func SiLU(x DualValue) DualValue {
-	return NewOperator(fn.NewSiLU(x))
+	return NewOperator(fn.NewSiLU(x)).Run()
 }
 
 // Sin returns a new operator node as a result of the `Sin` function.
 func Sin(x DualValue) DualValue {
-	return NewOperator(fn.NewSin(x))
+	return NewOperator(fn.NewSin(x)).Run()
 }
 
 // Slice returns a new operator node as a result of the fn.Slice function.
 func Slice(x DualValue, fromRow, fromCol, toRow, toCol int) DualValue {
-	return NewOperator(fn.NewSlice(x, fromRow, fromCol, toRow, toCol))
+	return NewOperator(fn.NewSlice(x, fromRow, fromCol, toRow, toCol)).Run()
 }
 
 // Softmax returns a new operator node as a result of the fn.Softmax function.
 func Softmax(x DualValue) DualValue {
-	return NewOperator(fn.NewSoftmax(x))
+	return NewOperator(fn.NewSoftmax(x)).Run()
 }
 
 // SoftPlus returns a new operator node as a result of the fn.SoftPlus function.
 func SoftPlus(x, beta, threshold DualValue) DualValue {
-	return NewOperator(fn.NewSoftPlus(x, beta, threshold))
+	return NewOperator(fn.NewSoftPlus(x, beta, threshold)).Run()
 }
 
 // SoftShrink returns a new operator node as a result of the fn.SoftShrink function.
 func SoftShrink(x, lambda DualValue) DualValue {
-	return NewOperator(fn.NewSoftShrink(x, lambda))
+	return NewOperator(fn.NewSoftShrink(x, lambda)).Run()
 }
 
 // Softsign returns a new operator node as a result of the `SoftSign` function.
 func Softsign(x DualValue) DualValue {
-	return NewOperator(fn.NewSoftsign(x))
+	return NewOperator(fn.NewSoftsign(x)).Run()
 }
 
 // SparseMax returns a new operator node as a result of the fn.SparseMax function.
 func SparseMax(x DualValue) DualValue {
-	return NewOperator(fn.NewSparseMax(x))
+	return NewOperator(fn.NewSparseMax(x)).Run()
 }
 
 // SparseMaxLoss returns a new operator node as a result of the fn.SparseMaxLoss function.
 func SparseMaxLoss(x DualValue) DualValue {
-	return NewOperator(fn.NewSparseMaxLoss(x))
+	return NewOperator(fn.NewSparseMaxLoss(x)).Run()
 }
 
 // Sqrt returns a new operator node as a result of the `Sqrt` function.
 func Sqrt(x DualValue) DualValue {
-	return NewOperator(fn.NewSqrt(x))
+	return NewOperator(fn.NewSqrt(x)).Run()
 }
 
 // Square returns a new operator node as a result of the fn.Prod(x, x) function.
 func Square(x DualValue) DualValue {
-	return NewOperator(fn.NewSquare(x))
+	return NewOperator(fn.NewSquare(x)).Run()
 }
 
 // Stack returns a new operator node as a result of the fn.Stack function.
 func Stack(xs ...DualValue) DualValue {
-	return NewOperator(fn.NewStack(xs))
+	return NewOperator(fn.NewStack(xs)).Run()
 }
 
 // Sub returns a new operator node as a result of the fn.Sub function.
 func Sub(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewSub(x1, x2))
+	return NewOperator(fn.NewSub(x1, x2)).Run()
 }
 
 // SubScalar returns a new operator node as a result of the fn.SubScalar function.
 func SubScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewSubScalar(x1, x2))
+	return NewOperator(fn.NewSubScalar(x1, x2)).Run()
 }
 
 // Swish returns a new operator node as a result of the fn.Swish function.
 func Swish(x DualValue) DualValue {
-	return NewOperator(fn.NewSwish(x))
+	return NewOperator(fn.NewSwish(x)).Run()
 }
 
 // SwishB returns a new operator node as a result of the fn.SwishB function.
 func SwishB(x, beta DualValue) DualValue {
-	return NewOperator(fn.NewSwishB(x, beta))
+	return NewOperator(fn.NewSwishB(x, beta)).Run()
 }
 
 // T returns a new operator node as a result of the fn.T function.
 func T(x DualValue) DualValue {
-	return NewOperator(fn.NewTranspose(x))
+	return NewOperator(fn.NewTranspose(x)).Run()
 }
 
 // Tan returns a new operator node as a result of the `Tan` function.
 func Tan(x DualValue) DualValue {
-	return NewOperator(fn.NewTan(x))
+	return NewOperator(fn.NewTan(x)).Run()
 }
 
 // Tanh returns a new operator node as a result of the `Tanh` function.
 func Tanh(x DualValue) DualValue {
-	return NewOperator(fn.NewTanh(x))
+	return NewOperator(fn.NewTanh(x)).Run()
 }
 
 // Threshold returns a new operator node as a result of the fn.Threshold function.
 func Threshold(x, threshold, k DualValue) DualValue {
-	return NewOperator(fn.NewThreshold(x, threshold, k))
+	return NewOperator(fn.NewThreshold(x, threshold, k)).Run()
 }
 
 // Map returns a transformed version of xs with all its components modified according to the mapping function.

@@ -103,19 +103,23 @@ type Operator struct {
 
 // NewOperator creates a new operator performing the given function in a separate goroutine.
 func NewOperator(f AutoGradFunction[DualValue]) *Operator {
-	op := &Operator{
+	return &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
 		fn:            f,
 		broadcast:     make(chan struct{}, 0),
 	}
+}
 
-	go op.execute()
+// Run starts the execution of the operator in a separate goroutine and returns the operator.
+// If the method is called more than once, it panics.
+func (o *Operator) Run() *Operator {
+	go o.execute()
 
 	if waitForward {
-		op.Value() // wait for the forward goroutine to finish
+		o.Value() // wait for the forward goroutine to finish
 	}
-	return op
+	return o
 }
 
 // forward executes the forward function and inform all goroutines that have been waiting for the result.

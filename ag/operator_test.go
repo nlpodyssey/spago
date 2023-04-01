@@ -24,7 +24,7 @@ func testNewOperator[T float.DType](t *testing.T) {
 	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
-	op := NewOperator(f)
+	op := NewOperator(f).Run()
 
 	require.NotNil(t, op)
 
@@ -60,7 +60,7 @@ func testOperatorOperands[T float.DType](t *testing.T) {
 	f := &dummyFunction[T, DualValue]{
 		operands: func() []DualValue { return operands },
 	}
-	op := NewOperator(f)
+	op := NewOperator(f).Run()
 	require.Equal(t, operands, op.Operands())
 	assert.Same(t, operands[0], op.Operands()[0])
 }
@@ -76,7 +76,7 @@ func testOperatorValue[T float.DType](t *testing.T) {
 	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
 	}
-	op := NewOperator(f)
+	op := NewOperator(f).Run()
 
 	// The first call to ValueOf() waits for the forward and returns the result
 	assert.Same(t, forwardResult, op.Value())
@@ -95,7 +95,7 @@ func TestOperator_RequiresGrad(t *testing.T) {
 
 func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	t.Run("false without operands", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{})
+		op := NewOperator(&dummyFunction[T, DualValue]{}).Run()
 		assert.False(t, op.RequiresGrad())
 	})
 
@@ -107,7 +107,7 @@ func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 					&dummyNode{id: 2, requiresGrad: false},
 				}
 			},
-		})
+		}).Run()
 		assert.False(t, op.RequiresGrad())
 	})
 
@@ -119,7 +119,7 @@ func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 					&dummyNode{id: 2, requiresGrad: true},
 				}
 			},
-		})
+		}).Run()
 		assert.True(t, op.RequiresGrad())
 	})
 }
@@ -138,7 +138,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 			operands: func() []DualValue {
 				return []DualValue{&dummyNode{requiresGrad: true}}
 			},
-		})
+		}).Run()
 
 		require.Nil(t, op.Grad())
 		assert.False(t, op.HasGrad())
@@ -159,7 +159,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient false", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, DualValue]{
 			forward: func() (mat.Matrix, error) { return mat.NewScalar[T](42), nil },
-		})
+		}).Run()
 
 		require.Nil(t, op.Grad())
 		assert.False(t, op.HasGrad())
