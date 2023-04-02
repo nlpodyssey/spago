@@ -22,12 +22,12 @@ func TestAffine(t *testing.T) {
 func testAffine[T float.DType](t *testing.T) {
 	for _, lenWXPairs := range []int{1, 3, 5} {
 		t.Run(fmt.Sprintf("it panics if len(wxPairs) is %d", lenWXPairs), func(t *testing.T) {
-			b := newVarWithGrad(mat.NewScalar(T(1)))
-			w1 := newVarWithGrad(mat.NewScalar(T(2)))
-			x1 := newVarWithGrad(mat.NewScalar(T(3)))
+			b := newDualValue(mat.NewScalar(T(1)))
+			w1 := newDualValue(mat.NewScalar(T(2)))
+			x1 := newDualValue(mat.NewScalar(T(3)))
 			wxPairs := make([]*variable, lenWXPairs)
 			for i := range wxPairs {
-				wxPairs[i] = newVarWithGrad(mat.NewScalar(T(i)))
+				wxPairs[i] = newDualValue(mat.NewScalar(T(i)))
 			}
 			require.Panics(t, func() { NewAffine(b, w1, x1, wxPairs...) })
 		})
@@ -223,15 +223,15 @@ func testAffine[T float.DType](t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Len(t, tt.wantWXPairsGrads, len(tt.wxPairs), "malformed test case")
 
-			b := newVarWithGrad(tt.b)
-			w1 := newVarWithGrad(tt.w1)
-			x1 := newVarWithGrad(tt.x1)
+			b := newDualValue(tt.b)
+			w1 := newDualValue(tt.w1)
+			x1 := newDualValue(tt.x1)
 			wxPairs := make([]*variable, len(tt.wxPairs))
 			for i, v := range tt.wxPairs {
 				if v == nil {
 					continue
 				}
-				wxPairs[i] = newVarWithGrad(v)
+				wxPairs[i] = newDualValue(v)
 			}
 
 			f := NewAffine(b, w1, x1, wxPairs...)

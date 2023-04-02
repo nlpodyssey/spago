@@ -44,7 +44,7 @@ func NewAffine[O DualValue](b, w1, x1 O, wxPairs ...O) *Affine[O] {
 		filteredPairs = make([]O, 0, len(wxPairs))
 		for i := 0; i < len(wxPairs); i += 2 {
 			x := wxPairs[i+1]
-			if operandIsNil(x) {
+			if isNil(x) {
 				continue
 			}
 			filteredPairs = append(filteredPairs, wxPairs[i], x)

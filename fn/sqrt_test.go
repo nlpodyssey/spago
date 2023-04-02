@@ -19,7 +19,7 @@ func TestSqrt_Forward(t *testing.T) {
 }
 
 func testSqrtForward[T float.DType](t *testing.T) {
-	x := newVarWithGrad(mat.NewVecDense([]T{4, 9, 0}))
+	x := newDualValue(mat.NewVecDense([]T{4, 9, 0}))
 
 	f := NewSqrt(x)
 	assert.Equal(t, []*variable{x}, f.Operands())

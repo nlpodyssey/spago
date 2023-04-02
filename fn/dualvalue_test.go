@@ -13,9 +13,9 @@ type variable struct {
 	requiresGrad bool
 }
 
-// newVarWithGrad creates a new variable with given value, and requiresGrad
+// newDualValue creates a new variable with given value, and requiresGrad
 // set to true.
-func newVarWithGrad(v mat.Matrix) *variable {
+func newDualValue(v mat.Matrix) *variable {
 	return &variable{
 		value:        v,
 		requiresGrad: true,

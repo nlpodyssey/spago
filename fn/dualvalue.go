@@ -5,9 +5,8 @@
 package fn
 
 import (
-	"reflect"
-
 	"github.com/nlpodyssey/spago/mat"
+	"reflect"
 )
 
 // DualValue is implemented by any value that implements automatic differentiation features.
@@ -20,7 +19,7 @@ type DualValue interface {
 	RequiresGrad() bool
 }
 
-func operandIsNil[O DualValue](o O) bool {
+func isNil[O DualValue](o O) bool {
 	if any(o) == nil {
 		return true
 	}
