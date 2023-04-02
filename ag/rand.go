@@ -23,3 +23,8 @@ func ManualSeed(seed uint64) *rand.LockedRand {
 	globalGenerator.Seed(seed)
 	return globalGenerator
 }
+
+// Rand returns the global random number generator.
+func Rand() *rand.LockedRand {
+	return globalGenerator
+}
