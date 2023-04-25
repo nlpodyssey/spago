@@ -4,11 +4,11 @@
 
 module github.com/nlpodyssey/spago/embeddings/store/diskstore
 
-go 1.18
+go 1.20
 
 require (
 	github.com/dgraph-io/badger/v3 v3.2103.2
-	github.com/nlpodyssey/spago v0.7.1-0.20220614214112-25235e7a270e
+	github.com/nlpodyssey/spago v1.0.2-0.20230425104021-8a128747fb24
 	github.com/stretchr/testify v1.7.1
 )
 
