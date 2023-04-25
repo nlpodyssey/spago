@@ -107,7 +107,8 @@ func NewOperator(f AutoGradFunction[DualValue]) *Operator {
 		requiresGrad:  -1,
 		backwardState: idle,
 		fn:            f,
-		broadcast:     make(chan struct{}, 0),
+		//lint:ignore S1019 explicitly set the buffer size to 0 as the channel is used as a signal
+		broadcast: make(chan struct{}, 0),
 	}
 }
 
@@ -225,6 +226,7 @@ func (o *Operator) prepareBackwardPass() {
 	o.pendingGrads++
 	if o.backwardState == idle {
 		o.backwardState = pending
+		//lint:ignore S1019 explicitly set the buffer size to 0 as the channel is used as a signal
 		o.broadcastGrad = make(chan struct{}, 0)
 		o.traverseOperandsForPreparation()
 	}
