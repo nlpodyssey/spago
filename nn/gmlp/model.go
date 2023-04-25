@@ -21,7 +21,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Config Config
-	Layers nn.ModuleList
+	Layers nn.ModuleList[nn.StandardModel]
 }
 
 // Config provides configuration parameters for a the gMLP Model.

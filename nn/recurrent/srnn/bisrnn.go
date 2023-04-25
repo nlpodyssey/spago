@@ -27,7 +27,7 @@ var _ nn.Model = &BiModel{}
 type BiModel struct {
 	nn.Module
 	Config    Config
-	FC        nn.ModuleList
+	FC        nn.ModuleList[nn.StandardModel]
 	FC2       *linear.Model
 	FC3       *linear.Model
 	LayerNorm *layernorm.Model

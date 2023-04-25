@@ -15,7 +15,7 @@ import (
 // FeedForward is the model for feed-forward operations of a MixerBlock.
 type FeedForward struct {
 	nn.Module
-	Layers nn.ModuleList
+	Layers nn.ModuleList[nn.StandardModel]
 }
 
 func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {

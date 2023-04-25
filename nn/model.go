@@ -63,11 +63,11 @@ type StandardModel interface {
 	Forward(...ag.Node) []ag.Node
 }
 
-type ModuleList []StandardModel
+type ModuleList[T StandardModel] []T
 
 // Forward operates on a slice of StandardModel connecting outputs to inputs sequentially for each module following,
 // finally returning its output.
-func (ml ModuleList) Forward(xs ...ag.Node) []ag.Node {
+func (ml ModuleList[T]) Forward(xs ...ag.Node) []ag.Node {
 	for _, m := range ml {
 		xs = m.Forward(xs...)
 	}

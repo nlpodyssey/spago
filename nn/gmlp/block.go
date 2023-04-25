@@ -20,7 +20,7 @@ var _ nn.Model = &Block{}
 // Block is the core model of the gMLP.
 type Block struct {
 	nn.Module
-	Layers nn.ModuleList
+	Layers nn.ModuleList[nn.StandardModel]
 }
 
 // BlockConfig provides configuration parameters for a single Block of the gMLP Model.

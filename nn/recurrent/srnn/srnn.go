@@ -23,7 +23,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Config Config
-	FC     nn.ModuleList
+	FC     nn.ModuleList[nn.StandardModel]
 	FC2    *linear.Model
 	FC3    *linear.Model
 }
