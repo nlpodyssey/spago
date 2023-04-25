@@ -23,7 +23,7 @@ const (
 )
 
 // MarshalBinary marshals a Dense matrix into binary form.
-func (d Dense[T]) MarshalBinary() ([]byte, error) {
+func (d *Dense[T]) MarshalBinary() ([]byte, error) {
 	switch any(T(0)).(type) {
 	case float32:
 		return d.marshalBinaryFloat32()
@@ -53,7 +53,7 @@ func (d *Dense[T]) UnmarshalBinary(data []byte) error {
 // - 8 bytes - cols (uint64)
 // - 4*size bytes - data (float32 as uint32-bits)
 
-func (d Dense[T]) marshalBinaryFloat32() ([]byte, error) {
+func (d *Dense[T]) marshalBinaryFloat32() ([]byte, error) {
 	data := make([]byte, 18+len(d.data)*4)
 	data[0] = binaryDenseFloat32
 	data[1] = boolToByte(d.requiresGrad)
@@ -108,7 +108,7 @@ func (d *Dense[T]) unmarshalBinaryFloat32(data []byte) error {
 // - 8 bytes - cols (uint64)
 // - 8*size bytes - data (float64 as uint64-bits)
 
-func (d Dense[T]) marshalBinaryFloat64() ([]byte, error) {
+func (d *Dense[T]) marshalBinaryFloat64() ([]byte, error) {
 	data := make([]byte, 18+len(d.data)*8)
 	data[0] = binaryDenseFloat64
 	data[1] = boolToByte(d.requiresGrad)

@@ -17,11 +17,11 @@ import (
 func (d *Dense[_]) Format(f fmt.State, c rune) {
 	if c == 'v' {
 		if f.Flag('#') {
-			fmt.Fprintf(f, "&%#v", *d)
+			fmt.Fprintf(f, "&%#v", d.data) // TODO: print the shape
 			return
 		}
 		if f.Flag('+') {
-			fmt.Fprintf(f, "%+v", *d)
+			fmt.Fprintf(f, "%+v", d.data) // TODO: print the shape
 			return
 		}
 		c = 'g'
