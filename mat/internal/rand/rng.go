@@ -13,10 +13,10 @@ import (
 // PCGSource is an implementation of a 64-bit permuted congruential
 // generator as defined in
 //
-// 	PCG: A Family of Simple Fast Space-Efficient Statistically Good
-// 	Algorithms for Random Number Generation
-// 	Melissa E. O’Neill, Harvey Mudd College
-// 	http://www.pcg-random.org/pdf/toms-oneill-pcg-family-v1.02.pdf
+//	PCG: A Family of Simple Fast Space-Efficient Statistically Good
+//	Algorithms for Random Number Generation
+//	Melissa E. O’Neill, Harvey Mudd College
+//	http://www.pcg-random.org/pdf/toms-oneill-pcg-family-v1.02.pdf
 //
 // The generator here is the congruential generator PCG XSL RR 128/64 (LCG)
 // as found in the software available at http://www.pcg-random.org/.
@@ -37,9 +37,9 @@ const (
 	incLow    = increment & maxUint64
 
 	// TODO: Use these?
-	initializer = 245720598905631564143578724636268694099
-	initHigh    = initializer >> 64
-	initLow     = initializer & maxUint64
+	//initializer = 245720598905631564143578724636268694099
+	//initHigh    = initializer >> 64
+	//initLow     = initializer & maxUint64
 )
 
 // Seed uses the provided seed value to initialize the generator to a deterministic state.

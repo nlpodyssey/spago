@@ -255,8 +255,6 @@ func TestModel_ClearEmbeddingsWithGrad(t *testing.T) {
 }
 
 func TestModel_UseRepository(t *testing.T) {
-	type T = float32
-
 	t.Run("when Store is nil", func(t *testing.T) {
 		repo := memstore.NewRepository()
 		m := &embeddings.Model[string]{
