@@ -5,9 +5,7 @@
 package matfuncs
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 )
 
 func TestSum32(t *testing.T) {
@@ -20,8 +18,6 @@ func TestSum64(t *testing.T) {
 
 func testSum[F Float](t *testing.T, fn func(x []F) F, eps float64) {
 	t.Parallel()
-
-	rand.Seed(time.Now().Unix())
 
 	x := make([]F, 0, 2_000)
 

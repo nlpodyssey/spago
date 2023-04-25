@@ -5,9 +5,7 @@
 package matfuncs
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 )
 
 func TestDiv32(t *testing.T) {
@@ -20,8 +18,6 @@ func TestDiv64(t *testing.T) {
 
 func testDiv[F Float](t *testing.T, fn func(x1, x2, y []F), eps float64) {
 	t.Parallel()
-
-	rand.Seed(time.Now().Unix())
 
 	x1 := make([]F, 0, 2_000)
 	x2 := make([]F, 0, 2_000)

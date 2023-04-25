@@ -6,9 +6,11 @@ package matfuncs
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/mat/internal/rand"
 	"math"
-	"math/rand"
+
 	"testing"
+	"time"
 )
 
 // Float is a type constraint for float32 and float64.
@@ -16,8 +18,10 @@ type Float interface {
 	float32 | float64
 }
 
+var randForTesting = rand.New(rand.NewSource(uint64(time.Now().Unix())))
+
 func RandFloat[F Float]() F {
-	return F(rand.NormFloat64() * 0.5)
+	return F(randForTesting.NormFloat64() * 0.5)
 }
 
 // RandVec fills the given vector with random values.

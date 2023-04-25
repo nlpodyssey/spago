@@ -6,9 +6,7 @@ package matfuncs
 
 import (
 	"math"
-	"math/rand"
 	"testing"
-	"time"
 )
 
 func TestExp32(t *testing.T) {
@@ -21,8 +19,6 @@ func TestExp64(t *testing.T) {
 
 func testExp[F Float](t *testing.T, fn func(x, y []F), eps float64) {
 	t.Parallel()
-
-	rand.Seed(time.Now().Unix())
 
 	x := make([]F, 0, 2_000)
 	expected := make([]F, 0, 2_000)

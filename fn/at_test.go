@@ -37,6 +37,7 @@ func testAtForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.1}, y.Data(), 1.0e-6)
 
 	err = f.Backward(mat.NewVecDense([]T{0.5}))
+	assert.NoError(t, err)
 
 	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.0, 0.0,

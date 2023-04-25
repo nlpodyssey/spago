@@ -58,6 +58,7 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 		6, 7, 8,
 		9, 0, 1,
 	}))
+	assert.NoError(t, err)
 
 	mat.AssertMatrixEquals(t, mat.NewDense(2, 3, []T{
 		0, 1, 2,

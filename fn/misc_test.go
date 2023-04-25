@@ -170,6 +170,7 @@ func testReluForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.1, 0.0, 0.3, 0.0}, y.Data(), 1.0e-6)
 
 	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.NoError(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.0, 0.0, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }
@@ -284,6 +285,7 @@ func testNewNegForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.1, -0.2, -0.3, 0.0}, y.Data(), 1.0e-6)
 
 	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	assert.NoError(t, err)
 
 	assert.InDeltaSlice(t, []T{1.0, -0.5, -0.8, 0.0}, x.grad.Data(), 1.0e-6)
 }

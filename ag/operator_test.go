@@ -204,7 +204,3 @@ func (f *dummyFunction[T, O]) Operands() []O {
 	}
 	return f.operands()
 }
-
-type dummyFunctionFloat32 struct {
-	dummyFunction[float32, DualValue]
-}

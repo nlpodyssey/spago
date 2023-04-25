@@ -5,9 +5,7 @@
 package matfuncs
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 )
 
 func TestMulConst32(t *testing.T) {
@@ -20,8 +18,6 @@ func TestMulConst64(t *testing.T) {
 
 func testMulConst[F Float](t *testing.T, fn func(c F, x, y []F), eps float64) {
 	t.Parallel()
-
-	rand.Seed(time.Now().Unix())
 
 	x := make([]F, 0, 2_000)
 	expected := make([]F, 0, 2_000)
