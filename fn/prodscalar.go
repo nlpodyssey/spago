@@ -41,14 +41,11 @@ func (r *ProdScalar[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.ProdScalar(r.x2.Value().Scalar().F64())
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		prod := gy.Prod(r.x1.Value())
-		defer mat.ReleaseMatrix(prod)
 		gx := prod.Sum()
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

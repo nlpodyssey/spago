@@ -44,7 +44,6 @@ func (r *ColView[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseMatrix(gx)
 		for i := 0; i < r.x.Value().Rows(); i++ {
 			gx.SetScalar(i, r.i, gy.ScalarAtVec(i))
 		}

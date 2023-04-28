@@ -44,9 +44,7 @@ func (r *SubScalar[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x2.RequiresGrad() {
 		neg := gy.ProdScalar(-1)
-		defer mat.ReleaseMatrix(neg)
 		gx := neg.Sum()
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

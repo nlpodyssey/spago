@@ -17,22 +17,15 @@ type operators []*Operator
 //
 // During the back-propagation process, the gradients of all nodes, except for the given node, are summed to the existing gradients.
 // Unless you intend to do so, ensure that all nodes have zero gradients.
-//
-// The function returns ReleaseGraph as ReleaseGraphFunc.
-func Backward(xs ...DualValue) ReleaseGraphFunc {
+func Backward(xs ...DualValue) {
 	ops := filterOperators(xs)
 	if len(ops) == 0 {
 		// There are no operators to process, do nothing.
-		return nil
+		return
 	}
-
 	ops.prepareBackwardPass()
 	ops.setOutputGrads()
 	ops.processBackwardPass()
-
-	return func() {
-		ReleaseGraph(xs...)
-	}
 }
 
 // filterOperators returns a list of operators from a list of nodes.

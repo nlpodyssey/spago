@@ -39,7 +39,6 @@ func (r *Transpose[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := gy.T()
-		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 	return nil

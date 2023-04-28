@@ -39,7 +39,6 @@ func (e *Exp[O]) Backward(gy mat.Matrix) error {
 	}
 	if e.x.RequiresGrad() {
 		gx := e.x.Value().Exp()
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		e.x.AccGrad(gx)
 	}

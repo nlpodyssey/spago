@@ -55,7 +55,6 @@ func (r *Dropout[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
-	defer mat.ReleaseMatrix(r.mask)
 	if r.x.RequiresGrad() {
 		gx := gy.Prod(r.mask)
 		r.x.AccGrad(gx)

@@ -50,9 +50,7 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) error {
 			vCol := y.ScalarAtVec(col).F64()
 			return -(vRow * vCol)
 		})
-		defer mat.ReleaseMatrix(jb)
 		gx := jb.Mul(gy)
-		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 	return nil

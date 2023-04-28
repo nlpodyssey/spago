@@ -39,7 +39,6 @@ func (r *Flatten[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := gy.Reshape(r.x.Value().Dims())
-		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 	return nil

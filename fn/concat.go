@@ -58,7 +58,6 @@ func (r *Concat[O]) Backward(gy mat.Matrix) error {
 		if xs[i].RequiresGrad() {
 			xs[i].AccGrad(gx)
 		}
-		mat.ReleaseMatrix(gx)
 	}
 	return nil
 }

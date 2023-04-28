@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
+	"runtime"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat/float"
@@ -64,7 +65,7 @@ func (dp *densePoolType[T]) makeNewFunc(bitsLen int) func() any {
 		return &Dense[T]{
 			rows:  -1,
 			cols:  -1,
-			flags: denseIsNew | denseIsFromPool,
+			isNew: true,
 			data:  make([]T, length),
 		}
 	}
@@ -76,9 +77,7 @@ func (dp *densePoolType[T]) makeNewFunc(bitsLen int) func() any {
 // Warning: the values may not be all zeros. To ensure that all elements
 // are initialized to zero, see GetEmptyDense.
 func (dp *densePoolType[T]) Get(rows, cols int) *Dense[T] {
-	d := dp.get(rows, cols)
-	d.flags &= ^denseIsNew
-	return d
+	return dp.get(rows, cols)
 }
 
 // GetEmpty returns a Dense matrix from the pool, with size rows×cols, and
@@ -87,11 +86,17 @@ func (dp *densePoolType[T]) Get(rows, cols int) *Dense[T] {
 // All elements are guaranteed to be initialized to zero.
 func (dp *densePoolType[T]) GetEmpty(rows, cols int) *Dense[T] {
 	d := dp.get(rows, cols)
-	if d.flags&denseIsNew == 0 {
+	if !d.isNew {
 		zeros(d.data)
 	}
-	d.flags &= ^denseIsNew
 	return d
+}
+
+// zeros sets all elements of a slice to zero.
+func zeros[T float.DType](s []T) {
+	for i := range s {
+		s[i] = 0
+	}
 }
 
 func (dp *densePoolType[T]) get(rows, cols int) *Dense[T] {
@@ -105,50 +110,11 @@ func (dp *densePoolType[T]) get(rows, cols int) *Dense[T] {
 	d.rows = rows
 	d.cols = cols
 
-	if d.grad != nil {
-		d.grad.rows = rows
-		d.grad.cols = cols
-		d.grad.data = d.grad.data[:length]
-		zeros(d.data) // TODO: check if this is necessary
-	}
+	runtime.SetFinalizer(d, func(o any) {
+		d.grad = nil
+		d.isNew = false
+		dp[bitsLen].Put(d)
+	})
 
 	return d
-}
-
-// zeros sets all elements of a slice to zero.
-func zeros[T float.DType](s []T) {
-	for i := range s {
-		s[i] = 0
-	}
-}
-
-// Put adds a used Dense matrix to pool.
-//
-// It MUST not be called with a matrix where references to the underlying data
-// slice have been kept.
-func (dp *densePoolType[T]) Put(d *Dense[T]) {
-	if d.flags&denseIsFromPool == 0 {
-		panic("mat: only matrices originated from the workspace can return to it")
-	}
-	bitsLen := bits.Len(uint(cap(d.data)))
-	dp[bitsLen].Put(d)
-}
-
-// ReleaseMatrix puts the given matrix in the appropriate global pool.
-// It currently works with Dense matrices only. For any other matrix
-// implementation, it panics.
-func ReleaseMatrix(m Matrix) {
-	switch mt := m.(type) {
-	case *Dense[float32]:
-		densePoolFloat32.Put(mt)
-	case *Dense[float64]:
-		densePoolFloat64.Put(mt)
-	default:
-		panic(fmt.Sprintf("mat: cannot release matrix of type %T", mt))
-	}
-}
-
-// ReleaseDense puts the given matrix in the appropriate global pool.
-func ReleaseDense[T float.DType](m *Dense[T]) {
-	densePool[T]().Put(m)
 }

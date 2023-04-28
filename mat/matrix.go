@@ -67,8 +67,6 @@ type Matrix interface {
 	// ExtractColumn returns a copy of the i-th column of the matrix,
 	// as a column vector (rows×1).
 	ExtractColumn(i int) Matrix
-	// View returns a new Matrix sharing the same underlying data.
-	View(rows, cols int) Matrix
 	// Slice returns a new matrix obtained by slicing the receiver across the
 	// given positions. The parameters "fromRow" and "fromCol" are inclusive,
 	// while "toRow" and "toCol" are exclusive.

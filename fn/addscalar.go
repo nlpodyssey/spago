@@ -45,7 +45,6 @@ func (r *AddScalar[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x2.RequiresGrad() {
 		gx := gy.Sum()
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

@@ -44,7 +44,6 @@ func (r *ReduceMax[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
 		gx := x.ZerosLike()
-		defer mat.ReleaseMatrix(gx)
 		gx.SetVec(r.argmax, gy)
 		r.x.AccGrad(gx)
 	}

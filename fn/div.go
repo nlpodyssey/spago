@@ -43,14 +43,11 @@ func (r *Div[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.Div(r.x2.Value())
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		x2sq := r.x2.Value().Prod(r.x2.Value())
-		defer mat.ReleaseMatrix(x2sq)
 		gx := r.x1.Value().Prod(gy)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(-1)
 		gx.DivInPlace(x2sq)
 		r.x2.AccGrad(gx)

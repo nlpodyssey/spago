@@ -52,7 +52,6 @@ func (r *Threshold[O]) Backward(gy mat.Matrix) error {
 			r.threshold.Value().Scalar().F64(),
 			r.k.Value().Scalar().F64(),
 		)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

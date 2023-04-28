@@ -42,7 +42,6 @@ func (l *Swish[O]) Backward(gy mat.Matrix) error {
 	}
 	if l.x.RequiresGrad() {
 		gx := l.x.Value().Apply(swishDeriv)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}

@@ -42,7 +42,6 @@ func (r *CELU[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(celuDeriv, r.alpha.Value().Scalar().F64())
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

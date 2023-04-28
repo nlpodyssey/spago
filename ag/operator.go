@@ -212,7 +212,6 @@ func (o *Operator) setOutputGrad() {
 	if isNil(o.Value().Grad()) {
 		gx := o.Value().OnesLike()
 		o.AccGrad(gx)
-		mat.ReleaseMatrix(gx)
 		return
 	}
 	// If the node already has gradients, we can use them directly.
@@ -268,11 +267,4 @@ func (o *Operator) traverseOperandsForBackward(wg *sync.WaitGroup) {
 			oo.processBackwardPass(wg)
 		}
 	}
-}
-
-// releaseValue sets the operator's value to nil releases the memory.
-func (o *Operator) releaseValue() {
-	value := o.Value() // also safely waits for any forward goroutine to finish
-	mat.ReleaseMatrix(value)
-	o.value = nil
 }

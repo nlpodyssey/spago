@@ -97,7 +97,7 @@ func (d *Dense[T]) unmarshalBinaryFloat32(data []byte) error {
 		data = data[4:]
 	}
 
-	d.flags = 0
+	d.isNew = false
 	return nil
 }
 
@@ -141,6 +141,7 @@ func (d *Dense[T]) unmarshalBinaryFloat64(data []byte) error {
 		data = data[8:]
 	}
 
-	d.flags = 0
+	d.isNew = false
+
 	return nil
 }

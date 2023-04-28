@@ -41,7 +41,6 @@ func (r *SoftShrink[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(softShrinkDeriv, r.lambda.Value().Scalar().F64())
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

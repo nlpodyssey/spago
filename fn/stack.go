@@ -50,7 +50,6 @@ func (r *Stack[O]) Backward(gy mat.Matrix) error {
 		}
 		gyRow := gy.ExtractRow(i).ReshapeInPlace(x.Value().Dims())
 		x.AccGrad(gyRow)
-		mat.ReleaseMatrix(gyRow)
 	}
 	return nil
 }

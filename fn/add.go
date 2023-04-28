@@ -36,7 +36,6 @@ func (r *Add[O]) Forward() (mat.Matrix, error) {
 	x2v := r.x2.Value()
 	if x1v == nil {
 		x1v = x2v.ZerosLike()
-		defer mat.ReleaseMatrix(x1v)
 	}
 	return x1v.Add(x2v), nil
 }

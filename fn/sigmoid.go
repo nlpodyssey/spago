@@ -42,7 +42,6 @@ func (l *Sigmoid[O]) Backward(gy mat.Matrix) error {
 		gx := l.x.Value().Sigmoid().Apply(func(_, _ int, v float64) float64 {
 			return v * (1.0 - v) // derivative of the sigmoid function
 		})
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}

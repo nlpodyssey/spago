@@ -143,9 +143,7 @@ func (o *Adam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
-	defer mat.ReleaseMatrix(suppDiv)
 	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
 	return supp[buf3]
 }
@@ -157,11 +155,9 @@ func (o *Adam[T]) calcDeltaW(grads mat.Matrix, supp []mat.Matrix, weights mat.Ma
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	scaledW := weights.ProdScalar(o.Lambda)
 	suppDiv.AddInPlace(scaledW)
-	defer mat.ReleaseMatrix(suppDiv)
 	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
 	return supp[buf3]
 }
@@ -177,7 +173,6 @@ func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
-	defer mat.ReleaseMatrix(sqGrad)
 	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
 	supp[m].AddInPlace(supp[buf2])
 }

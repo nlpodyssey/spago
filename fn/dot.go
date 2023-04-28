@@ -42,7 +42,6 @@ func (r *Dot[O]) Forward() (mat.Matrix, error) {
 	}
 
 	prod := r.x1.Value().Prod(r.x2.Value())
-	defer mat.ReleaseMatrix(prod)
 	return prod.Sum(), nil
 }
 
@@ -54,12 +53,10 @@ func (r *Dot[O]) Backward(gy mat.Matrix) error {
 	gys := gy.Scalar().F64()
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().ProdScalar(gys)
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := r.x1.Value().ProdScalar(gys)
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

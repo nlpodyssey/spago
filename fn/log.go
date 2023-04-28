@@ -39,7 +39,6 @@ func (l *Log[O]) Backward(gy mat.Matrix) error {
 	}
 	if l.x.RequiresGrad() {
 		gx := l.x.Value().Apply(safeLogDeriv)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		l.x.AccGrad(gx)
 	}

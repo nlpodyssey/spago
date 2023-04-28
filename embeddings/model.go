@@ -277,12 +277,11 @@ func (m *Model[K]) zeroGrad(k K) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	grad, exists := m.grads[key]
+	_, exists := m.grads[key]
 	if !exists {
 		return
 	}
 
-	mat.ReleaseMatrix(grad)
 	delete(m.grads, key)
 	delete(m.embeddingsWithGrad, key)
 }

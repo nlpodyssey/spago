@@ -43,12 +43,10 @@ func (r *Prod[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x1.RequiresGrad() {
 		gx := r.x2.Value().Prod(gy)
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := r.x1.Value().Prod(gy)
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

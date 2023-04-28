@@ -34,8 +34,6 @@ func (r *SparseMaxLoss[O]) Forward() (mat.Matrix, error) {
 	v := r.x.Value().Clone()
 
 	zs, cumSumInput, bounds, tau := sparseMaxCommon(v)
-	defer mat.ReleaseMatrix(zs)
-	defer mat.ReleaseMatrix(cumSumInput)
 
 	tauSquared := tau * tau
 	cumSumInputData := cumSumInput.Data().F64()
@@ -64,11 +62,8 @@ func (r *SparseMaxLoss[O]) Backward(gy mat.Matrix) error {
 		sparseMax := r.x.Value().Apply(func(_, _ int, v float64) float64 {
 			return math.Max(0, v-tau) * gySum
 		})
-		defer mat.ReleaseMatrix(sparseMax)
 
 		gx := gy.Sub(sparseMax)
-		defer mat.ReleaseMatrix(gx)
-
 		r.x.AccGrad(gx)
 	}
 	return nil

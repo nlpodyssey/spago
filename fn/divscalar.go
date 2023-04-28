@@ -44,14 +44,8 @@ func (r *DivScalar[O]) Backward(gy mat.Matrix) error {
 		x2 := r.x2.Value().Scalar().F64()
 
 		a := r.x1.Value().ProdScalar(1 / -(x2 * x2))
-		defer mat.ReleaseMatrix(a)
-
 		b := gy.Prod(a)
-		defer mat.ReleaseMatrix(b)
-
 		gx := b.Sum()
-		defer mat.ReleaseMatrix(gx)
-
 		r.x2.AccGrad(gx)
 	}
 	return nil

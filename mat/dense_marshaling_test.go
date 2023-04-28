@@ -48,13 +48,13 @@ func TestDense_Marshaling(t *testing.T) {
 		assert.Equal(t, x.A.Rows(), y.A.Rows())
 		assert.Equal(t, x.A.Columns(), y.A.Columns())
 		assert.Equal(t, x.A.Data(), y.A.Data())
-		assert.Equal(t, denseFlag(0), y.A.(*Dense[float32]).flags)
+		assert.Equal(t, false, y.A.(*Dense[float32]).isNew)
 
 		assert.IsType(t, &Dense[float64]{}, y.B)
 		assert.Equal(t, x.B.Rows(), y.B.Rows())
 		assert.Equal(t, x.B.Columns(), y.B.Columns())
 		assert.Equal(t, x.B.Data(), y.B.Data())
-		assert.Equal(t, denseFlag(0), y.B.(*Dense[float64]).flags)
+		assert.Equal(t, false, y.B.(*Dense[float64]).isNew)
 	})
 }
 
@@ -75,13 +75,13 @@ func testDenseMarshaling[T float.DType](t *testing.T) {
 			require.NoError(t, err)
 
 			y := new(Dense[T])
-			y.flags = 0xFF // dirty value to make sure it will be reset
+			y.isNew = true // to make sure it will be set to false after unmarshaling
 			err = y.UnmarshalBinary(data)
 			require.NoError(t, err)
 			assert.Equal(t, tc.rows, y.rows)
 			assert.Equal(t, tc.cols, y.cols)
 			assert.Equal(t, tc.data, y.data)
-			assert.Equal(t, denseFlag(0), y.flags)
+			assert.Equal(t, false, y.isNew)
 		})
 	}
 }

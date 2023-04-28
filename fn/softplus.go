@@ -51,7 +51,6 @@ func (r *SoftPlus[O]) Backward(gy mat.Matrix) error {
 			r.beta.Value().Scalar().F64(),
 			r.threshold.Value().Scalar().F64(),
 		)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

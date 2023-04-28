@@ -87,7 +87,6 @@ func makeIntMatrix(rows, cols int) [][]int {
 func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseMatrix(gx)
 		for row := 0; row < r.y.Rows(); row++ {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]

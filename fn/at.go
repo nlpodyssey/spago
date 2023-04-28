@@ -38,7 +38,6 @@ func (r *At[O]) Forward() (mat.Matrix, error) {
 func (r *At[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
-		defer mat.ReleaseMatrix(dx)
 		dx.Set(r.i, r.j, gy)
 		r.x.AccGrad(dx)
 	}

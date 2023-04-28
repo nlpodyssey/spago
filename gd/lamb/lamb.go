@@ -123,7 +123,6 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Mat
 	updateV(grads, supp, o.Beta1)
 	updateM(grads, supp, o.Beta2)
 	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	defer mat.ReleaseMatrix(buf)
 	suppDiv := supp[v].Div(buf)
 	if o.Lambda != 0.0 {
 		scaledW := weights.ProdScalar(o.Lambda)
@@ -135,7 +134,6 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Mat
 	if !(weightsNorm == 0.0 || adamStepNorm == 0.0) {
 		trustRatio = weightsNorm / adamStepNorm
 	}
-	defer mat.ReleaseMatrix(suppDiv)
 	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha*trustRatio)
 	return supp[buf3]
 }
@@ -151,15 +149,12 @@ func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
 func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
 	supp[m].ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
-	defer mat.ReleaseMatrix(sqGrad)
 	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
 	supp[m].AddInPlace(supp[buf2])
 }
 
 func norm(grads mat.Matrix) float64 {
 	prod := grads.Prod(grads)
-	defer mat.ReleaseMatrix(prod)
 	sum := prod.Sum()
-	defer mat.ReleaseMatrix(sum)
 	return math.Sqrt(sum.Scalar().F64())
 }

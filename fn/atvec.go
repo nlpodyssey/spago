@@ -36,7 +36,6 @@ func (r *AtVec[O]) Forward() (mat.Matrix, error) {
 func (r *AtVec[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		dx := r.x.Value().ZerosLike()
-		defer mat.ReleaseMatrix(dx)
 		dx.SetVec(r.i, gy)
 		r.x.AccGrad(dx)
 	}

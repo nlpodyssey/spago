@@ -19,13 +19,13 @@ import (
 
 // A Dense matrix implementation.
 type Dense[T float.DType] struct {
+	gradMu       sync.RWMutex
+	data         []T
+	grad         *Dense[T]
 	rows         int
 	cols         int
 	requiresGrad bool
-	flags        denseFlag
-	data         []T
-	grad         *Dense[T]
-	gradMu       sync.RWMutex
+	isNew        bool
 }
 
 // Rows returns the number of rows of the matrix.
@@ -48,13 +48,12 @@ func (d *Dense[_]) Size() int {
 	return len(d.data)
 }
 
-// Data returns the underlying data of the matrix, as a raw one-dimensional
+// Data returns a copy of the underlying data of the matrix, as a raw one-dimensional
 // slice of values in row-major order.
-//
-// The data slice IS NOT a copy: any changes applied to the returned slice are
-// reflected in the Dense matrix too.
 func (d *Dense[T]) Data() float.Slice {
-	return float.SliceInterface(d.data)
+	data := make([]T, len(d.data))
+	copy(data, d.data)
+	return float.SliceInterface(data)
 }
 
 // SetData sets the content of the matrix, copying the given raw
@@ -215,22 +214,6 @@ func (d *Dense[T]) ExtractColumn(i int) Matrix {
 		outData[k] = dData[k*d.cols+i]
 	}
 	return out
-}
-
-// View returns a new Matrix sharing the same underlying data.
-func (d *Dense[T]) View(rows, cols int) Matrix {
-	if rows < 0 || cols < 0 {
-		panic("mat: negative values for rows and cols are not allowed")
-	}
-	if rows*cols != len(d.data) {
-		panic(fmt.Sprintf("mat: wrong matrix dimensions. Size (rows*cols) must be: %d", len(d.data)))
-	}
-	return &Dense[T]{
-		rows:  rows,
-		cols:  cols,
-		flags: denseIsView,
-		data:  d.data,
-	}
 }
 
 // Slice returns a new matrix obtained by slicing the receiver across the

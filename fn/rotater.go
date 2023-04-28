@@ -36,7 +36,6 @@ func (r *RotateR[O]) Forward() (mat.Matrix, error) {
 func (r *RotateR[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := rotate(gy, r.i)
-		defer mat.ReleaseMatrix(gx)
 		r.x.AccGrad(gx)
 	}
 	return nil
@@ -44,12 +43,7 @@ func (r *RotateR[O]) Backward(gy mat.Matrix) error {
 
 func rotate(m mat.Matrix, i int) mat.Matrix {
 	size := m.Size()
-
 	left := m.Slice(0, 0, i, 1)
-	defer mat.ReleaseMatrix(left)
-
 	right := m.Slice(i, 0, size, 1)
-	defer mat.ReleaseMatrix(right)
-
 	return m.NewConcatV(right, left)
 }

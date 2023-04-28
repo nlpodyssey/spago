@@ -45,13 +45,11 @@ func (r *SwishB[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ApplyWithAlpha(swishBDeriv, r.beta.Value().Scalar().F64())
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}
 	if r.beta.RequiresGrad() {
 		gb := r.beta.Value().ZerosLike()
-		defer mat.ReleaseMatrix(gb)
 		// FIXME: avoid casting to specific type
 		for i, x := range r.x.Value().Data().F64() {
 			deriv := swishBBetaDeriv(x, r.beta.Value().Scalar().F64())

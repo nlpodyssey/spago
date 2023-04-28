@@ -74,7 +74,6 @@ func (a *Affine[O]) Forward() (mat.Matrix, error) {
 	for i := 0; i < len(wxPairs); i += 2 {
 		wx := wxPairs[i].Value().Mul(wxPairs[i+1].Value())
 		y.AddInPlace(wx)
-		mat.ReleaseMatrix(wx)
 	}
 	return y, nil
 }
@@ -102,9 +101,7 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 			wg.Add(1)
 			go func() {
 				xt := xv.T()
-				defer mat.ReleaseMatrix(xt)
 				gx := gy.Mul(xt)
-				defer mat.ReleaseMatrix(gx)
 				w.AccGrad(gx)
 				wg.Done()
 			}()
@@ -115,13 +112,10 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 			go func() {
 				if gy.Columns() == 1 {
 					gx := wv.MulT(gy)
-					defer mat.ReleaseMatrix(gx)
 					x.AccGrad(gx)
 				} else {
 					wt := wv.T()
-					defer mat.ReleaseMatrix(wt)
 					gx := wt.Mul(gy)
-					defer mat.ReleaseMatrix(gx)
 					x.AccGrad(gx)
 				}
 				wg.Done()

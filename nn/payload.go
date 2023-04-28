@@ -29,8 +29,7 @@ func NewPayload() *Payload {
 // empty slice.
 func (p *Payload) ClearData() {
 	data := p.Data
-	for i, m := range data {
-		mat.ReleaseMatrix(m)
+	for i := range data {
 		data[i] = nil
 	}
 	p.Data = data[:0]

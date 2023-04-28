@@ -58,7 +58,6 @@ func (r *Max[O]) Backward(gy mat.Matrix) error {
 			}
 		}
 		gx := x1v.NewVec(float.SliceInterface(gxData))
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
@@ -69,7 +68,6 @@ func (r *Max[O]) Backward(gy mat.Matrix) error {
 			}
 		}
 		gx := x1v.NewVec(float.SliceInterface(gxData))
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 

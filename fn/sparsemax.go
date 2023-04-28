@@ -37,9 +37,7 @@ func (r *SparseMax[O]) Forward() (mat.Matrix, error) {
 	// translate the input by max for numerical stability
 	v := x.SubScalar(xMax)
 
-	zs, cumSumInput, _, tau := sparseMaxCommon(v)
-	mat.ReleaseMatrix(zs)
-	mat.ReleaseMatrix(cumSumInput)
+	_, _, _, tau := sparseMaxCommon(v)
 
 	v.SubScalarInPlace(tau).ClipInPlace(0, xMax)
 
@@ -59,7 +57,6 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) error {
 		nzSum = nzSum / nzCount
 
 		gx := r.x.Value().ZerosLike()
-		defer mat.ReleaseMatrix(gx)
 		r.y.DoVecNonZero(func(i int, _ float64) {
 			gyi := gy.ScalarAtVec(i).F64()
 			gx.SetVecScalar(i, float.Interface(gyi-nzSum))

@@ -49,7 +49,6 @@ func (a *AppendRows[O]) Backward(gy mat.Matrix) error {
 	if a.x.RequiresGrad() {
 		xGrads := gy.Slice(0, 0, xRows, xVal.Columns())
 		a.x.AccGrad(xGrads)
-		mat.ReleaseMatrix(xGrads)
 	}
 
 	for i, v := range a.vs {
@@ -58,7 +57,6 @@ func (a *AppendRows[O]) Backward(gy mat.Matrix) error {
 		}
 		vGrads := gy.ExtractRow(xRows + i)
 		v.AccGrad(vGrads)
-		mat.ReleaseMatrix(vGrads)
 	}
 	return nil
 }

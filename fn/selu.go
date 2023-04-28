@@ -51,7 +51,6 @@ func (r *SELU[O]) Backward(gy mat.Matrix) error {
 			r.alpha.Value().Scalar().F64(),
 			r.scale.Value().Scalar().F64(),
 		)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
 	}

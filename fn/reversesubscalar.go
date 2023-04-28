@@ -43,12 +43,10 @@ func (r *ReverseSubScalar[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x1.RequiresGrad() {
 		gx := gy.ProdScalar(-1)
-		defer mat.ReleaseMatrix(gx)
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
 		gx := gy.Sum()
-		defer mat.ReleaseMatrix(gx)
 		r.x2.AccGrad(gx)
 	}
 	return nil

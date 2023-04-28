@@ -49,9 +49,5 @@ func (d *Dense[T]) SetRequiresGrad(v bool) {
 func (d *Dense[T]) ZeroGrad() {
 	d.gradMu.RLock()
 	defer d.gradMu.RUnlock()
-	if d.grad == nil {
-		return
-	}
-	ReleaseMatrix(d.grad)
 	d.grad = nil
 }

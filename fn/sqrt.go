@@ -39,7 +39,6 @@ func (r *Sqrt[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().Pow(-.5)
-		defer mat.ReleaseMatrix(gx)
 		gx.ProdScalarInPlace(.5)
 		gx.ProdInPlace(gy)
 		r.x.AccGrad(gx)
