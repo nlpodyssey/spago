@@ -6,7 +6,6 @@ package attention
 
 import (
 	"math"
-	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -24,25 +23,18 @@ func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausal
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
 
-	var wg sync.WaitGroup
-	wg.Add(len(q))
-
 	for i, qi := range q {
-		go func(i int, qi ag.Node) {
-			scores := ag.ProdScalar(ag.Mul(k, qi), scaleFactor)
+		scores := ag.ProdScalar(ag.Mul(k, qi), scaleFactor)
 
-			if causalMaskEnabled {
-				causalMask := k.Value().NewVec(float.SliceInterface(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
-				scores = ag.Add(scores, causalMask)
-			}
+		if causalMaskEnabled {
+			causalMask := k.Value().NewVec(float.SliceInterface(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
+			scores = ag.Add(scores, causalMask)
+		}
 
-			weights[i] = ag.Softmax(scores)
-			attention[i] = ag.MulT(v, weights[i])
-			wg.Done()
-		}(i, qi)
+		weights[i] = ag.Softmax(scores)
+		attention[i] = ag.MulT(v, weights[i])
 	}
 
-	wg.Wait()
 	return attention, weights
 }
 

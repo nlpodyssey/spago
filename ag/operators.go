@@ -7,7 +7,6 @@ package ag
 import (
 	"fmt"
 	"math"
-	"sync"
 
 	"github.com/nlpodyssey/spago/fn"
 )
@@ -334,7 +333,7 @@ func SubScalar(x1, x2 DualValue) DualValue {
 
 // Swish returns a new operator node as a result of the fn.Swish function.
 func Swish(x DualValue) DualValue {
-	return NewOperator(fn.NewSwish(x)).Run()
+	return NewOperator(fn.NewSwish(x)).Run(false)
 }
 
 // SwishB returns a new operator node as a result of the fn.SwishB function.
@@ -383,25 +382,6 @@ func Map2(mapping func(a DualValue, b DualValue) DualValue, xs1 []DualValue, xs2
 	for i, x1 := range xs1 {
 		ys[i] = mapping(x1, xs2[i])
 	}
-	return ys
-}
-
-// Map2Concurrent is the concurrent version of Map2.
-func Map2Concurrent(mapping func(a DualValue, b DualValue) DualValue, xs1 []DualValue, xs2 []DualValue) []DualValue {
-	if len(xs1) != len(xs2) {
-		panic(fmt.Sprintf("ag: arguments must have the same size (%d != %d)", len(xs1), len(xs2)))
-	}
-	var wg sync.WaitGroup
-	wg.Add(len(xs1))
-	ys := make([]DualValue, len(xs1))
-	for i, x1 := range xs1 {
-		i, x1 := i, x1
-		go func() {
-			ys[i] = mapping(x1, xs2[i])
-			wg.Done()
-		}()
-	}
-	wg.Wait()
 	return ys
 }
 
