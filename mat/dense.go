@@ -25,7 +25,18 @@ type Dense[T float.DType] struct {
 	rows         int
 	cols         int
 	requiresGrad bool
-	isNew        bool
+}
+
+// makeDense returns a Dense matrix.
+func makeDense[T float.DType](rows, cols int) *Dense[T] {
+	if rows < 0 || cols < 0 {
+		panic("mat: negative values for rows and cols are not allowed")
+	}
+	return &Dense[T]{
+		rows: rows,
+		cols: cols,
+		data: make([]T, rows*cols),
+	}
 }
 
 // Rows returns the number of rows of the matrix.
@@ -75,7 +86,8 @@ func (d *Dense[T]) ZerosLike() Matrix {
 // OnesLike returns a new matrix with the same dimensions of the
 // receiver, initialized with ones.
 func (d *Dense[T]) OnesLike() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = 1.0
@@ -195,7 +207,8 @@ func (d *Dense[T]) ExtractRow(i int) Matrix {
 	if i < 0 || i >= d.rows {
 		panic("mat: index out of range")
 	}
-	out := densePool[T]().Get(1, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](1, d.cols)
 	start := i * d.cols
 	copy(out.data, d.data[start:start+d.cols])
 	return out
@@ -207,7 +220,8 @@ func (d *Dense[T]) ExtractColumn(i int) Matrix {
 	if i < 0 || i >= d.cols {
 		panic("mat: index out of range")
 	}
-	out := densePool[T]().Get(d.rows, 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, 1)
 	dData := d.data
 	outData := out.data
 	for k := range outData {
@@ -227,7 +241,8 @@ func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix {
 		panic("mat: parameters are invalid or incompatible with the matrix dimensions")
 	}
 
-	y := densePool[T]().Get(toRow-fromRow, toCol-fromCol)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	y := makeDense[T](toRow-fromRow, toCol-fromCol)
 
 	if fromCol == 0 && toCol == dCols {
 		copy(y.data, d.data[fromRow*dCols:toRow*dCols])
@@ -275,7 +290,8 @@ func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix {
 // Flatten creates a new row vector (1×size) corresponding to the
 // "flattened" row-major ordered representation of the initial matrix.
 func (d *Dense[T]) Flatten() Matrix {
-	out := densePool[T]().Get(1, len(d.data))
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](1, len(d.data))
 	copy(out.data, d.data)
 	return out
 }
@@ -317,7 +333,8 @@ func (d *Dense[T]) T() Matrix {
 	dRows := d.rows
 	dCols := d.cols
 
-	m := densePool[T]().Get(dCols, dRows)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	m := makeDense[T](dCols, dRows)
 	if IsVector(d) {
 		copy(m.data, d.data)
 		return m
@@ -437,7 +454,8 @@ func (d *Dense[T]) AddInPlace(other Matrix) Matrix {
 
 // AddScalar performs the addition between the matrix and the given value.
 func (d *Dense[T]) AddScalar(n float64) Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
 		matfuncs.AddConst32(float32(n), any(d.data).([]float32), any(out.data).([]float32))
@@ -503,7 +521,8 @@ func (d *Dense[T]) SubInPlace(other Matrix) Matrix {
 
 // SubScalar performs a subtraction between the matrix and the given value.
 func (d *Dense[T]) SubScalar(n float64) Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	switch any(T(0)).(type) {
 	case float32:
 		matfuncs.AddConst32(float32(-n), any(d.data).([]float32), any(out.data).([]float32))
@@ -536,7 +555,8 @@ func (d *Dense[T]) Prod(other Matrix) Matrix {
 		panic("mat: matrices have incompatible dimensions")
 	}
 
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 
 	// Avoid bounds checks in loop
 	dData := d.data
@@ -673,7 +693,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 	case float32:
 		otherData := float32Data(other)
 		if outCols != 1 {
-			out := densePoolFloat32.GetEmpty(outRows, outCols)
+			out := makeDense[float32](outRows, outCols)
 			f32.MatrixMul(
 				d.rows,                    // aRows
 				d.cols,                    // aCols
@@ -685,7 +705,8 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			return out
 		}
 
-		out := densePoolFloat32.Get(outRows, outCols)
+		// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+		out := makeDense[float32](outRows, outCols)
 		dData := any(d.data).([]float32)
 		outData := any(out.data).([]float32)
 
@@ -698,7 +719,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 		}
 		return out
 	case float64:
-		out := densePoolFloat64.GetEmpty(outRows, outCols)
+		out := makeDense[float64](outRows, outCols)
 		otherData := float64Data(other)
 		if outCols != 1 {
 			f64.MatrixMul(
@@ -744,7 +765,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 
 	switch any(T(0)).(type) {
 	case float32:
-		out := densePoolFloat32.GetEmpty(d.cols, other.Columns())
+		out := makeDense[float32](d.cols, other.Columns())
 		otherData := float32Data(other)
 
 		dCols := d.cols
@@ -759,7 +780,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 		}
 		return out
 	case float64:
-		out := densePoolFloat64.GetEmpty(d.cols, other.Columns())
+		out := makeDense[float64](d.cols, other.Columns())
 		otherData := float64Data(other)
 
 		dCols := d.cols
@@ -823,7 +844,8 @@ func (d *Dense[T]) Maximum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -849,7 +871,8 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 	if !SameDims(d, other) {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -872,7 +895,8 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (d *Dense[T]) Abs() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -888,7 +912,8 @@ func (d *Dense[T]) Abs() Matrix {
 // Pow returns a new matrix, applying the power function with given exponent
 // to all elements of the matrix.
 func (d *Dense[T]) Pow(power float64) Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -903,7 +928,8 @@ func (d *Dense[T]) Pow(power float64) Matrix {
 
 // Sqrt returns a new matrix applying the square root function to all elements.
 func (d *Dense[T]) Sqrt() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	inData := d.data
 	lastIndex := len(inData) - 1
 	if lastIndex < 0 {
@@ -919,7 +945,8 @@ func (d *Dense[T]) Sqrt() Matrix {
 
 // Log returns a new matrix applying the natural logarithm function to each element.
 func (d *Dense[T]) Log() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	outData := out.data
 	if len(outData) == 0 {
 		return out
@@ -938,7 +965,8 @@ func (d *Dense[T]) Log() Matrix {
 
 // Exp returns a new matrix applying the base-e exponential function to each element.
 func (d *Dense[T]) Exp() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	outData := out.data
 	if len(outData) == 0 {
 		return out
@@ -1089,7 +1117,8 @@ func (d *Dense[T]) CumSum() Matrix {
 		panic("mat: expected vector")
 	}
 
-	out := densePool[T]().Get(len(d.data), 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](len(d.data), 1)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1231,7 +1260,8 @@ func (d *Dense[T]) PadColumns(n int) Matrix {
 // them as row vectors.
 func (d *Dense[T]) AppendRows(vs ...Matrix) Matrix {
 	cols := d.cols
-	out := densePool[T]().Get(d.rows+len(vs), cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows+len(vs), cols)
 	dData := d.data
 	outData := out.data
 	copy(outData[:len(dData)], dData)
@@ -1393,7 +1423,8 @@ func (d *Dense[T]) VecForEach(fn func(i int, v float64)) {
 
 // Apply creates a new matrix executing the unary function fn.
 func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1445,7 +1476,8 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix) 
 // ApplyWithAlpha creates a new matrix executing the unary function fn,
 // taking additional parameters alpha.
 func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1514,7 +1546,8 @@ func (d *Dense[T]) DoVecNonZero(fn func(i int, v float64)) {
 
 // Clone returns a new matrix, copying all its values from the receiver.
 func (d *Dense[T]) Clone() Matrix {
-	out := densePool[T]().Get(d.rows, d.cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](d.rows, d.cols)
 	copy(out.data, d.data)
 	return out
 }

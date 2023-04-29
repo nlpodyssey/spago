@@ -22,7 +22,8 @@ func NewDense[T float.DType](rows, cols int, data []T, opts ...MatrixOption) *De
 	if len(data) != rows*cols {
 		panic(fmt.Sprintf("mat: wrong matrix dimensions. Elements size must be: %d", rows*cols))
 	}
-	d := densePool[T]().Get(rows, cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	d := makeDense[T](rows, cols)
 	copy(d.data, data)
 
 	for _, opt := range opts {
@@ -34,7 +35,8 @@ func NewDense[T float.DType](rows, cols int, data []T, opts ...MatrixOption) *De
 // NewVecDense returns a new column vector (len(data)×1) initialized with
 // a copy of raw data.
 func NewVecDense[T float.DType](data []T, opts ...MatrixOption) *Dense[T] {
-	d := densePool[T]().Get(len(data), 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	d := makeDense[T](len(data), 1)
 	copy(d.data, data)
 
 	for _, opt := range opts {
@@ -45,7 +47,8 @@ func NewVecDense[T float.DType](data []T, opts ...MatrixOption) *Dense[T] {
 
 // NewScalar returns a new 1×1 matrix containing the given value.
 func NewScalar[T float.DType](v T, opts ...MatrixOption) *Dense[T] {
-	d := densePool[T]().Get(1, 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	d := makeDense[T](1, 1)
 	d.data[0] = v
 
 	for _, opt := range opts {
@@ -60,7 +63,7 @@ func NewEmptyVecDense[T float.DType](size int, opts ...MatrixOption) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	d := densePool[T]().GetEmpty(size, 1)
+	d := makeDense[T](size, 1)
 	for _, opt := range opts {
 		opt(d)
 	}
@@ -72,7 +75,7 @@ func NewEmptyDense[T float.DType](rows, cols int, opts ...MatrixOption) *Dense[T
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	d := densePool[T]().GetEmpty(rows, cols)
+	d := makeDense[T](rows, cols)
 
 	for _, opt := range opts {
 		opt(d)
@@ -88,7 +91,7 @@ func NewOneHotVecDense[T float.DType](size int, oneAt int, opts ...MatrixOption)
 	if oneAt < 0 || oneAt >= size {
 		panic(fmt.Sprintf("mat: impossible to set the one at index %d. The size is: %d", oneAt, size))
 	}
-	vec := densePool[T]().GetEmpty(size, 1)
+	vec := makeDense[T](size, 1)
 	vec.data[oneAt] = 1
 
 	for _, opt := range opts {
@@ -103,7 +106,8 @@ func NewInitDense[T float.DType](rows, cols int, v T, opts ...MatrixOption) *Den
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	out := densePool[T]().Get(rows, cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](rows, cols)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = v
@@ -120,7 +124,8 @@ func NewInitFuncDense[T float.DType](rows, cols int, fn func(r, c int) T, opts .
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
-	out := densePool[T]().Get(rows, cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](rows, cols)
 
 	outData := out.data
 
@@ -147,7 +152,8 @@ func NewInitVecDense[T float.DType](size int, v T, opts ...MatrixOption) *Dense[
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	out := densePool[T]().Get(size, 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](size, 1)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = v
@@ -165,7 +171,7 @@ func NewIdentityDense[T float.DType](size int, opts ...MatrixOption) *Dense[T] {
 	if size < 0 {
 		panic("mat: a negative size is not allowed")
 	}
-	out := densePool[T]().GetEmpty(size, size)
+	out := makeDense[T](size, size)
 	data := out.data
 	ln := len(data)
 	for i := 0; i < ln; i += size + 1 {

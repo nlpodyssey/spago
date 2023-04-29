@@ -14,17 +14,16 @@ import (
 )
 
 var (
-	// waitForward indicates if the program should wait for the forward goroutine to finish before proceeding.
-	// When set to true, the operators will wait for the forward goroutine to complete.
+	// forceSyncExecution, when set to true, forces operators to run synchronously, overriding any "async" flag in the Run() function.
 	// This can be particularly useful for debugging.
-	waitForward = false
+	forceSyncExecution = false
 )
 
-// SetWaitForward enables or disables waiting for the forward goroutine to finish before proceeding.
-// When enabled, the operators will wait for the forward goroutine to complete.
+// SetForceSyncExecution enables or disables the forcing of synchronous execution for all operators.
+// When enabled, the operators will run synchronously, regardless of the "async" flag in the Run() function.
 // This setting can be particularly useful for debugging.
-func SetWaitForward(enable bool) {
-	waitForward = enable
+func SetForceSyncExecution(enable bool) {
+	forceSyncExecution = enable
 }
 
 // backwardState is an enumeration type associated to an Operator, to keep
@@ -76,7 +75,7 @@ var _ Node = &Operator{}
 // It's used to represent a function with automatic differentiation features.
 type Operator struct {
 	// value stores the results of a forward evaluation, as mat.Matrix.
-	// It's set by execute() goroutine.
+	// It's set by executeForward() goroutine.
 	// Use the Value() method to get the actual value.
 	// It also contains the accumulated gradients. Use the Grad() method to get them.
 	// It is important to remember that value is a weak reference, as the matrix
@@ -101,40 +100,51 @@ type Operator struct {
 	backwardState backwardState
 }
 
-// NewOperator creates a new operator performing the given function in a separate goroutine.
+// NewOperator creates a new operator with the given AutoGradFunction.
+// Note that the operator's Value() can only be accessed after calling the Run() function.
 func NewOperator(f AutoGradFunction[DualValue]) *Operator {
 	return &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
 		fn:            f,
-		//lint:ignore S1019 explicitly set the buffer size to 0 as the channel is used as a signal
-		broadcast: make(chan struct{}, 0),
 	}
 }
 
-// Run starts the execution of the operator in a separate goroutine and returns the operator.
-// If the method is called more than once, it panics.
-func (o *Operator) Run() *Operator {
-	go o.execute()
+// Run starts the execution of the operator, performing the forward pass.
+// If the optional async argument is set to true, the forward pass will be executed in a separate goroutine.
+// The function returns a pointer to the Operator, allowing for method chaining.
+func (o *Operator) Run(async ...bool) *Operator {
+	isAsync := !forceSyncExecution && len(async) > 0 && async[0]
 
-	if waitForward {
-		o.Value() // wait for the forward goroutine to finish
+	if isAsync {
+		//lint:ignore S1019 explicitly set the buffer size to 0 as the channel is used as a signal
+		o.broadcast = make(chan struct{}, 0)
+		go o.executeForward()
+		return o
 	}
+
+	o.executeForward()
 	return o
 }
 
 // forward executes the forward function and inform all goroutines that have been waiting for the result.
-func (o *Operator) execute() {
-	var err error
-	if o.value, err = o.fn.Forward(); err != nil {
+func (o *Operator) executeForward() {
+	value, err := o.fn.Forward()
+	if err != nil {
 		log.Fatalf("ag: error during forward pass: %v", err) // TODO: handle error
 	}
-	close(o.broadcast) // inform all goroutines that have been waiting for the result
+	o.value = value
+
+	if o.broadcast != nil { // if nil, it means that the operator is not async
+		close(o.broadcast) // inform all goroutines that have been waiting for the result
+	}
 }
 
 // Value returns the result of the function.
 func (o *Operator) Value() mat.Matrix {
-	<-o.broadcast // wait for the forward goroutine to finish
+	if o.broadcast != nil { // if nil, it means that the operator is not async
+		<-o.broadcast // wait for the forward goroutine to finish
+	}
 	return o.value
 }
 
@@ -200,14 +210,6 @@ func (o *Operator) AccGrad(grad mat.Matrix) {
 	}
 }
 
-// isNil returns true if the gradients are nil.
-func isNil(grad mat.Matrix) bool {
-	if grad == nil || reflect.ValueOf(grad).IsNil() {
-		return true
-	}
-	return false
-}
-
 func (o *Operator) setOutputGrad() {
 	if isNil(o.Value().Grad()) {
 		gx := o.Value().OnesLike()
@@ -267,4 +269,12 @@ func (o *Operator) traverseOperandsForBackward(wg *sync.WaitGroup) {
 			oo.processBackwardPass(wg)
 		}
 	}
+}
+
+// isNil returns true if the gradients are nil.
+func isNil(grad mat.Matrix) bool {
+	if grad == nil || reflect.ValueOf(grad).IsNil() {
+		return true
+	}
+	return false
 }

@@ -52,7 +52,6 @@ func testMatrixMarshalingDense[T float.DType](t *testing.T) {
 			assert.Equal(t, tc.Rows(), m.Rows())
 			assert.Equal(t, tc.Columns(), m.Columns())
 			assert.Equal(t, tc.Data(), m.Data())
-			assert.Equal(t, false, m.(*Dense[T]).isNew)
 		})
 	}
 }

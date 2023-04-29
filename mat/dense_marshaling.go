@@ -96,8 +96,6 @@ func (d *Dense[T]) unmarshalBinaryFloat32(data []byte) error {
 		dData[i] = T(math.Float32frombits(binary.LittleEndian.Uint32(data)))
 		data = data[4:]
 	}
-
-	d.isNew = false
 	return nil
 }
 
@@ -140,8 +138,5 @@ func (d *Dense[T]) unmarshalBinaryFloat64(data []byte) error {
 		dData[i] = T(math.Float64frombits(binary.LittleEndian.Uint64(data)))
 		data = data[8:]
 	}
-
-	d.isNew = false
-
 	return nil
 }

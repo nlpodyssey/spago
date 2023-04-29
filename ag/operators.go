@@ -174,11 +174,11 @@ func Mish(x DualValue) DualValue {
 
 // Mul returns a new operator node as a result of the fn.Mul function.
 func Mul(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMul(x1, x2)).Run()
+	return NewOperator(fn.NewMul(x1, x2)).Run(true)
 }
 
 func MulT(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMulT(x1, x2)).Run()
+	return NewOperator(fn.NewMulT(x1, x2)).Run(true)
 }
 
 // Neg returns a new operator node as a result of the `Neg` function.
@@ -223,7 +223,7 @@ func ReduceSum(x DualValue) DualValue {
 
 // ReLU returns a new operator node as a result of the `ReLU` function.
 func ReLU(x DualValue) DualValue {
-	return NewOperator(fn.NewReLU(x)).Run()
+	return NewOperator(fn.NewReLU(x)).Run(true)
 }
 
 // Reshape returns a new operator node as a result of the fn.Reshape function.
@@ -370,22 +370,6 @@ func Map(mapping func(DualValue) DualValue, xs []DualValue) []DualValue {
 	for i, x := range xs {
 		ys[i] = mapping(x)
 	}
-	return ys
-}
-
-// MapConcurrent is the concurrent version of Map.
-func MapConcurrent(mapping func(DualValue) DualValue, xs []DualValue) []DualValue {
-	var wg sync.WaitGroup
-	wg.Add(len(xs))
-	ys := make([]DualValue, len(xs))
-	for i, x := range xs {
-		i, x := i, x
-		go func() {
-			ys[i] = mapping(x)
-			wg.Done()
-		}()
-	}
-	wg.Wait()
 	return ys
 }
 

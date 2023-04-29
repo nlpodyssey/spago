@@ -352,7 +352,8 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 		}
 		size += v.Size()
 	}
-	out := densePool[T]().Get(size, 1)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](size, 1)
 	data := out.data[:0] // convenient for using append below
 	for _, v := range vs {
 		data = append(data, Data[T](v)...)
@@ -368,10 +369,11 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 // them as row vectors.
 func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 	if len(vs) == 0 {
-		return densePool[T]().Get(0, 0)
+		return makeDense[T](0, 0)
 	}
 	cols := vs[0].Size()
-	out := densePool[T]().Get(len(vs), cols)
+	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
+	out := makeDense[T](len(vs), cols)
 	data := out.data
 	for i, v := range vs {
 		if !IsVector(v) {

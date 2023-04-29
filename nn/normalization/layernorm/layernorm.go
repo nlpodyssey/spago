@@ -46,11 +46,12 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	if len(xs) == 0 {
 		return nil
 	}
-	fn := func(x ag.Node) ag.Node {
+	out := make([]ag.Node, len(xs))
+	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)
 		stdDev := ag.Sqrt(ag.Add(ag.ReduceMean(ag.Square(dev)), m.Eps))
-		return ag.Add(ag.Prod(ag.DivScalar(dev, stdDev), m.W), m.B)
+		out[i] = ag.Add(ag.Prod(ag.DivScalar(dev, stdDev), m.W), m.B)
 	}
-	return ag.MapConcurrent(fn, xs)
+	return out
 }
