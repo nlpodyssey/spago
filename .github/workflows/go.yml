@@ -10,7 +10,7 @@ jobs:
         with:
           go-version: '1.19.1'
       - name: Run tests and generate coverage report
-        run: go test -coverprofile cover.out -covermode atomic ./... ./embeddings/store/diskstore/...
+        run: go test -coverprofile cover.out -covermode atomic ./...
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -26,7 +26,7 @@ jobs:
           go-version: '1.19.1'
       - uses: actions/checkout@v3
       - name: go vet
-        run: go vet ./... ./embeddings/store/diskstore/...
+        run: go vet ./...
 
   gocyclo:
     name: gocyclo
