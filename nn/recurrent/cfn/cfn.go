@@ -18,13 +18,13 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WIn     nn.Param
-	WInRec  nn.Param
-	BIn     nn.Param
-	WFor    nn.Param
-	WForRec nn.Param
-	BFor    nn.Param
-	WCand   nn.Param
+	WIn     *nn.Param
+	WInRec  *nn.Param
+	BIn     *nn.Param
+	WFor    *nn.Param
+	WForRec *nn.Param
+	BFor    *nn.Param
+	WCand   *nn.Param
 }
 
 // State represent a state of the CFN recurrent network.
@@ -48,7 +48,7 @@ func New[T float.DType](in, out int) *Model {
 	return m
 }
 
-func newGateParams[T float.DType](in, out int) (w, wRec, b nn.Param) {
+func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
 	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
 	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
 	b = nn.NewParam(mat.NewEmptyVecDense[T](out))

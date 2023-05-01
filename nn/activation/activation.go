@@ -18,7 +18,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Activation Name
-	Params     []nn.Param
+	Params     []*nn.Param
 }
 
 func init() {
@@ -26,7 +26,7 @@ func init() {
 }
 
 // New returns a new model.
-func New(activation Name, params ...nn.Param) *Model {
+func New(activation Name, params ...*nn.Param) *Model {
 	return &Model{
 		Activation: activation,
 		Params:     params,

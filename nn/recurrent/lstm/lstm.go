@@ -23,24 +23,24 @@ type Model struct {
 	UseRefinedGates bool
 
 	// Input gate
-	WIn    nn.Param
-	WInRec nn.Param
-	BIn    nn.Param
+	WIn    *nn.Param
+	WInRec *nn.Param
+	BIn    *nn.Param
 
 	// Output gate
-	WOut    nn.Param
-	WOutRec nn.Param
-	BOut    nn.Param
+	WOut    *nn.Param
+	WOutRec *nn.Param
+	BOut    *nn.Param
 
 	// Forget gate
-	WFor    nn.Param
-	WForRec nn.Param
-	BFor    nn.Param
+	WFor    *nn.Param
+	WForRec *nn.Param
+	BFor    *nn.Param
 
 	// Candiate gate
-	WCand    nn.Param
-	WCandRec nn.Param
-	BCand    nn.Param
+	WCand    *nn.Param
+	WCandRec *nn.Param
+	BCand    *nn.Param
 }
 
 // State represent a state of the LSTM recurrent network.
@@ -100,7 +100,7 @@ func (m *Model) WithRefinedGates(value bool) *Model {
 // Init initializes the parameters using Xavier uniform randomization.
 // It follows the LSTM bias hack setting the Forget gate to 1 (http://proceedings.mlr.press/v37/jozefowicz15.pdf).
 func (m *Model) Init(rndGen *rand.LockedRand) *Model {
-	nn.ForEachParam(m, func(param nn.Param) {
+	nn.ForEachParam(m, func(param *nn.Param) {
 		initializers.XavierUniform(param.Value(), 1, rndGen)
 	})
 	initializers.Constant(m.BFor.Value(), 1.0)

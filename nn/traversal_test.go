@@ -11,7 +11,7 @@ import (
 )
 
 type collectedParam struct {
-	param Param
+	param *Param
 }
 
 type collectedModel struct {
@@ -28,12 +28,12 @@ type traversalTest struct {
 }
 
 type traversableType struct {
-	fn func(callback func(param Param))
+	fn func(callback func(param *Param))
 }
 
 var _ ParamsTraverser = traversableType{}
 
-func (t traversableType) TraverseParams(f func(param Param)) {
+func (t traversableType) TraverseParams(f func(param *Param)) {
 	t.fn(f)
 }
 
@@ -92,8 +92,8 @@ var traversalTests = []traversalTest{
 
 		type modelType struct {
 			Module
-			A Param
-			B Param
+			A *Param
+			B *Param
 		}
 
 		m := &modelType{
@@ -117,16 +117,16 @@ var traversalTests = []traversalTest{
 	func() traversalTest {
 		type modelType struct {
 			Module
-			A []Param
-			B []Param
+			A []*Param
+			B []*Param
 		}
 
 		m := &modelType{
-			A: []Param{
+			A: []*Param{
 				NewParam(mat.NewScalar(1.)),
 				NewParam(mat.NewScalar(2.)),
 			},
-			B: []Param{
+			B: []*Param{
 				NewParam(mat.NewScalar(3.)),
 				NewParam(mat.NewScalar(4.)),
 			},
@@ -151,7 +151,7 @@ var traversalTests = []traversalTest{
 
 		type modelType struct {
 			Module
-			P Param
+			P *Param
 			M Model
 		}
 
@@ -191,7 +191,7 @@ var traversalTests = []traversalTest{
 
 		type modelType struct {
 			Module
-			P Param
+			P *Param
 			M []Model
 		}
 
@@ -227,7 +227,7 @@ var traversalTests = []traversalTest{
 		type modelList []Model
 		type modelType struct {
 			Module
-			P Param
+			P *Param
 			M modelList
 		}
 
@@ -262,7 +262,7 @@ var traversalTests = []traversalTest{
 
 		type modelType struct {
 			Module
-			P Param
+			P *Param
 			M []any
 		}
 
@@ -297,7 +297,7 @@ var traversalTests = []traversalTest{
 
 		type modelType struct {
 			Module
-			P Param
+			P *Param
 			M [2]any
 		}
 
@@ -331,12 +331,12 @@ var traversalTests = []traversalTest{
 		name := "fields with type implementing ParamsTraverser"
 
 		type simpleStruct struct {
-			P Param
+			P *Param
 		}
 
 		type modelType struct {
 			Module
-			Foo Param
+			Foo *Param
 			Bar []simpleStruct
 			Baz Model
 			Qux []traversableType
@@ -353,7 +353,7 @@ var traversalTests = []traversalTest{
 			Bar: nil,
 			Baz: nil,
 			Qux: []traversableType{
-				{func(f func(param Param)) {
+				{func(f func(param *Param)) {
 					f(delta)
 					f(echo)
 				}},
@@ -364,11 +364,11 @@ var traversalTests = []traversalTest{
 			Bar: []simpleStruct{{P: NewParam(mat.NewScalar(2.))}},
 			Baz: nested,
 			Qux: []traversableType{
-				{func(f func(param Param)) {
+				{func(f func(param *Param)) {
 					f(alfa)
 					f(bravo)
 				}},
-				{func(f func(param Param)) {
+				{func(f func(param *Param)) {
 					f(charlie)
 				}},
 			},
@@ -402,15 +402,15 @@ var traversalTests = []traversalTest{
 	func() traversalTest {
 		type modelType struct {
 			Module
-			MI map[int]Param
-			MS map[string]Param
+			MI map[int]*Param
+			MS map[string]*Param
 		}
 
 		m := &modelType{
-			MI: map[int]Param{
+			MI: map[int]*Param{
 				0: NewParam(mat.NewScalar(1.)),
 			},
-			MS: map[string]Param{
+			MS: map[string]*Param{
 				"a": NewParam(mat.NewScalar(3.)),
 			},
 		}

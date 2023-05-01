@@ -34,8 +34,8 @@ type Config struct {
 type Model struct {
 	nn.Module
 	Config Config
-	K      []nn.Param
-	B      []nn.Param
+	K      []*nn.Param
+	B      []*nn.Param
 }
 
 func init() {
@@ -57,8 +57,8 @@ func New[T float.DType](config Config) *Model {
 		paramsSize = config.InputChannels * config.OutputChannels
 	}
 
-	kernels := make([]nn.Param, paramsSize)
-	biases := make([]nn.Param, paramsSize)
+	kernels := make([]*nn.Param, paramsSize)
+	biases := make([]*nn.Param, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
 		kernels[i] = nn.NewParam(mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY)).WithGrad(requireGrad)

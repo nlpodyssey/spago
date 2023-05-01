@@ -18,15 +18,15 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WPart    nn.Param
-	WPartRec nn.Param
-	BPart    nn.Param
-	WRes     nn.Param
-	WResRec  nn.Param
-	BRes     nn.Param
-	WCand    nn.Param
-	WCandRec nn.Param
-	BCand    nn.Param
+	WPart    *nn.Param
+	WPartRec *nn.Param
+	BPart    *nn.Param
+	WRes     *nn.Param
+	WResRec  *nn.Param
+	BRes     *nn.Param
+	WCand    *nn.Param
+	WCandRec *nn.Param
+	BCand    *nn.Param
 }
 
 // State represent a state of the GRU recurrent network.
@@ -50,7 +50,7 @@ func New[T float.DType](in, out int) *Model {
 	return m
 }
 
-func newGateParams[T float.DType](in, out int) (w, wRec, b nn.Param) {
+func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
 	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
 	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
 	b = nn.NewParam(mat.NewEmptyVecDense[T](out))

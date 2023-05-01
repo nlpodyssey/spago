@@ -11,15 +11,15 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Payload contains the support data used for example by the optimization methods
-type Payload struct {
+// OptimizerPayload contains the support data used for example by the optimization methods
+type OptimizerPayload struct {
 	Label int
 	Data  []mat.Matrix
 }
 
 // NewPayload returns an empty support structure, not connected to any optimization method.
-func NewPayload() *Payload {
-	return &Payload{
+func NewPayload() *OptimizerPayload {
+	return &OptimizerPayload{
 		Label: 0, // important set the label to zero
 		Data:  make([]mat.Matrix, 0),
 	}
@@ -27,7 +27,7 @@ func NewPayload() *Payload {
 
 // ClearData removes and releases all matrices from Data, setting data to an
 // empty slice.
-func (p *Payload) ClearData() {
+func (p *OptimizerPayload) ClearData() {
 	data := p.Data
 	for i := range data {
 		data[i] = nil
@@ -35,8 +35,8 @@ func (p *Payload) ClearData() {
 	p.Data = data[:0]
 }
 
-// MarshalBinary encodes the Payload into binary form.
-func (p Payload) MarshalBinary() ([]byte, error) {
+// MarshalBinary encodes the OptimizerPayload into binary form.
+func (p OptimizerPayload) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	binLabel := make([]byte, 8)
@@ -57,8 +57,8 @@ func (p Payload) MarshalBinary() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalBinary decodes a Payload from binary form.
-func (p *Payload) UnmarshalBinary(data []byte) error {
+// UnmarshalBinary decodes a OptimizerPayload from binary form.
+func (p *OptimizerPayload) UnmarshalBinary(data []byte) error {
 	p.Label = int(binary.LittleEndian.Uint64(data))
 	dataLen := int(binary.LittleEndian.Uint32(data[8:]))
 

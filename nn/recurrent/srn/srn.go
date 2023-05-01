@@ -18,9 +18,9 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W    nn.Param
-	WRec nn.Param
-	B    nn.Param
+	W    *nn.Param
+	WRec *nn.Param
+	B    *nn.Param
 }
 
 // State represent a state of the SRN recurrent network.

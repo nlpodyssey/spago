@@ -26,7 +26,7 @@ func TestForEachParam(t *testing.T) {
 	for _, tt := range traversalTests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual []collectedParam
-			ForEachParam(tt.model, func(p Param) {
+			ForEachParam(tt.model, func(p *Param) {
 				actual = append(actual, collectedParam{param: p})
 			})
 			assert.Equal(t, tt.expectedParams, actual)
@@ -38,7 +38,7 @@ func TestForEachParamStrict(t *testing.T) {
 	for _, tt := range traversalTests {
 		t.Run(tt.name, func(t *testing.T) {
 			var actual []collectedParam
-			ForEachParamStrict(tt.model, func(p Param) {
+			ForEachParamStrict(tt.model, func(p *Param) {
 				actual = append(actual, collectedParam{param: p})
 			})
 			assert.Equal(t, tt.expectedParamsStrict, actual)

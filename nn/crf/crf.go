@@ -19,7 +19,7 @@ var _ nn.Model = &Model{}
 type Model struct {
 	nn.Module
 	Size             int
-	TransitionScores nn.Param
+	TransitionScores *nn.Param
 }
 
 func init() {

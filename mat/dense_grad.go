@@ -47,7 +47,7 @@ func (d *Dense[T]) SetRequiresGrad(v bool) {
 
 // ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 func (d *Dense[T]) ZeroGrad() {
-	d.gradMu.RLock()
-	defer d.gradMu.RUnlock()
+	d.gradMu.Lock()
+	defer d.gradMu.Unlock()
 	d.grad = nil
 }

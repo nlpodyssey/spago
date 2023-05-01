@@ -18,14 +18,14 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	WInS  nn.Param
-	WInR  nn.Param
-	WRecS nn.Param
-	WRecR nn.Param
-	BS    nn.Param
-	BR    nn.Param
-	S     nn.Param
-	R     nn.Param
+	WInS  *nn.Param
+	WInR  *nn.Param
+	WRecS *nn.Param
+	WRecR *nn.Param
+	BS    *nn.Param
+	BR    *nn.Param
+	S     *nn.Param
+	R     *nn.Param
 }
 
 // State represent a state of the TPR recurrent network.

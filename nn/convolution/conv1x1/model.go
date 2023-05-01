@@ -19,8 +19,8 @@ import (
 type Model struct {
 	nn.Module
 	Config Config
-	W      nn.Param
-	B      nn.Param
+	W      *nn.Param
+	B      *nn.Param
 }
 
 var _ nn.Model = &Model{}

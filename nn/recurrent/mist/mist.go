@@ -24,15 +24,15 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	Wx          nn.Param
-	Wh          nn.Param
-	B           nn.Param
-	Wax         nn.Param
-	Wah         nn.Param
-	Ba          nn.Param
-	Wrx         nn.Param
-	Wrh         nn.Param
-	Br          nn.Param
+	Wx          *nn.Param
+	Wh          *nn.Param
+	B           *nn.Param
+	Wax         *nn.Param
+	Wah         *nn.Param
+	Ba          *nn.Param
+	Wrx         *nn.Param
+	Wrh         *nn.Param
+	Br          *nn.Param
 	NumOfDelays int
 }
 

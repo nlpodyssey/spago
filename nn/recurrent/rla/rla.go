@@ -26,12 +26,12 @@ type Config struct {
 type Model struct {
 	nn.Module
 	Config
-	Wk nn.Param
-	Bk nn.Param
-	Wv nn.Param
-	Bv nn.Param
-	Wq nn.Param
-	Bq nn.Param
+	Wk *nn.Param
+	Bk *nn.Param
+	Wv *nn.Param
+	Bv *nn.Param
+	Wq *nn.Param
+	Bq *nn.Param
 }
 
 // State represent a state of the RLA recurrent network.

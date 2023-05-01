@@ -14,7 +14,7 @@ import (
 // If a model implements this procedure, it will take precedence over the regular parameters visit.
 type ParamsTraverser interface {
 	// TraverseParams visit each Param.
-	TraverseParams(callback func(param Param))
+	TraverseParams(callback func(param *Param))
 }
 
 // paramsTraversal allows the traversal of Model parameters.
@@ -22,7 +22,7 @@ type ParamsTraverser interface {
 // If exploreSubModels is true, every nested Model and its parameters are
 // also visited.
 type paramsTraversal struct {
-	paramsFunc       func(param Param)
+	paramsFunc       func(param *Param)
 	modelsFunc       func(model Model)
 	exploreSubModels bool
 }
@@ -54,7 +54,7 @@ func (pt paramsTraversal) walkStructOrPtr(item any, name string) bool {
 	switch itemT := item.(type) {
 	case Module, *Module:
 		// skip
-	case Param:
+	case *Param:
 		if pt.paramsFunc != nil {
 			pt.paramsFunc(itemT)
 		}

@@ -23,7 +23,7 @@ func Apply(m Model, fn func(model Model)) {
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
-func ForEachParam(m Model, fn func(param Param)) {
+func ForEachParam(m Model, fn func(param *Param)) {
 	paramsTraversal{
 		paramsFunc:       fn,
 		modelsFunc:       nil,
@@ -32,7 +32,7 @@ func ForEachParam(m Model, fn func(param Param)) {
 }
 
 // ForEachParamStrict iterate all the parameters of a model without exploring the sub-models.
-func ForEachParamStrict(m Model, fn func(param Param)) {
+func ForEachParamStrict(m Model, fn func(param *Param)) {
 	paramsTraversal{
 		paramsFunc:       fn,
 		modelsFunc:       nil,
@@ -42,14 +42,14 @@ func ForEachParamStrict(m Model, fn func(param Param)) {
 
 // ZeroGrad set the gradients of all model's parameters (including sub-params) to zeros.
 func ZeroGrad(m Model) {
-	ForEachParam(m, func(param Param) {
+	ForEachParam(m, func(param *Param) {
 		param.ZeroGrad()
 	})
 }
 
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 func ClearSupport(m Model) {
-	ForEachParam(m, func(param Param) {
+	ForEachParam(m, func(param *Param) {
 		param.ClearPayload()
 	})
 }

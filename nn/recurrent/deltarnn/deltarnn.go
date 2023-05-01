@@ -18,13 +18,13 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W     nn.Param
-	WRec  nn.Param
-	B     nn.Param
-	BPart nn.Param
-	Alpha nn.Param
-	Beta1 nn.Param
-	Beta2 nn.Param
+	W     *nn.Param
+	WRec  *nn.Param
+	B     *nn.Param
+	BPart *nn.Param
+	Alpha *nn.Param
+	Beta1 *nn.Param
+	Beta2 *nn.Param
 }
 
 func init() {

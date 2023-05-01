@@ -23,8 +23,13 @@ func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausal
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
 
+	kqi := make([]ag.Node, len(q))
 	for i, qi := range q {
-		scores := ag.ProdScalar(ag.Mul(k, qi), scaleFactor)
+		kqi[i] = ag.Mul(k, qi)
+	}
+
+	for i, kqii := range kqi {
+		scores := ag.ProdScalar(kqii, scaleFactor)
 
 		if causalMaskEnabled {
 			causalMask := k.Value().NewVec(float.SliceInterface(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?

@@ -36,9 +36,9 @@ type Model struct {
 	NonLocalSentCellGate   *HyperLinear3
 	NonLocalInputGate      *HyperLinear3
 	NonLocalSentOutputGate *HyperLinear3
-	StartH                 nn.Param
-	EndH                   nn.Param
-	InitValue              nn.Param
+	StartH                 *nn.Param
+	EndH                   *nn.Param
+	InitValue              *nn.Param
 }
 
 // Config provides configuration settings for a Sentence-State LSTM Model.
@@ -53,18 +53,18 @@ const windowSize = 3 // the window is fixed in this implementation
 // HyperLinear4 groups multiple params for an affine transformation.
 type HyperLinear4 struct {
 	nn.Module
-	W nn.Param
-	U nn.Param
-	V nn.Param
-	B nn.Param
+	W *nn.Param
+	U *nn.Param
+	V *nn.Param
+	B *nn.Param
 }
 
 // HyperLinear3 groups multiple params for an affine transformation.
 type HyperLinear3 struct {
 	nn.Module
-	W nn.Param
-	U nn.Param
-	B nn.Param
+	W *nn.Param
+	U *nn.Param
+	B *nn.Param
 }
 
 // State contains nodes used during the forward step.

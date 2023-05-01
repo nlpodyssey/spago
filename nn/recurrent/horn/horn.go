@@ -20,9 +20,9 @@ var _ nn.Model = &Model{}
 // Model contains the serializable parameters.
 type Model struct {
 	nn.Module
-	W    nn.Param
-	WRec []nn.Param
-	B    nn.Param
+	W    *nn.Param
+	WRec []*nn.Param
+	B    *nn.Param
 }
 
 // State represent a state of the Horn recurrent network.
@@ -36,7 +36,7 @@ func init() {
 
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](in, out, order int) *Model {
-	wRec := make([]nn.Param, order)
+	wRec := make([]*nn.Param, order)
 	for i := 0; i < order; i++ {
 		wRec[i] = nn.NewParam(mat.NewEmptyDense[T](out, out))
 	}
