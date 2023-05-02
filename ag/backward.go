@@ -6,9 +6,6 @@ package ag
 
 import "sync"
 
-// operators is a list of operators.
-type operators []*Operator
-
 // Backward initiates back-propagation from the input nodes.
 //
 // The function operates according to the following mutually exclusive rules:
@@ -20,16 +17,32 @@ type operators []*Operator
 func Backward(xs ...DualValue) {
 	ops := filterOperators(xs)
 	if len(ops) == 0 {
-		// There are no operators to process, do nothing.
 		return
 	}
-	ops.prepareBackwardPass()
-	ops.setOutputGrads()
-	ops.processBackwardPass()
+
+	// The three for loops below are intentionally executed in sequence. They perform the following steps:
+	// 1. Prepare the backward pass for each operator.
+	// 2. Set the output gradients for each operator.
+	// 3. Process the backward pass for each operator in parallel using wait groups.
+	//
+	// These steps must occur in this order, so the loops cannot be combined due to their sequential dependencies.
+	for _, op := range ops {
+		op.prepareBackwardPass()
+	}
+
+	for _, op := range ops {
+		op.setOutputGrad()
+	}
+
+	wg := &sync.WaitGroup{}
+	for _, op := range ops {
+		op.processBackwardPass(wg)
+	}
+	wg.Wait()
 }
 
 // filterOperators returns a list of operators from a list of nodes.
-func filterOperators(nodes []DualValue) operators {
+func filterOperators(nodes []DualValue) []*Operator {
 	ops := make([]*Operator, 0, len(nodes))
 	for _, node := range nodes {
 		if op, ok := node.(*Operator); ok {
@@ -37,24 +50,4 @@ func filterOperators(nodes []DualValue) operators {
 		}
 	}
 	return ops
-}
-
-func (ops operators) prepareBackwardPass() {
-	for _, op := range ops {
-		op.prepareBackwardPass()
-	}
-}
-
-func (ops operators) setOutputGrads() {
-	for _, op := range ops {
-		op.setOutputGrad()
-	}
-}
-
-func (ops operators) processBackwardPass() {
-	wg := &sync.WaitGroup{}
-	for _, op := range ops {
-		op.processBackwardPass(wg)
-	}
-	wg.Wait()
 }
