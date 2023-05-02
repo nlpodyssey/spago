@@ -76,8 +76,11 @@ type AutoGradFunction[T DualValue] interface {
 // in the semaphore ensures that the concurrency level stays within the desired limit.
 var forwardGuard chan struct{}
 
+// Using runtime.NumCPU() * 2 is a common heuristic for setting the number of concurrent goroutines or the concurrency level in a Go program.
+var concurrencyLimit = runtime.NumCPU() * 2
+
 func init() {
-	forwardGuard = make(chan struct{}, runtime.NumCPU()*2)
+	forwardGuard = make(chan struct{}, concurrencyLimit)
 }
 
 // Operator is a type of node.
