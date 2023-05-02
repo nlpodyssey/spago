@@ -23,7 +23,7 @@ func Add(x1 DualValue, x2 DualValue) DualValue {
 	if x1 == nil {
 		return Identity(x2) // return a copy of `x2` as is
 	}
-	return NewOperator(fn.NewAdd(x1, x2)).Run()
+	return NewOperator(fn.NewAdd(x1, x2)).Run(true)
 }
 
 // AddScalar returns a new operator node as a result of the fn.AddScalar function.
@@ -33,7 +33,7 @@ func AddScalar(x1, x2 DualValue) DualValue {
 
 // Affine returns a new operator node as a result of the fn.Affine function.
 func Affine(b, w1, x1 DualValue, wxPairs ...DualValue) DualValue {
-	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...)).Run()
+	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...)).Run(true)
 }
 
 // AppendRows returns a new operator node as a result of the fn.AppendRows function.
@@ -197,7 +197,7 @@ func Prod(x1, x2 DualValue) DualValue {
 
 // ProdScalar returns a new operator node as a result of the fn.ProdScalar function.
 func ProdScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewProdScalar(x1, x2)).Run()
+	return NewOperator(fn.NewProdScalar(x1, x2)).Run(true)
 }
 
 // Reciprocal returns a new operator node as a result of the `Reciprocal` function.
@@ -333,7 +333,7 @@ func SubScalar(x1, x2 DualValue) DualValue {
 
 // Swish returns a new operator node as a result of the fn.Swish function.
 func Swish(x DualValue) DualValue {
-	return NewOperator(fn.NewSwish(x)).Run(false)
+	return NewOperator(fn.NewSwish(x)).Run()
 }
 
 // SwishB returns a new operator node as a result of the fn.SwishB function.
