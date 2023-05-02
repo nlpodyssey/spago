@@ -6,6 +6,7 @@ package ag
 
 import (
 	"fmt"
+	"github.com/nlpodyssey/spago/mat"
 	"math"
 
 	"github.com/nlpodyssey/spago/fn"
@@ -233,6 +234,11 @@ func Reshape(x DualValue, rows, columns int) DualValue {
 // ReverseSub returns a new operator node as a result of the fn.ReverseSub function.
 func ReverseSub(x1, x2 DualValue) DualValue {
 	return NewOperator(fn.NewReverseSubScalar(x1, x2)).Run()
+}
+
+// ReverseSubOne returns a new operator node as a result of applying reverse subtraction with 1.0 to the input using the fn.ReverseSub function.
+func ReverseSubOne(x DualValue) DualValue {
+	return NewOperator(fn.NewReverseSubScalar(x, DualValue(mat.Scalar(1.0)))).Run()
 }
 
 // RotateR performs the right circular shift.
