@@ -34,7 +34,7 @@ func TestWrapper_Gradients(t *testing.T) {
 }
 
 func testWrapperGradients[T float.DType](t *testing.T) {
-	grad := mat.NewScalar[T](42)
+	grad := mat.Scalar[T](42)
 	dn := &dummyNode{
 		grad:         grad,
 		requiresGrad: true,
@@ -45,7 +45,7 @@ func testWrapperGradients[T float.DType](t *testing.T) {
 	require.Nil(t, w.Grad())
 	assert.False(t, w.HasGrad())
 
-	w.AccGrad(mat.NewScalar[T](5))
+	w.AccGrad(mat.Scalar[T](5))
 	require.Nil(t, w.Grad())
 	assert.False(t, w.HasGrad())
 

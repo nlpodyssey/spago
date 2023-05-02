@@ -21,7 +21,7 @@ func TestNewOperator(t *testing.T) {
 }
 
 func testNewOperator[T float.DType](t *testing.T) {
-	forwardResult := mat.NewScalar[T](42)
+	forwardResult := mat.Scalar[T](42)
 
 	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
@@ -73,7 +73,7 @@ func TestOperator_Value(t *testing.T) {
 }
 
 func testOperatorValue[T float.DType](t *testing.T) {
-	forwardResult := mat.NewScalar[T](42)
+	forwardResult := mat.Scalar[T](42)
 
 	f := &dummyFunction[T, DualValue]{
 		forward: func() (mat.Matrix, error) { return forwardResult, nil },
@@ -135,7 +135,7 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, DualValue]{
 			forward: func() (mat.Matrix, error) {
-				return mat.NewScalar[T](42), nil
+				return mat.Scalar[T](42), nil
 			},
 			operands: func() []DualValue {
 				return []DualValue{&dummyNode{requiresGrad: true}}
@@ -145,12 +145,12 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 		require.Nil(t, op.Grad())
 		assert.False(t, op.HasGrad())
 
-		op.AccGrad(mat.NewScalar[T](5))
-		mat.RequireMatrixEquals(t, mat.NewScalar[T](5), op.Grad())
+		op.AccGrad(mat.Scalar[T](5))
+		mat.RequireMatrixEquals(t, mat.Scalar[T](5), op.Grad())
 		assert.True(t, op.HasGrad())
 
-		op.AccGrad(mat.NewScalar[T](10))
-		mat.RequireMatrixEquals(t, mat.NewScalar[T](15), op.Grad())
+		op.AccGrad(mat.Scalar[T](10))
+		mat.RequireMatrixEquals(t, mat.Scalar[T](15), op.Grad())
 		assert.True(t, op.HasGrad())
 
 		op.ZeroGrad()
@@ -160,13 +160,13 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 
 	t.Run("with requires gradient false", func(t *testing.T) {
 		op := NewOperator(&dummyFunction[T, DualValue]{
-			forward: func() (mat.Matrix, error) { return mat.NewScalar[T](42), nil },
+			forward: func() (mat.Matrix, error) { return mat.Scalar[T](42), nil },
 		}).Run()
 
 		require.Nil(t, op.Grad())
 		assert.False(t, op.HasGrad())
 
-		op.AccGrad(mat.NewScalar[T](5))
+		op.AccGrad(mat.Scalar[T](5))
 		require.NotNil(t, op.Grad())
 		assert.True(t, op.HasGrad())
 

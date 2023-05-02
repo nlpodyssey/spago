@@ -31,7 +31,7 @@ func Buf(value mat.Matrix) *Buffer {
 // Const creates a new Buffer from a scalar value.
 func Const[T float.DType](value T) *Buffer {
 	return &Buffer{
-		Matrix: mat.NewScalar(value),
+		Matrix: mat.Scalar(value),
 	}
 }
 

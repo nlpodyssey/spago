@@ -111,7 +111,7 @@ func testDenseScalar[T float.DType](t *testing.T) {
 	})
 
 	t.Run("scalar matrix", func(t *testing.T) {
-		d := NewScalar(T(42))
+		d := Scalar(T(42))
 		require.Equal(t, float.Interface(T(42)), d.Scalar())
 	})
 }
@@ -152,28 +152,28 @@ func testDenseSet[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.Set(-1, 1, NewScalar(T(42)))
+			d.Set(-1, 1, Scalar(T(42)))
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.Set(1, -1, NewScalar(T(42)))
+			d.Set(1, -1, Scalar(T(42)))
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.Set(2, 1, NewScalar(T(42)))
+			d.Set(2, 1, Scalar(T(42)))
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.Set(1, 3, NewScalar(T(42)))
+			d.Set(1, 3, Scalar(T(42)))
 		})
 	})
 
@@ -213,7 +213,7 @@ func testDenseSet[T float.DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.r, tc.c)
-			d.Set(tc.setR, tc.setC, NewScalar(T(42)))
+			d.Set(tc.setR, tc.setC, Scalar(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
@@ -445,21 +445,21 @@ func testDenseSetVec[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
 		d := NewEmptyDense[T](2, 3)
 		require.Panics(t, func() {
-			d.SetVec(1, NewScalar(T(42)))
+			d.SetVec(1, Scalar(T(42)))
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVec(-1, NewScalar(T(42)))
+			d.SetVec(-1, Scalar(T(42)))
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
 		d := NewEmptyVecDense[T](2)
 		require.Panics(t, func() {
-			d.SetVec(2, NewScalar(T(42)))
+			d.SetVec(2, Scalar(T(42)))
 		})
 	})
 
@@ -480,13 +480,13 @@ func testDenseSetVec[T float.DType](t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](tc.size, 1)
-			d.SetVec(tc.i, NewScalar(T(42)))
+			d.SetVec(tc.i, Scalar(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
 			d := NewEmptyDense[T](1, tc.size)
-			d.SetVec(tc.i, NewScalar(T(42)))
+			d.SetVec(tc.i, Scalar(T(42)))
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 	}
@@ -4043,7 +4043,7 @@ func testDenseString[T float.DType](t *testing.T) {
 		{NewEmptyDense[T](0, 0), "(0×0)[]"},
 		{NewEmptyDense[T](0, 1), "(0×1)[]"},
 		{NewEmptyDense[T](1, 0), "(1×0)[]"},
-		{NewScalar[T](42), "(1×1)[42]"},
+		{Scalar[T](42), "(1×1)[42]"},
 		{NewVecDense([]T{1, 2, 3}), "(3×1)[1 2 3]"},
 		{
 			NewDense(2, 3, []T{

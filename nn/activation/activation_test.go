@@ -40,7 +40,7 @@ func TestModelSwish_Forward(t *testing.T) {
 }
 
 func testModelSwishForward[T float.DType](t *testing.T) {
-	beta := nn.NewParam(mat.NewScalar(T(2)))
+	beta := nn.NewParam(mat.Scalar(T(2)))
 	m := New(SwishB, beta)
 
 	// == Forward

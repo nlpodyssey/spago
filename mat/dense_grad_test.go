@@ -23,8 +23,8 @@ func testNewDenseGrad[T float.DType](t *testing.T) {
 		value        Matrix
 		requiresGrad bool
 	}{
-		{NewScalar[T](42, WithGrad(true)), true},
-		{NewScalar[T](42, WithGrad(false)), false},
+		{Scalar[T](42, WithGrad(true)), true},
+		{Scalar[T](42, WithGrad(false)), false},
 	}
 
 	for _, tc := range testCases {
@@ -46,9 +46,9 @@ func TestNewScalarGrad(t *testing.T) {
 }
 
 func testNewScalarGrad[T float.DType](t *testing.T) {
-	v := NewScalar(T(42))
+	v := Scalar(T(42))
 	require.NotNil(t, v)
-	AssertMatrixEquals(t, NewScalar[T](42), v.Value())
+	AssertMatrixEquals(t, Scalar[T](42), v.Value())
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
@@ -61,16 +61,16 @@ func TestDense_Gradients(t *testing.T) {
 
 func testDenseGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
-		v := NewScalar[T](42, WithGrad(true))
+		v := Scalar[T](42, WithGrad(true))
 		require.Nil(t, v.Grad())
 		assert.False(t, v.HasGrad())
 
-		v.AccGrad(NewScalar[T](5))
-		RequireMatrixEquals(t, NewScalar[T](5), v.Grad())
+		v.AccGrad(Scalar[T](5))
+		RequireMatrixEquals(t, Scalar[T](5), v.Grad())
 		assert.True(t, v.HasGrad())
 
-		v.AccGrad(NewScalar[T](10))
-		RequireMatrixEquals(t, NewScalar[T](15), v.Grad())
+		v.AccGrad(Scalar[T](10))
+		RequireMatrixEquals(t, Scalar[T](15), v.Grad())
 		assert.True(t, v.HasGrad())
 
 		v.ZeroGrad()
@@ -79,11 +79,11 @@ func testDenseGradients[T float.DType](t *testing.T) {
 	})
 
 	t.Run("with requires gradient false", func(t *testing.T) {
-		v := NewScalar[T](42, WithGrad(false))
+		v := Scalar[T](42, WithGrad(false))
 		require.Nil(t, v.Grad())
 		assert.False(t, v.HasGrad())
 
-		v.AccGrad(NewScalar[T](5))
+		v.AccGrad(Scalar[T](5))
 		require.NotNil(t, v.Grad())
 		assert.True(t, v.HasGrad())
 

@@ -51,8 +51,8 @@ func TestModel(t *testing.T) {
 		e.SetPayload(&nn.OptimizerPayload{
 			Label: 123,
 			Data: []mat.Matrix{
-				mat.NewScalar[T](11),
-				mat.NewScalar[T](22),
+				mat.Scalar[T](11),
+				mat.Scalar[T](22),
 			},
 		})
 
@@ -83,8 +83,8 @@ func TestModel_TraverseParams(t *testing.T) {
 		e.SetPayload(&nn.OptimizerPayload{
 			Label: 123,
 			Data: []mat.Matrix{
-				mat.NewScalar[T](11),
-				mat.NewScalar[T](22),
+				mat.Scalar[T](11),
+				mat.Scalar[T](22),
 			},
 		})
 

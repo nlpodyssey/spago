@@ -113,7 +113,7 @@ func TestNewScalar(t *testing.T) {
 }
 
 func testNewScalar[T float.DType](t *testing.T) {
-	d := NewScalar(T(42))
+	d := Scalar(T(42))
 	assertDenseDims(t, 1, 1, d)
 	assert.Equal(t, []T{42}, Data[T](d))
 }

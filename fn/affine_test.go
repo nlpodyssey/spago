@@ -22,12 +22,12 @@ func TestAffine(t *testing.T) {
 func testAffine[T float.DType](t *testing.T) {
 	for _, lenWXPairs := range []int{1, 3, 5} {
 		t.Run(fmt.Sprintf("it panics if len(wxPairs) is %d", lenWXPairs), func(t *testing.T) {
-			b := newDualValue(mat.NewScalar(T(1)))
-			w1 := newDualValue(mat.NewScalar(T(2)))
-			x1 := newDualValue(mat.NewScalar(T(3)))
+			b := newDualValue(mat.Scalar(T(1)))
+			w1 := newDualValue(mat.Scalar(T(2)))
+			x1 := newDualValue(mat.Scalar(T(3)))
 			wxPairs := make([]*variable, lenWXPairs)
 			for i := range wxPairs {
-				wxPairs[i] = newDualValue(mat.NewScalar(T(i)))
+				wxPairs[i] = newDualValue(mat.Scalar(T(i)))
 			}
 			require.Panics(t, func() { NewAffine(b, w1, x1, wxPairs...) })
 		})
@@ -48,34 +48,34 @@ func testAffine[T float.DType](t *testing.T) {
 	}{
 		{
 			name:             "no additional (w, x) pairs - scalars",
-			b:                mat.NewScalar(T(10)),
-			w1:               mat.NewScalar(T(2)),
-			x1:               mat.NewScalar(T(3)),
+			b:                mat.Scalar(T(10)),
+			w1:               mat.Scalar(T(2)),
+			x1:               mat.Scalar(T(3)),
 			wxPairs:          nil,
-			wantFwd:          mat.NewScalar(T(16)),
-			gy:               mat.NewScalar(T(4)),
-			wantBGrad:        mat.NewScalar(T(4)),
-			wantW1Grad:       mat.NewScalar(T(12)),
-			wantX1Grad:       mat.NewScalar(T(8)),
+			wantFwd:          mat.Scalar(T(16)),
+			gy:               mat.Scalar(T(4)),
+			wantBGrad:        mat.Scalar(T(4)),
+			wantW1Grad:       mat.Scalar(T(12)),
+			wantX1Grad:       mat.Scalar(T(8)),
 			wantWXPairsGrads: nil,
 		},
 		{
 			name: "one additional (w, x) pair - scalars",
-			b:    mat.NewScalar(T(10)),
-			w1:   mat.NewScalar(T(2)),
-			x1:   mat.NewScalar(T(3)),
+			b:    mat.Scalar(T(10)),
+			w1:   mat.Scalar(T(2)),
+			x1:   mat.Scalar(T(3)),
 			wxPairs: []mat.Matrix{
-				mat.NewScalar(T(10)), // w2
-				mat.NewScalar(T(20)), // x2
+				mat.Scalar(T(10)), // w2
+				mat.Scalar(T(20)), // x2
 			},
-			wantFwd:    mat.NewScalar(T(216)),
-			gy:         mat.NewScalar(T(4)),
-			wantBGrad:  mat.NewScalar(T(4)),
-			wantW1Grad: mat.NewScalar(T(12)),
-			wantX1Grad: mat.NewScalar(T(8)),
+			wantFwd:    mat.Scalar(T(216)),
+			gy:         mat.Scalar(T(4)),
+			wantBGrad:  mat.Scalar(T(4)),
+			wantW1Grad: mat.Scalar(T(12)),
+			wantX1Grad: mat.Scalar(T(8)),
 			wantWXPairsGrads: []mat.Matrix{
-				mat.NewScalar(T(80)), // w2
-				mat.NewScalar(T(40)), // x2
+				mat.Scalar(T(80)), // w2
+				mat.Scalar(T(40)), // x2
 			},
 		},
 		{
@@ -173,43 +173,43 @@ func testAffine[T float.DType](t *testing.T) {
 		},
 		{
 			name: "additional (w, x) pairs where x is nil are ignored",
-			b:    mat.NewScalar(T(10)),
-			w1:   mat.NewScalar(T(2)),
-			x1:   mat.NewScalar(T(3)),
+			b:    mat.Scalar(T(10)),
+			w1:   mat.Scalar(T(2)),
+			x1:   mat.Scalar(T(3)),
 			wxPairs: []mat.Matrix{
-				mat.NewScalar(T(987)), // w2
-				nil,                   // x2
-				mat.NewScalar(T(10)),  // w3
-				mat.NewScalar(T(20)),  // x3
+				mat.Scalar(T(987)), // w2
+				nil,                // x2
+				mat.Scalar(T(10)),  // w3
+				mat.Scalar(T(20)),  // x3
 			},
-			wantFwd:    mat.NewScalar(T(216)),
-			gy:         mat.NewScalar(T(4)),
-			wantBGrad:  mat.NewScalar(T(4)),
-			wantW1Grad: mat.NewScalar(T(12)),
-			wantX1Grad: mat.NewScalar(T(8)),
+			wantFwd:    mat.Scalar(T(216)),
+			gy:         mat.Scalar(T(4)),
+			wantBGrad:  mat.Scalar(T(4)),
+			wantW1Grad: mat.Scalar(T(12)),
+			wantX1Grad: mat.Scalar(T(8)),
 			wantWXPairsGrads: []mat.Matrix{
-				nil,                  // w2
-				nil,                  // x2
-				mat.NewScalar(T(80)), // w3
-				mat.NewScalar(T(40)), // x3
+				nil,               // w2
+				nil,               // x2
+				mat.Scalar(T(80)), // w3
+				mat.Scalar(T(40)), // x3
 			},
 		},
 		{
 			name: "(w, x) pairs with all x values set to nil",
-			b:    mat.NewScalar(T(10)),
-			w1:   mat.NewScalar(T(2)),
-			x1:   mat.NewScalar(T(3)),
+			b:    mat.Scalar(T(10)),
+			w1:   mat.Scalar(T(2)),
+			x1:   mat.Scalar(T(3)),
 			wxPairs: []mat.Matrix{
-				mat.NewScalar(T(123)), // w2
-				nil,                   // x2
-				mat.NewScalar(T(456)), // w3
-				nil,                   // x4
+				mat.Scalar(T(123)), // w2
+				nil,                // x2
+				mat.Scalar(T(456)), // w3
+				nil,                // x4
 			},
-			wantFwd:    mat.NewScalar(T(16)),
-			gy:         mat.NewScalar(T(4)),
-			wantBGrad:  mat.NewScalar(T(4)),
-			wantW1Grad: mat.NewScalar(T(12)),
-			wantX1Grad: mat.NewScalar(T(8)),
+			wantFwd:    mat.Scalar(T(16)),
+			gy:         mat.Scalar(T(4)),
+			wantBGrad:  mat.Scalar(T(4)),
+			wantW1Grad: mat.Scalar(T(12)),
+			wantX1Grad: mat.Scalar(T(8)),
 			wantWXPairsGrads: []mat.Matrix{
 				nil, // w2
 				nil, // x2

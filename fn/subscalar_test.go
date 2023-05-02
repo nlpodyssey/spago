@@ -24,7 +24,7 @@ func testSubScalarForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewScalar[T](2.0),
+		value:        mat.Scalar[T](2.0),
 		grad:         nil,
 		requiresGrad: true,
 	}

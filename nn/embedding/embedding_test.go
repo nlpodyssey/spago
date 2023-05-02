@@ -90,7 +90,7 @@ func TestEmbedding_ScalarValue(t *testing.T) {
 
 	e, _ := m.Embedding(0)
 
-	e.ReplaceValue(mat.NewScalar[T](42))
+	e.ReplaceValue(mat.Scalar[T](42))
 	assert.Equal(t, float.Interface(T(42)), e.Value().Scalar())
 }
 

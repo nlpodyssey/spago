@@ -121,7 +121,7 @@ func (d *Dense[T]) Set(r int, c int, m Matrix) {
 // At returns the value at row r and column c as a 1×1 matrix.
 // It panics if the given indices are out of range.
 func (d *Dense[T]) At(r int, c int) Matrix {
-	return NewScalar[T](d.at(r, c))
+	return Scalar[T](d.at(r, c))
 }
 
 // SetScalar sets the value v at row r and column c.
@@ -166,7 +166,7 @@ func (d *Dense[T]) SetVec(i int, m Matrix) {
 // AtVec returns the value at position i of a vector as a 1×1 matrix.
 // It panics if the receiver is not a vector or the position is out of range.
 func (d *Dense[T]) AtVec(i int) Matrix {
-	return NewScalar[T](d.atVec(i))
+	return Scalar[T](d.atVec(i))
 }
 
 // SetVecScalar sets the value v at position i of a vector.
@@ -807,10 +807,10 @@ func (d *Dense[T]) DotUnitary(other Matrix) Matrix {
 	switch any(T(0)).(type) {
 	case float32:
 		otherData := float32Data(other)
-		return NewScalar(matfuncs.DotProd32(any(d.data).([]float32), otherData))
+		return Scalar(matfuncs.DotProd32(any(d.data).([]float32), otherData))
 	case float64:
 		otherData := float64Data(other)
-		return NewScalar(matfuncs.DotProd64(any(d.data).([]float64), otherData))
+		return Scalar(matfuncs.DotProd64(any(d.data).([]float64), otherData))
 	default:
 		panic(fmt.Sprintf("mat: unexpected type %T", T(0)))
 	}
@@ -1009,7 +1009,7 @@ func (d *Dense[T]) Sigmoid() Matrix {
 
 // Sum returns the sum of all values of the matrix as a scalar Matrix.
 func (d *Dense[T]) Sum() Matrix {
-	return NewScalar(d.sum())
+	return Scalar(d.sum())
 }
 
 func (d *Dense[T]) sum() T {
@@ -1025,7 +1025,7 @@ func (d *Dense[T]) sum() T {
 
 // Max returns the maximum value of the matrix as a scalar Matrix.
 func (d *Dense[T]) Max() Matrix {
-	return NewScalar(d.max())
+	return Scalar(d.max())
 }
 
 func (d *Dense[T]) max() T {
@@ -1052,7 +1052,7 @@ func (d *Dense[T]) Min() Matrix {
 			min = v
 		}
 	}
-	return NewScalar(min)
+	return Scalar(min)
 }
 
 // ArgMax returns the index of the vector's element with the maximum value.
@@ -1283,7 +1283,7 @@ func (d *Dense[T]) AppendRows(vs ...Matrix) Matrix {
 // Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 // The result is a scalar Matrix.
 func (d *Dense[T]) Norm(pow float64) Matrix {
-	return NewScalar(T(d.norm(pow)))
+	return Scalar(T(d.norm(pow)))
 }
 
 func (d *Dense[T]) norm(pow float64) float64 {
@@ -1581,10 +1581,10 @@ func (d *Dense[T]) NewVec(data float.Slice, opts ...MatrixOption) Matrix {
 	return NewVecDense[T](float.SliceValueOf[T](data), opts...)
 }
 
-// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
+// Scalar creates a new 1×1 matrix, of the same type of the receiver,
 // containing the given value.
 func (d *Dense[T]) NewScalar(v float64, opts ...MatrixOption) Matrix {
-	return NewScalar(T(v), opts...)
+	return Scalar(T(v), opts...)
 }
 
 // NewEmptyVec creates a new vector, of the same type of the receiver,

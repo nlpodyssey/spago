@@ -63,7 +63,7 @@ func testScalarConst[T float.DType](t *testing.T) {
 	c := Const(T(42))
 	require.NotNil(t, c)
 	assert.Equal(t, "42", c.Name())
-	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.Scalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -78,7 +78,7 @@ func testScalarConstWithName[T float.DType](t *testing.T) {
 	c := Const(T(42)).WithName("foo")
 	require.NotNil(t, c)
 	assert.Equal(t, "foo", c.Name())
-	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.Scalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -91,8 +91,8 @@ func TestSConstant_AccGrad(t *testing.T) {
 
 func testScalarConstantAccGrad[T float.DType](t *testing.T) {
 	c := Const(T(42))
-	c.AccGrad(mat.NewScalar(T(100)))
-	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	c.AccGrad(mat.Scalar(T(100)))
+	mat.AssertMatrixEquals(t, mat.Scalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -106,7 +106,7 @@ func TestSConstant_ZeroGrad(t *testing.T) {
 func testScalarConstantZeroGrad[T float.DType](t *testing.T) {
 	c := Const(T(42))
 	c.ZeroGrad()
-	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c.Value())
+	mat.AssertMatrixEquals(t, mat.Scalar(T(42)), c.Value())
 	assert.Nil(t, c.Grad())
 	assert.False(t, c.HasGrad())
 	assert.False(t, c.RequiresGrad())
@@ -132,5 +132,5 @@ func testScalarConstantMarshaling[T float.DType](t *testing.T) {
 	require.Nil(t, err)
 
 	assert.Equal(t, "foo", c2.Name())
-	mat.AssertMatrixEquals(t, mat.NewScalar(T(42)), c2.Value())
+	mat.AssertMatrixEquals(t, mat.Scalar(T(42)), c2.Value())
 }

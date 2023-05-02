@@ -24,7 +24,7 @@ func testSoftShrinkForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	lambda := &variable{
-		value:        mat.NewScalar[T](0.2),
+		value:        mat.Scalar[T](0.2),
 		grad:         nil,
 		requiresGrad: false,
 	}

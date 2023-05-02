@@ -24,12 +24,12 @@ func testThresholdForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	ts := &variable{
-		value:        mat.NewScalar[T](2.0),
+		value:        mat.Scalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}
 	k := &variable{
-		value:        mat.NewScalar[T](1.6),
+		value:        mat.Scalar[T](1.6),
 		grad:         nil,
 		requiresGrad: false,
 	}

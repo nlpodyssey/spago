@@ -45,8 +45,8 @@ func NewVecDense[T float.DType](data []T, opts ...MatrixOption) *Dense[T] {
 	return d
 }
 
-// NewScalar returns a new 1×1 matrix containing the given value.
-func NewScalar[T float.DType](v T, opts ...MatrixOption) *Dense[T] {
+// Scalar returns a new 1×1 matrix containing the given value.
+func Scalar[T float.DType](v T, opts ...MatrixOption) *Dense[T] {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
 	d := makeDense[T](1, 1)
 	d.data[0] = v

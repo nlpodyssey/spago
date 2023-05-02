@@ -24,7 +24,7 @@ func testCELUForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	alpha := &variable{
-		value:        mat.NewScalar[T](2.0),
+		value:        mat.Scalar[T](2.0),
 		grad:         nil,
 		requiresGrad: false,
 	}

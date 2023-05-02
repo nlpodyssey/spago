@@ -24,7 +24,7 @@ func testSwishBForward[T float.DType](t *testing.T) {
 		requiresGrad: true,
 	}
 	beta := &variable{
-		value:        mat.NewScalar[T](2.0),
+		value:        mat.Scalar[T](2.0),
 		grad:         nil,
 		requiresGrad: true,
 	}

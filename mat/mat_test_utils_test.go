@@ -153,8 +153,8 @@ func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 	return []matrixEqualsTestCase{
 		{
 			name:     "no errors",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](42),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](42),
 			args:     nil,
 			success:  true,
 			errorMsg: "",
@@ -162,14 +162,14 @@ func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 		{
 			name:     "expected nil",
 			expected: nil,
-			actual:   mat.NewScalar[T](42),
+			actual:   mat.Scalar[T](42),
 			args:     nil,
 			success:  false,
 			errorMsg: "the expected matrix must not be nil",
 		},
 		{
 			name:     "actual nil",
-			expected: mat.NewScalar[T](42),
+			expected: mat.Scalar[T](42),
 			actual:   nil,
 			args:     nil,
 			success:  false,
@@ -184,7 +184,7 @@ func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 		},
 		{
 			name:     "actual nil - args",
-			expected: mat.NewScalar[T](42),
+			expected: mat.Scalar[T](42),
 			actual:   nil,
 			args:     []any{"foo ", 123},
 			success:  false,
@@ -199,8 +199,8 @@ func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 		},
 		{
 			name:     "matrices not equal",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](0),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](0),
 			args:     nil,
 			success:  false,
 			errorMsg: strings.Join([]string{
@@ -214,8 +214,8 @@ func matrixEqualsTestCases[T float.DType]() []matrixEqualsTestCase {
 		},
 		{
 			name:     "matrices not equal - args",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](0),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](0),
 			args:     []any{"foo ", 123},
 			success:  false,
 			errorMsg: strings.Join([]string{
@@ -244,8 +244,8 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 	return []matrixInDeltaTestCase{
 		{
 			name:     "no errors",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](43),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](43),
 			delta:    1,
 			args:     nil,
 			success:  true,
@@ -254,7 +254,7 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 		{
 			name:     "expected nil",
 			expected: nil,
-			actual:   mat.NewScalar[T](42),
+			actual:   mat.Scalar[T](42),
 			delta:    1,
 			args:     nil,
 			success:  false,
@@ -262,7 +262,7 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 		},
 		{
 			name:     "actual nil",
-			expected: mat.NewScalar[T](42),
+			expected: mat.Scalar[T](42),
 			actual:   nil,
 			delta:    1,
 			args:     nil,
@@ -278,7 +278,7 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 		},
 		{
 			name:     "actual nil - args",
-			expected: mat.NewScalar[T](42),
+			expected: mat.Scalar[T](42),
 			actual:   nil,
 			delta:    1,
 			args:     []any{"foo ", 123},
@@ -294,8 +294,8 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 		},
 		{
 			name:     "matrices not equal",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](44),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](44),
 			delta:    1,
 			args:     nil,
 			success:  false,
@@ -310,8 +310,8 @@ func matrixInDeltaTestCases[T float.DType]() []matrixInDeltaTestCase {
 		},
 		{
 			name:     "matrices not equal - args",
-			expected: mat.NewScalar[T](42),
-			actual:   mat.NewScalar[T](44),
+			expected: mat.Scalar[T](42),
+			actual:   mat.Scalar[T](44),
 			delta:    1,
 			args:     []any{"foo ", 123},
 			success:  false,

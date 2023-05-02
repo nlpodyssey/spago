@@ -37,7 +37,10 @@ func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausal
 		}
 
 		weights[i] = ag.Softmax(scores)
-		attention[i] = ag.MulT(v, weights[i])
+	}
+
+	for i, w := range weights {
+		attention[i] = ag.MulT(v, w)
 	}
 
 	return attention, weights

@@ -83,7 +83,7 @@ func testDenseMarshaling[T float.DType](t *testing.T) {
 }
 
 func testDenseMarshalingWrongType[T1, T2 float.DType](t *testing.T) {
-	d := NewScalar[T1](42)
+	d := Scalar[T1](42)
 	data, err := d.MarshalBinary()
 	require.NoError(t, err)
 

@@ -97,8 +97,8 @@ var traversalTests = []traversalTest{
 		}
 
 		m := &modelType{
-			A: NewParam(mat.NewScalar(1.)),
-			B: NewParam(mat.NewScalar(2.)),
+			A: NewParam(mat.Scalar(1.)),
+			B: NewParam(mat.Scalar(2.)),
 		}
 
 		params := []collectedParam{
@@ -123,12 +123,12 @@ var traversalTests = []traversalTest{
 
 		m := &modelType{
 			A: []*Param{
-				NewParam(mat.NewScalar(1.)),
-				NewParam(mat.NewScalar(2.)),
+				NewParam(mat.Scalar(1.)),
+				NewParam(mat.Scalar(2.)),
 			},
 			B: []*Param{
-				NewParam(mat.NewScalar(3.)),
-				NewParam(mat.NewScalar(4.)),
+				NewParam(mat.Scalar(3.)),
+				NewParam(mat.Scalar(4.)),
 			},
 		}
 
@@ -160,11 +160,11 @@ var traversalTests = []traversalTest{
 		}
 
 		nested := &modelType{
-			P: NewParam(mat.NewScalar(100.)),
+			P: NewParam(mat.Scalar(100.)),
 			M: &emptyModel{},
 		}
 		m := &modelType{
-			P: NewParam(mat.NewScalar(1.)),
+			P: NewParam(mat.Scalar(1.)),
 			M: nested,
 		}
 
@@ -195,10 +195,10 @@ var traversalTests = []traversalTest{
 			M []Model
 		}
 
-		mA := &modelType{P: NewParam(mat.NewScalar(100.))}
-		mB := &modelType{P: NewParam(mat.NewScalar(200.))}
+		mA := &modelType{P: NewParam(mat.Scalar(100.))}
+		mB := &modelType{P: NewParam(mat.Scalar(200.))}
 		m := &modelType{
-			P: NewParam(mat.NewScalar(1.)),
+			P: NewParam(mat.Scalar(1.)),
 			M: []Model{mA, mB},
 		}
 
@@ -231,10 +231,10 @@ var traversalTests = []traversalTest{
 			M modelList
 		}
 
-		mA := &modelType{P: NewParam(mat.NewScalar(100.))}
-		mB := &modelType{P: NewParam(mat.NewScalar(200.))}
+		mA := &modelType{P: NewParam(mat.Scalar(100.))}
+		mB := &modelType{P: NewParam(mat.Scalar(200.))}
 		m := &modelType{
-			P: NewParam(mat.NewScalar(1.)),
+			P: NewParam(mat.Scalar(1.)),
 			M: modelList{mA, mB},
 		}
 
@@ -266,10 +266,10 @@ var traversalTests = []traversalTest{
 			M []any
 		}
 
-		mA := &modelType{P: NewParam(mat.NewScalar(100.))}
-		mB := &modelType{P: NewParam(mat.NewScalar(200.))}
+		mA := &modelType{P: NewParam(mat.Scalar(100.))}
+		mB := &modelType{P: NewParam(mat.Scalar(200.))}
 		m := &modelType{
-			P: NewParam(mat.NewScalar(1.)),
+			P: NewParam(mat.Scalar(1.)),
 			M: []any{mA, mB},
 		}
 
@@ -301,10 +301,10 @@ var traversalTests = []traversalTest{
 			M [2]any
 		}
 
-		mA := &modelType{P: NewParam(mat.NewScalar(100.))}
-		mB := &modelType{P: NewParam(mat.NewScalar(200.))}
+		mA := &modelType{P: NewParam(mat.Scalar(100.))}
+		mB := &modelType{P: NewParam(mat.Scalar(200.))}
 		m := &modelType{
-			P: NewParam(mat.NewScalar(1.)),
+			P: NewParam(mat.Scalar(1.)),
 			M: [2]any{mA, mB},
 		}
 
@@ -342,14 +342,14 @@ var traversalTests = []traversalTest{
 			Qux []traversableType
 		}
 
-		alfa := NewParam(mat.NewScalar(10.))
-		bravo := NewParam(mat.NewScalar(20.))
-		charlie := NewParam(mat.NewScalar(30.))
-		delta := NewParam(mat.NewScalar(40.))
-		echo := NewParam(mat.NewScalar(50.))
+		alfa := NewParam(mat.Scalar(10.))
+		bravo := NewParam(mat.Scalar(20.))
+		charlie := NewParam(mat.Scalar(30.))
+		delta := NewParam(mat.Scalar(40.))
+		echo := NewParam(mat.Scalar(50.))
 
 		nested := &modelType{
-			Foo: NewParam(mat.NewScalar(3.)),
+			Foo: NewParam(mat.Scalar(3.)),
 			Bar: nil,
 			Baz: nil,
 			Qux: []traversableType{
@@ -360,8 +360,8 @@ var traversalTests = []traversalTest{
 			},
 		}
 		m := &modelType{
-			Foo: NewParam(mat.NewScalar(1.)),
-			Bar: []simpleStruct{{P: NewParam(mat.NewScalar(2.))}},
+			Foo: NewParam(mat.Scalar(1.)),
+			Bar: []simpleStruct{{P: NewParam(mat.Scalar(2.))}},
 			Baz: nested,
 			Qux: []traversableType{
 				{func(f func(param *Param)) {
@@ -408,10 +408,10 @@ var traversalTests = []traversalTest{
 
 		m := &modelType{
 			MI: map[int]*Param{
-				0: NewParam(mat.NewScalar(1.)),
+				0: NewParam(mat.Scalar(1.)),
 			},
 			MS: map[string]*Param{
-				"a": NewParam(mat.NewScalar(3.)),
+				"a": NewParam(mat.Scalar(3.)),
 			},
 		}
 
@@ -435,9 +435,9 @@ var traversalTests = []traversalTest{
 			UintMap *sync.Map
 		}
 
-		foo := NewParam(mat.NewScalar(1.))
-		bar := NewParam(mat.NewScalar(2.))
-		baz := NewParam(mat.NewScalar(3.))
+		foo := NewParam(mat.Scalar(1.))
+		bar := NewParam(mat.Scalar(2.))
+		baz := NewParam(mat.Scalar(3.))
 
 		m := &modelType{
 			StrMap:  new(sync.Map),

@@ -356,7 +356,7 @@ func testCopyValue[T float.DType](t *testing.T) {
 	})
 
 	t.Run("matrix value", func(t *testing.T) {
-		n := &dummyItem{value: NewScalar[T](42)}
+		n := &dummyItem{value: Scalar[T](42)}
 		v := CopyValue(n)
 		RequireMatrixEquals(t, n.value, v)
 		assert.NotSame(t, n.value, v)
@@ -381,9 +381,9 @@ func (i *dummyItem) Grad() Matrix  { return i.grad }
 
 func testCopyValues[T float.DType](t *testing.T) {
 	nodes := []valuer{
-		&dummyItem{value: NewScalar[T](1)},
+		&dummyItem{value: Scalar[T](1)},
 		&dummyItem{},
-		NewScalar[T](3),
+		Scalar[T](3),
 	}
 
 	vs := CopyValues(nodes)
@@ -414,7 +414,7 @@ func testCopyGrad[T float.DType](t *testing.T) {
 
 	t.Run("matrix grad", func(t *testing.T) {
 		n := &dummyItem{
-			grad: NewScalar[T](42),
+			grad: Scalar[T](42),
 		}
 		v := CopyGrad(n)
 		RequireMatrixEquals(t, n.grad, v)

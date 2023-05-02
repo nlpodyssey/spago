@@ -24,11 +24,11 @@ func testParamGob[T float.DType](t *testing.T) {
 	t.Run("with all serializable values set", func(t *testing.T) {
 		var buf bytes.Buffer
 
-		p1 := NewParam(mat.NewScalar(T(12)))
+		p1 := NewParam(mat.Scalar(T(12)))
 		p1.SetRequiresGrad(false)
 		p1.SetPayload(&OptimizerPayload{
 			Label: 42,
-			Data:  []mat.Matrix{mat.NewScalar(T(34))},
+			Data:  []mat.Matrix{mat.Scalar(T(34))},
 		})
 
 		err := gob.NewEncoder(&buf).Encode(p1)
@@ -40,14 +40,14 @@ func testParamGob[T float.DType](t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, p2)
 		require.NotNil(t, p2.Value())
-		mat.AssertMatrixEquals(t, mat.NewScalar(T(12)), p2.Value())
+		mat.AssertMatrixEquals(t, mat.Scalar(T(12)), p2.Value())
 		assert.False(t, p2.RequiresGrad())
 
 		payload := p2.Payload()
 		assert.NotNil(t, payload)
 		assert.Equal(t, 42, payload.Label)
 		assert.NotEmpty(t, payload.Data)
-		mat.AssertMatrixEquals(t, mat.NewScalar(T(34)), payload.Data[0])
+		mat.AssertMatrixEquals(t, mat.Scalar(T(34)), payload.Data[0])
 	})
 
 	t.Run("with default properties and nil value", func(t *testing.T) {

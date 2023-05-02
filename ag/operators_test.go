@@ -173,5 +173,5 @@ func testColViews[T float.DType](t *testing.T) {
 }
 
 func newScalar[T float.DType](v T) Node {
-	return mat.NewScalar(v)
+	return mat.Scalar(v)
 }

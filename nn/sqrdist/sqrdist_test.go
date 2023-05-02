@@ -28,7 +28,7 @@ func testModelForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{0.5928}, y.Value().Data(), 1.0e-05)
 
 	// == Backward
-	y.AccGrad(mat.NewScalar[T](-0.8))
+	y.AccGrad(mat.Scalar[T](-0.8))
 	ag.Backward(y)
 
 	assert.InDeltaSlice(t, []T{-0.9568, -0.848, 0.5936}, x.Grad().Data(), 1.0e-05)
