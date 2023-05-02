@@ -69,7 +69,15 @@ type AutoGradFunction[T DualValue] interface {
 	Operands() []T
 }
 
-var _ Node = &Operator{}
+// forwardGuard is a buffered channel that acts as a semaphore to limit the concurrency
+// of async forward operations in the Run function. Its buffer size determines the maximum
+// number of forward operations that can run concurrently. Acquiring and releasing slots
+// in the semaphore ensures that the concurrency level stays within the desired limit.
+var forwardGuard chan struct{}
+
+func init() {
+	forwardGuard = make(chan struct{}, runtime.NumCPU()*2)
+}
 
 // Operator is a type of node.
 // It's used to represent a function with automatic differentiation features.
@@ -119,7 +127,11 @@ func (o *Operator) Run(async ...bool) *Operator {
 	if isAsync {
 		//lint:ignore S1019 explicitly set the buffer size to 0 as the channel is used as a signal
 		o.broadcast = make(chan struct{}, 0)
-		go o.executeForward()
+		forwardGuard <- struct{}{}
+		go func() {
+			o.executeForward()
+			<-forwardGuard
+		}()
 		return o
 	}
 
