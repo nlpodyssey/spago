@@ -272,13 +272,17 @@ func (o *Operator) processBackwardPass(wg *sync.WaitGroup) {
 }
 
 func (o *Operator) executeBackward(wg *sync.WaitGroup) {
-	if grad := o.Grad(); grad != nil {
-		if err := o.fn.Backward(grad); err != nil {
-			log.Fatalf("ag: error during backward pass: %v", err) // TODO: handle error
-		}
+	defer wg.Done()
+	defer o.setBackwardIdle()
+
+	grad := o.Grad() // wait until the accumulated gradients are ready
+	if grad == nil {
+		return // no gradients to propagate
 	}
-	o.setBackwardIdle()
-	wg.Done()
+
+	if err := o.fn.Backward(grad); err != nil {
+		log.Fatalf("ag: error during backward pass: %v", err) // TODO: handle error
+	}
 }
 
 func (o *Operator) isBackwardIdle() bool {
