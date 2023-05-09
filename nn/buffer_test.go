@@ -19,7 +19,7 @@ import (
 
 var (
 	_ fn.DualValue = &Buffer{}
-	_ ag.Node      = &Buffer{}
+	_ ag.DualValue = &Buffer{}
 )
 
 func TestBuf(t *testing.T) {

@@ -27,7 +27,7 @@ type Model struct {
 
 // State represent a state of the Horn recurrent network.
 type State struct {
-	Y ag.Node
+	Y ag.DualValue
 }
 
 func init() {
@@ -48,8 +48,8 @@ func New[T float.DType](in, out, order int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	states := make([]*State, 0)
 	var s *State = nil
 	for i, x := range xs {
@@ -61,7 +61,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model) Next(states []*State, x ag.Node) (s *State) {
+func (m *Model) Next(states []*State, x ag.DualValue) (s *State) {
 	s = new(State)
 
 	fb := m.feedback(states)
@@ -71,8 +71,8 @@ func (m *Model) Next(states []*State, x ag.Node) (s *State) {
 	return
 }
 
-func (m *Model) feedback(states []*State) []ag.Node {
-	var ys []ag.Node
+func (m *Model) feedback(states []*State) []ag.DualValue {
+	var ys []ag.DualValue
 	n := len(states)
 	for i := 0; i < min(len(m.WRec), n); i++ {
 		alpha := m.WRec[i].Value().NewScalar(math.Pow(0.6, float64(i+1)))

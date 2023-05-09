@@ -72,17 +72,17 @@ func New[T float.DType](config Config) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, m.Config.OutputChannels)
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, m.Config.OutputChannels)
 	for i := range ys {
 		ys[i] = m.forward(xs, i)
 	}
 	return ys
 }
 
-func (m *Model) forward(xs []ag.Node, outputChannel int) ag.Node {
+func (m *Model) forward(xs []ag.DualValue, outputChannel int) ag.DualValue {
 	offset := outputChannel * m.Config.InputChannels
-	var out ag.Node
+	var out ag.DualValue
 	if m.Config.DepthWise {
 		out = convolution.Conv1D(m.K[outputChannel], xs[outputChannel], m.Config.YStride)
 		out = ag.AddScalar(out, m.B[outputChannel])

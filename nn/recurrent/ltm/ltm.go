@@ -26,12 +26,12 @@ type Model struct {
 
 // State represent a state of the LTM recurrent network.
 type State struct {
-	L1   ag.Node
-	L2   ag.Node
-	L3   ag.Node
-	Cand ag.Node
-	Cell ag.Node
-	Y    ag.Node
+	L1   ag.DualValue
+	L2   ag.DualValue
+	L3   ag.DualValue
+	Cand ag.DualValue
+	Cell ag.DualValue
+	Y    ag.DualValue
 }
 
 func init() {
@@ -49,8 +49,8 @@ func New[T float.DType](in int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -67,10 +67,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // c = l1 * l2 + cellPrev
 // cell = sigmoid(c (dot) wCell + bCell)
 // y = cell * l3
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev, cellPrev ag.Node = nil, nil
+	var yPrev, cellPrev ag.DualValue = nil, nil
 	if state != nil {
 		yPrev, cellPrev = state.Y, state.Cell
 	}

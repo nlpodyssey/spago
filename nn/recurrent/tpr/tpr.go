@@ -30,11 +30,11 @@ type Model struct {
 
 // State represent a state of the TPR recurrent network.
 type State struct {
-	AR ag.Node
-	AS ag.Node
-	S  ag.Node
-	R  ag.Node
-	Y  ag.Node
+	AR ag.DualValue
+	AS ag.DualValue
+	S  ag.DualValue
+	R  ag.DualValue
+	Y  ag.DualValue
 }
 
 func init() {
@@ -56,8 +56,8 @@ func New[T float.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -74,10 +74,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // s = embS (dot) aS
 // b = s (dot) rT
 // y = vec(b)
-func (m *Model) Next(state *State, x ag.Node) (st *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (st *State) {
 	st = new(State)
 
-	var yPrev ag.Node = nil
+	var yPrev ag.DualValue = nil
 	if state != nil {
 		yPrev = state.Y
 	}

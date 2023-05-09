@@ -33,9 +33,9 @@ func New[T float.DType](size int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	eps := xs[0].Value().NewScalar(1e-10)
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		norm := ag.Sqrt(ag.ReduceSum(ag.Square(x)))
 		ys[i] = ag.Prod(ag.DivScalar(x, ag.AddScalar(norm, eps)), m.Gain)

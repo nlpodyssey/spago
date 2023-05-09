@@ -9,7 +9,7 @@ import (
 )
 
 // Conv1D performs a 1D convolution.
-func Conv1D(w, x ag.Node, stride int) ag.Node {
+func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 	var dim int
 	wr, wc := w.Value().Rows(), w.Value().Columns()
 	xr, xc := x.Value().Rows(), x.Value().Columns()
@@ -20,7 +20,7 @@ func Conv1D(w, x ag.Node, stride int) ag.Node {
 		panic("Incompatible stride value for rows")
 	}
 	dim = (xc-wc)/stride + 1
-	ys := make([]ag.Node, dim)
+	ys := make([]ag.DualValue, dim)
 	for i := 0; i < dim; i++ {
 		fromCol := i * stride
 		ys[i] = ag.Dot(ag.Slice(x, 0, fromCol, wr, fromCol+wc), w)
@@ -29,7 +29,7 @@ func Conv1D(w, x ag.Node, stride int) ag.Node {
 }
 
 // Conv2D performs a 2D convolution.
-func Conv2D(w, x ag.Node, xStride, yStride int) ag.Node {
+func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
 	var dimx, dimy int
 	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
 		panic("Incompatible stride value for rows")
@@ -42,7 +42,7 @@ func Conv2D(w, x ag.Node, xStride, yStride int) ag.Node {
 
 	wRows, wCols := w.Value().Dims()
 
-	var outList []ag.Node
+	var outList []ag.DualValue
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
 			fromRow := i * xStride

@@ -25,7 +25,7 @@ func testModelSelfAttention[T float.DType](t *testing.T) {
 	x1 := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
 	x2 := mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}, mat.WithGrad(true))
 	x3 := mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}, mat.WithGrad(true))
-	output, _, _ := model.Forward(Cache{}, []ag.Node{x1, x2, x3})
+	output, _, _ := model.Forward(Cache{}, []ag.DualValue{x1, x2, x3})
 
 	assert.InDeltaSlice(t, []T{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)

@@ -45,11 +45,11 @@ func New[T float.DType](config Config) *Model {
 }
 
 // Forward performs the forward step. Each "x" is a channel.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	xm := ag.Stack(xs...)
 	mm := ag.Mul(m.W, xm)
 
-	ys := make([]ag.Node, m.Config.OutputChannels)
+	ys := make([]ag.DualValue, m.Config.OutputChannels)
 	for outCh := range ys {
 		val := ag.T(ag.RowView(mm, outCh))
 		bias := ag.AtVec(m.B, outCh)

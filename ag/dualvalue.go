@@ -6,9 +6,6 @@ package ag
 
 import "github.com/nlpodyssey/spago/mat"
 
-// Node is an alias for DualValue for backward compatibility.
-type Node = DualValue
-
 // DualValue defines the interface for a node in the computational graph.
 type DualValue interface {
 	// Value returns the value of the node.

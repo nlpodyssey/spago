@@ -42,8 +42,8 @@ func New[T float.DType](in int, activation activation.Name) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
@@ -53,7 +53,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // t = sigmoid(wT (dot) x + bT)
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
-func (m *Model) forward(x ag.Node) ag.Node {
+func (m *Model) forward(x ag.DualValue) ag.DualValue {
 	t := ag.Sigmoid(ag.Affine(m.BT, m.WT, x))
 	h := activation.Do(m.Activation, ag.Affine(m.BIn, m.WIn, x))
 	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Value().NewScalar(1)), x))

@@ -30,11 +30,11 @@ type Model struct {
 
 // State represent a state of the RAN recurrent network.
 type State struct {
-	InG  ag.Node
-	ForG ag.Node
-	Cand ag.Node
-	C    ag.Node
-	Y    ag.Node
+	InG  ag.DualValue
+	ForG ag.DualValue
+	Cand ag.DualValue
+	C    ag.DualValue
+	Y    ag.DualValue
 }
 
 func init() {
@@ -58,8 +58,8 @@ func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
 	return
 }
 
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -75,10 +75,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // cand = wc (dot) x + bc
 // c = inG * c + forG * cPrev
 // y = f(c)
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev, cPrev ag.Node = nil, nil
+	var yPrev, cPrev ag.DualValue = nil, nil
 	if state != nil {
 		yPrev, cPrev = state.Y, state.C
 	}

@@ -31,7 +31,7 @@ func New(p float64) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	if m.P == 0 {
 		return xs
 	}

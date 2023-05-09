@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ Node = &Operator{}
+var _ DualValue = &Operator{}
 
 func TestNewOperator(t *testing.T) {
 	t.Run("float32", testNewOperator[float32])

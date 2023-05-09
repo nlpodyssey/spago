@@ -49,23 +49,23 @@ func New[T float.DType](size int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	meanVector := ag.StopGrad(m.Mean)
 	devVector := ag.StopGrad(m.StdDev)
 	return m.process(xs, devVector, meanVector)
 }
 
 // ForwardT performs the forward step for each input node and returns the result.
-func (m *Model) ForwardT(xs ...ag.Node) []ag.Node {
+func (m *Model) ForwardT(xs ...ag.DualValue) []ag.DualValue {
 	meanVector := m.mean(xs)
 	devVector := m.stdDev(meanVector, xs)
 	m.updateBatchNormParameters(meanVector.Value(), devVector.Value())
 	return m.process(xs, devVector, meanVector)
 }
 
-func (m *Model) process(xs []ag.Node, devVector ag.Node, meanVector ag.Node) []ag.Node {
+func (m *Model) process(xs []ag.DualValue, devVector ag.DualValue, meanVector ag.DualValue) []ag.DualValue {
 	devVector = ag.Div(m.W, ag.AddScalar(devVector, m.W.Value().NewScalar(epsilon)))
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Add(ag.Prod(ag.Sub(x, meanVector), devVector), m.B)
 	}
@@ -79,7 +79,7 @@ func (m *Model) updateBatchNormParameters(meanVector, devVector mat.Matrix) {
 }
 
 // Mean computes the mean of the input.
-func (m *Model) mean(xs []ag.Node) ag.Node {
+func (m *Model) mean(xs []ag.DualValue) ag.DualValue {
 	sumVector := xs[0]
 	for i := 1; i < len(xs); i++ {
 		sumVector = ag.Add(sumVector, xs[i])
@@ -89,8 +89,8 @@ func (m *Model) mean(xs []ag.Node) ag.Node {
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model) stdDev(meanVector ag.Node, xs []ag.Node) ag.Node {
-	devVector := ag.Node(meanVector.Value().ZerosLike())
+func (m *Model) stdDev(meanVector ag.DualValue, xs []ag.DualValue) ag.DualValue {
+	devVector := ag.DualValue(meanVector.Value().ZerosLike())
 	for _, x := range xs {
 		diffVector := ag.Square(ag.Sub(meanVector, x))
 		devVector = ag.Add(devVector, diffVector)

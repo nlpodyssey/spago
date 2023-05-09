@@ -31,9 +31,9 @@ func NewResidual(preNorm *PreNorm) *Residual {
 }
 
 // Forward performs the forward step.
-func (m *Residual) Forward(xs ...ag.Node) []ag.Node {
+func (m *Residual) Forward(xs ...ag.DualValue) []ag.DualValue {
 	pns := m.PreNorm.Forward(xs...)
-	ys := make([]ag.Node, len(pns))
+	ys := make([]ag.DualValue, len(pns))
 	for i, pn := range pns {
 		ys[i] = ag.Add(pn, xs[i])
 	}

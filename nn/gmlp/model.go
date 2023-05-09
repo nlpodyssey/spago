@@ -61,14 +61,14 @@ func New[T float.DType](config Config) *Model {
 }
 
 // Forward performs the forward step. It adds pads if necessary.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
 	if len(xs) == 0 {
 		return nil
 	}
-	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.Node {
+	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.DualValue {
 		return xs[0].Value().NewEmptyVec(m.Config.Dim)
 	})
 	return m.Layers.Forward(padded...)

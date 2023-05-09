@@ -26,7 +26,7 @@ func testModelDecode[T float.DType](t *testing.T) {
 	w3 := mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}, mat.WithGrad(true))
 	w4 := mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}, mat.WithGrad(true))
 	w5 := mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}, mat.WithGrad(true))
-	y := model.Decode([]ag.Node{w1, w2, w3, w4, w5})
+	y := model.Decode([]ag.DualValue{w1, w2, w3, w4, w5})
 
 	gold := []int{3, 3, 1, 0, 3}
 
@@ -47,7 +47,7 @@ func testModelGoldScore[T float.DType](t *testing.T) {
 	w4 := mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}, mat.WithGrad(true))
 	w5 := mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}, mat.WithGrad(true))
 	gold := []int{0, 0, 1, 0, 3}
-	y := model.goldScore([]ag.Node{w1, w2, w3, w4, w5}, gold)
+	y := model.goldScore([]ag.DualValue{w1, w2, w3, w4, w5}, gold)
 
 	assert.InDeltaSlice(t, []T{14.27}, y.Value().Data(), 0.00001)
 }
@@ -65,7 +65,7 @@ func testModelTotalScore[T float.DType](t *testing.T) {
 	w3 := mat.NewVecDense([]T{-2.5, 3.2, -0.2, -0.3}, mat.WithGrad(true))
 	w4 := mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}, mat.WithGrad(true))
 	w5 := mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}, mat.WithGrad(true))
-	y := model.totalScore([]ag.Node{w1, w2, w3, w4, w5})
+	y := model.totalScore([]ag.DualValue{w1, w2, w3, w4, w5})
 
 	assert.InDeltaSlice(t, []T{16.64258}, y.Value().Data(), 0.00001)
 }
@@ -84,7 +84,7 @@ func testModelLoss[T float.DType](t *testing.T) {
 	w4 := mat.NewVecDense([]T{3.3, -0.9, 2.7, -2.7}, mat.WithGrad(true))
 	w5 := mat.NewVecDense([]T{0.5, 0.2, 0.4, 1.4}, mat.WithGrad(true))
 	gold := []int{0, 0, 1, 0, 3}
-	loss := model.NegativeLogLoss([]ag.Node{w1, w2, w3, w4, w5}, gold)
+	loss := model.NegativeLogLoss([]ag.DualValue{w1, w2, w3, w4, w5}, gold)
 
 	ag.Backward(loss)
 	assert.InDeltaSlice(t, []T{2.37258}, loss.Value().Data(), 0.00001)

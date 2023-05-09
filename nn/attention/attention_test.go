@@ -21,7 +21,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 }
 
 func testScaledDotProductAttention[T float.DType](t *testing.T) {
-	queries := []ag.Node{
+	queries := []ag.DualValue{
 		mat.NewVecDense([]T{1.1, 0.0, 2.3}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{2.2, -0.5, 0.3}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{3.2, 0.5, 0.4}, mat.WithGrad(true)),
@@ -55,7 +55,7 @@ func TestScaledDotProductAttention2(t *testing.T) {
 }
 
 func testScaledDotProductAttention2[T float.DType](t *testing.T) {
-	queries := []ag.Node{
+	queries := []ag.DualValue{
 		mat.NewVecDense([]T{0.22, 0.3}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{-0.17, 0.24}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{-0.15, 0.23}, mat.WithGrad(true)),
@@ -119,17 +119,17 @@ func TestLinearAttention(t *testing.T) {
 }
 
 func testLinearAttention[T float.DType](t *testing.T) {
-	queries := []ag.Node{
+	queries := []ag.DualValue{
 		mat.NewVecDense([]T{1.8, 1.35, -1.89}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{0.08, 1.27, -1.06}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{0.28, 0.12, -0.67}, mat.WithGrad(true)),
 	}
-	keys := []ag.Node{
+	keys := []ag.DualValue{
 		mat.NewVecDense([]T{0.71, -0.5, -1.58}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{1.43, -0.16, 0.49}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{0.58, -0.27, -0.25}, mat.WithGrad(true)),
 	}
-	values := []ag.Node{
+	values := []ag.DualValue{
 		mat.NewVecDense([]T{0.88, -1.09, -0.45}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{0.43, -0.21, -0.75}, mat.WithGrad(true)),
 		mat.NewVecDense([]T{0.84, 0.01, 0.01}, mat.WithGrad(true)),

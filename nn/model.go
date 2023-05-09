@@ -54,20 +54,20 @@ func ClearSupport(m Model) {
 	})
 }
 
-// StandardModel consists of a model that implements a Forward variadic function that accepts ag.Node and returns a slice of ag.Node.
+// StandardModel consists of a model that implements a Forward variadic function that accepts ag.DualValue and returns a slice of ag.DualValue.
 // It is called StandardModel since this is the most frequent forward method among all implemented neural models.
 type StandardModel interface {
 	Model
 
 	// Forward executes the forward step of the model.
-	Forward(...ag.Node) []ag.Node
+	Forward(...ag.DualValue) []ag.DualValue
 }
 
 type ModuleList[T StandardModel] []T
 
 // Forward operates on a slice of StandardModel connecting outputs to inputs sequentially for each module following,
 // finally returning its output.
-func (ml ModuleList[T]) Forward(xs ...ag.Node) []ag.Node {
+func (ml ModuleList[T]) Forward(xs ...ag.DualValue) []ag.DualValue {
 	for _, m := range ml {
 		xs = m.Forward(xs...)
 	}

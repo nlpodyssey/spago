@@ -20,7 +20,7 @@ import (
 var _ nn.Model = &Model{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
-type Cache [2]ag.Node
+type Cache [2]ag.DualValue
 
 // HasValues reports whether both values in Cache are not nil.
 func (c Cache) HasValues() bool {
@@ -72,8 +72,8 @@ func (m *Model) Init(rng *rand.LockedRand) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(cache Cache, q, k, v []ag.Node) ([]ag.Node, []ag.Node, Cache) {
-	var pk, pv ag.Node
+func (m *Model) Forward(cache Cache, q, k, v []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
+	var pk, pv ag.DualValue
 
 	pq := m.Query.Forward(q...)
 

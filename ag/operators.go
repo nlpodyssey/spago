@@ -520,7 +520,7 @@ func LogSumExp(xs ...DualValue) DualValue {
 	}
 
 	max := ScalarMax(xs)
-	var sum Node
+	var sum DualValue
 	for _, v := range xs {
 		sum = Add(sum, Exp(Sub(v, max)))
 	}

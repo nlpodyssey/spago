@@ -32,8 +32,8 @@ func New() *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	eps := xs[0].Value().NewScalar(1e-10)
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)

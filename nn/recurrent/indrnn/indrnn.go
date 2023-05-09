@@ -27,7 +27,7 @@ type Model struct {
 
 // State represent a state of the IndRNN recurrent network.
 type State struct {
-	Y ag.Node
+	Y ag.DualValue
 }
 
 func init() {
@@ -45,8 +45,8 @@ func New[T float.DType](in, out int, activation activation.Name) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -58,10 +58,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // Next performs a single forward step, producing a new state.
 //
 // y = f(w (dot) x + wRec * yPrev + b)
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev ag.Node = nil
+	var yPrev ag.DualValue = nil
 	if state != nil {
 		yPrev = state.Y
 	}

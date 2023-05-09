@@ -45,12 +45,12 @@ type Model struct {
 
 // State represent a state of the LSTM recurrent network.
 type State struct {
-	InG  ag.Node
-	OutG ag.Node
-	ForG ag.Node
-	Cand ag.Node
-	Cell ag.Node
-	Y    ag.Node
+	InG  ag.DualValue
+	OutG ag.DualValue
+	ForG ag.DualValue
+	Cand ag.DualValue
+	Cell ag.DualValue
+	Y    ag.DualValue
 }
 
 // Option allows to configure a new Model with your specific needs.
@@ -108,8 +108,8 @@ func (m *Model) Init(rndGen *rand.LockedRand) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -127,10 +127,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev, cellPrev ag.Node = nil, nil
+	var yPrev, cellPrev ag.DualValue = nil, nil
 	if state != nil {
 		yPrev, cellPrev = state.Y, state.Cell
 	}

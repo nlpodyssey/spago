@@ -52,9 +52,9 @@ func New(positive, negative nn.StandardModel, merge MergeType) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	var pos []ag.Node
-	var neg []ag.Node
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	var pos []ag.DualValue
+	var neg []ag.DualValue
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -66,15 +66,15 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		neg = m.Negative.Forward(reversed(xs)...)
 	}()
 	wg.Wait()
-	out := make([]ag.Node, len(pos))
+	out := make([]ag.DualValue, len(pos))
 	for i := range out {
 		out[i] = m.merge(pos[i], neg[len(out)-1-i])
 	}
 	return out
 }
 
-func reversed(ns []ag.Node) []ag.Node {
-	r := make([]ag.Node, len(ns))
+func reversed(ns []ag.DualValue) []ag.DualValue {
+	r := make([]ag.DualValue, len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1
@@ -83,7 +83,7 @@ func reversed(ns []ag.Node) []ag.Node {
 	return r
 }
 
-func (m *Model) merge(a, b ag.Node) ag.Node {
+func (m *Model) merge(a, b ag.DualValue) ag.DualValue {
 	switch m.MergeMode {
 	case Concat:
 		return ag.Concat(a, b)

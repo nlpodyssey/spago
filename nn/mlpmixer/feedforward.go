@@ -30,6 +30,6 @@ func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Name, drop
 	}
 }
 
-func (m *FeedForward) Forward(xs ...ag.Node) []ag.Node {
+func (m *FeedForward) Forward(xs ...ag.DualValue) []ag.DualValue {
 	return m.Layers.Forward(xs...)
 }

@@ -131,12 +131,12 @@ func MustActivation(str string) Name {
 }
 
 // Do make a new node as a result of the application of the input operator.
-func Do(act Name, xs ...ag.Node) ag.Node {
+func Do(act Name, xs ...ag.DualValue) ag.DualValue {
 	v := activationsMap[act].operator
 	args := make([]reflect.Value, len(xs))
 	for i, x := range xs {
 		args[i] = reflect.ValueOf(x)
 	}
 	ret := v.Call(args)
-	return ret[0].Interface().(ag.Node)
+	return ret[0].Interface().(ag.DualValue)
 }

@@ -42,11 +42,11 @@ func New[T float.DType](size int, eps float64) *Model {
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	if len(xs) == 0 {
 		return nil
 	}
-	out := make([]ag.Node, len(xs))
+	out := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)

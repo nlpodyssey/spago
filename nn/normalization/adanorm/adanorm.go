@@ -37,7 +37,7 @@ func New[T float.DType](scale float64) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	if len(xs) == 0 {
 		return nil
 	}
@@ -46,7 +46,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	k := xs[0].Value().NewScalar(0.1)
 	meanVectors := m.Mean(xs)
 	devVectors := m.StdDev(meanVectors, xs)
-	zs := make([]ag.Node, len(xs))
+	zs := make([]ag.DualValue, len(xs))
 
 	for i, x := range xs {
 		y := ag.DivScalar(ag.SubScalar(x, meanVectors[i]), ag.Add(devVectors[i], eps))
@@ -57,8 +57,8 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Mean computes the mean of the input.
-func (m *Model) Mean(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Mean(xs []ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ReduceMean(x)
 	}
@@ -66,8 +66,8 @@ func (m *Model) Mean(xs []ag.Node) []ag.Node {
 }
 
 // StdDev computes the standard deviation of the input.
-func (m *Model) StdDev(meanVectors []ag.Node, xs []ag.Node) []ag.Node {
-	devVectors := make([]ag.Node, len(xs))
+func (m *Model) StdDev(meanVectors []ag.DualValue, xs []ag.DualValue) []ag.DualValue {
+	devVectors := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		diffVector := ag.Square(ag.SubScalar(x, meanVectors[i]))
 		devVectors[i] = ag.Sqrt(ag.ReduceMean(diffVector))

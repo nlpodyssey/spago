@@ -29,10 +29,10 @@ type Model struct {
 
 // State represent a state of the CFN recurrent network.
 type State struct {
-	InG  ag.Node
-	ForG ag.Node
-	Cand ag.Node
-	Y    ag.Node
+	InG  ag.DualValue
+	ForG ag.DualValue
+	Cand ag.DualValue
+	Y    ag.DualValue
 }
 
 func init() {
@@ -56,8 +56,8 @@ func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -72,10 +72,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // forG = sigmoid(wForG (dot) x + bForG + wrForG (dot) yPrev)
 // c = f(wc (dot) x)
 // y = inG * c + f(yPrev) * forG
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev ag.Node = nil
+	var yPrev ag.DualValue = nil
 	if state != nil {
 		yPrev = state.Y
 	}

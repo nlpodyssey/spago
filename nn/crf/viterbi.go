@@ -29,7 +29,7 @@ func NewViterbiStructure(size int) *ViterbiStructure {
 }
 
 // Viterbi decodes the xs sequence according to the transitionMatrix.
-func Viterbi(transitionMatrix mat.Matrix, xs []ag.Node) []int {
+func Viterbi(transitionMatrix mat.Matrix, xs []ag.DualValue) []int {
 	alpha := make([]*ViterbiStructure, len(xs)+1)
 	alpha[0] = viterbiStepStart(transitionMatrix, xs[0].Value())
 	for i := 1; i < len(xs); i++ {

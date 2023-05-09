@@ -23,6 +23,6 @@ func init() {
 }
 
 // Forward performs the forward step.
-func (m SelfAttention) Forward(cache Cache, xs []ag.Node) ([]ag.Node, []ag.Node, Cache) {
+func (m SelfAttention) Forward(cache Cache, xs []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
 	return m.Model.Forward(cache, xs, xs, xs)
 }

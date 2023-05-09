@@ -36,9 +36,9 @@ type Model struct {
 
 // State represent a state of the RLA recurrent network.
 type State struct {
-	S ag.Node
-	Z ag.Node
-	Y ag.Node
+	S ag.DualValue
+	Z ag.DualValue
+	Y ag.DualValue
 }
 
 func init() {
@@ -58,8 +58,8 @@ func New[T float.DType](config Config) *Model {
 	}
 }
 
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -69,7 +69,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model) Next(prevState *State, x ag.Node) (s *State) {
+func (m *Model) Next(prevState *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
 	key := ag.Affine(m.Bk, m.Wk, x)
@@ -94,6 +94,6 @@ func (m *Model) Next(prevState *State, x ag.Node) (s *State) {
 
 // defaultMappingFunction returns ELU(x) + 1
 // TODO: support arbitrary mapping functions
-func defaultMappingFunction(x ag.Node) ag.Node {
+func defaultMappingFunction(x ag.DualValue) ag.DualValue {
 	return ag.PositiveELU(x)
 }

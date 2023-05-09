@@ -34,7 +34,7 @@ func New(activation Name, params ...*nn.Param) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	if m.Activation == Identity {
 		return xs
 	}
@@ -46,11 +46,11 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		args[i+1] = reflect.ValueOf(p)
 	}
 
-	ys := make([]ag.Node, len(xs))
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		args[0] = reflect.ValueOf(x)
 		v := operator.Call(args)
-		ys[i] = v[0].Interface().(ag.Node)
+		ys[i] = v[0].Interface().(ag.DualValue)
 	}
 	return ys
 }

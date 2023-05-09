@@ -35,7 +35,7 @@ func NewPreNorm[T float.DType](dim int, block *Block) *PreNorm {
 }
 
 // Forward performs the forward step.
-func (m *PreNorm) Forward(xs ...ag.Node) []ag.Node {
+func (m *PreNorm) Forward(xs ...ag.DualValue) []ag.DualValue {
 	ns := m.Norm.Forward(xs...)
 	return m.Block.Forward(ns...)
 }

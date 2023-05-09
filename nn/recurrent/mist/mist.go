@@ -38,7 +38,7 @@ type Model struct {
 
 // State represent a state of the MIST recurrent network.
 type State struct {
-	Y ag.Node
+	Y ag.DualValue
 }
 
 func init() {
@@ -62,8 +62,8 @@ func New[T float.DType](in, out, numOfDelays int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	states := make([]*State, 0)
 	var s *State = nil
 	for i, x := range xs {
@@ -75,10 +75,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model) Next(states []*State, x ag.Node) (s *State) {
+func (m *Model) Next(states []*State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev ag.Node = nil
+	var yPrev ag.DualValue = nil
 	if states != nil {
 		yPrev = states[len(states)-1].Y
 	}
@@ -89,8 +89,8 @@ func (m *Model) Next(states []*State, x ag.Node) (s *State) {
 	return
 }
 
-func (m *Model) weightHistory(states []*State, a ag.Node) ag.Node {
-	var sum ag.Node
+func (m *Model) weightHistory(states []*State, a ag.DualValue) ag.DualValue {
+	var sum ag.DualValue
 	n := len(states)
 	for i := 0; i < m.NumOfDelays; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
@@ -102,7 +102,7 @@ func (m *Model) weightHistory(states []*State, a ag.Node) ag.Node {
 }
 
 // tryProd returns the product if 'a' and 'b' are not nil, otherwise nil
-func tryProd(a, b ag.Node) ag.Node {
+func tryProd(a, b ag.DualValue) ag.DualValue {
 	if a != nil && b != nil {
 		return ag.Prod(a, b)
 	}

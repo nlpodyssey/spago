@@ -69,21 +69,21 @@ type HyperLinear3 struct {
 
 // State contains nodes used during the forward step.
 type State struct {
-	xUi []ag.Node
-	xUl []ag.Node
-	xUr []ag.Node
-	xUf []ag.Node
-	xUs []ag.Node
-	xUo []ag.Node
-	xUu []ag.Node
+	xUi []ag.DualValue
+	xUl []ag.DualValue
+	xUr []ag.DualValue
+	xUf []ag.DualValue
+	xUs []ag.DualValue
+	xUo []ag.DualValue
+	xUu []ag.DualValue
 
-	ViPrevG ag.Node
-	VlPrevG ag.Node
-	VrPrevG ag.Node
-	VfPrevG ag.Node
-	VsPrevG ag.Node
-	VoPrevG ag.Node
-	VuPrevG ag.Node
+	ViPrevG ag.DualValue
+	VlPrevG ag.DualValue
+	VrPrevG ag.DualValue
+	VfPrevG ag.DualValue
+	VsPrevG ag.DualValue
+	VoPrevG ag.DualValue
+	VuPrevG ag.DualValue
 }
 
 func init() {
@@ -129,15 +129,15 @@ func newGate3[T float.DType](size int) *HyperLinear3 {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	steps := m.Config.Steps
 	n := len(xs)
-	h := make([][]ag.Node, steps)
-	c := make([][]ag.Node, steps)
-	g := make([]ag.Node, steps)
-	cg := make([]ag.Node, steps)
-	h[0] = make([]ag.Node, n)
-	c[0] = make([]ag.Node, n)
+	h := make([][]ag.DualValue, steps)
+	c := make([][]ag.DualValue, steps)
+	g := make([]ag.DualValue, steps)
+	cg := make([]ag.DualValue, steps)
+	h[0] = make([]ag.DualValue, n)
+	c[0] = make([]ag.DualValue, n)
 
 	g[0] = m.InitValue
 	cg[0] = m.InitValue
@@ -157,15 +157,15 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 	return h[len(h)-1]
 }
 
-func (m *Model) computeUx(s *State, xs []ag.Node) {
+func (m *Model) computeUx(s *State, xs []ag.DualValue) {
 	n := len(xs)
-	s.xUi = make([]ag.Node, n)
-	s.xUl = make([]ag.Node, n)
-	s.xUr = make([]ag.Node, n)
-	s.xUf = make([]ag.Node, n)
-	s.xUs = make([]ag.Node, n)
-	s.xUo = make([]ag.Node, n)
-	s.xUu = make([]ag.Node, n)
+	s.xUi = make([]ag.DualValue, n)
+	s.xUl = make([]ag.DualValue, n)
+	s.xUr = make([]ag.DualValue, n)
+	s.xUf = make([]ag.DualValue, n)
+	s.xUs = make([]ag.DualValue, n)
+	s.xUo = make([]ag.DualValue, n)
+	s.xUu = make([]ag.DualValue, n)
 
 	for i := 0; i < n; i++ {
 		s.xUi[i] = ag.Mul(m.InputGate.U, xs[i])
@@ -178,7 +178,7 @@ func (m *Model) computeUx(s *State, xs []ag.Node) {
 	}
 }
 
-func (m *Model) computeVg(s *State, prevG ag.Node) {
+func (m *Model) computeVg(s *State, prevG ag.DualValue) {
 	s.ViPrevG = ag.Mul(m.InputGate.V, prevG)
 	s.VlPrevG = ag.Mul(m.LeftCellGate.V, prevG)
 	s.VrPrevG = ag.Mul(m.RightCellGate.V, prevG)
@@ -188,29 +188,29 @@ func (m *Model) computeVg(s *State, prevG ag.Node) {
 	s.VuPrevG = ag.Mul(m.InputActivation.U, prevG)
 }
 
-func (m *Model) updateHiddenNodes(s *State, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) ([]ag.Node, []ag.Node) {
+func (m *Model) updateHiddenNodes(s *State, prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) ([]ag.DualValue, []ag.DualValue) {
 	n := len(prevH)
-	h := make([]ag.Node, n)
-	c := make([]ag.Node, n)
+	h := make([]ag.DualValue, n)
+	c := make([]ag.DualValue, n)
 	for i := 0; i < n; i++ {
 		h[i], c[i] = m.processNode(s, i, prevH, prevC, prevG)
 	}
 	return h, c
 }
 
-func (m *Model) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (ag.Node, ag.Node) {
+func (m *Model) updateSentenceState(prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) (ag.DualValue, ag.DualValue) {
 	n := len(prevH)
 	avgH := ag.Mean(prevH)
 	fG := ag.Sigmoid(ag.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
 	oG := ag.Sigmoid(ag.Affine(m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
-	hG := make([]ag.Node, n)
+	hG := make([]ag.DualValue, n)
 	gG := ag.Affine(m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
 		hG[i] = ag.Sigmoid(ag.Add(gG, ag.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}
 
-	var sum ag.Node
+	var sum ag.DualValue
 	for i := 0; i < n; i++ {
 		sum = ag.Add(sum, ag.Prod(hG[i], prevC[i]))
 	}
@@ -220,21 +220,21 @@ func (m *Model) updateSentenceState(prevH []ag.Node, prevC []ag.Node, prevG ag.N
 	return gt, cg
 }
 
-func (m *Model) processNode(s *State, i int, prevH []ag.Node, prevC []ag.Node, prevG ag.Node) (h ag.Node, c ag.Node) {
+func (m *Model) processNode(s *State, i int, prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) (h ag.DualValue, c ag.DualValue) {
 	n := len(prevH)
 	first := 0
 	last := n - 1
 	j := i - 1
 	k := i + 1
 
-	var prevHj, prevCj ag.Node
+	var prevHj, prevCj ag.DualValue
 	if j < first {
 		prevHj, prevCj = m.StartH, m.StartH
 	} else {
 		prevHj, prevCj = prevH[j], prevC[j]
 	}
 
-	var prevHk, prevCk ag.Node
+	var prevHk, prevCk ag.DualValue
 	if k > last {
 		prevHk, prevCk = m.EndH, m.EndH
 	} else {

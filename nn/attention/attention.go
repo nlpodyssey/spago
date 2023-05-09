@@ -15,15 +15,15 @@ import (
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(q []ag.Node, k, v, scaleFactor ag.Node, useCausalMask bool) ([]ag.Node, []ag.Node) {
-	nodes := make([]ag.Node, len(q)*2)
+func ScaledDotProductAttention(q []ag.DualValue, k, v, scaleFactor ag.DualValue, useCausalMask bool) ([]ag.DualValue, []ag.DualValue) {
+	nodes := make([]ag.DualValue, len(q)*2)
 	attention := nodes[:len(q)]
 	weights := nodes[len(q):]
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Rows()
 
-	kqi := make([]ag.Node, len(q))
+	kqi := make([]ag.DualValue, len(q))
 	for i, qi := range q {
 		kqi[i] = ag.Mul(k, qi)
 	}
@@ -58,19 +58,19 @@ func makeCausalMask(curIndex, seqLength int) []float64 {
 }
 
 // MappingFunc is a mapping function used by LinearAttention.
-type MappingFunc func(x ag.Node) ag.Node
+type MappingFunc func(x ag.DualValue) ag.DualValue
 
 // LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
 // It operates with O(N) complexity, where N is the sequence length.
 // Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(q, k, v []ag.Node, mappingFunction MappingFunc, eps float64) []ag.Node {
+func LinearAttention(q, k, v []ag.DualValue, mappingFunction MappingFunc, eps float64) []ag.DualValue {
 	if len(q) == 0 {
 		return nil
 	}
-	context := make([]ag.Node, len(q))
-	attKeys := make([]ag.Node, len(k))
+	context := make([]ag.DualValue, len(q))
+	attKeys := make([]ag.DualValue, len(k))
 
-	var attKeysSum ag.Node = nil
+	var attKeysSum ag.DualValue = nil
 	for i := range k {
 		attKeys[i] = mappingFunction(k[i])
 		attKeysSum = ag.Add(attKeysSum, attKeys[i])

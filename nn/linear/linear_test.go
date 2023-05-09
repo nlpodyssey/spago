@@ -27,7 +27,7 @@ type testLinearWithActivationModel struct {
 	M2 *activation.Model
 }
 
-func (m *testLinearWithActivationModel) forward(x ag.Node) ag.Node {
+func (m *testLinearWithActivationModel) forward(x ag.DualValue) ag.DualValue {
 	return m.M2.Forward(m.M1.Forward(x)[0])[0]
 }
 

@@ -33,11 +33,11 @@ func init() {
 
 // State represent a state of the DeltaRNN recurrent network.
 type State struct {
-	D1 ag.Node
-	D2 ag.Node
-	C  ag.Node
-	P  ag.Node
-	Y  ag.Node
+	D1 ag.DualValue
+	D2 ag.DualValue
+	C  ag.DualValue
+	P  ag.DualValue
+	Y  ag.DualValue
 }
 
 // New returns a new model with parameters initialized to zeros.
@@ -54,8 +54,8 @@ func New[T float.DType](in, out int) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -71,10 +71,10 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 // c = tanh(d1 + d2 + bc)
 // p = sigmoid(w (dot) x + bp)
 // y = f(p * c + (1 - p) * yPrev)
-func (m *Model) Next(state *State, x ag.Node) (s *State) {
+func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s = new(State)
 
-	var yPrev ag.Node = nil
+	var yPrev ag.DualValue = nil
 	if state != nil {
 		yPrev = state.Y
 	}

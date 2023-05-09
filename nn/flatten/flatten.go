@@ -28,9 +28,9 @@ func New() *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	vectorized := func(x ag.Node) ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	vectorized := func(x ag.DualValue) ag.DualValue {
 		return ag.T(ag.Flatten(x))
 	}
-	return []ag.Node{ag.Concat(ag.Map(vectorized, xs)...)}
+	return []ag.DualValue{ag.Concat(ag.Map(vectorized, xs)...)}
 }

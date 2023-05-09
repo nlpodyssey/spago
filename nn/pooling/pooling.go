@@ -34,8 +34,8 @@ func NewMax(rows, columns int) *MaxPooling {
 
 // Forward performs the forward step for each input node and returns the result.
 // The max pooling is applied independently to each input.
-func (m *MaxPooling) Forward(xs ...ag.Node) []ag.Node {
-	pooled := func(x ag.Node) ag.Node {
+func (m *MaxPooling) Forward(xs ...ag.DualValue) []ag.DualValue {
+	pooled := func(x ag.DualValue) ag.DualValue {
 		return ag.MaxPooling(x, m.Rows, m.Columns)
 	}
 	return ag.Map(pooled, xs)

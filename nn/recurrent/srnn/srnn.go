@@ -41,8 +41,8 @@ type Config struct {
 // State represent a state of the SRNN recurrent network.
 // TODO: is this used?
 type State struct {
-	Y ag.Node
-	H ag.Node
+	Y ag.DualValue
+	H ag.DualValue
 }
 
 func init() {
@@ -73,10 +73,10 @@ func New[T float.DType](config Config) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	b := m.transformInput(xs)
-	var h ag.Node = nil
+	var h ag.DualValue = nil
 	for i := range xs {
 		h, ys[i] = m.Next(h, b[i])
 	}
@@ -84,7 +84,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 }
 
 // Next performs a single forward step, producing a new state.
-func (m *Model) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
+func (m *Model) Next(hPrev, b ag.DualValue) (h ag.DualValue, y ag.DualValue) {
 	if hPrev != nil {
 		h = ag.ReLU(ag.Add(b, ag.RotateR(hPrev, 1)))
 	} else {
@@ -94,8 +94,8 @@ func (m *Model) Next(hPrev, b ag.Node) (h ag.Node, y ag.Node) {
 	return
 }
 
-func (m *Model) transformInput(xs []ag.Node) []ag.Node {
-	ys := make([]ag.Node, len(xs))
+func (m *Model) transformInput(xs []ag.DualValue) []ag.DualValue {
+	ys := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		b := m.FC.Forward(x)[0]
 		if m.Config.MultiHead {

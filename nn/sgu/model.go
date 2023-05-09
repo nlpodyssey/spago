@@ -72,12 +72,12 @@ func (m *Model) Initialize(seed uint64) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.Node) []ag.Node {
+func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	size := xs[0].Value().Size()
 	halfSize := size / 2
 
-	res := make([]ag.Node, len(xs))
-	gate := make([]ag.Node, len(xs))
+	res := make([]ag.DualValue, len(xs))
+	gate := make([]ag.DualValue, len(xs))
 	for i, x := range xs {
 		res[i] = ag.Slice(x, 0, 0, halfSize, 1)
 		gate[i] = ag.Slice(x, halfSize, 0, size, 1)
@@ -90,7 +90,7 @@ func (m *Model) Forward(xs ...ag.Node) []ag.Node {
 		gate = m.Act.Forward(gate...)
 	}
 
-	y := make([]ag.Node, len(gate))
+	y := make([]ag.DualValue, len(gate))
 	for i := range y {
 		y[i] = ag.Prod(gate[i], res[i])
 	}

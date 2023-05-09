@@ -68,11 +68,11 @@ func (m *Model) Embedding(idx int) (*Embedding, error) {
 
 // Encode returns the embedding values associated with the input indices.
 // It returns an error if one of the input elements is out of range.
-func (m *Model) Encode(input []int) ([]ag.Node, error) {
+func (m *Model) Encode(input []int) ([]ag.DualValue, error) {
 	if err := m.checkInput(input); err != nil {
 		return nil, err
 	}
-	encoded := make([]ag.Node, len(input))
+	encoded := make([]ag.DualValue, len(input))
 	for i, idx := range input {
 		encoded[i] = &Embedding{
 			Param: m.Weights[idx],
@@ -84,7 +84,7 @@ func (m *Model) Encode(input []int) ([]ag.Node, error) {
 }
 
 // MustEncode returns the embedding values associated with the input indices.
-func (m *Model) MustEncode(input []int) []ag.Node {
+func (m *Model) MustEncode(input []int) []ag.DualValue {
 	encoded, err := m.Encode(input)
 	if err != nil {
 		log.Fatal(err)

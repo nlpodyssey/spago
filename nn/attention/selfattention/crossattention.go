@@ -23,6 +23,6 @@ func init() {
 }
 
 // Forward performs the forward step.
-func (m CrossAttention) Forward(cache Cache, seq1 []ag.Node, seq2 []ag.Node) ([]ag.Node, []ag.Node, Cache) {
+func (m CrossAttention) Forward(cache Cache, seq1 []ag.DualValue, seq2 []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
 	return m.Model.Forward(cache, seq1, seq2, seq2)
 }

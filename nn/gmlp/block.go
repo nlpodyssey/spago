@@ -52,6 +52,6 @@ func NewBlock[T float.DType](config BlockConfig) *Block {
 	}
 }
 
-func (m *Block) Forward(xs ...ag.Node) []ag.Node {
+func (m *Block) Forward(xs ...ag.DualValue) []ag.DualValue {
 	return m.Layers.Forward(xs...)
 }

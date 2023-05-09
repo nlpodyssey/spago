@@ -175,7 +175,7 @@ func testMSESeqLoss[T float.DType](t *testing.T) {
 	y1 := mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0})
 	x2 := mat.NewVecDense([]T{0.0, 0.1, 0.2, 0.3}, mat.WithGrad(true))
 	y2 := mat.NewVecDense([]T{0.3, 0.2, 0.1, 0.0}, mat.WithGrad(true))
-	loss := MSESeq([]ag.Node{x1, x2}, []ag.Node{y1, y2}, true)
+	loss := MSESeq([]ag.DualValue{x1, x2}, []ag.DualValue{y1, y2}, true)
 
 	assertScalarEqualApprox(t, 0.1, loss.Value())
 
