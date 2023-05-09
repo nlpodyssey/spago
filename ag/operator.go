@@ -61,13 +61,13 @@ const (
 
 // AutoGradFunction represents a function with automatic differentiation features.
 // It's used to define a new operator.
-type AutoGradFunction[T DualValue] interface {
+type AutoGradFunction interface {
 	// Forward computes the output of the function.
 	Forward() (mat.Matrix, error)
 	// Backward computes the backward pass given the gradient of the output.
 	Backward(gy mat.Matrix) error
 	// Operands returns the list of operands.
-	Operands() []T
+	Operands() []DualValue
 }
 
 // forwardGuard is a buffered channel that acts as a semaphore to limit the concurrency
@@ -96,7 +96,7 @@ type Operator struct {
 	// AutoGradFunction's operands are memoized here after the first request.
 	operands []DualValue
 	// backwardPass is the backward function to be executed.
-	fn AutoGradFunction[DualValue]
+	fn AutoGradFunction
 	// broadcast is the channel used to broadcast the result of the forward pass.
 	broadcast chan struct{}
 	// broadcastGrad is the channel used to broadcast the result of the backward pass.
@@ -114,7 +114,7 @@ type Operator struct {
 
 // NewOperator creates a new operator with the given AutoGradFunction.
 // Note that the operator's Value() can only be accessed after calling the Run() function.
-func NewOperator(f AutoGradFunction[DualValue]) *Operator {
+func NewOperator(f AutoGradFunction) *Operator {
 	return &Operator{
 		requiresGrad:  -1,
 		backwardState: idle,
