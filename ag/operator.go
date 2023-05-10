@@ -5,6 +5,7 @@
 package ag
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"runtime"
@@ -215,14 +216,20 @@ func (o *Operator) AccGrad(grad mat.Matrix) {
 	}
 }
 
-func (o *Operator) setOutputGrad() {
-	if isNil(o.Value().Grad()) {
-		gx := o.Value().OnesLike()
-		o.AccGrad(gx)
-		return
+func (o *Operator) assignOutputGradient() error {
+	grad := o.Value().Grad()
+
+	if !isNil(grad) {
+		o.pendingGrads--
+		return nil
 	}
-	// If the node already has gradients, we can use them directly.
-	o.pendingGrads--
+
+	if o.Value().Size() == 1 {
+		o.AccGrad(o.Value().NewScalar(1.))
+		return nil
+	}
+
+	return fmt.Errorf("ag: missing gradient for %v", o)
 }
 
 func (o *Operator) prepareBackwardPass() {
