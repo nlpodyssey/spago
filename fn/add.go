@@ -34,9 +34,6 @@ func (r *Add[O]) Operands() []O {
 func (r *Add[O]) Forward() (mat.Matrix, error) {
 	x1v := r.x1.Value()
 	x2v := r.x2.Value()
-	if x1v == nil {
-		x1v = x2v.ZerosLike()
-	}
 	return x1v.Add(x2v), nil
 }
 
