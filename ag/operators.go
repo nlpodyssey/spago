@@ -6,10 +6,10 @@ package ag
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat"
 	"math"
 
 	"github.com/nlpodyssey/spago/fn"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Abs returns a new operator node as a result of the `Abs` function.
