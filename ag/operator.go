@@ -173,7 +173,7 @@ func (o *Operator) Grad() mat.Matrix {
 
 // HasGrad returns true if there are accumulated gradients.
 func (o *Operator) HasGrad() bool {
-	return !isNil(o.Grad())
+	return !isNil(o.Grad()) // safety wait for the backward goroutine to finish
 }
 
 // RequiresGrad returns true if the node requires gradients.
@@ -200,12 +200,9 @@ func (o *Operator) Operands() []DualValue {
 
 // ZeroGrad clears the gradients.
 func (o *Operator) ZeroGrad() {
-	if o.Grad() == nil { // safety wait for the backward goroutine to finish
-		return
+	if o.HasGrad() {
+		o.Value().ZeroGrad()
 	}
-	o.Value().ZeroGrad()
-	o.pendingGrads = 0
-	o.backwardState = idle
 }
 
 // AccGrad accumulates the gradients to the node itself.
