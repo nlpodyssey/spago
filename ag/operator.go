@@ -90,9 +90,9 @@ type Operator struct {
 	// It's set by executeForward() goroutine.
 	// Use the Value() method to get the actual value.
 	// It also contains the accumulated gradients. Use the Grad() method to get them.
-	// It is important to remember that value is a weak reference, as the matrix
-	// derived from graph's operations can be freed (see ReleaseGraph).
 	value mat.Matrix
+	// onceOperands is used to initialize the operands only once.
+	onceOperands sync.Once
 	// AutoGradFunction's operands are memoized here after the first request.
 	operands []DualValue
 	// backwardPass is the backward function to be executed.
@@ -104,10 +104,11 @@ type Operator struct {
 	broadcastGrad chan struct{}
 	// pendingGrads is the number of pending gradients to be accumulated. (default: 0)
 	pendingGrads int64
+	// onceRequiresGrad is used to initialize the requiresGrad only once.
+	onceRequiresGrad sync.Once
 	// requiresGrad is a flag that indicates whether the operator requires gradients.
-	// It's set to -1 (undefined) by default, and it's lazily evaluated.
 	// Use the RequiresGrad() method to get the actual value.
-	requiresGrad int8 // -1 = undefined, 0 = false, 1 = true
+	requiresGrad bool
 	// backwardState is the state of the backward pass.
 	backwardState backwardState
 }
@@ -115,11 +116,7 @@ type Operator struct {
 // NewOperator creates a new operator with the given AutoGradFunction.
 // Note that the operator's Value() can only be accessed after calling the Run() function.
 func NewOperator(f AutoGradFunction) *Operator {
-	return &Operator{
-		requiresGrad:  -1,
-		backwardState: idle,
-		fn:            f,
-	}
+	return &Operator{fn: f}
 }
 
 // Run starts the execution of the operator, performing the forward pass.
@@ -181,28 +178,23 @@ func (o *Operator) HasGrad() bool {
 
 // RequiresGrad returns true if the node requires gradients.
 func (o *Operator) RequiresGrad() bool {
-	if o.requiresGrad == -1 {
-		defer func() {
-			// set the result in the underlying value
-			o.Value().SetRequiresGrad(o.requiresGrad == 1)
-		}()
-
-		o.requiresGrad = 0
+	o.onceRequiresGrad.Do(func() {
 		for _, op := range o.Operands() {
 			if op.RequiresGrad() {
-				o.requiresGrad = 1
-				return true
+				o.requiresGrad = true // memoize the result
+				o.Value().SetRequiresGrad(true)
+				return
 			}
 		}
-	}
-	return o.requiresGrad != 0
+	})
+	return o.requiresGrad
 }
 
 // Operands returns the operands of the operator.
 func (o *Operator) Operands() []DualValue {
-	if o.operands == nil {
-		o.operands = o.fn.Operands()
-	}
+	o.onceOperands.Do(func() {
+		o.operands = o.fn.Operands() // memoize the result
+	})
 	return o.operands
 }
 
