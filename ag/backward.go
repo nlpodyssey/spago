@@ -45,7 +45,8 @@ func Backward(xs ...DualValue) {
 func filterOperators(nodes []DualValue) []*Operator {
 	ops := make([]*Operator, 0, len(nodes))
 	for _, node := range nodes {
-		if op, ok := node.(*Operator); ok {
+		switch op := node.(type) {
+		case *Operator:
 			ops = append(ops, op)
 		}
 	}
