@@ -59,12 +59,10 @@ func (d *Dense[_]) Size() int {
 	return len(d.data)
 }
 
-// Data returns a copy of the underlying data of the matrix, as a raw one-dimensional
+// Data returns the underlying data of the matrix, as a raw one-dimensional
 // slice of values in row-major order.
 func (d *Dense[T]) Data() float.Slice {
-	data := make([]T, len(d.data))
-	copy(data, d.data)
-	return float.SliceInterface(data)
+	return float.SliceInterface(d.data)
 }
 
 // SetData sets the content of the matrix, copying the given raw
