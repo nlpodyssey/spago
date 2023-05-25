@@ -540,7 +540,7 @@ func RowViews(x DualValue) []DualValue {
 // ColViews calls ColView for each column of x, returning a new slice
 // of column-view Nodes.
 func ColViews(x DualValue) []DualValue {
-	ys := make([]DualValue, x.Value().Columns())
+	ys := make([]DualValue, x.Value().Cols())
 	for i := range ys {
 		ys[i] = ColView(x, i)
 	}

@@ -13,8 +13,8 @@ import "github.com/nlpodyssey/spago/mat/float"
 type Matrix interface {
 	// Rows returns the number of rows of the matrix.
 	Rows() int
-	// Columns returns the number of columns of the matrix.
-	Columns() int
+	// Cols returns the number of columns of the matrix.
+	Cols() int
 	// Dims returns the number of rows and columns of the matrix.
 	Dims() (r, c int)
 	// The Size of the matrix (rows*columns).
@@ -208,9 +208,6 @@ type Matrix interface {
 	LU() (l, u, p Matrix)
 	// Inverse returns the inverse of the Matrix.
 	Inverse() Matrix
-	// VecForEach calls fn for each element of the vector.
-	// It panics if the receiver is not a vector.
-	VecForEach(fn func(i int, v float64))
 	// Apply creates a new matrix executing the unary function fn.
 	Apply(fn func(r, c int, v float64) float64) Matrix
 	// ApplyInPlace executes the unary function fn over the matrix a,
@@ -327,7 +324,7 @@ func SetData[T float.DType](m Matrix, data []T) {
 // IsVector returns whether the matrix is either a row or column vector
 // (dimensions N×1 or 1×N).
 func IsVector(m Matrix) bool {
-	return m.Rows() == 1 || m.Columns() == 1
+	return m.Rows() == 1 || m.Cols() == 1
 }
 
 // IsScalar returns whether the matrix contains exactly one scalar value
@@ -338,7 +335,7 @@ func IsScalar(m Matrix) bool {
 
 // SameDims reports whether the two matrices have the same dimensions.
 func SameDims(a, b Matrix) bool {
-	return a.Rows() == b.Rows() && a.Columns() == b.Columns()
+	return a.Rows() == b.Rows() && a.Cols() == b.Cols()
 }
 
 // ConcatV concatenates two or more vectors "vertically", creating a new Dense
@@ -353,7 +350,7 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 		size += v.Size()
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](size, 1)
+	out := makeDense[T](size, 1, malloc[T](size))
 	data := out.data[:0] // convenient for using append below
 	for _, v := range vs {
 		data = append(data, Data[T](v)...)
@@ -369,11 +366,11 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 // them as row vectors.
 func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 	if len(vs) == 0 {
-		return makeDense[T](0, 0)
+		return makeDense[T](0, 0, malloc[T](0))
 	}
 	cols := vs[0].Size()
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](len(vs), cols)
+	out := makeDense[T](len(vs), cols, malloc[T](len(vs)*cols))
 	data := out.data
 	for i, v := range vs {
 		if !IsVector(v) {
@@ -391,7 +388,7 @@ func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 // Equal reports whether matrices a and b have the same shape and elements.
 func Equal(a, b Matrix) bool {
 	return a.Rows() == b.Rows() &&
-		a.Columns() == b.Columns() &&
+		a.Cols() == b.Cols() &&
 		a.Data().Equals(b.Data())
 }
 
@@ -399,7 +396,7 @@ func Equal(a, b Matrix) bool {
 // all elements at the same positions are within delta.
 func InDelta(a, b Matrix, delta float64) bool {
 	return a.Rows() == b.Rows() &&
-		a.Columns() == b.Columns() &&
+		a.Cols() == b.Cols() &&
 		a.Data().InDelta(b.Data(), delta)
 }
 

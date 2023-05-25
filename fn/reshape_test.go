@@ -40,7 +40,7 @@ func testReshapeForward[T float.DType](t *testing.T) {
 		0.8, -0.8, -0.1,
 	}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 4 || y.Columns() != 3 {
+	if y.Rows() != 4 || y.Cols() != 3 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
@@ -58,7 +58,7 @@ func testReshapeForward[T float.DType](t *testing.T) {
 		0.8, -0.8, -0.1,
 	}, x.grad.Data(), 1.0e-6)
 
-	if x.grad.Rows() != 3 || x.grad.Columns() != 4 {
+	if x.grad.Rows() != 3 || x.grad.Cols() != 4 {
 		t.Error("The rows and columns of the resulting x-gradients matrix are not correct")
 	}
 }

@@ -11,8 +11,8 @@ import (
 // Conv1D performs a 1D convolution.
 func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 	var dim int
-	wr, wc := w.Value().Rows(), w.Value().Columns()
-	xr, xc := x.Value().Rows(), x.Value().Columns()
+	wr, wc := w.Value().Rows(), w.Value().Cols()
+	xr, xc := x.Value().Rows(), x.Value().Cols()
 	if (xc-wc)%stride != 0 {
 		panic("Incompatible stride value for columns")
 	}
@@ -34,11 +34,11 @@ func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
 	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
 		panic("Incompatible stride value for rows")
 	}
-	if (x.Value().Columns()-w.Value().Columns())%yStride != 0 {
+	if (x.Value().Cols()-w.Value().Cols())%yStride != 0 {
 		panic("Incompatible stride value for columns")
 	}
 	dimx = (x.Value().Rows()-w.Value().Rows())/xStride + 1
-	dimy = (x.Value().Columns()-w.Value().Columns())/yStride + 1
+	dimy = (x.Value().Cols()-w.Value().Cols())/yStride + 1
 
 	wRows, wCols := w.Value().Dims()
 

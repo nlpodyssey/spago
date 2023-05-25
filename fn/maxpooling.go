@@ -42,16 +42,16 @@ func (r *MaxPooling[O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
-	if !(xv.Rows()%r.rows == 0 && xv.Columns()%r.cols == 0) {
+	if !(xv.Rows()%r.rows == 0 && xv.Cols()%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = xv.NewEmptyMatrix(xv.Rows()/r.rows, xv.Columns()/r.cols)
+	r.y = xv.NewEmptyMatrix(xv.Rows()/r.rows, xv.Cols()/r.cols)
 	r.argmaxI = makeIntMatrix(r.y.Dims()) // output argmax row index
 	r.argmaxJ = makeIntMatrix(r.y.Dims()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
-		for col := 0; col < r.y.Columns(); col++ {
+		for col := 0; col < r.y.Cols(); col++ {
 			maximum := math.SmallestNonzeroFloat64
 
 			maxRows := (row * r.rows) + r.rows
@@ -90,7 +90,7 @@ func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
 		for row := 0; row < r.y.Rows(); row++ {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
-			for col := 0; col < r.y.Columns(); col++ {
+			for col := 0; col < r.y.Cols(); col++ {
 				gx.SetScalar(rowi[col], rowj[col], gy.ScalarAt(row, col))
 			}
 		}

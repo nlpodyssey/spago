@@ -34,7 +34,7 @@ func (r *Transpose[O]) Forward() (mat.Matrix, error) {
 
 // Backward computes the backward pass.
 func (r *Transpose[O]) Backward(gy mat.Matrix) error {
-	if r.x.Value().Columns() != gy.Rows() && r.x.Value().Rows() != gy.Columns() {
+	if r.x.Value().Cols() != gy.Rows() && r.x.Value().Rows() != gy.Cols() {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {

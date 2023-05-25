@@ -42,7 +42,7 @@ func testMatrixMarshalingDense[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.Rows(), tc.Columns()), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.Rows(), tc.Cols()), func(t *testing.T) {
 			var buf bytes.Buffer
 			err := MarshalBinaryMatrix(tc, &buf)
 			require.NoError(t, err)
@@ -50,7 +50,7 @@ func testMatrixMarshalingDense[T float.DType](t *testing.T) {
 			m, err := UnmarshalBinaryMatrix(&buf)
 			require.NoError(t, err)
 			assert.Equal(t, tc.Rows(), m.Rows())
-			assert.Equal(t, tc.Columns(), m.Columns())
+			assert.Equal(t, tc.Cols(), m.Cols())
 			assert.Equal(t, tc.Data(), m.Data())
 		})
 	}

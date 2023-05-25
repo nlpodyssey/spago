@@ -93,7 +93,7 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 		wv := w.Value()
 		xv := x.Value()
 
-		if wv.Rows() != gy.Rows() || xv.Columns() != gy.Columns() {
+		if wv.Rows() != gy.Rows() || xv.Cols() != gy.Cols() {
 			panic("fn: matrices have incompatible dimensions")
 		}
 
@@ -110,7 +110,7 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 		if x.RequiresGrad() {
 			wg.Add(1)
 			go func() {
-				if gy.Columns() == 1 {
+				if gy.Cols() == 1 {
 					gx := wv.MulT(gy)
 					x.AccGrad(gx)
 				} else {

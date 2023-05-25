@@ -38,7 +38,7 @@ func testColForward[T float.DType](t *testing.T) {
 		0.3, -0.6, -0.8,
 	}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 3 || y.Columns() != 1 {
+	if y.Rows() != 3 || y.Cols() != 1 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 

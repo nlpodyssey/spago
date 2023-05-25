@@ -27,9 +27,9 @@ func testModelForward[T float.DType](t *testing.T) {
 		})
 
 		require.Equal(t, 2, model.W.Value().Rows())
-		require.Equal(t, 3, model.W.Value().Columns())
+		require.Equal(t, 3, model.W.Value().Cols())
 		require.Equal(t, 2, model.B.Value().Rows())
-		require.Equal(t, 1, model.B.Value().Columns())
+		require.Equal(t, 1, model.B.Value().Cols())
 
 		mat.SetData[T](model.B.Value(), []T{0.1, 0.2})
 		mat.SetData[T](model.W.Value(), []T{

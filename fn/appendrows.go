@@ -47,7 +47,7 @@ func (a *AppendRows[O]) Backward(gy mat.Matrix) error {
 
 	xRows := xVal.Rows()
 	if a.x.RequiresGrad() {
-		xGrads := gy.Slice(0, 0, xRows, xVal.Columns())
+		xGrads := gy.Slice(0, 0, xRows, xVal.Cols())
 		a.x.AccGrad(xGrads)
 	}
 

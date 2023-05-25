@@ -44,7 +44,7 @@ func (s *Slice[O]) Forward() (mat.Matrix, error) {
 func (s *Slice[O]) Backward(gy mat.Matrix) error {
 	lx := s.toRow - s.fromRow
 	ly := s.toCol - s.fromCol
-	if !(gy.Rows() == lx && gy.Columns() == ly) {
+	if !(gy.Rows() == lx && gy.Cols() == ly) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if s.x.RequiresGrad() {

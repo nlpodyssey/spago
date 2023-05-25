@@ -109,7 +109,7 @@ func testMulForwardMatrixVector[T float.DType](t *testing.T) {
 		-0.64, -0.72, -0.72, 0.8,
 	}, x1.grad.Data(), 1.0e-6)
 
-	if x1.grad.Rows() != 3 || x1.grad.Columns() != 4 {
+	if x1.grad.Rows() != 3 || x1.grad.Cols() != 4 {
 		t.Error("The rows and columns of the resulting x1-gradients are not correct")
 	}
 

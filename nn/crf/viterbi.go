@@ -78,7 +78,7 @@ func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure {
 	y := NewViterbiStructure(transitionMatrix.Rows() - 1)
 	for i := 0; i < transitionMatrix.Rows()-1; i++ {
-		for j := 0; j < transitionMatrix.Columns()-1; j++ {
+		for j := 0; j < transitionMatrix.Cols()-1; j++ {
 			mv := maxVec.ScalarAt(i, 0).F64()
 			sv := stepVec.ScalarAt(j, 0).F64()
 			tv := transitionMatrix.ScalarAt(i+1, j+1).F64()
