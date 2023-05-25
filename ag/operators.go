@@ -526,7 +526,7 @@ func LogSumExp(xs ...DualValue) DualValue {
 // RowViews calls RowView for each row of x, returning a new slice
 // of row-view Nodes.
 func RowViews(x DualValue) []DualValue {
-	ys := make([]DualValue, x.Value().Rows())
+	ys := make([]DualValue, x.Value().Shape()[0])
 	for i := range ys {
 		ys[i] = RowView(x, i)
 	}
@@ -536,7 +536,7 @@ func RowViews(x DualValue) []DualValue {
 // ColViews calls ColView for each column of x, returning a new slice
 // of column-view Nodes.
 func ColViews(x DualValue) []DualValue {
-	ys := make([]DualValue, x.Value().Cols())
+	ys := make([]DualValue, x.Value().Shape()[1])
 	for i := range ys {
 		ys[i] = ColView(x, i)
 	}

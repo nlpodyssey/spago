@@ -6,6 +6,7 @@ package mat
 
 import (
 	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
@@ -14,10 +15,6 @@ import (
 // such as element-wise addition, subtraction, product and matrix-matrix
 // multiplication.
 type Matrix interface {
-	// Rows returns the number of rows of the matrix.
-	Rows() int
-	// Cols returns the number of columns of the matrix.
-	Cols() int
 	// Shape returns the size in each dimension.
 	Shape() []int
 	// Dims returns the number of dimensions.
@@ -320,7 +317,8 @@ func SetData[T float.DType](m Matrix, data []T) {
 // IsVector returns whether the matrix is either a row or column vector
 // (dimensions N×1 or 1×N).
 func IsVector(m Matrix) bool {
-	return m.Rows() == 1 || m.Cols() == 1
+	shape := m.Shape()
+	return shape[0] == 1 || shape[1] == 1
 }
 
 // IsScalar returns whether the matrix contains exactly one scalar value
@@ -331,7 +329,21 @@ func IsScalar(m Matrix) bool {
 
 // SameDims reports whether the two matrices have the same dimensions.
 func SameDims(a, b Matrix) bool {
-	return a.Rows() == b.Rows() && a.Cols() == b.Cols()
+	return areSlicesEqual(a.Shape(), b.Shape())
+}
+
+func areSlicesEqual(slice1, slice2 []int) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+
+	for i := 0; i < len(slice1); i++ {
+		if slice1[i] != slice2[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 // ConcatV concatenates two or more vectors "vertically", creating a new Dense
@@ -383,17 +395,13 @@ func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 
 // Equal reports whether matrices a and b have the same shape and elements.
 func Equal(a, b Matrix) bool {
-	return a.Rows() == b.Rows() &&
-		a.Cols() == b.Cols() &&
-		a.Data().Equals(b.Data())
+	return areSlicesEqual(a.Shape(), b.Shape()) && a.Data().Equals(b.Data())
 }
 
 // InDelta reports whether matrices a and b have the same shape and
 // all elements at the same positions are within delta.
 func InDelta(a, b Matrix, delta float64) bool {
-	return a.Rows() == b.Rows() &&
-		a.Cols() == b.Cols() &&
-		a.Data().InDelta(b.Data(), delta)
+	return areSlicesEqual(a.Shape(), b.Shape()) && a.Data().InDelta(b.Data(), delta)
 }
 
 func float32Data(m Matrix) []float32 {

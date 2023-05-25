@@ -43,16 +43,6 @@ func malloc[T float.DType](size int) []T {
 	return make([]T, size)
 }
 
-// Rows returns the number of rows of the matrix.
-func (d *Dense[_]) Rows() int {
-	return d.rows
-}
-
-// Cols returns the number of columns of the matrix.
-func (d *Dense[_]) Cols() int {
-	return d.cols
-}
-
 // Shape returns the size in each dimension.
 func (d *Dense[_]) Shape() []int {
 	return []int{d.rows, d.cols}
@@ -683,11 +673,14 @@ func (d *Dense[T]) DivInPlace(other Matrix) Matrix {
 // If A is an i×j Matrix, and B is j×k, then the resulting Matrix
 // C = AB will be i×k.
 func (d *Dense[T]) Mul(other Matrix) Matrix {
-	if d.cols != other.Rows() {
+	otherShape := other.Shape()
+	otherRows, otherCols := otherShape[0], otherShape[1]
+
+	if d.cols != otherRows {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	outRows := d.rows
-	outCols := other.Cols()
+	outCols := otherCols
 
 	switch any(T(0)).(type) {
 	case float32:
@@ -697,7 +690,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			f32.MatrixMul(
 				d.rows,                    // aRows
 				d.cols,                    // aCols
-				other.Cols(),              // bCols
+				otherCols,                 // bCols
 				any(d.data).([]float32),   // a
 				otherData,                 // b
 				any(out.data).([]float32), // c
@@ -725,7 +718,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 			f64.MatrixMul(
 				d.rows,                    // aRows
 				d.cols,                    // aCols
-				other.Cols(),              // bCols
+				otherCols,                 // bCols
 				any(d.data).([]float64),   // a
 				otherData,                 // b
 				any(out.data).([]float64), // c
@@ -756,16 +749,19 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 // if A is an r x c Matrix, and B is j x k, r = j the resulting
 // Matrix C will be c x k.
 func (d *Dense[T]) MulT(other Matrix) Matrix {
-	if d.rows != other.Rows() {
+	otherShape := other.Shape()
+	otherRows, otherCols := otherShape[0], otherShape[1]
+
+	if d.rows != otherRows {
 		panic("mat: matrices have incompatible dimensions")
 	}
-	if other.Cols() != 1 {
+	if otherCols != 1 {
 		panic("mat: the other matrix must have exactly 1 column")
 	}
 
 	switch any(T(0)).(type) {
 	case float32:
-		out := makeDense[float32](d.cols, other.Cols(), malloc[float32](d.cols*other.Cols()))
+		out := makeDense[float32](d.cols, otherCols, malloc[float32](d.cols*otherCols))
 		otherData := float32Data(other)
 
 		dCols := d.cols
@@ -780,7 +776,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 		}
 		return out
 	case float64:
-		out := makeDense[float64](d.cols, other.Cols(), malloc[float64](d.cols*other.Cols()))
+		out := makeDense[float64](d.cols, otherCols, malloc[float64](d.cols*otherCols))
 		otherData := float64Data(other)
 
 		dCols := d.cols
@@ -1391,7 +1387,7 @@ func (d *Dense[T]) Inverse() Matrix {
 	pData := Data[T](p)
 	for b := 0; b < d.cols; b++ {
 		// find solution of Ly = b
-		for i := 0; i < l.Rows(); i++ {
+		for i := 0; i < l.Shape()[0]; i++ {
 			var sum T
 			for j := 0; j < i; j++ {
 				sum += lData[i*d.cols+j] * sData[j*d.cols+b]

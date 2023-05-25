@@ -96,7 +96,7 @@ func testRowViews[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Cols()), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.Shape()[0], tc.x.Shape()[1]), func(t *testing.T) {
 			x := tc.x
 			x.SetRequiresGrad(true)
 			ys := RowViews(x)
@@ -105,8 +105,8 @@ func testRowViews[T float.DType](t *testing.T) {
 				y := yn.Value()
 				expected := tc.ys[i]
 
-				assert.Equal(t, 1, y.Rows())
-				assert.Equal(t, len(expected), y.Cols())
+				assert.Equal(t, 1, y.Shape()[0])
+				assert.Equal(t, len(expected), y.Shape()[1])
 				assert.Equal(t, expected, mat.Data[T](y))
 			}
 		})
@@ -155,7 +155,7 @@ func testColViews[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.x.Rows(), tc.x.Cols()), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.Shape()[0], tc.x.Shape()[1]), func(t *testing.T) {
 			x := tc.x
 			x.SetRequiresGrad(true)
 			ys := ColViews(x)
@@ -164,8 +164,8 @@ func testColViews[T float.DType](t *testing.T) {
 				y := yn.Value()
 				expected := tc.ys[i]
 
-				assert.Equal(t, len(expected), y.Rows())
-				assert.Equal(t, 1, y.Cols())
+				assert.Equal(t, len(expected), y.Shape()[0])
+				assert.Equal(t, 1, y.Shape()[1])
 				assert.Equal(t, expected, mat.Data[T](y))
 			}
 		})

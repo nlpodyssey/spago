@@ -41,7 +41,7 @@ func testStackForward[T float.DType](t *testing.T) {
 	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.1, 0.2, 0.3, 0.5, 0.4, 0.5, 0.6, 0.4, 0.8, 0.9, 0.7, 0.6}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 3 && y.Cols() != 4 {
+	if y.Shape()[0] != 3 && y.Shape()[1] != 4 {
 		t.Error("The output size doesn't match the expected values")
 	}
 

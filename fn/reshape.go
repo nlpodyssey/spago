@@ -39,7 +39,7 @@ func (r *Reshape[O]) Forward() (mat.Matrix, error) {
 
 // Backward computes the backward pass.
 func (r *Reshape[O]) Backward(gy mat.Matrix) error {
-	if gy.Cols() != r.cols && gy.Rows() != r.rows {
+	if gy.Shape()[1] != r.cols && gy.Shape()[0] != r.rows {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {

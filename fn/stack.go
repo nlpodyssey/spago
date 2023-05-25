@@ -40,7 +40,7 @@ func (r *Stack[O]) Forward() (mat.Matrix, error) {
 
 // Backward computes the backward pass.
 func (r *Stack[O]) Backward(gy mat.Matrix) error {
-	if gy.Rows() != len(r.xs) {
+	if gy.Shape()[0] != len(r.xs) {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 

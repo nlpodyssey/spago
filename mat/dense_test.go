@@ -4019,9 +4019,9 @@ func assertDenseDims[T float.DType](t *testing.T, expectedRows, expectedCols int
 	dimsRows, dimsCols := shape[0], shape[1]
 
 	assert.NotNil(t, d)
-	assert.Equal(t, expectedRows, d.Rows())
+	assert.Equal(t, expectedRows, d.Shape()[0])
 	assert.Equal(t, expectedRows, dimsRows)
-	assert.Equal(t, expectedCols, d.Cols())
+	assert.Equal(t, expectedCols, d.Shape()[1])
 	assert.Equal(t, expectedCols, dimsCols)
 	assert.Equal(t, expectedSize, d.Size())
 	assert.Len(t, d.Data(), expectedSize)

@@ -41,13 +41,13 @@ func (a *AppendRows[O]) Forward() (mat.Matrix, error) {
 // Backward computes the backward pass.
 func (a *AppendRows[O]) Backward(gy mat.Matrix) error {
 	xVal := a.x.Value()
-	if gy.Rows() != xVal.Rows()+len(a.vs) {
+	if gy.Shape()[0] != xVal.Shape()[0]+len(a.vs) {
 		panic("fn: matrices have incompatible dimensions")
 	}
 
-	xRows := xVal.Rows()
+	xRows := xVal.Shape()[0]
 	if a.x.RequiresGrad() {
-		xGrads := gy.Slice(0, 0, xRows, xVal.Cols())
+		xGrads := gy.Slice(0, 0, xRows, xVal.Shape()[1])
 		a.x.AccGrad(xGrads)
 	}
 

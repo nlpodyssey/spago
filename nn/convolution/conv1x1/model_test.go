@@ -26,10 +26,10 @@ func testModelForward[T float.DType](t *testing.T) {
 			OutputChannels: 2,
 		})
 
-		require.Equal(t, 2, model.W.Value().Rows())
-		require.Equal(t, 3, model.W.Value().Cols())
-		require.Equal(t, 2, model.B.Value().Rows())
-		require.Equal(t, 1, model.B.Value().Cols())
+		require.Equal(t, 2, model.W.Value().Shape()[0])
+		require.Equal(t, 3, model.W.Value().Shape()[1])
+		require.Equal(t, 2, model.B.Value().Shape()[0])
+		require.Equal(t, 1, model.B.Value().Shape()[1])
 
 		mat.SetData[T](model.B.Value(), []T{0.1, 0.2})
 		mat.SetData[T](model.W.Value(), []T{

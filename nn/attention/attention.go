@@ -21,7 +21,7 @@ func ScaledDotProductAttention(q []ag.DualValue, k, v, scaleFactor ag.DualValue,
 	weights := nodes[len(q):]
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
-	kRows := k.Value().Rows()
+	kRows := k.Value().Shape()[0]
 
 	kqi := make([]ag.DualValue, len(q))
 	for i, qi := range q {

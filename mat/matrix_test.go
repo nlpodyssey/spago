@@ -140,13 +140,13 @@ func testConcatV[T float.DType](t *testing.T) {
 	for _, tc := range testCases {
 		name := "["
 		for _, x := range tc.xs {
-			name += fmt.Sprintf(" (%d x %d)", x.Rows(), x.Cols())
+			name += fmt.Sprintf(" (%d x %d)", x.Shape()[0], x.Shape()[1])
 		}
 		name += " ]"
 		t.Run(name, func(t *testing.T) {
 			y := ConcatV[T](tc.xs...)
-			assert.Equal(t, len(tc.y), y.Rows())
-			assert.Equal(t, 1, y.Cols())
+			assert.Equal(t, len(tc.y), y.Shape()[0])
+			assert.Equal(t, 1, y.Shape()[1])
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -216,17 +216,17 @@ func testStack[T float.DType](t *testing.T) {
 	for _, tc := range testCases {
 		name := "["
 		for _, x := range tc.xs {
-			name += fmt.Sprintf(" (%d x %d)", x.Rows(), x.Cols())
+			name += fmt.Sprintf(" (%d x %d)", x.Shape()[0], x.Shape()[1])
 		}
 		name += " ]"
 		t.Run(name, func(t *testing.T) {
 			y := Stack[T](tc.xs...)
-			assert.Equal(t, len(tc.xs), y.Rows())
+			assert.Equal(t, len(tc.xs), y.Shape()[0])
 			cols := 0
 			if len(tc.xs) > 0 {
 				cols = tc.xs[0].Size()
 			}
-			assert.Equal(t, cols, y.Cols())
+			assert.Equal(t, cols, y.Shape()[1])
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -276,7 +276,7 @@ func testEqual[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		name := fmt.Sprintf("Equal(%dx%d, %dx%d) == %v",
-			tc.a.Rows(), tc.a.Cols(), tc.b.Rows(), tc.b.Cols(), tc.expected)
+			tc.a.Shape()[0], tc.a.Shape()[1], tc.b.Shape()[0], tc.b.Shape()[1], tc.expected)
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, Equal(tc.a, tc.b), "a vs b")
 			assert.Equal(t, tc.expected, Equal(tc.b, tc.a), "b vs a")
@@ -335,7 +335,7 @@ func testInDelta[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		name := fmt.Sprintf("InDelta(%dx%d, %dx%d, delta %.1f) == %v",
-			tc.a.Rows(), tc.a.Cols(), tc.b.Rows(), tc.b.Cols(), tc.delta, tc.expected)
+			tc.a.Shape()[0], tc.a.Shape()[1], tc.b.Shape()[0], tc.b.Shape()[1], tc.delta, tc.expected)
 		t.Run(name, func(t *testing.T) {
 			assert.Equal(t, tc.expected, InDelta(tc.a, tc.b, tc.delta), "a vs b")
 			assert.Equal(t, tc.expected, InDelta(tc.b, tc.a, tc.delta), "b vs a")

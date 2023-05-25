@@ -42,16 +42,16 @@ func (r *MaxPooling[O]) Operands() []O {
 // Forward computes the output of the function.
 func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
-	if !(xv.Rows()%r.rows == 0 && xv.Cols()%r.cols == 0) {
+	if !(xv.Shape()[0]%r.rows == 0 && xv.Shape()[1]%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = xv.NewEmptyMatrix(xv.Rows()/r.rows, xv.Cols()/r.cols)
+	r.y = xv.NewEmptyMatrix(xv.Shape()[0]/r.rows, xv.Shape()[1]/r.cols)
 	r.argmaxI = makeIntMatrix(r.y.Shape()) // output argmax row index
 	r.argmaxJ = makeIntMatrix(r.y.Shape()) // output argmax column index
 
-	for row := 0; row < r.y.Rows(); row++ {
-		for col := 0; col < r.y.Cols(); col++ {
+	for row := 0; row < r.y.Shape()[0]; row++ {
+		for col := 0; col < r.y.Shape()[1]; col++ {
 			maximum := math.SmallestNonzeroFloat64
 
 			maxRows := (row * r.rows) + r.rows
@@ -90,10 +90,10 @@ func makeIntMatrix(indices []int) [][]int {
 func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
-		for row := 0; row < r.y.Rows(); row++ {
+		for row := 0; row < r.y.Shape()[0]; row++ {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
-			for col := 0; col < r.y.Cols(); col++ {
+			for col := 0; col < r.y.Shape()[1]; col++ {
 				gx.SetScalar(gy.ScalarAt(row, col), rowi[col], rowj[col])
 			}
 		}

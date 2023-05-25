@@ -45,13 +45,13 @@ func TestDense_Marshaling(t *testing.T) {
 		require.Nil(t, err)
 
 		assert.IsType(t, &Dense[float32]{}, y.A)
-		assert.Equal(t, x.A.Rows(), y.A.Rows())
-		assert.Equal(t, x.A.Cols(), y.A.Cols())
+		assert.Equal(t, x.A.Shape()[0], y.A.Shape()[0])
+		assert.Equal(t, x.A.Shape()[1], y.A.Shape()[1])
 		assert.Equal(t, x.A.Data(), y.A.Data())
 
 		assert.IsType(t, &Dense[float64]{}, y.B)
-		assert.Equal(t, x.B.Rows(), y.B.Rows())
-		assert.Equal(t, x.B.Cols(), y.B.Cols())
+		assert.Equal(t, x.B.Shape()[0], y.B.Shape()[0])
+		assert.Equal(t, x.B.Shape()[1], y.B.Shape()[1])
 		assert.Equal(t, x.B.Data(), y.B.Data())
 	})
 }

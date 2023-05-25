@@ -37,8 +37,8 @@ func Gain(f activation.Name) float64 {
 // The matrix is returned for convenience.
 func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) mat.Matrix {
 	dist := uniform.New(min, max, generator)
-	for i := 0; i < m.Rows(); i++ {
-		for j := 0; j < m.Cols(); j++ {
+	for i := 0; i < m.Shape()[0]; i++ {
+		for j := 0; j < m.Shape()[1]; j++ {
 			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
@@ -51,8 +51,8 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) mat.Mat
 // The matrix is returned for convenience.
 func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) mat.Matrix {
 	dist := normal.New(std, mean, generator)
-	for i := 0; i < m.Rows(); i++ {
-		for j := 0; j < m.Cols(); j++ {
+	for i := 0; i < m.Shape()[0]; i++ {
+		for j := 0; j < m.Shape()[1]; j++ {
 			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
@@ -64,8 +64,8 @@ func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) mat.Mat
 // The matrix is returned for convenience.
 func Constant(m mat.Matrix, n float64) mat.Matrix {
 	c := m.NewScalar(n)
-	for i := 0; i < m.Rows(); i++ {
-		for j := 0; j < m.Cols(); j++ {
+	for i := 0; i < m.Shape()[0]; i++ {
+		for j := 0; j < m.Shape()[1]; j++ {
 			m.SetAt(c, i, j)
 		}
 	}

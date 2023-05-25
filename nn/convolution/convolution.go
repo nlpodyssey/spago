@@ -11,8 +11,8 @@ import (
 // Conv1D performs a 1D convolution.
 func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 	var dim int
-	wr, wc := w.Value().Rows(), w.Value().Cols()
-	xr, xc := x.Value().Rows(), x.Value().Cols()
+	wr, wc := w.Value().Shape()[0], w.Value().Shape()[1]
+	xr, xc := x.Value().Shape()[0], x.Value().Shape()[1]
 	if (xc-wc)%stride != 0 {
 		panic("Incompatible stride value for columns")
 	}
@@ -31,14 +31,14 @@ func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 // Conv2D performs a 2D convolution.
 func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
 	var dimx, dimy int
-	if (x.Value().Rows()-w.Value().Rows())%xStride != 0 {
+	if (x.Value().Shape()[0]-w.Value().Shape()[0])%xStride != 0 {
 		panic("Incompatible stride value for rows")
 	}
-	if (x.Value().Cols()-w.Value().Cols())%yStride != 0 {
+	if (x.Value().Shape()[1]-w.Value().Shape()[1])%yStride != 0 {
 		panic("Incompatible stride value for columns")
 	}
-	dimx = (x.Value().Rows()-w.Value().Rows())/xStride + 1
-	dimy = (x.Value().Cols()-w.Value().Cols())/yStride + 1
+	dimx = (x.Value().Shape()[0]-w.Value().Shape()[0])/xStride + 1
+	dimy = (x.Value().Shape()[1]-w.Value().Shape()[1])/yStride + 1
 
 	shape := w.Value().Shape()
 	wRows, wCols := shape[0], shape[1]

@@ -39,12 +39,12 @@ func (r *RowView[O]) Forward() (mat.Matrix, error) {
 
 // Backward computes the backward pass.
 func (r *RowView[O]) Backward(gy mat.Matrix) error {
-	if !(r.x.Value().Cols() == gy.Size()) {
+	if !(r.x.Value().Shape()[1] == gy.Size()) {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
-		for j := 0; j < r.x.Value().Cols(); j++ {
+		for j := 0; j < r.x.Value().Shape()[1]; j++ {
 			gx.SetScalar(gy.ScalarAt(0, j), r.i, j)
 		}
 		r.x.AccGrad(gx)

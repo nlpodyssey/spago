@@ -37,7 +37,7 @@ func (r *Mul[O]) Forward() (mat.Matrix, error) {
 
 // Backward computes the backward pass.
 func (r *Mul[O]) Backward(gy mat.Matrix) error {
-	if !(r.x1.Value().Rows() == gy.Rows() && r.x2.Value().Cols() == gy.Cols()) {
+	if !(r.x1.Value().Shape()[0] == gy.Shape()[0] && r.x2.Value().Shape()[1] == gy.Shape()[1]) {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	var wg sync.WaitGroup
@@ -55,7 +55,7 @@ func (r *Mul[O]) Backward(gy mat.Matrix) error {
 		go func() {
 			defer wg.Done()
 			//r.x2.AccGrad(gy.T().Mul(r.x1).T()) // alternative method
-			if gy.Cols() == 1 {
+			if gy.Shape()[1] == 1 {
 				gx := r.x1.Value().MulT(gy)
 				r.x2.AccGrad(gx)
 			} else {

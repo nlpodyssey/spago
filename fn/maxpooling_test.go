@@ -39,7 +39,7 @@ func testMaxPoolForward[T float.DType](t *testing.T) {
 		0.8, 0.7,
 	}, y.Data(), 1.0e-6)
 
-	if y.Rows() != 2 || y.Cols() != 2 {
+	if y.Shape()[0] != 2 || y.Shape()[1] != 2 {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
@@ -56,7 +56,7 @@ func testMaxPoolForward[T float.DType](t *testing.T) {
 		0.0, 0.0, 0.0, 0.0,
 	}, x.grad.Data(), 1.0e-6)
 
-	if x.grad.Rows() != 4 || x.grad.Cols() != 4 {
+	if x.grad.Shape()[0] != 4 || x.grad.Shape()[1] != 4 {
 		t.Error("The rows and columns of the resulting x-gradients matrix are not correct")
 	}
 }
