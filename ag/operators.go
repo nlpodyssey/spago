@@ -43,13 +43,8 @@ func AppendRows(x DualValue, vs ...DualValue) DualValue {
 }
 
 // At returns a new operator node as a result of the fn.At function.
-func At(x DualValue, i int, j int) DualValue {
-	return NewOperator(fn.NewAt(x, i, j)).Run()
-}
-
-// AtVec returns a new operator node as a result of the fn.AtVec function.
-func AtVec(x DualValue, i int) DualValue {
-	return NewOperator(fn.NewAtVec(x, i)).Run()
+func At(x DualValue, indices ...int) DualValue {
+	return NewOperator(fn.NewAt(x, indices...)).Run()
 }
 
 // CELU returns a new operator node as a result of the fn.CELU function.
@@ -410,7 +405,8 @@ func Pad(xs []DualValue, seqLen int, padding func(i int) DualValue) []DualValue 
 // SeparateMatrix returns a matrix of Node(s) represented as a slice of slice containing the elements extracted from the input.
 // The dimensions of the resulting matrix are the same of the input.
 func SeparateMatrix(x DualValue) [][]DualValue {
-	rows, cols := x.Value().Dims()
+	shape := x.Value().Shape()
+	rows, cols := shape[0], shape[1]
 	ys := make([][]DualValue, rows)
 	for i := range ys {
 		row := make([]DualValue, cols)
@@ -429,7 +425,7 @@ func SeparateVec(x DualValue) []DualValue {
 	size := x.Value().Size()
 	ys := make([]DualValue, size)
 	for i := 0; i < size; i++ {
-		ys[i] = AtVec(x, i)
+		ys[i] = At(x, i)
 	}
 	return ys
 }

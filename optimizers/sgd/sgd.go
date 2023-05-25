@@ -8,14 +8,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an SGD optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	LR       float64
 	Mu       float64
 	Nesterov bool
@@ -30,7 +30,7 @@ func NewConfig(lr, momentum float64, nesterov bool) Config {
 	}
 }
 
-var _ optimizer.Strategy = &SGD[float32]{}
+var _ optimizers.Strategy = &SGD[float32]{}
 
 // SGD implements the SGD gradient descent optimization method.
 type SGD[T float.DType] struct {
@@ -45,7 +45,7 @@ func New[T float.DType](c Config) *SGD[T] {
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *SGD[_]) Label() int {
-	return optimizer.SGD
+	return optimizers.SGD
 }
 
 const (
@@ -55,38 +55,32 @@ const (
 	vTmp  int = 3
 )
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *SGD[T]) NewPayload(r, c int) *nn.OptimizerPayload {
+func (o *SGD[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
+
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
-		return &nn.OptimizerPayload{
-			Label: o.Label(),
-			Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // v at index 0
-		}
+		return []mat.Matrix{mat.NewEmptyDense[T](r, c)} // v at index 0
 	}
 	if !o.Nesterov {
 		supp := make([]mat.Matrix, 2)
 		supp[v] = mat.NewEmptyDense[T](r, c)
 		supp[buf] = mat.NewEmptyDense[T](r, c)
-		return &nn.OptimizerPayload{
-			Label: o.Label(),
-			Data:  supp,
-		}
+		return supp
 	}
 	supp := make([]mat.Matrix, 4)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[buf] = mat.NewEmptyDense[T](r, c)
 	supp[vPrev] = mat.NewEmptyDense[T](r, c)
 	supp[vTmp] = mat.NewEmptyDense[T](r, c)
-	return &nn.OptimizerPayload{
-		Label: o.Label(),
-		Data:  supp,
-	}
+	return supp
 }
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *SGD[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data)
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+	return o.calcDelta(grads, supp)
 }
 
 func (o *SGD[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

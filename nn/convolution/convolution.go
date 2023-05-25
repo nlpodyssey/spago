@@ -40,7 +40,8 @@ func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
 	dimx = (x.Value().Rows()-w.Value().Rows())/xStride + 1
 	dimy = (x.Value().Cols()-w.Value().Cols())/yStride + 1
 
-	wRows, wCols := w.Value().Dims()
+	shape := w.Value().Shape()
+	wRows, wCols := shape[0], shape[1]
 
 	var outList []ag.DualValue
 	for i := 0; i < dimx; i++ {

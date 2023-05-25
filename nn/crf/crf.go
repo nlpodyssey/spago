@@ -51,7 +51,7 @@ func (m *Model) goldScore(emissionScores []ag.DualValue, target []int) ag.DualVa
 	goldScore = ag.Add(goldScore, ag.At(m.TransitionScores, 0, target[0]+1)) // start transition
 	prevIndex := target[0] + 1
 	for i := 1; i < len(target); i++ {
-		goldScore = ag.Add(goldScore, ag.AtVec(emissionScores[i], target[i]))
+		goldScore = ag.Add(goldScore, ag.At(emissionScores[i], target[i]))
 		goldScore = ag.Add(goldScore, ag.At(m.TransitionScores, prevIndex, target[i]+1))
 		prevIndex = target[i] + 1
 	}
@@ -71,7 +71,7 @@ func (m *Model) totalScore(predicted []ag.DualValue) ag.DualValue {
 func (m *Model) totalScoreStart(stepVec ag.DualValue) []ag.DualValue {
 	scores := make([]ag.DualValue, m.Size)
 	for i := 0; i < m.Size; i++ {
-		scores[i] = ag.Add(ag.AtVec(stepVec, i), ag.At(m.TransitionScores, 0, i+1))
+		scores[i] = ag.Add(ag.At(stepVec, i), ag.At(m.TransitionScores, 0, i+1))
 	}
 	return scores
 }

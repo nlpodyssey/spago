@@ -53,7 +53,7 @@ func viterbiStepStart(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 		yv := y.scores.ScalarAt(i, 0).F64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, float.Interface(score))
+			y.scores.SetScalar(float.Interface(score), i)
 			y.backpointers[i] = i
 		}
 	}
@@ -68,7 +68,7 @@ func viterbiStepEnd(transitionMatrix, maxVec mat.Matrix) *ViterbiStructure {
 		yv := y.scores.ScalarAt(i, 0).F64()
 		score := mv + tv
 		if score > yv {
-			y.scores.SetVecScalar(i, float.Interface(score))
+			y.scores.SetScalar(float.Interface(score), i)
 			y.backpointers[i] = i
 		}
 	}
@@ -85,7 +85,7 @@ func viterbiStep(transitionMatrix, maxVec, stepVec mat.Matrix) *ViterbiStructure
 			yv := y.scores.ScalarAt(j, 0).F64()
 			score := mv + sv + tv
 			if score > yv {
-				y.scores.SetVecScalar(j, float.Interface(score))
+				y.scores.SetScalar(float.Interface(score), j)
 				y.backpointers[j] = i
 			}
 		}

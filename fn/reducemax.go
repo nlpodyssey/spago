@@ -33,7 +33,7 @@ func (r *ReduceMax[O]) Operands() []O {
 func (r *ReduceMax[O]) Forward() (mat.Matrix, error) {
 	xv := r.x.Value()
 	r.argmax = xv.ArgMax()
-	return xv.AtVec(r.argmax), nil
+	return xv.At(r.argmax), nil
 }
 
 // Backward computes the backward pass.
@@ -44,7 +44,7 @@ func (r *ReduceMax[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
 		gx := x.ZerosLike()
-		gx.SetVec(r.argmax, gy)
+		gx.SetAt(gy, r.argmax)
 		r.x.AccGrad(gx)
 	}
 	return nil

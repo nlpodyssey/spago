@@ -39,7 +39,7 @@ func Uniform(m mat.Matrix, min, max float64, generator *rand.LockedRand) mat.Mat
 	dist := uniform.New(min, max, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Cols(); j++ {
-			m.SetScalar(i, j, float.Interface(dist.Next()))
+			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
 	return m
@@ -53,7 +53,7 @@ func Normal(m mat.Matrix, mean, std float64, generator *rand.LockedRand) mat.Mat
 	dist := normal.New(std, mean, generator)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Cols(); j++ {
-			m.SetScalar(i, j, float.Interface(dist.Next()))
+			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
 	return m
@@ -66,7 +66,7 @@ func Constant(m mat.Matrix, n float64) mat.Matrix {
 	c := m.NewScalar(n)
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Cols(); j++ {
-			m.Set(i, j, c)
+			m.SetAt(c, i, j)
 		}
 	}
 	return m
@@ -92,12 +92,13 @@ func Zeros(m mat.Matrix) mat.Matrix {
 //
 // The matrix is returned for convenience.
 func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) mat.Matrix {
-	rows, cols := m.Dims()
+	shape := m.Shape()
+	rows, cols := shape[0], shape[1]
 	a := gain * math.Sqrt(6.0/float64(rows+cols))
 	dist := uniform.New(-a, a, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, float.Interface(dist.Next()))
+			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
 	return m
@@ -110,12 +111,13 @@ func XavierUniform(m mat.Matrix, gain float64, generator *rand.LockedRand) mat.M
 //
 // The matrix is returned for convenience.
 func XavierNormal(m mat.Matrix, gain float64, generator *rand.LockedRand) mat.Matrix {
-	rows, cols := m.Dims()
+	shape := m.Shape()
+	rows, cols := shape[0], shape[1]
 	std := gain * math.Sqrt(2.0/float64(rows+cols))
 	dist := normal.New(std, 0, generator)
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
-			m.SetScalar(i, j, float.Interface(dist.Next()))
+			m.SetScalar(float.Interface(dist.Next()), i, j)
 		}
 	}
 	return m
@@ -137,16 +139,17 @@ func Achlioptas(m mat.Matrix, generator *rand.LockedRand) mat.Matrix {
 	negA := float.Interface(-sqrt3)
 	zero := float.Interface(0.0)
 
-	rows, cols := m.Dims()
+	shape := m.Shape()
+	rows, cols := shape[0], shape[1]
 	for i := 0; i < rows; i++ {
 		for j := 0; j < cols; j++ {
 			r := dist.Next()
 			if r < lower {
-				m.SetScalar(i, j, negA)
+				m.SetScalar(negA, i, j)
 			} else if r > upper {
-				m.SetScalar(i, j, a)
+				m.SetScalar(a, i, j)
 			} else {
-				m.SetScalar(i, j, zero)
+				m.SetScalar(zero, i, j)
 			}
 		}
 	}

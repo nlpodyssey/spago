@@ -4,7 +4,10 @@
 
 package mat
 
-import "github.com/nlpodyssey/spago/mat/float"
+import (
+	"encoding/gob"
+	"github.com/nlpodyssey/spago/mat/float"
+)
 
 // The Matrix interface defines set and get methods to access its elements,
 // plus a few variants to perform linear algebra operations with other matrices,
@@ -15,9 +18,11 @@ type Matrix interface {
 	Rows() int
 	// Cols returns the number of columns of the matrix.
 	Cols() int
-	// Dims returns the number of rows and columns of the matrix.
-	Dims() (r, c int)
-	// The Size of the matrix (rows*columns).
+	// Shape returns the size in each dimension.
+	Shape() []int
+	// Dims returns the number of dimensions.
+	Dims() int
+	// Size returns the total number of elements.
 	Size() int
 	// Data returns the underlying data of the matrix, as a raw one-dimensional
 	// slice of values in row-major order.
@@ -36,31 +41,18 @@ type Matrix interface {
 	Scalar() float.Float
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
-	// Set sets the scalar value from a 1×1 matrix at row r and column c.
-	// It panics if the given matrix is not 1×1, or if indices are out of range.
-	Set(r int, c int, m Matrix)
-	// At returns the value at row r and column c as a 1×1 matrix.
+	// SetAt sets the value at the given indices.
 	// It panics if the given indices are out of range.
-	At(r int, c int) Matrix
-	// SetScalar sets the value v at row r and column c.
+	SetAt(m Matrix, indices ...int)
+	// At returns the value at the given indices.
 	// It panics if the given indices are out of range.
-	SetScalar(r int, c int, v float.Float)
-	// ScalarAt returns the value at row r and column c.
+	At(indices ...int) Matrix
+	// SetScalar sets the value at the given indices.
 	// It panics if the given indices are out of range.
-	ScalarAt(r int, c int) float.Float
-	// SetVec sets the scalar value from a 1×1 matrix at position i of a
-	// vector. It panics if the receiver is not a vector, or the given matrix is
-	// not 1×1, or the position is out of range.
-	SetVec(i int, m Matrix)
-	// AtVec returns the value at position i of a vector as a 1×1 matrix.
-	// It panics if the receiver is not a vector or the position is out of range.
-	AtVec(i int) Matrix
-	// SetVecScalar sets the value v at position i of a vector.
-	// It panics if the receiver is not a vector or the position is out of range.
-	SetVecScalar(i int, v float.Float)
-	// ScalarAtVec returns the value at position i of a vector.
-	// It panics if the receiver is not a vector or the position is out of range.
-	ScalarAtVec(i int) float.Float
+	SetScalar(v float.Float, indices ...int)
+	// ScalarAt returns the value at the given indices.
+	// It panics if the given indices are out of range.
+	ScalarAt(indices ...int) float.Float
 	// ExtractRow returns a copy of the i-th row of the matrix,
 	// as a row vector (1×cols).
 	ExtractRow(i int) Matrix
@@ -73,11 +65,11 @@ type Matrix interface {
 	Slice(fromRow, fromCol, toRow, toCol int) Matrix
 	// Reshape returns a copy of the matrix.
 	// It panics if the dimensions are incompatible.
-	Reshape(r, c int) Matrix
+	Reshape(shape ...int) Matrix
 	// ReshapeInPlace changes the dimensions of the matrix in place and returns the
 	// matrix itself.
 	// It panics if the dimensions are incompatible.
-	ReshapeInPlace(r, c int) Matrix
+	ReshapeInPlace(shape ...int) Matrix
 	// Flatten creates a new row vector (1×size) corresponding to the
 	// "flattened" row-major ordered representation of the initial matrix.
 	Flatten() Matrix
@@ -296,6 +288,10 @@ type Matrix interface {
 	AccGrad(gx Matrix)
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
+}
+
+func init() {
+	gob.Register([]Matrix{})
 }
 
 type MatrixOption func(matrix Matrix)

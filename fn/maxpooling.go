@@ -47,8 +47,8 @@ func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 	}
 
 	r.y = xv.NewEmptyMatrix(xv.Rows()/r.rows, xv.Cols()/r.cols)
-	r.argmaxI = makeIntMatrix(r.y.Dims()) // output argmax row index
-	r.argmaxJ = makeIntMatrix(r.y.Dims()) // output argmax column index
+	r.argmaxI = makeIntMatrix(r.y.Shape()) // output argmax row index
+	r.argmaxJ = makeIntMatrix(r.y.Shape()) // output argmax column index
 
 	for row := 0; row < r.y.Rows(); row++ {
 		for col := 0; col < r.y.Cols(); col++ {
@@ -67,7 +67,7 @@ func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 					}
 				}
 			}
-			r.y.SetScalar(row, col, float.Interface(maximum))
+			r.y.SetScalar(float.Interface(maximum), row, col)
 		}
 	}
 
@@ -75,7 +75,10 @@ func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 }
 
 // makeIntMatrix returns a new 2-dimensional slice of int.
-func makeIntMatrix(rows, cols int) [][]int {
+func makeIntMatrix(indices []int) [][]int {
+	rows := indices[0]
+	cols := indices[1]
+
 	matrix := make([][]int, rows)
 	for i := 0; i < rows; i++ {
 		matrix[i] = make([]int, cols)
@@ -91,7 +94,7 @@ func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
 			for col := 0; col < r.y.Cols(); col++ {
-				gx.SetScalar(rowi[col], rowj[col], gy.ScalarAt(row, col))
+				gx.SetScalar(gy.ScalarAt(row, col), rowi[col], rowj[col])
 			}
 		}
 		r.x.AccGrad(gx)

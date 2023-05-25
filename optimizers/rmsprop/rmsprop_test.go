@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package adagrad
+package rmsprop
 
 import (
 	"testing"
@@ -18,15 +18,15 @@ func Test_Update(t *testing.T) {
 }
 
 func testUpdate[T float.DType](t *testing.T) {
-	updater := New[T](NewConfig(0.001, 1.0e-8))
+	updater := New[T](NewConfig(0.001, 1e-06, 0.9))
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
-	supp := updater.NewPayload(params.Dims()).Data
-	mat.SetData[T](supp[m], []T{1.0, 0.4, 0.7, 0.0, 0.2})
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
+	mat.SetData[T](supp[v], []T{1.0, 0.4, 0.7, 0.0, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
-	assert.InDeltaSlice(t, []T{0.399331, 0.399258, 0.499569, 0.999, 0.799782}, params.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.399091, 0.398905, 0.499502, 0.996838, 0.799765}, params.Data(), 1.0e-6)
 }
 
 func Test_Update2(t *testing.T) {
@@ -36,8 +36,9 @@ func Test_Update2(t *testing.T) {
 
 func testUpdate2[T float.DType](t *testing.T) {
 	updater := New[T](NewConfig(
-		0.001,  // step size
-		1.0e-8, // epsilon
+		0.001, // learning rate
+		1e-08, // epsilon
+		0.9,   // decay
 	))
 
 	params := mat.NewDense(3, 3, []T{
@@ -52,22 +53,22 @@ func testUpdate2[T float.DType](t *testing.T) {
 		0.5, -0.6, 0.1,
 	})
 
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 
 	// === First iteration
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
 	assert.InDeltaSlice(t, []T{
-		0.25, 0.09, 0.01,
-		0.36, 0.16, 1,
-		0.25, 0.36, 0.01,
-	}, supp[m].Data(), 1.0e-6)
+		0.025, 0.009, 0.001,
+		0.036, 0.016, 0.1,
+		0.025, 0.036, 0.001,
+	}, supp[v].Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
-		1.39900000002, 1.29900000003333, 0.0009999999,
-		-0.799000000016667, 0.160999999975, 0.65099999999,
-		0.69900000002, -0.399000000016667, 0.1990000001,
+		1.39683772253983, 1.29683772267316, 0.003162276660169,
+		-0.796837722506498, 0.163162277410168, 0.653162277560168,
+		0.696837722539832, -0.396837722506498, 0.196837723339831,
 	}, params.Data(), 1.0e-6)
 
 	// === Second iteration
@@ -81,14 +82,14 @@ func testUpdate2[T float.DType](t *testing.T) {
 	params.SubInPlace(updater.calcDelta(grads2, supp))
 
 	assert.InDeltaSlice(t, []T{
-		0.74, 0.2836, 0.4456,
-		0.6736, 0.32, 2.96,
-		0.4436, 2.4336, 5.9636,
-	}, supp[m].Data(), 1.0e-6)
+		0.0715, 0.02746, 0.04446,
+		0.06376, 0.0304, 0.286,
+		0.04186, 0.23976, 0.59626,
+	}, supp[v].Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
-		1.39818626655825, 1.29817377270604, 0.001988715389413,
-		-0.798317681774621, 0.160292893206313, 0.650186266523523,
-		0.698339372135027, -0.399923076933827, 0.198000838875607,
+		1.39421987106571, 1.29418249122086, 0.006292383674455,
+		-0.79461996603293, 0.160868120203042, 0.650544426037096,
+		0.694687155213517, -0.399778580934813, 0.19367783320647,
 	}, params.Data(), 1.0e-5)
 }

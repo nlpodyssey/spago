@@ -37,7 +37,7 @@ func NLL(x ag.DualValue, y ag.DualValue) ag.DualValue {
 // x is the raw scores for each class (logits).
 // c is the index of the gold class.
 func CrossEntropy(x ag.DualValue, c int) ag.DualValue {
-	return ag.Add(ag.Neg(ag.AtVec(x, c)), ag.LogSumExp(x))
+	return ag.Add(ag.Neg(ag.At(x, c)), ag.LogSumExp(x))
 }
 
 // WeightedCrossEntropy implements a weighted cross-entropy loss function.
@@ -46,7 +46,7 @@ func CrossEntropy(x ag.DualValue, c int) ag.DualValue {
 // This function is scaled by a weighting factor weights[class] ∈ [0,1]
 func WeightedCrossEntropy(weights mat.Matrix) func(x ag.DualValue, c int) ag.DualValue {
 	return func(x ag.DualValue, c int) ag.DualValue {
-		return ag.ProdScalar(CrossEntropy(x, c), weights.AtVec(c))
+		return ag.ProdScalar(CrossEntropy(x, c), weights.At(c))
 	}
 }
 
@@ -78,7 +78,7 @@ func WeightedFocalLoss(weights mat.Matrix) func(x ag.DualValue, c int, gamma flo
 		sub := ag.ReverseSub(p, x.Value().NewScalar(1.0))
 		b := ag.Pow(sub, gamma)
 		fl := ag.Prod(b, ce)
-		return ag.ProdScalar(fl, weights.AtVec(c))
+		return ag.ProdScalar(fl, weights.At(c))
 	}
 }
 

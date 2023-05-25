@@ -10,6 +10,18 @@ import (
 	"github.com/nlpodyssey/spago/mat/float"
 )
 
+/*
+func WithBacking[T float.DType](value bool) MatrixOption {
+	return func(matrix Matrix) {
+		matrix.SetRequiresGrad(value)
+	}
+}
+
+func New[T float.DType]() *Dense[T] {
+	return &Dense[T]{}
+}
+*/
+
 // NewDense returns a new matrix of size rows×cols, initialized with a
 // copy of raw data.
 //

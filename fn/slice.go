@@ -51,7 +51,7 @@ func (s *Slice[O]) Backward(gy mat.Matrix) error {
 		gx := s.x.Value().ZerosLike()
 		for i := 0; i < lx; i++ {
 			for j := 0; j < ly; j++ {
-				gx.SetScalar(i+s.fromRow, j+s.fromCol, gy.ScalarAt(i, j))
+				gx.SetScalar(gy.ScalarAt(i, j), i+s.fromRow, j+s.fromCol)
 			}
 		}
 		s.x.AccGrad(gx)

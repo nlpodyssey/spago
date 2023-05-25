@@ -53,7 +53,7 @@ func (r *SwishB[O]) Backward(gy mat.Matrix) error {
 		// FIXME: avoid casting to specific type
 		for i, x := range r.x.Value().Data().F64() {
 			deriv := swishBBetaDeriv(x, r.beta.Value().Scalar().F64())
-			gyi := gy.ScalarAtVec(i).F64()
+			gyi := gy.ScalarAt(i).F64()
 			gb.AddScalarInPlace(deriv * gyi)
 		}
 		r.beta.AccGrad(gb)

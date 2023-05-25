@@ -9,7 +9,6 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/embedding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -59,28 +58,25 @@ func TestEmbedding_ReplaceValue(t *testing.T) {
 
 	e, _ := m.Embedding(0)
 
-	payload := &nn.OptimizerPayload{
-		Label: 123,
-		Data: []mat.Matrix{
-			mat.NewVecDense([]T{11, 22, 33}),
-		},
+	payload := []mat.Matrix{
+		mat.NewVecDense([]T{11, 22, 33}),
 	}
 
 	e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
-	e.SetPayload(payload)
+	e.SetState(payload)
 	e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
 
 	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{1, 2, 3}), e.Value())
 	require.True(t, e.HasGrad())
 	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{10, 20, 30}), e.Grad())
-	assertPayloadEqual(t, payload, e.Payload())
+	assertPayloadEqual(t, payload, e.GetOrSetState(nil).([]mat.Matrix))
 
 	e.ReplaceValue(mat.NewVecDense([]T{7, 8, 9}))
 
 	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{7, 8, 9}), e.Value())
 	require.False(t, e.HasGrad())
 	require.Nil(t, e.Grad())
-	assert.Nil(t, e.Payload())
+	assert.Nil(t, e.GetOrSetState(nil))
 }
 
 func TestEmbedding_ScalarValue(t *testing.T) {
@@ -172,31 +168,28 @@ func TestEmbedding_Payload(t *testing.T) {
 	e1, _ := m.Embedding(0)
 	e2, _ := m.Embedding(0)
 
-	assert.Nil(t, e1.Payload())
-	assert.Nil(t, e2.Payload())
+	assert.Nil(t, e1.GetOrSetState(nil))
+	assert.Nil(t, e2.GetOrSetState(nil))
 
 	// Set a payload for the first time
-	payload := &nn.OptimizerPayload{
-		Label: 123,
-		Data: []mat.Matrix{
-			mat.NewVecDense([]T{1, 2, 3}),
-			mat.NewVecDense([]T{4, 5, 6}),
-		},
+	payload := []mat.Matrix{
+		mat.NewVecDense([]T{1, 2, 3}),
+		mat.NewVecDense([]T{4, 5, 6}),
 	}
-	e1.SetPayload(payload)
+	e1.SetState(payload)
 
-	assertPayloadEqual(t, payload, e1.Payload())
-	assertPayloadEqual(t, payload, e2.Payload())
+	assertPayloadEqual(t, payload, e1.GetOrSetState(nil).([]mat.Matrix))
+	assertPayloadEqual(t, payload, e2.GetOrSetState(nil).([]mat.Matrix))
 
 	// Clear payload
 
-	e1.ClearPayload()
+	e1.ClearState()
 
-	assert.Nil(t, e1.Payload())
-	assert.Nil(t, e2.Payload())
+	assert.Nil(t, e1.GetOrSetState(nil))
+	assert.Nil(t, e2.GetOrSetState(nil))
 }
 
-func assertPayloadEqual(t *testing.T, expected, actual *nn.OptimizerPayload) {
+func assertPayloadEqual(t *testing.T, expected, actual []mat.Matrix) {
 	t.Helper()
 
 	assert.NotNil(t, actual)
@@ -204,12 +197,9 @@ func assertPayloadEqual(t *testing.T, expected, actual *nn.OptimizerPayload) {
 		return
 	}
 
-	assert.Equal(t, expected.Label, actual.Label)
-	assert.Len(t, actual.Data, len(expected.Data))
-	if len(actual.Data) != len(expected.Data) {
-		return
-	}
-	for i := range expected.Data {
-		assert.Equal(t, expected.Data[i].Data(), actual.Data[i].Data())
+	assert.Len(t, actual, len(expected))
+
+	for i := range expected {
+		assert.Equal(t, expected[i].Data(), actual[i].Data())
 	}
 }

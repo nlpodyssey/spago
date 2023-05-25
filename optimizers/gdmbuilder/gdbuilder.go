@@ -6,19 +6,19 @@ package gdmbuilder
 
 import (
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/optimizer"
-	"github.com/nlpodyssey/spago/optimizer/adagrad"
-	"github.com/nlpodyssey/spago/optimizer/adam"
-	"github.com/nlpodyssey/spago/optimizer/lamb"
-	"github.com/nlpodyssey/spago/optimizer/radam"
-	"github.com/nlpodyssey/spago/optimizer/rmsprop"
-	"github.com/nlpodyssey/spago/optimizer/sgd"
+	"github.com/nlpodyssey/spago/optimizers"
+	"github.com/nlpodyssey/spago/optimizers/adagrad"
+	"github.com/nlpodyssey/spago/optimizers/adam"
+	"github.com/nlpodyssey/spago/optimizers/lamb"
+	"github.com/nlpodyssey/spago/optimizers/radam"
+	"github.com/nlpodyssey/spago/optimizers/rmsprop"
+	"github.com/nlpodyssey/spago/optimizers/sgd"
 )
 
-// NewMethod returns a new optimizer.Strategy, chosen and initialized according to
+// NewMethod returns a new optimizers.Strategy, chosen and initialized according to
 // the given config.
 // It panics if the config type is unknown or unsupported.
-func NewMethod[T float.DType](config optimizer.StrategyConfig) optimizer.Strategy {
+func NewMethod[T float.DType](config optimizers.StrategyConfig) optimizers.Strategy {
 	switch config := config.(type) {
 	case adagrad.Config:
 		return adagrad.New[T](config)

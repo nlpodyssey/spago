@@ -45,7 +45,7 @@ func (r *ColView[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().ZerosLike()
 		for i := 0; i < r.x.Value().Rows(); i++ {
-			gx.SetScalar(i, r.i, gy.ScalarAtVec(i))
+			gx.SetScalar(gy.ScalarAt(i), i, r.i)
 		}
 		r.x.AccGrad(gx)
 	}

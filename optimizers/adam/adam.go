@@ -10,14 +10,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an Adam optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -69,7 +69,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizer.Strategy = &Adam[float32]{}
+var _ optimizers.Strategy = &Adam[float32]{}
 
 // Adam implements the Adam gradient descent optimization method.
 type Adam[T float.DType] struct {
@@ -92,7 +92,7 @@ func New[T float.DType](c Config) *Adam[T] {
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *Adam[_]) Label() int {
-	return optimizer.Adam
+	return optimizers.Adam
 }
 
 const (
@@ -103,18 +103,16 @@ const (
 	buf3 int = 4
 )
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *Adam[T]) NewPayload(r, c int) *nn.OptimizerPayload {
+func (o *Adam[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
+
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.OptimizerPayload{
-		Label: o.Label(),
-		Data:  supp,
-	}
+	return supp
 }
 
 // IncExample beats the occurrence of a new example.
@@ -130,10 +128,13 @@ func (o *Adam[T]) updateAlpha() {
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *Adam[T]) CalcDelta(param *nn.Param) mat.Matrix {
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+
 	if o.adamw {
-		return o.calcDeltaW(param.Grad(), optimizer.GetOrSetPayload(param, o).Data, param.Value())
+		return o.calcDeltaW(grads, supp, param.Value())
 	}
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data)
+	return o.calcDelta(grads, supp)
 }
 
 // v = v*beta1 + grads*(1.0-beta1)

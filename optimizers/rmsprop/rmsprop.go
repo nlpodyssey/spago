@@ -8,14 +8,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an RMSProp optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	LR      float64
 	Epsilon float64
 	Decay   float64
@@ -39,7 +39,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizer.Strategy = &RMSProp[float32]{}
+var _ optimizers.Strategy = &RMSProp[float32]{}
 
 // The RMSProp method is a variant of AdaGrad where the squared sum of previous gradients is replaced with a moving average.
 // References:
@@ -57,22 +57,21 @@ func New[T float.DType](c Config) *RMSProp[T] {
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *RMSProp[_]) Label() int {
-	return optimizer.RMSProp
+	return optimizers.RMSProp
 }
 
 const v = 0
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *RMSProp[T]) NewPayload(r, c int) *nn.OptimizerPayload {
-	return &nn.OptimizerPayload{
-		Label: optimizer.RMSProp,
-		Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // v at index 0
-	}
+func (o *RMSProp[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
+	return []mat.Matrix{mat.NewEmptyDense[T](r, c)} // v at index 0
 }
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *RMSProp[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data)
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+	return o.calcDelta(grads, supp)
 }
 
 func (o *RMSProp[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

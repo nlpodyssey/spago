@@ -48,14 +48,19 @@ func (d *Dense[_]) Rows() int {
 	return d.rows
 }
 
-// Columns returns the number of columns of the matrix.
+// Cols returns the number of columns of the matrix.
 func (d *Dense[_]) Cols() int {
 	return d.cols
 }
 
-// Dims returns the number of rows and columns of the matrix.
-func (d *Dense[_]) Dims() (r, c int) {
-	return d.rows, d.cols
+// Shape returns the size in each dimension.
+func (d *Dense[_]) Shape() []int {
+	return []int{d.rows, d.cols}
+}
+
+// Dims returns the number of dimensions.
+func (d *Dense[_]) Dims() int {
+	return 2 // rows and columns
 }
 
 // The Size of the matrix (rows*columns).
@@ -114,93 +119,78 @@ func (d *Dense[T]) Zeros() {
 	}
 }
 
-// Set sets the scalar value from a 1×1 matrix at row r and column c.
-// It panics if the given matrix is not 1×1, or if indices are out of range.
-func (d *Dense[T]) Set(r int, c int, m Matrix) {
-	d.set(r, c, float.ValueOf[T](m.Scalar()))
-}
-
-// At returns the value at row r and column c as a 1×1 matrix.
+// SetAt sets the value m at the given indices.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) At(r int, c int) Matrix {
-	return Scalar[T](d.at(r, c))
+func (d *Dense[T]) SetAt(m Matrix, indices ...int) {
+	d.set(float.ValueOf[T](m.Scalar()), indices...)
 }
 
-// SetScalar sets the value v at row r and column c.
+// At returns the value at the given indices.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) SetScalar(r int, c int, v float.Float) {
-	d.set(r, c, float.ValueOf[T](v))
+func (d *Dense[T]) At(i ...int) Matrix {
+	return Scalar[T](d.at(i...))
 }
 
-// ScalarAt returns the value at row r and column c.
+// SetScalar sets the value v at the given indices.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) ScalarAt(r int, c int) float.Float {
-	return float.Interface(d.at(r, c))
+func (d *Dense[T]) SetScalar(v float.Float, indices ...int) {
+	d.set(float.ValueOf[T](v), indices...)
 }
 
-func (d *Dense[T]) set(r int, c int, v T) {
-	if r < 0 || r >= d.rows {
-		panic("mat: 'r' argument out of range")
-	}
-	if c < 0 || c >= d.cols {
-		panic("mat: 'c' argument out of range")
-	}
-	d.data[r*d.cols+c] = v
+// ScalarAt returns the value at the given indices.
+// It panics if the given indices are out of range.
+func (d *Dense[T]) ScalarAt(indices ...int) float.Float {
+	return float.Interface(d.at(indices...))
 }
 
-func (d *Dense[T]) at(r int, c int) T {
-	if r < 0 || r >= d.rows {
-		panic("mat: 'r' argument out of range")
+func (d *Dense[T]) set(v T, i ...int) {
+	switch len(i) {
+	case 1:
+		if d.rows != 1 && d.cols != 1 {
+			panic("Dense structure is not a 1-dimensional array")
+		}
+		idx := i[0]
+		if idx < 0 || idx >= len(d.data) {
+			panic("Index 'i' out of range")
+		}
+		d.data[idx] = v
+	case 2:
+		r, c := i[0], i[1]
+		if r < 0 || r >= d.rows {
+			panic("Row index 'r' out of range")
+		}
+		if c < 0 || c >= d.cols {
+			panic("Column index 'c' out of range")
+		}
+		d.data[r*d.cols+c] = v
+	default:
+		panic("Incorrect number of indices provided")
 	}
-	if c < 0 || c >= d.cols {
-		panic("mat: 'c' argument out of range")
-	}
-	return d.data[r*d.cols+c]
 }
 
-// SetVec sets the scalar value from a 1×1 matrix at position i of a
-// vector. It panics if the receiver is not a vector, or the given matrix is
-// not 1×1, or the position is out of range.
-func (d *Dense[T]) SetVec(i int, m Matrix) {
-	d.setVec(i, float.ValueOf[T](m.Scalar()))
-}
-
-// AtVec returns the value at position i of a vector as a 1×1 matrix.
-// It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) AtVec(i int) Matrix {
-	return Scalar[T](d.atVec(i))
-}
-
-// SetVecScalar sets the value v at position i of a vector.
-// It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) SetVecScalar(i int, v float.Float) {
-	d.setVec(i, float.ValueOf[T](v))
-}
-
-// ScalarAtVec returns the value at position i of a vector.
-// It panics if the receiver is not a vector or the position is out of range.
-func (d *Dense[T]) ScalarAtVec(i int) float.Float {
-	return float.Interface(d.atVec(i))
-}
-
-func (d *Dense[T]) setVec(i int, v T) {
-	if !(IsVector(d)) {
-		panic("mat: expected vector")
+func (d *Dense[T]) at(i ...int) T {
+	switch len(i) {
+	case 1:
+		if d.rows != 1 && d.cols != 1 {
+			panic("Dense structure is not a 1-dimensional array")
+		}
+		idx := i[0]
+		if idx < 0 || idx >= len(d.data) {
+			panic("Index 'i' out of range")
+		}
+		return d.data[idx]
+	case 2:
+		r, c := i[0], i[1]
+		if r < 0 || r >= d.rows {
+			panic("Row index 'r' out of range")
+		}
+		if c < 0 || c >= d.cols {
+			panic("Column index 'c' out of range")
+		}
+		return d.data[r*d.cols+c]
+	default:
+		panic("Incorrect number of indices provided")
 	}
-	if i < 0 || i >= len(d.data) {
-		panic("mat: 'i' argument out of range")
-	}
-	d.data[i] = v
-}
-
-func (d *Dense[T]) atVec(i int) T {
-	if !IsVector(d) {
-		panic("mat: expected vector")
-	}
-	if i < 0 || i >= len(d.data) {
-		panic("mat: 'i' argument out of range")
-	}
-	return d.data[i]
 }
 
 // ExtractRow returns a copy of the i-th row of the matrix,
@@ -264,7 +254,11 @@ func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix {
 
 // Reshape returns a copy of the matrix.
 // It panics if the dimensions are incompatible.
-func (d *Dense[T]) Reshape(rows, cols int) Matrix {
+func (d *Dense[T]) Reshape(shape ...int) Matrix {
+	if len(shape) != 2 {
+		panic("mat: reshape requires two dimensions")
+	}
+	rows, cols := shape[0], shape[1]
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -277,7 +271,11 @@ func (d *Dense[T]) Reshape(rows, cols int) Matrix {
 // ReshapeInPlace changes the dimensions of the matrix in place and returns the
 // matrix itself.
 // It panics if the dimensions are incompatible.
-func (d *Dense[T]) ReshapeInPlace(rows, cols int) Matrix {
+func (d *Dense[T]) ReshapeInPlace(shape ...int) Matrix {
+	if len(shape) != 2 {
+		panic("mat: reshape requires two dimensions")
+	}
+	rows, cols := shape[0], shape[1]
 	if rows < 0 || cols < 0 {
 		panic("mat: negative values for rows and cols are not allowed")
 	}
@@ -1186,9 +1184,9 @@ func (d *Dense[T]) Augment() Matrix {
 	out := NewEmptyDense[T](d.rows, d.cols*2)
 	for i := 0; i < d.rows; i++ {
 		for j := 0; j < d.cols; j++ {
-			out.SetScalar(i, j, d.ScalarAt(i, j))
+			out.SetScalar(d.ScalarAt(i, j), i, j)
 		}
-		out.set(i, i+d.rows, 1.0)
+		out.set(1.0, i, i+d.rows)
 	}
 	return out
 }

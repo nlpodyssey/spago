@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package optimizer
+package optimizers
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer/clipper"
+	"github.com/nlpodyssey/spago/optimizers/clipper"
 )
 
 type Optimizer struct {
@@ -30,9 +30,9 @@ func New(model nn.Model, opts ...func(*Optimizer)) *Optimizer {
 	return optimizer
 }
 
-func WithMethod(method Strategy) func(*Optimizer) {
+func WithStrategy(strategy Strategy) func(*Optimizer) {
 	return func(o *Optimizer) {
-		o.strategy = method
+		o.strategy = strategy
 	}
 }
 

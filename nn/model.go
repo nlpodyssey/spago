@@ -50,7 +50,7 @@ func ZeroGrad(m Model) {
 // ClearSupport clears the support structure of all model's parameters (including sub-params).
 func ClearSupport(m Model) {
 	ForEachParam(m, func(param *Param) {
-		param.ClearPayload()
+		param.ClearState()
 	})
 }
 

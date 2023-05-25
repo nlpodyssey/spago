@@ -43,7 +43,7 @@ func (r *Reshape[O]) Backward(gy mat.Matrix) error {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
 	if r.x.RequiresGrad() {
-		gx := gy.Reshape(r.x.Value().Dims())
+		gx := gy.Reshape(r.x.Value().Shape()...)
 		r.x.AccGrad(gx)
 	}
 	return nil

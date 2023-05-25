@@ -48,12 +48,9 @@ func TestModel(t *testing.T) {
 		e, _ := m.Embedding(0)
 		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
 		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
-		e.SetPayload(&nn.OptimizerPayload{
-			Label: 123,
-			Data: []mat.Matrix{
-				mat.Scalar[T](11),
-				mat.Scalar[T](22),
-			},
+		e.SetState([]mat.Matrix{
+			mat.Scalar[T](11),
+			mat.Scalar[T](22),
 		})
 
 		require.Equal(t, m.CountEmbedWithGrad(), 1)
@@ -80,12 +77,9 @@ func TestModel_TraverseParams(t *testing.T) {
 
 		e, _ := m.Embedding(0)
 		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
-		e.SetPayload(&nn.OptimizerPayload{
-			Label: 123,
-			Data: []mat.Matrix{
-				mat.Scalar[T](11),
-				mat.Scalar[T](22),
-			},
+		e.SetState([]mat.Matrix{
+			mat.Scalar[T](11),
+			mat.Scalar[T](22),
 		})
 
 		require.Equal(t, m.CountEmbedWithGrad(), 1)

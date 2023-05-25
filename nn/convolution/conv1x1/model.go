@@ -52,7 +52,7 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	ys := make([]ag.DualValue, m.Config.OutputChannels)
 	for outCh := range ys {
 		val := ag.T(ag.RowView(mm, outCh))
-		bias := ag.AtVec(m.B, outCh)
+		bias := ag.At(m.B, outCh)
 		ys[outCh] = ag.AddScalar(val, bias)
 	}
 	return ys

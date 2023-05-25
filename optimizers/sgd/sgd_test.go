@@ -26,7 +26,7 @@ func testSGDUpdate[T float.DType](t *testing.T) {
 
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
 
@@ -48,7 +48,7 @@ func testSGDMomentumUpdate[T float.DType](t *testing.T) {
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
@@ -80,7 +80,7 @@ func testSGDMomentumUpdate2[T float.DType](t *testing.T) {
 		0.5, -0.6, 0.1,
 	})
 
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 
 	// === First iteration
 
@@ -136,7 +136,7 @@ func testSGDNesterovMomentumUpdate[T float.DType](t *testing.T) {
 	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
 	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
 
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
 
 	params.SubInPlace(updater.calcDelta(grads, supp))
@@ -168,7 +168,7 @@ func testSGDNesterovMomentumUpdate2[T float.DType](t *testing.T) {
 		0.5, -0.6, 0.1,
 	})
 
-	supp := updater.NewPayload(params.Dims()).Data
+	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 
 	// === First iteration
 

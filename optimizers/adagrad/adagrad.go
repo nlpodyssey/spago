@@ -8,14 +8,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an AdaGrad optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	LR      float64
 	Epsilon float64
 }
@@ -36,7 +36,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizer.Strategy = &AdaGrad[float32]{}
+var _ optimizers.Strategy = &AdaGrad[float32]{}
 
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References
@@ -56,20 +56,19 @@ const m = 0
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *AdaGrad[_]) Label() int {
-	return optimizer.AdaGrad
+	return optimizers.AdaGrad
 }
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *AdaGrad[T]) NewPayload(r, c int) *nn.OptimizerPayload {
-	return &nn.OptimizerPayload{
-		Label: o.Label(),
-		Data:  []mat.Matrix{mat.NewEmptyDense[T](r, c)}, // m at index 0
-	}
+func (o *AdaGrad[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
+	return []mat.Matrix{mat.NewEmptyDense[T](r, c)} // m at index 0
 }
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *AdaGrad[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data)
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+	return o.calcDelta(grads, supp)
 }
 
 // m = m + grads*grads

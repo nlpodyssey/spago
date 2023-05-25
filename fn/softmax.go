@@ -43,11 +43,11 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) error {
 		y := r.y
 		n := y.Size()
 		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float64 {
-			vRow := y.ScalarAtVec(row).F64()
+			vRow := y.ScalarAt(row).F64()
 			if row == col {
 				return vRow * (1 - vRow)
 			}
-			vCol := y.ScalarAtVec(col).F64()
+			vCol := y.ScalarAt(col).F64()
 			return -(vRow * vCol)
 		})
 		gx := jb.Mul(gy)

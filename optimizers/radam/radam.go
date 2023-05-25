@@ -10,14 +10,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for a RAdam optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -51,7 +51,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizer.Strategy = &RAdam[float32]{}
+var _ optimizers.Strategy = &RAdam[float32]{}
 
 // RAdam implements the RAdam gradient descent optimization method.
 type RAdam[T float.DType] struct {
@@ -72,7 +72,7 @@ func New[T float.DType](c Config) *RAdam[T] {
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *RAdam[_]) Label() int {
-	return optimizer.RAdam
+	return optimizers.RAdam
 }
 
 const (
@@ -83,18 +83,16 @@ const (
 	buf3 int = 4
 )
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *RAdam[T]) NewPayload(r, c int) *nn.OptimizerPayload {
+// NewState returns a new state.
+func (o *RAdam[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
 	supp := make([]mat.Matrix, 5)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.OptimizerPayload{
-		Label: o.Label(),
-		Data:  supp,
-	}
+	return supp
 }
 
 // IncBatch beats the occurrence of a new batch.
@@ -104,7 +102,9 @@ func (o *RAdam[_]) IncBatch() {
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *RAdam[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data)
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+	return o.calcDelta(grads, supp)
 }
 
 func (o *RAdam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {

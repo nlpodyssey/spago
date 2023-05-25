@@ -5,17 +5,18 @@
 package nn
 
 import (
+	"bytes"
+	"encoding/gob"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Param is the default implementation satisfying the Param interface.
 type Param struct {
 	mat.Matrix
-	valueMu   sync.RWMutex
-	payload   *OptimizerPayload
-	payloadMu sync.RWMutex
+	valueMu sync.RWMutex
+	state   interface{}
+	stateMu sync.RWMutex
 }
 
 // NewParam returns a new param.
@@ -24,8 +25,8 @@ func NewParam(value mat.Matrix) *Param {
 		panic("nn: cannot create a new param with a nil value")
 	}
 	p := &Param{
-		Matrix:  value.Clone(),
-		payload: nil,
+		Matrix: value.Clone(),
+		state:  nil,
 	}
 	p.SetRequiresGrad(true)
 	return p
@@ -46,9 +47,9 @@ func (p *Param) Value() mat.Matrix {
 }
 
 // ReplaceValue replaces the value of the parameter.
-// It also clears the gradients and the payload.
+// It also clears the gradients and the state.
 func (p *Param) ReplaceValue(value mat.Matrix) {
-	p.ClearPayload()
+	p.ClearState()
 	p.ZeroGrad()
 
 	p.valueMu.Lock()
@@ -63,28 +64,70 @@ func (p *Param) ApplyDelta(delta mat.Matrix) {
 	p.Matrix.SubInPlace(delta)
 }
 
-// OptimizerPayload returns the optimizer support structure (can be nil).
-func (p *Param) Payload() *OptimizerPayload {
-	p.payloadMu.RLock()
-	defer p.payloadMu.RUnlock()
-	return p.payload
-}
-
-// SetPayload is a thread safe operation to set the given OptimizerPayload on the
-// receiver Param.
-func (p *Param) SetPayload(payload *OptimizerPayload) {
-	p.payloadMu.Lock()
-	defer p.payloadMu.Unlock()
-	p.payload = payload
-}
-
-// ClearPayload clears the support structure.
-func (p *Param) ClearPayload() {
-	if p.payload == nil {
-		return
+// GetOrSetState returns the support structure for the optimizer.
+func (p *Param) GetOrSetState(newStateFunc func(shape ...int) any) any {
+	p.stateMu.RLock()
+	defer p.stateMu.RUnlock()
+	if p.state == nil && newStateFunc != nil {
+		p.state = newStateFunc(p.Shape()...)
 	}
-	p.payloadMu.Lock()
-	defer p.payloadMu.Unlock()
-	p.payload.ClearData()
-	p.payload = nil
+	return p.state
+}
+
+// SetState sets the support structure for the optimizer.
+func (p *Param) SetState(payload any) {
+	p.stateMu.Lock()
+	defer p.stateMu.Unlock()
+	p.state = payload
+}
+
+// ClearState clears the support structure for the optimizer.
+func (p *Param) ClearState() {
+	p.stateMu.Lock()
+	defer p.stateMu.Unlock()
+	p.state = nil
+}
+
+func (p *Param) GobEncode() ([]byte, error) {
+	p.valueMu.RLock()
+	p.stateMu.RLock()
+	defer p.valueMu.RUnlock()
+	defer p.stateMu.RUnlock()
+
+	gp := struct {
+		Matrix mat.Matrix
+		State  interface{}
+	}{
+		Matrix: p.Matrix,
+		State:  p.state,
+	}
+
+	buf := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buf)
+	if err := encoder.Encode(gp); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (p *Param) GobDecode(data []byte) error {
+	gp := new(struct {
+		Matrix mat.Matrix
+		State  interface{}
+	})
+
+	buf := bytes.NewBuffer(data)
+	decoder := gob.NewDecoder(buf)
+	if err := decoder.Decode(gp); err != nil {
+		return err
+	}
+
+	p.valueMu.Lock()
+	p.stateMu.Lock()
+	defer p.valueMu.Unlock()
+	defer p.stateMu.Unlock()
+
+	p.Matrix = gp.Matrix
+	p.state = gp.State
+	return nil
 }

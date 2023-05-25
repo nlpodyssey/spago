@@ -95,7 +95,7 @@ func (m *Model) weightHistory(states []*State, a ag.DualValue) ag.DualValue {
 	for i := 0; i < m.NumOfDelays; i++ {
 		k := int(math.Pow(2.0, float64(i))) // base-2 exponential delay
 		if k <= n {
-			sum = ag.Add(sum, ag.ProdScalar(states[n-k].Y, ag.AtVec(a, i)))
+			sum = ag.Add(sum, ag.ProdScalar(states[n-k].Y, ag.At(a, i)))
 		}
 	}
 	return sum

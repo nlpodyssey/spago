@@ -10,14 +10,14 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizer"
+	"github.com/nlpodyssey/spago/optimizers"
 )
 
-var _ optimizer.StrategyConfig = &Config{}
+var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for Lamb optimizer.
 type Config struct {
-	optimizer.StrategyConfig
+	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -53,7 +53,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizer.Strategy = &Lamb[float32]{}
+var _ optimizers.Strategy = &Lamb[float32]{}
 
 // Lamb implements the Lamb gradient descent optimization method.
 type Lamb[T float.DType] struct {
@@ -74,7 +74,7 @@ func New[T float.DType](c Config) *Lamb[T] {
 
 // Label returns the enumeration-like value which identifies this gradient descent method.
 func (o *Lamb[_]) Label() int {
-	return optimizer.Lamb
+	return optimizers.Lamb
 }
 
 const (
@@ -85,18 +85,16 @@ const (
 	buf3 int = 4
 )
 
-// NewSupport returns a new support structure with the given dimensions.
-func (o *Lamb[T]) NewPayload(r, c int) *nn.OptimizerPayload {
+func (o *Lamb[T]) NewState(shape ...int) any {
+	r, c := shape[0], shape[1]
+
 	supp := make([]mat.Matrix, 5)
 	supp[v] = mat.NewEmptyDense[T](r, c)
 	supp[m] = mat.NewEmptyDense[T](r, c)
 	supp[buf1] = mat.NewEmptyDense[T](r, c)
 	supp[buf2] = mat.NewEmptyDense[T](r, c)
 	supp[buf3] = mat.NewEmptyDense[T](r, c)
-	return &nn.OptimizerPayload{
-		Label: o.Label(),
-		Data:  supp,
-	}
+	return supp
 }
 
 // IncExample beats the occurrence of a new example.
@@ -112,7 +110,9 @@ func (o *Lamb[T]) updateAlpha() {
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *Lamb[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	return o.calcDelta(param.Grad(), optimizer.GetOrSetPayload(param, o).Data, param.Value())
+	grads := param.Grad()
+	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
+	return o.calcDelta(grads, supp, param.Value())
 }
 
 // v = v*beta1 + grads*(1.0-beta1)

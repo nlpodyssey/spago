@@ -51,15 +51,15 @@ func (r *SparseMax[O]) Backward(gy mat.Matrix) error {
 		var nzSum float64
 		var nzCount float64
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			nzSum += gy.ScalarAtVec(i).F64()
+			nzSum += gy.ScalarAt(i).F64()
 			nzCount++
 		})
 		nzSum = nzSum / nzCount
 
 		gx := r.x.Value().ZerosLike()
 		r.y.DoVecNonZero(func(i int, _ float64) {
-			gyi := gy.ScalarAtVec(i).F64()
-			gx.SetVecScalar(i, float.Interface(gyi-nzSum))
+			gyi := gy.ScalarAt(i).F64()
+			gx.SetScalar(float.Interface(gyi-nzSum), i)
 		})
 
 		r.x.AccGrad(gx)
