@@ -20,7 +20,7 @@ func TestDropout_Forward(t *testing.T) {
 
 func testDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -34,7 +34,7 @@ func testDropoutForward[T float.DType](t *testing.T) {
 		0.666666, 0.799999, -1.066666, -0.799999, 0.0, -0.5333333, 0.133333, 0.0, 0.399999, -0.666666,
 	}, y.Data(), 1.0e-5)
 
-	err = f.Backward(mat.NewVecDense([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
@@ -49,7 +49,7 @@ func TestZeroDropout_Forward(t *testing.T) {
 
 func testZeroDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -63,7 +63,7 @@ func testZeroDropoutForward[T float.DType](t *testing.T) {
 		0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5,
 	}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
@@ -78,7 +78,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 
 func testTotalDropoutForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -90,7 +90,7 @@ func testTotalDropoutForward[T float.DType](t *testing.T) {
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 	}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{

@@ -44,14 +44,14 @@ func New[T float.DType](in, out int) *Model {
 	m := &Model{}
 	m.WIn, m.WInRec, m.BIn = newGateParams[T](in, out)
 	m.WFor, m.WForRec, m.BFor = newGateParams[T](in, out)
-	m.WCand = nn.NewParam(mat.NewEmptyDense[T](out, in))
+	m.WCand = nn.NewParam(mat.NewDense[T](mat.WithShape(out, in)))
 	return m
 }
 
 func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
-	w = nn.NewParam(mat.NewEmptyDense[T](out, in))
-	wRec = nn.NewParam(mat.NewEmptyDense[T](out, out))
-	b = nn.NewParam(mat.NewEmptyVecDense[T](out))
+	w = nn.NewParam(mat.NewDense[T](mat.WithShape(out, in)))
+	wRec = nn.NewParam(mat.NewDense[T](mat.WithShape(out, out)))
+	b = nn.NewParam(mat.NewDense[T](mat.WithShape(out)))
 	return
 }
 

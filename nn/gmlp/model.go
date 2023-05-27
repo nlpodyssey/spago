@@ -8,6 +8,7 @@ package gmlp
 
 import (
 	"encoding/gob"
+	"github.com/nlpodyssey/spago/mat"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat/float"
@@ -69,7 +70,7 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 		return nil
 	}
 	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.DualValue {
-		return xs[0].Value().NewEmptyVec(m.Config.Dim)
+		return xs[0].Value().NewMatrix(mat.WithShape(m.Config.Dim))
 	})
 	return m.Layers.Forward(padded...)
 }

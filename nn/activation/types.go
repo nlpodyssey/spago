@@ -16,7 +16,7 @@ import (
 type Name int
 
 const (
-	// Identity identifies the Graph.Identity operator.
+	// Identity identifies the Graph.Copy operator.
 	Identity Name = iota
 	// Tan identifies the Graph.Tan operator.
 	Tan
@@ -69,7 +69,7 @@ const (
 var (
 	strActivationMap = strToActivationMap()
 	activationsMap   = map[Name]strOperatorPair{
-		Identity:    {str: "Identity", operator: reflect.ValueOf(ag.Identity)},
+		Identity:    {str: "Copy", operator: reflect.ValueOf(ag.Copy)},
 		Tan:         {str: "Tan", operator: reflect.ValueOf(ag.Tan)},
 		Tanh:        {str: "Tanh", operator: reflect.ValueOf(ag.Tanh)},
 		Sigmoid:     {str: "Sigmoid", operator: reflect.ValueOf(ag.Sigmoid)},

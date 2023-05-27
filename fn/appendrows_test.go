@@ -19,21 +19,21 @@ func TestAppendRowsForward(t *testing.T) {
 
 func testAppendRowsForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value: mat.NewDense(2, 3, []T{
+		value: mat.NewDense[T](mat.WithShape(2, 3), mat.WithBacking([]T{
 			11, 12, 13,
 			21, 22, 23,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	vs := []*variable{
 		{
-			value:        mat.NewDense(1, 3, []T{31, 32, 33}),
+			value:        mat.NewDense[T](mat.WithShape(1, 3), mat.WithBacking([]T{31, 32, 33})),
 			grad:         nil,
 			requiresGrad: true,
 		},
 		{
-			value:        mat.NewDense(3, 1, []T{41, 42, 43}),
+			value:        mat.NewDense[T](mat.WithShape(3, 1), mat.WithBacking([]T{41, 42, 43})),
 			grad:         nil,
 			requiresGrad: true,
 		},
@@ -45,25 +45,25 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 	y, err := f.Forward()
 	assert.Nil(t, err)
 
-	mat.AssertMatrixEquals(t, mat.NewDense(4, 3, []T{
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(4, 3), mat.WithBacking([]T{
 		11, 12, 13,
 		21, 22, 23,
 		31, 32, 33,
 		41, 42, 43,
-	}), y)
+	})), y)
 
-	err = f.Backward(mat.NewDense(4, 3, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(4, 3), mat.WithBacking([]T{
 		0, 1, 2,
 		3, 4, 5,
 		6, 7, 8,
 		9, 0, 1,
-	}))
+	})))
 	assert.NoError(t, err)
 
-	mat.AssertMatrixEquals(t, mat.NewDense(2, 3, []T{
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(2, 3), mat.WithBacking([]T{
 		0, 1, 2,
 		3, 4, 5,
-	}), x.grad)
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{6, 7, 8}).T(), vs[0].grad)
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{9, 0, 1}).T(), vs[1].grad)
+	})), x.grad)
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{6, 7, 8})).T(), vs[0].grad)
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{9, 0, 1})).T(), vs[1].grad)
 }

@@ -66,24 +66,24 @@ func New[T float.DType](in, out int) *Model {
 		UseRefinedGates: false,
 
 		// Input gate
-		WIn:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		WInRec: nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		BIn:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		WIn:    nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		WInRec: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		BIn:    nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 
 		// Output gate
-		WOut:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		WOutRec: nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		BOut:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		WOut:    nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		WOutRec: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		BOut:    nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 
 		// Forget gate
-		WFor:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		WForRec: nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		BFor:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		WFor:    nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		WForRec: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		BFor:    nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 
 		// Candiate gate
-		WCand:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		WCandRec: nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		BCand:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		WCand:    nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		WCandRec: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		BCand:    nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 	}
 }
 

@@ -38,12 +38,12 @@ func init() {
 func New[T float.DType](in, out, order int) *Model {
 	wRec := make([]*nn.Param, order)
 	for i := 0; i < order; i++ {
-		wRec[i] = nn.NewParam(mat.NewEmptyDense[T](out, out))
+		wRec[i] = nn.NewParam(mat.NewDense[T](mat.WithShape(out, out)))
 	}
 	return &Model{
-		W:    nn.NewParam(mat.NewEmptyDense[T](out, in)),
+		W:    nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
 		WRec: wRec,
-		B:    nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		B:    nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 	}
 }
 

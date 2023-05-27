@@ -19,23 +19,23 @@ func TestConv1D(t *testing.T) {
 }
 
 func testConv1D[T float.DType](t *testing.T) {
-	x := mat.NewDense(3, 4, []T{
+	x := mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
-	}, mat.WithGrad(true))
-	w := mat.NewDense(3, 2, []T{
+	}), mat.WithGrad(true))
+	w := mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 		0.5, -0.4,
 		0.3, 0.3,
 		0.4, -0.3,
-	}, mat.WithGrad(true))
+	}), mat.WithGrad(true))
 	out := Conv1D(w, x, 1)
 
 	assert.InDeltaSlice(t, []T{
 		0.47, -0.42, -0.56,
 	}, out.Value().Data(), 0.005)
 
-	out.AccGrad(mat.NewDense(1, 3, []T{1.0, -0.5, -1.0}))
+	out.AccGrad(mat.NewDense[T](mat.WithShape(1, 3), mat.WithBacking([]T{1.0, -0.5, -1.0})))
 	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{
@@ -57,16 +57,16 @@ func TestConv2D(t *testing.T) {
 }
 
 func testConv2D[T float.DType](t *testing.T) {
-	x := mat.NewDense(4, 4, []T{
+	x := mat.NewDense[T](mat.WithShape(4, 4), mat.WithBacking([]T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
-	}, mat.WithGrad(true))
-	w := mat.NewDense(2, 2, []T{
+	}), mat.WithGrad(true))
+	w := mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		0.5, -0.4,
 		0.3, 0.3,
-	}, mat.WithGrad(true))
+	}), mat.WithGrad(true))
 	out := Conv2D(w, x, 1, 1)
 
 	assert.InDeltaSlice(t, []T{
@@ -75,11 +75,11 @@ func testConv2D[T float.DType](t *testing.T) {
 		0.67, 0.28, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	out.AccGrad(mat.NewDense(3, 3, []T{
+	out.AccGrad(mat.NewDense[T](mat.WithShape(3, 3), mat.WithBacking([]T{
 		1.0, -0.5, -1.0,
 		0.5, 0.3, 0.5,
 		0.2, 0.5, -0.5,
-	}))
+	})))
 	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{
@@ -101,16 +101,16 @@ func TestConv2DStride2(t *testing.T) {
 }
 
 func testConv2DStride2[T float.DType](t *testing.T) {
-	x := mat.NewDense(4, 4, []T{
+	x := mat.NewDense[T](mat.WithShape(4, 4), mat.WithBacking([]T{
 		0.2, 0.1, 0.5, 0.8,
 		0.4, -0.3, -0.2, -0.3,
 		0.5, -0.6, -0.4, 0.6,
 		-0.3, 0.9, 0.5, 0.5,
-	}, mat.WithGrad(true))
-	w := mat.NewDense(2, 2, []T{
+	}), mat.WithGrad(true))
+	w := mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		0.5, -0.4,
 		0.3, 0.3,
-	}, mat.WithGrad(true))
+	}), mat.WithGrad(true))
 	out := Conv2D(w, x, 2, 2)
 
 	assert.InDeltaSlice(t, []T{
@@ -118,10 +118,10 @@ func testConv2DStride2[T float.DType](t *testing.T) {
 		0.67, -0.14,
 	}, out.Value().Data(), 0.005)
 
-	out.AccGrad(mat.NewDense(2, 2, []T{
+	out.AccGrad(mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		1.0, -0.5,
 		0.5, 0.3,
-	}))
+	})))
 	ag.Backward(out)
 
 	assert.InDeltaSlice(t, []T{

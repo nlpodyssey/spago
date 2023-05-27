@@ -5,10 +5,10 @@
 package attention
 
 import (
+	"github.com/nlpodyssey/spago/mat"
 	"math"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // ScaledDotProductAttention is a self-attention mechanism relating different positions of a single
@@ -32,7 +32,7 @@ func ScaledDotProductAttention(q []ag.DualValue, k, v, scaleFactor ag.DualValue,
 		scores := ag.ProdScalar(kqii, scaleFactor)
 
 		if causalMaskEnabled {
-			causalMask := k.Value().NewVec(float.SliceInterface(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
+			causalMask := k.Value().NewMatrix(mat.WithBacking(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
 			scores = ag.Add(scores, causalMask)
 		}
 

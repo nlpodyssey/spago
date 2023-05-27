@@ -19,12 +19,12 @@ func TestSub_Forward(t *testing.T) {
 
 func testSubForward[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]T{0.4, 0.3, 0.5, 0.7}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.4, 0.3, 0.5, 0.7})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -36,7 +36,7 @@ func testSubForward[T float.DType](t *testing.T) {
 	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{-0.3, -0.1, -0.2, -0.7}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{-1.0, 0.5, 0.8, 0.0}, x1.grad.Data(), 1.0e-6)
 	assert.InDeltaSlice(t, []T{1.0, -0.5, -0.8, 0.0}, x2.grad.Data(), 1.0e-6)

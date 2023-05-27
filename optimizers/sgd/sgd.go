@@ -60,19 +60,19 @@ func (o *SGD[T]) NewState(shape ...int) any {
 
 	if o.Mu == 0.0 {
 		// Vanilla SGD doesn't require any support structure, this is just to avoid memory allocation
-		return []mat.Matrix{mat.NewEmptyDense[T](r, c)} // v at index 0
+		return []mat.Matrix{mat.NewDense[T](mat.WithShape(r, c))} // v at index 0
 	}
 	if !o.Nesterov {
 		supp := make([]mat.Matrix, 2)
-		supp[v] = mat.NewEmptyDense[T](r, c)
-		supp[buf] = mat.NewEmptyDense[T](r, c)
+		supp[v] = mat.NewDense[T](mat.WithShape(r, c))
+		supp[buf] = mat.NewDense[T](mat.WithShape(r, c))
 		return supp
 	}
 	supp := make([]mat.Matrix, 4)
-	supp[v] = mat.NewEmptyDense[T](r, c)
-	supp[buf] = mat.NewEmptyDense[T](r, c)
-	supp[vPrev] = mat.NewEmptyDense[T](r, c)
-	supp[vTmp] = mat.NewEmptyDense[T](r, c)
+	supp[v] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[buf] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[vPrev] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[vTmp] = mat.NewDense[T](mat.WithShape(r, c))
 	return supp
 }
 

@@ -19,7 +19,7 @@ func TestAddScalar_Forward(t *testing.T) {
 
 func testAddScalarForward[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -37,7 +37,7 @@ func testAddScalarForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{1.1, 1.2, 1.3, 1.0}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-1.0, 0.5, 0.8, 0.0}, x1.grad.Data(), 1.0e-6)
@@ -50,16 +50,16 @@ func TestAddScalar_Forward2(t *testing.T) {
 
 func testAddScalarForward2[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []T{
+		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]T{0.1}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -74,11 +74,11 @@ func testAddScalarForward2[T float.DType](t *testing.T) {
 		-0.4, 0.9, -0.7, 0.0,
 	}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewDense(3, 4, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 		-1.0, 0.5, 0.8, 0.0,
 		1.0, 0.3, 0.6, 0.0,
 		1.0, -0.5, -0.3, 0.0,
-	}))
+	})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{

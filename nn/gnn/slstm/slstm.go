@@ -105,26 +105,26 @@ func New[T float.DType](config Config) *Model {
 		NonLocalSentCellGate:   newGate3[T](out),
 		NonLocalInputGate:      newGate3[T](out),
 		NonLocalSentOutputGate: newGate3[T](out),
-		StartH:                 nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		EndH:                   nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		InitValue:              nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		StartH:                 nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		EndH:                   nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		InitValue:              nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 	}
 }
 
 func newGate4[T float.DType](in, out int) *HyperLinear4 {
 	return &HyperLinear4{
-		W: nn.NewParam(mat.NewEmptyDense[T](out, out*windowSize)),
-		U: nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		V: nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		B: nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		W: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out*windowSize))),
+		U: nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		V: nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		B: nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 	}
 }
 
 func newGate3[T float.DType](size int) *HyperLinear3 {
 	return &HyperLinear3{
-		W: nn.NewParam(mat.NewEmptyDense[T](size, size)),
-		U: nn.NewParam(mat.NewEmptyDense[T](size, size)),
-		B: nn.NewParam(mat.NewEmptyVecDense[T](size)),
+		W: nn.NewParam(mat.NewDense[T](mat.WithShape(size, size))),
+		U: nn.NewParam(mat.NewDense[T](mat.WithShape(size, size))),
+		B: nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
 	}
 }
 

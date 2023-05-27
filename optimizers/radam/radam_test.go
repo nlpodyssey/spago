@@ -25,8 +25,8 @@ func testRAdamDeltaTimeStep1[T float.DType](t *testing.T) {
 		1.0e-8, // epsilon
 	))
 
-	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
-	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
+	params := mat.NewDense[T](mat.WithBacking([]T{0.4, 0.4, 0.5, 1.0, 0.8}))
+	grads := mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1}))
 
 	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 	mat.SetData[T](supp[m], []T{0.7, 0.8, 0.5, 0.3, 0.2})
@@ -50,8 +50,8 @@ func testRAdaDeltaTimeStep6[T float.DType](t *testing.T) {
 		1.0e-8, // epsilon
 	))
 
-	params := mat.NewVecDense([]T{0.4, 0.4, 0.5, 1.0, 0.8})
-	grads := mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1})
+	params := mat.NewDense[T](mat.WithBacking([]T{0.4, 0.4, 0.5, 1.0, 0.8}))
+	grads := mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1}))
 
 	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
 	mat.SetData[T](supp[m], []T{0.7, 0.8, 0.5, 0.3, 0.2})

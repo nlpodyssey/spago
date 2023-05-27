@@ -19,11 +19,11 @@ func TestSliceForward(t *testing.T) {
 
 func testSliceForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value: mat.NewDense(3, 4, []T{
+		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 			11, 12, 13, 14,
 			21, 22, 23, 24,
 			31, 32, 33, 34,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -34,20 +34,20 @@ func testSliceForward[T float.DType](t *testing.T) {
 	y, err := f.Forward()
 	assert.Nil(t, err)
 
-	mat.AssertMatrixEquals(t, mat.NewDense(2, 2, []T{
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		22, 23,
 		32, 33,
-	}), y)
+	})), y)
 
-	err = f.Backward(mat.NewDense(2, 2, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		1, 2,
 		3, 4,
-	}))
+	})))
 	assert.Nil(t, err)
 
-	mat.AssertMatrixEquals(t, mat.NewDense(3, 4, []T{
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 		0, 0, 0, 0,
 		0, 1, 2, 0,
 		0, 3, 4, 0,
-	}), x.grad)
+	})), x.grad)
 }

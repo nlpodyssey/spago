@@ -23,33 +23,33 @@ func TestDense_SetData(t *testing.T) {
 
 func testDenseSetData[T float.DType](t *testing.T) {
 	t.Run("incompatible data size", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			SetData[T](d, []T{1, 2, 3})
 		})
 	})
 
 	t.Run("zero size - nil", func(t *testing.T) {
-		d := NewEmptyDense[T](0, 0)
+		d := NewDense[T](WithShape(0, 0))
 		SetData[T](d, nil)
 		assert.Equal(t, []T{}, d.data)
 	})
 
 	t.Run("zero size - empty slice", func(t *testing.T) {
-		d := NewEmptyDense[T](0, 0)
+		d := NewDense[T](WithShape(0, 0))
 		SetData[T](d, []T{})
 		assert.Equal(t, []T{}, d.data)
 	})
 
 	t.Run("data is set correctly", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		v := []T{1, 2, 3, 7, 8, 9}
 		SetData[T](d, v)
 		assert.Equal(t, v, d.data)
 	})
 
 	t.Run("data is copied", func(t *testing.T) {
-		d := NewEmptyDense[T](1, 1)
+		d := NewDense[T](WithShape(1, 1))
 		s := []T{1}
 		SetData[T](d, s)
 		s[0] = 42 // modifying s must not modify d.data
@@ -66,7 +66,7 @@ func testDenseZerosLike[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
-				d1 := NewInitDense(r, c, T(42))
+				d1 := NewDense[T](WithShape(r, c), WithBacking(CreateInitializedSlice(r*c, T(42))))
 				d2 := d1.ZerosLike()
 				assertDenseDims(t, r, c, d2.(*Dense[T]))
 				for _, v := range Data[T](d2) {
@@ -86,7 +86,7 @@ func testDenseOnesLike[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
-				d1 := NewInitDense(r, c, T(42))
+				d1 := NewDense[T](WithShape(r, c), WithBacking(CreateInitializedSlice(r*c, T(42))))
 				d2 := d1.OnesLike()
 				assertDenseDims(t, r, c, d2.(*Dense[T]))
 				for _, v := range Data[T](d2) {
@@ -104,7 +104,7 @@ func TestDense_Scalar(t *testing.T) {
 
 func testDenseScalar[T float.DType](t *testing.T) {
 	t.Run("non-scalar matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](1, 2)
+		d := NewDense[T](WithShape(1, 2))
 		require.Panics(t, func() {
 			d.Scalar()
 		})
@@ -125,7 +125,7 @@ func testDenseZeros[T float.DType](t *testing.T) {
 	for _, r := range []int{0, 1, 2, 10, 100} {
 		for _, c := range []int{0, 1, 2, 10, 100} {
 			t.Run(fmt.Sprintf("%d x %d", r, c), func(t *testing.T) {
-				d := NewInitDense(r, c, T(42))
+				d := NewDense[T](WithShape(r, c), WithBacking(CreateInitializedSlice(r*c, T(42))))
 				d.Zeros()
 				assertDenseDims(t, r, c, d)
 				for _, v := range Data[T](d) {
@@ -143,35 +143,35 @@ func TestDense_Set(t *testing.T) {
 
 func testDenseSet[T float.DType](t *testing.T) {
 	t.Run("given matrix not 1×1", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 2)
+		d := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
-			d.SetAt(NewEmptyDense[T](1, 2), 1, 1)
+			d.SetAt(NewDense[T](WithShape(1, 2)), 1, 1)
 		})
 	})
 
 	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), -1, 1)
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), 1, -1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), 2, 1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), 1, 3)
 		})
@@ -212,7 +212,7 @@ func testDenseSet[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			d.SetAt(Scalar(T(42)), tc.setR, tc.setC)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
@@ -226,28 +226,28 @@ func TestDense_At(t *testing.T) {
 
 func testDenseAt[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.At(-1, 1)
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.At(1, -1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.At(2, 1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.At(1, 3)
 		})
@@ -277,9 +277,10 @@ func testDenseAt[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d at (%d, %d)", tc.r, tc.c, tc.atR, tc.atC), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			v := d.At(tc.atR, tc.atC)
 			assert.Equal(t, float.Interface(tc.v), v.Scalar())
 		})
@@ -293,28 +294,28 @@ func TestDense_SetScalar(t *testing.T) {
 
 func testDenseSetScalar[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), -1, 1)
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), 1, -1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), 2, 1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), 1, 3)
 		})
@@ -355,7 +356,7 @@ func testDenseSetScalar[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d set (%d, %d)", tc.r, tc.c, tc.setR, tc.setC), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			d.SetScalar(float.Interface(T(42)), tc.setR, tc.setC)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
@@ -369,28 +370,28 @@ func TestDense_ScalarAt(t *testing.T) {
 
 func testDenseScalarAt[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ScalarAt(-1, 1)
 		})
 	})
 
 	t.Run("negative col", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ScalarAt(1, -1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ScalarAt(2, 1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ScalarAt(1, 3)
 		})
@@ -420,9 +421,9 @@ func testDenseScalarAt[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d at (%d, %d)", tc.r, tc.c, tc.atR, tc.atC), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			v := d.ScalarAt(tc.atR, tc.atC)
 			assert.Equal(t, float.Interface(tc.v), v)
 		})
@@ -436,28 +437,28 @@ func TestDense_SetVec(t *testing.T) {
 
 func testDenseSetVec[T float.DType](t *testing.T) {
 	t.Run("given matrix not 1×1", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
-			d.SetAt(NewEmptyDense[T](1, 2), 1)
+			d.SetAt(NewDense[T](WithShape(1, 2)), 1)
 		})
 	})
 
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), 1)
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), -1)
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.SetAt(Scalar(T(42)), 2)
 		})
@@ -479,13 +480,13 @@ func testDenseSetVec[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.size, 1)
+			d := NewDense[T](WithShape(tc.size, 1))
 			d.SetAt(Scalar(T(42)), tc.i)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewEmptyDense[T](1, tc.size)
+			d := NewDense[T](WithShape(1, tc.size))
 			d.SetAt(Scalar(T(42)), tc.i)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
@@ -499,21 +500,21 @@ func TestDense_AtVec(t *testing.T) {
 
 func testDenseAtVec[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.At(1)
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.At(-1)
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.At(2)
 		})
@@ -535,17 +536,17 @@ func testDenseAtVec[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+			d := NewDense[T](WithShape(tc.size, 1), WithBacking(InitializeMatrix(tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
-			})
+			})))
 			v := d.At(tc.i)
 			assert.Equal(t, float.Interface(tc.v), v.Scalar())
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+			d := NewDense[T](WithShape(1, tc.size), WithBacking(InitializeMatrix(1, tc.size, func(_, c int) T {
 				return T(c + 1)
-			})
+			})))
 			v := d.At(tc.i)
 			assert.Equal(t, float.Interface(tc.v), v.Scalar())
 		})
@@ -559,21 +560,21 @@ func TestDense_SetVecScalar(t *testing.T) {
 
 func testDenseSetVecScalar[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), 1)
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), -1)
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.SetScalar(float.Interface(T(42)), 2)
 		})
@@ -595,13 +596,13 @@ func testDenseSetVecScalar[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.size, 1)
+			d := NewDense[T](WithShape(tc.size, 1))
 			d.SetScalar(float.Interface(T(42)), tc.i)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewEmptyDense[T](1, tc.size)
+			d := NewDense[T](WithShape(1, tc.size))
 			d.SetScalar(float.Interface(T(42)), tc.i)
 			assert.Equal(t, tc.d, Data[T](d))
 		})
@@ -615,21 +616,21 @@ func TestDense_ScalarAtVec(t *testing.T) {
 
 func testDenseScalarAtVec[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ScalarAt(1)
 		})
 	})
 
 	t.Run("negative index", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.ScalarAt(-1)
 		})
 	})
 
 	t.Run("index out of upper bound", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.ScalarAt(2)
 		})
@@ -651,17 +652,17 @@ func testDenseScalarAtVec[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+			d := NewDense[T](WithShape(tc.size, 1), WithBacking(InitializeMatrix(tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
-			})
+			})))
 			v := d.ScalarAt(tc.i)
 			assert.Equal(t, float.Interface(tc.v), v)
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+			d := NewDense[T](WithShape(1, tc.size), WithBacking(InitializeMatrix(1, tc.size, func(_, c int) T {
 				return T(c + 1)
-			})
+			})))
 			v := d.ScalarAt(tc.i)
 			assert.Equal(t, float.Interface(tc.v), v)
 		})
@@ -675,14 +676,14 @@ func TestDense_ExtractRow(t *testing.T) {
 
 func testDenseExtractRow[T float.DType](t *testing.T) {
 	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ExtractRow(-1)
 		})
 	})
 
 	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ExtractRow(2)
 		})
@@ -708,9 +709,9 @@ func testDenseExtractRow[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d extract %d", tc.r, tc.c, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			r := d.ExtractRow(tc.i)
 			assertDenseDims(t, 1, len(tc.d), r.(*Dense[T]))
 			assert.Equal(t, tc.d, Data[T](r))
@@ -725,14 +726,14 @@ func TestDense_ExtractColumn(t *testing.T) {
 
 func testDenseExtractColumn[T float.DType](t *testing.T) {
 	t.Run("negative col", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ExtractColumn(-1)
 		})
 	})
 
 	t.Run("col out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ExtractColumn(3)
 		})
@@ -758,9 +759,9 @@ func testDenseExtractColumn[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d extract %d", tc.r, tc.c, tc.i), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			c := d.ExtractColumn(tc.i)
 			assertDenseDims(t, len(tc.d), 1, c.(*Dense[T]))
 			assert.Equal(t, tc.d, Data[T](c))
@@ -779,17 +780,17 @@ func testDenseSlice[T float.DType](t *testing.T) {
 		d                              *Dense[T]
 		fromRow, fromCol, toRow, toCol int
 	}{
-		{"fromRow < 0", NewEmptyDense[T](2, 3), -1, 0, 2, 3},
-		{"fromRow >= matrix rows", NewEmptyDense[T](2, 3), 2, 0, 2, 3},
-		{"fromCol < 0", NewEmptyDense[T](2, 3), 0, -1, 2, 3},
-		{"fromCol >= matrix cols", NewEmptyDense[T](2, 3), 0, 3, 2, 3},
-		{"toRow < fromRow", NewEmptyDense[T](2, 3), 1, 0, 0, 3},
-		{"toRow > matrix rows", NewEmptyDense[T](2, 3), 0, 0, 3, 3},
-		{"toCol < fromCol", NewEmptyDense[T](2, 3), 0, 1, 2, 0},
-		{"toCol > matrix cols", NewEmptyDense[T](2, 3), 0, 0, 2, 4},
-		{"zero rows and cols", NewEmptyDense[T](0, 0), 0, 0, 0, 0},
-		{"zero rows", NewEmptyDense[T](0, 2), 0, 0, 0, 2},
-		{"zero cols", NewEmptyDense[T](2, 0), 0, 0, 2, 0},
+		{"fromRow < 0", NewDense[T](WithShape(2, 3)), -1, 0, 2, 3},
+		{"fromRow >= matrix rows", NewDense[T](WithShape(2, 3)), 2, 0, 2, 3},
+		{"fromCol < 0", NewDense[T](WithShape(2, 3)), 0, -1, 2, 3},
+		{"fromCol >= matrix cols", NewDense[T](WithShape(2, 3)), 0, 3, 2, 3},
+		{"toRow < fromRow", NewDense[T](WithShape(2, 3)), 1, 0, 0, 3},
+		{"toRow > matrix rows", NewDense[T](WithShape(2, 3)), 0, 0, 3, 3},
+		{"toCol < fromCol", NewDense[T](WithShape(2, 3)), 0, 1, 2, 0},
+		{"toCol > matrix cols", NewDense[T](WithShape(2, 3)), 0, 0, 2, 4},
+		{"zero rows and cols", NewDense[T](WithShape(0, 0)), 0, 0, 0, 0},
+		{"zero rows", NewDense[T](WithShape(0, 2)), 0, 0, 0, 2},
+		{"zero cols", NewDense[T](WithShape(2, 0)), 0, 0, 2, 0},
 	}
 
 	for _, tc := range invalidTestCases {
@@ -800,15 +801,15 @@ func testDenseSlice[T float.DType](t *testing.T) {
 		})
 	}
 
-	d1x1 := NewDense[T](1, 1, []T{1})
-	d4x4 := NewDense[T](4, 4, []T{
+	d1x1 := NewDense[T](WithShape(1, 1), WithBacking([]T{1}))
+	d4x4 := NewDense[T](WithShape(4, 4), WithBacking([]T{
 		11, 12, 13, 14,
 		21, 22, 23, 24,
 		31, 32, 33, 34,
 		41, 42, 43, 44,
-	})
-	d1x3 := NewDense[T](1, 3, []T{1, 2, 3})
-	d3x1 := NewDense[T](3, 1, []T{1, 2, 3})
+	}))
+	d1x3 := NewDense[T](WithShape(1, 3), WithBacking([]T{1, 2, 3}))
+	d3x1 := NewDense[T](WithShape(3, 1), WithBacking([]T{1, 2, 3}))
 
 	testCases := []struct {
 		d                              *Dense[T]
@@ -891,7 +892,7 @@ func testDenseSlice[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		name := fmt.Sprintf(
-			"%d x %d slice from (%d, %d) to (%d, %d)", tc.d.rows, tc.d.cols,
+			"%d x %d slice from (%d, %d) to (%d, %d)", tc.d.shape[0], tc.d.shape[1],
 			tc.fromRow, tc.fromCol, tc.toRow, tc.toCol,
 		)
 		t.Run(name, func(t *testing.T) {
@@ -909,21 +910,21 @@ func TestDense_Reshape(t *testing.T) {
 
 func testDenseReshape[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Reshape(-1, 6)
 		})
 	})
 
 	t.Run("negative cols", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Reshape(6, -1)
 		})
 	})
 
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Reshape(2, 2)
 		})
@@ -963,7 +964,7 @@ func testDenseReshape[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d reshape %d x %d", tc.r, tc.c, tc.reshR, tc.reshC), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			r := d.Reshape(tc.reshR, tc.reshC)
 			assertDenseDims(t, tc.reshR, tc.reshC, r.(*Dense[T]))
 			assert.Equal(t, d.Data(), r.Data())
@@ -971,7 +972,7 @@ func testDenseReshape[T float.DType](t *testing.T) {
 	}
 
 	t.Run("data is copied", func(t *testing.T) {
-		d := NewEmptyDense[T](1, 1)
+		d := NewDense[T](WithShape(1, 1))
 		r := d.Reshape(1, 1)
 		d.SetScalar(float.Interface(T(42)), 0, 0) // modifying d must not modify r
 		assert.Equal(t, float.Interface(T(0)), r.ScalarAt(0, 0))
@@ -985,21 +986,21 @@ func TestDense_ReshapeInPlace(t *testing.T) {
 
 func testDenseReshapeInPlace[T float.DType](t *testing.T) {
 	t.Run("negative rows", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ReshapeInPlace(-1, 6)
 		})
 	})
 
 	t.Run("negative cols", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ReshapeInPlace(6, -1)
 		})
 	})
 
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ReshapeInPlace(2, 2)
 		})
@@ -1039,7 +1040,7 @@ func testDenseReshapeInPlace[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d reshape %d x %d", tc.r, tc.c, tc.reshR, tc.reshC), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			d2 := d.ReshapeInPlace(tc.reshR, tc.reshC)
 			assert.Same(t, d, d2)
 			assertDenseDims(t, tc.reshR, tc.reshC, d)
@@ -1054,25 +1055,25 @@ type flattenTestCase[T float.DType] struct {
 
 func flattenTestCases[T float.DType]() []flattenTestCase[T] {
 	return []flattenTestCase[T]{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{1}), []T{1}},
-		{NewDense[T](1, 2, []T{1, 2}), []T{1, 2}},
-		{NewDense[T](2, 1, []T{1, 2}), []T{1, 2}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), []T{1}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})), []T{1, 2}},
+		{NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})), []T{1, 2}},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[]T{1, 2, 3, 4},
 		},
 		{
-			NewDense[T](3, 4, []T{
+			NewDense[T](WithShape(3, 4), WithBacking([]T{
 				1, 2, 3, 4,
 				5, 6, 7, 8,
 				9, 10, 11, 12,
-			}),
+			})),
 			[]T{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
 		},
 	}
@@ -1085,7 +1086,7 @@ func TestDense_Flatten(t *testing.T) {
 
 func testDenseFlatten[T float.DType](t *testing.T) {
 	for _, tc := range flattenTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.shape[0], tc.x.shape[1]), func(t *testing.T) {
 			y := tc.x.Flatten()
 			assertDenseDims(t, 1, len(tc.y), y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
@@ -1100,7 +1101,7 @@ func TestDense_FlattenInPlace(t *testing.T) {
 
 func testDenseFlattenInPlace[T float.DType](t *testing.T) {
 	for _, tc := range flattenTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.x.rows, tc.x.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.x.shape[0], tc.x.shape[1]), func(t *testing.T) {
 			x2 := tc.x.FlattenInPlace()
 			assert.Same(t, tc.x, x2)
 			assertDenseDims(t, 1, len(tc.y), tc.x)
@@ -1116,14 +1117,14 @@ func TestDense_ResizeVector(t *testing.T) {
 
 func testDenseResizeVector[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ResizeVector(2)
 		})
 	})
 
 	t.Run("negative size", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.ResizeVector(-1)
 		})
@@ -1150,31 +1151,31 @@ func testDenseResizeVector[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+			d := NewDense[T](WithShape(tc.size, 1), WithBacking(InitializeMatrix(tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
-			})
+			})))
 			r := d.ResizeVector(tc.newSize)
 			assert.Equal(t, tc.d, Data[T](r))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d resize %d", tc.size, tc.newSize), func(t *testing.T) {
-			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+			d := NewDense[T](WithShape(1, tc.size), WithBacking(InitializeMatrix(1, tc.size, func(_, c int) T {
 				return T(c + 1)
-			})
+			})))
 			r := d.ResizeVector(tc.newSize)
 			assert.Equal(t, tc.d, Data[T](r))
 		})
 	}
 
 	t.Run("data is copied - smaller size", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		r := d.ResizeVector(1)
 		d.SetScalar(float.Interface(T(42)), 0, 0) // modifying d must not modify r
 		assert.Equal(t, float.Interface(T(0)), r.ScalarAt(0, 0))
 	})
 
 	t.Run("data is copied - bigger size", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		r := d.ResizeVector(3)
 		d.SetScalar(float.Interface(T(42)), 0, 0) // modifying d must not modify r
 		assert.Equal(t, float.Interface(T(0)), r.ScalarAt(0, 0))
@@ -1212,9 +1213,9 @@ func testDenseT[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			tr := d.T()
 			assertDenseDims(t, tc.c, tc.r, tr.(*Dense[T]))
 			assert.Equal(t, tc.d, Data[T](tr))
@@ -1283,9 +1284,9 @@ func testDenseTransposeInPlace[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.r, tc.c, func(r int, c int) T {
+			d := NewDense[T](WithShape(tc.r, tc.c), WithBacking(InitializeMatrix(tc.r, tc.c, func(r int, c int) T {
 				return T(c + 1 + (r+1)*10)
-			})
+			})))
 			d2 := d.TransposeInPlace()
 			assert.Same(t, d, d2)
 			assertDenseDims(t, tc.c, tc.r, d)
@@ -1302,24 +1303,24 @@ type addTestCase[T float.DType] struct {
 
 func addTestCases[T float.DType]() []addTestCase[T] {
 	return []addTestCase[T]{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{12}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{10})), []T{12}},
 		{
-			NewDense[T](1, 2, []T{2, 3}),
-			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
 			[]T{12, 23},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				10, 20, 30,
 				40, 50, 60,
-			}),
+			})),
 			[]T{
 				12, 23, 34,
 				45, 56, 67,
@@ -1335,17 +1336,17 @@ func TestDense_Add(t *testing.T) {
 
 func testDenseAdd[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.Add(b)
 		})
 	})
 
 	for _, tc := range addTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.Add(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1358,15 +1359,15 @@ func TestDense_AddInPlace(t *testing.T) {
 
 func testDenseAddInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.AddInPlace(b)
 		})
 	})
 
 	for _, tc := range addTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			a2 := tc.a.AddInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1382,16 +1383,16 @@ type addScalarTestCase[T float.DType] struct {
 
 func addScalarTestCases[T float.DType]() []addScalarTestCase[T] {
 	return []addScalarTestCase[T]{
-		{NewEmptyDense[T](0, 0), 10, []T{}},
-		{NewEmptyDense[T](0, 1), 10, []T{}},
-		{NewEmptyDense[T](1, 0), 10, []T{}},
-		{NewDense[T](1, 1, []T{2}), 10, []T{12}},
-		{NewDense[T](1, 2, []T{2, 3}), 10, []T{12, 13}},
+		{NewDense[T](WithShape(0, 0)), 10, []T{}},
+		{NewDense[T](WithShape(0, 1)), 10, []T{}},
+		{NewDense[T](WithShape(1, 0)), 10, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 10, []T{12}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})), 10, []T{12, 13}},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
+			})),
 			10,
 			[]T{
 				12, 13, 14,
@@ -1408,9 +1409,9 @@ func TestDense_AddScalar(t *testing.T) {
 
 func testDenseAddScalar[T float.DType](t *testing.T) {
 	for _, tc := range addScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			y := tc.a.AddScalar(tc.n)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1423,7 +1424,7 @@ func TestDense_AddScalarInPlace(t *testing.T) {
 
 func testDenseAddScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range addScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			a2 := tc.a.AddScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1439,24 +1440,24 @@ type subTestCase[T float.DType] struct {
 
 func subTestCases[T float.DType]() []subTestCase[T] {
 	return []subTestCase[T]{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{10}), NewDense[T](1, 1, []T{2}), []T{8}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{10})), NewDense[T](WithShape(1, 1), WithBacking([]T{2})), []T{8}},
 		{
-			NewDense[T](1, 2, []T{10, 20}),
-			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
 			[]T{8, 17},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				10, 20, 30,
 				40, 50, 60,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
+			})),
 			[]T{
 				8, 17, 26,
 				35, 44, 53,
@@ -1472,17 +1473,17 @@ func TestDense_Sub(t *testing.T) {
 
 func testDenseSub[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.Sub(b)
 		})
 	})
 
 	for _, tc := range subTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.Sub(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1495,15 +1496,15 @@ func TestDense_SubInPlace(t *testing.T) {
 
 func testDenseSubInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.SubInPlace(b)
 		})
 	})
 
 	for _, tc := range subTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			a2 := tc.a.SubInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1519,16 +1520,16 @@ type subScalarTestCase[T float.DType] struct {
 
 func subScalarTestCases[T float.DType]() []subScalarTestCase[T] {
 	return []subScalarTestCase[T]{
-		{NewEmptyDense[T](0, 0), 10, []T{}},
-		{NewEmptyDense[T](0, 1), 10, []T{}},
-		{NewEmptyDense[T](1, 0), 10, []T{}},
-		{NewDense[T](1, 1, []T{10}), 2, []T{8}},
-		{NewDense[T](1, 2, []T{10, 20}), 2, []T{8, 18}},
+		{NewDense[T](WithShape(0, 0)), 10, []T{}},
+		{NewDense[T](WithShape(0, 1)), 10, []T{}},
+		{NewDense[T](WithShape(1, 0)), 10, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{10})), 2, []T{8}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})), 2, []T{8, 18}},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				10, 20, 30,
 				40, 50, 60,
-			}),
+			})),
 			2,
 			[]T{
 				8, 18, 28,
@@ -1545,9 +1546,9 @@ func TestDense_SubScalar(t *testing.T) {
 
 func testDenseSubScalar[T float.DType](t *testing.T) {
 	for _, tc := range subScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			y := tc.a.SubScalar(tc.n)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1560,7 +1561,7 @@ func TestDense_SubScalarInPlace(t *testing.T) {
 
 func testDenseSubScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range subScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			a2 := tc.a.SubScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1576,24 +1577,24 @@ type prodTestCase[T float.DType] struct {
 
 func prodTestCases[T float.DType]() []prodTestCase[T] {
 	return []prodTestCase[T]{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{20}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{10})), []T{20}},
 		{
-			NewDense[T](1, 2, []T{2, 3}),
-			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
 			[]T{20, 60},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				10, 20, 30,
 				40, 50, 60,
-			}),
+			})),
 			[]T{
 				20, 60, 120,
 				200, 300, 420,
@@ -1609,17 +1610,17 @@ func TestDense_Prod(t *testing.T) {
 
 func testDenseProd[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.Prod(b)
 		})
 	})
 
 	for _, tc := range prodTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.Prod(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1632,15 +1633,15 @@ func TestDense_ProdInPlace(t *testing.T) {
 
 func testDenseProdInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.ProdInPlace(b)
 		})
 	})
 
 	for _, tc := range prodTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			a2 := tc.a.ProdInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1656,20 +1657,20 @@ type prodScalarTestCase[T float.DType] struct {
 
 func prodScalarTestCases[T float.DType]() []prodScalarTestCase[T] {
 	return []prodScalarTestCase[T]{
-		{NewEmptyDense[T](0, 0), 10, []T{}},
-		{NewEmptyDense[T](0, 1), 10, []T{}},
-		{NewEmptyDense[T](1, 0), 10, []T{}},
-		{NewDense[T](1, 1, []T{2}), 10, []T{20}},
+		{NewDense[T](WithShape(0, 0)), 10, []T{}},
+		{NewDense[T](WithShape(0, 1)), 10, []T{}},
+		{NewDense[T](WithShape(1, 0)), 10, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 10, []T{20}},
 		{
-			NewDense[T](1, 2, []T{2, 3}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
 			10,
 			[]T{20, 30},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
+			})),
 			10,
 			[]T{
 				20, 30, 40,
@@ -1686,9 +1687,9 @@ func TestDense_ProdScalar(t *testing.T) {
 
 func testDenseProdScalar[T float.DType](t *testing.T) {
 	for _, tc := range prodScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			y := tc.a.ProdScalar(tc.n)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1701,7 +1702,7 @@ func TestDense_ProdScalarInPlace(t *testing.T) {
 
 func testDenseProdScalarInPlace[T float.DType](t *testing.T) {
 	for _, tc := range prodScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			a2 := tc.a.ProdScalarInPlace(tc.n)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1716,20 +1717,20 @@ func TestDense_ProdMatrixScalarInPlace(t *testing.T) {
 
 func testDenseProdMatrixScalarInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.ProdMatrixScalarInPlace(b, 1)
 		})
 	})
 
 	for _, tc := range prodScalarTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.rows, tc.a.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %g", tc.a.shape[0], tc.a.shape[1], tc.n), func(t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.a.OnesLike()
 			y.ProdMatrixScalarInPlace(tc.a, tc.n)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1743,24 +1744,24 @@ type divTestCase[T float.DType] struct {
 
 func divTestCases[T float.DType]() []divTestCase[T] {
 	return []divTestCase[T]{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{10}), NewDense[T](1, 1, []T{2}), []T{5}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{10})), NewDense[T](WithShape(1, 1), WithBacking([]T{2})), []T{5}},
 		{
-			NewDense[T](1, 2, []T{10, 20}),
-			NewDense[T](1, 2, []T{2, 5}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 5})),
 			[]T{5, 4},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				10, 20, 30,
 				40, 50, 60,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 5, 3,
 				5, 5, 4,
-			}),
+			})),
 			[]T{
 				5, 4, 10,
 				8, 10, 15,
@@ -1776,17 +1777,17 @@ func TestDense_Div(t *testing.T) {
 
 func testDenseDiv[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.Div(b)
 		})
 	})
 
 	for _, tc := range divTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.Div(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1799,15 +1800,15 @@ func TestDense_DivInPlace(t *testing.T) {
 
 func testDenseDivInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 4)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 4))
 		require.Panics(t, func() {
 			a.DivInPlace(b)
 		})
 	})
 
 	for _, tc := range divTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			a2 := tc.a.DivInPlace(tc.b)
 			assert.Same(t, tc.a, a2)
 			assert.Equal(t, tc.y, Data[T](tc.a))
@@ -1822,8 +1823,8 @@ func TestDense_Mul(t *testing.T) {
 
 func testDenseMul[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 3)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			a.Mul(b)
 		})
@@ -1834,50 +1835,50 @@ func testDenseMul[T float.DType](t *testing.T) {
 		b *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](0, 1), []T{0}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](1, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](1, 2), []T{}},
-		{NewEmptyDense[T](2, 1), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{20}},
-		{NewEmptyDense[T](2, 0), NewEmptyDense[T](0, 3), []T{
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(0, 1)), []T{0}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(1, 2)), []T{}},
+		{NewDense[T](WithShape(2, 1)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{10})), []T{20}},
+		{NewDense[T](WithShape(2, 0)), NewDense[T](WithShape(0, 3)), []T{
 			0, 0, 0,
 			0, 0, 0,
 		}},
 		{
-			NewDense[T](1, 1, []T{2}),
-			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](WithShape(1, 1), WithBacking([]T{2})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
 			[]T{20, 40},
 		},
 		{
-			NewDense[T](2, 1, []T{2, 3}),
-			NewDense[T](1, 1, []T{10}),
+			NewDense[T](WithShape(2, 1), WithBacking([]T{2, 3})),
+			NewDense[T](WithShape(1, 1), WithBacking([]T{10})),
 			[]T{20, 30},
 		},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				2, 3,
 				4, 5,
-			}),
-			NewDense[T](2, 2, []T{
+			})),
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				6, 7,
 				8, 9,
-			}),
+			})),
 			[]T{
 				36, 41,
 				64, 73,
 			},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
-			NewDense[T](3, 4, []T{
+			})),
+			NewDense[T](WithShape(3, 4), WithBacking([]T{
 				10, 20, 30, 40,
 				50, 60, 70, 80,
 				9, 8, 7, 6,
-			}),
+			})),
 			[]T{
 				206, 252, 298, 344,
 				413, 516, 619, 722,
@@ -1886,9 +1887,9 @@ func testDenseMul[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.Mul(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.b.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.b.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1901,24 +1902,24 @@ func TestDense_MulT(t *testing.T) {
 
 func testDenseMulT[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](3, 1)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(3, 1))
 		require.Panics(t, func() {
 			a.MulT(b)
 		})
 	})
 
 	t.Run("other matrix with zero columns", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 0)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 0))
 		require.Panics(t, func() {
 			a.MulT(b)
 		})
 	})
 
 	t.Run("other matrix with more than one columns", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.MulT(b)
 		})
@@ -1929,41 +1930,41 @@ func testDenseMulT[T float.DType](t *testing.T) {
 		b *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{0}},
-		{NewEmptyDense[T](0, 2), NewEmptyDense[T](0, 1), []T{0, 0}},
-		{NewEmptyDense[T](0, 2), NewEmptyDense[T](0, 1), []T{0, 0}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), []T{20}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{0}},
+		{NewDense[T](WithShape(0, 2)), NewDense[T](WithShape(0, 1)), []T{0, 0}},
+		{NewDense[T](WithShape(0, 2)), NewDense[T](WithShape(0, 1)), []T{0, 0}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{10})), []T{20}},
 		{
-			NewDense[T](1, 2, []T{2, 3}),
-			NewDense[T](1, 1, []T{10}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
+			NewDense[T](WithShape(1, 1), WithBacking([]T{10})),
 			[]T{20, 30},
 		},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				2, 3,
 				4, 5,
-			}),
-			NewDense[T](2, 1, []T{
+			})),
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				6,
 				7,
-			}),
+			})),
 			[]T{
 				40,
 				53,
 			},
 		},
 		{
-			NewDense[T](3, 2, []T{
+			NewDense[T](WithShape(3, 2), WithBacking([]T{
 				2, 3,
 				4, 5,
 				6, 7,
-			}),
-			NewDense[T](3, 1, []T{
+			})),
+			NewDense[T](WithShape(3, 1), WithBacking([]T{
 				10,
 				20,
 				30,
-			}),
+			})),
 			[]T{
 				280,
 				340,
@@ -1972,9 +1973,9 @@ func testDenseMulT[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			y := tc.a.MulT(tc.b)
-			assertDenseDims(t, tc.a.cols, 1, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[1], 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -1987,24 +1988,24 @@ func TestDense_DotUnitary(t *testing.T) {
 
 func testDenseDotUnitary[T float.DType](t *testing.T) {
 	t.Run("receiver matrix is non-vector", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 2)
-		b := NewEmptyVecDense[T](4)
+		a := NewDense[T](WithShape(2, 2))
+		b := NewDense[T](WithShape(4))
 		require.Panics(t, func() {
 			a.DotUnitary(b)
 		})
 	})
 
 	t.Run("other matrix is non-vector", func(t *testing.T) {
-		a := NewEmptyVecDense[T](4)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(4))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.DotUnitary(b)
 		})
 	})
 
 	t.Run("incompatible data size", func(t *testing.T) {
-		a := NewEmptyVecDense[T](2)
-		b := NewEmptyVecDense[T](3)
+		a := NewDense[T](WithShape(2))
+		b := NewDense[T](WithShape(3))
 		require.Panics(t, func() {
 			a.DotUnitary(b)
 		})
@@ -2015,18 +2016,18 @@ func testDenseDotUnitary[T float.DType](t *testing.T) {
 		b *Dense[T]
 		v T
 	}{
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), 0},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), 0},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{10}), 20},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), 0},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), 0},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{10})), 20},
 		{
-			NewDense[T](1, 2, []T{2, 3}),
-			NewDense[T](1, 2, []T{10, 20}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{10, 20})),
 			80,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.rows, tc.a.cols, tc.b.rows, tc.b.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d, %d x %d", tc.a.shape[0], tc.a.shape[1], tc.b.shape[0], tc.b.shape[1]), func(t *testing.T) {
 			v := tc.a.DotUnitary(tc.b)
 			assertDenseDims(t, 1, 1, v.(*Dense[T]))
 			assert.Equal(t, []T{tc.v}, Data[T](v))
@@ -2041,7 +2042,7 @@ func TestDense_ClipInPlace(t *testing.T) {
 
 func testDenseClipInPlace[T float.DType](t *testing.T) {
 	t.Run("max < min", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 2)
+		d := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			d.ClipInPlace(2, 1)
 		})
@@ -2053,18 +2054,18 @@ func testDenseClipInPlace[T float.DType](t *testing.T) {
 		max      float64
 		expected []T
 	}{
-		{NewEmptyDense[T](0, 0), 0, 0, []T{}},
-		{NewEmptyDense[T](0, 1), 0, 0, []T{}},
-		{NewEmptyDense[T](1, 0), 0, 0, []T{}},
-		{NewDense[T](1, 1, []T{2}), 1, 3, []T{2}},
-		{NewDense[T](1, 1, []T{2}), 2, 2, []T{2}},
-		{NewDense[T](1, 1, []T{2}), 1, 1, []T{1}},
-		{NewDense[T](1, 1, []T{2}), 3, 3, []T{3}},
+		{NewDense[T](WithShape(0, 0)), 0, 0, []T{}},
+		{NewDense[T](WithShape(0, 1)), 0, 0, []T{}},
+		{NewDense[T](WithShape(1, 0)), 0, 0, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 1, 3, []T{2}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 2, 2, []T{2}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 1, 1, []T{1}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 3, 3, []T{3}},
 		{
-			NewDense[T](2, 4, []T{
+			NewDense[T](WithShape(2, 4), WithBacking([]T{
 				0, 1, 2, 3,
 				4, 5, 6, 7,
-			}),
+			})),
 			2, 5,
 			[]T{
 				2, 2, 2, 3,
@@ -2074,7 +2075,7 @@ func testDenseClipInPlace[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d min %g max %g", tc.d.rows, tc.d.cols, tc.min, tc.max), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d min %g max %g", tc.d.shape[0], tc.d.shape[1], tc.min, tc.max), func(t *testing.T) {
 			d2 := tc.d.ClipInPlace(tc.min, tc.max)
 			assert.Same(t, tc.d, d2)
 			assert.Equal(t, tc.expected, tc.d.data)
@@ -2089,8 +2090,8 @@ func TestDense_Maximum(t *testing.T) {
 
 func testDenseMaximum[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.Maximum(b)
 		})
@@ -2101,24 +2102,24 @@ func testDenseMaximum[T float.DType](t *testing.T) {
 		b *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{3}), []T{3}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{3})), []T{3}},
 		{
-			NewDense[T](1, 3, []T{10, 2, 100}),
-			NewDense[T](1, 3, []T{1, 20, 100}),
+			NewDense[T](WithShape(1, 3), WithBacking([]T{10, 2, 100})),
+			NewDense[T](WithShape(1, 3), WithBacking([]T{1, 20, 100})),
 			[]T{10, 20, 100},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 3, 5,
 				7, 9, 0,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, 4, 4,
 				6, 10, 1,
-			}),
+			})),
 			[]T{
 				1, 4, 5,
 				7, 10, 1,
@@ -2127,9 +2128,9 @@ func testDenseMaximum[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.a.rows, tc.a.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.a.shape[0], tc.a.shape[1]), func(t *testing.T) {
 			y := tc.a.Maximum(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2142,8 +2143,8 @@ func TestDense_Minimum(t *testing.T) {
 
 func testDenseMinimum[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.Minimum(b)
 		})
@@ -2154,24 +2155,24 @@ func testDenseMinimum[T float.DType](t *testing.T) {
 		b *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), NewDense[T](1, 1, []T{3}), []T{2}},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), NewDense[T](WithShape(1, 1), WithBacking([]T{3})), []T{2}},
 		{
-			NewDense[T](1, 3, []T{10, 2, 100}),
-			NewDense[T](1, 3, []T{1, 20, 100}),
+			NewDense[T](WithShape(1, 3), WithBacking([]T{10, 2, 100})),
+			NewDense[T](WithShape(1, 3), WithBacking([]T{1, 20, 100})),
 			[]T{1, 2, 100},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 3, 5,
 				7, 9, 0,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, 4, 4,
 				6, 10, 1,
-			}),
+			})),
 			[]T{
 				0, 3, 4,
 				6, 9, 0,
@@ -2180,9 +2181,9 @@ func testDenseMinimum[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.a.rows, tc.a.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.a.shape[0], tc.a.shape[1]), func(t *testing.T) {
 			y := tc.a.Minimum(tc.b)
-			assertDenseDims(t, tc.a.rows, tc.a.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.a.shape[0], tc.a.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2198,19 +2199,19 @@ func testDenseAbs[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{-42}), []T{42}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{-42})), []T{42}},
 		{
-			NewDense[T](1, 2, []T{-3, 4}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{-3, 4})),
 			[]T{3, 4},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, -2, 3,
 				-4, 5, -6,
-			}),
+			})),
 			[]T{
 				1, 2, 3,
 				4, 5, 6,
@@ -2219,9 +2220,9 @@ func testDenseAbs[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Abs()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2238,17 +2239,17 @@ func testDensePow[T float.DType](t *testing.T) {
 		pow float64
 		y   []T
 	}{
-		{NewEmptyDense[T](0, 0), 2, []T{}},
-		{NewEmptyDense[T](0, 1), 2, []T{}},
-		{NewEmptyDense[T](1, 0), 2, []T{}},
-		{NewDense[T](1, 1, []T{2}), 3, []T{8}},
-		{NewDense[T](1, 1, []T{2}), 0, []T{1}},
-		{NewDense[T](1, 2, []T{2, -3}), 2, []T{4, 9}},
+		{NewDense[T](WithShape(0, 0)), 2, []T{}},
+		{NewDense[T](WithShape(0, 1)), 2, []T{}},
+		{NewDense[T](WithShape(1, 0)), 2, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 3, []T{8}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 0, []T{1}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{2, -3})), 2, []T{4, 9}},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, -1, 2,
 				-3, 4, -5,
-			}),
+			})),
 			3,
 			[]T{
 				0, -1, 8,
@@ -2258,9 +2259,9 @@ func testDensePow[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d pow %g", tc.d.rows, tc.d.cols, tc.pow), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d pow %g", tc.d.shape[0], tc.d.shape[1], tc.pow), func(t *testing.T) {
 			y := tc.d.Pow(tc.pow)
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2276,19 +2277,19 @@ func testDenseSqrt[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{4}), []T{2}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{4})), []T{2}},
 		{
-			NewDense[T](1, 2, []T{4, 9}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{4, 9})),
 			[]T{2, 3},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, 1, 4,
 				9, 16, 25,
-			}),
+			})),
 			[]T{
 				0, 1, 2,
 				3, 4, 5,
@@ -2297,9 +2298,9 @@ func testDenseSqrt[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Sqrt()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2315,19 +2316,19 @@ func testDenseLog[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), []T{0.69314718}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), []T{0.69314718}},
 		{
-			NewDense[T](1, 2, []T{1, 2}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
 			[]T{0, 0.69314718},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			[]T{
 				0, 0.69314718, 1.09861229,
 				1.38629436, 1.60943791, 1.79175947,
@@ -2336,9 +2337,9 @@ func testDenseLog[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Log()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, Data[T](y), 1e-7)
 		})
 	}
@@ -2354,19 +2355,19 @@ func testDenseExp[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{1}), []T{2.71828183}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), []T{2.71828183}},
 		{
-			NewDense[T](1, 2, []T{0, 1}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{0, 1})),
 			[]T{1, 2.71828183},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, 1, 2,
 				3, 4, 5,
-			}),
+			})),
 			[]T{
 				1, 2.71828183, 7.389056099,
 				20.08553692, 54.59815003, 148.4131591,
@@ -2375,9 +2376,9 @@ func testDenseExp[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Exp()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, Data[T](y), 1e-7)
 		})
 	}
@@ -2393,19 +2394,19 @@ func testDenseSigmoid[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{0}), []T{.5}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{0})), []T{.5}},
 		{
-			NewDense[T](1, 2, []T{0, 1}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{0, 1})),
 			[]T{.5, .73105858},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				0, 1, 2,
 				3, 4, 5,
-			}),
+			})),
 			[]T{
 				.5, .73105858, .88079708,
 				.95257413, .98201379, .993307149,
@@ -2414,9 +2415,9 @@ func testDenseSigmoid[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Sigmoid()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, Data[T](y), 1e-7)
 		})
 	}
@@ -2432,22 +2433,22 @@ func testDenseSum[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y T
 	}{
-		{NewEmptyDense[T](0, 0), 0},
-		{NewEmptyDense[T](0, 1), 0},
-		{NewEmptyDense[T](1, 0), 0},
-		{NewDense[T](1, 1, []T{2}), 2},
-		{NewDense[T](1, 2, []T{3, -1}), 2},
+		{NewDense[T](WithShape(0, 0)), 0},
+		{NewDense[T](WithShape(0, 1)), 0},
+		{NewDense[T](WithShape(1, 0)), 0},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 2},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{3, -1})), 2},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			21,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Sum()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
 			assert.Equal(t, []T{tc.y}, Data[T](y))
@@ -2462,7 +2463,7 @@ func TestDense_Max(t *testing.T) {
 
 func testDenseMax[T float.DType](t *testing.T) {
 	t.Run("empty data", func(t *testing.T) {
-		d := NewEmptyDense[T](0, 1)
+		d := NewDense[T](WithShape(0, 1))
 		require.Panics(t, func() {
 			d.Max()
 		})
@@ -2472,19 +2473,19 @@ func testDenseMax[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y T
 	}{
-		{NewDense[T](1, 1, []T{2}), 2},
-		{NewDense[T](1, 2, []T{3, -1}), 3},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 2},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{3, -1})), 3},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				9, 8, 7,
-			}),
+			})),
 			9,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Max()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
 			assert.Equal(t, []T{tc.y}, Data[T](y))
@@ -2499,7 +2500,7 @@ func TestDense_Min(t *testing.T) {
 
 func testDenseMin[T float.DType](t *testing.T) {
 	t.Run("empty data", func(t *testing.T) {
-		d := NewEmptyDense[T](0, 1)
+		d := NewDense[T](WithShape(0, 1))
 		require.Panics(t, func() {
 			d.Min()
 		})
@@ -2509,19 +2510,19 @@ func testDenseMin[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y T
 	}{
-		{NewDense[T](1, 1, []T{2}), 2},
-		{NewDense[T](1, 2, []T{3, -1}), -1},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), 2},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{3, -1})), -1},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				3, 2, 1,
 				9, 8, 7,
-			}),
+			})),
 			1,
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Min()
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
 			assert.Equal(t, []T{tc.y}, Data[T](y))
@@ -2536,14 +2537,14 @@ func TestDense_ArgMax(t *testing.T) {
 
 func testDenseArgMax[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.ArgMax()
 		})
 	})
 
 	t.Run("empty vector", func(t *testing.T) {
-		d := NewEmptyVecDense[T](0)
+		d := NewDense[T](WithShape(0))
 		require.Panics(t, func() {
 			d.ArgMax()
 		})
@@ -2563,13 +2564,13 @@ func testDenseArgMax[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.d), func(t *testing.T) {
-			d := NewDense[T](len(tc.d), 1, tc.d)
+			d := NewDense[T](WithShape(len(tc.d), 1), WithBacking(tc.d))
 			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.d), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.d), tc.d)
+			d := NewDense[T](WithShape(1, len(tc.d)), WithBacking(tc.d))
 			y := d.ArgMax()
 			assert.Equal(t, tc.y, y)
 		})
@@ -2583,7 +2584,7 @@ func TestDense_Softmax(t *testing.T) {
 
 func testDenseSoftmax[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Softmax()
 		})
@@ -2603,14 +2604,14 @@ func testDenseSoftmax[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1e-7)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			y := d.Softmax()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1e-7)
@@ -2625,7 +2626,7 @@ func TestDense_CumSum(t *testing.T) {
 
 func testDenseCumSum[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.CumSum()
 		})
@@ -2648,14 +2649,14 @@ func testDenseCumSum[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			y := d.CumSum()
 			assertDenseDims(t, len(tc.x), 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
@@ -2670,28 +2671,28 @@ func TestDense_Range(t *testing.T) {
 
 func testDenseRange[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Range(1, 2)
 		})
 	})
 
 	t.Run("invalid range", func(t *testing.T) {
-		d := NewEmptyVecDense[T](3)
+		d := NewDense[T](WithShape(3))
 		require.Panics(t, func() {
 			d.Range(2, 1)
 		})
 	})
 
 	t.Run("negative start", func(t *testing.T) {
-		d := NewEmptyVecDense[T](3)
+		d := NewDense[T](WithShape(3))
 		require.Panics(t, func() {
 			d.Range(-1, 1)
 		})
 	})
 
 	t.Run("negative end", func(t *testing.T) {
-		d := NewEmptyVecDense[T](3)
+		d := NewDense[T](WithShape(3))
 		require.Panics(t, func() {
 			d.Range(1, -1)
 		})
@@ -2721,18 +2722,18 @@ func testDenseRange[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
-			d := NewInitFuncDense[T](tc.size, 1, func(r, _ int) T {
+			d := NewDense[T](WithShape(tc.size, 1), WithBacking(InitializeMatrix(tc.size, 1, func(r, _ int) T {
 				return T(r + 1)
-			})
+			})))
 			y := d.Range(tc.start, tc.end)
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 
 		t.Run(fmt.Sprintf("row vector size %v range %d, %d", tc.size, tc.start, tc.end), func(t *testing.T) {
-			d := NewInitFuncDense[T](1, tc.size, func(_, c int) T {
+			d := NewDense[T](WithShape(1, tc.size), WithBacking(InitializeMatrix(1, tc.size, func(_, c int) T {
 				return T(c + 1)
-			})
+			})))
 			y := d.Range(tc.start, tc.end)
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
@@ -2747,27 +2748,27 @@ func TestDense_SplitV(t *testing.T) {
 
 func testDenseSplitV[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SplitV(1)
 		})
 	})
 
 	t.Run("negative size", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.SplitV(-1)
 		})
 	})
 
 	t.Run("empty sizes", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		y := d.SplitV()
 		assert.Nil(t, y)
 	})
 
 	t.Run("sizes out of bound", func(t *testing.T) {
-		d := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			fmt.Println(d.SplitV(1, 1, 1))
 		})
@@ -2799,7 +2800,7 @@ func testDenseSplitV[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			y := d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
 			for i, v := range y {
@@ -2810,7 +2811,7 @@ func testDenseSplitV[T float.DType](t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("row vector %v sizes %v", tc.x, tc.sizes), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			y := d.SplitV(tc.sizes...)
 			require.Len(t, y, len(tc.y))
 			for i, v := range y {
@@ -2829,7 +2830,7 @@ func TestDense_Augment(t *testing.T) {
 
 func testDenseAugment[T float.DType](t *testing.T) {
 	t.Run("non square matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Augment()
 		})
@@ -2839,24 +2840,24 @@ func testDenseAugment[T float.DType](t *testing.T) {
 		d *Dense[T]
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewDense[T](1, 1, []T{42}), []T{42, 1}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), []T{42, 1}},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[]T{
 				1, 2, 1, 0,
 				3, 4, 0, 1,
 			},
 		},
 		{
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
 				7, 8, 9,
-			}),
+			})),
 			[]T{
 				1, 2, 3, 1, 0, 0,
 				4, 5, 6, 0, 1, 0,
@@ -2866,9 +2867,9 @@ func testDenseAugment[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Augment()
-			assertDenseDims(t, tc.d.rows, tc.d.cols*2, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1]*2, y.(*Dense[T]))
 			require.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -2881,28 +2882,28 @@ func TestDense_SwapInPlace(t *testing.T) {
 
 func testDenseSwapInPlace[T float.DType](t *testing.T) {
 	t.Run("negative r1", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SwapInPlace(-1, 1)
 		})
 	})
 
 	t.Run("r1 out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SwapInPlace(2, 1)
 		})
 	})
 
 	t.Run("negative r2", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SwapInPlace(1, -1)
 		})
 	})
 
 	t.Run("r2 out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.SwapInPlace(1, 2)
 		})
@@ -2914,14 +2915,14 @@ func testDenseSwapInPlace[T float.DType](t *testing.T) {
 		r2 int
 		y  []T
 	}{
-		{NewEmptyDense[T](1, 0), 0, 0, []T{}},
-		{NewDense[T](1, 1, []T{1}), 0, 0, []T{1}},
-		{NewDense[T](1, 2, []T{1, 2}), 0, 0, []T{1, 2}},
+		{NewDense[T](WithShape(1, 0)), 0, 0, []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 0, 0, []T{1}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})), 0, 0, []T{1, 2}},
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			0, 0,
 			[]T{
 				1,
@@ -2929,10 +2930,10 @@ func testDenseSwapInPlace[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			0, 1,
 			[]T{
 				2,
@@ -2940,10 +2941,10 @@ func testDenseSwapInPlace[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			1, 0,
 			[]T{
 				2,
@@ -2951,11 +2952,11 @@ func testDenseSwapInPlace[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](3, 2, []T{
+			NewDense[T](WithShape(3, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
 				5, 6,
-			}),
+			})),
 			0, 2,
 			[]T{
 				5, 6,
@@ -2966,7 +2967,7 @@ func testDenseSwapInPlace[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d swap %d, %d", tc.d.rows, tc.d.cols, tc.r1, tc.r2), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d swap %d, %d", tc.d.shape[0], tc.d.shape[1], tc.r1, tc.r2), func(t *testing.T) {
 			d2 := tc.d.SwapInPlace(tc.r1, tc.r2)
 			assert.Same(t, tc.d, d2)
 			assert.Equal(t, tc.y, tc.d.data)
@@ -2981,7 +2982,7 @@ func TestDense_PadRows(t *testing.T) {
 
 func testDensePadRows[T float.DType](t *testing.T) {
 	t.Run("negative n", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.PadRows(-1)
 		})
@@ -2992,35 +2993,35 @@ func testDensePadRows[T float.DType](t *testing.T) {
 		n int
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), 0, []T{}},
-		{NewEmptyDense[T](0, 0), 1, []T{}},
-		{NewEmptyDense[T](0, 0), 2, []T{}},
+		{NewDense[T](WithShape(0, 0)), 0, []T{}},
+		{NewDense[T](WithShape(0, 0)), 1, []T{}},
+		{NewDense[T](WithShape(0, 0)), 2, []T{}},
 
-		{NewEmptyDense[T](1, 0), 0, []T{}},
-		{NewEmptyDense[T](1, 0), 1, []T{}},
-		{NewEmptyDense[T](1, 0), 2, []T{}},
+		{NewDense[T](WithShape(1, 0)), 0, []T{}},
+		{NewDense[T](WithShape(1, 0)), 1, []T{}},
+		{NewDense[T](WithShape(1, 0)), 2, []T{}},
 
-		{NewEmptyDense[T](0, 1), 0, []T{}},
-		{NewEmptyDense[T](0, 1), 1, []T{0}},
-		{NewEmptyDense[T](0, 1), 2, []T{0, 0}},
+		{NewDense[T](WithShape(0, 1)), 0, []T{}},
+		{NewDense[T](WithShape(0, 1)), 1, []T{0}},
+		{NewDense[T](WithShape(0, 1)), 2, []T{0, 0}},
 
-		{NewDense[T](1, 1, []T{1}), 0, []T{1}},
-		{NewDense[T](1, 1, []T{1}), 1, []T{1, 0}},
-		{NewDense[T](1, 1, []T{1}), 2, []T{1, 0, 0}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 0, []T{1}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 1, []T{1, 0}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 2, []T{1, 0, 0}},
 
 		{
-			NewDense[T](1, 2, []T{
+			NewDense[T](WithShape(1, 2), WithBacking([]T{
 				1, 2,
-			}),
+			})),
 			0,
 			[]T{
 				1, 2,
 			},
 		},
 		{
-			NewDense[T](1, 2, []T{
+			NewDense[T](WithShape(1, 2), WithBacking([]T{
 				1, 2,
-			}),
+			})),
 			1,
 			[]T{
 				1, 2,
@@ -3028,9 +3029,9 @@ func testDensePadRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](1, 2, []T{
+			NewDense[T](WithShape(1, 2), WithBacking([]T{
 				1, 2,
-			}),
+			})),
 			2,
 			[]T{
 				1, 2,
@@ -3040,10 +3041,10 @@ func testDensePadRows[T float.DType](t *testing.T) {
 		},
 
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			0,
 			[]T{
 				1, 2, 3,
@@ -3051,10 +3052,10 @@ func testDensePadRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			1,
 			[]T{
 				1, 2, 3,
@@ -3063,10 +3064,10 @@ func testDensePadRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			2,
 			[]T{
 				1, 2, 3,
@@ -3078,9 +3079,9 @@ func testDensePadRows[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.shape[0], tc.d.shape[1], tc.n), func(t *testing.T) {
 			y := tc.d.PadRows(tc.n)
-			assertDenseDims(t, tc.d.rows+tc.n, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0]+tc.n, tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -3093,7 +3094,7 @@ func TestDense_PadColumns(t *testing.T) {
 
 func testDensePadColumns[T float.DType](t *testing.T) {
 	t.Run("negative n", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.PadColumns(-1)
 		})
@@ -3104,27 +3105,27 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 		n int
 		y []T
 	}{
-		{NewEmptyDense[T](0, 0), 0, []T{}},
-		{NewEmptyDense[T](0, 0), 1, []T{}},
-		{NewEmptyDense[T](0, 0), 2, []T{}},
+		{NewDense[T](WithShape(0, 0)), 0, []T{}},
+		{NewDense[T](WithShape(0, 0)), 1, []T{}},
+		{NewDense[T](WithShape(0, 0)), 2, []T{}},
 
-		{NewEmptyDense[T](0, 1), 0, []T{}},
-		{NewEmptyDense[T](0, 1), 1, []T{}},
-		{NewEmptyDense[T](0, 1), 2, []T{}},
+		{NewDense[T](WithShape(0, 1)), 0, []T{}},
+		{NewDense[T](WithShape(0, 1)), 1, []T{}},
+		{NewDense[T](WithShape(0, 1)), 2, []T{}},
 
-		{NewEmptyDense[T](1, 0), 0, []T{}},
-		{NewEmptyDense[T](1, 0), 1, []T{0}},
-		{NewEmptyDense[T](1, 0), 2, []T{0, 0}},
+		{NewDense[T](WithShape(1, 0)), 0, []T{}},
+		{NewDense[T](WithShape(1, 0)), 1, []T{0}},
+		{NewDense[T](WithShape(1, 0)), 2, []T{0, 0}},
 
-		{NewDense[T](1, 1, []T{1}), 0, []T{1}},
-		{NewDense[T](1, 1, []T{1}), 1, []T{1, 0}},
-		{NewDense[T](1, 1, []T{1}), 2, []T{1, 0, 0}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 0, []T{1}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 1, []T{1, 0}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{1})), 2, []T{1, 0, 0}},
 
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			0,
 			[]T{
 				1,
@@ -3132,10 +3133,10 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			1,
 			[]T{
 				1, 0,
@@ -3143,10 +3144,10 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 1, []T{
+			NewDense[T](WithShape(2, 1), WithBacking([]T{
 				1,
 				2,
-			}),
+			})),
 			2,
 			[]T{
 				1, 0, 0,
@@ -3155,11 +3156,11 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 		},
 
 		{
-			NewDense[T](3, 2, []T{
+			NewDense[T](WithShape(3, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
 				5, 6,
-			}),
+			})),
 			0,
 			[]T{
 				1, 2,
@@ -3168,11 +3169,11 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](3, 2, []T{
+			NewDense[T](WithShape(3, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
 				5, 6,
-			}),
+			})),
 			1,
 			[]T{
 				1, 2, 0,
@@ -3181,11 +3182,11 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](3, 2, []T{
+			NewDense[T](WithShape(3, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
 				5, 6,
-			}),
+			})),
 			2,
 			[]T{
 				1, 2, 0, 0,
@@ -3196,9 +3197,9 @@ func testDensePadColumns[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.rows, tc.d.cols, tc.n), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d pad %d", tc.d.shape[0], tc.d.shape[1], tc.n), func(t *testing.T) {
 			y := tc.d.PadColumns(tc.n)
-			assertDenseDims(t, tc.d.rows, tc.d.cols+tc.n, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1]+tc.n, y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -3211,16 +3212,16 @@ func TestDense_AppendRows(t *testing.T) {
 
 func testDenseAppendRows[T float.DType](t *testing.T) {
 	t.Run("non vector value", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
-		m := NewEmptyDense[T](2, 2)
+		d := NewDense[T](WithShape(2, 3))
+		m := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			d.AppendRows(m)
 		})
 	})
 
 	t.Run("vector of incompatible size", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
-		v := NewEmptyVecDense[T](2)
+		d := NewDense[T](WithShape(2, 3))
+		v := NewDense[T](WithShape(2))
 		require.Panics(t, func() {
 			d.AppendRows(v)
 		})
@@ -3231,16 +3232,16 @@ func testDenseAppendRows[T float.DType](t *testing.T) {
 		vs [][]T
 		y  []T
 	}{
-		{NewEmptyDense[T](0, 0), [][]T{}, []T{}},
-		{NewEmptyDense[T](0, 1), [][]T{}, []T{}},
-		{NewEmptyDense[T](0, 1), [][]T{{1}}, []T{1}},
+		{NewDense[T](WithShape(0, 0)), [][]T{}, []T{}},
+		{NewDense[T](WithShape(0, 1)), [][]T{}, []T{}},
+		{NewDense[T](WithShape(0, 1)), [][]T{{1}}, []T{1}},
 		{
-			NewDense[T](1, 1, []T{1}),
+			NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
 			[][]T{{2}},
 			[]T{1, 2},
 		},
 		{
-			NewEmptyDense[T](0, 3),
+			NewDense[T](WithShape(0, 3)),
 			[][]T{
 				{1, 2, 3},
 				{4, 5, 6},
@@ -3251,10 +3252,10 @@ func testDenseAppendRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			[][]T{},
 			[]T{
 				1, 2, 3,
@@ -3262,10 +3263,10 @@ func testDenseAppendRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			[][]T{
 				{7, 8, 9},
 			},
@@ -3276,9 +3277,9 @@ func testDenseAppendRows[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](1, 3, []T{
+			NewDense[T](WithShape(1, 3), WithBacking([]T{
 				1, 2, 3,
-			}),
+			})),
 			[][]T{
 				{4, 5, 6},
 				{7, 8, 9},
@@ -3292,23 +3293,23 @@ func testDenseAppendRows[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("append %d column vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("append %d column vectors to %d x %d matrix", len(tc.vs), tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			vs := make([]Matrix, len(tc.vs))
 			for i, v := range tc.vs {
-				vs[i] = NewDense[T](len(v), 1, v)
+				vs[i] = NewDense[T](WithShape(len(v), 1), WithBacking(v))
 			}
 			y := tc.d.AppendRows(vs...)
-			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0]+len(tc.vs), tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 
-		t.Run(fmt.Sprintf("append %d row vectors to %d x %d matrix", len(tc.vs), tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("append %d row vectors to %d x %d matrix", len(tc.vs), tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			vs := make([]Matrix, len(tc.vs))
 			for i, v := range tc.vs {
-				vs[i] = NewDense[T](1, len(v), v)
+				vs[i] = NewDense[T](WithShape(1, len(v)), WithBacking(v))
 			}
 			y := tc.d.AppendRows(vs...)
-			assertDenseDims(t, tc.d.rows+len(tc.vs), tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0]+len(tc.vs), tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -3321,7 +3322,7 @@ func TestDense_Norm(t *testing.T) {
 
 func testDenseNorm[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Norm(2)
 		})
@@ -3341,14 +3342,14 @@ func testDenseNorm[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			y := d.Norm(tc.pow)
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, []T{tc.y}, y.Data(), 1.0e-04)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v norm pow %g", tc.x, tc.pow), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			y := d.Norm(tc.pow)
 			assertDenseDims(t, 1, 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, []T{tc.y}, y.Data(), 1.0e-04)
@@ -3363,7 +3364,7 @@ func TestDense_Normalize2(t *testing.T) {
 
 func testDenseNormalize2[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.Normalize2()
 		})
@@ -3379,249 +3380,17 @@ func testDenseNormalize2[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			y := d.Normalize2()
 			assertDenseDims(t, len(tc.y), 1, y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1.0e-06)
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			y := d.Normalize2()
 			assertDenseDims(t, 1, len(tc.y), y.(*Dense[T]))
 			assert.InDeltaSlice(t, tc.y, y.Data(), 1.0e-06)
-		})
-	}
-}
-
-func TestDense_Pivoting(t *testing.T) {
-	t.Run("float32", testDensePivoting[float32])
-	t.Run("float64", testDensePivoting[float64])
-}
-
-func testDensePivoting[T float.DType](t *testing.T) {
-	t.Run("non square matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
-		require.Panics(t, func() {
-			d.Pivoting(1)
-		})
-	})
-
-	t.Run("negative row", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 2)
-		require.Panics(t, func() {
-			d.Pivoting(-1)
-		})
-	})
-
-	t.Run("row out of upper bound", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 2)
-		require.Panics(t, func() {
-			d.Pivoting(2)
-		})
-	})
-
-	t.Run("case without swapping", func(t *testing.T) {
-		d := NewDense(4, 4, []T{
-			11, 9, 24, 2,
-			1, 5, 2, 6,
-			3, 17, 18, 1,
-			2, 5, 7, 1,
-		})
-
-		p, swap, positions := d.Pivoting(0)
-		assertDenseDims(t, 4, 4, p.(*Dense[T]))
-		assert.Equal(t, []T{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		}, Data[T](p))
-		assert.False(t, swap)
-		assert.Equal(t, [2]int{0, 0}, positions)
-	})
-
-	t.Run("case with swapping", func(t *testing.T) {
-		d := NewDense(4, 4, []T{
-			11, 9, 24, 2,
-			1, 5, 2, 6,
-			3, 17, 7, 1,
-			2, 5, 18, 1,
-		})
-
-		p, swap, positions := d.Pivoting(0)
-		assertDenseDims(t, 4, 4, p.(*Dense[T]))
-		assert.Equal(t, []T{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		}, Data[T](p))
-		assert.False(t, swap)
-		assert.Equal(t, [2]int{0, 0}, positions)
-
-		p, swap, positions = d.Pivoting(2)
-		assertDenseDims(t, 4, 4, p.(*Dense[T]))
-		assert.Equal(t, []T{
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 0, 1,
-			0, 0, 1, 0,
-		}, Data[T](p))
-		assert.True(t, swap)
-		assert.Equal(t, [2]int{3, 2}, positions)
-
-		p, swap, positions = d.Pivoting(1)
-		assertDenseDims(t, 4, 4, p.(*Dense[T]))
-		assert.Equal(t, []T{
-			1, 0, 0, 0,
-			0, 0, 1, 0,
-			0, 1, 0, 0,
-			0, 0, 0, 1,
-		}, Data[T](p))
-		assert.True(t, swap)
-		assert.Equal(t, [2]int{2, 1}, positions)
-	})
-}
-
-func TestDense_LU(t *testing.T) {
-	t.Run("float32", testDenseLU[float32])
-	t.Run("float64", testDenseLU[float64])
-}
-
-func testDenseLU[T float.DType](t *testing.T) {
-	t.Run("non square matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
-		require.Panics(t, func() {
-			d.LU()
-		})
-	})
-
-	testCases := []struct {
-		d *Dense[T]
-		l []T
-		u []T
-		p []T
-	}{
-		{NewEmptyDense[T](0, 0), []T{}, []T{}, []T{}},
-		{
-			NewDense[T](3, 3, []T{
-				3, 3, 0,
-				7, -5, -1,
-				2, 8, 3,
-			}),
-			[]T{
-				1, 0, 0,
-				0.285714, 1, 0,
-				0.428571, 0.54545, 1,
-			},
-			[]T{
-				7, -5, -1,
-				0, 9.42857, 3.28571,
-				0, 0, -1.363636,
-			},
-			[]T{
-				0, 1, 0,
-				0, 0, 1,
-				1, 0, 0,
-			},
-		},
-		{
-			NewDense[T](4, 4, []T{
-				11, 9, 24, 2,
-				1, 5, 2, 6,
-				3, 17, 18, 1,
-				2, 5, 7, 1,
-			}),
-			[]T{
-				1, 0, 0, 0,
-				0.27273, 1, 0, 0,
-				0.09091, 0.2875, 1, 0,
-				0.18182, 0.23125, 0.0036, 1,
-			},
-			[]T{
-				11, 9, 24, 2,
-				0, 14.54545, 11.45455, 0.45455,
-				0, 0, -3.475, 5.6875,
-				0, 0, 0, 0.51079,
-			},
-			[]T{
-				1, 0, 0, 0,
-				0, 0, 1, 0,
-				0, 1, 0, 0,
-				0, 0, 0, 1,
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
-			l, u, p := tc.d.LU()
-
-			assertDenseDims(t, tc.d.rows, tc.d.cols, l.(*Dense[T]))
-			assert.InDeltaSlice(t, tc.l, l.Data(), 1.0e-04)
-
-			assertDenseDims(t, tc.d.rows, tc.d.cols, u.(*Dense[T]))
-			assert.InDeltaSlice(t, tc.u, u.Data(), 1.0e-04)
-
-			assertDenseDims(t, tc.d.rows, tc.d.cols, p.(*Dense[T]))
-			assert.InDeltaSlice(t, tc.p, p.Data(), 1.0e-04)
-		})
-	}
-}
-
-func TestDense_Inverse(t *testing.T) {
-	t.Run("float32", testDenseInverse[float32])
-	t.Run("float64", testDenseInverse[float64])
-}
-
-func testDenseInverse[T float.DType](t *testing.T) {
-	t.Run("non square matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
-		require.Panics(t, func() {
-			d.Inverse()
-		})
-	})
-
-	testCases := []struct {
-		d *Dense[T]
-		y []T
-	}{
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewDense[T](1, 1, []T{1}), []T{1}},
-		{
-			NewDense[T](3, 3, []T{
-				1, 2, 3,
-				0, 1, 4,
-				5, 6, 0,
-			}),
-			[]T{
-				-24, 18, 5,
-				20, -15, -4,
-				-5, 4, 1,
-			},
-		},
-		{
-			NewDense[T](4, 4, []T{
-				1, 1, 1, -1,
-				1, 1, -1, 1,
-				1, -1, 1, 1,
-				-1, 1, 1, 1,
-			}),
-			[]T{
-				0.25, 0.25, 0.25, -0.25,
-				0.25, 0.25, -0.25, 0.25,
-				0.25, -0.25, 0.25, 0.25,
-				-0.25, 0.25, 0.25, 0.25,
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
-			y := tc.d.Inverse()
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
-			assert.InDeltaSlice(t, tc.y, y.Data(), 1.0e-04)
 		})
 	}
 }
@@ -3635,17 +3404,17 @@ func applyTestCases[T float.DType]() []applyTestCase[T] {
 	return []applyTestCase[T]{
 		// Each transoformed value is a 3-digit number having the
 		// format "<n><row><col>"
-		{NewEmptyDense[T](0, 0), []T{}},
-		{NewEmptyDense[T](0, 1), []T{}},
-		{NewEmptyDense[T](1, 0), []T{}},
-		{NewDense[T](1, 1, []T{2}), []T{211}},
-		{NewDense[T](1, 2, []T{2, 3}), []T{211, 312}},
-		{NewDense[T](2, 1, []T{2, 3}), []T{211, 321}},
+		{NewDense[T](WithShape(0, 0)), []T{}},
+		{NewDense[T](WithShape(0, 1)), []T{}},
+		{NewDense[T](WithShape(1, 0)), []T{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{2})), []T{211}},
+		{NewDense[T](WithShape(1, 2), WithBacking([]T{2, 3})), []T{211, 312}},
+		{NewDense[T](WithShape(2, 1), WithBacking([]T{2, 3})), []T{211, 321}},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[]T{
 				111, 212,
 				321, 422,
@@ -3661,11 +3430,11 @@ func TestDense_Apply(t *testing.T) {
 
 func testDenseApply[T float.DType](t *testing.T) {
 	for _, tc := range applyTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.Apply(func(r, c int, v float64) float64 {
 				return float64(c+1+(r+1)*10) + v*100
 			})
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -3678,15 +3447,15 @@ func TestDense_ApplyInPlace(t *testing.T) {
 
 func testDenseApplyInPlace[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.ApplyInPlace(func(r, c int, v float64) float64 { return 1 }, b)
 		})
 	})
 
 	for _, tc := range applyTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.d.OnesLike()
@@ -3707,12 +3476,12 @@ func TestDense_ApplyWithAlpha(t *testing.T) {
 func testDenseApplyWithAlpha[T float.DType](t *testing.T) {
 	inAlpha := []float64{1, 2, 3}
 	for _, tc := range applyTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			y := tc.d.ApplyWithAlpha(func(r, c int, v float64, alpha ...float64) float64 {
 				assert.Equal(t, inAlpha, alpha)
 				return float64(c+1+(r+1)*10) + v*100
 			}, inAlpha...)
-			assertDenseDims(t, tc.d.rows, tc.d.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.d.shape[0], tc.d.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.y, Data[T](y))
 		})
 	}
@@ -3727,8 +3496,8 @@ func testDenseApplyWithAlphaInPlace[T float.DType](t *testing.T) {
 	inAlpha := []float64{1, 2, 3}
 
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.ApplyWithAlphaInPlace(
 				func(r, c int, v float64, alpha ...float64) float64 { return 1 },
@@ -3738,7 +3507,7 @@ func testDenseApplyWithAlphaInPlace[T float.DType](t *testing.T) {
 	})
 
 	for _, tc := range applyTestCases[T]() {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.d.OnesLike()
@@ -3768,34 +3537,34 @@ func testDenseDoNonZero[T float.DType](t *testing.T) {
 		d      *Dense[T]
 		visits []doNonZeroVisit
 	}{
-		{NewEmptyDense[T](0, 0), []doNonZeroVisit{}},
-		{NewEmptyDense[T](0, 1), []doNonZeroVisit{}},
-		{NewEmptyDense[T](1, 0), []doNonZeroVisit{}},
-		{NewEmptyDense[T](2, 2), []doNonZeroVisit{}},
-		{NewDense[T](1, 1, []T{0}), []doNonZeroVisit{}},
+		{NewDense[T](WithShape(0, 0)), []doNonZeroVisit{}},
+		{NewDense[T](WithShape(0, 1)), []doNonZeroVisit{}},
+		{NewDense[T](WithShape(1, 0)), []doNonZeroVisit{}},
+		{NewDense[T](WithShape(2, 2)), []doNonZeroVisit{}},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{0})), []doNonZeroVisit{}},
 		{
-			NewDense[T](1, 1, []T{1}),
+			NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
 			[]doNonZeroVisit{
 				{0, 0, 1},
 			},
 		},
 		{
-			NewDense[T](1, 2, []T{0, 1}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{0, 1})),
 			[]doNonZeroVisit{
 				{0, 1, 1},
 			},
 		},
 		{
-			NewDense[T](2, 1, []T{0, 1}),
+			NewDense[T](WithShape(2, 1), WithBacking([]T{0, 1})),
 			[]doNonZeroVisit{
 				{1, 0, 1},
 			},
 		},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[]doNonZeroVisit{
 				{0, 0, 1},
 				{0, 1, 2},
@@ -3804,10 +3573,10 @@ func testDenseDoNonZero[T float.DType](t *testing.T) {
 			},
 		},
 		{
-			NewDense[T](2, 2, []T{
+			NewDense[T](WithShape(2, 2), WithBacking([]T{
 				1, 0,
 				0, 2,
-			}),
+			})),
 			[]doNonZeroVisit{
 				{0, 0, 1},
 				{1, 1, 2},
@@ -3816,7 +3585,7 @@ func testDenseDoNonZero[T float.DType](t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d data %v", tc.d.rows, tc.d.cols, tc.d.data), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d data %v", tc.d.shape[0], tc.d.shape[1], tc.d.data), func(t *testing.T) {
 			visits := []doNonZeroVisit{}
 			tc.d.DoNonZero(func(r, c int, v float64) {
 				visits = append(visits, doNonZeroVisit{r, c, v})
@@ -3838,7 +3607,7 @@ type doVecNonZeroVisit struct {
 
 func testDenseDoVecNonZero[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		d := NewEmptyDense[T](2, 3)
+		d := NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			d.DoVecNonZero(func(i int, v float64) {})
 		})
@@ -3883,7 +3652,7 @@ func testDenseDoVecNonZero[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("column vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](len(tc.x), 1, tc.x)
+			d := NewDense[T](WithShape(len(tc.x), 1), WithBacking(tc.x))
 			visits := []doVecNonZeroVisit{}
 			d.DoVecNonZero(func(i int, v float64) {
 				visits = append(visits, doVecNonZeroVisit{i, v})
@@ -3892,7 +3661,7 @@ func testDenseDoVecNonZero[T float.DType](t *testing.T) {
 		})
 
 		t.Run(fmt.Sprintf("row vector %v", tc.x), func(t *testing.T) {
-			d := NewDense[T](1, len(tc.x), tc.x)
+			d := NewDense[T](WithShape(1, len(tc.x)), WithBacking(tc.x))
 			visits := []doVecNonZeroVisit{}
 			d.DoVecNonZero(func(i int, v float64) {
 				visits = append(visits, doVecNonZeroVisit{i, v})
@@ -3909,25 +3678,25 @@ func TestDense_Clone(t *testing.T) {
 
 func testDenseClone[T float.DType](t *testing.T) {
 	testCases := []*Dense[T]{
-		NewEmptyDense[T](0, 0),
-		NewEmptyDense[T](0, 1),
-		NewEmptyDense[T](1, 0),
-		NewDense[T](1, 1, []T{1}),
-		NewDense[T](1, 2, []T{1, 2}),
-		NewDense[T](2, 1, []T{1, 2}),
-		NewDense[T](2, 2, []T{1, 2, 3, 4}),
+		NewDense[T](WithShape(0, 0)),
+		NewDense[T](WithShape(0, 1)),
+		NewDense[T](WithShape(1, 0)),
+		NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+		NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 2), WithBacking([]T{1, 2, 3, 4})),
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.shape[0], tc.shape[1]), func(t *testing.T) {
 			y := tc.Clone()
-			assertDenseDims(t, tc.rows, tc.cols, y.(*Dense[T]))
+			assertDenseDims(t, tc.shape[0], tc.shape[1], y.(*Dense[T]))
 			assert.Equal(t, tc.data, Data[T](y))
 		})
 	}
 
 	t.Run("data is copied", func(t *testing.T) {
-		d := NewDense(1, 1, []T{1})
+		d := NewDense[T](WithShape(1, 1), WithBacking([]T{1}))
 		y := d.Clone()
 		d.SetScalar(float.Interface(T(42)), 0, 0)
 		assert.Equal(t, float.Interface(T(1)), y.ScalarAt(0, 0))
@@ -3941,25 +3710,25 @@ func TestDense_Copy(t *testing.T) {
 
 func testDenseCopy[T float.DType](t *testing.T) {
 	t.Run("incompatible dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 2))
 		require.Panics(t, func() {
 			a.Copy(b)
 		})
 	})
 
 	testCases := []*Dense[T]{
-		NewEmptyDense[T](0, 0),
-		NewEmptyDense[T](0, 1),
-		NewEmptyDense[T](1, 0),
-		NewDense[T](1, 1, []T{1}),
-		NewDense[T](1, 2, []T{1, 2}),
-		NewDense[T](2, 1, []T{1, 2}),
-		NewDense[T](2, 2, []T{1, 2, 3, 4}),
+		NewDense[T](WithShape(0, 0)),
+		NewDense[T](WithShape(0, 1)),
+		NewDense[T](WithShape(1, 0)),
+		NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+		NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 2), WithBacking([]T{1, 2, 3, 4})),
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.shape[0], tc.shape[1]), func(t *testing.T) {
 			// start with a "dirty" matrix to ensure it's correctly overwritten
 			// and initial data is irrelevant
 			y := tc.OnesLike()
@@ -3989,22 +3758,22 @@ func testDenseString[T float.DType](t *testing.T) {
 		d *Dense[T]
 		s string
 	}{
-		{NewEmptyDense[T](0, 0), "(0×0)[]"},
-		{NewEmptyDense[T](0, 1), "(0×1)[]"},
-		{NewEmptyDense[T](1, 0), "(1×0)[]"},
+		{NewDense[T](WithShape(0, 0)), "(0×0)[]"},
+		{NewDense[T](WithShape(0, 1)), "(0×1)[]"},
+		{NewDense[T](WithShape(1, 0)), "(1×0)[]"},
 		{Scalar[T](42), "(1×1)[42]"},
-		{NewVecDense([]T{1, 2, 3}), "(3×1)[1 2 3]"},
+		{NewDense[T](WithBacking([]T{1, 2, 3})), "(3×1)[1 2 3]"},
 		{
-			NewDense(2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			"(2×3)[1 2 3 4 5 6]",
 		},
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.d.rows, tc.d.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.d.shape[0], tc.d.shape[1]), func(t *testing.T) {
 			s := tc.d.String()
 			assert.Equal(t, prefix+tc.s, s)
 		})

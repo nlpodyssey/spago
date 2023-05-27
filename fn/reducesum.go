@@ -39,7 +39,7 @@ func (r *ReduceSum[O]) Backward(gy mat.Matrix) error {
 	}
 	if r.x.RequiresGrad() {
 		x := r.x.Value()
-		gx := x.NewInitVec(x.Size(), gy.Scalar().F64())
+		gx := x.NewMatrix(mat.WithShape(x.Size()), mat.WithBacking(mat.CreateInitializedSlice(x.Size(), gy.Scalar().F64())))
 		r.x.AccGrad(gx)
 	}
 	return nil

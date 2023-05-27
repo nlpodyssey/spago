@@ -22,9 +22,9 @@ func testModelForward[T float.DType](t *testing.T) {
 	model := New()
 
 	// == Forward
-	x1 := mat.NewVecDense([]T{1.0, 2.0, 0.0, 4.0}, mat.WithGrad(true))
-	x2 := mat.NewVecDense([]T{3.0, 2.0, 1.0, 6.0}, mat.WithGrad(true))
-	x3 := mat.NewVecDense([]T{6.0, 2.0, 5.0, 1.0}, mat.WithGrad(true))
+	x1 := mat.NewDense[T](mat.WithBacking([]T{1.0, 2.0, 0.0, 4.0}), mat.WithGrad(true))
+	x2 := mat.NewDense[T](mat.WithBacking([]T{3.0, 2.0, 1.0, 6.0}), mat.WithGrad(true))
+	x3 := mat.NewDense[T](mat.WithBacking([]T{6.0, 2.0, 5.0, 1.0}), mat.WithGrad(true))
 	y := model.Forward(x1, x2, x3)
 
 	assert.InDeltaSlice(t, []T{-0.5070925528, 0.1690308509, -1.1832159566, 1.5212776585}, y[0].Value().Data(), 1.0e-06)
@@ -33,9 +33,9 @@ func testModelForward[T float.DType](t *testing.T) {
 
 	// == Backward
 
-	y[0].AccGrad(mat.NewVecDense([]T{-1.0, -0.2, 0.4, 0.6}))
-	y[1].AccGrad(mat.NewVecDense([]T{-0.3, 0.1, 0.7, 0.9}))
-	y[2].AccGrad(mat.NewVecDense([]T{0.3, -0.4, 0.7, -0.8}))
+	y[0].AccGrad(mat.NewDense[T](mat.WithBacking([]T{-1.0, -0.2, 0.4, 0.6})))
+	y[1].AccGrad(mat.NewDense[T](mat.WithBacking([]T{-0.3, 0.1, 0.7, 0.9})))
+	y[2].AccGrad(mat.NewDense[T](mat.WithBacking([]T{0.3, -0.4, 0.7, -0.8})))
 	ag.Backward(y...)
 
 	assert.InDeltaSlice(t, []T{-0.5640800969, -0.1274975561, 0.4868088507, 0.2047688023}, x1.Grad().Data(), 1.0e-06)

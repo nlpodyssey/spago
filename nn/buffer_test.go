@@ -28,7 +28,7 @@ func TestBuf(t *testing.T) {
 }
 
 func testBuf[T float.DType](t *testing.T) {
-	v := mat.NewVecDense([]T{1, 2, 3})
+	v := mat.NewDense[T](mat.WithBacking([]T{1, 2, 3}))
 	c := Buf(v)
 	require.NotNil(t, c)
 	assert.Empty(t, c.Name())
@@ -44,7 +44,7 @@ func TestConst_WithName(t *testing.T) {
 }
 
 func testConstWithName[T float.DType](t *testing.T) {
-	v := mat.NewVecDense([]T{1, 2, 3})
+	v := mat.NewDense[T](mat.WithBacking([]T{1, 2, 3}))
 	c := Buf(v).WithName("foo")
 	require.NotNil(t, c)
 	assert.Equal(t, "foo", c.Name())

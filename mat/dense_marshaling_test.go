@@ -29,8 +29,8 @@ func TestDense_Marshaling(t *testing.T) {
 		}
 
 		x := MyType{
-			A: NewDense[float32](2, 2, []float32{1, 2, 3, 4}),
-			B: NewDense[float64](2, 2, []float64{5, 6, 7, 8}),
+			A: NewDense[float32](WithShape(2, 2), WithBacking([]float32{1, 2, 3, 4})),
+			B: NewDense[float64](WithShape(2, 2), WithBacking([]float64{5, 6, 7, 8})),
 		}
 		var buf bytes.Buffer
 
@@ -58,25 +58,25 @@ func TestDense_Marshaling(t *testing.T) {
 
 func testDenseMarshaling[T float.DType](t *testing.T) {
 	testCases := []*Dense[T]{
-		NewEmptyDense[T](0, 0),
-		NewEmptyDense[T](0, 1),
-		NewEmptyDense[T](1, 0),
-		NewDense[T](1, 1, []T{1}),
-		NewDense[T](1, 2, []T{1, 2}),
-		NewDense[T](2, 1, []T{1, 2}),
-		NewDense[T](2, 2, []T{-1, 2, -3, 4}),
+		NewDense[T](WithShape(0, 0)),
+		NewDense[T](WithShape(0, 1)),
+		NewDense[T](WithShape(1, 0)),
+		NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+		NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 2), WithBacking([]T{-1, 2, -3, 4})),
 	}
 
 	for _, tc := range testCases {
-		t.Run(fmt.Sprintf("%d x %d", tc.rows, tc.cols), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d x %d", tc.shape[0], tc.shape[1]), func(t *testing.T) {
 			data, err := tc.MarshalBinary()
 			require.NoError(t, err)
 
 			y := new(Dense[T])
 			err = y.UnmarshalBinary(data)
 			require.NoError(t, err)
-			assert.Equal(t, tc.rows, y.rows)
-			assert.Equal(t, tc.cols, y.cols)
+			assert.Equal(t, tc.shape[0], y.shape[0])
+			assert.Equal(t, tc.shape[1], y.shape[1])
 			assert.Equal(t, tc.data, y.data)
 		})
 	}

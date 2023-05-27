@@ -19,7 +19,7 @@ func TestReduceMax_Forward(t *testing.T) {
 
 func testReduceMaxForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -30,7 +30,7 @@ func testReduceMaxForward[T float.DType](t *testing.T) {
 	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.3}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{0.5}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.5})))
 	assert.Nil(t, err)
 	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.5, 0.0}, x.grad.Data(), 1.0e-6)
 }

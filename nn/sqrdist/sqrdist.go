@@ -28,7 +28,7 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](in, rank int) *Model {
 	return &Model{
-		B: nn.NewParam(mat.NewEmptyDense[T](rank, in)),
+		B: nn.NewParam(mat.NewDense[T](mat.WithShape(rank, in))),
 	}
 }
 

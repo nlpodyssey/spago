@@ -42,14 +42,14 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) error {
 	if r.x.RequiresGrad() {
 		y := r.y
 		n := y.Size()
-		jb := y.NewInitFuncMatrix(n, n, func(row, col int) float64 {
+		jb := y.NewMatrix(mat.WithShape(n, n), mat.WithBacking(mat.InitializeMatrix(n, n, func(row, col int) float64 {
 			vRow := y.ScalarAt(row).F64()
 			if row == col {
 				return vRow * (1 - vRow)
 			}
 			vCol := y.ScalarAt(col).F64()
 			return -(vRow * vCol)
-		})
+		})))
 		gx := jb.Mul(gy)
 		r.x.AccGrad(gx)
 	}

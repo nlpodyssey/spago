@@ -19,7 +19,7 @@ func TestThresholdForward(t *testing.T) {
 
 func testThresholdForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value:        mat.NewVecDense([]T{0.1, -0.2, 3.3, 0.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, -0.2, 3.3, 0.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -42,7 +42,7 @@ func testThresholdForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{1.6, 1.6, 3.3, 1.6}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{0.0, 0.0, 0.8, 0}, x.grad.Data(), 1.0e-6)

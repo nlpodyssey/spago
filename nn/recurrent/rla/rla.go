@@ -49,12 +49,12 @@ func init() {
 func New[T float.DType](config Config) *Model {
 	return &Model{
 		Config: config,
-		Wk:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bk:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
-		Wv:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bv:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
-		Wq:     nn.NewParam(mat.NewEmptyDense[T](config.InputSize, config.InputSize)),
-		Bq:     nn.NewParam(mat.NewEmptyVecDense[T](config.InputSize)),
+		Wk:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize, config.InputSize))),
+		Bk:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize))),
+		Wv:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize, config.InputSize))),
+		Bv:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize))),
+		Wq:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize, config.InputSize))),
+		Bq:     nn.NewParam(mat.NewDense[T](mat.WithShape(config.InputSize))),
 	}
 }
 

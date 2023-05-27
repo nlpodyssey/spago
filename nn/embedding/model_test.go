@@ -29,10 +29,10 @@ func TestModel_ClearEmbeddingsWithGrad(t *testing.T) {
 	m := embedding.New[T](1, 3)
 
 	e, _ := m.Embedding(0)
-	e.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
+	e.AccGrad(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
 
 	assert.NotNil(t, e.Grad())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{1, 2, 3}), e.Grad())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})), e.Grad())
 
 	m.ZeroGrad()
 
@@ -46,8 +46,8 @@ func TestModel(t *testing.T) {
 		m := embedding.New[T](1, 3)
 
 		e, _ := m.Embedding(0)
-		e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
-		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
+		e.ReplaceValue(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
+		e.AccGrad(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 		e.SetState([]mat.Matrix{
 			mat.Scalar[T](11),
 			mat.Scalar[T](22),
@@ -76,7 +76,7 @@ func TestModel_TraverseParams(t *testing.T) {
 		m := embedding.New[T](1, 3)
 
 		e, _ := m.Embedding(0)
-		e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
+		e.AccGrad(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 		e.SetState([]mat.Matrix{
 			mat.Scalar[T](11),
 			mat.Scalar[T](22),

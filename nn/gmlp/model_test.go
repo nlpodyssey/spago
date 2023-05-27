@@ -134,8 +134,8 @@ func testModelForward[T float.DType](t *testing.T) {
 		0.55, 0.44, 0.33, 0.22,
 	})
 
-	w1 := mat.NewVecDense([]T{0.11, 0.12, 0.13, 0.14}, mat.WithGrad(true))
-	w2 := mat.NewVecDense([]T{0.21, 0.22, 0.23, 0.24}, mat.WithGrad(true))
+	w1 := mat.NewDense[T](mat.WithBacking([]T{0.11, 0.12, 0.13, 0.14}), mat.WithGrad(true))
+	w2 := mat.NewDense[T](mat.WithBacking([]T{0.21, 0.22, 0.23, 0.24}), mat.WithGrad(true))
 	ys := model.Forward(w1, w2)
 	require.Len(t, ys, 2)
 	require.InDeltaSlice(t, []T{12.033182, 11.811123, 11.153941, 10.22517}, ys[0].Value().Data(), 0.00005)

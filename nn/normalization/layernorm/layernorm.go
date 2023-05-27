@@ -34,8 +34,8 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](size int, eps float64) *Model {
 	return &Model{
-		W:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
-		B:   nn.NewParam(mat.NewEmptyVecDense[T](size)),
+		W:   nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
+		B:   nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
 		Eps: nn.Const(T(eps)),
 	}
 }

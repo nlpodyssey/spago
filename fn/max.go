@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
 )
 
 // Max is an operator to perform element-wise max.
@@ -57,7 +56,7 @@ func (r *Max[O]) Backward(gy mat.Matrix) error {
 				gxData[i] = gyData[i]
 			}
 		}
-		gx := x1v.NewVec(float.SliceInterface(gxData))
+		gx := x1v.NewMatrix(mat.WithBacking(gxData))
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
@@ -67,7 +66,7 @@ func (r *Max[O]) Backward(gy mat.Matrix) error {
 				gxData[i] = gyData[i]
 			}
 		}
-		gx := x1v.NewVec(float.SliceInterface(gxData))
+		gx := x1v.NewMatrix(mat.WithBacking(gxData))
 		r.x2.AccGrad(gx)
 	}
 

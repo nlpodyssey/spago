@@ -30,7 +30,7 @@ func testFloatSlice[T float.DType](t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v", tc.v), func(t *testing.T) {
-			v := float.SliceInterface[T](tc.v)
+			v := float.Make[T](tc.v...)
 			assert.Equal(t, tc.f32, v.F32())
 			assert.Equal(t, tc.f64, v.F64())
 		})
@@ -76,7 +76,7 @@ func testFloatSliceImplLen[T float.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v", tc.v), func(t *testing.T) {
-			fs := float.SliceInterface[T](tc.v)
+			fs := float.Make[T](tc.v...)
 			assert.Equal(t, tc.l, fs.Len())
 		})
 	}
@@ -107,8 +107,8 @@ func testFloatSliceImplEquals[A, B float.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v equals %#v", tc.a, tc.b), func(t *testing.T) {
-			a := float.SliceInterface[A](tc.a)
-			b := float.SliceInterface[B](tc.b)
+			a := float.Make[A](tc.a...)
+			b := float.Make[B](tc.b...)
 			assert.Equal(t, tc.e, a.Equals(b))
 			assert.Equal(t, tc.e, b.Equals(a))
 		})
@@ -156,8 +156,8 @@ func testFloatSliceImplInDelta[A, B float.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%#v equals %#v", tc.a, tc.b), func(t *testing.T) {
-			a := float.SliceInterface[A](tc.a)
-			b := float.SliceInterface[B](tc.b)
+			a := float.Make[A](tc.a...)
+			b := float.Make[B](tc.b...)
 			assert.Equal(t, tc.e, a.InDelta(b, tc.d))
 			assert.Equal(t, tc.e, b.InDelta(a, tc.d))
 		})

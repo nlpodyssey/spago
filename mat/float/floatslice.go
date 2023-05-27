@@ -20,9 +20,9 @@ type Slice interface {
 	InDelta(other Slice, delta float64) bool
 }
 
-// SliceInterface converts a concrete slice of DType values to an internal
+// Make converts a concrete slice of DType values to an internal
 // representation compatible with Slice.
-func SliceInterface[T DType](v []T) Slice {
+func Make[T DType](v ...T) Slice {
 	return floatSlice[T](v)
 }
 

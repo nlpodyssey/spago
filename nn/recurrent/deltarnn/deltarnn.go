@@ -43,13 +43,13 @@ type State struct {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](in, out int) *Model {
 	return &Model{
-		W:     nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		WRec:  nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		B:     nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		BPart: nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		Alpha: nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		Beta1: nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		Beta2: nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		W:     nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		WRec:  nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		B:     nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		BPart: nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		Alpha: nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		Beta1: nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		Beta2: nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 	}
 }
 

@@ -38,7 +38,7 @@ func New[T float.DType](size int, dim int) *Model {
 	data := make([]T, size*dim)
 	weights := make([]*nn.Param, size)
 	for i := 0; i < size; i++ {
-		weights[i] = nn.NewParam(mat.NewVecDense(data[i*dim : (i+1)*dim]))
+		weights[i] = nn.NewParam(mat.NewDense[T](mat.WithBacking(data[i*dim : (i+1)*dim])))
 	}
 	return &Model{
 		Size:         size,

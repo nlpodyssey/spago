@@ -69,13 +69,13 @@ func testClipNormInf[T float.DType](t *testing.T) {
 
 func buildTestGrads[T float.DType]() []mat.Matrix {
 	return []mat.Matrix{
-		mat.NewDense(4, 5, []T{
+		mat.NewDense[T](mat.WithShape(4, 5), mat.WithBacking([]T{
 			0.5, 0.6, -0.8, -0.6,
 			0.7, -0.4, 0.1, -0.8,
 			0.7, -0.7, 0.3, 0.5,
 			0.8, -0.9, 0.0, -0.1,
 			0.4, 1.0, -0.7, 0.8,
-		}),
-		mat.NewVecDense([]T{0.9, 0.7, 0.4, 0.8, 0.1}),
+		})),
+		mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1})),
 	}
 }

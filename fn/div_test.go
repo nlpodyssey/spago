@@ -19,12 +19,12 @@ func TestDiv_Forward(t *testing.T) {
 
 func testDivForward[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]T{0.4, 0.3, 0.5, 0.7}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.4, 0.3, 0.5, 0.7})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -37,7 +37,7 @@ func testDivForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{0.25, 0.6666666666, 0.6, 0.0}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{-1.0, 0.5, 0.8, 0.0}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{-2.5, 1.6666666666666, 1.6, 0}, x1.grad.Data(), 1.0e-6)

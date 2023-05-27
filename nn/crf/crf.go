@@ -30,7 +30,7 @@ func init() {
 func New[T float.DType](size int) *Model {
 	return &Model{
 		Size:             size,
-		TransitionScores: nn.NewParam(mat.NewEmptyDense[T](size+1, size+1)), // +1 for start and end transitions
+		TransitionScores: nn.NewParam(mat.NewDense[T](mat.WithShape(size+1, size+1))), // +1 for start and end transitions
 	}
 }
 

@@ -10,31 +10,31 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// Identity is an operator to perform identity function.
+// Copy is an operator to perform copy function.
 // y = x
-type Identity[O DualValue] struct {
+type Copy[O DualValue] struct {
 	x O
 }
 
-// NewIdentity returns a new Identity Function.
-func NewIdentity[O DualValue](x O) *Identity[O] {
-	return &Identity[O]{
+// NewCopy returns a new Copy Function.
+func NewCopy[O DualValue](x O) *Copy[O] {
+	return &Copy[O]{
 		x: x,
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Identity[O]) Operands() []O {
+func (r *Copy[O]) Operands() []O {
 	return []O{r.x}
 }
 
 // Forward computes the output of the function.
-func (r *Identity[O]) Forward() (mat.Matrix, error) {
+func (r *Copy[O]) Forward() (mat.Matrix, error) {
 	return r.x.Value().Clone(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Identity[O]) Backward(gy mat.Matrix) error {
+func (r *Copy[O]) Backward(gy mat.Matrix) error {
 	if !mat.SameDims(r.x.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}

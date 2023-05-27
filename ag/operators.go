@@ -22,7 +22,7 @@ func Abs(x DualValue) DualValue {
 // This help to keep the code as concise as possible e.g. during accumulation.
 func Add(x1 DualValue, x2 DualValue) DualValue {
 	if x1 == nil {
-		return Identity(x2) // return a copy of `x2` as is
+		return Copy(x2) // return a copy of `x2` as is
 	}
 	return NewOperator(fn.NewAdd(x1, x2)).Run(true)
 }
@@ -132,9 +132,9 @@ func HardTanh(x DualValue) DualValue {
 	return NewOperator(fn.NewHardTanh(x)).Run()
 }
 
-// Identity returns a new operator node as a result of the fn.Identity function.
-func Identity(x DualValue) DualValue {
-	return NewOperator(fn.NewIdentity(x)).Run()
+// Copy returns a new operator node as a result of the fn.Copy function.
+func Copy(x DualValue) DualValue {
+	return NewOperator(fn.NewCopy(x)).Run()
 }
 
 // LeakyReLU returns a new operator node as a result of the fn.LeakyReLU function.

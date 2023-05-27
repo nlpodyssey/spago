@@ -39,8 +39,8 @@ func init() {
 func New[T float.DType](config Config) *Model {
 	return &Model{
 		Config: config,
-		W:      nn.NewParam(mat.NewEmptyDense[T](config.OutputChannels, config.InputChannels)),
-		B:      nn.NewParam(mat.NewEmptyVecDense[T](config.OutputChannels)),
+		W:      nn.NewParam(mat.NewDense[T](mat.WithShape(config.OutputChannels, config.InputChannels))),
+		B:      nn.NewParam(mat.NewDense[T](mat.WithShape(config.OutputChannels))),
 	}
 }
 

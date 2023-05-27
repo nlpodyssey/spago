@@ -35,10 +35,10 @@ func init() {
 // NewWithMomentum returns a new model with supplied size and momentum.
 func NewWithMomentum[T float.DType](size int, momentum T) *Model {
 	return &Model{
-		W:        nn.NewParam(mat.NewInitVecDense[T](size, epsilon)),
-		B:        nn.NewParam(mat.NewEmptyVecDense[T](size)),
-		Mean:     nn.Buf(mat.NewEmptyVecDense[T](size)),
-		StdDev:   nn.Buf(mat.NewEmptyVecDense[T](size)),
+		W:        nn.NewParam(mat.NewDense[T](mat.WithBacking(mat.CreateInitializedSlice[T](size, epsilon)))),
+		B:        nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
+		Mean:     nn.Buf(mat.NewDense[T](mat.WithShape(size))),
+		StdDev:   nn.Buf(mat.NewDense[T](mat.WithShape(size))),
 		Momentum: nn.Const(momentum),
 	}
 }

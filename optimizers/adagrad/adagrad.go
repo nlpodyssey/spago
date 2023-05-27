@@ -61,7 +61,7 @@ func (o *AdaGrad[_]) Label() int {
 
 func (o *AdaGrad[T]) NewState(shape ...int) any {
 	r, c := shape[0], shape[1]
-	return []mat.Matrix{mat.NewEmptyDense[T](r, c)} // m at index 0
+	return []mat.Matrix{mat.NewDense[T](mat.WithShape(r, c))} // m at index 0
 }
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.

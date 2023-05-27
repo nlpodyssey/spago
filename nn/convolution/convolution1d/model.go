@@ -61,8 +61,8 @@ func New[T float.DType](config Config) *Model {
 	biases := make([]*nn.Param, paramsSize)
 	for i := 0; i < paramsSize; i++ {
 		requireGrad := config.Mask == nil || config.Mask[i%len(config.Mask)] == 1
-		kernels[i] = nn.NewParam(mat.NewEmptyDense[T](config.KernelSizeX, config.KernelSizeY)).WithGrad(requireGrad)
-		biases[i] = nn.NewParam(mat.NewEmptyVecDense[T](1)).WithGrad(requireGrad)
+		kernels[i] = nn.NewParam(mat.NewDense[T](mat.WithShape(config.KernelSizeX, config.KernelSizeY))).WithGrad(requireGrad)
+		biases[i] = nn.NewParam(mat.NewDense[T](mat.WithShape(1))).WithGrad(requireGrad)
 	}
 	return &Model{
 		Config: config,

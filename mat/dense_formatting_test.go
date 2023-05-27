@@ -38,7 +38,7 @@ func testDenseFormat[T float.DType](t *testing.T) {
 	}{
 		{
 			"Empty matrix",
-			NewEmptyDense[T](0, 0),
+			NewDense[T](WithShape(0, 0)),
 			"%v",
 			"[]",
 		},
@@ -56,13 +56,13 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"One row",
-			NewDense[T](1, 3, []T{1.2, 3.4, 5.6}),
+			NewDense[T](WithShape(1, 3), WithBacking([]T{1.2, 3.4, 5.6})),
 			"%v",
 			"[1.2 3.4 5.6]",
 		},
 		{
 			"One column",
-			NewDense[T](3, 1, []T{1.2, 3.4, 5.6}),
+			NewDense[T](WithShape(3, 1), WithBacking([]T{1.2, 3.4, 5.6})),
 			"%v",
 			"⎡1.2⎤\n" +
 				"⎢3.4⎥\n" +
@@ -70,11 +70,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"3x3",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				1.2, 3.4, 5.6,
 				7.8, 9.1, 2.3,
 				4.5, 6.7, 8.9,
-			}),
+			})),
 			"%v",
 			"⎡1.2 3.4 5.6⎤\n" +
 				"⎢7.8 9.1 2.3⎥\n" +
@@ -82,11 +82,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"Max column width is respected",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				11.2, 3.4, 5.6,
 				7.8, 99.11, 2.3,
 				4.5, 6.7, 88.999,
-			}),
+			})),
 			"%v",
 			"⎡11.2  3.4   5.6  ⎤\n" +
 				"⎢ 7.8 99.11  2.3  ⎥\n" +
@@ -94,11 +94,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"Explicit padding is respected",
-			NewDense[T](3, 4, []T{
+			NewDense[T](WithShape(3, 4), WithBacking([]T{
 				11.2, 3.4, 5.6, 0.1,
 				7.8, 99.11, 2.3, 0.2,
 				4.5, 6.7, 88.999, 123456.78,
-			}),
+			})),
 			"%8v",
 			"⎡    11.2      3.4       5.6        0.1 ⎤\n" +
 				"⎢     7.8     99.11      2.3        0.2 ⎥\n" +
@@ -148,13 +148,13 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"scientific notation for large exponents - small e",
-			NewDense[T](1, 2, []T{1.2, 3456789.0}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{1.2, 3456789.0})),
 			"%g",
 			"[1.2 3.456789e+06]",
 		},
 		{
 			"scientific notation for large exponents - capital E",
-			NewDense[T](1, 2, []T{1.2, 3456789.0}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{1.2, 3456789.0})),
 			"%G",
 			"[1.2 3.456789E+06]",
 		},
@@ -172,23 +172,23 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"precision only",
-			NewDense[T](1, 2, []T{1.23, 4.567}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{1.23, 4.567})),
 			"%.2f",
 			"[1.23 4.57]",
 		},
 		{
 			"width and precision",
-			NewDense[T](1, 2, []T{1.23, 4.567}),
+			NewDense[T](WithShape(1, 2), WithBacking([]T{1.23, 4.567})),
 			"%6.2f",
 			"[  1.23   4.57]",
 		},
 		{
 			"correct point alignment using g",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.8, 123456.78,
 				12345678.0, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%g",
 			"⎡ 0.1               1.2345678e+06 123456.78        ⎤\n" +
 				"⎢ 1.2345678e+07 12345.6                9           ⎥\n" +
@@ -196,11 +196,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"correct point alignment using g with small width",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.8, 123456.78,
 				12345678.0, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%6g",
 			"⎡   0.1               1.2345678e+06 123456.78        ⎤\n" +
 				"⎢   1.2345678e+07 12345.6                9           ⎥\n" +
@@ -208,11 +208,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"correct point alignment using g with big width",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.8, 123456.78,
 				12345678.0, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%8g",
 			"⎡     0.1                1.2345678e+06 123456.78        ⎤\n" +
 				"⎢     1.2345678e+07  12345.6                9           ⎥\n" +
@@ -220,11 +220,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"correct point alignment using g with zero precision",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.89, 123456.789,
 				12345678.987, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%.0g",
 			"⎡    0.1 1e+06 1e+05⎤\n" +
 				"⎢1e+07   1e+04     9⎥\n" +
@@ -232,11 +232,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"correct point alignment using g with precision",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.89, 123456.789,
 				12345678.987, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%.3g",
 			"⎡ 0.1        1.23e+06 1.23e+05⎤\n" +
 				"⎢ 1.23e+07   1.23e+04 9       ⎥\n" +
@@ -244,11 +244,11 @@ func testDenseFormat[T float.DType](t *testing.T) {
 		},
 		{
 			"correct point alignment using g with width and precision",
-			NewDense[T](3, 3, []T{
+			NewDense[T](WithShape(3, 3), WithBacking([]T{
 				0.1, 1234567.89, 123456.789,
 				12345678.987, 12345.6, 9,
 				21, 322, 9876543,
-			}),
+			})),
 			"%8.3g",
 			"⎡     0.1        1.23e+06 1.23e+05⎤\n" +
 				"⎢     1.23e+07   1.23e+04 9       ⎥\n" +

@@ -26,16 +26,16 @@ func TestEmbedding_Value(t *testing.T) {
 	assert.NotNil(t, e2.Value())
 
 	// Set a value for the first time
-	e1.ReplaceValue(mat.NewVecDense([]T{10, 20, 30}))
+	e1.ReplaceValue(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{10, 20, 30}), e1.Value())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{10, 20, 30}), e2.Value())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})), e1.Value())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})), e2.Value())
 
 	// Apply delta
-	e1.ApplyDelta(mat.NewVecDense([]T{1, 2, 3}))
+	e1.ApplyDelta(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
 
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{9, 18, 27}), e1.Value())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{9, 18, 27}), e2.Value())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{9, 18, 27})), e1.Value())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{9, 18, 27})), e2.Value())
 
 	// Set value to nil (weird corner case, but possible)
 
@@ -45,7 +45,7 @@ func TestEmbedding_Value(t *testing.T) {
 	assert.Nil(t, e2.Value())
 
 	assert.Panics(t, func() {
-		e1.ApplyDelta(mat.NewVecDense([]T{1, 2, 3}))
+		e1.ApplyDelta(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
 	}, "cannot apply delta to embedding with nil value")
 }
 
@@ -59,21 +59,21 @@ func TestEmbedding_ReplaceValue(t *testing.T) {
 	e, _ := m.Embedding(0)
 
 	payload := []mat.Matrix{
-		mat.NewVecDense([]T{11, 22, 33}),
+		mat.NewDense[T](mat.WithBacking([]T{11, 22, 33})),
 	}
 
-	e.ReplaceValue(mat.NewVecDense([]T{1, 2, 3}))
+	e.ReplaceValue(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
 	e.SetState(payload)
-	e.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
+	e.AccGrad(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 
-	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{1, 2, 3}), e.Value())
+	mat.RequireMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})), e.Value())
 	require.True(t, e.HasGrad())
-	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{10, 20, 30}), e.Grad())
+	mat.RequireMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})), e.Grad())
 	assertPayloadEqual(t, payload, e.GetOrSetState(nil).([]mat.Matrix))
 
-	e.ReplaceValue(mat.NewVecDense([]T{7, 8, 9}))
+	e.ReplaceValue(mat.NewDense[T](mat.WithBacking([]T{7, 8, 9})))
 
-	mat.RequireMatrixEquals(t, mat.NewVecDense([]T{7, 8, 9}), e.Value())
+	mat.RequireMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{7, 8, 9})), e.Value())
 	require.False(t, e.HasGrad())
 	require.Nil(t, e.Grad())
 	assert.Nil(t, e.GetOrSetState(nil))
@@ -112,26 +112,26 @@ func TestEmbedding_Grad(t *testing.T) {
 	assert.Nil(t, e1.Grad())
 	assert.Nil(t, e2.Grad())
 
-	e1.AccGrad(mat.NewVecDense([]T{1, 2, 3}))
+	e1.AccGrad(mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})))
 
 	assert.True(t, e1.HasGrad())
 	assert.True(t, e2.HasGrad())
 
 	assert.NotNil(t, e1.Grad())
 	assert.NotNil(t, e2.Grad())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{1, 2, 3}), e1.Grad())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{1, 2, 3}), e2.Grad())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})), e1.Grad())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})), e2.Grad())
 	assert.Same(t, e1.Grad(), e2.Grad())
 
-	e1.AccGrad(mat.NewVecDense([]T{10, 20, 30}))
+	e1.AccGrad(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 
 	assert.True(t, e1.HasGrad())
 	assert.True(t, e2.HasGrad())
 
 	assert.NotNil(t, e1.Grad())
 	assert.NotNil(t, e2.Grad())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{11, 22, 33}), e1.Grad())
-	mat.AssertMatrixEquals(t, mat.NewVecDense([]T{11, 22, 33}), e2.Grad())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{11, 22, 33})), e1.Grad())
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{11, 22, 33})), e2.Grad())
 	assert.Same(t, e1.Grad(), e2.Grad())
 
 	e1.ZeroGrad()
@@ -173,8 +173,8 @@ func TestEmbedding_Payload(t *testing.T) {
 
 	// Set a payload for the first time
 	payload := []mat.Matrix{
-		mat.NewVecDense([]T{1, 2, 3}),
-		mat.NewVecDense([]T{4, 5, 6}),
+		mat.NewDense[T](mat.WithBacking([]T{1, 2, 3})),
+		mat.NewDense[T](mat.WithBacking([]T{4, 5, 6})),
 	}
 	e1.SetState(payload)
 

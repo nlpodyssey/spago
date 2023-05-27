@@ -32,13 +32,13 @@ func TestMatrixMarshaling(t *testing.T) {
 
 func testMatrixMarshalingDense[T float.DType](t *testing.T) {
 	testCases := []Matrix{
-		NewEmptyDense[T](0, 0),
-		NewEmptyDense[T](0, 1),
-		NewEmptyDense[T](1, 0),
-		NewDense[T](1, 1, []T{1}),
-		NewDense[T](1, 2, []T{1, 2}),
-		NewDense[T](2, 1, []T{1, 2}),
-		NewDense[T](2, 2, []T{-1, 2, -3, 4}),
+		NewDense[T](WithShape(0, 0)),
+		NewDense[T](WithShape(0, 1)),
+		NewDense[T](WithShape(1, 0)),
+		NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+		NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+		NewDense[T](WithShape(2, 2), WithBacking([]T{-1, 2, -3, 4})),
 	}
 
 	for _, tc := range testCases {

@@ -19,12 +19,12 @@ func TestMaxPool_Forward(t *testing.T) {
 
 func testMaxPoolForward[T float.DType](t *testing.T) {
 	x := &variable{
-		value: mat.NewDense(4, 4, []T{
+		value: mat.NewDense[T](mat.WithShape(4, 4), mat.WithBacking([]T{
 			0.4, 0.1, -0.9, -0.5,
 			-0.4, 0.3, 0.7, -0.3,
 			0.8, 0.2, 0.6, 0.7,
 			0.2, -0.1, 0.6, -0.2,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -43,10 +43,10 @@ func testMaxPoolForward[T float.DType](t *testing.T) {
 		t.Error("The rows and columns of the resulting matrix are not correct")
 	}
 
-	err = f.Backward(mat.NewDense(2, 2, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		0.5, -0.7,
 		0.8, -0.7,
-	}))
+	})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{

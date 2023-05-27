@@ -44,14 +44,14 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](in, nSymbols, dSymbols, nRoles, dRoles int) *Model {
 	return &Model{
-		WInS:  nn.NewParam(mat.NewEmptyDense[T](nSymbols, in)),
-		WInR:  nn.NewParam(mat.NewEmptyDense[T](nRoles, in)),
-		WRecS: nn.NewParam(mat.NewEmptyDense[T](nSymbols, dRoles*dSymbols)),
-		WRecR: nn.NewParam(mat.NewEmptyDense[T](nRoles, dRoles*dSymbols)),
-		BS:    nn.NewParam(mat.NewEmptyVecDense[T](nSymbols)),
-		BR:    nn.NewParam(mat.NewEmptyVecDense[T](nRoles)),
-		S:     nn.NewParam(mat.NewEmptyDense[T](dSymbols, nSymbols)),
-		R:     nn.NewParam(mat.NewEmptyDense[T](dRoles, nRoles)),
+		WInS:  nn.NewParam(mat.NewDense[T](mat.WithShape(nSymbols, in))),
+		WInR:  nn.NewParam(mat.NewDense[T](mat.WithShape(nRoles, in))),
+		WRecS: nn.NewParam(mat.NewDense[T](mat.WithShape(nSymbols, dRoles*dSymbols))),
+		WRecR: nn.NewParam(mat.NewDense[T](mat.WithShape(nRoles, dRoles*dSymbols))),
+		BS:    nn.NewParam(mat.NewDense[T](mat.WithShape(nSymbols))),
+		BR:    nn.NewParam(mat.NewDense[T](mat.WithShape(nRoles))),
+		S:     nn.NewParam(mat.NewDense[T](mat.WithShape(dSymbols, nSymbols))),
+		R:     nn.NewParam(mat.NewDense[T](mat.WithShape(dRoles, nRoles))),
 	}
 }
 

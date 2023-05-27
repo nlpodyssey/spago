@@ -48,15 +48,15 @@ func init() {
 // New returns a new model with parameters initialized to zeros.
 func New[T float.DType](in, out, numOfDelays int) *Model {
 	return &Model{
-		Wx:          nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		Wh:          nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		B:           nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		Wax:         nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		Wah:         nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		Ba:          nn.NewParam(mat.NewEmptyVecDense[T](out)),
-		Wrx:         nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		Wrh:         nn.NewParam(mat.NewEmptyDense[T](out, out)),
-		Br:          nn.NewParam(mat.NewEmptyVecDense[T](out)),
+		Wx:          nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		Wh:          nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		B:           nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		Wax:         nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		Wah:         nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		Ba:          nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
+		Wrx:         nn.NewParam(mat.NewDense[T](mat.WithShape(out, in))),
+		Wrh:         nn.NewParam(mat.NewDense[T](mat.WithShape(out, out))),
+		Br:          nn.NewParam(mat.NewDense[T](mat.WithShape(out))),
 		NumOfDelays: numOfDelays,
 	}
 }

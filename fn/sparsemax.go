@@ -77,7 +77,7 @@ func sparseMaxCommon(v mat.Matrix) (zs, cumSumInput mat.Matrix, bounds []float64
 		return zsData[i] > zsData[j]
 	})
 
-	zs = mat.NewVecDense(zsData)
+	zs = mat.NewDense[float64](mat.WithBacking(zsData))
 
 	bounds = make([]float64, len(zsData))
 	for i := range bounds {

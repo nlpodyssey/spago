@@ -65,28 +65,28 @@ func testRowViews[T float.DType](t *testing.T) {
 		x  *mat.Dense[T]
 		ys [][]T
 	}{
-		{mat.NewEmptyDense[T](0, 0), [][]T{}},
-		{mat.NewEmptyDense[T](0, 1), [][]T{}},
-		{mat.NewEmptyDense[T](1, 0), [][]T{{}}},
-		{mat.NewDense[T](1, 1, []T{1}), [][]T{{1}}},
-		{mat.NewDense[T](1, 2, []T{1, 2}), [][]T{{1, 2}}},
-		{mat.NewDense[T](2, 1, []T{1, 2}), [][]T{{1}, {2}}},
+		{mat.NewDense[T](mat.WithShape(0, 0)), [][]T{}},
+		{mat.NewDense[T](mat.WithShape(0, 1)), [][]T{}},
+		{mat.NewDense[T](mat.WithShape(1, 0)), [][]T{{}}},
+		{mat.NewDense[T](mat.WithShape(1, 1), mat.WithBacking([]T{1})), [][]T{{1}}},
+		{mat.NewDense[T](mat.WithShape(1, 2), mat.WithBacking([]T{1, 2})), [][]T{{1, 2}}},
+		{mat.NewDense[T](mat.WithShape(2, 1), mat.WithBacking([]T{1, 2})), [][]T{{1}, {2}}},
 		{
-			mat.NewDense[T](2, 2, []T{
+			mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[][]T{
 				{1, 2},
 				{3, 4},
 			},
 		},
 		{
-			mat.NewDense[T](3, 4, []T{
+			mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 				1, 2, 3, 4,
 				5, 6, 7, 8,
 				9, 0, 1, 2,
-			}),
+			})),
 			[][]T{
 				{1, 2, 3, 4},
 				{5, 6, 7, 8},
@@ -123,28 +123,28 @@ func testColViews[T float.DType](t *testing.T) {
 		x  *mat.Dense[T]
 		ys [][]T
 	}{
-		{mat.NewEmptyDense[T](0, 0), [][]T{}},
-		{mat.NewEmptyDense[T](0, 1), [][]T{{}}},
-		{mat.NewEmptyDense[T](1, 0), [][]T{}},
-		{mat.NewDense[T](1, 1, []T{1}), [][]T{{1}}},
-		{mat.NewDense[T](1, 2, []T{1, 2}), [][]T{{1}, {2}}},
-		{mat.NewDense[T](2, 1, []T{1, 2}), [][]T{{1, 2}}},
+		{mat.NewDense[T](mat.WithShape(0, 0)), [][]T{}},
+		{mat.NewDense[T](mat.WithShape(0, 1)), [][]T{{}}},
+		{mat.NewDense[T](mat.WithShape(1, 0)), [][]T{}},
+		{mat.NewDense[T](mat.WithShape(1, 1), mat.WithBacking([]T{1})), [][]T{{1}}},
+		{mat.NewDense[T](mat.WithShape(1, 2), mat.WithBacking([]T{1, 2})), [][]T{{1}, {2}}},
+		{mat.NewDense[T](mat.WithShape(2, 1), mat.WithBacking([]T{1, 2})), [][]T{{1, 2}}},
 		{
-			mat.NewDense[T](2, 2, []T{
+			mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				1, 2,
 				3, 4,
-			}),
+			})),
 			[][]T{
 				{1, 3},
 				{2, 4},
 			},
 		},
 		{
-			mat.NewDense[T](3, 4, []T{
+			mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 				1, 2, 3, 4,
 				5, 6, 7, 8,
 				9, 0, 1, 2,
-			}),
+			})),
 			[][]T{
 				{1, 5, 9},
 				{2, 6, 0},

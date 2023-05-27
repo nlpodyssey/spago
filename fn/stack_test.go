@@ -19,17 +19,17 @@ func TestStack_Forward(t *testing.T) {
 
 func testStackForward[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value:        mat.NewVecDense([]T{0.1, 0.2, 0.3, 0.5}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.5})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x2 := &variable{
-		value:        mat.NewVecDense([]T{0.4, 0.5, 0.6, 0.4}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.4, 0.5, 0.6, 0.4})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 	x3 := &variable{
-		value:        mat.NewVecDense([]T{0.8, 0.9, 0.7, 0.6}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{0.8, 0.9, 0.7, 0.6})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -45,11 +45,11 @@ func testStackForward[T float.DType](t *testing.T) {
 		t.Error("The output size doesn't match the expected values")
 	}
 
-	err = f.Backward(mat.NewDense(3, 4, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 		1.0, 2.0, 3.0, 4.0,
 		4.0, 5.0, 6.0, 0.5,
 		7.0, 8.0, 9.0, -0.3,
-	}))
+	})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{1.0, 2.0, 3.0, 4.0}, x1.grad.Data(), 1.0e-6)

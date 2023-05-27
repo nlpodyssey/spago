@@ -80,95 +80,95 @@ func testAffine[T float.DType](t *testing.T) {
 		},
 		{
 			name: "no additional (w, x) pairs - w matrix, x vector",
-			b:    mat.NewVecDense([]T{2, 3}),
-			w1: mat.NewDense(2, 2, []T{
+			b:    mat.NewDense[T](mat.WithBacking([]T{2, 3})),
+			w1: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				4, 5,
 				6, 7,
-			}),
-			x1:        mat.NewVecDense([]T{8, 9}),
+			})),
+			x1:        mat.NewDense[T](mat.WithBacking([]T{8, 9})),
 			wxPairs:   nil,
-			wantFwd:   mat.NewVecDense([]T{79, 114}),
-			gy:        mat.NewVecDense([]T{10, 11}),
-			wantBGrad: mat.NewVecDense([]T{10, 11}),
-			wantW1Grad: mat.NewDense(2, 2, []T{
+			wantFwd:   mat.NewDense[T](mat.WithBacking([]T{79, 114})),
+			gy:        mat.NewDense[T](mat.WithBacking([]T{10, 11})),
+			wantBGrad: mat.NewDense[T](mat.WithBacking([]T{10, 11})),
+			wantW1Grad: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				80, 90,
 				88, 99,
-			}),
-			wantX1Grad:       mat.NewVecDense([]T{106, 127}),
+			})),
+			wantX1Grad:       mat.NewDense[T](mat.WithBacking([]T{106, 127})),
 			wantWXPairsGrads: nil,
 		},
 		{
 			name: "one additional (w, x) pair - w matrices, x vectors",
-			b:    mat.NewVecDense([]T{2, 3}),
-			w1: mat.NewDense(2, 2, []T{
+			b:    mat.NewDense[T](mat.WithBacking([]T{2, 3})),
+			w1: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				4, 5,
 				6, 7,
-			}),
-			x1: mat.NewVecDense([]T{8, 9}),
+			})),
+			x1: mat.NewDense[T](mat.WithBacking([]T{8, 9})),
 			wxPairs: []mat.Matrix{
-				mat.NewDense(2, 2, []T{ // w2
+				mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{ // w2
 					10, 11,
 					12, 13,
-				}),
-				mat.NewVecDense([]T{14, 15}), // x2
+				})),
+				mat.NewDense[T](mat.WithBacking([]T{14, 15})), // x2
 			},
-			wantFwd:   mat.NewVecDense([]T{384, 477}),
-			gy:        mat.NewVecDense([]T{16, 17}),
-			wantBGrad: mat.NewVecDense([]T{16, 17}),
-			wantW1Grad: mat.NewDense(2, 2, []T{
+			wantFwd:   mat.NewDense[T](mat.WithBacking([]T{384, 477})),
+			gy:        mat.NewDense[T](mat.WithBacking([]T{16, 17})),
+			wantBGrad: mat.NewDense[T](mat.WithBacking([]T{16, 17})),
+			wantW1Grad: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				128, 144,
 				136, 153,
-			}),
-			wantX1Grad: mat.NewVecDense([]T{166, 199}),
+			})),
+			wantX1Grad: mat.NewDense[T](mat.WithBacking([]T{166, 199})),
 			wantWXPairsGrads: []mat.Matrix{
-				mat.NewDense(2, 2, []T{ // w2
+				mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{ // w2
 					224, 240,
 					238, 255,
-				}),
-				mat.NewVecDense([]T{364, 397}), // x2
+				})),
+				mat.NewDense[T](mat.WithBacking([]T{364, 397})), // x2
 			},
 		},
 		{
 			name: "no additional (w, x) pairs - w and x matrices",
-			b: mat.NewDense(3, 2, []T{
+			b: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				2, 3,
 				4, 5,
 				6, 7,
-			}),
-			w1: mat.NewDense(3, 2, []T{
+			})),
+			w1: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				8, 9,
 				10, 11,
 				12, 13,
-			}),
-			x1: mat.NewDense(2, 2, []T{
+			})),
+			x1: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				14, 15,
 				16, 17,
-			}),
+			})),
 			wxPairs: nil,
-			wantFwd: mat.NewDense(3, 2, []T{
+			wantFwd: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				258, 276,
 				320, 342,
 				382, 408,
-			}),
-			gy: mat.NewDense(3, 2, []T{
+			})),
+			gy: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				18, 19,
 				20, 21,
 				22, 23,
-			}),
-			wantBGrad: mat.NewDense(3, 2, []T{
+			})),
+			wantBGrad: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				18, 19,
 				20, 21,
 				22, 23,
-			}),
-			wantW1Grad: mat.NewDense(3, 2, []T{
+			})),
+			wantW1Grad: mat.NewDense[T](mat.WithShape(3, 2), mat.WithBacking([]T{
 				537, 611,
 				595, 677,
 				653, 743,
-			}),
-			wantX1Grad: mat.NewDense(2, 2, []T{
+			})),
+			wantX1Grad: mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 				608, 638,
 				668, 701,
-			}),
+			})),
 			wantWXPairsGrads: nil,
 		},
 		{

@@ -42,7 +42,7 @@ func (r *ReduceMean[O]) Backward(gy mat.Matrix) error {
 		x := r.x.Value()
 		size := x.Size()
 		v := gy.Scalar().F64() / float64(size)
-		gx := x.NewInitVec(size, v)
+		gx := x.NewMatrix(mat.WithShape(size), mat.WithBacking(mat.CreateInitializedSlice(size, v)))
 		r.x.AccGrad(gx)
 	}
 	return nil

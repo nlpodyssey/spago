@@ -19,22 +19,22 @@ func TestMul_ForwardMatrixMatrix(t *testing.T) {
 
 func testMulForwardMatrixMatrix[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []T{
+		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
 	x2 := &variable{
-		value: mat.NewDense(4, 3, []T{
+		value: mat.NewDense[T](mat.WithShape(4, 3), mat.WithBacking([]T{
 			0.2, 0.7, 0.5,
 			0.0, 0.4, 0.5,
 			-0.8, 0.7, -0.3,
 			0.2, 0.0, -0.9,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -51,11 +51,11 @@ func testMulForwardMatrixMatrix[T float.DType](t *testing.T) {
 		0.52, -0.59, 0.48,
 	}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewDense(3, 3, []T{
+	err = f.Backward(mat.NewDense[T](mat.WithShape(3, 3), mat.WithBacking([]T{
 		0.2, 0.7, 0.5,
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
-	}))
+	})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{
@@ -79,17 +79,17 @@ func TestMul_ForwardMatrixVector(t *testing.T) {
 
 func testMulForwardMatrixVector[T float.DType](t *testing.T) {
 	x1 := &variable{
-		value: mat.NewDense(3, 4, []T{
+		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
 			0.1, 0.2, 0.3, 0.0,
 			0.4, 0.5, -0.6, 0.7,
 			-0.5, 0.8, -0.8, -0.1,
-		}),
+		})),
 		grad:         nil,
 		requiresGrad: true,
 	}
 
 	x2 := &variable{
-		value:        mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}),
+		value:        mat.NewDense[T](mat.WithBacking([]T{-0.8, -0.9, -0.9, 1.0})),
 		grad:         nil,
 		requiresGrad: true,
 	}
@@ -100,7 +100,7 @@ func testMulForwardMatrixVector[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{-0.53, 0.47, 0.3}, y.Data(), 1.0e-6)
 
-	err = f.Backward(mat.NewVecDense([]T{0.2, -0.6, 0.8}))
+	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.2, -0.6, 0.8})))
 	assert.Nil(t, err)
 
 	assert.InDeltaSlice(t, []T{

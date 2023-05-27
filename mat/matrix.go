@@ -180,23 +180,14 @@ type Matrix interface {
 	PadColumns(n int) Matrix
 	// AppendRows returns a copy of the matrix with len(vs) additional tail rows,
 	// being each new row filled with the values of each given vector.
-	//
 	// It accepts row or column vectors indifferently, virtually treating all of
 	// them as row vectors.
 	AppendRows(vs ...Matrix) Matrix
 	// Norm returns the vector's norm. Use pow = 2.0 to compute the Euclidean norm.
 	// The result is a scalar Matrix.
 	Norm(pow float64) Matrix
-	// Pivoting returns the partial pivots of a square matrix to reorder rows.
-	// Considerate square sub-matrix from element (offset, offset).
-	Pivoting(row int) (Matrix, bool, [2]int)
 	// Normalize2 normalizes an array with the Euclidean norm.
 	Normalize2() Matrix
-	// LU performs lower–upper (LU) decomposition of a square matrix D such as
-	// PLU = D, L is lower diagonal and U is upper diagonal, p are pivots.
-	LU() (l, u, p Matrix)
-	// Inverse returns the inverse of the Matrix.
-	Inverse() Matrix
 	// Apply creates a new matrix executing the unary function fn.
 	Apply(fn func(r, c int, v float64) float64) Matrix
 	// ApplyInPlace executes the unary function fn over the matrix a,
@@ -227,36 +218,11 @@ type Matrix interface {
 	//
 	// Rows and columns MUST not be negative, and the length of data MUST be
 	// equal to rows*cols, otherwise the method panics.
-	NewMatrix(rows, cols int, data float.Slice, opts ...MatrixOption) Matrix
-	// NewVec creates a new column vector (len(data)×1), of the same type of
-	// the receiver, initialized with a copy of raw data.
-	NewVec(data float.Slice, opts ...MatrixOption) Matrix
+	NewMatrix(opts ...OptionsFunc) Matrix
 	// NewScalar creates a new 1×1 matrix, of the same type of the receiver,
 	// containing the given value.
-	NewScalar(v float64, opts ...MatrixOption) Matrix
-	// NewEmptyVec creates a new vector, of the same type of the receiver,
-	// with dimensions size×1, initialized with zeros.
-	NewEmptyVec(size int, opts ...MatrixOption) Matrix
-	// NewEmptyMatrix creates a new rows×cols matrix, of the same type of the
-	// receiver, initialized with zeros.
-	NewEmptyMatrix(rows, cols int, opts ...MatrixOption) Matrix
-	// NewInitMatrix creates a new rows×cols dense matrix, of the same type
-	// of the receiver, initialized with a constant value.
-	NewInitMatrix(rows, cols int, v float64, opts ...MatrixOption) Matrix
-	// NewInitFuncMatrix creates a new rows×cols dense matrix, of the same type
-	// of the receiver, initialized with the values returned from the
-	// callback function.
-	NewInitFuncMatrix(rows, cols int, fn func(r, c int) float64, opts ...MatrixOption) Matrix
-	// NewInitVec creates a new column vector (size×1), of the same type of
-	// the receiver, initialized with a constant value.
-	NewInitVec(size int, v float64, opts ...MatrixOption) Matrix
-	// NewIdentityMatrix creates a new square identity matrix (size×size), of
-	// the same type of the receiver, that is, with ones on the diagonal
-	// and zeros elsewhere.
-	NewIdentityMatrix(size int, opts ...MatrixOption) Matrix
-	// NewOneHotVec creates a new one-hot column vector (size×1), of the same
-	// type of the receiver.
-	NewOneHotVec(size int, oneAt int, opts ...MatrixOption) Matrix
+	NewScalar(v float64, opts ...OptionsFunc) Matrix
+
 	// NewConcatV creates a new column vector, of the same type of the receiver,
 	// concatenating two or more vectors "vertically"
 	// It accepts row or column vectors indifferently, virtually
@@ -277,7 +243,7 @@ type Matrix interface {
 	// HasGrad reports whether there are accumulated gradients.
 	HasGrad() bool
 	// RequiresGrad reports whether the Matrix requires gradients.
-	// It is set by the SetRequiresGrad method or the functional option WithGrad.
+	// It is set by the SetRequiresGrad method or the functional options WithGrad.
 	RequiresGrad() bool
 	// SetRequiresGrad sets whether the Matrix requires gradients.
 	SetRequiresGrad(bool)
@@ -289,14 +255,6 @@ type Matrix interface {
 
 func init() {
 	gob.Register([]Matrix{})
-}
-
-type MatrixOption func(matrix Matrix)
-
-func WithGrad(value bool) MatrixOption {
-	return func(matrix Matrix) {
-		matrix.SetRequiresGrad(value)
-	}
 }
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional
@@ -311,7 +269,7 @@ func Data[T float.DType](m Matrix) []T {
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
 func SetData[T float.DType](m Matrix, data []T) {
-	m.SetData(float.SliceInterface(data))
+	m.SetData(float.Make(data...))
 }
 
 // IsVector returns whether the matrix is either a row or column vector

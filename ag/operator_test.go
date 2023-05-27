@@ -187,7 +187,7 @@ type dummyFunction[T float.DType, O DualValue] struct {
 func (f *dummyFunction[T, O]) Forward() (mat.Matrix, error) {
 	f.forwardCalls++
 	if f.forward == nil {
-		return mat.NewEmptyDense[T](0, 0), nil // since nil values are not allowed
+		return mat.NewDense[T](mat.WithShape(0, 0)), nil // since nil values are not allowed
 	}
 	return f.forward()
 }

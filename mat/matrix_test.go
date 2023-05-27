@@ -37,7 +37,7 @@ func testIsVector[T float.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			require.Equal(t, tc.b, IsVector(d))
 		})
 	}
@@ -65,7 +65,7 @@ func testIsScalar[T float.DType](t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%d x %d", tc.r, tc.c), func(t *testing.T) {
-			d := NewEmptyDense[T](tc.r, tc.c)
+			d := NewDense[T](WithShape(tc.r, tc.c))
 			require.Equal(t, tc.b, IsScalar(d))
 		})
 	}
@@ -78,15 +78,15 @@ func TestSameDims(t *testing.T) {
 
 func testSameDims[T float.DType](t *testing.T) {
 	t.Run("different dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](3, 2)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(3, 2))
 		assert.False(t, SameDims(a, b))
 		assert.False(t, SameDims(b, a))
 	})
 
 	t.Run("same dimensions", func(t *testing.T) {
-		a := NewEmptyDense[T](2, 3)
-		b := NewEmptyDense[T](2, 3)
+		a := NewDense[T](WithShape(2, 3))
+		b := NewDense[T](WithShape(2, 3))
 		assert.True(t, SameDims(a, b))
 		assert.True(t, SameDims(b, a))
 	})
@@ -99,7 +99,7 @@ func TestConcatV(t *testing.T) {
 
 func testConcatV[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		var d Matrix = NewEmptyDense[T](2, 3)
+		var d Matrix = NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			ConcatV[T](d)
 		})
@@ -110,28 +110,28 @@ func testConcatV[T float.DType](t *testing.T) {
 		y  []T
 	}{
 		{[]Matrix{}, []T{}},
-		{[]Matrix{NewEmptyDense[T](0, 1)}, []T{}},
-		{[]Matrix{NewEmptyDense[T](1, 0)}, []T{}},
-		{[]Matrix{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{[]Matrix{NewDense[T](WithShape(0, 1))}, []T{}},
+		{[]Matrix{NewDense[T](WithShape(1, 0))}, []T{}},
+		{[]Matrix{NewDense[T](WithShape(1, 1), WithBacking([]T{1}))}, []T{1}},
 		{
 			[]Matrix{
-				NewDense[T](1, 1, []T{1}),
-				NewDense[T](1, 1, []T{2}),
+				NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+				NewDense[T](WithShape(1, 1), WithBacking([]T{2})),
 			},
 			[]T{1, 2},
 		},
 		{
 			[]Matrix{
-				NewDense[T](1, 2, []T{1, 2}),
-				NewDense[T](2, 1, []T{3, 4}),
+				NewDense[T](WithShape(1, 2), WithBacking([]T{1, 2})),
+				NewDense[T](WithShape(2, 1), WithBacking([]T{3, 4})),
 			},
 			[]T{1, 2, 3, 4},
 		},
 		{
 			[]Matrix{
-				NewDense[T](1, 1, []T{1}),
-				NewDense[T](2, 1, []T{2, 3}),
-				NewDense[T](1, 3, []T{4, 5, 6}),
+				NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+				NewDense[T](WithShape(2, 1), WithBacking([]T{2, 3})),
+				NewDense[T](WithShape(1, 3), WithBacking([]T{4, 5, 6})),
 			},
 			[]T{1, 2, 3, 4, 5, 6},
 		},
@@ -159,15 +159,15 @@ func TestStack(t *testing.T) {
 
 func testStack[T float.DType](t *testing.T) {
 	t.Run("non-vector matrix", func(t *testing.T) {
-		var d Matrix = NewEmptyDense[T](2, 3)
+		var d Matrix = NewDense[T](WithShape(2, 3))
 		require.Panics(t, func() {
 			Stack[T](d)
 		})
 	})
 
 	t.Run("vectors of different sizes", func(t *testing.T) {
-		var a Matrix = NewEmptyDense[T](1, 2)
-		var b Matrix = NewEmptyDense[T](1, 3)
+		var a Matrix = NewDense[T](WithShape(1, 2))
+		var b Matrix = NewDense[T](WithShape(1, 3))
 		require.Panics(t, func() {
 			Stack[T](a, b)
 		})
@@ -178,13 +178,13 @@ func testStack[T float.DType](t *testing.T) {
 		y  []T
 	}{
 		{[]Matrix{}, []T{}},
-		{[]Matrix{NewEmptyDense[T](0, 1)}, []T{}},
-		{[]Matrix{NewEmptyDense[T](1, 0)}, []T{}},
-		{[]Matrix{NewDense[T](1, 1, []T{1})}, []T{1}},
+		{[]Matrix{NewDense[T](WithShape(0, 1))}, []T{}},
+		{[]Matrix{NewDense[T](WithShape(1, 0))}, []T{}},
+		{[]Matrix{NewDense[T](WithShape(1, 1), WithBacking([]T{1}))}, []T{1}},
 		{
 			[]Matrix{
-				NewDense[T](1, 1, []T{1}),
-				NewDense[T](1, 1, []T{2}),
+				NewDense[T](WithShape(1, 1), WithBacking([]T{1})),
+				NewDense[T](WithShape(1, 1), WithBacking([]T{2})),
 			},
 			[]T{
 				1,
@@ -193,8 +193,8 @@ func testStack[T float.DType](t *testing.T) {
 		},
 		{
 			[]Matrix{
-				NewDense[T](2, 1, []T{1, 2}),
-				NewDense[T](2, 1, []T{3, 4}),
+				NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+				NewDense[T](WithShape(2, 1), WithBacking([]T{3, 4})),
 			},
 			[]T{
 				1, 2,
@@ -203,8 +203,8 @@ func testStack[T float.DType](t *testing.T) {
 		},
 		{
 			[]Matrix{
-				NewDense[T](2, 1, []T{1, 2}),
-				NewDense[T](1, 2, []T{3, 4}),
+				NewDense[T](WithShape(2, 1), WithBacking([]T{1, 2})),
+				NewDense[T](WithShape(1, 2), WithBacking([]T{3, 4})),
 			},
 			[]T{
 				1, 2,
@@ -242,34 +242,34 @@ func testEqual[T float.DType](t *testing.T) {
 		a, b     Matrix
 		expected bool
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), true},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), true},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), true},
-		{NewEmptyDense[T](1, 1), NewEmptyDense[T](1, 2), false},
-		{NewEmptyDense[T](1, 1), NewEmptyDense[T](2, 1), false},
-		{NewEmptyDense[T](1, 2), NewEmptyDense[T](2, 1), false},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42}), true},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{41}), false},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), true},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), true},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), true},
+		{NewDense[T](WithShape(1, 1)), NewDense[T](WithShape(1, 2)), false},
+		{NewDense[T](WithShape(1, 1)), NewDense[T](WithShape(2, 1)), false},
+		{NewDense[T](WithShape(1, 2)), NewDense[T](WithShape(2, 1)), false},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{42})), true},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{41})), false},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
+			})),
 			true,
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 7,
-			}),
+			})),
 			false,
 		},
 	}
@@ -295,39 +295,39 @@ func testInDelta[T float.DType](t *testing.T) {
 		delta    float64
 		expected bool
 	}{
-		{NewEmptyDense[T](0, 0), NewEmptyDense[T](0, 0), 0, true},
-		{NewEmptyDense[T](0, 1), NewEmptyDense[T](0, 1), 0, true},
-		{NewEmptyDense[T](1, 0), NewEmptyDense[T](1, 0), 0, true},
-		{NewEmptyDense[T](1, 1), NewEmptyDense[T](1, 2), 0, false},
-		{NewEmptyDense[T](1, 1), NewEmptyDense[T](2, 1), 0, false},
-		{NewEmptyDense[T](1, 2), NewEmptyDense[T](2, 1), 0, false},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42}), 0, true},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42.1}), 0, false},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{42.09}), .1, true},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{43}), 1, true},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{44}), 2, true},
-		{NewDense[T](1, 1, []T{42}), NewDense[T](1, 1, []T{44.1}), 2, false},
+		{NewDense[T](WithShape(0, 0)), NewDense[T](WithShape(0, 0)), 0, true},
+		{NewDense[T](WithShape(0, 1)), NewDense[T](WithShape(0, 1)), 0, true},
+		{NewDense[T](WithShape(1, 0)), NewDense[T](WithShape(1, 0)), 0, true},
+		{NewDense[T](WithShape(1, 1)), NewDense[T](WithShape(1, 2)), 0, false},
+		{NewDense[T](WithShape(1, 1)), NewDense[T](WithShape(2, 1)), 0, false},
+		{NewDense[T](WithShape(1, 2)), NewDense[T](WithShape(2, 1)), 0, false},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{42})), 0, true},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{42.1})), 0, false},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{42.09})), .1, true},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{43})), 1, true},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{44})), 2, true},
+		{NewDense[T](WithShape(1, 1), WithBacking([]T{42})), NewDense[T](WithShape(1, 1), WithBacking([]T{44.1})), 2, false},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 7,
-			}),
+			})),
 			1,
 			true,
 		},
 		{
-			NewDense[T](2, 3, []T{
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				1, 2, 3,
 				4, 5, 6,
-			}),
-			NewDense[T](2, 3, []T{
+			})),
+			NewDense[T](WithShape(2, 3), WithBacking([]T{
 				2, 3, 4,
 				5, 6, 8,
-			}),
+			})),
 			1,
 			false,
 		},

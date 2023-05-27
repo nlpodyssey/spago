@@ -46,7 +46,7 @@ func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
 		panic("fn: size mismatch")
 	}
 
-	r.y = xv.NewEmptyMatrix(xv.Shape()[0]/r.rows, xv.Shape()[1]/r.cols)
+	r.y = xv.NewMatrix(mat.WithShape(xv.Shape()[0]/r.rows, xv.Shape()[1]/r.cols))
 	r.argmaxI = makeIntMatrix(r.y.Shape()) // output argmax row index
 	r.argmaxJ = makeIntMatrix(r.y.Shape()) // output argmax column index
 

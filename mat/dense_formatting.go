@@ -49,11 +49,11 @@ func (d *Dense[_]) format(f fmt.State, c rune, precision int) {
 	maxWidths, maxWidth := d.formattingMaxColumnsWidth(f, c, precision)
 	spaceBuf := makeSpaceBuffer(maxWidth)
 	buf := make([]byte, 0, maxWidth)
-	for row, index := 0, 0; row < d.rows; row++ {
+	for row, index := 0, 0; row < d.shape[0]; row++ {
 		rowPrefix, rowSuffix := d.formattingRowPrefixAndSuffix(row)
 		fmt.Fprint(f, rowPrefix)
 
-		for col := 0; col < d.cols; col, index = col+1, index+1 {
+		for col := 0; col < d.shape[1]; col, index = col+1, index+1 {
 			if col > 0 {
 				fmt.Fprint(f, " ")
 			}
@@ -93,13 +93,13 @@ func makeSpaceBuffer(length int) []byte {
 }
 
 func (d *Dense[_]) formattingRowPrefixAndSuffix(rowIndex int) (string, string) {
-	if d.rows == 1 {
+	if d.shape[0] == 1 {
 		return "[", "]"
 	}
 	if rowIndex == 0 {
 		return "⎡", "⎤\n"
 	}
-	if rowIndex == d.rows-1 {
+	if rowIndex == d.shape[0]-1 {
 		return "⎣", "⎦"
 	}
 	return "⎢", "⎥\n"
@@ -118,11 +118,11 @@ func (d *Dense[_]) formattingMaxColumnsWidth(
 	}
 
 	maxWidth := 0
-	widths := make([]lrWidth, d.cols)
+	widths := make([]lrWidth, d.shape[1])
 
 	buf := make([]byte, 0, 16)
-	for row, index := 0, 0; row < d.rows; row++ {
-		for col := 0; col < d.cols; col, index = col+1, index+1 {
+	for row, index := 0, 0; row < d.shape[0]; row++ {
+		for col := 0; col < d.shape[1]; col, index = col+1, index+1 {
 			buf = formatValue(buf, d.data[index], c, precision)
 			w := len(buf)
 			maxWidth = maxInt(maxWidth, w)

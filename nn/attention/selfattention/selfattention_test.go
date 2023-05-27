@@ -22,18 +22,18 @@ func TestModel_SelfAttention(t *testing.T) {
 func testModelSelfAttention[T float.DType](t *testing.T) {
 	model := newTestModel[T]()
 
-	x1 := mat.NewVecDense([]T{-0.8, -0.9, -0.9, 1.0}, mat.WithGrad(true))
-	x2 := mat.NewVecDense([]T{0.8, -0.3, 0.5, 0.3}, mat.WithGrad(true))
-	x3 := mat.NewVecDense([]T{-0.2, 0.7, 0.2, 0.4}, mat.WithGrad(true))
+	x1 := mat.NewDense[T](mat.WithBacking([]T{-0.8, -0.9, -0.9, 1.0}), mat.WithGrad(true))
+	x2 := mat.NewDense[T](mat.WithBacking([]T{0.8, -0.3, 0.5, 0.3}), mat.WithGrad(true))
+	x3 := mat.NewDense[T](mat.WithBacking([]T{-0.2, 0.7, 0.2, 0.4}), mat.WithGrad(true))
 	output, _, _ := model.Forward(Cache{}, []ag.DualValue{x1, x2, x3})
 
 	assert.InDeltaSlice(t, []T{0.789110, -0.755551, -0.431247}, output[0].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.780654, -0.6212001, -0.380214}, output[1].Value().Data(), 1.0e-05)
 	assert.InDeltaSlice(t, []T{0.7586521, -0.569575, -0.390976}, output[2].Value().Data(), 1.0e-05)
 
-	output[0].AccGrad(mat.NewVecDense([]T{-0.04, 0.36, 0.32}))
-	output[1].AccGrad(mat.NewVecDense([]T{-0.08, -0.2, -0.1}))
-	output[2].AccGrad(mat.NewVecDense([]T{0.1, 0.3, 0.8}))
+	output[0].AccGrad(mat.NewDense[T](mat.WithBacking([]T{-0.04, 0.36, 0.32})))
+	output[1].AccGrad(mat.NewDense[T](mat.WithBacking([]T{-0.08, -0.2, -0.1})))
+	output[2].AccGrad(mat.NewDense[T](mat.WithBacking([]T{0.1, 0.3, 0.8})))
 
 	ag.Backward(output...)
 

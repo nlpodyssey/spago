@@ -87,11 +87,11 @@ const (
 func (o *RAdam[T]) NewState(shape ...int) any {
 	r, c := shape[0], shape[1]
 	supp := make([]mat.Matrix, 5)
-	supp[m] = mat.NewEmptyDense[T](r, c)
-	supp[v] = mat.NewEmptyDense[T](r, c)
-	supp[buf1] = mat.NewEmptyDense[T](r, c)
-	supp[buf2] = mat.NewEmptyDense[T](r, c)
-	supp[buf3] = mat.NewEmptyDense[T](r, c)
+	supp[m] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[v] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[buf1] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[buf2] = mat.NewDense[T](mat.WithShape(r, c))
+	supp[buf3] = mat.NewDense[T](mat.WithShape(r, c))
 	return supp
 }
 
