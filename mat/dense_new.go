@@ -76,10 +76,7 @@ func newDenseFromSlice[T float.DType](args *Options) (*Dense[T], error) {
 		return nil, err
 	}
 	shape := adjustShape(args.Shape...)
-	size := 1
-	for _, dim := range shape {
-		size *= dim
-	}
+	size := calculateSize(shape)
 
 	if args.Slice.Len() != size {
 		return nil, fmt.Errorf("mat: wrong dimensions. Expected %d, got %d", size, args.Slice.Len())
@@ -97,10 +94,7 @@ func newDenseFromShape[T float.DType](args *Options) (*Dense[T], error) {
 		return nil, err
 	}
 	shape := adjustShape(args.Shape...)
-	size := 1
-	for _, dim := range shape {
-		size *= dim
-	}
+	size := calculateSize(shape)
 
 	return &Dense[T]{
 		shape:        shape,
