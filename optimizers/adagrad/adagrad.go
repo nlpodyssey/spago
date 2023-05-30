@@ -43,11 +43,6 @@ func NewDefaultConfig() Config {
 	}
 }
 
-type Optimizer[T float.DType] struct {
-	*AdaGrad[T]
-	parameters nn.ParamChannelFunc
-}
-
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References
 //
