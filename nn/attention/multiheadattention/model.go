@@ -94,14 +94,15 @@ func (m *Model) Forward(cache Cache, q, k, v []ag.DualValue) ([]ag.DualValue, []
 
 func (m *Model) project(heads [][]ag.DualValue, seqLen int) []ag.DualValue {
 	n := len(heads)
-	concat := make([]ag.DualValue, seqLen)
-	buf := make([]ag.DualValue, n*seqLen)
+	buf := make([]ag.DualValue, seqLen*n)
+	concat := buf[:0] // shares the same backing array with buf
+
 	for i := 0; i < seqLen; i++ {
 		buf2 := buf[i*n : i*n+n]
 		for j := 0; j < n; j++ {
 			buf2[j] = heads[j][i]
 		}
-		concat[i] = ag.Concat(buf2...)
+		concat = append(concat, ag.Concat(buf2...))
 	}
 	return m.OutputMerge.Forward(concat...)
 }
