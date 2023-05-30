@@ -1,0 +1,18 @@
+namespace Dense;
+
+table DenseFloat32 {
+  dtype: int;
+  requires_frad: bool;
+  shape: [int];
+  data: [float];
+}
+
+table DenseFloat64 {
+  dtype: int;
+  requires_grad: bool;
+  shape: [int];
+  data: [double];
+}
+
+root_type DenseFloat32;
+root_type DenseFloat64;

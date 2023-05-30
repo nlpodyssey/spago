@@ -5,22 +5,18 @@
 package mat
 
 import (
-	"encoding/binary"
 	"encoding/gob"
-	"errors"
 	"fmt"
-	"math"
+	"unsafe"
+
+	flatbuffers "github.com/google/flatbuffers/go"
+	"github.com/nlpodyssey/spago/mat/fbs/dense"
 )
 
 func init() {
 	gob.Register(&Dense[float32]{})
 	gob.Register(&Dense[float64]{})
 }
-
-const (
-	binaryDenseFloat32 byte = iota
-	binaryDenseFloat64
-)
 
 // MarshalBinary marshals a Dense matrix into binary form.
 func (d *Dense[T]) MarshalBinary() ([]byte, error) {
@@ -46,127 +42,95 @@ func (d *Dense[T]) UnmarshalBinary(data []byte) error {
 	}
 }
 
-// Dense matrix - float32 marshaling:
-// - 1 byte - identifier binaryDenseFloat32 (byte)
-// - 1 byte - requiresGrad (bool)
-// - 8 bytes - dimensions (uint64)
-// - For each dimension:
-//   - 8 bytes - size (uint64)
-// - 4*size bytes - data (float32 as uint32-bits)
-
 func (d *Dense[T]) marshalBinaryFloat32() ([]byte, error) {
-	numDims := len(d.shape)
-	headerSize := 10 + 8*numDims
-	data := make([]byte, headerSize+len(d.data)*4)
-	data[0] = binaryDenseFloat32
-	data[1] = boolToByte(d.requiresGrad)
-	binary.LittleEndian.PutUint64(data[2:], uint64(numDims))
+	b := flatbuffers.NewBuilder(0)
 
-	for i, dim := range d.shape {
-		binary.LittleEndian.PutUint64(data[10+i*8:], uint64(dim))
+	dense.DenseFloat32StartShapeVector(b, len(d.shape))
+	for i := len(d.shape) - 1; i >= 0; i-- {
+		b.PrependInt32(int32(d.shape[i]))
 	}
+	shape := b.EndVector(len(d.shape))
 
-	s := data[headerSize:]
-	for _, v := range d.data {
-		binary.LittleEndian.PutUint32(s, math.Float32bits(float32(v)))
-		s = s[4:]
+	dense.DenseFloat32StartDataVector(b, len(d.data))
+	for i := len(d.data) - 1; i >= 0; i-- {
+		b.PrependFloat32(float32(d.data[i]))
 	}
+	data := b.EndVector(len(d.data))
 
-	return data, nil
+	dense.DenseFloat32Start(b)
+	dense.DenseFloat32AddDtype(b, dense.DTypeFloat32)
+	dense.DenseFloat32AddRequiresFrad(b, d.requiresGrad)
+	dense.DenseFloat32AddShape(b, shape)
+	dense.DenseFloat32AddData(b, data)
+	b.Finish(dense.DenseFloat32End(b))
+
+	return b.FinishedBytes(), nil
 }
 
 func (d *Dense[T]) unmarshalBinaryFloat32(data []byte) error {
-	if data[0] != binaryDenseFloat32 {
-		return errors.New("mat: cannot unmarshal Dense[float32]: invalid identifier")
-	}
-	d.requiresGrad = byteToBool(data[1])
+	raw := dense.GetRootAsDenseFloat32(data, 0)
 
-	numDims := int(binary.LittleEndian.Uint64(data[2:]))
-	d.shape = make([]int, numDims)
-
-	for i := 0; i < numDims; i++ {
-		d.shape[i] = int(binary.LittleEndian.Uint64(data[10+i*8:]))
+	if raw.Dtype() != dense.DTypeFloat32 {
+		return fmt.Errorf("mat: unexpected dtype %v", raw.Dtype())
 	}
 
-	size := 1
-	for _, dim := range d.shape {
-		size *= dim
+	d.requiresGrad = raw.RequiresFrad()
+
+	d.shape = make([]int, raw.ShapeLength())
+	for i := 0; i < raw.ShapeLength(); i++ {
+		d.shape[i] = int(raw.Shape(i))
 	}
 
-	d.data = make([]T, size)
-	data = data[10+8*numDims:]
-	dData := d.data
-	for i := range dData {
-		dData[i] = T(math.Float32frombits(binary.LittleEndian.Uint32(data)))
-		data = data[4:]
-	}
+	d.data = bytesToSlice[T](raw.DataBytes(), raw.DataLength())
 	return nil
 }
 
-func boolToByte(b bool) byte {
-	if b {
-		return 1
-	}
-	return 0
-}
-
-func byteToBool(b byte) bool {
-	return b == 1
-}
-
-// Dense matrix - float64 marshaling:
-// - 1 byte - identifier binaryDenseFloat64 (byte)
-// - 1 byte - requiresGrad (bool)
-// - 8 bytes - dimensions (uint64)
-// - For each dimension:
-//   - 8 bytes - size (uint64)
-// - 8*size bytes - data (float64 as uint64-bits)
-
 func (d *Dense[T]) marshalBinaryFloat64() ([]byte, error) {
-	numDims := len(d.shape)
-	headerSize := 10 + 8*numDims
-	data := make([]byte, headerSize+len(d.data)*8)
-	data[0] = binaryDenseFloat64
-	data[1] = boolToByte(d.requiresGrad)
-	binary.LittleEndian.PutUint64(data[2:], uint64(numDims))
+	b := flatbuffers.NewBuilder(0)
 
-	for i, dim := range d.shape {
-		binary.LittleEndian.PutUint64(data[10+i*8:], uint64(dim))
+	dense.DenseFloat64StartShapeVector(b, len(d.shape))
+	for i := len(d.shape) - 1; i >= 0; i-- {
+		b.PrependInt32(int32(d.shape[i]))
 	}
+	shape := b.EndVector(len(d.shape))
 
-	s := data[headerSize:]
-	for _, v := range d.data {
-		binary.LittleEndian.PutUint64(s, math.Float64bits(float64(v)))
-		s = s[8:]
+	dense.DenseFloat64StartDataVector(b, len(d.data))
+	for i := len(d.data) - 1; i >= 0; i-- {
+		b.PrependFloat64(float64(d.data[i]))
 	}
+	data := b.EndVector(len(d.data))
 
-	return data, nil
+	dense.DenseFloat64Start(b)
+	dense.DenseFloat64AddDtype(b, dense.DTypeFloat64)
+	dense.DenseFloat64AddRequiresGrad(b, d.requiresGrad)
+	dense.DenseFloat64AddShape(b, shape)
+	dense.DenseFloat64AddData(b, data)
+	b.Finish(dense.DenseFloat64End(b))
+
+	return b.FinishedBytes(), nil
 }
 
 func (d *Dense[T]) unmarshalBinaryFloat64(data []byte) error {
-	if data[0] != binaryDenseFloat64 {
-		return errors.New("mat: cannot unmarshal Dense[float64]: invalid identifier")
-	}
-	d.requiresGrad = byteToBool(data[1])
+	raw := dense.GetRootAsDenseFloat64(data, 0)
 
-	numDims := int(binary.LittleEndian.Uint64(data[2:]))
-	d.shape = make([]int, numDims)
-
-	for i := 0; i < numDims; i++ {
-		d.shape[i] = int(binary.LittleEndian.Uint64(data[10+i*8:]))
+	if raw.Dtype() != dense.DTypeFloat64 {
+		return fmt.Errorf("mat: unexpected dtype %v", raw.Dtype())
 	}
 
-	size := 1
-	for _, dim := range d.shape {
-		size *= dim
+	d.requiresGrad = raw.RequiresGrad()
+
+	d.shape = make([]int, raw.ShapeLength())
+	for i := 0; i < raw.ShapeLength(); i++ {
+		d.shape[i] = int(raw.Shape(i))
 	}
 
-	d.data = make([]T, size)
-	data = data[10+8*numDims:]
-	dData := d.data
-	for i := range dData {
-		dData[i] = T(math.Float64frombits(binary.LittleEndian.Uint64(data)))
-		data = data[8:]
-	}
+	d.data = bytesToSlice[T](raw.DataBytes(), raw.DataLength())
 	return nil
+}
+
+func bytesToSlice[T any](b []byte, length int) []T {
+	if len(b) == 0 {
+		return []T{}
+	}
+	return unsafe.Slice((*T)(unsafe.Pointer(&b[0])), length)
 }
