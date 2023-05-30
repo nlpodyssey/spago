@@ -4,7 +4,11 @@
 
 package nn
 
-import "github.com/nlpodyssey/spago/ag"
+import (
+	"context"
+
+	"github.com/nlpodyssey/spago/ag"
+)
 
 // Model is implemented by all neural network architectures.
 type Model interface {
@@ -20,6 +24,51 @@ func Apply(m Model, fn func(model Model)) {
 		modelsFunc:       fn,
 		exploreSubModels: true,
 	}.walk(m)
+}
+
+type ParamChannelFunc func(ctx context.Context) <-chan *Param
+
+func Parameters(m Model) ParamChannelFunc {
+	return func(ctx context.Context) <-chan *Param {
+		paramChan := make(chan *Param)
+
+		go func() {
+			defer close(paramChan)
+			paramsTraversal{
+				paramsFunc: func(param *Param) {
+					select {
+					case <-ctx.Done():
+						return // Stop sending to the channel if context is done
+					case paramChan <- param:
+					}
+				},
+				modelsFunc:       nil,
+				exploreSubModels: true,
+			}.walk(m)
+		}()
+
+		return paramChan
+	}
+}
+
+func StreamParams(params []*Param) ParamChannelFunc {
+	return func(ctx context.Context) <-chan *Param {
+		paramChan := make(chan *Param)
+
+		go func() {
+			defer close(paramChan)
+
+			for _, param := range params {
+				select {
+				case <-ctx.Done():
+					return // Stop if context is done
+				case paramChan <- param:
+				}
+			}
+		}()
+
+		return paramChan
+	}
 }
 
 // ForEachParam iterate all the parameters of a model also exploring the sub-parameters recursively.
@@ -44,13 +93,6 @@ func ForEachParamStrict(m Model, fn func(param *Param)) {
 func ZeroGrad(m Model) {
 	ForEachParam(m, func(param *Param) {
 		param.ZeroGrad()
-	})
-}
-
-// ClearSupport clears the support structure of all model's parameters (including sub-params).
-func ClearSupport(m Model) {
-	ForEachParam(m, func(param *Param) {
-		param.ClearState()
 	})
 }
 
