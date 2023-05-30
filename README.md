@@ -75,7 +75,7 @@ Spago uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v
 
 ### Getting Started
 
-A good place to start is by looking at the implementation of built-in neural models, such as the [LSTM](https://github.com/nlpodyssey/spago/blob/af3871a650dddb94299de4f8d3f9eb6ab4fa4a37/nn/recurrent/lstm/lstm.go#L106).
+A good place to start is by looking at the implementation of built-in neural models, such as the LSTM.
 Except for a few linear algebra operations written in assembly for optimal performance (a bit of copying from [Gonum](https://github.com/gonum/gonum)), it's straightforward Go code, so you don't have to worry. In fact, SpaGO could have been written by you :)
 
 The behavior of a neural model is characterized by a combination of parameters and equations. 
@@ -91,6 +91,7 @@ package main
 
 import (
   "fmt"
+
   "github.com/nlpodyssey/spago/ag"
   "github.com/nlpodyssey/spago/mat"
 )
@@ -99,14 +100,14 @@ type T = float32
 
 func main() {
   // create a new node of type variable with a scalar
-  a := mat.NewScalar(T(2.0), mat.WithGrad(true))  // create another node of type variable with a scalar
-  b := mat.NewScalar(T(5.0), mat.WithGrad(true))  // create an addition operator (the calculation is actually performed here)
+  a := mat.Scalar(T(2.0), mat.WithGrad(true)) // create another node of type variable with a scalar
+  b := mat.Scalar(T(5.0), mat.WithGrad(true)) // create an addition operator (the calculation is actually performed here)
   c := ag.Add(a, b)
 
   // print the result
   fmt.Printf("c = %v (float%d)\n", c.Value(), c.Value().Scalar().BitSize())
 
-  c.AccGrad(mat.NewScalar(T(0.5)))
+  c.AccGrad(mat.Scalar(T(0.5)))
   ag.Backward(c)
   fmt.Printf("ga = %v\n", a.Grad())
   fmt.Printf("gb = %v\n", b.Grad())
@@ -129,114 +130,18 @@ Here is a simple implementation of the perceptron formula:
 package main
 
 import (
-  "log"
-  "os"
-
   . "github.com/nlpodyssey/spago/ag"
-  "github.com/nlpodyssey/spago/ag/encoding"
-  "github.com/nlpodyssey/spago/ag/encoding/dot"
   "github.com/nlpodyssey/spago/mat"
 )
 
 func main() {
-  x := mat.NewScalar(-0.8)
-  w := mat.NewScalar(0.4)
-  b := mat.NewScalar(-0.2)
+  x := mat.Scalar(-0.8)
+  w := mat.Scalar(0.4)
+  b := mat.Scalar(-0.2)
 
   y := Sigmoid(Add(Mul(w, x), b))
   _ = y
 }
-
-```
-
-### Example 3
-
-As a next step, let's take a look at how to create a linear regression model ($y = wx + b$) and how it will be trained.
-
-The following algorithm will try to learn the correct values for weight and bias.  
-
-By the end of our training, our equation will approximate the line of best fit the objective function $y = 3x + 1$.
-
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/gd"
-	"github.com/nlpodyssey/spago/gd/sgd"
-	"github.com/nlpodyssey/spago/initializers"
-	"github.com/nlpodyssey/spago/losses"
-	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/rand"
-	"github.com/nlpodyssey/spago/nn"
-)
-
-const (
-	epochs   = 100  // number of epochs
-	examples = 1000 // number of examples
-)
-
-type Linear struct {
-	nn.Module
-	W nn.Param
-	B nn.Param
-}
-
-func NewLinear[T float.DType](in, out int) *Linear {
-	return &Linear{
-		W: nn.NewParam(mat.NewEmptyDense[T](out, in)),
-		B: nn.NewParam(mat.NewEmptyVecDense[T](out)),
-	}
-}
-
-func (m *Linear) InitWithRandomWeights(seed uint64) *Linear {
-	initializers.XavierUniform(m.W.Value(), 1.0, rand.NewLockedRand(seed))
-	return m
-}
-
-func (m *Linear) Forward(x ag.Node) ag.Node {
-	return ag.Add(ag.Mul(m.W, x), m.B)
-}
-
-func main() {
-	m := NewLinear[float64](1, 1).InitWithRandomWeights(42)
-	
-	optimizer := gd.NewOptimizer(m, sgd.New[float64](sgd.NewConfig(0.001, 0.9, true)))
-
-	normalize := func(x float64) float64 { return x / float64(examples) }
-	objective := func(x float64) float64 { return 3*x + 1 }
-	criterion := losses.MSE
-
-	learn := func(input, expected float64) float64 {
-		x, target := ag.Scalar(input), ag.Scalar(expected)
-		y := m.Forward(x)
-		loss := criterion(y, target, true)
-		defer ag.Backward(loss) //  free the memory of the graph before return
-		return loss.Value().Scalar().F64()
-	}
-
-	for epoch := 0; epoch < epochs; epoch++ {
-		for i := 0; i < examples; i++ {
-			x := normalize(float64(i))
-			loss := learn(x, objective(x))
-			if i%100 == 0 {
-				fmt.Println(loss)
-			}
-		}
-		optimizer.Optimize()
-	}
-
-	fmt.Printf("\nW: %.2f | B: %.2f\n\n", m.W.Value().Scalar().F64(), m.B.Value().Scalar().F64())
-}
-```
-
-Output:
-
-```console
-W: 3.00 | B: 1.00
 ```
 
 ## Performance
