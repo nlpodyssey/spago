@@ -26,9 +26,9 @@ func testSGDUpdate[T float.DType](t *testing.T) {
 
 	params := mat.NewDense[T](mat.WithBacking([]T{0.4, 0.4, 0.5, 1.0, 0.8}))
 	grads := mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1}))
-	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
+	supp := updater.newStateFor(params)
 
-	params.SubInPlace(updater.calcDelta(grads, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads, supp))
 
 	assert.InDeltaSlice(t, []T{0.3991, 0.3993, 0.4996, 0.9992, 0.7999}, params.Data(), 1.0e-6)
 }
@@ -48,10 +48,10 @@ func testSGDMomentumUpdate[T float.DType](t *testing.T) {
 	params := mat.NewDense[T](mat.WithBacking([]T{0.4, 0.4, 0.5, 1.0, 0.8}))
 	grads := mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1}))
 
-	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
-	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	supp := updater.newStateFor(params)
+	mat.SetData[T](supp.V, []T{0.7, 0.8, 0.5, 0.3, 0.2})
 
-	params.SubInPlace(updater.calcDelta(grads, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads, supp))
 
 	assert.InDeltaSlice(t, []T{-0.2309, -0.3207, 0.0496, 0.7292, 0.6199}, params.Data(), 1.0e-6)
 }
@@ -80,17 +80,17 @@ func testSGDMomentumUpdate2[T float.DType](t *testing.T) {
 		0.5, -0.6, 0.1,
 	}))
 
-	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
+	supp := updater.newStateFor(params)
 
 	// === First iteration
 
-	params.SubInPlace(updater.calcDelta(grads, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads, supp))
 
 	assert.InDeltaSlice(t, []T{
 		0.0005, 0.0003, -0.0001,
 		-0.0006, -0.0004, -0.001,
 		0.0005, -0.0006, 0.0001,
-	}, supp[v].Data(), 1.0e-6)
+	}, supp.V.Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
 		1.3995, 1.2997, 0.0001,
@@ -106,13 +106,13 @@ func testSGDMomentumUpdate2[T float.DType](t *testing.T) {
 		0.44, 1.44, 2.44,
 	}))
 
-	params.SubInPlace(updater.calcDelta(grads2, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads2, supp))
 
 	assert.InDeltaSlice(t, []T{
 		0.00115, 0.00071, -0.00075,
 		-0.0011, 4e-05, 0.0005,
 		0.00089, 0.0009, 0.00253,
-	}, supp[v].Data(), 1.0e-6)
+	}, supp.V.Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
 		1.39835, 1.29899, 0.00085,
@@ -136,10 +136,10 @@ func testSGDNesterovMomentumUpdate[T float.DType](t *testing.T) {
 	params := mat.NewDense[T](mat.WithBacking([]T{0.4, 0.4, 0.5, 1.0, 0.8}))
 	grads := mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1}))
 
-	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
-	mat.SetData[T](supp[v], []T{0.7, 0.8, 0.5, 0.3, 0.2})
+	supp := updater.newStateFor(params)
+	mat.SetData[T](supp.V, []T{0.7, 0.8, 0.5, 0.3, 0.2})
 
-	params.SubInPlace(updater.calcDelta(grads, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads, supp))
 
 	assert.InDeltaSlice(t, []T{-0.16871, -0.24933, 0.09424, 0.75548, 0.63781}, params.Data(), 1.0e-6)
 }
@@ -168,17 +168,17 @@ func testSGDNesterovMomentumUpdate2[T float.DType](t *testing.T) {
 		0.5, -0.6, 0.1,
 	}))
 
-	supp := updater.NewState(params.Shape()...).([]mat.Matrix)
+	supp := updater.newStateFor(params)
 
 	// === First iteration
 
-	params.SubInPlace(updater.calcDelta(grads, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads, supp))
 
 	assert.InDeltaSlice(t, []T{
 		0.0005, 0.0003, -0.0001,
 		-0.0006, -0.0004, -0.001,
 		0.0005, -0.0006, 0.0001,
-	}, supp[v].Data(), 1.0e-6)
+	}, supp.V.Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
 		1.39905, 1.29943, 0.00019,
@@ -194,13 +194,13 @@ func testSGDNesterovMomentumUpdate2[T float.DType](t *testing.T) {
 		0.44, 1.44, 2.44,
 	}))
 
-	params.SubInPlace(updater.calcDelta(grads2, supp))
+	params.SubInPlace(updater.calculateParamUpdate(grads2, supp))
 
 	assert.InDeltaSlice(t, []T{
 		0.00115, 0.00071, -0.00075,
 		-0.0011, 4e-05, 0.0005,
 		0.00089, 0.0009, 0.00253,
-	}, supp[v].Data(), 1.0e-6)
+	}, supp.V.Data(), 1.0e-6)
 
 	assert.InDeltaSlice(t, []T{
 		1.397315, 1.298351, 0.001525,

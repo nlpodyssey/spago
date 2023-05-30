@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package clipper
+package gradclipper
 
 import (
 	"math"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,16 +20,16 @@ func TestClipValue(t *testing.T) {
 }
 
 func testClipValue[T float.DType](t *testing.T) {
-	gs := buildTestGrads[T]()
-	(&ClipValue{Value: 0.7}).Clip(gs)
+	params := buildTestGrads[T]()
+	(&ValueClipper{Value: 0.7}).ClipGrads(nn.StreamParams(params))
 	assert.InDeltaSlice(t, []T{
 		0.5, 0.6, -0.7, -0.6,
 		0.7, -0.4, 0.1, -0.7,
 		0.7, -0.7, 0.3, 0.5,
 		0.7, -0.7, 0.0, -0.1,
 		0.4, 0.7, -0.7, 0.7,
-	}, gs[0].Data(), 1.0e-05)
-	assert.InDeltaSlice(t, []T{0.7, 0.7, 0.4, 0.7, 0.1}, gs[1].Data(), 1.0e-05)
+	}, params[0].Grad().Data(), 1.0e-05)
+	assert.InDeltaSlice(t, []T{0.7, 0.7, 0.4, 0.7, 0.1}, params[1].Grad().Data(), 1.0e-05)
 }
 
 func TestClip2Norm(t *testing.T) {
@@ -37,16 +38,16 @@ func TestClip2Norm(t *testing.T) {
 }
 
 func testClip2Norm[T float.DType](t *testing.T) {
-	gs := buildTestGrads[T]()
-	(&ClipNorm{MaxNorm: 2.0, NormType: 2.0}).Clip(gs)
+	params := buildTestGrads[T]()
+	(&NormClipper{MaxNorm: 2.0, NormType: 2.0}).ClipGradients(nn.StreamParams(params))
 	assert.InDeltaSlice(t, []T{
 		0.314814, 0.377777, -0.503702, -0.377777,
 		0.440739, -0.251851, 0.062962, -0.503702,
 		0.440739, -0.440739, 0.188888, 0.314814,
 		0.503702, -0.566665, 0.0, -0.062962,
 		0.251851, 0.629628, -0.440739, 0.503702,
-	}, gs[0].Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []T{0.566665, 0.440739, 0.251851, 0.503702, 0.062962}, gs[1].Data(), 1.0e-06)
+	}, params[0].Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []T{0.566665, 0.440739, 0.251851, 0.503702, 0.062962}, params[1].Grad().Data(), 1.0e-06)
 }
 
 func TestClipNormInf(t *testing.T) {
@@ -55,27 +56,31 @@ func TestClipNormInf(t *testing.T) {
 }
 
 func testClipNormInf[T float.DType](t *testing.T) {
-	gs := buildTestGrads[T]()
-	(&ClipNorm{MaxNorm: 0.5, NormType: math.Inf(1)}).Clip(gs)
+	params := buildTestGrads[T]()
+	(&NormClipper{MaxNorm: 0.5, NormType: math.Inf(1)}).ClipGradients(nn.StreamParams(params))
 	assert.InDeltaSlice(t, []T{
 		0.25, 0.3, -0.4, -0.3,
 		0.35, -0.2, 0.05, -0.4,
 		0.35, -0.35, 0.15, 0.25,
 		0.4, -0.45, 0.0, -0.05,
 		0.2, 0.5, -0.35, 0.4,
-	}, gs[0].Data(), 1.0e-06)
-	assert.InDeltaSlice(t, []T{0.45, 0.35, 0.2, 0.4, 0.05}, gs[1].Data(), 1.0e-06)
+	}, params[0].Grad().Data(), 1.0e-06)
+	assert.InDeltaSlice(t, []T{0.45, 0.35, 0.2, 0.4, 0.05}, params[1].Grad().Data(), 1.0e-06)
 }
 
-func buildTestGrads[T float.DType]() []mat.Matrix {
-	return []mat.Matrix{
-		mat.NewDense[T](mat.WithShape(4, 5), mat.WithBacking([]T{
-			0.5, 0.6, -0.8, -0.6,
-			0.7, -0.4, 0.1, -0.8,
-			0.7, -0.7, 0.3, 0.5,
-			0.8, -0.9, 0.0, -0.1,
-			0.4, 1.0, -0.7, 0.8,
-		})),
-		mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1})),
-	}
+func buildTestGrads[T float.DType]() []*nn.Param {
+
+	p1 := &nn.Param{Matrix: mat.NewDense[T](mat.WithShape(4, 5))}
+	p1.AccGrad(mat.NewDense[T](mat.WithShape(4, 5), mat.WithBacking([]T{
+		0.5, 0.6, -0.8, -0.6,
+		0.7, -0.4, 0.1, -0.8,
+		0.7, -0.7, 0.3, 0.5,
+		0.8, -0.9, 0.0, -0.1,
+		0.4, 1.0, -0.7, 0.8,
+	})))
+
+	p2 := &nn.Param{Matrix: mat.NewDense[T](mat.WithShape(5))}
+	p2.AccGrad(mat.NewDense[T](mat.WithBacking([]T{0.9, 0.7, 0.4, 0.8, 0.1})))
+
+	return []*nn.Param{p1, p2}
 }

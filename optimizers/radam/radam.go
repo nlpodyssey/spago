@@ -5,19 +5,17 @@
 package radam
 
 import (
+	"encoding/gob"
+	"fmt"
 	"math"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers"
 )
-
-var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for a RAdam optimizer.
 type Config struct {
-	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -51,8 +49,6 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizers.Strategy = &RAdam[float32]{}
-
 // RAdam implements the RAdam gradient descent optimization method.
 type RAdam[T float.DType] struct {
 	Config
@@ -70,29 +66,28 @@ func New[T float.DType](c Config) *RAdam[T] {
 	return adam
 }
 
-// Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *RAdam[_]) Label() int {
-	return optimizers.RAdam
+type State struct {
+	M    mat.Matrix // first moment vector
+	V    mat.Matrix // second moment vector
+	Buf1 mat.Matrix // buffer for first moment vector
+	Buf2 mat.Matrix // buffer for second moment vector
+	Buf3 mat.Matrix // buffer for second moment vector
 }
 
-const (
-	m    int = 0
-	v    int = 1
-	buf1 int = 2
-	buf2 int = 3
-	buf3 int = 4
-)
+func init() {
+	gob.Register(&State{})
+}
 
-// NewState returns a new state.
-func (o *RAdam[T]) NewState(shape ...int) any {
+// newState returns a new state.
+func (o *RAdam[T]) newState(shape ...int) *State {
 	r, c := shape[0], shape[1]
-	supp := make([]mat.Matrix, 5)
-	supp[m] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[v] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf1] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf2] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf3] = mat.NewDense[T](mat.WithShape(r, c))
-	return supp
+	return &State{
+		M:    mat.NewDense[T](mat.WithShape(r, c)),
+		V:    mat.NewDense[T](mat.WithShape(r, c)),
+		Buf1: mat.NewDense[T](mat.WithShape(r, c)),
+		Buf2: mat.NewDense[T](mat.WithShape(r, c)),
+		Buf3: mat.NewDense[T](mat.WithShape(r, c)),
+	}
 }
 
 // IncBatch beats the occurrence of a new batch.
@@ -100,37 +95,30 @@ func (o *RAdam[_]) IncBatch() {
 	o.TimeStep++
 }
 
-// CalcDelta returns the difference between the current params and where the method wants it to be.
-func (o *RAdam[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	grads := param.Grad()
-	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
-	return o.calcDelta(grads, supp)
-}
-
-func (o *RAdam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
-	updateM(grads, supp, o.Beta1)
-	updateV(grads, supp, o.Beta2)
+func (o *RAdam[T]) calculateParamUpdate(grads mat.Matrix, state *State) mat.Matrix {
+	updateM(grads, state, o.Beta1)
+	updateV(grads, state, o.Beta2)
 	sqrtB2T := math.Sqrt(1.0 - math.Pow(o.Beta2, float64(o.TimeStep)))
 	alpha := o.calcAlpha()
-	buf := supp[v].Sqrt().AddScalarInPlace(o.Epsilon * sqrtB2T)
-	suppDiv := supp[m].Div(buf)
-	supp[buf3].ProdMatrixScalarInPlace(suppDiv, alpha)
-	return supp[buf3]
+	buf := state.V.Sqrt().AddScalarInPlace(o.Epsilon * sqrtB2T)
+	suppDiv := state.M.Div(buf)
+	state.Buf3.ProdMatrixScalarInPlace(suppDiv, alpha)
+	return state.Buf3
 }
 
 // m = m*beta1 + grads*(1.0-beta1)
-func updateM(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
-	supp[m].ProdScalarInPlace(beta1)
-	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
-	supp[m].AddInPlace(supp[buf1])
+func updateM(grads mat.Matrix, state *State, beta1 float64) {
+	state.M.ProdScalarInPlace(beta1)
+	state.Buf1.ProdMatrixScalarInPlace(grads, 1.0-beta1)
+	state.M.AddInPlace(state.Buf1)
 }
 
 // v = v*beta2 + (grads*grads)*(1.0-beta2)
-func updateV(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
-	supp[v].ProdScalarInPlace(beta2)
+func updateV(grads mat.Matrix, state *State, beta2 float64) {
+	state.V.ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
-	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
-	supp[v].AddInPlace(supp[buf2])
+	state.Buf2.ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
+	state.V.AddInPlace(state.Buf2)
 }
 
 func (o *RAdam[T]) calcAlpha() float64 {
@@ -143,4 +131,20 @@ func (o *RAdam[T]) calcAlpha() float64 {
 		rect = math.Sqrt((ro - 4.0) * (ro - 2.0) * o.RoMax / ((o.RoMax - 4.0) * (o.RoMax - 2.0) * ro))
 	}
 	return o.StepSize * rect * mat.Sqrt(1.0-b2T) / (1.0 - b1T)
+}
+
+func (o *RAdam[T]) OptimizeParams(param *nn.Param) error {
+	if param.State == nil {
+		param.State = o.newState(param.Value().Shape()...)
+	}
+
+	state, ok := param.State.(*State)
+	if !ok {
+		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
+	}
+
+	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.ZeroGrad()
+
+	return nil
 }

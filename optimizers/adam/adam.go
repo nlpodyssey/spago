@@ -5,19 +5,16 @@
 package adam
 
 import (
+	"encoding/gob"
+	"fmt"
 	"math"
 
 	"github.com/nlpodyssey/spago/mat"
-	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers"
 )
-
-var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an Adam optimizer.
 type Config struct {
-	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -69,10 +66,10 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizers.Strategy = &Adam[float32]{}
+//var _ optimizers.Strategy = &Adam[float32]{}
 
 // Adam implements the Adam gradient descent optimization method.
-type Adam[T float.DType] struct {
+type Adam struct {
 	Config
 	Alpha    float64
 	TimeStep int
@@ -80,8 +77,8 @@ type Adam[T float.DType] struct {
 }
 
 // New returns a new Adam optimizer, initialized according to the given configuration.
-func New[T float.DType](c Config) *Adam[T] {
-	adam := &Adam[T]{
+func New(c Config) *Adam {
+	adam := &Adam{
 		Config: c,
 		Alpha:  c.StepSize,
 		adamw:  c.Lambda != 0.0,
@@ -90,90 +87,99 @@ func New[T float.DType](c Config) *Adam[T] {
 	return adam
 }
 
-// Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *Adam[_]) Label() int {
-	return optimizers.Adam
+type State struct {
+	V    mat.Matrix // first moment vector
+	M    mat.Matrix // second raw moment vector
+	Buf1 mat.Matrix // contains 'grads.ProdScalar(1.0 - beta1)'
+	Buf2 mat.Matrix // contains 'grads.Prod(grads).ProdScalar(1.0 - beta2)'
+	Buf3 mat.Matrix
 }
 
-const (
-	v    int = 0
-	m    int = 1
-	buf1 int = 2 // contains 'grads.ProdScalar(1.0 - beta1)'
-	buf2 int = 3 // contains 'grads.Prod(grads).ProdScalar(1.0 - beta2)'
-	buf3 int = 4
-)
+func init() {
+	gob.Register(&State{})
+}
 
-func (o *Adam[T]) NewState(shape ...int) any {
-	r, c := shape[0], shape[1]
-
-	supp := make([]mat.Matrix, 5)
-	supp[v] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[m] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf1] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf2] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf3] = mat.NewDense[T](mat.WithShape(r, c))
-	return supp
+func (o *Adam) newStateFor(param mat.Matrix) *State {
+	shape := param.Shape()
+	return &State{
+		V:    param.NewMatrix(mat.WithShape(shape...)),
+		M:    param.NewMatrix(mat.WithShape(shape...)),
+		Buf1: param.NewMatrix(mat.WithShape(shape...)),
+		Buf2: param.NewMatrix(mat.WithShape(shape...)),
+		Buf3: param.NewMatrix(mat.WithShape(shape...)),
+	}
 }
 
 // IncExample beats the occurrence of a new example.
-func (o *Adam[_]) IncExample() {
+func (o *Adam) IncExample() {
 	o.TimeStep++
 	o.updateAlpha()
 }
 
-func (o *Adam[T]) updateAlpha() {
+func (o *Adam) updateAlpha() {
 	ts := float64(o.TimeStep)
 	o.Alpha = o.StepSize * math.Sqrt(1.0-math.Pow(o.Beta2, ts)) / (1.0 - math.Pow(o.Beta1, ts))
-}
-
-// CalcDelta returns the difference between the current params and where the method wants it to be.
-func (o *Adam[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	grads := param.Grad()
-	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
-
-	if o.adamw {
-		return o.calcDeltaW(grads, supp, param.Value())
-	}
-	return o.calcDelta(grads, supp)
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // d = (v / (sqrt(m) + eps)) * alpha
-func (o *Adam[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
-	updateV(grads, supp, o.Beta1)
-	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	suppDiv := supp[v].Div(buf)
-	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
-	return supp[buf3]
+func (o *Adam) calculateParamUpdate(grads mat.Matrix, state *State) mat.Matrix {
+	updateV(grads, state, o.Beta1)
+	updateM(grads, state, o.Beta2)
+	buf := state.M.Sqrt().AddScalarInPlace(o.Epsilon)
+	suppDiv := state.V.Div(buf)
+	state.Buf3.ProdMatrixScalarInPlace(suppDiv, o.Alpha)
+	return state.Buf3
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // d = (v / (sqrt(m) + eps))  + (lambda * weights) + alpha
-func (o *Adam[T]) calcDeltaW(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix) mat.Matrix {
-	updateV(grads, supp, o.Beta1)
-	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	suppDiv := supp[v].Div(buf)
+func (o *Adam) calculateParamUpdateW(grads mat.Matrix, state *State, weights mat.Matrix) mat.Matrix {
+	updateV(grads, state, o.Beta1)
+	updateM(grads, state, o.Beta2)
+	buf := state.M.Sqrt().AddScalarInPlace(o.Epsilon)
+	suppDiv := state.V.Div(buf)
 	scaledW := weights.ProdScalar(o.Lambda)
 	suppDiv.AddInPlace(scaledW)
-	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha)
-	return supp[buf3]
+	state.Buf3.ProdMatrixScalarInPlace(suppDiv, o.Alpha)
+	return state.Buf3
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
-	supp[v].ProdScalarInPlace(beta1)
-	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
-	supp[v].AddInPlace(supp[buf1])
+func updateV(grads mat.Matrix, state *State, beta1 float64) {
+	state.V.ProdScalarInPlace(beta1)
+	state.Buf1.ProdMatrixScalarInPlace(grads, 1.0-beta1)
+	state.V.AddInPlace(state.Buf1)
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
-	supp[m].ProdScalarInPlace(beta2)
+func updateM(grads mat.Matrix, state *State, beta2 float64) {
+	state.M.ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
-	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
-	supp[m].AddInPlace(supp[buf2])
+	state.Buf2.ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
+	state.M.AddInPlace(state.Buf2)
+}
+
+func (o *Adam) OptimizeParams(param *nn.Param) error {
+	if param.State == nil {
+		param.State = o.newStateFor(param)
+	}
+
+	state, ok := param.State.(*State)
+	if !ok {
+		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
+	}
+
+	if o.adamw {
+		param.SubInPlace(o.calculateParamUpdateW(param.Grad(), state, param.Value()))
+		param.ZeroGrad()
+		return nil
+	}
+
+	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.ZeroGrad()
+
+	return nil
 }

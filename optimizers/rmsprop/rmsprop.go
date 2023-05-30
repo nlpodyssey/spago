@@ -5,17 +5,16 @@
 package rmsprop
 
 import (
+	"encoding/gob"
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers"
 )
-
-var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an RMSProp optimizer.
 type Config struct {
-	optimizers.StrategyConfig
 	LR      float64
 	Epsilon float64
 	Decay   float64
@@ -39,7 +38,7 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizers.Strategy = &RMSProp[float32]{}
+//var _ optimizers.Strategy = &RMSProp[float32]{}
 
 // The RMSProp method is a variant of AdaGrad where the squared sum of previous gradients is replaced with a moving average.
 // References:
@@ -55,33 +54,44 @@ func New[T float.DType](c Config) *RMSProp[T] {
 	return &RMSProp[T]{Config: c}
 }
 
-// Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *RMSProp[_]) Label() int {
-	return optimizers.RMSProp
+type State struct {
+	V mat.Matrix // first moment vector
 }
 
-const v = 0
-
-func (o *RMSProp[T]) NewState(shape ...int) any {
-	r, c := shape[0], shape[1]
-	return []mat.Matrix{mat.NewDense[T](mat.WithShape(r, c))} // v at index 0
+func init() {
+	gob.Register(&State{})
 }
 
-// CalcDelta returns the difference between the current params and where the method wants it to be.
-func (o *RMSProp[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	grads := param.Grad()
-	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
-	return o.calcDelta(grads, supp)
+func (o *RMSProp[T]) newState(shape ...int) *State {
+	return &State{
+		V: mat.NewDense[T](mat.WithShape(shape...)),
+	}
 }
 
-func (o *RMSProp[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
-	supp[v].ProdScalarInPlace(o.Decay)
+func (o *RMSProp[T]) calculateParamUpdate(grads mat.Matrix, state *State) mat.Matrix {
+	state.V.ProdScalarInPlace(o.Decay)
 	buf := grads.Prod(grads)
 	buf.ProdScalarInPlace(1.0 - o.Decay)
-	supp[v].AddInPlace(buf)
-	buf2 := supp[v].Sqrt()
+	state.V.AddInPlace(buf)
+	buf2 := state.V.Sqrt()
 	buf2.AddScalarInPlace(o.Epsilon)
 	delta := grads.Div(buf2)
 	delta.ProdScalarInPlace(o.LR)
 	return delta
+}
+
+func (o *RMSProp[T]) OptimizeParams(param *nn.Param) error {
+	if param.State == nil {
+		param.State = o.newState(param.Value().Shape()...)
+	}
+
+	state, ok := param.State.(*State)
+	if !ok {
+		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
+	}
+
+	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.ZeroGrad()
+
+	return nil
 }

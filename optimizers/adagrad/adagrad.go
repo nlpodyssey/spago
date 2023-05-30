@@ -5,17 +5,16 @@
 package adagrad
 
 import (
+	"encoding/gob"
+	"fmt"
+
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers"
 )
-
-var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for an AdaGrad optimizer.
 type Config struct {
-	optimizers.StrategyConfig
 	LR      float64
 	Epsilon float64
 }
@@ -28,6 +27,14 @@ func NewConfig(lr, epsilon float64) Config {
 	}
 }
 
+type State struct {
+	M mat.Matrix // sum of squares of historical gradients
+}
+
+func init() {
+	gob.Register(&State{})
+}
+
 // NewDefaultConfig returns a new Config with generically reasonable default values.
 func NewDefaultConfig() Config {
 	return Config{
@@ -36,7 +43,10 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizers.Strategy = &AdaGrad[float32]{}
+type Optimizer[T float.DType] struct {
+	*AdaGrad[T]
+	parameters nn.ParamChannelFunc
+}
 
 // AdaGrad assigns a different learning rate to each parameter using the sum of squares of its all historical gradients.
 // References
@@ -49,35 +59,36 @@ type AdaGrad[T float.DType] struct {
 
 // New returns a new AdaGrad optimizer, initialized according to the given configuration.
 func New[T float.DType](c Config) *AdaGrad[T] {
-	return &AdaGrad[T]{Config: c}
+	return &AdaGrad[T]{
+		Config: c,
+	}
 }
 
-const m = 0
-
-// Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *AdaGrad[_]) Label() int {
-	return optimizers.AdaGrad
-}
-
-func (o *AdaGrad[T]) NewState(shape ...int) any {
-	r, c := shape[0], shape[1]
-	return []mat.Matrix{mat.NewDense[T](mat.WithShape(r, c))} // m at index 0
-}
-
-// CalcDelta returns the difference between the current params and where the method wants it to be.
-func (o *AdaGrad[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	grads := param.Grad()
-	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
-	return o.calcDelta(grads, supp)
+func (o *AdaGrad[T]) newState(shape ...int) *State {
+	return &State{
+		M: mat.NewDense[T](mat.WithShape(shape...)),
+	}
 }
 
 // m = m + grads*grads
 // delta = (grads / (sqrt(m) + eps)) * lr
-func (o *AdaGrad[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix) mat.Matrix {
-	supp[m].AddInPlace(grads.Prod(grads))
-	buf := supp[m].Sqrt() // TODO: this was "buf := mat.SqrtMatrix(supp[m])", is it the same?
-	buf.AddScalarInPlace(o.Epsilon)
-	delta := grads.Div(buf)
-	delta.ProdScalarInPlace(o.LR)
-	return delta
+func (o *AdaGrad[T]) calculateParamUpdate(grads mat.Matrix, state *State) mat.Matrix {
+	state.M.AddInPlace(grads.Prod(grads))
+	return grads.Div(state.M.Sqrt().AddScalarInPlace(o.Epsilon)).ProdScalarInPlace(o.LR)
+}
+
+func (o *AdaGrad[T]) OptimizeParams(param *nn.Param) error {
+	if param.State == nil {
+		param.State = o.newState(param.Value().Shape()...)
+	}
+
+	state, ok := param.State.(*State)
+	if !ok {
+		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
+	}
+
+	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.ZeroGrad()
+
+	return nil
 }

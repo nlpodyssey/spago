@@ -5,122 +5,74 @@
 package optimizers
 
 import (
-	"fmt"
+	"context"
 	"runtime"
 	"sync"
 
-	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers/clipper"
 )
 
+// OptimizationStrategy is the interface implemented by AdaGrad, Adam, etc.
+type OptimizationStrategy interface {
+	OptimizeParams(*nn.Param) error
+}
+
+// Optimizer is an optimizer that can optimize a set of parameters.
 type Optimizer struct {
-	model       nn.Model
-	strategy    Strategy // optimization method, e.g. Momentum, Adam, RAdam, or SGD
-	gradClipper clipper.GradClipper
+	// parameters is a function that returns a channel of parameters to optimize.
+	parameters nn.ParamChannelFunc
+	// strategy is the optimization strategy to use.
+	strategy OptimizationStrategy
 }
 
-func New(model nn.Model, opts ...func(*Optimizer)) *Optimizer {
-	optimizer := &Optimizer{
-		model: model,
-	}
-	for _, option := range opts {
-		option(optimizer)
-	}
-	return optimizer
-}
-
-func WithStrategy(strategy Strategy) func(*Optimizer) {
-	return func(o *Optimizer) {
-		o.strategy = strategy
+// New returns a new optimizer.
+func New(parameters nn.ParamChannelFunc, strategy OptimizationStrategy) *Optimizer {
+	return &Optimizer{
+		parameters: parameters,
+		strategy:   strategy,
 	}
 }
 
-func (o *Optimizer) WithClipGradByValue(value float64) *Optimizer {
-	o.gradClipper = &clipper.ClipValue{Value: value}
-	return o
-}
-
-func (o *Optimizer) WithClipGradByNorm(max, normType float64) *Optimizer {
-	o.gradClipper = &clipper.ClipNorm{
-		MaxNorm:  max,
-		NormType: normType,
-	}
-	return o
-}
-
-// Optimize performs the optimization step.
+// Optimize performs the optimization of the parameters.
 func (o *Optimizer) Optimize() error {
-	if o.strategy == nil {
-		return fmt.Errorf("optimizer: strategy not set")
-	}
-
-	visited := make(map[*nn.Param]struct{})
-	var params []*nn.Param
-
-	nn.ForEachParam(o.model, func(param *nn.Param) {
-		if !param.HasGrad() {
-			return
-		}
-		if _, ok := visited[param]; !ok {
-			params = append(params, param)
-			visited[param] = struct{}{}
-		}
-	})
-
-	o.clipGradsInPlace(params)
-	o.updateParams(params)
-	return nil
-}
-
-func (o *Optimizer) updateParams(params []*nn.Param) {
 	var wg sync.WaitGroup
-	ch := make(chan *nn.Param, runtime.NumCPU())
+	guard := make(chan struct{}, runtime.NumCPU()*2)
+	errCh := make(chan error, 1)
 
-	wg.Add(len(params))
-	go func() {
-		for param := range ch {
-			param.ApplyDelta(o.strategy.CalcDelta(param))
-			param.ZeroGrad()
-			wg.Done()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	for param := range o.parameters(ctx) {
+		select {
+		case err := <-errCh:
+			cancel()  // As soon as an error occurs, stop the iteration over parameters
+			wg.Wait() // Wait for running goroutines to finish
+			return err
+		default:
+			param := param
+			wg.Add(1)
+			guard <- struct{}{}
+			go func() {
+				defer wg.Done()
+				defer func() { <-guard }()
+				if !param.HasGrad() {
+					return
+				}
+				if err := o.strategy.OptimizeParams(param); err != nil {
+					select {
+					case errCh <- err:
+					default:
+					}
+				}
+			}()
 		}
-	}()
-
-	for _, param := range params {
-		ch <- param
 	}
 
-	close(ch)
-	wg.Wait()
-}
+	close(errCh)
 
-func (o *Optimizer) clipGradsInPlace(params []*nn.Param) {
-	if o.gradClipper == nil {
-		return
+	if err, ok := <-errCh; ok {
+		return err
 	}
 
-	var gs []mat.Matrix
-	for _, param := range params {
-		gs = append(gs, param.Grad())
-	}
-
-	o.gradClipper.Clip(gs)
-}
-
-func (o *Optimizer) IncExample() {
-	if method, ok := o.strategy.(interface{ IncExample() }); ok {
-		method.IncExample()
-	}
-}
-
-func (o *Optimizer) IncBatch() {
-	if method, ok := o.strategy.(interface{ IncBatch() }); ok {
-		method.IncBatch()
-	}
-}
-
-func (o *Optimizer) IncEpoch() {
-	if method, ok := o.strategy.(interface{ IncEpoch() }); ok {
-		method.IncEpoch()
-	}
+	return nil
 }

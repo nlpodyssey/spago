@@ -5,19 +5,17 @@
 package lamb
 
 import (
+	"encoding/gob"
+	"fmt"
 	"math"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
-	"github.com/nlpodyssey/spago/optimizers"
 )
-
-var _ optimizers.StrategyConfig = &Config{}
 
 // Config provides configuration settings for Lamb optimizer.
 type Config struct {
-	optimizers.StrategyConfig
 	StepSize float64
 	Beta1    float64
 	Beta2    float64
@@ -53,8 +51,6 @@ func NewDefaultConfig() Config {
 	}
 }
 
-var _ optimizers.Strategy = &Lamb[float32]{}
-
 // Lamb implements the Lamb gradient descent optimization method.
 type Lamb[T float.DType] struct {
 	Config
@@ -72,29 +68,27 @@ func New[T float.DType](c Config) *Lamb[T] {
 	return lamb
 }
 
-// Label returns the enumeration-like value which identifies this gradient descent method.
-func (o *Lamb[_]) Label() int {
-	return optimizers.Lamb
+type State struct {
+	V    mat.Matrix // first moment vector
+	M    mat.Matrix // second raw moment vector
+	Buf1 mat.Matrix // contains 'grads.ProdScalar(1.0 - beta1)'
+	Buf2 mat.Matrix // contains 'grads.Prod(grads).ProdScalar(1.0 - beta2)'
+	Buf3 mat.Matrix
 }
 
-const (
-	v    int = 0
-	m    int = 1
-	buf1 int = 2 // contains 'grads.ProdScalar(1.0 - beta1)'
-	buf2 int = 3 // contains 'grads.Prod(grads).ProdScalar(1.0 - beta2)'
-	buf3 int = 4
-)
+func init() {
+	gob.Register(&State{})
+}
 
-func (o *Lamb[T]) NewState(shape ...int) any {
+func (o *Lamb[T]) newState(shape ...int) *State {
 	r, c := shape[0], shape[1]
-
-	supp := make([]mat.Matrix, 5)
-	supp[v] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[m] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf1] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf2] = mat.NewDense[T](mat.WithShape(r, c))
-	supp[buf3] = mat.NewDense[T](mat.WithShape(r, c))
-	return supp
+	return &State{
+		V:    mat.NewDense[T](mat.WithShape(r, c)),
+		M:    mat.NewDense[T](mat.WithShape(r, c)),
+		Buf1: mat.NewDense[T](mat.WithShape(r, c)),
+		Buf2: mat.NewDense[T](mat.WithShape(r, c)),
+		Buf3: mat.NewDense[T](mat.WithShape(r, c)),
+	}
 }
 
 // IncExample beats the occurrence of a new example.
@@ -109,21 +103,19 @@ func (o *Lamb[T]) updateAlpha() {
 }
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
-func (o *Lamb[T]) CalcDelta(param *nn.Param) mat.Matrix {
-	grads := param.Grad()
-	supp := param.GetOrSetState(o.NewState).([]mat.Matrix)
-	return o.calcDelta(grads, supp, param.Value())
+func (o *Lamb[T]) CalcDelta(state *State, cur mat.Matrix, grads mat.Matrix) mat.Matrix {
+	return o.calculateParamUpdate(grads, state, cur.Value())
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
 // weights = ||params|| / || (v / (sqrt(m) + eps)) + (lambda * weights)
 // d = (v / (sqrt(m) + eps)) + (lambda * weights) * alpha
-func (o *Lamb[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Matrix) mat.Matrix {
-	updateV(grads, supp, o.Beta1)
-	updateM(grads, supp, o.Beta2)
-	buf := supp[m].Sqrt().AddScalarInPlace(o.Epsilon)
-	suppDiv := supp[v].Div(buf)
+func (o *Lamb[T]) calculateParamUpdate(grads mat.Matrix, state *State, weights mat.Matrix) mat.Matrix {
+	updateV(grads, state, o.Beta1)
+	updateM(grads, state, o.Beta2)
+	buf := state.M.Sqrt().AddScalarInPlace(o.Epsilon)
+	suppDiv := state.V.Div(buf)
 	if o.Lambda != 0.0 {
 		scaledW := weights.ProdScalar(o.Lambda)
 		suppDiv.AddInPlace(scaledW)
@@ -134,27 +126,43 @@ func (o *Lamb[T]) calcDelta(grads mat.Matrix, supp []mat.Matrix, weights mat.Mat
 	if !(weightsNorm == 0.0 || adamStepNorm == 0.0) {
 		trustRatio = weightsNorm / adamStepNorm
 	}
-	supp[buf3].ProdMatrixScalarInPlace(suppDiv, o.Alpha*trustRatio)
-	return supp[buf3]
+	state.Buf3.ProdMatrixScalarInPlace(suppDiv, o.Alpha*trustRatio)
+	return state.Buf3
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
-func updateV(grads mat.Matrix, supp []mat.Matrix, beta1 float64) {
-	supp[v].ProdScalarInPlace(beta1)
-	supp[buf1].ProdMatrixScalarInPlace(grads, 1.0-beta1)
-	supp[v].AddInPlace(supp[buf1])
+func updateV(grads mat.Matrix, state *State, beta1 float64) {
+	state.V.ProdScalarInPlace(beta1)
+	state.Buf1.ProdMatrixScalarInPlace(grads, 1.0-beta1)
+	state.V.AddInPlace(state.Buf1)
 }
 
 // m = m*beta2 + (grads*grads)*(1.0-beta2)
-func updateM(grads mat.Matrix, supp []mat.Matrix, beta2 float64) {
-	supp[m].ProdScalarInPlace(beta2)
+func updateM(grads mat.Matrix, state *State, beta2 float64) {
+	state.M.ProdScalarInPlace(beta2)
 	sqGrad := grads.Prod(grads)
-	supp[buf2].ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
-	supp[m].AddInPlace(supp[buf2])
+	state.Buf2.ProdMatrixScalarInPlace(sqGrad, 1.0-beta2)
+	state.M.AddInPlace(state.Buf2)
 }
 
 func norm(grads mat.Matrix) float64 {
 	prod := grads.Prod(grads)
 	sum := prod.Sum()
 	return math.Sqrt(sum.Scalar().F64())
+}
+
+func (o *Lamb[T]) OptimizeParams(param *nn.Param) error {
+	if param.State == nil {
+		param.State = o.newState(param.Value().Shape()...)
+	}
+
+	state, ok := param.State.(*State)
+	if !ok {
+		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
+	}
+
+	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state, param.Value()))
+	param.ZeroGrad()
+
+	return nil
 }
