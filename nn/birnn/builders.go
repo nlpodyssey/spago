@@ -6,12 +6,8 @@ package birnn
 
 import (
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/nn/recurrent/cfn"
 	"github.com/nlpodyssey/spago/nn/recurrent/gru"
 	"github.com/nlpodyssey/spago/nn/recurrent/lstm"
-	"github.com/nlpodyssey/spago/nn/recurrent/ltm"
-	"github.com/nlpodyssey/spago/nn/recurrent/mist"
-	"github.com/nlpodyssey/spago/nn/recurrent/ran"
 )
 
 // NewBiLSTM returns a new Bidirectional LSTM Model.
@@ -28,42 +24,6 @@ func NewBiGRU[T float.DType](input, hidden int, merge MergeType) *Model {
 	return &Model{
 		Positive:  gru.New[T](input, hidden),
 		Negative:  gru.New[T](input, hidden),
-		MergeMode: merge,
-	}
-}
-
-// NewBiRAN returns a new Bidirectional RAN Model.
-func NewBiRAN[T float.DType](input, hidden int, merge MergeType) *Model {
-	return &Model{
-		Positive:  ran.New[T](input, hidden),
-		Negative:  ran.New[T](input, hidden),
-		MergeMode: merge,
-	}
-}
-
-// NewBiCFN returns a new Bidirectional CFN Model.
-func NewBiCFN[T float.DType](input, hidden int, merge MergeType) *Model {
-	return &Model{
-		Positive:  cfn.New[T](input, hidden),
-		Negative:  cfn.New[T](input, hidden),
-		MergeMode: merge,
-	}
-}
-
-// NewBiLTM returns a new Bidirectional LTM Model.
-func NewBiLTM[T float.DType](input int, merge MergeType) *Model {
-	return &Model{
-		Positive:  ltm.New[T](input),
-		Negative:  ltm.New[T](input),
-		MergeMode: merge,
-	}
-}
-
-// NewBiMIST returns a new Bidirectional MIST Model.
-func NewBiMIST[T float.DType](input, hidden, numberOfDelays int, merge MergeType) *Model {
-	return &Model{
-		Positive:  mist.New[T](input, hidden, numberOfDelays),
-		Negative:  mist.New[T](input, hidden, numberOfDelays),
 		MergeMode: merge,
 	}
 }
