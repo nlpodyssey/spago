@@ -6,17 +6,14 @@ package activation
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
-
-	"github.com/nlpodyssey/spago/ag"
 )
 
 // Name is the enumeration-like type used for the set of built-in activations.
 type Name int
 
 const (
-	// Identity identifies the Graph.Copy operator.
+	// Identity identifies the Graph.Identity operator.
 	Identity Name = iota
 	// Tan identifies the Graph.Tan operator.
 	Tan
@@ -66,47 +63,41 @@ const (
 	SparseMax
 )
 
-var (
-	strActivationMap = strToActivationMap()
-	activationsMap   = map[Name]strOperatorPair{
-		Identity:    {str: "Copy", operator: reflect.ValueOf(ag.Copy)},
-		Tan:         {str: "Tan", operator: reflect.ValueOf(ag.Tan)},
-		Tanh:        {str: "Tanh", operator: reflect.ValueOf(ag.Tanh)},
-		Sigmoid:     {str: "Sigmoid", operator: reflect.ValueOf(ag.Sigmoid)},
-		HardSigmoid: {str: "HardSigmoid", operator: reflect.ValueOf(ag.HardSigmoid)},
-		HardTanh:    {str: "HardTanh", operator: reflect.ValueOf(ag.HardTanh)},
-		Softsign:    {str: "Softsign", operator: reflect.ValueOf(ag.Softsign)},
-		ReLU:        {str: "ReLU", operator: reflect.ValueOf(ag.ReLU)},
-		CELU:        {str: "CELU", operator: reflect.ValueOf(ag.CELU)},
-		GELU:        {str: "GELU", operator: reflect.ValueOf(ag.GELU)},
-		ELU:         {str: "ELU", operator: reflect.ValueOf(ag.ELU)},
-		PositiveELU: {str: "PositiveELU", operator: reflect.ValueOf(ag.PositiveELU)},
-		SwishB:      {str: "SwishB", operator: reflect.ValueOf(ag.SwishB)},
-		Swish:       {str: "Swish", operator: reflect.ValueOf(ag.Swish)},
-		SiLU:        {str: "SiLU", operator: reflect.ValueOf(ag.SiLU)},
-		Mish:        {str: "Mish", operator: reflect.ValueOf(ag.Mish)},
-		LeakyReLU:   {str: "LeakyReLU", operator: reflect.ValueOf(ag.LeakyReLU)},
-		SELU:        {str: "SELU", operator: reflect.ValueOf(ag.SELU)},
-		SoftPlus:    {str: "SoftPlus", operator: reflect.ValueOf(ag.SoftPlus)},
-		SoftShrink:  {str: "SoftShrink", operator: reflect.ValueOf(ag.SoftShrink)},
-		Threshold:   {str: "Threshold", operator: reflect.ValueOf(ag.Threshold)},
-		Softmax:     {str: "Softmax", operator: reflect.ValueOf(ag.Softmax)},
-		LogSoftmax:  {str: "LogSoftmax", operator: reflect.ValueOf(ag.LogSoftmax)},
-		SparseMax:   {str: "SparseMax", operator: reflect.ValueOf(ag.SparseMax)},
-	}
-)
-
-type strOperatorPair struct {
-	str      string
-	operator reflect.Value
+var activationsMap = map[Name]string{
+	Identity:    "Identity",
+	Tan:         "Tan",
+	Tanh:        "Tanh",
+	Sigmoid:     "Sigmoid",
+	HardSigmoid: "HardSigmoid",
+	HardTanh:    "HardTanh",
+	Softsign:    "Softsign",
+	ReLU:        "ReLU",
+	CELU:        "CELU",
+	GELU:        "GELU",
+	ELU:         "ELU",
+	PositiveELU: "PositiveELU",
+	SwishB:      "SwishB",
+	Swish:       "Swish",
+	SiLU:        "SiLU",
+	Mish:        "Mish",
+	LeakyReLU:   "LeakyReLU",
+	SELU:        "SELU",
+	SoftPlus:    "SoftPlus",
+	SoftShrink:  "SoftShrink",
+	Threshold:   "Threshold",
+	Softmax:     "Softmax",
+	LogSoftmax:  "LogSoftmax",
+	SparseMax:   "SparseMax",
 }
+
+var strActivationMap = strToActivationMap()
 
 // strToName maps a string to a Name.
 func strToActivationMap() map[string]Name {
 	invMap := make(map[string]Name)
 	for k, v := range activationsMap {
-		invMap[v.str] = k
-		invMap[strings.ToLower(v.str)] = k
+		invMap[v] = k
+		invMap[strings.ToLower(v)] = k
 	}
 	return invMap
 }
@@ -128,15 +119,4 @@ func MustActivation(str string) Name {
 		panic(err)
 	}
 	return value
-}
-
-// Do make a new node as a result of the application of the input operator.
-func Do(act Name, xs ...ag.DualValue) ag.DualValue {
-	v := activationsMap[act].operator
-	args := make([]reflect.Value, len(xs))
-	for i, x := range xs {
-		args[i] = reflect.ValueOf(x)
-	}
-	ret := v.Call(args)
-	return ret[0].Interface().(ag.DualValue)
 }
