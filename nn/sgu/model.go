@@ -35,7 +35,7 @@ type Config struct {
 	Dim        int
 	DimSeq     int
 	InitEps    float64
-	Activation activation.Name
+	Activation activation.Activation
 }
 
 func init() {

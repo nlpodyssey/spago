@@ -31,7 +31,7 @@ type Config struct {
 	Depth      int
 	SeqLen     int
 	FFMult     int
-	Activation activation.Name
+	Activation activation.Activation
 	// TODO: ProbSurvival T
 }
 

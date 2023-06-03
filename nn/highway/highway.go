@@ -23,7 +23,7 @@ type Model struct {
 	BIn        *nn.Param
 	WT         *nn.Param
 	BT         *nn.Param
-	Activation activation.Name
+	Activation activation.Activation
 }
 
 func init() {
@@ -31,7 +31,7 @@ func init() {
 }
 
 // New returns a new model with parameters initialized to zeros.
-func New[T float.DType](in int, activation activation.Name) *Model {
+func New[T float.DType](in int, activation activation.Activation) *Model {
 	return &Model{
 		WIn:        nn.NewParam(mat.NewDense[T](mat.WithShape(in, in))),
 		BIn:        nn.NewParam(mat.NewDense[T](mat.WithShape(in))),

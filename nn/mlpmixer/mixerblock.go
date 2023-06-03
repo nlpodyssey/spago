@@ -34,8 +34,8 @@ type Config struct {
 	HiddenSizeTokenMixer    int
 	HiddenSizeChannelMixer  int
 	Channels                int
-	ActFunctionTokenMixer   activation.Name
-	ActFunctionChannelMixer activation.Name
+	ActFunctionTokenMixer   activation.Activation
+	ActFunctionChannelMixer activation.Activation
 	Eps                     float64
 }
 

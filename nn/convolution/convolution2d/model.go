@@ -28,7 +28,7 @@ type Config struct {
 	OutputChannels int
 	Mask           []int
 	DepthWise      bool // Special case od depthwise convolution, where outputchannels == inputchannels
-	Activation     activation.Name
+	Activation     activation.Activation
 }
 
 // Model contains the serializable parameters for a convolutional neural network model.

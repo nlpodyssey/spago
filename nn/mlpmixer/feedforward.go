@@ -18,7 +18,7 @@ type FeedForward struct {
 	Layers nn.ModuleList[nn.StandardModel]
 }
 
-func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Name, dropout T) *FeedForward {
+func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Activation, dropout T) *FeedForward {
 	return &FeedForward{
 		Layers: []nn.StandardModel{
 			linear.New[T](dim, hiddenDim),

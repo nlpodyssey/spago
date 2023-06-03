@@ -19,7 +19,7 @@ var sqrt2 = math.Sqrt(2.0)
 
 // Gain returns a coefficient that help to initialize the params in a way to keep gradients stable.
 // Use it to find the gain value for Xavier initializations.
-func Gain(f activation.Name) float64 {
+func Gain(f activation.Activation) float64 {
 	switch f {
 	case activation.Sigmoid:
 		return 1.0

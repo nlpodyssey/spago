@@ -7,63 +7,41 @@ package activation
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nlpodyssey/spago/ag"
 )
 
-// Name is the enumeration-like type used for the set of built-in activations.
-type Name int
+// Activation is the enumeration-like type used for the set of built-in activations.
+type Activation int
 
 const (
-	// Identity identifies the Graph.Identity operator.
-	Identity Name = iota
-	// Tan identifies the Graph.Tan operator.
+	Identity Activation = iota
 	Tan
-	// Tanh identifies the Graph.Tanh operator.
 	Tanh
-	// Sigmoid identifies the Graph.Sigmoid operator.
 	Sigmoid
-	// HardSigmoid identifies the Graph.HardSigmoid operator.
 	HardSigmoid
-	// HardTanh identifies the Graph.HardTanh operator.
 	HardTanh
-	// Softsign identifies the Graph.Softsign operator.
 	Softsign
-	// ReLU identifies the Graph.ReLU operator.
 	ReLU
-	// CELU identifies the Graph.CELU operator.
 	CELU
-	// GELU identifies the Graph.GELU operator.
 	GELU
-	// ELU identifies the Graph.ELU operator.
 	ELU
-	// PositiveELU identifies the Graph.PositiveELU operator.
 	PositiveELU
-	// SwishB identifies the Graph.SwishB operator.
 	SwishB
-	// Swish identifies the Graph.Swish operator.
 	Swish
-	// SiLU identifies the Graph.SiLU operator.
 	SiLU
-	// Mish identifies the Graph.Mish operator.
 	Mish
-	// LeakyReLU identifies the Graph.LeakyReLU operator.
 	LeakyReLU
-	// SELU identifies the Graph.SELU operator.
 	SELU
-	// SoftPlus identifies the Graph.SoftPlus operator.
 	SoftPlus
-	// SoftShrink identifies the Graph.SoftShrink operator.
 	SoftShrink
-	// Threshold identifies the Graph.Threshold operator.
 	Threshold
-	// Softmax identifies the Graph.Softmax operator.
 	Softmax
-	// LogSoftmax identifies the Graph.LogSoftmax operator.
 	LogSoftmax
-	// SparseMax identifies the Graph.SparseMax operator.
 	SparseMax
 )
 
-var activationsMap = map[Name]string{
+var activationsMap = map[Activation]string{
 	Identity:    "Identity",
 	Tan:         "Tan",
 	Tanh:        "Tanh",
@@ -90,11 +68,30 @@ var activationsMap = map[Name]string{
 	SparseMax:   "SparseMax",
 }
 
+var activationFunctions = map[Activation]func(x ag.DualValue) ag.DualValue{
+	Identity:    func(x ag.DualValue) ag.DualValue { return x },
+	Tan:         ag.Tan,
+	Tanh:        ag.Tanh,
+	Sigmoid:     ag.Sigmoid,
+	HardSigmoid: ag.HardSigmoid,
+	HardTanh:    ag.HardTanh,
+	Softsign:    ag.Softsign,
+	ReLU:        ag.ReLU,
+	GELU:        ag.GELU,
+	PositiveELU: ag.PositiveELU,
+	Swish:       ag.Swish,
+	SiLU:        ag.SiLU,
+	Mish:        ag.Mish,
+	Softmax:     ag.Softmax,
+	LogSoftmax:  ag.LogSoftmax,
+	SparseMax:   ag.SparseMax,
+}
+
 var strActivationMap = strToActivationMap()
 
-// strToName maps a string to a Name.
-func strToActivationMap() map[string]Name {
-	invMap := make(map[string]Name)
+// strToName maps a string to a Activation.
+func strToActivationMap() map[string]Activation {
+	invMap := make(map[string]Activation)
 	for k, v := range activationsMap {
 		invMap[v] = k
 		invMap[strings.ToLower(v)] = k
@@ -102,19 +99,19 @@ func strToActivationMap() map[string]Name {
 	return invMap
 }
 
-// Activation maps a string to an activation function.
+// ParseActivation maps a string to an activation function.
 // It returns an error if the string does not match any built-in activation (not even using lowercase).
-func Activation(str string) (Name, error) {
+func ParseActivation(str string) (Activation, error) {
 	if value, ok := strActivationMap[str]; ok {
 		return value, nil
 	}
 	return -1, fmt.Errorf("activation: unknown activation function %s", str)
 }
 
-// MustActivation maps a string to an activation function.
+// MustParseActivation maps a string to an activation function.
 // It panics if the string does not match any built-in activation (not even using lowercase).
-func MustActivation(str string) Name {
-	value, err := Activation(str)
+func MustParseActivation(str string) Activation {
+	value, err := ParseActivation(str)
 	if err != nil {
 		panic(err)
 	}

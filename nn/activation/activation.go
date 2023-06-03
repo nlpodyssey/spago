@@ -17,7 +17,7 @@ var _ nn.Model = &Model{}
 
 type Model struct {
 	nn.Module
-	Activation Name
+	Activation Activation
 	Params     []*nn.Param
 }
 
@@ -25,7 +25,7 @@ func init() {
 	gob.Register(&Model{})
 }
 
-func New(activation Name, params ...*nn.Param) *Model {
+func New(activation Activation, params ...*nn.Param) *Model {
 	return &Model{
 		Activation: activation,
 		Params:     params,
@@ -45,39 +45,11 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 }
 
 func (m *Model) activationFunc() (func(x ag.DualValue) ag.DualValue, error) {
+	if f, ok := activationFunctions[m.Activation]; ok {
+		return f, nil
+	}
+
 	switch m.Activation {
-	case Identity:
-		return func(x ag.DualValue) ag.DualValue { return x }, nil
-	case Tan:
-		return ag.Tan, nil
-	case Tanh:
-		return ag.Tanh, nil
-	case Sigmoid:
-		return ag.Sigmoid, nil
-	case HardSigmoid:
-		return ag.HardSigmoid, nil
-	case HardTanh:
-		return ag.HardTanh, nil
-	case Softsign:
-		return ag.Softsign, nil
-	case ReLU:
-		return ag.ReLU, nil
-	case GELU:
-		return ag.GELU, nil
-	case PositiveELU:
-		return ag.PositiveELU, nil
-	case Swish:
-		return ag.Swish, nil
-	case SiLU:
-		return ag.SiLU, nil
-	case Mish:
-		return ag.Mish, nil
-	case Softmax:
-		return ag.Softmax, nil
-	case LogSoftmax:
-		return ag.LogSoftmax, nil
-	case SparseMax:
-		return ag.SparseMax, nil
 	case CELU:
 		return func(x ag.DualValue) ag.DualValue { return ag.CELU(x, m.Params[0]) }, nil
 	case ELU:

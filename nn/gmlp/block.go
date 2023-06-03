@@ -28,7 +28,7 @@ type BlockConfig struct {
 	Dim        int
 	DimFF      int
 	SeqLen     int
-	Activation activation.Name
+	Activation activation.Activation
 }
 
 func init() {
