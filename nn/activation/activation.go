@@ -6,6 +6,7 @@ package activation
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 
 	"github.com/nlpodyssey/spago/ag"
@@ -32,66 +33,68 @@ func New(activation Name, params ...*nn.Param) *Model {
 }
 
 func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	var operation func(x ag.DualValue) ag.DualValue
+	fn, err := m.activationFunc()
+	if err != nil {
+		log.Fatal()
+	}
+	ys := make([]ag.DualValue, len(xs))
+	for i, x := range xs {
+		ys[i] = fn(x)
+	}
+	return ys
+}
 
+func (m *Model) activationFunc() (func(x ag.DualValue) ag.DualValue, error) {
 	switch m.Activation {
 	case Identity:
-		operation = func(x ag.DualValue) ag.DualValue { return x }
+		return func(x ag.DualValue) ag.DualValue { return x }, nil
 	case Tan:
-		operation = ag.Tan
+		return ag.Tan, nil
 	case Tanh:
-		operation = ag.Tanh
+		return ag.Tanh, nil
 	case Sigmoid:
-		operation = ag.Sigmoid
+		return ag.Sigmoid, nil
 	case HardSigmoid:
-		operation = ag.HardSigmoid
+		return ag.HardSigmoid, nil
 	case HardTanh:
-		operation = ag.HardTanh
+		return ag.HardTanh, nil
 	case Softsign:
-		operation = ag.Softsign
+		return ag.Softsign, nil
 	case ReLU:
-		operation = ag.ReLU
+		return ag.ReLU, nil
 	case GELU:
-		operation = ag.GELU
+		return ag.GELU, nil
 	case PositiveELU:
-		operation = ag.PositiveELU
+		return ag.PositiveELU, nil
 	case Swish:
-		operation = ag.Swish
+		return ag.Swish, nil
 	case SiLU:
-		operation = ag.SiLU
+		return ag.SiLU, nil
 	case Mish:
-		operation = ag.Mish
+		return ag.Mish, nil
 	case Softmax:
-		operation = ag.Softmax
+		return ag.Softmax, nil
 	case LogSoftmax:
-		operation = ag.LogSoftmax
+		return ag.LogSoftmax, nil
 	case SparseMax:
-		operation = ag.SparseMax
+		return ag.SparseMax, nil
 	case CELU:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.CELU(x, m.Params[0]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.CELU(x, m.Params[0]) }, nil
 	case ELU:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.ELU(x, m.Params[0]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.ELU(x, m.Params[0]) }, nil
 	case SwishB:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.SwishB(x, m.Params[0]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.SwishB(x, m.Params[0]) }, nil
 	case LeakyReLU:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.LeakyReLU(x, m.Params[0]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.LeakyReLU(x, m.Params[0]) }, nil
 	case SELU:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.SELU(x, m.Params[0], m.Params[1]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.SELU(x, m.Params[0], m.Params[1]) }, nil
 	case SoftPlus:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.SoftPlus(x, m.Params[0], m.Params[1]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.SoftPlus(x, m.Params[0], m.Params[1]) }, nil
 	case SoftShrink:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.SoftShrink(x, m.Params[0]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.SoftShrink(x, m.Params[0]) }, nil
 	case Threshold:
-		operation = func(x ag.DualValue) ag.DualValue { return ag.Threshold(x, m.Params[0], m.Params[1]) }
+		return func(x ag.DualValue) ag.DualValue { return ag.Threshold(x, m.Params[0], m.Params[1]) }, nil
 	default:
-		log.Fatal("attention: invalid activation function")
+		return nil, fmt.Errorf("activation: %s not supported", activationsMap[m.Activation])
 	}
-
-	ys := make([]ag.DualValue, len(xs))
-
-	for i, x := range xs {
-		ys[i] = operation(x)
-	}
-
-	return ys
 }
