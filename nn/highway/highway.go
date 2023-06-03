@@ -55,7 +55,7 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 // y = t * h + (1 - t) * x
 func (m *Model) forward(x ag.DualValue) ag.DualValue {
 	t := ag.Sigmoid(ag.Affine(m.BT, m.WT, x))
-	h := activation.Do(m.Activation, ag.Affine(m.BIn, m.WIn, x))
+	h := activation.New(m.Activation).Forward(ag.Affine(m.BIn, m.WIn, x))[0] // TODO: refactor for performance
 	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Value().NewScalar(1)), x))
 	return y
 }

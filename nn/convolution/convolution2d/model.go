@@ -95,5 +95,5 @@ func (m *Model) forward(xs []ag.DualValue, outputChannel int) ag.DualValue {
 			}
 		}
 	}
-	return activation.Do(m.Config.Activation, out)
+	return activation.New(m.Config.Activation).Forward(out)[0] // TODO: refactor for performance
 }
