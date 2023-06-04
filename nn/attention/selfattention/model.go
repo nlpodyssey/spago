@@ -72,7 +72,7 @@ func (m *Model) Init(rng *rand.LockedRand) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(cache Cache, q, k, v []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
+func (m *Model) Forward(cache Cache, q, x []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
 	var pk, pv ag.DualValue
 
 	pq := m.Query.Forward(q...)
@@ -81,15 +81,15 @@ func (m *Model) Forward(cache Cache, q, k, v []ag.DualValue) ([]ag.DualValue, []
 		pk = cache[0]
 		pv = cache[1]
 	} else {
-		fwKeys := m.Key.Forward(k...)
-		fwValues := m.Value.Forward(v...)
+		k := m.Key.Forward(x...)
+		v := m.Value.Forward(x...)
 
 		if hasCache {
-			pk = ag.AppendRows(cache[0], fwKeys...)
-			pv = ag.AppendRows(cache[1], fwValues...)
+			pk = ag.AppendRows(cache[0], k...)
+			pv = ag.AppendRows(cache[1], v...)
 		} else {
-			pk = ag.Stack(fwKeys...)
-			pv = ag.Stack(fwValues...)
+			pk = ag.Stack(k...)
+			pv = ag.Stack(v...)
 		}
 	}
 

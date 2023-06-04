@@ -77,14 +77,14 @@ func (r Cache) At(i int) selfattention.Cache {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(cache Cache, q, k, v []ag.DualValue) ([]ag.DualValue, [][]ag.DualValue, Cache) {
+func (m *Model) Forward(cache Cache, q, x []ag.DualValue) ([]ag.DualValue, [][]ag.DualValue, Cache) {
 	n := len(m.Heads)
 	attentions := make([][]ag.DualValue, n)
 	weights := make([][]ag.DualValue, n)
 	nextCache := make(Cache, n)
 
 	for i, h := range m.Heads {
-		attentions[i], weights[i], nextCache[i] = h.Forward(cache.At(i), q, k, v)
+		attentions[i], weights[i], nextCache[i] = h.Forward(cache.At(i), q, x)
 	}
 
 	projected := m.project(attentions, len(q))
