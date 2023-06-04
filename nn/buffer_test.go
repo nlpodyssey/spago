@@ -10,16 +10,16 @@ import (
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
-	"github.com/nlpodyssey/spago/fn"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/mat/gradfn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	_ fn.DualValue = &Buffer{}
-	_ ag.DualValue = &Buffer{}
+	_ gradfn.DualValue = &Buffer{}
+	_ ag.DualValue     = &Buffer{}
 )
 
 func TestBuf(t *testing.T) {

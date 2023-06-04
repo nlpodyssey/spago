@@ -8,78 +8,78 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/nlpodyssey/spago/fn"
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/gradfn"
 )
 
 // Abs returns a new operator node as a result of the `Abs` function.
 func Abs(x DualValue) DualValue {
-	return NewOperator(fn.NewAbs(x)).Run()
+	return NewOperator(gradfn.NewAbs(x)).Run()
 }
 
-// Add returns a new operator node as a result of the fn.Add function.
+// Add returns a new operator node as a result of the gradfn.Add function.
 // As special case, the first node may be null.
 // This help to keep the code as concise as possible e.g. during accumulation.
 func Add(x1 DualValue, x2 DualValue) DualValue {
 	if x1 == nil {
 		return Copy(x2) // return a copy of `x2` as is
 	}
-	return NewOperator(fn.NewAdd(x1, x2)).Run(true)
+	return NewOperator(gradfn.NewAdd(x1, x2)).Run(true)
 }
 
-// AddScalar returns a new operator node as a result of the fn.AddScalar function.
+// AddScalar returns a new operator node as a result of the gradfn.AddScalar function.
 func AddScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewAddScalar(x1, x2)).Run()
+	return NewOperator(gradfn.NewAddScalar(x1, x2)).Run()
 }
 
-// Affine returns a new operator node as a result of the fn.Affine function.
+// Affine returns a new operator node as a result of the gradfn.Affine function.
 func Affine(b, w1, x1 DualValue, wxPairs ...DualValue) DualValue {
-	return NewOperator(fn.NewAffine(b, w1, x1, wxPairs...)).Run(true)
+	return NewOperator(gradfn.NewAffine(b, w1, x1, wxPairs...)).Run(true)
 }
 
-// AppendRows returns a new operator node as a result of the fn.AppendRows function.
+// AppendRows returns a new operator node as a result of the gradfn.AppendRows function.
 func AppendRows(x DualValue, vs ...DualValue) DualValue {
-	return NewOperator(fn.NewAppendRows(x, vs...)).Run()
+	return NewOperator(gradfn.NewAppendRows(x, vs...)).Run()
 }
 
-// At returns a new operator node as a result of the fn.At function.
+// At returns a new operator node as a result of the gradfn.At function.
 func At(x DualValue, indices ...int) DualValue {
-	return NewOperator(fn.NewAt(x, indices...)).Run()
+	return NewOperator(gradfn.NewAt(x, indices...)).Run()
 }
 
-// CELU returns a new operator node as a result of the fn.CELU function.
+// CELU returns a new operator node as a result of the gradfn.CELU function.
 func CELU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewCELU(x, alpha)).Run()
+	return NewOperator(gradfn.NewCELU(x, alpha)).Run()
 }
 
-// ColView returns a new operator node as a result of the fn.ColView function.
+// ColView returns a new operator node as a result of the gradfn.ColView function.
 func ColView(x DualValue, column int) DualValue {
-	return NewOperator(fn.NewColView(x, column)).Run()
+	return NewOperator(gradfn.NewColView(x, column)).Run()
 }
 
-// Concat returns a new operator node as a result of the fn.Concat function.
+// Concat returns a new operator node as a result of the gradfn.Concat function.
 func Concat(xs ...DualValue) DualValue {
-	return NewOperator(fn.NewConcat(xs)).Run()
+	return NewOperator(gradfn.NewConcat(xs)).Run()
 }
 
 // Cos returns a new operator node as a result of the `Cos` function.
 func Cos(x DualValue) DualValue {
-	return NewOperator(fn.NewCos(x)).Run()
+	return NewOperator(gradfn.NewCos(x)).Run()
 }
 
-// Div returns a new operator node as a result of the fn.Div function.
+// Div returns a new operator node as a result of the gradfn.Div function.
 func Div(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDiv(x1, x2)).Run()
+	return NewOperator(gradfn.NewDiv(x1, x2)).Run()
 }
 
-// DivScalar returns a new operator node as a result of the fn.DivScalar function.
+// DivScalar returns a new operator node as a result of the gradfn.DivScalar function.
 func DivScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDivScalar(x1, x2)).Run()
+	return NewOperator(gradfn.NewDivScalar(x1, x2)).Run()
 }
 
-// Dot returns a new operator node as a result of the fn.Dot function.
+// Dot returns a new operator node as a result of the gradfn.Dot function.
 func Dot(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewDot(x1, x2)).Run()
+	return NewOperator(gradfn.NewDot(x1, x2)).Run()
 }
 
 // DropoutFunc returns a function to create a Dropout operator working with the given dropout probability.
@@ -88,278 +88,278 @@ func DropoutFunc(p float64) func(x DualValue) DualValue {
 		if p == 0.0 {
 			return x
 		}
-		return NewOperator(fn.NewDropout(x, p, globalGenerator)).Run()
+		return NewOperator(gradfn.NewDropout(x, p, globalGenerator)).Run()
 	}
 }
 
-// Dropout returns a new operator node as a result of the fn.Dropout function.
+// Dropout returns a new operator node as a result of the gradfn.Dropout function.
 // If the dropout probability is zero, the operator will not be created,
 // so the input itself is returned directly.
 func Dropout(x DualValue, p float64) DualValue {
 	if p == 0.0 {
 		return x
 	}
-	return NewOperator(fn.NewDropout(x, p, globalGenerator)).Run()
+	return NewOperator(gradfn.NewDropout(x, p, globalGenerator)).Run()
 }
 
-// ELU returns a new operator node as a result of the fn.ELU function.
+// ELU returns a new operator node as a result of the gradfn.ELU function.
 func ELU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewELU(x, alpha)).Run()
+	return NewOperator(gradfn.NewELU(x, alpha)).Run()
 }
 
 // Exp returns a new operator node as a result of the `Exp` function.
 func Exp(x DualValue) DualValue {
-	return NewOperator(fn.NewExp(x)).Run()
+	return NewOperator(gradfn.NewExp(x)).Run()
 }
 
-// Flatten returns a new operator node as a result of the fn.Flatten function.
+// Flatten returns a new operator node as a result of the gradfn.Flatten function.
 func Flatten(x DualValue) DualValue {
-	return NewOperator(fn.NewFlatten(x)).Run()
+	return NewOperator(gradfn.NewFlatten(x)).Run()
 }
 
-// GELU returns a new operator node as a result of the fn.GELU function.
+// GELU returns a new operator node as a result of the gradfn.GELU function.
 func GELU(x DualValue) DualValue {
-	return NewOperator(fn.NewGELU(x)).Run()
+	return NewOperator(gradfn.NewGELU(x)).Run()
 }
 
 // HardSigmoid returns a new operator node as a result of the `HardSigmoid` function.
 func HardSigmoid(x DualValue) DualValue {
-	return NewOperator(fn.NewHardSigmoid(x)).Run()
+	return NewOperator(gradfn.NewHardSigmoid(x)).Run()
 }
 
 // HardTanh returns a new operator node as a result of the `HardTanh` function.
 func HardTanh(x DualValue) DualValue {
-	return NewOperator(fn.NewHardTanh(x)).Run()
+	return NewOperator(gradfn.NewHardTanh(x)).Run()
 }
 
-// Copy returns a new operator node as a result of the fn.Copy function.
+// Copy returns a new operator node as a result of the gradfn.Copy function.
 func Copy(x DualValue) DualValue {
-	return NewOperator(fn.NewCopy(x)).Run()
+	return NewOperator(gradfn.NewCopy(x)).Run()
 }
 
-// LeakyReLU returns a new operator node as a result of the fn.LeakyReLU function.
+// LeakyReLU returns a new operator node as a result of the gradfn.LeakyReLU function.
 func LeakyReLU(x, alpha DualValue) DualValue {
-	return NewOperator(fn.NewLeakyReLU(x, alpha)).Run()
+	return NewOperator(gradfn.NewLeakyReLU(x, alpha)).Run()
 }
 
 // Log returns a new operator node as a result of the `Log` function.
 func Log(x DualValue) DualValue {
-	return NewOperator(fn.NewLog(x)).Run()
+	return NewOperator(gradfn.NewLog(x)).Run()
 }
 
-// Max returns a new operator node as a result of the fn.Max function.
+// Max returns a new operator node as a result of the gradfn.Max function.
 func Max(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMax(x1, x2)).Run()
+	return NewOperator(gradfn.NewMax(x1, x2)).Run()
 }
 
-// MaxPooling returns a new operator node as a result of the fn.MaxPooling function.
+// MaxPooling returns a new operator node as a result of the gradfn.MaxPooling function.
 func MaxPooling(x DualValue, rows, columns int) DualValue {
-	return NewOperator(fn.NewMaxPooling(x, rows, columns)).Run()
+	return NewOperator(gradfn.NewMaxPooling(x, rows, columns)).Run()
 }
 
-// Min returns a new operator node as a result of the fn.Min function.
+// Min returns a new operator node as a result of the gradfn.Min function.
 func Min(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMin(x1, x2)).Run()
+	return NewOperator(gradfn.NewMin(x1, x2)).Run()
 }
 
 // Mish returns a new operator node as a result of the `Mish` function.
 func Mish(x DualValue) DualValue {
-	return NewOperator(fn.NewMish(x)).Run()
+	return NewOperator(gradfn.NewMish(x)).Run()
 }
 
-// Mul returns a new operator node as a result of the fn.Mul function.
+// Mul returns a new operator node as a result of the gradfn.Mul function.
 func Mul(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMul(x1, x2)).Run(true)
+	return NewOperator(gradfn.NewMul(x1, x2)).Run(true)
 }
 
 func MulT(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewMulT(x1, x2)).Run(true)
+	return NewOperator(gradfn.NewMulT(x1, x2)).Run(true)
 }
 
 // Neg returns a new operator node as a result of the `Neg` function.
 func Neg(x DualValue) DualValue {
-	return NewOperator(fn.NewNeg(x)).Run()
+	return NewOperator(gradfn.NewNeg(x)).Run()
 }
 
-// Pow returns a new operator node as a result of the fn.Pow function.
+// Pow returns a new operator node as a result of the gradfn.Pow function.
 func Pow(x DualValue, power float64) DualValue {
-	return NewOperator(fn.NewPow(x, power)).Run()
+	return NewOperator(gradfn.NewPow(x, power)).Run()
 }
 
-// Prod returns a new operator node as a result of the fn.Prod function.
+// Prod returns a new operator node as a result of the gradfn.Prod function.
 func Prod(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewProd(x1, x2)).Run()
+	return NewOperator(gradfn.NewProd(x1, x2)).Run()
 }
 
-// ProdScalar returns a new operator node as a result of the fn.ProdScalar function.
+// ProdScalar returns a new operator node as a result of the gradfn.ProdScalar function.
 func ProdScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewProdScalar(x1, x2)).Run(true)
+	return NewOperator(gradfn.NewProdScalar(x1, x2)).Run(true)
 }
 
 // Reciprocal returns a new operator node as a result of the `Reciprocal` function.
 func Reciprocal(x DualValue) DualValue {
-	return NewOperator(fn.NewReciprocal(x)).Run()
+	return NewOperator(gradfn.NewReciprocal(x)).Run()
 }
 
-// ReduceMax returns a new operator node as a result of the fn.ReduceMax function.
+// ReduceMax returns a new operator node as a result of the gradfn.ReduceMax function.
 func ReduceMax(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceMax(x)).Run()
+	return NewOperator(gradfn.NewReduceMax(x)).Run()
 }
 
-// ReduceMean returns a new operator node as a result of the fn.ReduceMean function.
+// ReduceMean returns a new operator node as a result of the gradfn.ReduceMean function.
 func ReduceMean(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceMean(x)).Run()
+	return NewOperator(gradfn.NewReduceMean(x)).Run()
 }
 
-// ReduceSum returns a new operator node as a result of the fn.ReduceSum function.
+// ReduceSum returns a new operator node as a result of the gradfn.ReduceSum function.
 func ReduceSum(x DualValue) DualValue {
-	return NewOperator(fn.NewReduceSum(x)).Run()
+	return NewOperator(gradfn.NewReduceSum(x)).Run()
 }
 
 // ReLU returns a new operator node as a result of the `ReLU` function.
 func ReLU(x DualValue) DualValue {
-	return NewOperator(fn.NewReLU(x)).Run(true)
+	return NewOperator(gradfn.NewReLU(x)).Run(true)
 }
 
-// Reshape returns a new operator node as a result of the fn.Reshape function.
+// Reshape returns a new operator node as a result of the gradfn.Reshape function.
 func Reshape(x DualValue, rows, columns int) DualValue {
-	return NewOperator(fn.NewReshape(x, rows, columns)).Run()
+	return NewOperator(gradfn.NewReshape(x, rows, columns)).Run()
 }
 
 // ReverseSub returns a new operator node as a result of the fn.ReverseSub function.
 func ReverseSub(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewReverseSubScalar(x1, x2)).Run()
+	return NewOperator(gradfn.NewReverseSubScalar(x1, x2)).Run()
 }
 
 // ReverseSubOne returns a new operator node as a result of applying reverse subtraction with 1.0 to the input using the fn.ReverseSub function.
 func ReverseSubOne(x DualValue) DualValue {
-	return NewOperator(fn.NewReverseSubScalar(x, DualValue(mat.Scalar(1.0)))).Run()
+	return NewOperator(gradfn.NewReverseSubScalar(x, DualValue(mat.Scalar(1.0)))).Run()
 }
 
 // RotateR performs the right circular shift.
 // `i` is the number of places by which the elements are shifted.
 func RotateR(x DualValue, i int) DualValue {
-	return NewOperator(fn.NewRotateR(x, i)).Run()
+	return NewOperator(gradfn.NewRotateR(x, i)).Run()
 }
 
-// RowView returns a new operator node as a result of the fn.RowView function.
+// RowView returns a new operator node as a result of the gradfn.RowView function.
 func RowView(x DualValue, row int) DualValue {
-	return NewOperator(fn.NewRowView(x, row)).Run()
+	return NewOperator(gradfn.NewRowView(x, row)).Run()
 }
 
-// ScalarMax returns a new operator node as a result of the fn.ScalarMax function.
+// ScalarMax returns a new operator node as a result of the gradfn.ScalarMax function.
 func ScalarMax(xs []DualValue) DualValue {
-	return NewOperator(fn.NewScalarMax(xs)).Run()
+	return NewOperator(gradfn.NewScalarMax(xs)).Run()
 }
 
-// SELU returns a new operator node as a result of the fn.SELU function.
+// SELU returns a new operator node as a result of the gradfn.SELU function.
 func SELU(x, alpha DualValue, scale DualValue) DualValue {
-	return NewOperator(fn.NewSELU(x, alpha, scale)).Run()
+	return NewOperator(gradfn.NewSELU(x, alpha, scale)).Run()
 }
 
 // Sigmoid returns a new operator node as a result of the `Sigmoid` function.
 func Sigmoid(x DualValue) DualValue {
-	return NewOperator(fn.NewSigmoid(x)).Run()
+	return NewOperator(gradfn.NewSigmoid(x)).Run()
 }
 
 // SiLU returns a new operator node as a result of the fn.SiLU function.
 func SiLU(x DualValue) DualValue {
-	return NewOperator(fn.NewSiLU(x)).Run()
+	return NewOperator(gradfn.NewSiLU(x)).Run()
 }
 
 // Sin returns a new operator node as a result of the `Sin` function.
 func Sin(x DualValue) DualValue {
-	return NewOperator(fn.NewSin(x)).Run()
+	return NewOperator(gradfn.NewSin(x)).Run()
 }
 
-// Slice returns a new operator node as a result of the fn.Slice function.
+// Slice returns a new operator node as a result of the gradfn.Slice function.
 func Slice(x DualValue, fromRow, fromCol, toRow, toCol int) DualValue {
-	return NewOperator(fn.NewSlice(x, fromRow, fromCol, toRow, toCol)).Run()
+	return NewOperator(gradfn.NewSlice(x, fromRow, fromCol, toRow, toCol)).Run()
 }
 
-// Softmax returns a new operator node as a result of the fn.Softmax function.
+// Softmax returns a new operator node as a result of the gradfn.Softmax function.
 func Softmax(x DualValue) DualValue {
-	return NewOperator(fn.NewSoftmax(x)).Run()
+	return NewOperator(gradfn.NewSoftmax(x)).Run()
 }
 
-// SoftPlus returns a new operator node as a result of the fn.SoftPlus function.
+// SoftPlus returns a new operator node as a result of the gradfn.SoftPlus function.
 func SoftPlus(x, beta, threshold DualValue) DualValue {
-	return NewOperator(fn.NewSoftPlus(x, beta, threshold)).Run()
+	return NewOperator(gradfn.NewSoftPlus(x, beta, threshold)).Run()
 }
 
-// SoftShrink returns a new operator node as a result of the fn.SoftShrink function.
+// SoftShrink returns a new operator node as a result of the gradfn.SoftShrink function.
 func SoftShrink(x, lambda DualValue) DualValue {
-	return NewOperator(fn.NewSoftShrink(x, lambda)).Run()
+	return NewOperator(gradfn.NewSoftShrink(x, lambda)).Run()
 }
 
 // Softsign returns a new operator node as a result of the `SoftSign` function.
 func Softsign(x DualValue) DualValue {
-	return NewOperator(fn.NewSoftsign(x)).Run()
+	return NewOperator(gradfn.NewSoftsign(x)).Run()
 }
 
-// SparseMax returns a new operator node as a result of the fn.SparseMax function.
+// SparseMax returns a new operator node as a result of the gradfn.SparseMax function.
 func SparseMax(x DualValue) DualValue {
-	return NewOperator(fn.NewSparseMax(x)).Run()
+	return NewOperator(gradfn.NewSparseMax(x)).Run()
 }
 
-// SparseMaxLoss returns a new operator node as a result of the fn.SparseMaxLoss function.
+// SparseMaxLoss returns a new operator node as a result of the gradfn.SparseMaxLoss function.
 func SparseMaxLoss(x DualValue) DualValue {
-	return NewOperator(fn.NewSparseMaxLoss(x)).Run()
+	return NewOperator(gradfn.NewSparseMaxLoss(x)).Run()
 }
 
 // Sqrt returns a new operator node as a result of the `Sqrt` function.
 func Sqrt(x DualValue) DualValue {
-	return NewOperator(fn.NewSqrt(x)).Run()
+	return NewOperator(gradfn.NewSqrt(x)).Run()
 }
 
-// Square returns a new operator node as a result of the fn.Prod(x, x) function.
+// Square returns a new operator node as a result of the gradfn.Prod(x, x) function.
 func Square(x DualValue) DualValue {
-	return NewOperator(fn.NewSquare(x)).Run()
+	return NewOperator(gradfn.NewSquare(x)).Run()
 }
 
-// Stack returns a new operator node as a result of the fn.Stack function.
+// Stack returns a new operator node as a result of the gradfn.Stack function.
 func Stack(xs ...DualValue) DualValue {
-	return NewOperator(fn.NewStack(xs)).Run()
+	return NewOperator(gradfn.NewStack(xs)).Run()
 }
 
-// Sub returns a new operator node as a result of the fn.Sub function.
+// Sub returns a new operator node as a result of the gradfn.Sub function.
 func Sub(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewSub(x1, x2)).Run()
+	return NewOperator(gradfn.NewSub(x1, x2)).Run()
 }
 
-// SubScalar returns a new operator node as a result of the fn.SubScalar function.
+// SubScalar returns a new operator node as a result of the gradfn.SubScalar function.
 func SubScalar(x1, x2 DualValue) DualValue {
-	return NewOperator(fn.NewSubScalar(x1, x2)).Run()
+	return NewOperator(gradfn.NewSubScalar(x1, x2)).Run()
 }
 
-// Swish returns a new operator node as a result of the fn.Swish function.
+// Swish returns a new operator node as a result of the gradfn.Swish function.
 func Swish(x DualValue) DualValue {
-	return NewOperator(fn.NewSwish(x)).Run()
+	return NewOperator(gradfn.NewSwish(x)).Run()
 }
 
-// SwishB returns a new operator node as a result of the fn.SwishB function.
+// SwishB returns a new operator node as a result of the gradfn.SwishB function.
 func SwishB(x, beta DualValue) DualValue {
-	return NewOperator(fn.NewSwishB(x, beta)).Run()
+	return NewOperator(gradfn.NewSwishB(x, beta)).Run()
 }
 
 // T returns a new operator node as a result of the fn.T function.
 func T(x DualValue) DualValue {
-	return NewOperator(fn.NewTranspose(x)).Run()
+	return NewOperator(gradfn.NewTranspose(x)).Run()
 }
 
 // Tan returns a new operator node as a result of the `Tan` function.
 func Tan(x DualValue) DualValue {
-	return NewOperator(fn.NewTan(x)).Run()
+	return NewOperator(gradfn.NewTan(x)).Run()
 }
 
 // Tanh returns a new operator node as a result of the `Tanh` function.
 func Tanh(x DualValue) DualValue {
-	return NewOperator(fn.NewTanh(x)).Run()
+	return NewOperator(gradfn.NewTanh(x)).Run()
 }
 
-// Threshold returns a new operator node as a result of the fn.Threshold function.
+// Threshold returns a new operator node as a result of the gradfn.Threshold function.
 func Threshold(x, threshold, k DualValue) DualValue {
-	return NewOperator(fn.NewThreshold(x, threshold, k)).Run()
+	return NewOperator(gradfn.NewThreshold(x, threshold, k)).Run()
 }
 
 // Map returns a transformed version of xs with all its components modified according to the mapping function.
