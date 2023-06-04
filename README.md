@@ -67,12 +67,6 @@ go get -u github.com/nlpodyssey/spago
 ### Getting Started
 
 A good place to start is by looking at the implementation of built-in neural models, such as the LSTM.
-Except for a few linear algebra operations written in assembly for optimal performance (a bit of copying from [Gonum](https://github.com/gonum/gonum)), it's straightforward Go code, so you don't have to worry. In fact, SpaGO could have been written by you :)
-
-The behavior of a neural model is characterized by a combination of parameters and equations. 
-Mathematical expressions must be defined using the auto-grad `ag` package in order to take advantage of automatic differentiation.
-
-In this sense, we can say the computational graph is at the center of the Spago machine learning framework.
 
 ### Example 1
 Here is an example of how to calculate the sum of two variables:
