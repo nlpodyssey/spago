@@ -36,10 +36,9 @@
 <br>
 <p>
 
-> Currently, the main branch contains version v1, which differs substantially from version [v0.7](https://github.com/nlpodyssey/spago/tree/v0.7.0). For NLP-related features, check out the [Cybertron](https://github.com/nlpodyssey/cybertron) package!
-> The [CHANGELOG](https://github.com/nlpodyssey/spago/blob/main/CHANGELOG.md) details the major changes.
+> If you're interested in NLP-related functionalities, be sure to explore the [Cybertron](https://github.com/nlpodyssey/cybertron) package!
 
-A **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
+Spago is a **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
 
 Spago is self-contained, in that it uses its own lightweight computational graph both for training and
@@ -47,11 +46,10 @@ inference, easy to understand from start to finish.
 
 It provides:
 - Automatic differentiation via dynamic define-by-run execution
-- Gradient descent optimizers (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
 - Feed-forward layers (Linear, Highway, Convolution...)
 - Recurrent layers (LSTM, GRU, BiLSTM...)
 - Attention layers (Self-Attention, Multi-Head Attention...)
-- Memory-efficient Word Embeddings (with [badger](https://github.com/dgraph-io/badger) key–value store)
+- Gradient descent optimizers (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
 - Gob compatible neural models for serialization
 
 ## Usage
@@ -65,13 +63,6 @@ Clone this repo or get the library:
 ```console
 go get -u github.com/nlpodyssey/spago
 ```
-
-### Dependencies
-
-The core [module](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.mod) of Spago relies only on [testify](github.com/stretchr/testify) for unit testing. 
-In other words, it has "zero dependencies", and we are committed to keeping it that way as much as possible.
-
-Spago uses a multi-module [workspace](https://github.com/nlpodyssey/spago/blob/v1.0.0-alpha.0/go.work) to ensure that additional dependencies are downloaded only when specific features (e.g. persistent embeddings) are used.
 
 ### Getting Started
 
@@ -144,42 +135,15 @@ func main() {
 }
 ```
 
-## Performance
-
-Goroutines play a very important role in making Spago efficient; in fact Forward operations are executed concurrently (up to `GOMAXPROCS`). As soon as an Operator is created (usually by calling one of the functions in the `ag` package, such as `Add`, `Prod`, etc.), the related Function's Forward procedure is performed on a new goroutine.
-Nevertheless, it's always safe to ask for the Operator's `Value()` without worries: if it's called too soon, the function will lock until the result is computed, and then return the value.
-
-### Known Limits
-
-Sadly, at the moment, Spago is not GPU friendly by design.
- 
-## Projects using SpaGo
-
-Below is a list of projects that use Spago:
-
-* [Cybertron](https://github.com/nlpodyssey/cybertron) - State-of-the-art Natural Language Processing in Go.
-* [Golem](https://github.com/kirasystems/golem) - A batteries-included implementation
-  of ["TabNet: Attentive Interpretable Tabular Learning"](https://arxiv.org/abs/1908.07442).
-* [Translator](https://github.com/SpecializedGeneralist/translator) - A simple self-hostable Machine Translation
-  service.
-* [PiSquared](https://github.com/ErikPelli/PiSquared) - A Telegram bot that asks you a question and evaluate the response you provide.
-* [WhatsNew](https://github.com/SpecializedGeneralist/whatsnew/) - A simple tool to collect and process quite a few web
-  news from multiple sources.
-
 ## Contributing
 
-We're glad you're thinking about contributing to Spago! If you think something is missing or could be improved, please
-open issues and pull requests. If you'd like to help this project grow, we'd love to have you!
+If you think something is missing or could be improved, please open issues and pull requests.
 
-To start contributing, check
-the [Contributing Guidelines](https://github.com/nlpodyssey/spago/blob/main/CONTRIBUTING.md).
+To start contributing, check the [Contributing Guidelines](https://github.com/nlpodyssey/spago/blob/main/CONTRIBUTING.md).
 
 ## Contact
 
-We encourage you to write an issue. This would help the community grow.
-
-If you really want to write to us privately, please email [Matteo Grella](mailto:matteogrella@gmail.com) with your
-questions or comments.
+We highly encourage you to create an issue as it will contribute to the growth of the community. However, if you prefer to communicate with us privately, please feel free to email [Matteo Grella](mailto:matteogrella@gmail.com) with any questions or comments you may have.
 
 ## Acknowledgments
 
@@ -187,8 +151,5 @@ Spago is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) in
 initiated by members of the EXOP team (now part of Crisis24).
 
 ## Sponsors
-
-We appreciate contributions of all kinds. We especially want to thank Spago fiscal sponsors who contribute to ongoing
-project maintenance.
 
 See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.
