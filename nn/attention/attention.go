@@ -56,35 +56,3 @@ func makeCausalMask(curIndex, seqLength int) []float64 {
 	}
 	return causalMask
 }
-
-// MappingFunc is a mapping function used by LinearAttention.
-type MappingFunc func(x ag.DualValue) ag.DualValue
-
-// LinearAttention performs the self-attention as a linear dot-product of kernel feature maps.
-// It operates with O(N) complexity, where N is the sequence length.
-// Reference: "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention" by Katharopoulos et al. (2020)
-func LinearAttention(q, k, v []ag.DualValue, mappingFunction MappingFunc, eps float64) []ag.DualValue {
-	if len(q) == 0 {
-		return nil
-	}
-	context := make([]ag.DualValue, len(q))
-	attKeys := make([]ag.DualValue, len(k))
-
-	var attKeysSum ag.DualValue = nil
-	for i := range k {
-		attKeys[i] = mappingFunction(k[i])
-		attKeysSum = ag.Add(attKeysSum, attKeys[i])
-	}
-
-	attKeysT := ag.T(ag.Stack(attKeys...))
-	kv := ag.Mul(attKeysT, ag.Stack(v...))
-
-	epsn := q[0].Value().NewScalar(eps)
-	for i, qi := range q {
-		attQuery := mappingFunction(qi)
-		n := ag.T(ag.Mul(ag.T(attQuery), kv))
-		d := ag.Dot(attQuery, attKeysSum)
-		context[i] = ag.DivScalar(n, ag.AddScalar(d, epsn))
-	}
-	return context
-}
