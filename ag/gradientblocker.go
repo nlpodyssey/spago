@@ -10,7 +10,7 @@ import (
 	"github.com/nlpodyssey/spago/mat"
 )
 
-// GradientBlocker embeds any Node implementation disabling gradients handling and
+// GradientBlocker embeds any tensors implementation disabling gradients handling and
 // blocking gradients accumulation.
 type GradientBlocker struct {
 	mat.Tensor
