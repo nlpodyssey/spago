@@ -5,6 +5,8 @@
 package ag
 
 import (
+	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/mat"
 )
 
@@ -12,6 +14,10 @@ import (
 // blocking gradients accumulation.
 type GradientBlocker struct {
 	mat.Tensor
+}
+
+func init() {
+	gob.Register(&GradientBlocker{})
 }
 
 // StopGrad creates a new GradientBlocker that stops the accumulated gradients from

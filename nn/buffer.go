@@ -5,6 +5,8 @@
 package nn
 
 import (
+	"encoding/gob"
+
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 )
@@ -14,6 +16,10 @@ import (
 // This is useful e.g. to store constants, to track the mean and std in batch norm layers etc.
 type Buffer struct {
 	mat.Tensor
+}
+
+func init() {
+	gob.Register(&Buffer{})
 }
 
 // Buf creates a new Buffer Node.
