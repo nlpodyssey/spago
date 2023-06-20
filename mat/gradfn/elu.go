@@ -43,7 +43,7 @@ func (r *ELU[O]) Backward(gy mat.Tensor) error {
 	}
 	if r.x.RequiresGrad() {
 		gx := r.x.Value().(mat.Matrix).ApplyWithAlpha(eluDeriv, r.alpha.Value().Item().F64())
-		gx.(mat.Matrix).ProdInPlace(gy.(mat.Matrix))
+		gx.ProdInPlace(gy.(mat.Matrix))
 		r.x.AccGrad(gx)
 	}
 	return nil

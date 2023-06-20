@@ -30,7 +30,7 @@ type Dense[T float.DType] struct {
 // makeDense returns a Dense matrix.
 func makeDense[T float.DType](array []T, shape ...int) *Dense[T] {
 	if len(array) != calculateSize(shape) {
-		log.Fatal(fmt.Sprintf("mat: incompatible size, expected %d, actual %d", calculateSize(shape), len(array)))
+		log.Fatalf("mat: incompatible size, expected %d, actual %d", calculateSize(shape), len(array))
 	}
 	return &Dense[T]{
 		shape: shape,
