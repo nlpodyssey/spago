@@ -18,19 +18,11 @@ func TestAddScalar_Forward(t *testing.T) {
 }
 
 func testAddScalarForward[T float.DType](t *testing.T) {
-	x1 := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0})),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	x2 := &variable{
-		value:        mat.Scalar[T](1.0),
-		grad:         nil,
-		requiresGrad: false,
-	}
+	x1 := mat.NewDense[T](mat.WithBacking([]T{0.1, 0.2, 0.3, 0.0}), mat.WithGrad(true))
+	x2 := mat.Scalar[T](1.0)
 
 	f := NewAddScalar(x1, x2)
-	assert.Equal(t, []*variable{x1, x2}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x1, x2}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -40,7 +32,7 @@ func testAddScalarForward[T float.DType](t *testing.T) {
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
-	assert.InDeltaSlice(t, []T{-1.0, 0.5, 0.8, 0.0}, x1.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-1.0, 0.5, 0.8, 0.0}, x1.Grad().Data(), 1.0e-6)
 }
 
 func TestAddScalar_Forward2(t *testing.T) {
@@ -49,20 +41,12 @@ func TestAddScalar_Forward2(t *testing.T) {
 }
 
 func testAddScalarForward2[T float.DType](t *testing.T) {
-	x1 := &variable{
-		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
-			0.1, 0.2, 0.3, 0.0,
-			0.4, 0.5, -0.6, 0.7,
-			-0.5, 0.8, -0.8, -0.1,
-		})),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	x2 := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.1})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x1 := mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
+		0.1, 0.2, 0.3, 0.0,
+		0.4, 0.5, -0.6, 0.7,
+		-0.5, 0.8, -0.8, -0.1,
+	}), mat.WithGrad(true))
+	x2 := mat.NewDense[T](mat.WithBacking([]T{0.1}), mat.WithGrad(true))
 
 	f := NewAddScalar(x1, x2)
 	y, err := f.Forward()
@@ -85,7 +69,7 @@ func testAddScalarForward2[T float.DType](t *testing.T) {
 		-1.0, 0.5, 0.8, 0.0,
 		1.0, 0.3, 0.6, 0.0,
 		1.0, -0.5, -0.3, 0.0,
-	}, x1.grad.Data(), 1.0e-6)
+	}, x1.Grad().Data(), 1.0e-6)
 
-	assert.InDeltaSlice(t, []T{2.4}, x2.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{2.4}, x2.Grad().Data(), 1.0e-6)
 }

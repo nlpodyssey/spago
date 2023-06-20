@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAppendRowsForward(t *testing.T) {
@@ -18,29 +18,18 @@ func TestAppendRowsForward(t *testing.T) {
 }
 
 func testAppendRowsForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value: mat.NewDense[T](mat.WithShape(2, 3), mat.WithBacking([]T{
-			11, 12, 13,
-			21, 22, 23,
-		})),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	vs := []*variable{
-		{
-			value:        mat.NewDense[T](mat.WithShape(1, 3), mat.WithBacking([]T{31, 32, 33})),
-			grad:         nil,
-			requiresGrad: true,
-		},
-		{
-			value:        mat.NewDense[T](mat.WithShape(3, 1), mat.WithBacking([]T{41, 42, 43})),
-			grad:         nil,
-			requiresGrad: true,
-		},
+	x := mat.Tensor(mat.NewDense[T](mat.WithShape(2, 3), mat.WithBacking([]T{
+		11, 12, 13,
+		21, 22, 23,
+	}), mat.WithGrad(true)))
+
+	vs := []mat.Tensor{
+		mat.NewDense[T](mat.WithShape(1, 3), mat.WithBacking([]T{31, 32, 33}), mat.WithGrad(true)),
+		mat.NewDense[T](mat.WithShape(3, 1), mat.WithBacking([]T{41, 42, 43}), mat.WithGrad(true)),
 	}
 	f := NewAppendRows(x, vs...)
 
-	assert.Equal(t, []*variable{x, vs[0], vs[1]}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x, vs[0], vs[1]}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -50,7 +39,7 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 		21, 22, 23,
 		31, 32, 33,
 		41, 42, 43,
-	})), y)
+	})), y.(mat.Matrix))
 
 	err = f.Backward(mat.NewDense[T](mat.WithShape(4, 3), mat.WithBacking([]T{
 		0, 1, 2,
@@ -63,7 +52,7 @@ func testAppendRowsForward[T float.DType](t *testing.T) {
 	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(2, 3), mat.WithBacking([]T{
 		0, 1, 2,
 		3, 4, 5,
-	})), x.grad)
-	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{6, 7, 8})).T(), vs[0].grad)
-	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{9, 0, 1})).T(), vs[1].grad)
+	})), x.Grad().(mat.Matrix))
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{6, 7, 8})).T(), vs[0].Grad().(mat.Matrix))
+	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithBacking([]T{9, 0, 1})).T(), vs[1].Grad().(mat.Matrix))
 }

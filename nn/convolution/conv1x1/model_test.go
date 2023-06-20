@@ -7,7 +7,6 @@ package conv1x1
 import (
 	"testing"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +36,7 @@ func testModelForward[T float.DType](t *testing.T) {
 			4, 5, 6,
 		})
 
-		xs := []ag.DualValue{
+		xs := []mat.Tensor{
 			mat.NewDense[T](mat.WithBacking([]T{1, 2, 4, 0, -1})),
 			mat.NewDense[T](mat.WithBacking([]T{1, 3, 3, 0, -1})),
 			mat.NewDense[T](mat.WithBacking([]T{1, 4, 2, 0, -1})),
@@ -65,7 +64,7 @@ func testModelForward[T float.DType](t *testing.T) {
 			0.9, 0.8, 0.7, 0.6,
 		})
 
-		xs := []ag.DualValue{
+		xs := []mat.Tensor{
 			mat.NewDense[T](mat.WithBacking([]T{0.2, 0.9, 0.1})),
 			mat.NewDense[T](mat.WithBacking([]T{0.4, 0.7, 0.1})),
 			mat.NewDense[T](mat.WithBacking([]T{0.6, 0.5, 0.1})),

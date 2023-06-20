@@ -104,7 +104,7 @@ func (o *Lamb[T]) updateAlpha() {
 
 // CalcDelta returns the difference between the current params and where the method wants it to be.
 func (o *Lamb[T]) CalcDelta(state *State, cur mat.Matrix, grads mat.Matrix) mat.Matrix {
-	return o.calculateParamUpdate(grads, state, cur.Value())
+	return o.calculateParamUpdate(grads, state, cur.Value().(mat.Matrix))
 }
 
 // v = v*beta1 + grads*(1.0-beta1)
@@ -148,7 +148,7 @@ func updateM(grads mat.Matrix, state *State, beta2 float64) {
 func norm(grads mat.Matrix) float64 {
 	prod := grads.Prod(grads)
 	sum := prod.Sum()
-	return math.Sqrt(sum.Scalar().F64())
+	return math.Sqrt(sum.Item().F64())
 }
 
 func (o *Lamb[T]) OptimizeParams(param *nn.Param) error {
@@ -161,7 +161,7 @@ func (o *Lamb[T]) OptimizeParams(param *nn.Param) error {
 		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
 	}
 
-	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state, param.Value()))
+	param.SubInPlace(o.calculateParamUpdate(param.Grad().(mat.Matrix), state, param.Value().(mat.Matrix)))
 	param.ZeroGrad()
 
 	return nil

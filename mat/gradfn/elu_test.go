@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestELUForward(t *testing.T) {
@@ -18,18 +18,11 @@ func TestELUForward(t *testing.T) {
 }
 
 func testELUForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, -0.2, 0.3, 0.0})),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	alpha := &variable{
-		value:        mat.Scalar[T](2.0),
-		grad:         nil,
-		requiresGrad: false,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.1, -0.2, 0.3, 0.0}), mat.WithGrad(true))
+	alpha := mat.Scalar[T](2.0)
+
 	f := NewELU(x, alpha)
-	assert.Equal(t, []*variable{x, alpha}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x, alpha}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -39,5 +32,5 @@ func testELUForward[T float.DType](t *testing.T) {
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
-	assert.InDeltaSlice(t, []T{-1.0, 0.8187307, 0.8, 0.0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-1.0, 0.8187307, 0.8, 0.0}, x.Grad().Data(), 1.0e-6)
 }

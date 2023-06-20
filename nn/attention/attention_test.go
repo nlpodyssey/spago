@@ -11,7 +11,6 @@ import (
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/nn"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,7 +20,7 @@ func TestScaledDotProductAttention(t *testing.T) {
 }
 
 func testScaledDotProductAttention[T float.DType](t *testing.T) {
-	queries := []ag.DualValue{
+	queries := []mat.Tensor{
 		mat.NewDense[T](mat.WithBacking([]T{1.1, 0.0, 2.3}), mat.WithGrad(true)),
 		mat.NewDense[T](mat.WithBacking([]T{2.2, -0.5, 0.3}), mat.WithGrad(true)),
 		mat.NewDense[T](mat.WithBacking([]T{3.2, 0.5, 0.4}), mat.WithGrad(true)),
@@ -37,7 +36,7 @@ func testScaledDotProductAttention[T float.DType](t *testing.T) {
 		2.3, 6.5, 3.5,
 	}), mat.WithGrad(true))
 
-	scaleFactor := nn.Const(T(1.0 / math.Sqrt(3)))
+	scaleFactor := mat.Scalar(T(1.0 / math.Sqrt(3)))
 	results, _ := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)
 
 	if len(results) != 3 {
@@ -55,7 +54,7 @@ func TestScaledDotProductAttention2(t *testing.T) {
 }
 
 func testScaledDotProductAttention2[T float.DType](t *testing.T) {
-	queries := []ag.DualValue{
+	queries := []mat.Tensor{
 		mat.NewDense[T](mat.WithBacking([]T{0.22, 0.3}), mat.WithGrad(true)),
 		mat.NewDense[T](mat.WithBacking([]T{-0.17, 0.24}), mat.WithGrad(true)),
 		mat.NewDense[T](mat.WithBacking([]T{-0.15, 0.23}), mat.WithGrad(true)),
@@ -72,7 +71,7 @@ func testScaledDotProductAttention2[T float.DType](t *testing.T) {
 		-0.07, 0.0, 0.29, 0.5,
 	}), mat.WithGrad(true))
 
-	scaleFactor := nn.Const(T(1.0 / math.Sqrt(2)))
+	scaleFactor := mat.Scalar(T(1.0 / math.Sqrt(2)))
 
 	// == Forward
 	results, weights := ScaledDotProductAttention(queries, keys, values, scaleFactor, false)

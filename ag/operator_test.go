@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var _ DualValue = &Operator{}
+var _ mat.Tensor = &Operator{}
 
 func TestNewOperator(t *testing.T) {
 	t.Run("float32", testNewOperator[float32])
@@ -23,8 +23,8 @@ func TestNewOperator(t *testing.T) {
 func testNewOperator[T float.DType](t *testing.T) {
 	forwardResult := mat.Scalar[T](42)
 
-	f := &dummyFunction[T, DualValue]{
-		forward: func() (mat.Matrix, error) { return forwardResult, nil },
+	f := &dummyFunction[T, mat.Tensor]{
+		forward: func() (mat.Tensor, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f).Run()
 
@@ -35,32 +35,15 @@ func testNewOperator[T float.DType](t *testing.T) {
 	assert.Equal(t, 1, f.forwardCalls)
 }
 
-/*
-func TestOperator_Name(t *testing.T) {
-	t.Run("without generics", func(t *testing.T) {
-		op := NewOperator(&dummyFunctionFloat32{})
-		assert.Equal(t, "dummyFunctionFloat32", op.Name())
-	})
-
-	t.Run("with generics - float32", testOperatorName[float32])
-	t.Run("with generics - float64", testOperatorName[float64])
-}
-
-func testOperatorName[T float.DType](t *testing.T) {
-	op := NewOperator(&dummyFunction[T, Node]{})
-	assert.Equal(t, "dummyFunction", op.Name())
-}
-*/
-
 func TestOperator_Operands(t *testing.T) {
 	t.Run("with generics - float32", testOperatorOperands[float32])
 	t.Run("with generics - float64", testOperatorOperands[float64])
 }
 
 func testOperatorOperands[T float.DType](t *testing.T) {
-	operands := []DualValue{&dummyNode{id: 1}}
-	f := &dummyFunction[T, DualValue]{
-		operands: func() []DualValue { return operands },
+	operands := []mat.Tensor{mat.NewDense[T](mat.WithBacking([]T{1, 2, 3}))}
+	f := &dummyFunction[T, mat.Tensor]{
+		operands: func() []mat.Tensor { return operands },
 	}
 	op := NewOperator(f).Run()
 	require.Equal(t, operands, op.Operands())
@@ -75,8 +58,8 @@ func TestOperator_Value(t *testing.T) {
 func testOperatorValue[T float.DType](t *testing.T) {
 	forwardResult := mat.Scalar[T](42)
 
-	f := &dummyFunction[T, DualValue]{
-		forward: func() (mat.Matrix, error) { return forwardResult, nil },
+	f := &dummyFunction[T, mat.Tensor]{
+		forward: func() (mat.Tensor, error) { return forwardResult, nil },
 	}
 	op := NewOperator(f).Run()
 
@@ -97,16 +80,16 @@ func TestOperator_RequiresGrad(t *testing.T) {
 
 func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	t.Run("false without operands", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{}).Run()
+		op := NewOperator(&dummyFunction[T, mat.Tensor]{}).Run()
 		assert.False(t, op.RequiresGrad())
 	})
 
 	t.Run("false if no operands require grad", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{
-			operands: func() []DualValue {
-				return []DualValue{
-					&dummyNode{id: 1, requiresGrad: false},
-					&dummyNode{id: 2, requiresGrad: false},
+		op := NewOperator(&dummyFunction[T, mat.Tensor]{
+			operands: func() []mat.Tensor {
+				return []mat.Tensor{
+					mat.NewDense[T](mat.WithBacking([]T{1.0})),
+					mat.NewDense[T](mat.WithBacking([]T{2.0})),
 				}
 			},
 		}).Run()
@@ -114,11 +97,11 @@ func testOperatorRequiresGrad[T float.DType](t *testing.T) {
 	})
 
 	t.Run("true if at least one operand requires grad", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{
-			operands: func() []DualValue {
-				return []DualValue{
-					&dummyNode{id: 1, requiresGrad: false},
-					&dummyNode{id: 2, requiresGrad: true},
+		op := NewOperator(&dummyFunction[T, mat.Tensor]{
+			operands: func() []mat.Tensor {
+				return []mat.Tensor{
+					mat.NewDense[T](mat.WithBacking([]T{1.0})),
+					mat.NewDense[T](mat.WithBacking([]T{2.0}), mat.WithGrad(true)),
 				}
 			},
 		}).Run()
@@ -133,12 +116,12 @@ func TestOperator_Gradients(t *testing.T) {
 
 func testOperatorGradients[T float.DType](t *testing.T) {
 	t.Run("with requires gradient true", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{
-			forward: func() (mat.Matrix, error) {
+		op := NewOperator(&dummyFunction[T, mat.Tensor]{
+			forward: func() (mat.Tensor, error) {
 				return mat.Scalar[T](42), nil
 			},
-			operands: func() []DualValue {
-				return []DualValue{&dummyNode{requiresGrad: true}}
+			operands: func() []mat.Tensor {
+				return []mat.Tensor{mat.NewDense[T](mat.WithBacking([]T{2.0}), mat.WithGrad(true))}
 			},
 		}).Run()
 
@@ -146,11 +129,11 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 		assert.False(t, op.HasGrad())
 
 		op.AccGrad(mat.Scalar[T](5))
-		mat.RequireMatrixEquals(t, mat.Scalar[T](5), op.Grad())
+		mat.RequireMatrixEquals(t, mat.Scalar[T](5), op.Grad().(mat.Matrix))
 		assert.True(t, op.HasGrad())
 
 		op.AccGrad(mat.Scalar[T](10))
-		mat.RequireMatrixEquals(t, mat.Scalar[T](15), op.Grad())
+		mat.RequireMatrixEquals(t, mat.Scalar[T](15), op.Grad().(mat.Matrix))
 		assert.True(t, op.HasGrad())
 
 		op.ZeroGrad()
@@ -159,8 +142,8 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	})
 
 	t.Run("with requires gradient false", func(t *testing.T) {
-		op := NewOperator(&dummyFunction[T, DualValue]{
-			forward: func() (mat.Matrix, error) { return mat.Scalar[T](42), nil },
+		op := NewOperator(&dummyFunction[T, mat.Tensor]{
+			forward: func() (mat.Tensor, error) { return mat.Scalar[T](42), nil },
 		}).Run()
 
 		require.Nil(t, op.Grad())
@@ -176,15 +159,15 @@ func testOperatorGradients[T float.DType](t *testing.T) {
 	})
 }
 
-type dummyFunction[T float.DType, O DualValue] struct {
-	forward       func() (mat.Matrix, error)
-	backward      func(gy mat.Matrix) error
+type dummyFunction[T float.DType, O mat.Tensor] struct {
+	forward       func() (mat.Tensor, error)
+	backward      func(gy mat.Tensor) error
 	operands      func() []O
 	forwardCalls  int
 	backwardCalls int
 }
 
-func (f *dummyFunction[T, O]) Forward() (mat.Matrix, error) {
+func (f *dummyFunction[T, O]) Forward() (mat.Tensor, error) {
 	f.forwardCalls++
 	if f.forward == nil {
 		return mat.NewDense[T](mat.WithShape(0, 0)), nil // since nil values are not allowed
@@ -192,7 +175,7 @@ func (f *dummyFunction[T, O]) Forward() (mat.Matrix, error) {
 	return f.forward()
 }
 
-func (f *dummyFunction[T, O]) Backward(gy mat.Matrix) error {
+func (f *dummyFunction[T, O]) Backward(gy mat.Tensor) error {
 	f.backwardCalls++
 	if f.backward == nil {
 		return nil

@@ -12,7 +12,7 @@ import (
 )
 
 // MaxPooling is an operator to perform max pooling.
-type MaxPooling[O DualValue] struct {
+type MaxPooling[O mat.Tensor] struct {
 	x    O
 	rows int
 	cols int
@@ -23,7 +23,7 @@ type MaxPooling[O DualValue] struct {
 }
 
 // NewMaxPooling returns a new MaxPooling Function.
-func NewMaxPooling[O DualValue](x O, r, c int) *MaxPooling[O] {
+func NewMaxPooling[O mat.Tensor](x O, r, c int) *MaxPooling[O] {
 	return &MaxPooling[O]{
 		x:       x,
 		rows:    r,
@@ -35,13 +35,13 @@ func NewMaxPooling[O DualValue](x O, r, c int) *MaxPooling[O] {
 }
 
 // Operands returns the list of operands.
-func (r *MaxPooling[O]) Operands() []O {
-	return []O{r.x}
+func (r *MaxPooling[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x}
 }
 
 // Forward computes the output of the function.
-func (r *MaxPooling[O]) Forward() (mat.Matrix, error) {
-	xv := r.x.Value()
+func (r *MaxPooling[O]) Forward() (mat.Tensor, error) {
+	xv := r.x.Value().(mat.Matrix)
 	if !(xv.Shape()[0]%r.rows == 0 && xv.Shape()[1]%r.cols == 0) {
 		panic("fn: size mismatch")
 	}
@@ -87,14 +87,14 @@ func makeIntMatrix(indices []int) [][]int {
 }
 
 // Backward computes the backward pass.
-func (r *MaxPooling[O]) Backward(gy mat.Matrix) error {
+func (r *MaxPooling[O]) Backward(gy mat.Tensor) error {
 	if r.x.RequiresGrad() {
-		gx := r.x.Value().ZerosLike()
+		gx := r.x.Value().(mat.Matrix).ZerosLike()
 		for row := 0; row < r.y.Shape()[0]; row++ {
 			rowi := r.argmaxI[row]
 			rowj := r.argmaxJ[row]
 			for col := 0; col < r.y.Shape()[1]; col++ {
-				gx.SetScalar(gy.ScalarAt(row, col), rowi[col], rowj[col])
+				gx.SetScalar(gy.(mat.Matrix).ScalarAt(row, col), rowi[col], rowj[col])
 			}
 		}
 		r.x.AccGrad(gx)

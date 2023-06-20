@@ -11,34 +11,34 @@ import (
 )
 
 // Transpose is a Function to calculate the transpose of the matrix-operand.
-type Transpose[O DualValue] struct {
+type Transpose[O mat.Tensor] struct {
 	x O
 }
 
 // NewTranspose returns a new Transpose Function.
-func NewTranspose[O DualValue](x O) *Transpose[O] {
+func NewTranspose[O mat.Tensor](x O) *Transpose[O] {
 	return &Transpose[O]{
 		x: x,
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Transpose[O]) Operands() []O {
-	return []O{r.x}
+func (r *Transpose[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x}
 }
 
 // Forward computes the output of the node.
-func (r *Transpose[O]) Forward() (mat.Matrix, error) {
-	return r.x.Value().T(), nil
+func (r *Transpose[O]) Forward() (mat.Tensor, error) {
+	return r.x.Value().(mat.Matrix).T(), nil
 }
 
 // Backward computes the backward pass.
-func (r *Transpose[O]) Backward(gy mat.Matrix) error {
+func (r *Transpose[O]) Backward(gy mat.Tensor) error {
 	if r.x.Value().Shape()[1] != gy.Shape()[0] && r.x.Value().Shape()[0] != gy.Shape()[1] {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x.RequiresGrad() {
-		gx := gy.T()
+		gx := gy.(mat.Matrix).T()
 		r.x.AccGrad(gx)
 	}
 	return nil

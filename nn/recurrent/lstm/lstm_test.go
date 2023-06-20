@@ -5,13 +5,13 @@
 package lstm
 
 import (
-	"github.com/nlpodyssey/spago/mat/rand"
 	"testing"
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/losses"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
+	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/stretchr/testify/assert"
 )
 

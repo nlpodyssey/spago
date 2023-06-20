@@ -118,7 +118,7 @@ func (o *SGD[T]) OptimizeParams(param *nn.Param) error {
 		return fmt.Errorf("unsupported state type: %T, expected %T", param.State, &State{})
 	}
 
-	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.SubInPlace(o.calculateParamUpdate(param.Grad().(mat.Matrix), state))
 	param.ZeroGrad()
 
 	return nil

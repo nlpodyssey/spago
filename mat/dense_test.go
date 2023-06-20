@@ -106,13 +106,13 @@ func testDenseScalar[T float.DType](t *testing.T) {
 	t.Run("non-scalar matrix", func(t *testing.T) {
 		d := NewDense[T](WithShape(1, 2))
 		require.Panics(t, func() {
-			d.Scalar()
+			d.Item()
 		})
 	})
 
 	t.Run("scalar matrix", func(t *testing.T) {
 		d := Scalar(T(42))
-		require.Equal(t, float.Interface(T(42)), d.Scalar())
+		require.Equal(t, float.Interface(T(42)), d.Item())
 	})
 }
 
@@ -282,7 +282,7 @@ func testDenseAt[T float.DType](t *testing.T) {
 				return T(c + 1 + (r+1)*10)
 			})))
 			v := d.At(tc.atR, tc.atC)
-			assert.Equal(t, float.Interface(tc.v), v.Scalar())
+			assert.Equal(t, float.Interface(tc.v), v.Item())
 		})
 	}
 }
@@ -540,7 +540,7 @@ func testDenseAtVec[T float.DType](t *testing.T) {
 				return T(r + 1)
 			})))
 			v := d.At(tc.i)
-			assert.Equal(t, float.Interface(tc.v), v.Scalar())
+			assert.Equal(t, float.Interface(tc.v), v.Item())
 		})
 
 		t.Run(fmt.Sprintf("row vector size %d set %d", tc.size, tc.i), func(t *testing.T) {
@@ -548,7 +548,7 @@ func testDenseAtVec[T float.DType](t *testing.T) {
 				return T(c + 1)
 			})))
 			v := d.At(tc.i)
-			assert.Equal(t, float.Interface(tc.v), v.Scalar())
+			assert.Equal(t, float.Interface(tc.v), v.Item())
 		})
 	}
 }
@@ -1239,7 +1239,7 @@ func testDenseTransposeInPlace[T float.DType](t *testing.T) {
 		{0, 1, []T{}},
 		{1, 0, []T{}},
 
-		// Scalar
+		// Item
 		{1, 1, []T{11}},
 
 		// Vectors

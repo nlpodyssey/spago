@@ -9,7 +9,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
@@ -68,11 +67,11 @@ func (m *Model) Embedding(idx int) (*Embedding, error) {
 
 // Encode returns the embedding values associated with the input indices.
 // It returns an error if one of the input elements is out of range.
-func (m *Model) Encode(input []int) ([]ag.DualValue, error) {
+func (m *Model) Encode(input []int) ([]mat.Tensor, error) {
 	if err := m.checkInput(input); err != nil {
 		return nil, err
 	}
-	encoded := make([]ag.DualValue, len(input))
+	encoded := make([]mat.Tensor, len(input))
 	for i, idx := range input {
 		encoded[i] = &Embedding{
 			Param: m.Weights[idx],
@@ -84,7 +83,7 @@ func (m *Model) Encode(input []int) ([]ag.DualValue, error) {
 }
 
 // MustEncode returns the embedding values associated with the input indices.
-func (m *Model) MustEncode(input []int) []ag.DualValue {
+func (m *Model) MustEncode(input []int) []mat.Tensor {
 	encoded, err := m.Encode(input)
 	if err != nil {
 		log.Fatal(err)

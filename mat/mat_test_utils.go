@@ -26,7 +26,7 @@ type T interface {
 //
 // The expected matrix is not allowed to be nil, otherwise the function always
 // produces an error.
-func AssertMatrixEquals(t T, expected, actual Matrix, args ...any) bool {
+func AssertMatrixEquals(t T, expected, actual Tensor, args ...any) bool {
 	t.Helper()
 	if expected == nil {
 		t.Error("the expected matrix must not be nil")

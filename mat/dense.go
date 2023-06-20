@@ -6,6 +6,7 @@ package mat
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"sync"
 
@@ -23,16 +24,16 @@ type Dense[T float.DType] struct {
 	data         []T
 	grad         *Dense[T]
 	shape        []int
-	requiresGrad bool
+	requiresGrad bool // default: false
 }
 
 // makeDense returns a Dense matrix.
-func makeDense[T float.DType](rows, cols int, array []T) *Dense[T] {
-	if rows < 0 || cols < 0 {
-		panic("mat: negative values for rows and cols are not allowed")
+func makeDense[T float.DType](array []T, shape ...int) *Dense[T] {
+	if len(array) != calculateSize(shape) {
+		log.Fatal(fmt.Sprintf("mat: incompatible size, expected %d, actual %d", calculateSize(shape), len(array)))
 	}
 	return &Dense[T]{
-		shape: []int{rows, cols},
+		shape: shape,
 		data:  array,
 	}
 }
@@ -82,7 +83,7 @@ func (d *Dense[T]) ZerosLike() Matrix {
 // receiver, initialized with ones.
 func (d *Dense[T]) OnesLike() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	data := out.data // avoid bounds check in loop
 	for i := range data {
 		data[i] = 1.0
@@ -92,7 +93,7 @@ func (d *Dense[T]) OnesLike() Matrix {
 
 // Scalar returns the scalar value.
 // It panics if the matrix does not contain exactly one element.
-func (d *Dense[T]) Scalar() float.Float {
+func (d *Dense[T]) Item() float.Float {
 	if !IsScalar(d) {
 		panic("mat: expected scalar but the matrix contains more elements")
 	}
@@ -110,7 +111,7 @@ func (d *Dense[T]) Zeros() {
 // SetAt sets the value m at the given indices.
 // It panics if the given indices are out of range.
 func (d *Dense[T]) SetAt(m Matrix, indices ...int) {
-	d.set(float.ValueOf[T](m.Scalar()), indices...)
+	d.set(float.ValueOf[T](m.Item()), indices...)
 }
 
 // At returns the value at the given indices.
@@ -188,7 +189,7 @@ func (d *Dense[T]) ExtractRow(i int) Matrix {
 		panic("mat: index out of range")
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](1, d.shape[1], malloc[T](d.shape[1]))
+	out := makeDense[T](malloc[T](d.shape[1]), 1, d.shape[1])
 	start := i * d.shape[1]
 	copy(out.data, d.data[start:start+d.shape[1]])
 	return out
@@ -201,7 +202,7 @@ func (d *Dense[T]) ExtractColumn(i int) Matrix {
 		panic("mat: index out of range")
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], 1, malloc[T](d.shape[0]))
+	out := makeDense[T](malloc[T](d.shape[0]), d.shape[0], 1)
 	dData := d.data
 	outData := out.data
 	for k := range outData {
@@ -222,7 +223,7 @@ func (d *Dense[T]) Slice(fromRow, fromCol, toRow, toCol int) Matrix {
 	}
 
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	y := makeDense[T](toRow-fromRow, toCol-fromCol, malloc[T]((toRow-fromRow)*(toCol-fromCol)))
+	y := makeDense[T](malloc[T]((toRow-fromRow)*(toCol-fromCol)), toRow-fromRow, toCol-fromCol)
 
 	if fromCol == 0 && toCol == dCols {
 		copy(y.data, d.data[fromRow*dCols:toRow*dCols])
@@ -286,7 +287,7 @@ func (d *Dense[T]) ReshapeInPlace(shape ...int) Matrix {
 // "flattened" row-major ordered representation of the initial matrix.
 func (d *Dense[T]) Flatten() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](1, len(d.data), malloc[T](len(d.data)))
+	out := makeDense[T](malloc[T](len(d.data)), 1, len(d.data))
 	copy(out.data, d.data)
 	return out
 }
@@ -329,7 +330,7 @@ func (d *Dense[T]) T() Matrix {
 	dCols := d.shape[1]
 
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	m := makeDense[T](dCols, dRows, malloc[T](dCols*dRows))
+	m := makeDense[T](malloc[T](dCols*dRows), dCols, dRows)
 	if IsVector(d) {
 		copy(m.data, d.data)
 		return m
@@ -450,7 +451,7 @@ func (d *Dense[T]) AddInPlace(other Matrix) Matrix {
 // AddScalar performs the addition between the matrix and the given value.
 func (d *Dense[T]) AddScalar(n float64) Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	switch any(T(0)).(type) {
 	case float32:
 		matfuncs.AddConst32(float32(n), any(d.data).([]float32), any(out.data).([]float32))
@@ -517,7 +518,7 @@ func (d *Dense[T]) SubInPlace(other Matrix) Matrix {
 // SubScalar performs a subtraction between the matrix and the given value.
 func (d *Dense[T]) SubScalar(n float64) Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	switch any(T(0)).(type) {
 	case float32:
 		matfuncs.AddConst32(float32(-n), any(d.data).([]float32), any(out.data).([]float32))
@@ -551,7 +552,7 @@ func (d *Dense[T]) Prod(other Matrix) Matrix {
 	}
 
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 
 	// Avoid bounds checks in loop
 	dData := d.data
@@ -691,7 +692,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 	case float32:
 		otherData := float32Data(other)
 		if outCols != 1 {
-			out := makeDense[float32](outRows, outCols, malloc[float32](outRows*outCols))
+			out := makeDense[float32](malloc[float32](outRows*outCols), outRows, outCols)
 			f32.MatrixMul(
 				d.shape[0],                // aRows
 				d.shape[1],                // aCols
@@ -704,7 +705,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 		}
 
 		// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-		out := makeDense[float32](outRows, outCols, malloc[float32](outRows*outCols))
+		out := makeDense[float32](malloc[float32](outRows*outCols), outRows, outCols)
 		dData := any(d.data).([]float32)
 		outData := any(out.data).([]float32)
 
@@ -717,7 +718,7 @@ func (d *Dense[T]) Mul(other Matrix) Matrix {
 		}
 		return out
 	case float64:
-		out := makeDense[float64](outRows, outCols, malloc[float64](outRows*outCols))
+		out := makeDense[float64](malloc[float64](outRows*outCols), outRows, outCols)
 		otherData := float64Data(other)
 		if outCols != 1 {
 			f64.MatrixMul(
@@ -766,7 +767,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 
 	switch any(T(0)).(type) {
 	case float32:
-		out := makeDense[float32](d.shape[1], otherCols, malloc[float32](d.shape[1]*otherCols))
+		out := makeDense[float32](malloc[float32](d.shape[1]*otherCols), d.shape[1], otherCols)
 		otherData := float32Data(other)
 
 		dCols := d.shape[1]
@@ -781,7 +782,7 @@ func (d *Dense[T]) MulT(other Matrix) Matrix {
 		}
 		return out
 	case float64:
-		out := makeDense[float64](d.shape[1], otherCols, malloc[float64](d.shape[1]*otherCols))
+		out := makeDense[float64](malloc[float64](d.shape[1]*otherCols), d.shape[1], otherCols)
 		otherData := float64Data(other)
 
 		dCols := d.shape[1]
@@ -846,7 +847,7 @@ func (d *Dense[T]) Maximum(other Matrix) Matrix {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -873,7 +874,7 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 		panic("mat: matrices have incompatible dimensions")
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -897,7 +898,7 @@ func (d *Dense[T]) Minimum(other Matrix) Matrix {
 // Abs returns a new matrix applying the absolute value function to all elements.
 func (d *Dense[T]) Abs() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -914,7 +915,7 @@ func (d *Dense[T]) Abs() Matrix {
 // to all elements of the matrix.
 func (d *Dense[T]) Pow(power float64) Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	dData := d.data
 	if len(dData) == 0 {
 		return out
@@ -930,7 +931,7 @@ func (d *Dense[T]) Pow(power float64) Matrix {
 // Sqrt returns a new matrix applying the square root function to all elements.
 func (d *Dense[T]) Sqrt() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	inData := d.data
 	lastIndex := len(inData) - 1
 	if lastIndex < 0 {
@@ -947,7 +948,7 @@ func (d *Dense[T]) Sqrt() Matrix {
 // Log returns a new matrix applying the natural logarithm function to each element.
 func (d *Dense[T]) Log() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	outData := out.data
 	if len(outData) == 0 {
 		return out
@@ -967,7 +968,7 @@ func (d *Dense[T]) Log() Matrix {
 // Exp returns a new matrix applying the base-e exponential function to each element.
 func (d *Dense[T]) Exp() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	outData := out.data
 	if len(outData) == 0 {
 		return out
@@ -1119,7 +1120,7 @@ func (d *Dense[T]) CumSum() Matrix {
 	}
 
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](len(d.data), 1, malloc[T](len(d.data)))
+	out := makeDense[T](malloc[T](len(d.data)), len(d.data), 1)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1262,7 +1263,7 @@ func (d *Dense[T]) PadColumns(n int) Matrix {
 func (d *Dense[T]) AppendRows(vs ...Matrix) Matrix {
 	cols := d.shape[1]
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0]+len(vs), cols, malloc[T]((d.shape[0]+len(vs))*cols))
+	out := makeDense[T](malloc[T]((d.shape[0]+len(vs))*cols), d.shape[0]+len(vs), cols)
 	dData := d.data
 	outData := out.data
 	copy(outData[:len(dData)], dData)
@@ -1310,7 +1311,7 @@ func (d *Dense[T]) Normalize2() Matrix {
 // Apply creates a new matrix executing the unary function fn.
 func (d *Dense[T]) Apply(fn func(r, c int, v float64) float64) Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1363,7 +1364,7 @@ func (d *Dense[T]) ApplyInPlace(fn func(r, c int, v float64) float64, a Matrix) 
 // taking additional alpha.
 func (d *Dense[T]) ApplyWithAlpha(fn func(r, c int, v float64, alpha ...float64) float64, alpha ...float64) Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	if len(d.data) == 0 {
 		return out
 	}
@@ -1433,7 +1434,7 @@ func (d *Dense[T]) DoVecNonZero(fn func(i int, v float64)) {
 // Clone returns a new matrix, copying all its values from the receiver.
 func (d *Dense[T]) Clone() Matrix {
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](d.shape[0], d.shape[1], malloc[T](d.shape[0]*d.shape[1]))
+	out := makeDense[T](malloc[T](d.Size()), d.shape...)
 	copy(out.data, d.data)
 	return out
 }

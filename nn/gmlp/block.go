@@ -6,8 +6,8 @@ package gmlp
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/ag"
 
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -52,6 +52,6 @@ func NewBlock[T float.DType](config BlockConfig) *Block {
 	}
 }
 
-func (m *Block) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Block) Forward(xs ...mat.Tensor) []mat.Tensor {
 	return m.Layers.Forward(xs...)
 }

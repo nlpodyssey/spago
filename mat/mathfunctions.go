@@ -98,7 +98,7 @@ func IsInf[T float.DType](f T, sign int) bool {
 	return math.IsInf(float64(f), sign)
 }
 
-// NaN returns an IEEE 754 ``not-a-number'' value.
+// NaN returns an IEEE 754 “not-a-number” value.
 func NaN[T float.DType]() T {
 	return T(math.NaN())
 }

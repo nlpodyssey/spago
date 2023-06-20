@@ -48,7 +48,7 @@ func TestNewScalarGrad(t *testing.T) {
 func testNewScalarGrad[T float.DType](t *testing.T) {
 	v := Scalar(T(42))
 	require.NotNil(t, v)
-	AssertMatrixEquals(t, Scalar[T](42), v.Value())
+	AssertMatrixEquals(t, Scalar[T](42), v.Value().(Matrix))
 	assert.Nil(t, v.Grad())
 	assert.False(t, v.HasGrad())
 	assert.False(t, v.RequiresGrad())
@@ -66,11 +66,11 @@ func testDenseGradients[T float.DType](t *testing.T) {
 		assert.False(t, v.HasGrad())
 
 		v.AccGrad(Scalar[T](5))
-		RequireMatrixEquals(t, Scalar[T](5), v.Grad())
+		RequireMatrixEquals(t, Scalar[T](5), v.Grad().(Matrix))
 		assert.True(t, v.HasGrad())
 
 		v.AccGrad(Scalar[T](10))
-		RequireMatrixEquals(t, Scalar[T](15), v.Grad())
+		RequireMatrixEquals(t, Scalar[T](15), v.Grad().(Matrix))
 		assert.True(t, v.HasGrad())
 
 		v.ZeroGrad()

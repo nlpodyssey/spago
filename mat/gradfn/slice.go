@@ -11,7 +11,7 @@ import (
 )
 
 // Slice is a function to extract a portion of a matrix.
-type Slice[O DualValue] struct {
+type Slice[O mat.Tensor] struct {
 	x       O
 	fromRow int
 	fromCol int
@@ -20,7 +20,7 @@ type Slice[O DualValue] struct {
 }
 
 // NewSlice returns a new Slice Function.
-func NewSlice[O DualValue](x O, fromRow, fromCol, toRow, toCol int) *Slice[O] {
+func NewSlice[O mat.Tensor](x O, fromRow, fromCol, toRow, toCol int) *Slice[O] {
 	return &Slice[O]{
 		x:       x,
 		fromRow: fromRow,
@@ -31,27 +31,27 @@ func NewSlice[O DualValue](x O, fromRow, fromCol, toRow, toCol int) *Slice[O] {
 }
 
 // Operands returns the list of operands.
-func (s *Slice[O]) Operands() []O {
-	return []O{s.x}
+func (s *Slice[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{s.x}
 }
 
 // Forward computes the output of the function.
-func (s *Slice[O]) Forward() (mat.Matrix, error) {
-	return s.x.Value().Slice(s.fromRow, s.fromCol, s.toRow, s.toCol), nil
+func (s *Slice[O]) Forward() (mat.Tensor, error) {
+	return s.x.Value().(mat.Matrix).Slice(s.fromRow, s.fromCol, s.toRow, s.toCol), nil
 }
 
 // Backward computes the backward pass.
-func (s *Slice[O]) Backward(gy mat.Matrix) error {
+func (s *Slice[O]) Backward(gy mat.Tensor) error {
 	lx := s.toRow - s.fromRow
 	ly := s.toCol - s.fromCol
 	if !(gy.Shape()[0] == lx && gy.Shape()[1] == ly) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if s.x.RequiresGrad() {
-		gx := s.x.Value().ZerosLike()
+		gx := s.x.Value().(mat.Matrix).ZerosLike()
 		for i := 0; i < lx; i++ {
 			for j := 0; j < ly; j++ {
-				gx.SetScalar(gy.ScalarAt(i, j), i+s.fromRow, j+s.fromCol)
+				gx.SetScalar(gy.(mat.Matrix).ScalarAt(i, j), i+s.fromRow, j+s.fromCol)
 			}
 		}
 		s.x.AccGrad(gx)

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Activation is the enumeration-like type used for the set of built-in activations.
@@ -68,8 +69,8 @@ var activationsMap = map[Activation]string{
 	SparseMax:   "SparseMax",
 }
 
-var activationFunctions = map[Activation]func(x ag.DualValue) ag.DualValue{
-	Identity:    func(x ag.DualValue) ag.DualValue { return x },
+var activationFunctions = map[Activation]func(x mat.Tensor) mat.Tensor{
+	Identity:    func(x mat.Tensor) mat.Tensor { return x },
 	Tan:         ag.Tan,
 	Tanh:        ag.Tanh,
 	Sigmoid:     ag.Sigmoid,

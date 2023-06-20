@@ -11,13 +11,13 @@ import (
 )
 
 // ProdScalar is an operator to perform element-wise product with a scalar value.
-type ProdScalar[O DualValue] struct {
+type ProdScalar[O mat.Tensor] struct {
 	x1 O
 	x2 O // scalar
 }
 
 // NewProdScalar returns a new ProdScalar Function.
-func NewProdScalar[O DualValue](x1 O, x2 O) *ProdScalar[O] {
+func NewProdScalar[O mat.Tensor](x1 O, x2 O) *ProdScalar[O] {
 	return &ProdScalar[O]{
 		x1: x1,
 		x2: x2,
@@ -25,26 +25,26 @@ func NewProdScalar[O DualValue](x1 O, x2 O) *ProdScalar[O] {
 }
 
 // Operands returns the list of operands.
-func (r *ProdScalar[O]) Operands() []O {
-	return []O{r.x1, r.x2}
+func (r *ProdScalar[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x1, r.x2}
 }
 
 // Forward computes the output of the node.
-func (r *ProdScalar[O]) Forward() (mat.Matrix, error) {
-	return r.x1.Value().ProdScalar(r.x2.Value().Scalar().F64()), nil
+func (r *ProdScalar[O]) Forward() (mat.Tensor, error) {
+	return r.x1.Value().(mat.Matrix).ProdScalar(r.x2.Value().Item().F64()), nil
 }
 
 // Backward computes the backward pass.
-func (r *ProdScalar[O]) Backward(gy mat.Matrix) error {
+func (r *ProdScalar[O]) Backward(gy mat.Tensor) error {
 	if !mat.SameDims(r.x1.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if r.x1.RequiresGrad() {
-		gx := gy.ProdScalar(r.x2.Value().Scalar().F64())
+		gx := gy.(mat.Matrix).ProdScalar(r.x2.Value().Item().F64())
 		r.x1.AccGrad(gx)
 	}
 	if r.x2.RequiresGrad() {
-		prod := gy.Prod(r.x1.Value())
+		prod := gy.(mat.Matrix).Prod(r.x1.Value().(mat.Matrix))
 		gx := prod.Sum()
 		r.x2.AccGrad(gx)
 	}

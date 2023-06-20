@@ -11,6 +11,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
@@ -67,17 +68,17 @@ func New[T float.DType](config Config) *Model {
 func (m *Model) Initialize(seed uint64) {
 	r := rand.NewLockedRand(seed)
 	eps := m.Config.InitEps / float64(m.Config.DimSeq)
-	initializers.Uniform(m.Proj.W.Value(), -eps, eps, r)
-	initializers.Constant(m.Proj.B.Value(), 1)
+	initializers.Uniform(m.Proj.W.Value().(mat.Matrix), -eps, eps, r)
+	initializers.Constant(m.Proj.B.Value().(mat.Matrix), 1)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	size := xs[0].Value().Size()
 	halfSize := size / 2
 
-	res := make([]ag.DualValue, len(xs))
-	gate := make([]ag.DualValue, len(xs))
+	res := make([]mat.Tensor, len(xs))
+	gate := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		res[i] = ag.Slice(x, 0, 0, halfSize, 1)
 		gate[i] = ag.Slice(x, halfSize, 0, size, 1)
@@ -90,7 +91,7 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 		gate = m.Act.Forward(gate...)
 	}
 
-	y := make([]ag.DualValue, len(gate))
+	y := make([]mat.Tensor, len(gate))
 	for i := range y {
 		y[i] = ag.Prod(gate[i], res[i])
 	}

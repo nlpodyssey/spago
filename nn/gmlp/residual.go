@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -31,9 +32,9 @@ func NewResidual(preNorm *PreNorm) *Residual {
 }
 
 // Forward performs the forward step.
-func (m *Residual) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Residual) Forward(xs ...mat.Tensor) []mat.Tensor {
 	pns := m.PreNorm.Forward(xs...)
-	ys := make([]ag.DualValue, len(pns))
+	ys := make([]mat.Tensor, len(pns))
 	for i, pn := range pns {
 		ys[i] = ag.Add(pn, xs[i])
 	}

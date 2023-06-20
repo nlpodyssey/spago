@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 
 	"github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 var (
@@ -64,11 +65,11 @@ const (
 // It's used to define a new operator.
 type AutoGradFunction interface {
 	// Forward computes the output of the function.
-	Forward() (mat.Matrix, error)
+	Forward() (mat.Tensor, error)
 	// Backward computes the backward pass given the gradient of the output.
-	Backward(gy mat.Matrix) error
+	Backward(gy mat.Tensor) error
 	// Operands returns the list of operands.
-	Operands() []DualValue
+	Operands() []mat.Tensor
 }
 
 // forwardGuard is a buffered channel that acts as a semaphore to limit the concurrency
@@ -91,11 +92,11 @@ type Operator struct {
 	// It's set by executeForward() goroutine.
 	// Use the Value() method to get the actual value.
 	// It also contains the accumulated gradients. Use the Grad() method to get them.
-	value mat.Matrix
+	value mat.Tensor
 	// onceOperands is used to initialize the operands only once.
 	onceOperands sync.Once
 	// AutoGradFunction's operands are memoized here after the first request.
-	operands []DualValue
+	operands []mat.Tensor
 	// backwardPass is the backward function to be executed.
 	fn AutoGradFunction
 	// broadcast is the channel used to broadcast the result of the forward pass.
@@ -155,15 +156,19 @@ func (o *Operator) executeForward() {
 }
 
 // Value returns the result of the function.
-func (o *Operator) Value() mat.Matrix {
+func (o *Operator) Value() mat.Tensor {
 	if o.broadcast != nil { // if nil, it means that the operator is not async
 		<-o.broadcast // wait for the forward goroutine to finish
 	}
 	return o.value
 }
 
+func (o *Operator) Item() float.Float {
+	return o.Value().Item()
+}
+
 // Grad returns the gradients accumulated during the backward pass.
-func (o *Operator) Grad() mat.Matrix {
+func (o *Operator) Grad() mat.Tensor {
 	if o.isBackwardIdle() || atomic.LoadInt64(&o.pendingGrads) == 0 {
 		return o.Value().Grad()
 	}
@@ -183,7 +188,7 @@ func (o *Operator) RequiresGrad() bool {
 		for _, op := range o.Operands() {
 			if op.RequiresGrad() {
 				o.requiresGrad = true // memoize the result
-				o.Value().SetRequiresGrad(true)
+				o.Value().(mat.Matrix).SetRequiresGrad(true)
 				return
 			}
 		}
@@ -192,7 +197,7 @@ func (o *Operator) RequiresGrad() bool {
 }
 
 // Operands returns the operands of the operator.
-func (o *Operator) Operands() []DualValue {
+func (o *Operator) Operands() []mat.Tensor {
 	o.onceOperands.Do(func() {
 		o.operands = o.fn.Operands() // memoize the result
 	})
@@ -207,7 +212,7 @@ func (o *Operator) ZeroGrad() {
 }
 
 // AccGrad accumulates the gradients to the node itself.
-func (o *Operator) AccGrad(grad mat.Matrix) {
+func (o *Operator) AccGrad(grad mat.Tensor) {
 	o.Value().AccGrad(grad)
 
 	// Don't decrement the counter if the backward pass is not running.
@@ -225,7 +230,7 @@ func (o *Operator) assignOutputGradient() error {
 	}
 
 	if o.Value().Size() == 1 {
-		o.AccGrad(o.Value().NewScalar(1.))
+		o.AccGrad(o.Value().(mat.Matrix).NewScalar(1.))
 		return nil
 	}
 
@@ -298,7 +303,7 @@ func (o *Operator) trySetBackwardOngoing() bool {
 }
 
 // isNil returns true if the gradients are nil.
-func isNil(grad mat.Matrix) bool {
+func isNil(grad any) bool {
 	if grad == nil || reflect.ValueOf(grad).IsNil() {
 		return true
 	}

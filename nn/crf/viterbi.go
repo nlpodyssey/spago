@@ -7,7 +7,6 @@ package crf
 import (
 	"math"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 )
@@ -29,11 +28,11 @@ func NewViterbiStructure(size int) *ViterbiStructure {
 }
 
 // Viterbi decodes the xs sequence according to the transitionMatrix.
-func Viterbi(transitionMatrix mat.Matrix, xs []ag.DualValue) []int {
+func Viterbi(transitionMatrix mat.Matrix, xs []mat.Tensor) []int {
 	alpha := make([]*ViterbiStructure, len(xs)+1)
-	alpha[0] = viterbiStepStart(transitionMatrix, xs[0].Value())
+	alpha[0] = viterbiStepStart(transitionMatrix, xs[0].Value().(mat.Matrix))
 	for i := 1; i < len(xs); i++ {
-		alpha[i] = viterbiStep(transitionMatrix, alpha[i-1].scores, xs[i].Value())
+		alpha[i] = viterbiStep(transitionMatrix, alpha[i-1].scores, xs[i].Value().(mat.Matrix))
 	}
 	alpha[len(xs)] = viterbiStepEnd(transitionMatrix, alpha[len(xs)-1].scores)
 

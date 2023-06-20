@@ -6,10 +6,10 @@ package mat_test
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat"
 	"strings"
 	"testing"
 
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/stretchr/testify/assert"
 )

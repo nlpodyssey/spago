@@ -25,7 +25,7 @@ type Model struct {
 
 // State represent a state of the SRN recurrent network.
 type State struct {
-	Y ag.DualValue
+	Y mat.Tensor
 }
 
 func init() {
@@ -41,8 +41,8 @@ func New[T float.DType](in, out int) *Model {
 	}
 }
 
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -54,10 +54,10 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 // Next performs a single forward step, producing a new state.
 //
 // y = tanh(w (dot) x + b + wRec (dot) yPrev)
-func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
+func (m *Model) Next(state *State, x mat.Tensor) (s *State) {
 	s = new(State)
 
-	var yPrev ag.DualValue = nil
+	var yPrev mat.Tensor = nil
 	if state != nil {
 		yPrev = state.Y
 	}

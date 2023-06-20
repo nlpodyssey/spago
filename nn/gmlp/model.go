@@ -8,9 +8,9 @@ package gmlp
 
 import (
 	"encoding/gob"
-	"github.com/nlpodyssey/spago/mat"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -62,15 +62,15 @@ func New[T float.DType](config Config) *Model {
 }
 
 // Forward performs the forward step. It adds pads if necessary.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	if len(xs) > m.Config.SeqLen {
 		panic("gMLP: input sequence is too long")
 	}
 	if len(xs) == 0 {
 		return nil
 	}
-	padded := ag.Pad(xs, m.Config.SeqLen, func(int) ag.DualValue {
-		return xs[0].Value().NewMatrix(mat.WithShape(m.Config.Dim))
+	padded := ag.Pad(xs, m.Config.SeqLen, func(int) mat.Tensor {
+		return xs[0].Value().(mat.Matrix).NewMatrix(mat.WithShape(m.Config.Dim))
 	})
 	return m.Layers.Forward(padded...)
 }

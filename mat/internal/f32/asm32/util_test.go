@@ -138,7 +138,8 @@ const minNormalFloat64 = 0x1p-1022
 
 // EqualWithinRel returns true when the difference between a and b
 // is not greater than tol times the greater absolute value of a and b,
-//  abs(a-b) <= tol * max(abs(a), abs(b)).
+//
+//	abs(a-b) <= tol * max(abs(a), abs(b)).
 func EqualWithinRel(a, b, tol float64) bool {
 	if a == b {
 		return true

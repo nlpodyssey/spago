@@ -7,7 +7,7 @@ package nn
 import (
 	"context"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Model is implemented by all neural network architectures.
@@ -96,20 +96,20 @@ func ZeroGrad(m Model) {
 	})
 }
 
-// StandardModel consists of a model that implements a Forward variadic function that accepts ag.DualValue and returns a slice of ag.DualValue.
+// StandardModel consists of a model that implements a Forward variadic function that accepts mat.Tensor and returns a slice of mat.Tensor.
 // It is called StandardModel since this is the most frequent forward method among all implemented neural models.
 type StandardModel interface {
 	Model
 
 	// Forward executes the forward step of the model.
-	Forward(...ag.DualValue) []ag.DualValue
+	Forward(...mat.Tensor) []mat.Tensor
 }
 
 type ModuleList[T StandardModel] []T
 
 // Forward operates on a slice of StandardModel connecting outputs to inputs sequentially for each module following,
 // finally returning its output.
-func (ml ModuleList[T]) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (ml ModuleList[T]) Forward(xs ...mat.Tensor) []mat.Tensor {
 	for _, m := range ml {
 		xs = m.Forward(xs...)
 	}

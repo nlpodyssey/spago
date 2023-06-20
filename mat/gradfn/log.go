@@ -11,35 +11,35 @@ import (
 )
 
 // Log is an operator to perform element-wise natural logarithm function.
-type Log[O DualValue] struct {
+type Log[O mat.Tensor] struct {
 	x O
 }
 
 // NewLog returns a new Log Function.
-func NewLog[O DualValue](x O) *Log[O] {
+func NewLog[O mat.Tensor](x O) *Log[O] {
 	return &Log[O]{
 		x: x,
 	}
 }
 
 // Operands returns the list of operands.
-func (l *Log[O]) Operands() []O {
-	return []O{l.x}
+func (l *Log[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{l.x}
 }
 
 // Forward computes the output of the function.
-func (l *Log[O]) Forward() (mat.Matrix, error) {
-	return l.x.Value().Log(), nil
+func (l *Log[O]) Forward() (mat.Tensor, error) {
+	return l.x.Value().(mat.Matrix).Log(), nil
 }
 
 // Backward computes the backward pass.
-func (l *Log[O]) Backward(gy mat.Matrix) error {
+func (l *Log[O]) Backward(gy mat.Tensor) error {
 	if !mat.SameDims(l.x.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if l.x.RequiresGrad() {
-		gx := l.x.Value().Apply(safeLogDeriv)
-		gx.ProdInPlace(gy)
+		gx := l.x.Value().(mat.Matrix).Apply(safeLogDeriv)
+		gx.ProdInPlace(gy.(mat.Matrix))
 		l.x.AccGrad(gx)
 	}
 	return nil

@@ -173,12 +173,12 @@ func (o *Adam) OptimizeParams(param *nn.Param) error {
 	}
 
 	if o.adamw {
-		param.SubInPlace(o.calculateParamUpdateW(param.Grad(), state, param.Value()))
+		param.SubInPlace(o.calculateParamUpdateW(param.Grad().(mat.Matrix), state, param.Value().(mat.Matrix)))
 		param.ZeroGrad()
 		return nil
 	}
 
-	param.SubInPlace(o.calculateParamUpdate(param.Grad(), state))
+	param.SubInPlace(o.calculateParamUpdate(param.Grad().(mat.Matrix), state))
 	param.ZeroGrad()
 
 	return nil

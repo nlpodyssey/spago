@@ -5,12 +5,12 @@
 package mat
 
 // Value returns the value of the Matrix itself.
-func (d *Dense[T]) Value() Matrix {
+func (d *Dense[T]) Value() Tensor {
 	return d
 }
 
 // Grad returns the gradients accumulated during the backward pass.
-func (d *Dense[T]) Grad() Matrix {
+func (d *Dense[T]) Grad() Tensor {
 	d.gradMu.RLock()
 	defer d.gradMu.RUnlock()
 	return d.grad
@@ -18,14 +18,14 @@ func (d *Dense[T]) Grad() Matrix {
 
 // AccGrad accumulates the gradients.
 // It accumulates the gradients even if the requiresGrad flag is false.
-func (d *Dense[T]) AccGrad(grad Matrix) {
+func (d *Dense[T]) AccGrad(grad Tensor) {
 	d.gradMu.Lock()
 	defer d.gradMu.Unlock()
 	if d.grad == nil {
-		d.grad = grad.Clone().(*Dense[T])
+		d.grad = grad.(Matrix).Clone().(*Dense[T])
 		return
 	}
-	d.grad.AddInPlace(grad)
+	d.grad.AddInPlace(grad.(Matrix))
 }
 
 // HasGrad reports whether there are accumulated gradients.

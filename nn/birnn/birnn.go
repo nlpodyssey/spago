@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -52,9 +53,9 @@ func New(positive, negative nn.StandardModel, merge MergeType) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	var pos []ag.DualValue
-	var neg []ag.DualValue
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	var pos []mat.Tensor
+	var neg []mat.Tensor
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -66,15 +67,15 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 		neg = m.Negative.Forward(reversed(xs)...)
 	}()
 	wg.Wait()
-	out := make([]ag.DualValue, len(pos))
+	out := make([]mat.Tensor, len(pos))
 	for i := range out {
 		out[i] = m.merge(pos[i], neg[len(out)-1-i])
 	}
 	return out
 }
 
-func reversed(ns []ag.DualValue) []ag.DualValue {
-	r := make([]ag.DualValue, len(ns))
+func reversed(ns []mat.Tensor) []mat.Tensor {
+	r := make([]mat.Tensor, len(ns))
 	copy(r, ns)
 	for i := 0; i < len(r)/2; i++ {
 		j := len(r) - i - 1
@@ -83,7 +84,7 @@ func reversed(ns []ag.DualValue) []ag.DualValue {
 	return r
 }
 
-func (m *Model) merge(a, b ag.DualValue) ag.DualValue {
+func (m *Model) merge(a, b mat.Tensor) mat.Tensor {
 	switch m.MergeMode {
 	case Concat:
 		return ag.Concat(a, b)
@@ -92,7 +93,7 @@ func (m *Model) merge(a, b ag.DualValue) ag.DualValue {
 	case Prod:
 		return ag.Prod(a, b)
 	case Avg:
-		return ag.ProdScalar(ag.Add(a, b), a.Value().NewScalar(0.5))
+		return ag.ProdScalar(ag.Add(a, b), a.Value().(mat.Matrix).NewScalar(0.5))
 	default:
 		panic("birnn: invalid merge mode")
 	}

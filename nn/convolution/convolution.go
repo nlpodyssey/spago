@@ -6,10 +6,11 @@ package convolution
 
 import (
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // Conv1D performs a 1D convolution.
-func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
+func Conv1D(w, x mat.Tensor, stride int) mat.Tensor {
 	var dim int
 	wr, wc := w.Value().Shape()[0], w.Value().Shape()[1]
 	xr, xc := x.Value().Shape()[0], x.Value().Shape()[1]
@@ -20,7 +21,7 @@ func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 		panic("Incompatible stride value for rows")
 	}
 	dim = (xc-wc)/stride + 1
-	ys := make([]ag.DualValue, dim)
+	ys := make([]mat.Tensor, dim)
 	for i := 0; i < dim; i++ {
 		fromCol := i * stride
 		ys[i] = ag.Dot(ag.Slice(x, 0, fromCol, wr, fromCol+wc), w)
@@ -29,7 +30,7 @@ func Conv1D(w, x ag.DualValue, stride int) ag.DualValue {
 }
 
 // Conv2D performs a 2D convolution.
-func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
+func Conv2D(w, x mat.Tensor, xStride, yStride int) mat.Tensor {
 	var dimx, dimy int
 	if (x.Value().Shape()[0]-w.Value().Shape()[0])%xStride != 0 {
 		panic("Incompatible stride value for rows")
@@ -43,7 +44,7 @@ func Conv2D(w, x ag.DualValue, xStride, yStride int) ag.DualValue {
 	shape := w.Value().Shape()
 	wRows, wCols := shape[0], shape[1]
 
-	var outList []ag.DualValue
+	var outList []mat.Tensor
 	for i := 0; i < dimx; i++ {
 		for j := 0; j < dimy; j++ {
 			fromRow := i * xStride

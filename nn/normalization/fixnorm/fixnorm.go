@@ -12,6 +12,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -32,12 +33,12 @@ func New() *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	if len(xs) == 0 {
 		return nil
 	}
-	eps := xs[0].Value().NewScalar(1e-10)
-	ys := make([]ag.DualValue, len(xs))
+	eps := xs[0].Value().(mat.Matrix).NewScalar(1e-10)
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		norm := ag.Sqrt(ag.ReduceSum(ag.Square(x)))
 		ys[i] = ag.DivScalar(x, ag.AddScalar(norm, eps))

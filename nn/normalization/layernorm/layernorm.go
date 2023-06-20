@@ -36,17 +36,17 @@ func New[T float.DType](size int, eps float64) *Model {
 	return &Model{
 		W:   nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
 		B:   nn.NewParam(mat.NewDense[T](mat.WithShape(size))),
-		Eps: nn.Const(T(eps)),
+		Eps: nn.Buf(mat.Scalar(T(eps))),
 	}
 }
 
 // Forward performs the forward step for each input node and returns the result.
 // y = (x - E\[x\]) / sqrt(VAR\[x\] + [EPS]) * g + b
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	if len(xs) == 0 {
 		return nil
 	}
-	out := make([]ag.DualValue, len(xs))
+	out := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		mean := ag.ReduceMean(x)
 		dev := ag.SubScalar(x, mean)

@@ -4,7 +4,11 @@
 
 package ag
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/nlpodyssey/spago/mat"
+)
 
 // Backward initiates back-propagation from the input nodes.
 //
@@ -16,13 +20,14 @@ import "sync"
 //
 // During the back-propagation process, the gradients of all nodes, except for the given node, are summed to the existing gradients.
 // Unless you intend to do so, ensure that all nodes have zero gradients.
-func Backward(xs ...DualValue) error {
+func Backward(xs ...mat.Tensor) error {
 	ops := filterOperators(xs)
 	if len(ops) == 0 {
 		return nil
 	}
 
 	// The three for loops below are intentionally executed in sequence.
+	// These steps must occur in this order, so the loops cannot be combined due to their sequential dependencies.
 
 	// 1. Prepare the backward pass for each operator.
 	for _, op := range ops {
@@ -37,7 +42,6 @@ func Backward(xs ...DualValue) error {
 	}
 
 	// 3. Process the backward pass for each operator in parallel using wait groups.
-	// These steps must occur in this order, so the loops cannot be combined due to their sequential dependencies.
 	wg := &sync.WaitGroup{}
 	for _, op := range ops {
 		op.processBackwardPass(wg)
@@ -48,7 +52,7 @@ func Backward(xs ...DualValue) error {
 }
 
 // filterOperators returns a list of operators from a list of nodes.
-func filterOperators(nodes []DualValue) []*Operator {
+func filterOperators(nodes []mat.Tensor) []*Operator {
 	ops := make([]*Operator, 0, len(nodes))
 	for _, node := range nodes {
 		switch op := node.(type) {

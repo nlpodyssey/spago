@@ -37,12 +37,12 @@ func NewLinear[T float.DType](in, out int) *Linear {
 
 // InitRandom initializes the Linear module with random weights using the Xavier uniform distribution
 func (m *Linear) InitRandom(seed uint64) *Linear {
-	initializers.XavierUniform(m.W.Value(), 1.0, rand.NewLockedRand(seed))
+	initializers.XavierUniform(m.W.Value().(mat.Matrix), 1.0, rand.NewLockedRand(seed))
 	return m
 }
 
 // Forward applies the forward pass of the Linear module to the input x
-func (m *Linear) Forward(x ag.DualValue) ag.DualValue {
+func (m *Linear) Forward(x mat.Tensor) mat.Tensor {
 	return ag.Add(ag.Mul(m.W, x), m.B)
 }
 
@@ -65,7 +65,7 @@ func main() {
 		if err := ag.Backward(loss); err != nil {
 			return 0, err
 		}
-		return float.ValueOf[T](loss.Value().Scalar()), nil
+		return float.ValueOf[T](loss.Value().Item()), nil
 	}
 
 	for epoch := 0; epoch < epochs; epoch++ {
@@ -87,7 +87,7 @@ func main() {
 	fmt.Printf("\n\nTraining completed!\n\n")
 
 	fmt.Printf("Model parameters:\n")
-	fmt.Printf("W: %.2f | B: %.2f\n\n", m.W.Value().Scalar().F64(), m.B.Value().Scalar().F64())
+	fmt.Printf("W: %.2f | B: %.2f\n\n", m.W.Value().Item().F64(), m.B.Value().Item().F64())
 
 	fmt.Printf("Saving the trained model to the file...\n")
 	err := nn.DumpToFile(m, "model.bin")

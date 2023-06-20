@@ -33,9 +33,9 @@ type Matrix interface {
 	// OnesLike returns a new matrix with the same dimensions of the
 	// receiver, initialized with ones.
 	OnesLike() Matrix
-	// Scalar returns the scalar value.
+	// Item returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
-	Scalar() float.Float
+	Item() float.Float
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
 	// SetAt sets the value at the given indices.
@@ -236,10 +236,10 @@ type Matrix interface {
 	NewStack(vs ...Matrix) Matrix
 
 	// Value returns the Matrix itself.
-	Value() Matrix
+	Value() Tensor
 	// Grad returns the accumulated gradients with the AccGrad method.
 	// A matrix full of zeros and the nil value are considered equivalent.
-	Grad() Matrix
+	Grad() Tensor
 	// HasGrad reports whether there are accumulated gradients.
 	HasGrad() bool
 	// RequiresGrad reports whether the Matrix requires gradients.
@@ -248,7 +248,7 @@ type Matrix interface {
 	// SetRequiresGrad sets whether the Matrix requires gradients.
 	SetRequiresGrad(bool)
 	// AccGrad accumulates the gradients.
-	AccGrad(gx Matrix)
+	AccGrad(gx Tensor)
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
 }
@@ -259,7 +259,7 @@ func init() {
 
 // Data returns the underlying data of the matrix, as a raw one-dimensional
 // slice of values in row-major order.
-func Data[T float.DType](m Matrix) []T {
+func Data[T float.DType](m Tensor) []T {
 	if d, ok := m.(*Dense[T]); ok {
 		return d.data
 	}
@@ -268,25 +268,25 @@ func Data[T float.DType](m Matrix) []T {
 
 // SetData sets the content of the matrix, copying the given raw
 // data representation as one-dimensional slice.
-func SetData[T float.DType](m Matrix, data []T) {
-	m.SetData(float.Make(data...))
+func SetData[T float.DType](m Tensor, data []T) {
+	m.(Matrix).SetData(float.Make(data...)) // TODO: generalize over Matrix
 }
 
 // IsVector returns whether the matrix is either a row or column vector
 // (dimensions N×1 or 1×N).
-func IsVector(m Matrix) bool {
+func IsVector(m Tensor) bool {
 	shape := m.Shape()
 	return shape[0] == 1 || shape[1] == 1
 }
 
 // IsScalar returns whether the matrix contains exactly one scalar value
 // (dimensions 1×1).
-func IsScalar(m Matrix) bool {
+func IsScalar(m Tensor) bool {
 	return m.Size() == 1
 }
 
 // SameDims reports whether the two matrices have the same dimensions.
-func SameDims(a, b Matrix) bool {
+func SameDims(a, b Tensor) bool {
 	return areSlicesEqual(a.Shape(), b.Shape())
 }
 
@@ -316,7 +316,7 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 		size += v.Size()
 	}
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](size, 1, malloc[T](size))
+	out := makeDense[T](malloc[T](size), size, 1)
 	data := out.data[:0] // convenient for using append below
 	for _, v := range vs {
 		data = append(data, Data[T](v)...)
@@ -332,11 +332,11 @@ func ConcatV[T float.DType](vs ...Matrix) *Dense[T] {
 // them as row vectors.
 func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 	if len(vs) == 0 {
-		return makeDense[T](0, 0, malloc[T](0))
+		return makeDense[T](malloc[T](0), 0, 0)
 	}
 	cols := vs[0].Size()
 	// Note: Consider that for performance optimization, it's not necessary to initialize the underlying slice to zero.
-	out := makeDense[T](len(vs), cols, malloc[T](len(vs)*cols))
+	out := makeDense[T](malloc[T](len(vs)*cols), len(vs), cols)
 	data := out.data
 	for i, v := range vs {
 		if !IsVector(v) {
@@ -352,7 +352,7 @@ func Stack[T float.DType](vs ...Matrix) *Dense[T] {
 }
 
 // Equal reports whether matrices a and b have the same shape and elements.
-func Equal(a, b Matrix) bool {
+func Equal(a, b Tensor) bool {
 	return areSlicesEqual(a.Shape(), b.Shape()) && a.Data().Equals(b.Data())
 }
 

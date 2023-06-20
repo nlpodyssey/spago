@@ -7,7 +7,7 @@ package gmlp
 import (
 	"encoding/gob"
 
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/normalization/layernorm"
@@ -35,7 +35,7 @@ func NewPreNorm[T float.DType](dim int, block *Block) *PreNorm {
 }
 
 // Forward performs the forward step.
-func (m *PreNorm) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *PreNorm) Forward(xs ...mat.Tensor) []mat.Tensor {
 	ns := m.Norm.Forward(xs...)
 	return m.Block.Forward(ns...)
 }

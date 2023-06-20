@@ -21,37 +21,37 @@ func TestUtils(t *testing.T) {
 func testUtils[T float.DType](t *testing.T) {
 	t.Run("test `Map2`", func(t *testing.T) {
 		ys := Map2(Add,
-			[]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)},
-			[]DualValue{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
+			[]mat.Tensor{newScalar[T](1), newScalar[T](2), newScalar[T](3)},
+			[]mat.Tensor{newScalar[T](4), newScalar[T](5), newScalar[T](6)},
 		)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, float.Interface(T(5)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Interface(T(7)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Interface(T(9)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Interface(T(5)), ys[0].Value().Item())
+		assert.Equal(t, float.Interface(T(7)), ys[1].Value().Item())
+		assert.Equal(t, float.Interface(T(9)), ys[2].Value().Item())
 	})
 
 	t.Run("test `Pad`", func(t *testing.T) {
-		newEl := func(_ int) DualValue {
+		newEl := func(_ int) mat.Tensor {
 			return newScalar[T](0)
 		}
-		ys := Pad([]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
+		ys := Pad([]mat.Tensor{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 5, newEl)
 		assert.Equal(t, 5, len(ys))
-		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Scalar())
-		assert.Equal(t, float.Interface(T(0)), ys[3].Value().Scalar())
-		assert.Equal(t, float.Interface(T(0)), ys[4].Value().Scalar())
+		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Item())
+		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Item())
+		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Item())
+		assert.Equal(t, float.Interface(T(0)), ys[3].Value().Item())
+		assert.Equal(t, float.Interface(T(0)), ys[4].Value().Item())
 	})
 
 	t.Run("test `Pad` with no need to pad", func(t *testing.T) {
-		newEl := func(_ int) DualValue {
+		newEl := func(_ int) mat.Tensor {
 			return newScalar[T](0)
 		}
-		ys := Pad([]DualValue{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
+		ys := Pad([]mat.Tensor{newScalar[T](1), newScalar[T](2), newScalar[T](3)}, 3, newEl)
 		assert.Equal(t, 3, len(ys))
-		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Scalar())
-		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Scalar())
-		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Scalar())
+		assert.Equal(t, float.Interface(T(1)), ys[0].Value().Item())
+		assert.Equal(t, float.Interface(T(2)), ys[1].Value().Item())
+		assert.Equal(t, float.Interface(T(3)), ys[2].Value().Item())
 	})
 }
 
@@ -166,12 +166,12 @@ func testColViews[T float.DType](t *testing.T) {
 
 				assert.Equal(t, len(expected), y.Shape()[0])
 				assert.Equal(t, 1, y.Shape()[1])
-				assert.Equal(t, expected, mat.Data[T](y))
+				assert.Equal(t, expected, mat.Data[T](y.(mat.Matrix)))
 			}
 		})
 	}
 }
 
-func newScalar[T float.DType](v T) DualValue {
+func newScalar[T float.DType](v T) mat.Tensor {
 	return mat.Scalar(v)
 }

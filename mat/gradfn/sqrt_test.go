@@ -19,16 +19,16 @@ func TestSqrt_Forward(t *testing.T) {
 }
 
 func testSqrtForward[T float.DType](t *testing.T) {
-	x := newDualValue(mat.NewDense[T](mat.WithBacking([]T{4, 9, 0})))
+	x := mat.NewDense[T](mat.WithBacking([]T{4, 9, 0}), mat.WithGrad(true))
 
 	f := NewSqrt(x)
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
-	mat.RequireMatrixInDelta(t, mat.NewDense[T](mat.WithBacking([]T{2, 3, 0})), y, 1e-06)
+	mat.RequireMatrixInDelta(t, mat.NewDense[T](mat.WithBacking([]T{2, 3, 0})), y.(mat.Matrix), 1e-06)
 
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{10, 20, 30})))
 	assert.Nil(t, err)
-	mat.RequireMatrixInDelta(t, mat.NewDense[T](mat.WithBacking([]T{2.5, 3.3333333, T(math.Inf(1))})), x.grad, 1e-06)
+	mat.RequireMatrixInDelta(t, mat.NewDense[T](mat.WithBacking([]T{2.5, 3.3333333, T(math.Inf(1))})), x.Grad().(mat.Matrix), 1e-06)
 }

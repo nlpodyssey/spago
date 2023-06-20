@@ -6,13 +6,14 @@ package gradfn
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 
 	"github.com/nlpodyssey/spago/mat"
 )
 
 // Affine is an operator to apply the affine function y = b + W1x1 + W2x2 + ... + WnXn.
-type Affine[O DualValue] struct {
+type Affine[O mat.Tensor] struct {
 	b       O
 	w1      O
 	x1      O
@@ -35,7 +36,7 @@ type Affine[O DualValue] struct {
 // the actual function is just y = b + W1x1.
 //
 // It panics if the length of wxs is not even.
-func NewAffine[O DualValue](b, w1, x1 O, wxPairs ...O) *Affine[O] {
+func NewAffine[O mat.Tensor](b, w1, x1 O, wxPairs ...O) *Affine[O] {
 	var filteredPairs []O
 	if len(wxPairs) > 0 {
 		if len(wxPairs)%2 != 0 {
@@ -67,21 +68,21 @@ func (a *Affine[O]) Operands() []O {
 }
 
 // Forward computes the output of the function.
-func (a *Affine[O]) Forward() (mat.Matrix, error) {
-	y := a.w1.Value().Mul(a.x1.Value()).AddInPlace(a.b.Value())
+func (a *Affine[O]) Forward() (mat.Tensor, error) {
+	y := a.w1.Value().(mat.Matrix).Mul(a.x1.Value().(mat.Matrix)).AddInPlace(a.b.Value().(mat.Matrix))
 
 	wxPairs := a.wxPairs
 	for i := 0; i < len(wxPairs); i += 2 {
-		wx := wxPairs[i].Value().Mul(wxPairs[i+1].Value())
+		wx := wxPairs[i].Value().(mat.Matrix).Mul(wxPairs[i+1].Value().(mat.Matrix))
 		y.AddInPlace(wx)
 	}
 	return y, nil
 }
 
 // Backward computes the backward pass.
-func (a *Affine[O]) Backward(gy mat.Matrix) error {
+func (a *Affine[O]) Backward(gy mat.Tensor) error {
 	if a.b.RequiresGrad() {
-		if !mat.SameDims(a.b.Value(), gy) {
+		if !mat.SameDims(a.b.Value().(mat.Matrix), gy.(mat.Matrix)) {
 			return fmt.Errorf("fn: matrices have incompatible dimensions")
 		}
 		a.b.AccGrad(gy)
@@ -90,8 +91,8 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 	var wg sync.WaitGroup
 
 	backwardWX := func(w, x O) {
-		wv := w.Value()
-		xv := x.Value()
+		wv := w.Value().(mat.Matrix)
+		xv := x.Value().(mat.Matrix)
 
 		if wv.Shape()[0] != gy.Shape()[0] || xv.Shape()[1] != gy.Shape()[1] {
 			panic("fn: matrices have incompatible dimensions")
@@ -101,7 +102,7 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 			wg.Add(1)
 			go func() {
 				xt := xv.T()
-				gx := gy.Mul(xt)
+				gx := gy.(mat.Matrix).Mul(xt)
 				w.AccGrad(gx)
 				wg.Done()
 			}()
@@ -111,11 +112,11 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 			wg.Add(1)
 			go func() {
 				if gy.Shape()[1] == 1 {
-					gx := wv.MulT(gy)
+					gx := wv.MulT(gy.(mat.Matrix))
 					x.AccGrad(gx)
 				} else {
 					wt := wv.T()
-					gx := wt.Mul(gy)
+					gx := wt.Mul(gy.(mat.Matrix))
 					x.AccGrad(gx)
 				}
 				wg.Done()
@@ -131,4 +132,12 @@ func (a *Affine[O]) Backward(gy mat.Matrix) error {
 
 	wg.Wait()
 	return nil
+}
+
+func isNil[O mat.Tensor](o O) bool {
+	if any(o) == nil {
+		return true
+	}
+	v := reflect.ValueOf(o)
+	return v.Kind() == reflect.Pointer && v.IsNil()
 }

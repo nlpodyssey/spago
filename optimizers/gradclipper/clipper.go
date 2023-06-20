@@ -26,7 +26,7 @@ type ValueClipper struct {
 // ClipGrads clips the gradients in place between -Value and +Value.
 func (c *ValueClipper) ClipGrads(parameters nn.ParamChannelFunc) {
 	for _, g := range collectGradients(parameters) {
-		g.ClipInPlace(-c.Value, c.Value)
+		g.(mat.Matrix).ClipInPlace(-c.Value, c.Value)
 	}
 }
 
@@ -44,16 +44,16 @@ func (c *NormClipper) validateNormType() {
 }
 
 // calculateTotalNorm calculates the total norm based on NormType and matrices gs.
-func (c *NormClipper) calculateTotalNorm(gs []mat.Matrix) float64 {
+func (c *NormClipper) calculateTotalNorm(gs []mat.Tensor) float64 {
 	var totalNorm float64
 	if math.IsInf(c.NormType, 1) {
 		for _, g := range gs {
-			totalNorm = math.Max(g.Abs().Max().Scalar().F64(), totalNorm)
+			totalNorm = math.Max(g.(mat.Matrix).Abs().Max().Item().F64(), totalNorm)
 		}
 	} else {
 		var sum float64
 		for _, g := range gs {
-			sum += g.Abs().Pow(c.NormType).Sum().Scalar().F64()
+			sum += g.(mat.Matrix).Abs().Pow(c.NormType).Sum().Item().F64()
 		}
 		totalNorm = math.Pow(sum, 1/c.NormType)
 	}
@@ -70,17 +70,17 @@ func (c *NormClipper) ClipGradients(parameters nn.ParamChannelFunc) {
 	clipCoeff := c.MaxNorm / (totalNorm + 1e-7)
 	if clipCoeff < 1.0 {
 		for _, g := range grads {
-			g.ProdScalarInPlace(clipCoeff)
+			g.(mat.Matrix).ProdScalarInPlace(clipCoeff)
 		}
 	}
 }
 
 // collectGradients collects all the gradients from the parameters channel and returns them as a slice.
-func collectGradients(parameters nn.ParamChannelFunc) []mat.Matrix {
+func collectGradients(parameters nn.ParamChannelFunc) []mat.Tensor {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var allGrads []mat.Matrix
+	var allGrads []mat.Tensor
 	for param := range parameters(ctx) {
 		allGrads = append(allGrads, param.Grad())
 	}

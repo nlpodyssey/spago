@@ -22,14 +22,14 @@ func TestAffine(t *testing.T) {
 func testAffine[T float.DType](t *testing.T) {
 	for _, lenWXPairs := range []int{1, 3, 5} {
 		t.Run(fmt.Sprintf("it panics if len(wxPairs) is %d", lenWXPairs), func(t *testing.T) {
-			b := newDualValue(mat.Scalar(T(1)))
-			w1 := newDualValue(mat.Scalar(T(2)))
-			x1 := newDualValue(mat.Scalar(T(3)))
-			wxPairs := make([]*variable, lenWXPairs)
+			b := mat.NewDense[T](mat.WithBacking([]T{1}), mat.WithGrad(true))
+			w1 := mat.NewDense[T](mat.WithBacking([]T{2}), mat.WithGrad(true))
+			x1 := mat.NewDense[T](mat.WithBacking([]T{3}), mat.WithGrad(true))
+			wxPairs := make([]mat.Tensor, lenWXPairs)
 			for i := range wxPairs {
-				wxPairs[i] = newDualValue(mat.Scalar(T(i)))
+				wxPairs[i] = mat.NewDense[T](mat.WithBacking([]T{T(i)}), mat.WithGrad(true))
 			}
-			require.Panics(t, func() { NewAffine(b, w1, x1, wxPairs...) })
+			require.Panics(t, func() { NewAffine[mat.Tensor](b, w1, x1, wxPairs...) })
 		})
 	}
 
@@ -223,35 +223,41 @@ func testAffine[T float.DType](t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Len(t, tt.wantWXPairsGrads, len(tt.wxPairs), "malformed test case")
 
-			b := newDualValue(tt.b)
-			w1 := newDualValue(tt.w1)
-			x1 := newDualValue(tt.x1)
-			wxPairs := make([]*variable, len(tt.wxPairs))
+			tt.b.SetRequiresGrad(true)
+			tt.w1.SetRequiresGrad(true)
+			tt.x1.SetRequiresGrad(true)
+
+			b := mat.Tensor(tt.b)
+			w1 := mat.Tensor(tt.w1)
+			x1 := mat.Tensor(tt.x1)
+
+			wxPairs := make([]mat.Tensor, len(tt.wxPairs))
 			for i, v := range tt.wxPairs {
 				if v == nil {
 					continue
 				}
-				wxPairs[i] = newDualValue(v)
+				v.SetRequiresGrad(true)
+				wxPairs[i] = v
 			}
 
 			f := NewAffine(b, w1, x1, wxPairs...)
 			y, err := f.Forward()
 			assert.Nil(t, err)
-			mat.RequireMatrixEquals(t, tt.wantFwd, y)
+			mat.RequireMatrixEquals(t, tt.wantFwd, y.(mat.Matrix))
 
 			err = f.Backward(tt.gy)
 			assert.Nil(t, err)
-			mat.AssertMatrixEquals(t, tt.wantBGrad, b.grad, "bias grad")
-			mat.AssertMatrixEquals(t, tt.wantW1Grad, w1.grad, "w1 grad")
-			mat.AssertMatrixEquals(t, tt.wantX1Grad, x1.grad, "x1 grad")
+			mat.AssertMatrixEquals(t, tt.wantBGrad, b.Grad(), "bias grad")
+			mat.AssertMatrixEquals(t, tt.wantW1Grad, w1.Grad(), "w1 grad")
+			mat.AssertMatrixEquals(t, tt.wantX1Grad, x1.Grad(), "x1 grad")
 			for i, want := range tt.wantWXPairsGrads {
 				if want == nil {
 					if wxPairs[i] != nil {
-						assert.Nilf(t, wxPairs[i].grad, "wxPairs[%d] grad", i)
+						assert.Nilf(t, wxPairs[i].Grad(), "wxPairs[%d] grad", i)
 					}
 					continue
 				}
-				mat.AssertMatrixEquals(t, want, wxPairs[i].grad, "wxPairs[", i, "] grad")
+				mat.AssertMatrixEquals(t, want, wxPairs[i].Grad(), "wxPairs[", i, "] grad")
 			}
 		})
 	}

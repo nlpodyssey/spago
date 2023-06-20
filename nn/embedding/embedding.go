@@ -16,7 +16,7 @@ type Embedding struct {
 	idx int
 }
 
-func (e *Embedding) AccGrad(gx mat.Matrix) {
+func (e *Embedding) AccGrad(gx mat.Tensor) {
 	e.m.mu.Lock()
 	defer e.m.mu.Unlock()
 	e.m.embedGradIdx[e.idx] = struct{}{}

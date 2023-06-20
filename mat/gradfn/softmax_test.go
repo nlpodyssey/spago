@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSoftmax_Forward(t *testing.T) {
@@ -18,13 +18,9 @@ func TestSoftmax_Forward(t *testing.T) {
 }
 
 func testSoftmaxForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{-0.41, -1.08, 0, 0.87, -0.19, -0.75})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{-0.41, -1.08, 0, 0.87, -0.19, -0.75}), mat.WithGrad(true))
 	f := NewSoftmax(x)
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -32,5 +28,5 @@ func testSoftmaxForward[T float.DType](t *testing.T) {
 
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0.0, 0.0, -5.689482, 0.0, 0.0, 0.0})))
 	assert.Nil(t, err)
-	assert.InDeltaSlice(t, []T{0.1166451, 0.0596882, -0.8242370, 0.4195304, 0.1453487, 0.083024}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{0.1166451, 0.0596882, -0.8242370, 0.4195304, 0.1453487, 0.083024}, x.Grad().Data(), 1.0e-6)
 }

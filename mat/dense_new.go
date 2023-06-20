@@ -6,12 +6,13 @@ package mat
 
 import (
 	"fmt"
-	"github.com/nlpodyssey/spago/mat/float"
 	"log"
+
+	"github.com/nlpodyssey/spago/mat/float"
 )
 
 type Options struct {
-	RequiresGrad bool
+	RequiresGrad bool // default: false
 	Shape        []int
 	Slice        float.Slice
 }

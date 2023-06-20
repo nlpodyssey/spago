@@ -43,13 +43,13 @@ func testDenseFormat[T float.DType](t *testing.T) {
 			"[]",
 		},
 		{
-			"Scalar",
+			"Item",
 			Scalar[T](1.2),
 			"%v",
 			"[1.2]",
 		},
 		{
-			"Scalar with padding",
+			"Item with padding",
 			Scalar[T](1.2),
 			"%5v",
 			"[  1.2]",

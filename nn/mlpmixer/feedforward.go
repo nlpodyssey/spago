@@ -5,7 +5,7 @@
 package mlpmixer
 
 import (
-	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -30,6 +30,6 @@ func newFeedForward[T float.DType](dim, hiddenDim int, act activation.Activation
 	}
 }
 
-func (m *FeedForward) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *FeedForward) Forward(xs ...mat.Tensor) []mat.Tensor {
 	return m.Layers.Forward(xs...)
 }

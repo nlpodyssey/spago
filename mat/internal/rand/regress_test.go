@@ -65,6 +65,7 @@ func TestSourceRegress(t *testing.T) {
 // optimizations do not change the output. It iterates over methods of the
 // Rand type to find functions to evaluate and checks the first 20 results
 // against the golden results.
+//
 //gocyclo:ignore
 func TestRegress(t *testing.T) {
 	var int32s = []int32{1, 10, 32, 1 << 20, 1<<20 + 1, 1000000000, 1 << 30, 1<<31 - 2, 1<<31 - 1}

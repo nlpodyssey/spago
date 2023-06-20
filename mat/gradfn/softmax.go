@@ -11,31 +11,31 @@ import (
 )
 
 // Softmax is a single-input softmax function.
-type Softmax[O DualValue] struct {
+type Softmax[O mat.Tensor] struct {
 	x O
 	y mat.Matrix // initialized during the forward pass (required by the backward pass)
 }
 
 // NewSoftmax returns a new Softmax Function.
-func NewSoftmax[O DualValue](x O) *Softmax[O] {
+func NewSoftmax[O mat.Tensor](x O) *Softmax[O] {
 	return &Softmax[O]{
 		x: x,
 	}
 }
 
 // Operands returns the list of operands.
-func (r *Softmax[O]) Operands() []O {
-	return []O{r.x}
+func (r *Softmax[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x}
 }
 
 // Forward computes the output of this function.
-func (r *Softmax[O]) Forward() (mat.Matrix, error) {
-	r.y = r.x.Value().Softmax()
+func (r *Softmax[O]) Forward() (mat.Tensor, error) {
+	r.y = r.x.Value().(mat.Matrix).Softmax()
 	return r.y, nil
 }
 
 // Backward computes the backward pass.
-func (r *Softmax[O]) Backward(gy mat.Matrix) error {
+func (r *Softmax[O]) Backward(gy mat.Tensor) error {
 	if !mat.SameDims(r.x.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
@@ -50,7 +50,7 @@ func (r *Softmax[O]) Backward(gy mat.Matrix) error {
 			vCol := y.ScalarAt(col).F64()
 			return -(vRow * vCol)
 		})))
-		gx := jb.Mul(gy)
+		gx := jb.Mul(gy.(mat.Matrix))
 		r.x.AccGrad(gx)
 	}
 	return nil

@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -55,7 +56,7 @@ func New[T float.DType](config Config) *MixerBlock {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *MixerBlock) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *MixerBlock) Forward(xs ...mat.Tensor) []mat.Tensor {
 	if len(xs) > m.Config.Channels {
 		panic(fmt.Sprintf("mlpmixer: maximum sequence length is %d, got %d",
 			m.Config.Channels, len(xs)))
@@ -66,18 +67,18 @@ func (m *MixerBlock) Forward(xs ...ag.DualValue) []ag.DualValue {
 	return xs
 }
 
-func (m *MixerBlock) tokenMix(xs []ag.DualValue) []ag.DualValue {
+func (m *MixerBlock) tokenMix(xs []mat.Tensor) []mat.Tensor {
 	normalized := m.TokenLayerNorm.Forward(xs...)
 	cols := ag.ColViews(ag.Stack(normalized...))
 	ys := m.TokenMixerFF.Forward(cols...)
 	return ag.Map(ag.T, ag.RowViews(ag.T(ag.Stack(ys...))))
 }
 
-func (m *MixerBlock) channelMix(xs []ag.DualValue) []ag.DualValue {
+func (m *MixerBlock) channelMix(xs []mat.Tensor) []mat.Tensor {
 	normalized := m.ChannelLayerNorm.Forward(xs...)
 	return m.ChannelMixerFF.Forward(normalized...)
 }
 
-func (m *MixerBlock) residual(xs []ag.DualValue, residual []ag.DualValue) []ag.DualValue {
+func (m *MixerBlock) residual(xs []mat.Tensor, residual []mat.Tensor) []mat.Tensor {
 	return ag.Map2(ag.Add, xs, residual)
 }

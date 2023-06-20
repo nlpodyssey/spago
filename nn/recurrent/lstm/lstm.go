@@ -45,12 +45,12 @@ type Model struct {
 
 // State represent a state of the LSTM recurrent network.
 type State struct {
-	InG  ag.DualValue
-	OutG ag.DualValue
-	ForG ag.DualValue
-	Cand ag.DualValue
-	Cell ag.DualValue
-	Y    ag.DualValue
+	InG  mat.Tensor
+	OutG mat.Tensor
+	ForG mat.Tensor
+	Cand mat.Tensor
+	Cell mat.Tensor
+	Y    mat.Tensor
 }
 
 // Option allows to configure a new Model with your specific needs.
@@ -101,15 +101,15 @@ func (m *Model) WithRefinedGates(value bool) *Model {
 // It follows the LSTM bias hack setting the Forget gate to 1 (http://proceedings.mlr.press/v37/jozefowicz15.pdf).
 func (m *Model) Init(rndGen *rand.LockedRand) *Model {
 	nn.ForEachParam(m, func(param *nn.Param) {
-		initializers.XavierUniform(param.Value(), 1, rndGen)
+		initializers.XavierUniform(param.Value().(mat.Matrix), 1, rndGen)
 	})
-	initializers.Constant(m.BFor.Value(), 1.0)
+	initializers.Constant(m.BFor.Value().(mat.Matrix), 1.0)
 	return m
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -127,10 +127,10 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 // cand = f(wCand (dot) x + bC + wCandRec (dot) yPrev)
 // cell = inG * cand + forG * cellPrev
 // y = outG * f(cell)
-func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
+func (m *Model) Next(state *State, x mat.Tensor) (s *State) {
 	s = new(State)
 
-	var yPrev, cellPrev ag.DualValue = nil, nil
+	var yPrev, cellPrev mat.Tensor = nil, nil
 	if state != nil {
 		yPrev, cellPrev = state.Y, state.Cell
 	}

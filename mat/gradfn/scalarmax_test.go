@@ -18,11 +18,12 @@ func TestScalarMax_Forward(t *testing.T) {
 }
 
 func testScalarMaxForward[T float.DType](t *testing.T) {
-	xs := []*variable{
-		{mat.Scalar[T](2.0), nil, true},
-		{mat.Scalar[T](5.0), nil, true},
-		{mat.Scalar[T](0.0), nil, true},
-		{mat.Scalar[T](-4.0), nil, true},
+
+	xs := []mat.Tensor{
+		mat.NewDense[T](mat.WithBacking([]T{2.0}), mat.WithGrad(true)),
+		mat.NewDense[T](mat.WithBacking([]T{5.0}), mat.WithGrad(true)),
+		mat.NewDense[T](mat.WithBacking([]T{0.0}), mat.WithGrad(true)),
+		mat.NewDense[T](mat.WithBacking([]T{04.0}), mat.WithGrad(true)),
 	}
 
 	max := NewScalarMax(xs)
@@ -35,8 +36,8 @@ func testScalarMaxForward[T float.DType](t *testing.T) {
 	err = max.Backward(mat.Scalar[T](1.0))
 	assert.Nil(t, err)
 
-	assert.InDeltaSlice(t, []T{1.0}, xs[1].grad.Data(), 1.0e-6)
-	assert.Nil(t, xs[0].grad)
-	assert.Nil(t, xs[2].grad)
-	assert.Nil(t, xs[3].grad)
+	assert.InDeltaSlice(t, []T{1.0}, xs[1].Grad().Data(), 1.0e-6)
+	assert.Nil(t, xs[0].Grad())
+	assert.Nil(t, xs[2].Grad())
+	assert.Nil(t, xs[3].Grad())
 }

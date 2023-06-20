@@ -52,7 +52,7 @@ func testModelConcatForward[T float.DType](t *testing.T) {
 
 	// Important! average params by sequence length
 	nn.ForEachParam(model, func(param *nn.Param) {
-		param.Grad().ProdScalarInPlace(1.0 / 3.0)
+		param.Grad().(mat.Matrix).ProdScalarInPlace(1.0 / 3.0)
 	})
 
 	assert.InDeltaSlice(t, []T{1.031472, -0.627913}, x1.Grad().Data(), 0.006)

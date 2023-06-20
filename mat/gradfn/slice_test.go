@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSliceForward(t *testing.T) {
@@ -18,18 +18,14 @@ func TestSliceForward(t *testing.T) {
 }
 
 func testSliceForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
-			11, 12, 13, 14,
-			21, 22, 23, 24,
-			31, 32, 33, 34,
-		})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
+		11, 12, 13, 14,
+		21, 22, 23, 24,
+		31, 32, 33, 34,
+	}), mat.WithGrad(true))
 
 	f := NewSlice(x, 1, 1, 3, 3)
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -37,7 +33,7 @@ func testSliceForward[T float.DType](t *testing.T) {
 	mat.AssertMatrixEquals(t, mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		22, 23,
 		32, 33,
-	})), y)
+	})), y.(mat.Matrix))
 
 	err = f.Backward(mat.NewDense[T](mat.WithShape(2, 2), mat.WithBacking([]T{
 		1, 2,
@@ -49,5 +45,5 @@ func testSliceForward[T float.DType](t *testing.T) {
 		0, 0, 0, 0,
 		0, 1, 2, 0,
 		0, 3, 4, 0,
-	})), x.grad)
+	})), x.Grad().(mat.Matrix))
 }

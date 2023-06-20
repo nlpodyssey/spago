@@ -9,6 +9,7 @@ import (
 
 	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/initializers"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/mat/rand"
 	"github.com/nlpodyssey/spago/nn"
@@ -20,7 +21,7 @@ import (
 var _ nn.Model = &Model{}
 
 // Cache contains the projected keys and values at index 0, 1 respectively.
-type Cache [2]ag.DualValue
+type Cache [2]mat.Tensor
 
 // HasValues reports whether both values in Cache are not nil.
 func (c Cache) HasValues() bool {
@@ -59,21 +60,21 @@ func New[T float.DType](config Config) *Model {
 		Query:       linear.New[T](config.InputSize, config.QuerySize),
 		Key:         linear.New[T](config.InputSize, config.KeySize),
 		Value:       linear.New[T](config.InputSize, config.ValueSize),
-		ScaleFactor: nn.Const(T(config.ScaleFactor)),
+		ScaleFactor: nn.Buf(mat.Scalar(T(config.ScaleFactor))),
 	}
 }
 
 // Init initializes the query, key and value linear layers with uniform Xavier random distribution.
 func (m *Model) Init(rng *rand.LockedRand) {
 	gain := initializers.Gain(activation.Identity)
-	initializers.XavierUniform(m.Query.W.Value(), gain, rng)
-	initializers.XavierUniform(m.Key.W.Value(), gain, rng)
-	initializers.XavierUniform(m.Value.W.Value(), gain, rng)
+	initializers.XavierUniform(m.Query.W.Value().(mat.Matrix), gain, rng)
+	initializers.XavierUniform(m.Key.W.Value().(mat.Matrix), gain, rng)
+	initializers.XavierUniform(m.Value.W.Value().(mat.Matrix), gain, rng)
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(cache Cache, q, x []ag.DualValue) ([]ag.DualValue, []ag.DualValue, Cache) {
-	var pk, pv ag.DualValue
+func (m *Model) Forward(cache Cache, q, x []mat.Tensor) ([]mat.Tensor, []mat.Tensor, Cache) {
+	var pk, pv mat.Tensor
 
 	pq := m.Query.Forward(q...)
 

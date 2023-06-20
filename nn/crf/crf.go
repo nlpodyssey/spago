@@ -35,18 +35,18 @@ func New[T float.DType](size int) *Model {
 }
 
 // Decode performs viterbi decoding.
-func (m *Model) Decode(emissionScores []ag.DualValue) []int {
-	return Viterbi(m.TransitionScores.Value(), emissionScores)
+func (m *Model) Decode(emissionScores []mat.Tensor) []int {
+	return Viterbi(m.TransitionScores.Value().(mat.Matrix), emissionScores)
 }
 
 // NegativeLogLoss computes the negative log loss with respect to the targets.
-func (m *Model) NegativeLogLoss(emissionScores []ag.DualValue, target []int) ag.DualValue {
+func (m *Model) NegativeLogLoss(emissionScores []mat.Tensor, target []int) mat.Tensor {
 	goldScore := m.goldScore(emissionScores, target)
 	totalScore := m.totalScore(emissionScores)
 	return ag.Sub(totalScore, goldScore)
 }
 
-func (m *Model) goldScore(emissionScores []ag.DualValue, target []int) ag.DualValue {
+func (m *Model) goldScore(emissionScores []mat.Tensor, target []int) mat.Tensor {
 	goldScore := ag.At(emissionScores[0], target[0], 0)
 	goldScore = ag.Add(goldScore, ag.At(m.TransitionScores, 0, target[0]+1)) // start transition
 	prevIndex := target[0] + 1
@@ -59,7 +59,7 @@ func (m *Model) goldScore(emissionScores []ag.DualValue, target []int) ag.DualVa
 	return goldScore
 }
 
-func (m *Model) totalScore(predicted []ag.DualValue) ag.DualValue {
+func (m *Model) totalScore(predicted []mat.Tensor) mat.Tensor {
 	totalVector := m.totalScoreStart(predicted[0])
 	for i := 1; i < len(predicted); i++ {
 		totalVector = m.totalScoreStep(totalVector, ag.SeparateVec(predicted[i]))
@@ -68,16 +68,16 @@ func (m *Model) totalScore(predicted []ag.DualValue) ag.DualValue {
 	return ag.Log(ag.ReduceSum(ag.Concat(totalVector...)))
 }
 
-func (m *Model) totalScoreStart(stepVec ag.DualValue) []ag.DualValue {
-	scores := make([]ag.DualValue, m.Size)
+func (m *Model) totalScoreStart(stepVec mat.Tensor) []mat.Tensor {
+	scores := make([]mat.Tensor, m.Size)
 	for i := 0; i < m.Size; i++ {
 		scores[i] = ag.Add(ag.At(stepVec, i), ag.At(m.TransitionScores, 0, i+1))
 	}
 	return scores
 }
 
-func (m *Model) totalScoreEnd(stepVec []ag.DualValue) []ag.DualValue {
-	scores := make([]ag.DualValue, m.Size)
+func (m *Model) totalScoreEnd(stepVec []mat.Tensor) []mat.Tensor {
+	scores := make([]mat.Tensor, m.Size)
 	for i := 0; i < m.Size; i++ {
 		vecTrans := ag.Add(stepVec[i], ag.At(m.TransitionScores, i+1, 0))
 		scores[i] = ag.Add(scores[i], ag.Exp(vecTrans))
@@ -85,8 +85,8 @@ func (m *Model) totalScoreEnd(stepVec []ag.DualValue) []ag.DualValue {
 	return scores
 }
 
-func (m *Model) totalScoreStep(totalVec []ag.DualValue, stepVec []ag.DualValue) []ag.DualValue {
-	scores := make([]ag.DualValue, m.Size)
+func (m *Model) totalScoreStep(totalVec []mat.Tensor, stepVec []mat.Tensor) []mat.Tensor {
+	scores := make([]mat.Tensor, m.Size)
 	for i := 0; i < m.Size; i++ {
 		nodei := totalVec[i]
 		for j := 0; j < m.Size; j++ {

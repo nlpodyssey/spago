@@ -69,21 +69,21 @@ type HyperLinear3 struct {
 
 // State contains nodes used during the forward step.
 type State struct {
-	xUi []ag.DualValue
-	xUl []ag.DualValue
-	xUr []ag.DualValue
-	xUf []ag.DualValue
-	xUs []ag.DualValue
-	xUo []ag.DualValue
-	xUu []ag.DualValue
+	xUi []mat.Tensor
+	xUl []mat.Tensor
+	xUr []mat.Tensor
+	xUf []mat.Tensor
+	xUs []mat.Tensor
+	xUo []mat.Tensor
+	xUu []mat.Tensor
 
-	ViPrevG ag.DualValue
-	VlPrevG ag.DualValue
-	VrPrevG ag.DualValue
-	VfPrevG ag.DualValue
-	VsPrevG ag.DualValue
-	VoPrevG ag.DualValue
-	VuPrevG ag.DualValue
+	ViPrevG mat.Tensor
+	VlPrevG mat.Tensor
+	VrPrevG mat.Tensor
+	VfPrevG mat.Tensor
+	VsPrevG mat.Tensor
+	VoPrevG mat.Tensor
+	VuPrevG mat.Tensor
 }
 
 func init() {
@@ -129,15 +129,15 @@ func newGate3[T float.DType](size int) *HyperLinear3 {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	steps := m.Config.Steps
 	n := len(xs)
-	h := make([][]ag.DualValue, steps)
-	c := make([][]ag.DualValue, steps)
-	g := make([]ag.DualValue, steps)
-	cg := make([]ag.DualValue, steps)
-	h[0] = make([]ag.DualValue, n)
-	c[0] = make([]ag.DualValue, n)
+	h := make([][]mat.Tensor, steps)
+	c := make([][]mat.Tensor, steps)
+	g := make([]mat.Tensor, steps)
+	cg := make([]mat.Tensor, steps)
+	h[0] = make([]mat.Tensor, n)
+	c[0] = make([]mat.Tensor, n)
 
 	g[0] = m.InitValue
 	cg[0] = m.InitValue
@@ -157,15 +157,15 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 	return h[len(h)-1]
 }
 
-func (m *Model) computeUx(s *State, xs []ag.DualValue) {
+func (m *Model) computeUx(s *State, xs []mat.Tensor) {
 	n := len(xs)
-	s.xUi = make([]ag.DualValue, n)
-	s.xUl = make([]ag.DualValue, n)
-	s.xUr = make([]ag.DualValue, n)
-	s.xUf = make([]ag.DualValue, n)
-	s.xUs = make([]ag.DualValue, n)
-	s.xUo = make([]ag.DualValue, n)
-	s.xUu = make([]ag.DualValue, n)
+	s.xUi = make([]mat.Tensor, n)
+	s.xUl = make([]mat.Tensor, n)
+	s.xUr = make([]mat.Tensor, n)
+	s.xUf = make([]mat.Tensor, n)
+	s.xUs = make([]mat.Tensor, n)
+	s.xUo = make([]mat.Tensor, n)
+	s.xUu = make([]mat.Tensor, n)
 
 	for i := 0; i < n; i++ {
 		s.xUi[i] = ag.Mul(m.InputGate.U, xs[i])
@@ -178,7 +178,7 @@ func (m *Model) computeUx(s *State, xs []ag.DualValue) {
 	}
 }
 
-func (m *Model) computeVg(s *State, prevG ag.DualValue) {
+func (m *Model) computeVg(s *State, prevG mat.Tensor) {
 	s.ViPrevG = ag.Mul(m.InputGate.V, prevG)
 	s.VlPrevG = ag.Mul(m.LeftCellGate.V, prevG)
 	s.VrPrevG = ag.Mul(m.RightCellGate.V, prevG)
@@ -188,29 +188,29 @@ func (m *Model) computeVg(s *State, prevG ag.DualValue) {
 	s.VuPrevG = ag.Mul(m.InputActivation.U, prevG)
 }
 
-func (m *Model) updateHiddenNodes(s *State, prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) ([]ag.DualValue, []ag.DualValue) {
+func (m *Model) updateHiddenNodes(s *State, prevH []mat.Tensor, prevC []mat.Tensor, prevG mat.Tensor) ([]mat.Tensor, []mat.Tensor) {
 	n := len(prevH)
-	h := make([]ag.DualValue, n)
-	c := make([]ag.DualValue, n)
+	h := make([]mat.Tensor, n)
+	c := make([]mat.Tensor, n)
 	for i := 0; i < n; i++ {
 		h[i], c[i] = m.processNode(s, i, prevH, prevC, prevG)
 	}
 	return h, c
 }
 
-func (m *Model) updateSentenceState(prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) (ag.DualValue, ag.DualValue) {
+func (m *Model) updateSentenceState(prevH []mat.Tensor, prevC []mat.Tensor, prevG mat.Tensor) (mat.Tensor, mat.Tensor) {
 	n := len(prevH)
 	avgH := ag.Mean(prevH)
 	fG := ag.Sigmoid(ag.Affine(m.NonLocalSentCellGate.B, m.NonLocalSentCellGate.W, prevG, m.NonLocalSentCellGate.U, avgH))
 	oG := ag.Sigmoid(ag.Affine(m.NonLocalSentOutputGate.B, m.NonLocalSentOutputGate.W, prevG, m.NonLocalSentOutputGate.U, avgH))
 
-	hG := make([]ag.DualValue, n)
+	hG := make([]mat.Tensor, n)
 	gG := ag.Affine(m.NonLocalInputGate.B, m.NonLocalInputGate.W, prevG)
 	for i := 0; i < n; i++ {
 		hG[i] = ag.Sigmoid(ag.Add(gG, ag.Mul(m.NonLocalInputGate.U, prevH[i])))
 	}
 
-	var sum ag.DualValue
+	var sum mat.Tensor
 	for i := 0; i < n; i++ {
 		sum = ag.Add(sum, ag.Prod(hG[i], prevC[i]))
 	}
@@ -220,21 +220,21 @@ func (m *Model) updateSentenceState(prevH []ag.DualValue, prevC []ag.DualValue, 
 	return gt, cg
 }
 
-func (m *Model) processNode(s *State, i int, prevH []ag.DualValue, prevC []ag.DualValue, prevG ag.DualValue) (h ag.DualValue, c ag.DualValue) {
+func (m *Model) processNode(s *State, i int, prevH []mat.Tensor, prevC []mat.Tensor, prevG mat.Tensor) (h mat.Tensor, c mat.Tensor) {
 	n := len(prevH)
 	first := 0
 	last := n - 1
 	j := i - 1
 	k := i + 1
 
-	var prevHj, prevCj ag.DualValue
+	var prevHj, prevCj mat.Tensor
 	if j < first {
 		prevHj, prevCj = m.StartH, m.StartH
 	} else {
 		prevHj, prevCj = prevH[j], prevC[j]
 	}
 
-	var prevHk, prevCk ag.DualValue
+	var prevHk, prevCk mat.Tensor
 	if k > last {
 		prevHk, prevCk = m.EndH, m.EndH
 	} else {

@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -28,9 +29,9 @@ func New() *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	vectorized := func(x ag.DualValue) ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	vectorized := func(x mat.Tensor) mat.Tensor {
 		return ag.T(ag.Flatten(x))
 	}
-	return []ag.DualValue{ag.Concat(ag.Map(vectorized, xs)...)}
+	return []mat.Tensor{ag.Concat(ag.Map(vectorized, xs)...)}
 }

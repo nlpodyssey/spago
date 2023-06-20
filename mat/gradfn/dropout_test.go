@@ -5,12 +5,12 @@
 package gradfn
 
 import (
+	"github.com/nlpodyssey/spago/mat/rand"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/nlpodyssey/spago/mat/rand"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDropout_Forward(t *testing.T) {
@@ -19,13 +19,9 @@ func TestDropout_Forward(t *testing.T) {
 }
 
 func testDropoutForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}), mat.WithGrad(true))
 	f := NewDropout(x, 0.25, rand.NewLockedRand(1))
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -39,7 +35,7 @@ func testDropoutForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{
 		0.666666666, 0.533333333, 0.2666666, -0.8, 0.0, 0.5333333, -1.0666666, 0.0, 0.0, 0.133333,
-	}, x.grad.Data(), 1.0e-6)
+	}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestZeroDropout_Forward(t *testing.T) {
@@ -48,13 +44,9 @@ func TestZeroDropout_Forward(t *testing.T) {
 }
 
 func testZeroDropoutForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}), mat.WithGrad(true))
 	f := NewDropout(x, 0.0, rand.NewLockedRand(1))
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -68,7 +60,7 @@ func testZeroDropoutForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{
 		0.5, 0.4, 0.2, -0.6, 0.3, 0.4, -0.8, -0.3, 0.0, 0.1,
-	}, x.grad.Data(), 1.0e-6)
+	}, x.Grad().Data(), 1.0e-6)
 }
 
 func TestTotalDropout_Forward(t *testing.T) {
@@ -77,11 +69,7 @@ func TestTotalDropout_Forward(t *testing.T) {
 }
 
 func testTotalDropoutForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.5, 0.6, -0.8, -0.6, 0.7, -0.4, 0.1, -0.8, 0.3, -0.5}), mat.WithGrad(true))
 	f := NewDropout(x, 1.0, rand.NewLockedRand(1))
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -95,5 +83,5 @@ func testTotalDropoutForward[T float.DType](t *testing.T) {
 
 	assert.InDeltaSlice(t, []T{
 		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-	}, x.grad.Data(), 1.0e-6)
+	}, x.Grad().Data(), 1.0e-6)
 }

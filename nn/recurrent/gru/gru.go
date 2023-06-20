@@ -31,10 +31,10 @@ type Model struct {
 
 // State represent a state of the GRU recurrent network.
 type State struct {
-	R ag.DualValue
-	P ag.DualValue
-	C ag.DualValue
-	Y ag.DualValue
+	R mat.Tensor
+	P mat.Tensor
+	C mat.Tensor
+	Y mat.Tensor
 }
 
 func init() {
@@ -58,8 +58,8 @@ func newGateParams[T float.DType](in, out int) (w, wRec, b *nn.Param) {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	var s *State = nil
 	for i, x := range xs {
 		s = m.Next(s, x)
@@ -74,10 +74,10 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 // p = sigmoid(wp (dot) x + bp + wpRec (dot) yPrev)
 // c = f(wc (dot) x + bc + wcRec (dot) (yPrev * r))
 // y = p * c + (1 - p) * yPrev
-func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
+func (m *Model) Next(state *State, x mat.Tensor) (s *State) {
 	s = new(State)
 
-	var yPrev ag.DualValue = nil
+	var yPrev mat.Tensor = nil
 	if state != nil {
 		yPrev = state.Y
 	}
@@ -87,14 +87,14 @@ func (m *Model) Next(state *State, x ag.DualValue) (s *State) {
 	s.C = ag.Tanh(ag.Affine(m.BCand, m.WCand, x, m.WCandRec, tryProd(yPrev, s.R)))
 	s.Y = ag.Prod(s.P, s.C)
 	if yPrev != nil {
-		one := x.Value().NewScalar(1.0)
+		one := x.Value().(mat.Matrix).NewScalar(1.0)
 		s.Y = ag.Add(s.Y, ag.Prod(ag.ReverseSub(s.P, one), yPrev))
 	}
 	return
 }
 
 // tryProd returns the product if 'a' il not nil, otherwise nil
-func tryProd(a, b ag.DualValue) ag.DualValue {
+func tryProd(a, b mat.Tensor) mat.Tensor {
 	if a != nil {
 		return ag.Prod(a, b)
 	}

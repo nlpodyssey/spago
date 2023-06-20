@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -32,40 +33,40 @@ func New(activation Activation, params ...*nn.Param) *Model {
 	}
 }
 
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
 	fn, err := m.activationFunc()
 	if err != nil {
 		log.Fatal()
 	}
-	ys := make([]ag.DualValue, len(xs))
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		ys[i] = fn(x)
 	}
 	return ys
 }
 
-func (m *Model) activationFunc() (func(x ag.DualValue) ag.DualValue, error) {
+func (m *Model) activationFunc() (func(x mat.Tensor) mat.Tensor, error) {
 	if f, ok := activationFunctions[m.Activation]; ok {
 		return f, nil
 	}
 
 	switch m.Activation {
 	case CELU:
-		return func(x ag.DualValue) ag.DualValue { return ag.CELU(x, m.Params[0]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.CELU(x, m.Params[0]) }, nil
 	case ELU:
-		return func(x ag.DualValue) ag.DualValue { return ag.ELU(x, m.Params[0]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.ELU(x, m.Params[0]) }, nil
 	case SwishB:
-		return func(x ag.DualValue) ag.DualValue { return ag.SwishB(x, m.Params[0]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.SwishB(x, m.Params[0]) }, nil
 	case LeakyReLU:
-		return func(x ag.DualValue) ag.DualValue { return ag.LeakyReLU(x, m.Params[0]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.LeakyReLU(x, m.Params[0]) }, nil
 	case SELU:
-		return func(x ag.DualValue) ag.DualValue { return ag.SELU(x, m.Params[0], m.Params[1]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.SELU(x, m.Params[0], m.Params[1]) }, nil
 	case SoftPlus:
-		return func(x ag.DualValue) ag.DualValue { return ag.SoftPlus(x, m.Params[0], m.Params[1]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.SoftPlus(x, m.Params[0], m.Params[1]) }, nil
 	case SoftShrink:
-		return func(x ag.DualValue) ag.DualValue { return ag.SoftShrink(x, m.Params[0]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.SoftShrink(x, m.Params[0]) }, nil
 	case Threshold:
-		return func(x ag.DualValue) ag.DualValue { return ag.Threshold(x, m.Params[0], m.Params[1]) }, nil
+		return func(x mat.Tensor) mat.Tensor { return ag.Threshold(x, m.Params[0], m.Params[1]) }, nil
 	default:
 		return nil, fmt.Errorf("activation: %s not supported", activationsMap[m.Activation])
 	}

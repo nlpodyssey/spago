@@ -12,13 +12,13 @@ import (
 
 // ScalarMax is an operator to perform reduce-max function on a list of scalars.
 // It gets the maximum element of the Operand x
-type ScalarMax[O DualValue] struct {
+type ScalarMax[O mat.Tensor] struct {
 	xs     []O
 	argmax int
 }
 
 // NewScalarMax returns a new ScalarMax Function.
-func NewScalarMax[O DualValue](xs []O) *ScalarMax[O] {
+func NewScalarMax[O mat.Tensor](xs []O) *ScalarMax[O] {
 	return &ScalarMax[O]{xs: xs}
 }
 
@@ -28,7 +28,7 @@ func (r *ScalarMax[O]) Operands() []O {
 }
 
 // Forward computes the output of this function.
-func (r *ScalarMax[O]) Forward() (mat.Matrix, error) {
+func (r *ScalarMax[O]) Forward() (mat.Tensor, error) {
 	if len(r.xs) == 0 {
 		panic("fn: ScalarMax has no operands")
 	}
@@ -36,18 +36,18 @@ func (r *ScalarMax[O]) Forward() (mat.Matrix, error) {
 	var argmax int
 	for i, x := range r.xs {
 		// FIXME: avoid casting to specific type
-		val := x.Value().Scalar().F64()
+		val := x.Value().Item().F64()
 		if val > max {
 			max = val
 			argmax = i
 		}
 	}
 	r.argmax = argmax
-	return r.xs[argmax].Value().Clone(), nil
+	return r.xs[argmax].Value().(mat.Matrix).Clone(), nil
 }
 
 // Backward computes the backward pass.
-func (r *ScalarMax[O]) Backward(gy mat.Matrix) error {
+func (r *ScalarMax[O]) Backward(gy mat.Tensor) error {
 	if !mat.IsScalar(gy) {
 		return fmt.Errorf("fn: the gradient had to be a scalar")
 	}

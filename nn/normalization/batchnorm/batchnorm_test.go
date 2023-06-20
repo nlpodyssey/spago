@@ -105,8 +105,8 @@ func testModelForwardParams[T float.DType](t *testing.T) {
 			}
 		}
 
-		x := make([]ag.DualValue, len(testData))
-		var y []ag.DualValue
+		x := make([]mat.Tensor, len(testData))
+		var y []mat.Tensor
 		for i := 0; i < tt.forwardSteps; i++ {
 			for j := range data {
 				x[j] = mat.NewDense[T](mat.WithBacking(data[j]))
@@ -178,8 +178,8 @@ func testModelForward[T float.DType](t *testing.T) {
 	assert.InDeltaSlice(t, []T{-0.070710, -0.475556, 0.0, -1.102356}, model.W.Grad().Data(), 1.0e-04)
 }
 
-func rectify(xs []ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func rectify(xs []mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.ReLU(x)
 	}

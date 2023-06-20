@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestReshape_Forward(t *testing.T) {
@@ -18,18 +18,14 @@ func TestReshape_Forward(t *testing.T) {
 }
 
 func testReshapeForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value: mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
-			0.1, 0.2, 0.3, 0.0,
-			0.4, 0.5, -0.6, 0.7,
-			-0.5, 0.8, -0.8, -0.1,
-		})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithShape(3, 4), mat.WithBacking([]T{
+		0.1, 0.2, 0.3, 0.0,
+		0.4, 0.5, -0.6, 0.7,
+		-0.5, 0.8, -0.8, -0.1,
+	}), mat.WithGrad(true))
 
 	f := NewReshape(x, 4, 3)
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -56,9 +52,9 @@ func testReshapeForward[T float.DType](t *testing.T) {
 		0.0, 0.4, 0.5,
 		-0.6, 0.7, -0.5,
 		0.8, -0.8, -0.1,
-	}, x.grad.Data(), 1.0e-6)
+	}, x.Grad().Data(), 1.0e-6)
 
-	if x.grad.Shape()[0] != 3 || x.grad.Shape()[1] != 4 {
+	if x.Grad().Shape()[0] != 3 || x.Grad().Shape()[1] != 4 {
 		t.Error("The rows and columns of the resulting x-gradients matrix are not correct")
 	}
 }

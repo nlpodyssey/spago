@@ -12,13 +12,13 @@ import (
 )
 
 // Mul is an operator to perform matrix-vector multiplication.
-type Mul[O DualValue] struct {
+type Mul[O mat.Tensor] struct {
 	x1 O // matrix
 	x2 O // vector
 }
 
 // NewMul returns a new Mul Function.
-func NewMul[O DualValue](x1 O, x2 O) *Mul[O] {
+func NewMul[O mat.Tensor](x1 O, x2 O) *Mul[O] {
 	return &Mul[O]{
 		x1: x1,
 		x2: x2,
@@ -26,17 +26,17 @@ func NewMul[O DualValue](x1 O, x2 O) *Mul[O] {
 }
 
 // Operands returns the list of operands.
-func (r *Mul[O]) Operands() []O {
-	return []O{r.x1, r.x2}
+func (r *Mul[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x1, r.x2}
 }
 
 // Forward computes the output of the function.
-func (r *Mul[O]) Forward() (mat.Matrix, error) {
-	return r.x1.Value().Mul(r.x2.Value()), nil
+func (r *Mul[O]) Forward() (mat.Tensor, error) {
+	return r.x1.Value().(mat.Matrix).Mul(r.x2.Value().(mat.Matrix)), nil
 }
 
 // Backward computes the backward pass.
-func (r *Mul[O]) Backward(gy mat.Matrix) error {
+func (r *Mul[O]) Backward(gy mat.Tensor) error {
 	if !(r.x1.Value().Shape()[0] == gy.Shape()[0] && r.x2.Value().Shape()[1] == gy.Shape()[1]) {
 		return fmt.Errorf("fn: matrices with not compatible size")
 	}
@@ -45,8 +45,8 @@ func (r *Mul[O]) Backward(gy mat.Matrix) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			x2t := r.x2.Value().T()
-			gx := gy.Mul(x2t)
+			x2t := r.x2.Value().(mat.Matrix).T()
+			gx := gy.(mat.Matrix).Mul(x2t)
 			r.x1.AccGrad(gx)
 		}()
 	}
@@ -56,11 +56,11 @@ func (r *Mul[O]) Backward(gy mat.Matrix) error {
 			defer wg.Done()
 			//r.x2.AccGrad(gy.T().Mul(r.x1).T()) // alternative method
 			if gy.Shape()[1] == 1 {
-				gx := r.x1.Value().MulT(gy)
+				gx := r.x1.Value().(mat.Matrix).MulT(gy.(mat.Matrix))
 				r.x2.AccGrad(gx)
 			} else {
-				x1t := r.x1.Value().T()
-				gx := x1t.Mul(gy)
+				x1t := r.x1.Value().(mat.Matrix).T()
+				gx := x1t.Mul(gy.(mat.Matrix))
 				r.x2.AccGrad(gx)
 			}
 		}()

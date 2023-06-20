@@ -21,9 +21,10 @@ func MatrixMul(aRows, aCols, bCols int, a []float32, b []float32, c []float32) {
 }
 
 // AddConst is
-//  for i := range x {
-//  	x[i] += alpha
-//  }
+//
+//	for i := range x {
+//		x[i] += alpha
+//	}
 func AddConst(alpha float32, x []float32) {
 	for i := range x {
 		x[i] += alpha
@@ -31,10 +32,11 @@ func AddConst(alpha float32, x []float32) {
 }
 
 // DivTo is
-//  for i, v := range s {
-//  	dst[i] = v / t[i]
-//  }
-//  return dst
+//
+//	for i, v := range s {
+//		dst[i] = v / t[i]
+//	}
+//	return dst
 func DivTo(dst, s, t []float32) []float32 {
 	for i, v := range s {
 		dst[i] = v / t[i]
@@ -43,14 +45,15 @@ func DivTo(dst, s, t []float32) []float32 {
 }
 
 // CumSum is
-//  if len(s) == 0 {
-//  	return dst
-//  }
-//  dst[0] = s[0]
-//  for i, v := range s[1:] {
-//  	dst[i+1] = dst[i] + v
-//  }
-//  return dst
+//
+//	if len(s) == 0 {
+//		return dst
+//	}
+//	dst[0] = s[0]
+//	for i, v := range s[1:] {
+//		dst[i+1] = dst[i] + v
+//	}
+//	return dst
 func CumSum(dst, s []float32) []float32 {
 	if len(s) == 0 {
 		return dst

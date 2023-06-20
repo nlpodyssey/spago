@@ -3,7 +3,6 @@ package sgu
 import (
 	"testing"
 
-	"github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
 	"github.com/nlpodyssey/spago/nn/activation"
@@ -38,7 +37,7 @@ func testModelForward[T float.DType](t *testing.T) {
 		0.48, 0.49,
 	})
 
-	xs := []ag.DualValue{
+	xs := []mat.Tensor{
 		mat.NewDense[T](mat.WithBacking([]T{
 			0.572342, 0.70716673, 0.8478436, 0.9926679, 1.2340385, 1.2887437, 1.4375468, 1.5856494, 1.7324576, 1.8776046, 2.0209146, 2.162365, 2.3020453, 2.44012, 2.5767968, 2.7122996,
 		})),

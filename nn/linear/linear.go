@@ -41,8 +41,8 @@ func (m *Model) WithBiasGrad(value bool) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		ys[i] = ag.Affine(m.B, m.W, x)
 	}

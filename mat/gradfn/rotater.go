@@ -7,14 +7,14 @@ package gradfn
 import "github.com/nlpodyssey/spago/mat"
 
 // RotateR is a function to perform a right circular shift of a vector.
-type RotateR[O DualValue] struct {
+type RotateR[O mat.Tensor] struct {
 	x O
 	i int
 }
 
 // NewRotateR returns a new RotateR Function. `i` is the number of places by
 // which the elements are shifted.
-func NewRotateR[O DualValue](x O, i int) *RotateR[O] {
+func NewRotateR[O mat.Tensor](x O, i int) *RotateR[O] {
 	return &RotateR[O]{
 		x: x,
 		i: i,
@@ -22,20 +22,20 @@ func NewRotateR[O DualValue](x O, i int) *RotateR[O] {
 }
 
 // Operands returns the list of operands.
-func (r *RotateR[O]) Operands() []O {
-	return []O{r.x}
+func (r *RotateR[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{r.x}
 }
 
 // Forward computes the output of the function.
-func (r *RotateR[O]) Forward() (mat.Matrix, error) {
-	x := r.x.Value()
+func (r *RotateR[O]) Forward() (mat.Tensor, error) {
+	x := r.x.Value().(mat.Matrix)
 	return rotate(x, x.Size()-r.i), nil
 }
 
 // Backward computes the backward pass.
-func (r *RotateR[O]) Backward(gy mat.Matrix) error {
+func (r *RotateR[O]) Backward(gy mat.Tensor) error {
 	if r.x.RequiresGrad() {
-		gx := rotate(gy, r.i)
+		gx := rotate(gy.(mat.Matrix), r.i)
 		r.x.AccGrad(gx)
 	}
 	return nil

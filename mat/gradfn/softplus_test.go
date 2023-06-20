@@ -5,11 +5,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSoftPlusForward(t *testing.T) {
@@ -18,24 +18,13 @@ func TestSoftPlusForward(t *testing.T) {
 }
 
 func testSoftPlusForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.1, -0.2, 20.3, 0.0})),
-		grad:         nil,
-		requiresGrad: true,
-	}
-	beta := &variable{
-		value:        mat.Scalar[T](2.0),
-		grad:         nil,
-		requiresGrad: false,
-	}
-	threshold := &variable{
-		value:        mat.Scalar[T](20.0),
-		grad:         nil,
-		requiresGrad: false,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.1, -0.2, 20.3, 0.0}), mat.WithGrad(true))
+	beta := mat.Scalar[T](2.0)
+
+	threshold := mat.Scalar[T](20.0)
 
 	f := NewSoftPlus(x, beta, threshold)
-	assert.Equal(t, []*variable{x, beta, threshold}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x, beta, threshold}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -45,5 +34,5 @@ func testSoftPlusForward[T float.DType](t *testing.T) {
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{-1.0, 0.5, 0.8, 0.0})))
 	assert.Nil(t, err)
 
-	assert.InDeltaSlice(t, []T{-0.5498339, 0.20065616, 0.8, 0}, x.grad.Data(), 1.0e-6)
+	assert.InDeltaSlice(t, []T{-0.5498339, 0.20065616, 0.8, 0}, x.Grad().Data(), 1.0e-6)
 }

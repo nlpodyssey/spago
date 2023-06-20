@@ -42,8 +42,8 @@ func New[T float.DType](in int, activation activation.Activation) *Model {
 }
 
 // Forward performs the forward step for each input node and returns the result.
-func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
-	ys := make([]ag.DualValue, len(xs))
+func (m *Model) Forward(xs ...mat.Tensor) []mat.Tensor {
+	ys := make([]mat.Tensor, len(xs))
 	for i, x := range xs {
 		ys[i] = m.forward(x)
 	}
@@ -53,9 +53,9 @@ func (m *Model) Forward(xs ...ag.DualValue) []ag.DualValue {
 // t = sigmoid(wT (dot) x + bT)
 // h = f(wIn (dot) x + bIn)
 // y = t * h + (1 - t) * x
-func (m *Model) forward(x ag.DualValue) ag.DualValue {
+func (m *Model) forward(x mat.Tensor) mat.Tensor {
 	t := ag.Sigmoid(ag.Affine(m.BT, m.WT, x))
 	h := activation.New(m.Activation).Forward(ag.Affine(m.BIn, m.WIn, x))[0] // TODO: refactor for performance
-	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Value().NewScalar(1)), x))
+	y := ag.Add(ag.Prod(t, h), ag.Prod(ag.ReverseSub(t, x.Value().(mat.Matrix).NewScalar(1)), x))
 	return y
 }

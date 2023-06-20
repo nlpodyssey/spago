@@ -5,25 +5,25 @@
 package attention
 
 import (
-	"github.com/nlpodyssey/spago/mat"
 	"math"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 // ScaledDotProductAttention is a self-attention mechanism relating different positions of a single
 // sequence to compute a representation of the same sequence.
 // This method requires that the query, the key and the value vectors have already been obtained
 // from the input sequence. The scaled factor is the square root of the dimension of the key vectors.
-func ScaledDotProductAttention(q []ag.DualValue, k, v, scaleFactor ag.DualValue, useCausalMask bool) ([]ag.DualValue, []ag.DualValue) {
-	nodes := make([]ag.DualValue, len(q)*2)
+func ScaledDotProductAttention(q []mat.Tensor, k, v, scaleFactor mat.Tensor, useCausalMask bool) ([]mat.Tensor, []mat.Tensor) {
+	nodes := make([]mat.Tensor, len(q)*2)
 	attention := nodes[:len(q)]
 	weights := nodes[len(q):]
 
 	causalMaskEnabled := useCausalMask && len(q) > 1
 	kRows := k.Value().Shape()[0]
 
-	kqi := make([]ag.DualValue, len(q))
+	kqi := make([]mat.Tensor, len(q))
 	for i, qi := range q {
 		kqi[i] = ag.Mul(k, qi)
 	}
@@ -32,7 +32,7 @@ func ScaledDotProductAttention(q []ag.DualValue, k, v, scaleFactor ag.DualValue,
 		scores := ag.ProdScalar(kqii, scaleFactor)
 
 		if causalMaskEnabled {
-			causalMask := k.Value().NewMatrix(mat.WithBacking(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
+			causalMask := k.Value().(mat.Matrix).NewMatrix(mat.WithBacking(makeCausalMask(i, kRows))) // TODO: use external cache for causal mask?
 			scores = ag.Add(scores, causalMask)
 		}
 

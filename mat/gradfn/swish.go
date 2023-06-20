@@ -12,37 +12,37 @@ import (
 )
 
 // Swish is an operator to perform element-wise swish function: y = x * sigmoid(x).
-type Swish[O DualValue] struct {
+type Swish[O mat.Tensor] struct {
 	x O
 }
 
 // NewSwish returns a new Swish Function.
-func NewSwish[O DualValue](x O) *Swish[O] {
+func NewSwish[O mat.Tensor](x O) *Swish[O] {
 	return &Swish[O]{
 		x: x,
 	}
 }
 
 // Operands returns the list of operands.
-func (l *Swish[O]) Operands() []O {
-	return []O{l.x}
+func (l *Swish[O]) Operands() []mat.Tensor {
+	return []mat.Tensor{l.x}
 }
 
 // Forward computes the output of the function.
-func (l *Swish[O]) Forward() (mat.Matrix, error) {
-	x := l.x.Value()
+func (l *Swish[O]) Forward() (mat.Tensor, error) {
+	x := l.x.Value().(mat.Matrix)
 	s := x.Sigmoid()
 	return s.ProdInPlace(x), nil
 }
 
 // Backward computes the backward pass.
-func (l *Swish[O]) Backward(gy mat.Matrix) error {
+func (l *Swish[O]) Backward(gy mat.Tensor) error {
 	if !mat.SameDims(l.x.Value(), gy) {
 		return fmt.Errorf("fn: matrices have incompatible dimensions")
 	}
 	if l.x.RequiresGrad() {
-		gx := l.x.Value().Apply(swishDeriv)
-		gx.ProdInPlace(gy)
+		gx := l.x.Value().(mat.Matrix).Apply(swishDeriv)
+		gx.ProdInPlace(gy.(mat.Matrix))
 		l.x.AccGrad(gx)
 	}
 	return nil

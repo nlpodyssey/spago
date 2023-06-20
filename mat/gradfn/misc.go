@@ -5,16 +5,17 @@
 package gradfn
 
 import (
+	"github.com/nlpodyssey/spago/mat"
 	"math"
 )
 
 // Tan is an operator to perform element-wise tangent.
-type Tan[O DualValue] struct {
+type Tan[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewTan returns a new UnaryElementwise tangent function.
-func NewTan[O DualValue](x O) *Tan[O] {
+func NewTan[O mat.Tensor](x O) *Tan[O] {
 	return &Tan[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -25,12 +26,12 @@ func NewTan[O DualValue](x O) *Tan[O] {
 }
 
 // Tanh is an operator to perform element-wise hyperbolic tangent.
-type Tanh[O DualValue] struct {
+type Tanh[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewTanh returns a new UnaryElementwise hyperbolic tangent function.
-func NewTanh[O DualValue](x O) *Tanh[O] {
+func NewTanh[O mat.Tensor](x O) *Tanh[O] {
 	return &Tanh[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -41,12 +42,12 @@ func NewTanh[O DualValue](x O) *Tanh[O] {
 }
 
 // HardSigmoid is an operator to perform element-wise hard sigmoid.
-type HardSigmoid[O DualValue] struct {
+type HardSigmoid[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewHardSigmoid returns a new UnaryElementwise hard sigmoid function.
-func NewHardSigmoid[O DualValue](x O) *HardSigmoid[O] {
+func NewHardSigmoid[O mat.Tensor](x O) *HardSigmoid[O] {
 	return &HardSigmoid[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -57,12 +58,12 @@ func NewHardSigmoid[O DualValue](x O) *HardSigmoid[O] {
 }
 
 // HardTanh is an operator to perform element-wise hard hyperbolic tangent.
-type HardTanh[O DualValue] struct {
+type HardTanh[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewHardTanh returns a new UnaryElementwise hard hyperbolic tangent function.
-func NewHardTanh[O DualValue](x O) *HardTanh[O] {
+func NewHardTanh[O mat.Tensor](x O) *HardTanh[O] {
 	return &HardTanh[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -73,12 +74,12 @@ func NewHardTanh[O DualValue](x O) *HardTanh[O] {
 }
 
 // ReLU is an operator to perform element-wise Rectified Linear Unit (ReLU)
-type ReLU[O DualValue] struct {
+type ReLU[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewReLU returns a new UnaryElementwise Rectified Linear Unit (ReLU) function.
-func NewReLU[O DualValue](x O) *ReLU[O] {
+func NewReLU[O mat.Tensor](x O) *ReLU[O] {
 	return &ReLU[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -89,12 +90,12 @@ func NewReLU[O DualValue](x O) *ReLU[O] {
 }
 
 // Softsign is an operator to perform element-wise softsign.
-type Softsign[O DualValue] struct {
+type Softsign[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewSoftsign returns a new UnaryElementwise softsign function.
-func NewSoftsign[O DualValue](x O) *Softsign[O] {
+func NewSoftsign[O mat.Tensor](x O) *Softsign[O] {
 	return &Softsign[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -105,12 +106,12 @@ func NewSoftsign[O DualValue](x O) *Softsign[O] {
 }
 
 // Cos is an operator to perform element-wise cos.
-type Cos[O DualValue] struct {
+type Cos[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewCos returns a new UnaryElementwise cos function.
-func NewCos[O DualValue](x O) *Cos[O] {
+func NewCos[O mat.Tensor](x O) *Cos[O] {
 	return &Cos[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -121,12 +122,12 @@ func NewCos[O DualValue](x O) *Cos[O] {
 }
 
 // Sin is an operator to perform element-wise sin.
-type Sin[O DualValue] struct {
+type Sin[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewSin returns a new UnaryElementwise sine function.
-func NewSin[O DualValue](x O) *Sin[O] {
+func NewSin[O mat.Tensor](x O) *Sin[O] {
 	return &Sin[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -137,12 +138,12 @@ func NewSin[O DualValue](x O) *Sin[O] {
 }
 
 // Neg is an operator to perform element-wise f(x) = -x
-type Neg[O DualValue] struct {
+type Neg[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewNeg returns a new UnaryElementwise f(x) = -x function.
-func NewNeg[O DualValue](x O) *Neg[O] {
+func NewNeg[O mat.Tensor](x O) *Neg[O] {
 	return &Neg[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -153,12 +154,12 @@ func NewNeg[O DualValue](x O) *Neg[O] {
 }
 
 // Reciprocal is an operator to perform element-wise reciprocal.
-type Reciprocal[O DualValue] struct {
+type Reciprocal[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewReciprocal returns a new UnaryElementwise reciprocal function.
-func NewReciprocal[O DualValue](x O) *Reciprocal[O] {
+func NewReciprocal[O mat.Tensor](x O) *Reciprocal[O] {
 	return &Reciprocal[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -169,12 +170,12 @@ func NewReciprocal[O DualValue](x O) *Reciprocal[O] {
 }
 
 // Abs is an operator to perform element-wise absolute value function.
-type Abs[O DualValue] struct {
+type Abs[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewAbs returns a new UnaryElementwise absolute value function.
-func NewAbs[O DualValue](x O) *Abs[O] {
+func NewAbs[O mat.Tensor](x O) *Abs[O] {
 	return &Abs[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -185,7 +186,7 @@ func NewAbs[O DualValue](x O) *Abs[O] {
 }
 
 // Mish is an operator to perform element-wise mish.
-type Mish[O DualValue] struct {
+type Mish[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
@@ -196,7 +197,7 @@ type Mish[O DualValue] struct {
 //
 // Reference: "Mish: A Self Regularized Non-Monotonic Neural Activation Function"
 // by Diganta Misra, 2019 (https://arxiv.org/pdf/1908.08681.pdf)
-func NewMish[O DualValue](x O) *Mish[O] {
+func NewMish[O mat.Tensor](x O) *Mish[O] {
 	return &Mish[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -207,12 +208,12 @@ func NewMish[O DualValue](x O) *Mish[O] {
 }
 
 // GELU is an operator to perform element-wise GELU.
-type GELU[O DualValue] struct {
+type GELU[O mat.Tensor] struct {
 	*UnaryElementwise[O]
 }
 
 // NewGELU returns a new UnaryElementwise Gaussian Error Linear Unit (GELU) function.
-func NewGELU[O DualValue](x O) *GELU[O] {
+func NewGELU[O mat.Tensor](x O) *GELU[O] {
 	return &GELU[O]{
 		UnaryElementwise: &UnaryElementwise[O]{
 			x:  x,
@@ -224,7 +225,7 @@ func NewGELU[O DualValue](x O) *GELU[O] {
 
 // NewSiLU (Sigmoid Linear Unit) returns a new function of the form f(x) = x * sigmoid(x).
 // The function in an alias of NewSwish.
-func NewSiLU[O DualValue](x O) *Swish[O] {
+func NewSiLU[O mat.Tensor](x O) *Swish[O] {
 	return NewSwish[O](x)
 }
 

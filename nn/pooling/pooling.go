@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 
 	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/nn"
 )
 
@@ -34,8 +35,8 @@ func NewMax(rows, columns int) *MaxPooling {
 
 // Forward performs the forward step for each input node and returns the result.
 // The max pooling is applied independently to each input.
-func (m *MaxPooling) Forward(xs ...ag.DualValue) []ag.DualValue {
-	pooled := func(x ag.DualValue) ag.DualValue {
+func (m *MaxPooling) Forward(xs ...mat.Tensor) []mat.Tensor {
+	pooled := func(x mat.Tensor) mat.Tensor {
 		return ag.MaxPooling(x, m.Rows, m.Columns)
 	}
 	return ag.Map(pooled, xs)

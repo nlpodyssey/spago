@@ -4,11 +4,11 @@
 package gradfn
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/nlpodyssey/spago/mat"
 	"github.com/nlpodyssey/spago/mat/float"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSparseMax_Forward(t *testing.T) {
@@ -17,14 +17,10 @@ func TestSparseMax_Forward(t *testing.T) {
 }
 
 func testSparseMaxForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{0.8053, 0.4594, -0.6136, -0.9460, 1.0722})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{0.8053, 0.4594, -0.6136, -0.9460, 1.0722}), mat.WithGrad(true))
 
 	f := NewSparseMax(x)
-	assert.Equal(t, []*variable{x}, f.Operands())
+	assert.Equal(t, []mat.Tensor{x}, f.Operands())
 
 	y, err := f.Forward()
 	assert.Nil(t, err)
@@ -32,7 +28,7 @@ func testSparseMaxForward[T float.DType](t *testing.T) {
 
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{1.0, 0.5, 0.5, 0.5, 1.0, 1.0})))
 	assert.Nil(t, err)
-	assert.InDeltaSlice(t, []T{0.16, -0.33, 0, 0, 0.16}, x.grad.Data(), 1.0e-2)
+	assert.InDeltaSlice(t, []T{0.16, -0.33, 0, 0, 0.16}, x.Grad().Data(), 1.0e-2)
 }
 
 func TestSparseMaxLoss_Forward(t *testing.T) {
@@ -41,11 +37,7 @@ func TestSparseMaxLoss_Forward(t *testing.T) {
 }
 
 func testSparseMaxLossForward[T float.DType](t *testing.T) {
-	x := &variable{
-		value:        mat.NewDense[T](mat.WithBacking([]T{-0.3218, 0.7395, -0.2319, 0.2312, 0.7185})),
-		grad:         nil,
-		requiresGrad: true,
-	}
+	x := mat.NewDense[T](mat.WithBacking([]T{-0.3218, 0.7395, -0.2319, 0.2312, 0.7185}), mat.WithGrad(true))
 
 	f := NewSparseMaxLoss(x)
 
@@ -55,5 +47,5 @@ func testSparseMaxLossForward[T float.DType](t *testing.T) {
 
 	err = f.Backward(mat.NewDense[T](mat.WithBacking([]T{0, 0, -1, 0, 0})))
 	assert.Nil(t, err)
-	assert.InDeltaSlice(t, []T{0.0000, 0.5098, -1.0000, 0.0015, 0.4888}, x.grad.Data(), 1.0e-2)
+	assert.InDeltaSlice(t, []T{0.0000, 0.5098, -1.0000, 0.0015, 0.4888}, x.Grad().Data(), 1.0e-2)
 }
