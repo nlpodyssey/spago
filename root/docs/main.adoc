@@ -1,0 +1,193 @@
+= Spago Documentation
+
+Spago is a machine learning and deep learning library written in pure Go. It provides support for relevant neural architectures in natural language processing.
+
+== Installation
+
+To install Spago, you need to have Go 1.19 or higher installed. You can clone the repository or get the library using the following command:
+source,shell]
+----
+go get -u github.com/nlpodyssey/spago
+----
+
+== Usage
+
+Spago provides various functionalities for machine learning and deep learning tasks. Some of the key features include:
+
+- Automatic differentiation via dynamic define-by-run execution
+- Feed-forward layers (Linear, Highway, Convolution...)
+- Recurrent layers (LSTM, GRU, BiLSTM...)
+- Attention layers (Self-Attention, Multi-Head Attention...)
+- Gradient descent optimizers (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
+- Gob compatible neural models for serialization
+
+== Documentation
+
+=== Package mat
+
+The mat package provides matrix operations and tensor-related functionalities.
+
+==== Types
+
+- Tensor: Represents an interface for a generic tensor. It provides methods for accessing the shape, dimensions, size, data, and other properties of the tensor.
+
+==== Functions
+
+- NewEmptyTensor: Creates a new empty tensor with the specified shape.
+- NewScalar: Creates a new scalar tensor with the specified value.
+- NewMatrix: Creates a new matrix tensor with the specified data and shape.
+- NewVecDense: Creates a new dense vector tensor with the specified data.
+- NewVecSparse: Creates a new sparse vector tensor with the specified data.
+- NewVecOneHot: Creates a new one-hot vector tensor with the specified index and length.
+
+=== Package nn
+
+The nn package provides neural network-related functionalities.
+
+==== Types
+
+- Model: Represents a neural network model. It provides methods for training, evaluation, and prediction.
+
+==== Functions
+
+- NewModel: Creates a new neural network model with the specified layers.
+- LoadModel: Loads a pre-trained neural network model from a file.
+- SaveModel: Saves a neural network model to a file.
+
+=== Package optimizers
+
+The optimizers package provides gradient descent optimizer implementations.
+
+==== Types
+
+- Optimizer: Represents an optimizer. It provides methods for updating the parameters of a neural network model.
+
+==== Functions
+
+- NewSGD: Creates a new stochastic gradient descent optimizer.
+- NewAdam: Creates a new Adam optimizer.
+- NewRMSProp: Creates a new RMSProp optimizer.
+- `NewAdaGrad`: Creates a new AdaGrad optimizer.
+
+=== Package `utils`
+
+The `utils` package provides utility functions for data preprocessing and evaluation.
+
+==== Functions
+
+- `Shuffle`: Shuffles the elements of a slice randomly.
+- `SplitTrainTest`: Splits a dataset into training and testing subsets.
+- `OneHotEncode`: Performs one-hot encoding on categorical data.
+- `Normalize`: Normalizes numerical data.
+- `EvaluateClassification`: Evaluates the performance of a classification model using various metrics such as accuracy, precision, recall, and F1 score.
+- `EvaluateRegression`: Evaluates the performance of a regression model using metrics such as mean squared error (MSE) and R-squared.
+
+=== Examples
+
+==== Creating a Neural Network Model
+
+[source,go]
+----
+import (
+    "github.com/nlpodyssey/spago/nn"
+    "github.com/nlpodyssey/spago/nn/activation"
+    "github.com/nlpodyssey/spago/nn/initializers"
+    "github.com/nlpodyssey/spago/nn/losses"
+    "github.com/nlpodyssey/spago/nn/metrics"
+    "github.com/nlpodyssey/spago/nn/optimizers"
+)
+
+func main() {
+    // Define the layers of the neural network
+    model := nn.NewModel(
+        nn.NewLinear(10, 20, initializers.XavierUniform()),
+        activation.NewReLU(),
+        nn.NewLinear(20, 1, initializers.XavierUniform()),
+        activation.NewSigmoid(),
+    )
+
+    // Define the loss function
+    loss := losses.NewBCE()
+
+    // Define the optimizer
+    optimizer := optimizers.NewAdam(0.001)
+
+    // Train the model
+    for epoch := 0; epoch < numEpochs; epoch++ {
+        // Forward pass
+        output := model.Forward(input)
+
+        // Compute the loss
+        lossValue := loss.Forward(output, target)
+
+        // Backward pass
+        model.ZeroGrad()
+        loss.Backward(output, target)
+        model.Optimize(optimizer)
+
+        // Print the loss and metrics
+        fmt.Printf("Epoch %d - Loss: %.4f\n", epoch, lossValue)
+    }
+
+    // Evaluate the model
+    accuracy := metrics.Accuracy(model, testData)
+    fmt.Printf("Accuracy: %.2f%%\n", accuracy*100)
+}
+----
+
+==== Using the Optimizers
+
+[source,go]
+----
+import (
+    "github.com/nlpodyssey/spago/nn"
+    "github.com/nlpodyssey/spago/nn/optimizers"
+)
+
+func main() {
+    // Create a neural network model
+    model := nn.NewModel(
+        nn.NewLinear(10, 20),
+        nn.NewLinear(20, 1),
+    )
+
+    // Create an optimizer
+    optimizer := optimizers.NewAdam(0.001)
+
+    // Train the model
+    for epoch := 0; epoch < numEpochs; epoch++ {
+        // Forward pass
+        output := model.Forward(input)
+
+        // Compute the loss and gradients
+        loss := computeLoss(output, target)
+        model.Backward(loss)
+
+        // Update the model parameters
+        optimizer.Optimize(model)
+
+        // Print the loss
+        fmt.Printf("Epoch %d - Loss: %.4f\n", epoch, loss)
+    }
+}
+----
+
+=== Contributing
+
+If you would like to contribute to Spago, you can open issues and pull requests on the GitHub repository. Please refer to the [Contributing Guidelines](https://github.com/nlpodyssey/spago/blob/main/CONTRIBUTING.md) for more information.
+
+=== Contact
+
+If you have any questions or comments about Spago, you can create an issue on the GitHub repository or email Matteo Grella at matteogrella@gmail.com.
+
+=== Acknowledgments
+
+Spago is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative initiated by members of the EXOP team (now part of Crisis24).
+
+=== Sponsors
+
+If you are interested in becoming a sponsor of Spago, you can visit our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page. Your support is greatly appreciated.
+
+---
+
+If you're interested in NLP-related functionalities, be sure to explore the [Cybertron](https://github.com/nlpodyssey/cybertron) package!

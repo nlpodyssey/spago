@@ -1,0 +1,6 @@
+/* This style is only loaded after 1.5 seconds, to prioritize the quality of the page once it has loaded. */
+body {
+    image-rendering: optimizeQuality;
+    shape-rendering: geometricPrecision;
+    text-rendering: optimizeLegibility;
+}
