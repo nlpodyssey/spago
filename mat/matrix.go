@@ -15,15 +15,8 @@ import (
 // such as element-wise addition, subtraction, product and matrix-matrix
 // multiplication.
 type Matrix interface {
-	// Shape returns the size in each dimension.
-	Shape() []int
-	// Dims returns the number of dimensions.
-	Dims() int
-	// Size returns the total number of elements.
-	Size() int
-	// Data returns the underlying data of the matrix, as a raw one-dimensional
-	// slice of values in row-major order.
-	Data() float.Slice
+	Tensor
+
 	// SetData sets the content of the matrix, copying the given raw
 	// data representation as one-dimensional slice.
 	SetData(data float.Slice)
@@ -38,12 +31,6 @@ type Matrix interface {
 	Item() float.Float
 	// Zeros sets all the values of the matrix to zero.
 	Zeros()
-	// SetAt sets the value at the given indices.
-	// It panics if the given indices are out of range.
-	SetAt(m Matrix, indices ...int)
-	// At returns the value at the given indices.
-	// It panics if the given indices are out of range.
-	At(indices ...int) Matrix
 	// SetScalar sets the value at the given indices.
 	// It panics if the given indices are out of range.
 	SetScalar(v float.Float, indices ...int)
@@ -235,22 +222,7 @@ type Matrix interface {
 	// them as row vectors.
 	NewStack(vs ...Matrix) Matrix
 
-	// Value returns the Matrix itself.
-	Value() Tensor
-	// Grad returns the accumulated gradients with the AccGrad method.
-	// A matrix full of zeros and the nil value are considered equivalent.
-	Grad() Tensor
-	// HasGrad reports whether there are accumulated gradients.
-	HasGrad() bool
-	// RequiresGrad reports whether the Matrix requires gradients.
-	// It is set by the SetRequiresGrad method or the functional options WithGrad.
-	RequiresGrad() bool
-	// SetRequiresGrad sets whether the Matrix requires gradients.
 	SetRequiresGrad(bool)
-	// AccGrad accumulates the gradients.
-	AccGrad(gx Tensor)
-	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
-	ZeroGrad()
 }
 
 func init() {

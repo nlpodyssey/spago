@@ -4,7 +4,11 @@
 
 package mat
 
-import "github.com/nlpodyssey/spago/mat/float"
+import (
+	"encoding/gob"
+
+	"github.com/nlpodyssey/spago/mat/float"
+)
 
 // Tensor represents an interface for a generic tensor.
 type Tensor interface {
@@ -19,6 +23,12 @@ type Tensor interface {
 	// Item returns the scalar value.
 	// It panics if the matrix does not contain exactly one element.
 	Item() float.Float
+	// SetAt sets the value at the given indices.
+	// It panics if the given indices are out of range.
+	SetAt(m Tensor, indices ...int)
+	// At returns the value at the given indices.
+	// It panics if the given indices are out of range.
+	At(indices ...int) Tensor
 	// Value returns the value of the node.
 	// In case of a leaf node, it returns the value of the underlying matrix.
 	// In case of a non-leaf node, it returns the value of the operation performed during the forward pass.
@@ -34,4 +44,8 @@ type Tensor interface {
 	AccGrad(gx Tensor)
 	// ZeroGrad zeroes the gradients, setting the value of Grad to nil.
 	ZeroGrad()
+}
+
+func init() {
+	gob.Register([]Tensor{})
 }

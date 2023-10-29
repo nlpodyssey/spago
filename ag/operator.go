@@ -121,6 +121,18 @@ func NewOperator(f AutoGradFunction) *Operator {
 	return &Operator{fn: f}
 }
 
+// SetAt sets the value at the given indices.
+// It panics if the given indices are out of range.
+func (o *Operator) SetAt(m mat.Tensor, indices ...int) {
+	o.Value().SetAt(m, indices...)
+}
+
+// At returns the value at the given indices.
+// It panics if the given indices are out of range.
+func (o *Operator) At(indices ...int) mat.Tensor {
+	return o.Value().At(indices...)
+}
+
 // Run starts the execution of the operator, performing the forward pass.
 // If the optional async argument is set to true, the forward pass will be executed in a separate goroutine.
 // The function returns a pointer to the Operator, allowing for method chaining.

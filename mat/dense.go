@@ -110,13 +110,13 @@ func (d *Dense[T]) Zeros() {
 
 // SetAt sets the value m at the given indices.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) SetAt(m Matrix, indices ...int) {
+func (d *Dense[T]) SetAt(m Tensor, indices ...int) {
 	d.set(float.ValueOf[T](m.Item()), indices...)
 }
 
 // At returns the value at the given indices.
 // It panics if the given indices are out of range.
-func (d *Dense[T]) At(i ...int) Matrix {
+func (d *Dense[T]) At(i ...int) Tensor {
 	return Scalar[T](d.at(i...))
 }
 
