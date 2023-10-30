@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	//lint:ignore ST1001 allow dot import just to make the example more readable
 	. "github.com/nlpodyssey/spago/ag"
 	"github.com/nlpodyssey/spago/mat"
 )
