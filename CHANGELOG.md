@@ -7,6 +7,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0] - 2023-10-30
+
+### Changed
+
+- Replace `sync.Cond` with a close of channel in the broadcasting mechanism of autograd `ag` package
+- Refactor `Matrix` interface to extend from `Tensor`
+- Replace `ag.Node` and ag.DualValue with `mat.Tensor`
+- Breaking change: New single `NewDense` function accepting functional options (`WithShape`, `WithBacking`, `WithGrad`)
+- Refactor `BaseParam` struct to embed `mat.Matrix`
+- Remove `Variable` and enable gradient accumulation in `Matrix`
+- Revise backward method and eliminate truncated backpropagation
+- Backward function to require explicit output gradients to be accumulated beforehand
+- Move package `fn` out of package `ag` and rename it to `gradfn` as `mat` subpackage
+
+### Removed
+
+- Remove the parameter name to simplify the code and reduce unnecessary complexity (e.g., Introspect())
+- Remove concurrent matrix-vector multiplication as it requires more careful considerations
+- Remove the export feature in dot format
+- Remove "spago" tag annotations on embeddings
+
 ## [1.0.1] - 2022-09-16
 
 ### Added

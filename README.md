@@ -56,7 +56,7 @@ It provides:
 
 Requirements:
 
-* [Go 1.19](https://golang.org/dl/)
+* [Go 1.21](https://golang.org/dl/)
 
 Clone this repo or get the library:
 
