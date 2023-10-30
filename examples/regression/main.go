@@ -89,9 +89,10 @@ func main() {
 	fmt.Printf("Model parameters:\n")
 	fmt.Printf("W: %.2f | B: %.2f\n\n", m.W.Value().Item().F64(), m.B.Value().Item().F64())
 
-	fmt.Printf("Saving the trained model to the file...\n")
-	err := nn.DumpToFile(m, "model.bin")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// -- Enable this code to save the trained model to a file --
+	// fmt.Printf("Saving the trained model to the file...\n")
+	// err := nn.DumpToFile(m, "model.bin")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }

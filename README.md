@@ -75,27 +75,33 @@ Here is an example of how to calculate the sum of two variables:
 package main
 
 import (
-  "fmt"
+	"fmt"
+	"log"
 
-  "github.com/nlpodyssey/spago/ag"
-  "github.com/nlpodyssey/spago/mat"
+	"github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
-type T = float32
-
 func main() {
-  // create a new node of type variable with a scalar
-  a := mat.Scalar(T(2.0), mat.WithGrad(true)) // create another node of type variable with a scalar
-  b := mat.Scalar(T(5.0), mat.WithGrad(true)) // create an addition operator (the calculation is actually performed here)
-  c := ag.Add(a, b)
+	// define the type of the elements in the tensors
+	type T = float32
 
-  // print the result
-  fmt.Printf("c = %v (float%d)\n", c.Value(), c.Value().Scalar().BitSize())
+	// create a new node of type variable with a scalar
+	a := mat.Scalar(T(2.0), mat.WithGrad(true)) // create another node of type variable with a scalar
+	b := mat.Scalar(T(5.0), mat.WithGrad(true)) // create an addition operator (the calculation is actually performed here)
+	c := ag.Add(a, b)
 
-  c.AccGrad(mat.Scalar(T(0.5)))
-  ag.Backward(c)
-  fmt.Printf("ga = %v\n", a.Grad())
-  fmt.Printf("gb = %v\n", b.Grad())
+	// print the result
+	fmt.Printf("c = %v (float%d)\n", c.Value(), c.Value().Item().BitSize())
+
+	c.AccGrad(mat.Scalar(T(0.5)))
+
+	if err := ag.Backward(c); err != nil {
+		log.Fatalf("error during Backward(): %v", err)
+	}
+
+	fmt.Printf("ga = %v\n", a.Grad())
+	fmt.Printf("gb = %v\n", b.Grad())
 }
 ```
 
@@ -115,17 +121,20 @@ Here is a simple implementation of the perceptron formula:
 package main
 
 import (
-  . "github.com/nlpodyssey/spago/ag"
-  "github.com/nlpodyssey/spago/mat"
+	"fmt"
+	
+	. "github.com/nlpodyssey/spago/ag"
+	"github.com/nlpodyssey/spago/mat"
 )
 
 func main() {
-  x := mat.Scalar(-0.8)
-  w := mat.Scalar(0.4)
-  b := mat.Scalar(-0.2)
+	x := mat.Scalar(-0.8)
+	w := mat.Scalar(0.4)
+	b := mat.Scalar(-0.2)
 
-  y := Sigmoid(Add(Mul(w, x), b))
-  _ = y
+	y := Sigmoid(Add(Mul(w, x), b))
+
+	fmt.Printf("y = %0.3f\n", y.Value().Item())
 }
 ```
 
