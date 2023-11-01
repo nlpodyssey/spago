@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	x := mat.Scalar(-0.8)
-	w := mat.Scalar(0.4)
-	b := mat.Scalar(-0.2)
+	w := mat.Scalar(3.)
+	b := mat.Scalar(1.)
+	x := mat.Scalar(2.)
 
-	y := Sigmoid(Add(Mul(w, x), b))
+	y := Sigmoid(Add(Mul(w, x), b)) // y = sigmoid(w*x + b)
 
 	fmt.Printf("y = %0.3f\n", y.Value().Item())
 }
