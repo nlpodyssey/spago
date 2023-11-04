@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `gradfn.ReduceMean.Backward` was not respecting the operand's shape, causing
+  incompatible-shape error when reduce-mean was applied to non-vector values.
+
 ## [1.1.0] - 2023-10-30
 
 ### Changed

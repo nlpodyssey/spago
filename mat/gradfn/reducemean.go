@@ -42,7 +42,7 @@ func (r *ReduceMean[O]) Backward(gy mat.Tensor) error {
 		x := r.x.Value().(mat.Matrix)
 		size := x.Size()
 		v := gy.Item().F64() / float64(size)
-		gx := x.NewMatrix(mat.WithShape(size), mat.WithBacking(mat.CreateInitializedSlice(size, v)))
+		gx := x.NewMatrix(mat.WithShape(x.Shape()...), mat.WithBacking(mat.CreateInitializedSlice(size, v)))
 		r.x.AccGrad(gx)
 	}
 	return nil
