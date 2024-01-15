@@ -159,12 +159,3 @@ To start contributing, check the [Contributing Guidelines](https://github.com/nl
 ## Contact
 
 We highly encourage you to create an issue as it will contribute to the growth of the community. However, if you prefer to communicate with us privately, please feel free to email [Matteo Grella](mailto:matteogrella@gmail.com) with any questions or comments you may have.
-
-## Acknowledgments
-
-Spago is part of the open-source [NLP Odyssey](https://github.com/nlpodyssey) initiative
-initiated by members of the EXOP team (now part of Crisis24).
-
-## Sponsors
-
-See our [Open Collective](https://opencollective.com/nlpodyssey/contribute) page if you too are interested in becoming a sponsor.
