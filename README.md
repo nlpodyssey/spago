@@ -36,7 +36,17 @@
 <br>
 <p>
 
-> If you're interested in NLP-related functionalities, be sure to explore the [Cybertron](https://github.com/nlpodyssey/cybertron) package!
+> 15 Jan 2024 - As I reflect on the journey of Spago, I am filled with gratitude for the enriching experience it has provided me. Mastering Go and revisiting the fundamentals of Deep Learning through Spago has been immensely rewarding. The unique features of Spago, especially its asynchronous computation graph and focusing on clean coding, have made it an extraordinary project to work on. Our goal was to create a minimalist ML framework in Go, eliminating the dependency on Python in production by enabling the creation of standalone executables. This approach of Spago successfully powered several of my projects in challenging production environments.
+> 
+> However, the endeavor to elevate Spago to a level where it can compete effectively in the evolving 'AI space', which now extensively involves computation on GPUs, requires substantial commitment. At the same time, the vision that Spago aspired to achieve is now being impressively realized by the [Candle](https://github.com/huggingface/candle) project in Rust. With my limited capacity to dedicate the necessary attention to Spago, and in the absence of a supporting maintenance team, I have made the pragmatic decision to pause the project for now.
+>
+> I am deeply grateful for the journey Spago has taken me on and for the community that has supported it. As we continue to explore the ever-evolving field of machine learning, I look forward to the exciting developments that lie ahead.
+> 
+> Warm regards,
+>
+> Matteo Grella
+
+---
 
 Spago is a **Machine Learning** library written in pure Go designed to support relevant neural architectures in **Natural
 Language Processing**.
@@ -51,6 +61,8 @@ It provides:
 - Attention layers (Self-Attention, Multi-Head Attention...)
 - Gradient descent optimizers (Adam, RAdam, RMS-Prop, AdaGrad, SGD)
 - Gob compatible neural models for serialization
+
+If you're interested in NLP-related functionalities, be sure to explore the [Cybertron](https://github.com/nlpodyssey/cybertron) package!
 
 ## Usage
 
