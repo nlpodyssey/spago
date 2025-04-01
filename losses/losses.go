@@ -155,3 +155,60 @@ func SPG(logPropActions []mat.Tensor, logProbTargets []mat.Tensor) mat.Tensor {
 	}
 	return ag.Neg(loss)
 }
+
+// Huber measures the Huber loss between each element in the input x and target y, controlled by
+// the threshold (delta). Below the threshold, it behaves like MSE; above it, it becomes linear
+// in order to reduce the effect of outliers. If reduceMean is true, it returns the average loss;
+// otherwise it returns the sum of the losses.
+//
+// Huber(d) = { 0.5 * (d^2)              if |d| ≤ δ
+//
+//	δ * (|d| - 0.5 * δ)      otherwise }
+//
+// Here, d = x - y.
+func Huber(x, y mat.Tensor, delta float64, reduceMean bool) mat.Tensor {
+	// 1) Compute d = x - y, then |d|
+	d := ag.Sub(x, y)
+	absD := ag.Abs(d)
+
+	// 2) Build a scalar tensor from 'delta'
+	//    then multiply it by the shape of absD (via OnesLike) to broadcast
+	//    the scalar across all elements. This avoids dimension mismatch with Min().
+	deltaMat := x.Value().(mat.Matrix).NewScalar(delta)
+	deltaVec := ag.ProdScalar(x.Value().(mat.Matrix).OnesLike(), deltaMat)
+
+	// 3) clipped = min(|d|, deltaVec)
+	clipped := ag.Min(absD, deltaVec)
+
+	// 4) 0.5 * (clipped)^2
+	halfSqr := ag.ProdScalar(ag.Square(clipped), x.Value().(mat.Matrix).NewScalar(0.5))
+
+	// 5) deltaVec * (|d| - clipped)
+	linear := ag.Prod(deltaVec, ag.Sub(absD, clipped))
+
+	// 6) Combine
+	loss := ag.Add(halfSqr, linear)
+
+	// 7) reduceMean or sum
+	if reduceMean {
+		return ag.ReduceMean(loss)
+	}
+	return ag.ReduceSum(loss)
+}
+
+// HuberSeq calculates the Huber loss on multiple (predicted, target) pairs.
+// It sums the Huber loss across the entire sequence, optionally averaging it
+// by the number of elements if reduceMean is true.
+func HuberSeq(predicted, target []mat.Tensor, delta float64, reduceMean bool) mat.Tensor {
+	// Accumulate the Huber loss across the sequence
+	loss := Huber(predicted[0], target[0], delta, false)
+	for i := 1; i < len(predicted); i++ {
+		loss = ag.Add(loss, Huber(predicted[i], target[i], delta, false))
+	}
+
+	// Optionally divide by length to get mean
+	if reduceMean {
+		return ag.DivScalar(loss, loss.Value().(mat.Matrix).NewScalar(float64(len(predicted))))
+	}
+	return loss
+}

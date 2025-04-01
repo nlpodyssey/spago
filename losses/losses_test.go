@@ -190,3 +190,41 @@ func assertScalarEqualApprox[T float.DType](t *testing.T, expected T, actual mat
 	v := float.ValueOf[T](actual.Item())
 	assert.InDelta(t, expected, v, 1.0e-06)
 }
+
+func TestHuberLoss(t *testing.T) {
+	t.Run("float32", func(t *testing.T) { testHuberLoss[float32](t, 1.0e-6) })
+	t.Run("float64", func(t *testing.T) { testHuberLoss[float64](t, 1.0e-12) })
+}
+
+func testHuberLoss[T float.DType](t *testing.T, tol T) {
+	// 1) Setup input, target, delta
+	x := mat.NewDense[T](mat.WithBacking([]T{0.0, 2.5, 4.0}), mat.WithGrad(true))
+	y := mat.NewDense[T](mat.WithBacking([]T{0.0, 1.0, 2.0}))
+	delta := 1.0
+
+	// 2) Compute Huber loss with reduceMean = false
+	loss := Huber(x, y, delta, false)
+
+	// Sum of the "Huber" terms across 3 elements => ~2.5
+	assert.InDelta(t, 2.5, loss.Value().Item().F64(), float64(tol))
+
+	// 3) Backward
+	ag.Backward(loss)
+
+	// For this example:
+	// d = [0, 1.5, 2.0]; gradient = sign(d)*delta if |d|>delta else d
+	// => [0, 1.0, 1.0]
+	assert.InDeltaSlice(t, []T{0.0, 1.0, 1.0}, x.Grad().Data(), float64(tol))
+
+	// 4) Test again with reduceMean = true
+	x2 := mat.NewDense[T](mat.WithBacking([]T{0.0, 2.5, 4.0}), mat.WithGrad(true))
+	y2 := mat.NewDense[T](mat.WithBacking([]T{0.0, 1.0, 2.0}))
+	loss2 := Huber(x2, y2, delta, true)
+
+	// The total is 2.5 for 3 elements => 2.5 / 3 = ~0.8333
+	assert.InDelta(t, 0.8333333333333333, loss2.Value().Item().F64(), float64(tol))
+
+	ag.Backward(loss2)
+	// The gradient is the same shape but divided by 3 => [0, ~0.3333, ~0.3333]
+	assert.InDeltaSlice(t, []T{0.0, 0.3333333333333333, 0.3333333333333333}, x2.Grad().Data(), float64(tol))
+}
